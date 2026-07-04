@@ -427,3 +427,52 @@ header (prose only); README "What you should see" doesn't yet describe
 stage 4's STAGE4 log lines — chunk 2's supervisor runs will truth-edit
 displays. Stage 4 has never run under the supervisor yet. NOT a step close
 — no checksum snapshot. Chunk 2 = auto run + human demo + close.
+
+Phase B, Step 12 — chunk 2 of 2 COMPLETE (2026-07-04): mini-preflight clean
+(HEAD de02839, status clean, of12-prod already Up). Opening tidy (all ruled):
+cases/cavity_baseline pruned back to exactly {0/, constant/ (incl. polyMesh —
+the Step-11 reset template originally carried it), system/} at this recorded
+checkpoint — deleted the Step-11 live-proof artifacts (time dirs 2–18; time
+dir 20 incl. the derived mag(U) field; log.foamRun 7.0 MB; log.postProcess;
+postProcessing/) because template ≠ evidence store (proof evidence lives in
+the frozen fixture and reports); controlDict header truth-edited "(answer
+key)" → "Production template, graduated from the Step-5 spike case." (Re line
+kept; grep confirms "answer key" gone project-wide). Gate-5 header extension
+(ratified JC6d, the chunk's ONLY supervisor change, display-only):
+build_gate5_header appends an EXECUTION section when
+payload.execution_results exists — status, then per-run one-liners (run N:
+converged true/false, qoi <value> | qoi_error <msg>) for executed, "nothing
+executed: defer verdict" for skipped_defer, "reason: <halt reason>"
+otherwise; pure never-raise, refine flag deliberately not printed (not in the
+ruling's list); 5 new unit tests, 52/52 total. Auto run 20260704T084910Z
+verified from disk (452.76 s wall clock; stage-4 elapsed <1 ms by baton
+mtimes): defer verdict (2D in-plane velocity proxy for an inherently-3D
+Péclet-reduction mechanism) → skipped_defer branch — 6 history entries with
+stage 4's code-authored "skipped (defer)", execution_results exactly
+{status: skipped_defer}, zero cases/<id>_run* dirs, honest results.json,
+payload byte-stable through stages 5–6 (known iterate_decision:"exit"),
+verdict.json == payload.fidelity_verdict, ECHO_CHECK stages 2+3, 17 calls
+all attempts=1, zero RE-ASK, run_record journaled. Human demo
+20260704T090024Z verified from disk: rank 2 of 4 chosen at gate 1 (h2),
+gate-1 payload exactly {domain, chosen_hypothesis} matching the rank-2 entry
+verbatim, spec.hypothesis_id h2 + fresh validate_spec [], defer verdict (no
+scalar-transport physics so the concentration-variance QoI does not exist;
+cannot reproduce the 3D Hopf instability at Re_c≈1914) → skipped_defer
+branch, gates 2/5 answered y, gate-5 header durable in log.txt with BOTH the
+verdict block (line 226) and the new EXECUTION lines (229–230), 6 history
+entries, no gate vocabulary in history (substring hits triaged: stage name
+'stage3_fidelity_gate' + stage-1's own 'ranked' note), run_record journaled.
+Fence watch both runs: Sonnet 8/8, Haiku 2/2 (denominator now 2 — stage 4
+makes no model call), Opus 0/7 each — running Opus total 0/82. Honest
+asterisks: both supervised runs drew defer, so the executed and halted
+branches have still run only through the chunk-1 side door — expected until
+stage 2 learns the contract's machine-readable QoI keys (the NAMED Step-13
+opening change; also a Step-15 schema candidate); the discretization pair
+0.4168179 @ dt=0.002 vs 0.4168353 @ dt=0.005 is 4-sig-fig agreement, and
+chunk 1's "mismatch" wording was a strategy-chat dictation error, resolved.
+Step-12 milestone journaled (run_id "step12") with load-bearing Q&As.
+Checksum snapshot checksums_after_step12_chunk2.txt is this step's FINAL
+write.
+Step 12 COMPLETE (stage 4 real: verdict-gated deterministic runner; case
+synthesis with honest halts; mini-experiment execution through run_cfd;
+supervised in both modes). Step 13 next, scope not guessed here.

@@ -107,21 +107,45 @@ def build_gate5_header(payload: dict) -> str:
 
     Pure function, no I/O: payload -> str. Same display-only, never-raise
     contract as build_gate2_header — the verdict is otherwise buried in the
-    full baton dump the human has to read past.
+    full baton dump the human has to read past. When the payload carries
+    execution_results (stage 4 real, Step 12), an EXECUTION section follows
+    the verdict: the status, then per-run one-liners for executed runs, or
+    the skip/halt reason otherwise.
     """
     verdict = payload.get("fidelity_verdict")
     if not isinstance(verdict, dict):
         verdict = {}
     label = str(verdict.get("label") or "?").upper()
-    return "\n".join(
-        [
-            "==================================",
-            f"FIDELITY VERDICT: {label}",
-            f"  rationale: {verdict.get('rationale') or '?'}",
-            f"  right instrument: {verdict.get('right_instrument') or '?'}",
-            "==================================",
-        ]
-    )
+    lines = [
+        "==================================",
+        f"FIDELITY VERDICT: {label}",
+        f"  rationale: {verdict.get('rationale') or '?'}",
+        f"  right instrument: {verdict.get('right_instrument') or '?'}",
+    ]
+    exec_res = payload.get("execution_results")
+    if isinstance(exec_res, dict):
+        status = exec_res.get("status") or "?"
+        lines.append(f"EXECUTION: {status}")
+        if status == "executed":
+            runs = exec_res.get("runs")
+            for n, entry in enumerate(runs if isinstance(runs, list) else [], start=1):
+                if not isinstance(entry, dict):
+                    entry = {}
+                converged = entry.get("converged")
+                converged_txt = str(converged).lower() if isinstance(converged, bool) else "?"
+                if "qoi_value" in entry:
+                    qoi_txt = f"qoi {entry['qoi_value']}"
+                elif "qoi_error" in entry:
+                    qoi_txt = f"qoi_error {entry['qoi_error']}"
+                else:
+                    qoi_txt = "qoi ?"
+                lines.append(f"  run {n}: converged {converged_txt}, {qoi_txt}")
+        elif status == "skipped_defer":
+            lines.append("  nothing executed: defer verdict")
+        else:
+            lines.append(f"  reason: {exec_res.get('reason') or '?'}")
+    lines.append("==================================")
+    return "\n".join(lines)
 
 
 def run_gate(logger: Logger, baton: Baton, mode: str, gate_name: str) -> bool:

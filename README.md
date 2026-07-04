@@ -76,8 +76,24 @@ saved ...") and one pair of lines per gate ("GATE ...: reached" / "GATE
 ...: auto-approved"), then finishes with a line reporting the baton's
 final history-entry count (should be 6 — one per stage).
 
+Stage 4 additionally prints its own `STAGE4` lines, one per thing it did,
+depending on the fidelity verdict:
+
+- defer: `STAGE4 skipped_defer: no case built, no solver run`
+- trust/refine, per mini-run:
+  `STAGE4 run N/M case=<run_id>_runN status=... converged=... qoi=...`
+- if the spec's QoI carries no machine-readable keys:
+  `STAGE4 qoi_request=none (QoI ... not extractable by contract: ...)`
+- if a case can't be built:
+  `STAGE4 halted_synthesis at run N of M: <every offending parameter>`
+
 **Human mode:** the run pauses three times — after stage 1, after stage 2,
-and after stage 5 — pretty-prints the current baton, and asks:
+and after stage 5. Gate 1 lists the ranked hypotheses and asks you to pick
+one by number. Gates 2 and 5 print a display-only header first — gate 2 a
+one-line SPEC summary, gate 5 a boxed FIDELITY VERDICT block followed by
+an EXECUTION section showing what stage 4 did (status, plus per-run
+one-liners or the skip/halt reason) — then pretty-print the current baton
+and ask:
 
 ```
 GATE after_stage_N: approve to continue [y] / stop [n]:
@@ -95,9 +111,15 @@ containing:
 - `baton_after_stage_1.json` through `baton_after_stage_6.json` — a
   snapshot of the baton after each stage ran. Useful for seeing exactly
   what any given stage received and produced.
+- `stage1/` … `stage4/` — each real stage's own evidence (ranked lists,
+  spec.json, verdict.json, and stage 4's `results.json` with the full
+  wrapper summaries; the baton carries conclusions only).
 - `log.txt` — everything printed to the terminal during the run, plus the
   gate decisions (auto-approvals or human y/n answers). This is the
   supervisor's own record; it is never read by any stage.
+
+Executed mini-runs also synthesize solver cases under
+`cases/<run_id>_run<N>/` (evidence-class, gitignored, like `runs/`).
 
 ## Memory & retrieval
 

@@ -41,6 +41,43 @@ CANNED_VERDICT_PAYLOAD = {
     }
 }
 
+CANNED_EXECUTED_PAYLOAD = {
+    "fidelity_verdict": {
+        "label": "trust",
+        "rationale": "In-envelope baseline sweep.",
+        "right_instrument": "yes",
+    },
+    "execution_results": {
+        "status": "executed",
+        "runs": [
+            {"converged": True, "qoi_value": 0.4168353, "wall_clock_s": 21.4},
+            {"converged": False, "qoi_error": "not extractable by contract", "wall_clock_s": 9.1},
+        ],
+    },
+}
+
+CANNED_SKIPPED_PAYLOAD = {
+    "fidelity_verdict": {
+        "label": "defer",
+        "rationale": "Out of contract.",
+        "right_instrument": "none",
+    },
+    "execution_results": {"status": "skipped_defer"},
+}
+
+CANNED_HALTED_PAYLOAD = {
+    "fidelity_verdict": {
+        "label": "trust",
+        "rationale": "Judged in-envelope.",
+        "right_instrument": "yes",
+    },
+    "execution_results": {
+        "status": "halted_synthesis",
+        "runs": [],
+        "reason": "run 1 of 3: unsupported parameters: floor_amplitude, floor_wavelength",
+    },
+}
+
 
 class TestGate2Header(unittest.TestCase):
     def test_happy_path_has_all_three_facts(self):
@@ -72,6 +109,38 @@ class TestGate5Header(unittest.TestCase):
     def test_missing_verdict_renders_placeholders_not_raise(self):
         block = build_gate5_header({})
         self.assertIn("FIDELITY VERDICT: ?", block)
+
+    def test_no_execution_results_means_no_execution_line(self):
+        block = build_gate5_header(CANNED_VERDICT_PAYLOAD)
+        self.assertNotIn("EXECUTION", block)
+
+    def test_executed_lists_status_and_per_run_one_liners(self):
+        block = build_gate5_header(CANNED_EXECUTED_PAYLOAD)
+        self.assertIn("EXECUTION: executed", block)
+        self.assertIn("run 1: converged true, qoi 0.4168353", block)
+        self.assertIn("run 2: converged false, qoi_error not extractable by contract", block)
+
+    def test_skipped_defer_states_nothing_executed(self):
+        block = build_gate5_header(CANNED_SKIPPED_PAYLOAD)
+        self.assertIn("EXECUTION: skipped_defer", block)
+        self.assertIn("nothing executed: defer verdict", block)
+        self.assertNotIn("run 1", block)
+
+    def test_halted_synthesis_states_reason(self):
+        block = build_gate5_header(CANNED_HALTED_PAYLOAD)
+        self.assertIn("EXECUTION: halted_synthesis", block)
+        self.assertIn(
+            "reason: run 1 of 3: unsupported parameters: floor_amplitude, floor_wavelength",
+            block,
+        )
+
+    def test_malformed_execution_results_never_raise(self):
+        block = build_gate5_header({"execution_results": "not a dict"})
+        self.assertNotIn("EXECUTION", block)
+        block = build_gate5_header({"execution_results": {"status": "executed", "runs": "nope"}})
+        self.assertIn("EXECUTION: executed", block)
+        block = build_gate5_header({"execution_results": {"status": "halted_synthesis"}})
+        self.assertIn("reason: ?", block)
 
 
 if __name__ == "__main__":
