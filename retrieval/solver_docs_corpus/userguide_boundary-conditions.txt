@@ -1,0 +1,686 @@
+U-168 Mesh generation and conversion
+OpenFOAM-12
+Chapter 6
+Boundary conditions
+Boundary conditions are speciﬁed in ﬁeld ﬁles, e.g. p, U, in time directories. The struc-
+ture of these ﬁles is introduced in sections 2.1.4 and 4.2.9. They include three entries:
+dimensions for the dimensional units; internalField for the initial internal ﬁeld values;
+and, boundaryField where the boundary conditions are speciﬁed. The boundaryField
+requires an entry for each patch in the mesh. The patches are speciﬁed in the boundary
+ﬁle; below is a sample ﬁle from a 2D incompressibleFluid example in OpenFOAM.
+5
+(
+outlet
+{
+type patch;
+nFaces 320;
+startFace 198740;
+}
+up
+{
+type symmetry;
+inGroups List<word> 1(symmetry);
+nFaces 760;
+startFace 199060;
+}
+hole
+{
+type wall;
+inGroups List<word> 1(wall);
+nFaces 1120;
+startFace 199820;
+}
+frontAndBack
+{
+type empty;
+inGroups List<word> 1(empty);
+nFaces 200000;
+startFace 200940;
+}
+inlet
+{
+type patch;
+nFaces 320;
+startFace 400940;
+}
+)
+U-170 Boundary conditions
+The corresponding pressure ﬁeld ﬁle, p, is shown below.
+16 dimensions [0 2 -2 0 0 0 0];
+17
+18 internalField uniform 0;
+19
+20 boundaryField
+21 {
+22 inlet
+23 {
+24 type zeroGradient;
+25 }
+26 outlet
+27 {
+28 type fixedValue;
+29 value uniform 0;
+30 }
+31 up
+32 {
+33 type symmetry;
+34 }
+35 hole
+36 {
+37 type zeroGradient;
+38 }
+39 frontAndBack
+40 {
+41 type empty;
+42 }
+43 }
+44
+45 // ************************************************************************* //
+The boundaryField is a sub-dictionary containing an entry for every patch in the
+mesh. Each entry begins with the patch name and conﬁgures the boundary condition
+through entries in a sub-dictionary. A type entry is required for every patch which
+speciﬁes the type of boundary condition. The examples above include zeroGradient and
+ﬁxedValue conditions corresponding to generic patches deﬁned in the boundary ﬁle. They
+also include symmetry and empty types corresponding to equivalent constraint patches,
+e.g. the up patch is deﬁned as symmetry in the mesh and uses a symmetry condition in the
+ﬁeld ﬁle.
+For details about the main boundary conditions used in OpenFOAM, refer to Chapter
+4 of Notes on Computational Fluid Dynamics: General Principles .
+6.1 Patch selection in ﬁeld ﬁles
+There are three diﬀerent ways an entry can be speciﬁed for a patch in the boundaryField
+of a ﬁeld ﬁle: 1) by patch name; 2) by group name; 3) matching a patch name with a
+regular expression. They are listed here in order of precedence which is obeyed if multiple
+entries are valid of a particular patch. The diﬀerent speciﬁcations can be illustrated by
+imagining a mesh with the following patches.
+• inlet: a generic patch.
+• lowerWall and upperWall: two wall patches.
+• outletSmall, outletMedium and outletLarge: three outlet patches of generic type,
+all in a patch group named outlet.
+Then imagine the following boundaryField for a ﬁeld, e.g. p, corresponding to the patches
+above.
+OpenFOAM-12
+6.1 Patch selection in ﬁeld ﬁles U-171
+boundaryField
+{
+inlet
+{
+type zeroGradient;
+}
+".*Wall"
+{
+type zeroGradient;
+}
+outletSmall
+{
+type fixedValue;
+value uniform 1;
+}
+outlet
+{
+type fixedValue;
+value uniform 0;
+}
+}
+In this example, the inlet ﬁeld entry is read for the inlet patch, following rule 1 above
+(matching patch name). Similarly, the outletSmall entry will be read for the patch of
+the same name.
+The outletMedium and outletLarge patches do not have matching entries in the ﬁeld
+ﬁle, so they instead the outlet entry will be applied (rule 2), since it matches the group
+name to which the patches belong. Note that the outletSmall patch does not use the
+outlet entry because a matching patch entry takes precedence over a matching group
+entry.
+Finally, the lowerWall and upperWall match the regular expression ".*Wall". Regu-
+lar expressions are described in section 4.2.13; they must be included in double quotations
+". . .". The ".*" component matches any expression (including nothing), so matches the
+wall patch names here. The regular expression could use word grouping to provide a more
+precise match to the patch names, e.g.
+"(lower|upper)Wall"
+{
+type zeroGradient;
+}
+Alternatively a patch entry could cover the wall patches taking advantage of the fact that
+every non-generic patch is automatically placed in a group of the same name as its type,
+as discussed in section 5.3.6. In this case, all wall patches are placed in a group named
+wall, so the following entry would be read for both patches.
+wall
+{
+type zeroGradient;
+}
+OpenFOAM-12
+U-172 Boundary conditions
+6.2 Geometric constraints
+Section 5.3 describes the mesh boundary, which is split into patches and written in the
+mesh boundary ﬁle. Each patch includes a type entry which can be speciﬁed as a generic
+patch, a wall or a geometric constraint, e.g. empty, symmetry, cyclic etc.
+For each geometric constraint type for a patch in the mesh, there is an equivalent
+boundary condition type that must be applied to the same patch in the boundaryField
+of a ﬁeld ﬁle. The type names in the mesh and boundaryField are the same, e.g. the
+symmetry boundary condition must be applied to a symmetry patch.
+To simplify the conﬁguration of ﬁeld ﬁles, OpenFOAM includes a ﬁle named setCon-
+straintTypes in the $FOAM_ETC/caseDicts of the installation. The setConstraintTypes ﬁle
+contains the following entries.
+9 cyclic
+10 {
+11 type cyclic;
+12 }
+13
+14 cyclicSlip
+15 {
+16 type cyclicSlip;
+17 }
+18
+19 nonConformalCyclic
+20 {
+21 type nonConformalCyclic;
+22 value $internalField;
+23 }
+24
+25 nonConformalError
+26 {
+27 type nonConformalError;
+28 }
+29
+30 empty
+31 {
+32 type empty;
+33 }
+34
+35 processor
+36 {
+37 type processor;
+38 value $internalField;
+39 }
+40
+41 processorCyclic
+42 {
+43 type processorCyclic;
+44 value $internalField;
+45 }
+46
+47 nonConformalProcessorCyclic
+48 {
+49 type nonConformalProcessorCyclic;
+50 value $internalField;
+51 }
+52
+53 symmetryPlane
+54 {
+55 type symmetryPlane;
+56 }
+57
+58 symmetry
+59 {
+60 type symmetry;
+61 }
+62
+63 wedge
+64 {
+65 type wedge;
+66 }
+67
+68 internal
+OpenFOAM-12
+6.3 Basic boundary conditions U-173
+69 {
+70 type internal;
+71 }
+72
+73
+74 // ************************************************************************* //
+The ﬁle exploits the fact that a patch which is a geometric constraint is automatically
+included in a group of the constraint name, e.g. a symmetry patch is in a group named
+symmetry. The entries therefore set a boundary type for each constraint group (to the
+name of the group). All constraint conditions are covered by an entry for each condition.
+The user can then include this ﬁle inside the boundaryField of their ﬁeld ﬁles. Since
+the ﬁle is in the $FOAM_ETC directory it can be included using the special #includeEtc
+directive, e.g. in the boundaryField entry below.
+boundaryField
+{
+inlet
+{
+type zeroGradient;
+}
+outlet
+{
+type fixedValue;
+value uniform 0;
+}
+wall
+{
+type zeroGradient;
+}
+#includeEtc "caseDicts/setConstraintTypes"
+}
+With the setContraintTypes ﬁle included in the ﬁeld ﬁles, the only patches that generally
+need to be conﬁgured are: the generic patches, corresponding to open boundaries; and,
+wall patches.
+6.3 Basic boundary conditions
+The main basic boundary condition types available in OpenFOAM are summarised below
+using a patch ﬁeld named Ψ. This is not a complete list; for all types see $FOAM_SRC/ﬁn-
+iteVolume/ﬁelds/fvPatchFields/basic.
+• ﬁxedValue: value of Ψ is speciﬁed by value.
+• ﬁxedGradient: normal gradient of Ψ (∂Ψ/∂n) is speciﬁed by gradient.
+• zeroGradient: normal gradient of Ψ is zero.
+• calculated: patch ﬁeld Ψ calculated from other patch ﬁelds.
+OpenFOAM-12
+U-174 Boundary conditions
+• mixed: mixed ﬁxedValue/ ﬁxedGradient condition depending on valueFraction (0 ≤
+valueFraction ≤ 1) where
+valueFraction =
+
+
+
+1 corresponds to Ψ = refValue,
+0 corresponds to ∂Ψ/∂n = refGradient. (6.1)
+• directionMixed: mixed condition with tensorial valueFraction, to allow diﬀerent
+conditions in normal and tangential directions of a vector patch ﬁeld, e.g. ﬁxedValue
+in the tangential direction, zeroGradient in the normal direction.
+6.4 Derived boundary conditions
+There are numerous more complex boundary conditions derived from the basic conditions.
+For example, many complex conditions are derived from ﬁxedValue, where the value is
+calculated by a function of other patch ﬁelds, time, geometric information, etc. Some other
+conditions derived from mixed/directionMixed switch between ﬁxedValue and ﬁxedGradient
+(usually with a zero gradient).
+The available boundary conditions can be listed with foamToC using the -scalarBCs
+and -vectorBCs options, corresponding to boundary conditions for scalar ﬁelds and vector
+ﬁelds, respectively. For example, for scalar ﬁelds, boundary conditions are listed by
+foamToC -scalarBCs
+These produce long lists which the user can scan through. If the user wants more in-
+formation of a particular condition, they can run the foamInfo script which provides a
+description of the boundary condition and lists example cases where it is used. For ex-
+ample, for the totalPressure boundary condition, run the following.
+foamInfo totalPressure
+In the following sections we will highlight some particular important, commonly used
+boundary conditions.
+6.4.1 The inlet/outlet condition
+The inletOutlet condition is one derived from mixed, which switches between zeroGradient
+when the ﬂuid ﬂows out of the domain at a patch face, and ﬁxedValue, when the ﬂuid is
+ﬂowing into the domain. For inﬂow, the inlet value is speciﬁed by an inletValue entry.
+A good example of its use can be seen in the damBreakLaminar tutorial, where it is applied
+to the phase fraction on the upper atmosphere boundary. Where there is outﬂow, the
+condition is well posed, where there is inﬂow, the phase fraction is ﬁxed with a value of
+0, corresponding to 100% air.
+16
+17 dimensions [];
+18
+19 internalField uniform 0;
+20
+21 boundaryField
+22 {
+23 #includeEtc "caseDicts/setConstraintTypes"
+24
+25 wall
+OpenFOAM-12
+6.4 Derived boundary conditions U-175
+26 {
+27 type zeroGradient;
+28 }
+29
+30 atmosphere
+31 {
+32 type inletOutlet;
+33 inletValue $internalField;
+34 value $internalField;
+35 }
+36 }
+37
+38
+39 // ************************************************************************* //
+6.4.2 Entrainment boundary conditions
+The combination of the totalPressure condition on pressure and pressureInletOutletVelocity
+on velocity is extremely common for patches where some inﬂow occurs and the inlet
+ﬂow velocity is not known. The conditions are used on the atmosphere boundary in
+the damBreak tutorial, inlet conditions where only pressure is known, outlets where ﬂow
+reversal may occur, and where ﬂow in entrained, e.g. on boundaries surrounding a jet
+through a nozzle.
+The idea behind this combination is that the condition is a standard combination in
+the case of outﬂow, but for inﬂow the normal velocity is allowed to ﬁnd its own value.
+Under these circumstances, a rapid rise in velocity presents a risk of instability, but the
+rise is moderated by the reduction of inlet pressure, and hence driving pressure gradient,
+as the inﬂow velocity increases.
+The totalPressure condition speciﬁes:
+p =
+
+
+
+p0 for outﬂow
+p0 − 1
+2ρ|U2| for inﬂow (dynamic pressure, subsonic) (6.2)
+where the user speciﬁes p0 through the p0 keyword.
+The entrainmentPressure condition also exists which is arguably more robust than
+totalPressure by using the normal component of velocity Un ≡ n • U in the calculation for
+inﬂow, i.e.
+p =
+
+
+
+p0 for outﬂow
+p0 − 1
+2ρ|U2
+n| for inﬂow (dynamic pressure, subsonic) (6.3)
+Solver applications which include buoyancy eﬀects, though a gravitational force ρg
+(per unit volume) source term, tend to solve for a pressure ﬁeld pρgh =p −ρ|g|∆h, where
+the hydrostatic component is subtracted based on a height ∆h above some reference. For
+such solvers, e.g. interFoam, an equivalent prghTotalPressure condition is applied which
+speciﬁes:
+pρgh =
+
+
+
+p0 for outﬂow
+p0 −ρ|g|∆h − 1
+2ρ|U2| for inﬂow (dynamic pressure, subsonic) (6.4)
+The pressureInletOutletVelocity condition speciﬁes zeroGradient at all times, except on
+the tangential component which is set to ﬁxedValue for inﬂow, with the tangentialVelocity
+defaulting to 0.
+The speciﬁcation of these boundary conditions in the U and p_rgh ﬁles, in the damBreak
+case, are shown below.
+OpenFOAM-12
+U-176 Boundary conditions
+16
+17 dimensions [0 1 -1 0 0 0 0];
+18
+19 internalField uniform (0 0 0);
+20
+21 boundaryField
+22 {
+23 #includeEtc "caseDicts/setConstraintTypes"
+24
+25 wall
+26 {
+27 type noSlip;
+28 }
+29
+30 atmosphere
+31 {
+32 type pressureInletOutletVelocity;
+33 value $internalField;
+34 }
+35 }
+36
+37
+38 // ************************************************************************* //
+16
+17 dimensions [1 -1 -2 0 0 0 0];
+18
+19 internalField uniform 0;
+20
+21 boundaryField
+22 {
+23 #includeEtc "caseDicts/setConstraintTypes"
+24
+25 wall
+26 {
+27 type fixedFluxPressure;
+28 value $internalField;
+29 }
+30
+31 atmosphere
+32 {
+33 type prghTotalPressure;
+34 p0 $internalField;
+35 }
+36 }
+37
+38
+39 // ************************************************************************* //
+6.4.3 Fixed ﬂux pressure
+In the above example, it can be seen that all the wall boundaries use a boundary condition
+named ﬁxedFluxPressure. This boundary condition is used for pressure in situations where
+zeroGradient is generally used, but where body forces such as gravity and surface tension
+are present in the solution equations. The condition adjusts the gradient accordingly.
+6.4.4 Time-varying boundary conditions
+There are several boundary conditions for which some input parameters are speciﬁed by
+a function of time (using Function1 functionality) class. The available functions from the
+Function1 can be listed by the following command.
+find $FOAM_SRC/finiteVolume/fields/fvPatchFields -type f -name "*.H" |\
+xargs grep -l Function1 | xargs dirname | sort
+They include conditions such as uniformFixedValue, which is a ﬁxedValue condition which
+applies a single value which is a function of time through a uniformValue keyword entry.
+OpenFOAM-12
+6.4 Derived boundary conditions U-177
+The Function1 is speciﬁed by a keyword following the uniformValue entry, followed
+by parameters that relate to the particular function. The Function1 options can be listed
+by foamToC by
+foamToC -table scalarFunction1
+The most relevant functions are those in the core OpenFOAM library which can be ﬁltered
+using grep
+foamToC -table scalarFunction1 | grep OpenFOAM
+Most of those function objects are described below.
+• constant: constant value.
+• table: inline list of (time value) pairs; interpolates values linearly between times.
+• tableFile: as above, but with data supplied in a separate ﬁle.
+• square: square-wave function.
+• squarePulse: single square pulse.
+• sine: sine function.
+• one and zero: constant one and zero values.
+• polynomial: polynomial function using a list (coeff exponent) pairs.
+• coded: function speciﬁed by user coding.
+• scale: scales a given value function by a scalar scale function; both entries can be
+themselves Function1; scale function is often a ramp function (below), with value
+controlling the ramp value.
+• linearRamp, quadraticRamp, exponentialSqrRamp, halfCosineRamp, quarter-
+CosineRamp and quarterSineRamp: monotonic ramp functions which ramp from 0
+to 1 over speciﬁed duration.
+• reverseRamp: reverses the values of a ramp function, e.g. from 1 to 0.
+Examples or a time-varying inlet for a scalar are shown below.
+inlet
+{
+type uniformFixedValue;
+uniformValue constant 2;
+}
+inlet
+{
+type uniformFixedValue;
+uniformValue table ((0 0) (10 2));
+}
+inlet
+{
+type uniformFixedValue;
+uniformValue polynomial ((1 0) (2 2)); // = 1*t^0 + 2*t^2
+}
+OpenFOAM-12
+U-178 Boundary conditions
+inlet
+{
+type uniformFixedValue;
+uniformValue
+{
+type tableFile;
+format csv;
+nHeaderLine 4; // number of header lines
+refColumn 0; // time column index
+componentColumns (1); // data column index
+separator ","; // optional (defaults to ",")
+mergeSeparators no; // merge multiple separators
+file "dataTable.csv";
+}
+}
+inlet
+{
+type uniformFixedValue;
+uniformValue
+{
+type square;
+frequency 10;
+amplitude 1;
+scale 2; // Scale factor for wave
+level 1; // Offset
+}
+}
+inlet
+{
+type uniformFixedValue;
+uniformValue
+{
+type sine;
+frequency 10;
+amplitude 1;
+scale 2; // Scale factor for wave
+level 1; // Offset
+}
+}
+input // ramp from 0 -> 2, from t = 0 -> 0.4
+{
+type uniformFixedValue;
+uniformValue
+{
+type scale;
+scale linearRamp;
+start 0;
+duration 0.4;
+value 2;
+}
+}
+input // ramp from 2 -> 0, from t = 0 -> 0.4
+{
+type uniformFixedValue;
+uniformValue
+{
+type scale;
+scale reverseRamp;
+ramp linearRamp;
+start 0;
+duration 0.4;
+value 2;
+}
+}
+inlet // pulse with value 2, from t = 0 -> 0.4
+{
+type uniformFixedValue;
+uniformValue
+OpenFOAM-12
+6.4 Derived boundary conditions U-179
+{
+type scale;
+scale squarePulse
+start 0;
+duration 0.4;
+value 2;
+}
+}
+inlet
+{
+type uniformFixedValue;
+uniformValue coded;
+name pulse;
+codeInclude
+#{
+#include "mathematicalConstants.H"
+#};
+code
+#{
+return scalar
+(
+0.5*(1 - cos(constant::mathematical::twoPi*min(x/0.3, 1)))
+);
+#};
+}
+OpenFOAM-12
+U-180 Boundary conditions
+OpenFOAM-12
+Chapter 7
+Post-processing
+This chapter describes options for post-processing with OpenFOAM. Post-processing in
+its most general sense involves data processing (processing results) and visualisation. The
+functionality for data processing is described in sections 7.2, 7.3 and 7.4. For visualisation,
+OpenFOAM relies on ParaView, a third-party open source application described in the
+example cases in chapter 2, with some additional information provided in the following
+section 7.1. Other methods of visualisation using third party software are described in
+section 7.5.
+7.1 ParaView/paraFoam graphical user interface (GUI)
+OpenFOAM includes a native reader module to visualise data with ParaView, an open-
+source, visualisation application. The module comprises of the PVFoamReader and vtkPV-
+Foam libraries, which currently supports version 5.10.1 of ParaView. It is recommended
+that this version of ParaView is used, although it is possible that the latest binary re-
+lease of the software will run adequately. Further details about ParaView can be found at
+http://www.paraview.org.
+ParaView uses the Visualisation Toolkit ( VTK) as its data processing and rendering
+engine and can therefore read any data in VTK format. OpenFOAM includes a variety
+of tools which can write data in VTK and other supported formats, which can be read
+directly by ParaView. Entire case data can be converted to VTK using the foamToVTK
+utility if the user wishes to process their results without the OpenFOAM reader.
+In summary, we recommend the reader module for ParaView as the primary visualisa-
+tion option for OpenFOAM. Alternatively OpenFOAM data can be converted into VTK
+format to be read by ParaView or any other VTK-based graphics tools.
+7.1.1 Overview of ParaView/paraFoam
+paraFoam is a script that launches ParaView using the reader module supplied with Open-
+FOAM. It is executed like any of the OpenFOAM utilities either by the single command
+from within the case directory or with the -case option with the case path as an argu-
+ment, e.g.:
+paraFoam -case <caseDir>
+ParaView is launched and opens the window shown in Figure 7.1. The case is controlled
+from the left panel, which contains the following:
+U-182 Post-processing
+Figure 7.1: The ParaView window
+• The Pipeline Browser lists the modules opened in ParaView, where the selected
+modules are highlighted in blue and the graphics for the given module can be en-
+abled/disabled by clicking the eye button alongside;
+• The Properties panel contains the input selections for the case, such as times, regions
+and ﬁelds; it includes the Display panel that controls the visual representation of
+the selected module, e.g. colours;
+• Other panels can be selected from the View menu, including the Information panel
+which gives case statistics such as mesh geometry and size.
+ParaView operates a tree-based structure in which data can be ﬁltered from the top-
+level case module to create sets of sub-modules. For example, a contour plot of, say,
+pressure could be a sub-module of the case module which contains all the pressure data.
+The strength of ParaView is that the user can create a number of sub-modules and display
+whichever ones they need to create the desired image or animation. For example, they
+may add some solid geometry, mesh and velocity vectors, to a contour plot of pressure,
+switching any of the items on and oﬀ as necessary.
+The general operation of the system is based on the user making a selection and then
+clicking the green Apply button in the Properties panel. The additional buttons are: the
+Reset button which can be used to reset the settings if necessary; and, the Delete button
+that will delete the active module.
+OpenFOAM-12
+7.1 ParaView/paraFoam graphical user interface (GUI) U-183
+Check to enable ParaView to display
+polyhedral cells and polygonal faces correctly
+The user can select the internalField
+region and/or individual patches
+The user can select the ﬁelds
+read into the case module
+Figure 7.2: The Properties panel for the case module
+7.1.2 The Parameters panel
+The Properties window for the case module includes the Parameters panel that contains the
+settings for mesh, ﬁelds and global controls. The controls are described in Figure 7.2. The
+user can select mesh and ﬁeld data which is loaded for all time directories into ParaView.
+The buttons in the Current Time Controls and VCR Controls toolbars then select the
+time data to be displayed, as shown is section 7.1.4.
+As with any operation in ParaView, the user must click Apply after making any changes
+to any selections. The Apply button is highlighted in green to alert the user if changes have
+been made but not accepted. This method of operation has the advantage of allowing the
+user to make a number of selections before accepting them, which is particularly useful
+in large cases where data processing is best kept to a minimum.
+If new data is written to time directories while the user is running ParaView, the user
+must load the additional time directories by checking the Refresh Times button. Where
+there are occasions when the case data changes on ﬁle and ParaView needs to load the
+changes, the user can also toggle the Cache Mesh button in the Parameters panel and
+apply the changes.
+OpenFOAM-12
+U-184 Post-processing
+Outline, surface, wireframe, surface with edges
+Colour surface by. . .
+Set colour map range / appearance
+Change image opacity
+e.g. to make transparent
+Figure 7.3: The Display panel
+7.1.3 The Display panel
+The Properties window contains the Display panel that includes the settings for visualising
+the data for a given case module. The following points are particularly important:
+• the data range may not be automatically updated to the max/min limits of a ﬁeld,
+so the user should take care to select Rescale at appropriate intervals, in particular
+after loading the initial case module;
+• clicking the Edit Color Map button, brings up a window in which there are two
+panels:
+1. The Color Scale panel in which the colours within the scale can be chosen. The
+standard blue to red colour scale for CFD can be selected by clicking Choose
+Preset and searching for Blue to Red Rainbow and selecting.
+2. The Color Legend panel has a toggle switch for a colour bar legend and contains
+settings for the layout of the legend, e.g. font.
+• the underlying mesh can be represented by selecting Wireframe in the Represent-
+ation menu of the Style panel;
+• the geometry, e.g. a mesh (if Wireframe is selected), can be visualised as a single
+colour by selecting Solid Color from the Color By menu and specifying the colour
+in the Set Ambient Color window;
+OpenFOAM-12

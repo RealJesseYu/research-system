@@ -1,0 +1,4 @@
+Generalization of the Neville-Aitken Interpolation Algorithm on Grassmann Manifolds : Applications to Reduced Order Model
+arXiv:1907.02831 (2019)
+
+The interpolation on Grassmann manifolds in the framework of parametric evolution partial differential equations is presented. Interpolation points on the Grassmann manifold are the subspaces spanned by the POD bases of the available solutions corresponding to the chosen parameter values. The well-known Neville-Aitken's algorithm is extended to Grassmann manifold, where interpolation is performed in a recursive way via the geodesic barycenter of two points. The performances of the proposed method are illustrated through three independent CFD applications, namely: the Von Karman vortex shedding street, the lid-driven cavity with inflow and the flow induced by a rotating solid. The obtained numerical simulations are pertinent both in terms of the accuracy of results and the time computation.

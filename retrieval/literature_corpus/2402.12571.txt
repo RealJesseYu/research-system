@@ -1,0 +1,4 @@
+Solving fluid flow problems in space-time with multiscale stabilization: formulation and examples
+arXiv:2402.12571 (2024)
+
+We present a space-time continuous-Galerkin finite element method for solving incompressible Navier-Stokes equations. To ensure stability of the discrete variational problem, we apply ideas from the variational multi-scale method. The finite element problem is posed on the ``full" space-time domain, considering time as another dimension. We provide a rigorous analysis of the stability and convergence of the stabilized formulation. And finally, we apply this method on two benchmark problems in computational fluid dynamics, namely, lid-driven cavity flow and flow past a circular cylinder. We validate the current method with existing results from literature and show that very large space-time blocks can be solved using our approach.

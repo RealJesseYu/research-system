@@ -1,0 +1,4 @@
+A new meshless approach for three dimensional fluid flow and related heat transfer problems
+arXiv:1809.02502 (2018)
+
+The mathematical formulation, basic concept and numerical implementation of a new meshless method for solving three dimensional fluid flow and related heat transfer problems are presented in this paper. Moving least squares approximation is used for the spatial discretization together with an implicit scheme for time marching. The vorticity and vector potential formulation of Navier-Stokes equations is employed to avoid the difficulties associated with pressure/velocity coupling. Two 3D problem of natural convection in a differentially heated cubic cavity and in the annular space between a sphere and a cube are considered. Results show the flexibility of the method and demonstrate its accuracy.

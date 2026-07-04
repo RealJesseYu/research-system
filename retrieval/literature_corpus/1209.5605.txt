@@ -1,0 +1,4 @@
+Liquid oil painting: Free and forced convection in an enclosure with mechanical and thermal forcing
+arXiv:1209.5605 (2012)
+
+A fluid dynamics video is linked to this article, which have been submitted to the Gallery of Fluid Motion as part of the 65th American Physical Society meeting of the Division of Fluid Dynamics, held in San Diego, California, USA, over 17-20 November 2012. The video serves to visualize flows generated in a rectangular enclosure that are subjected to both mechanical and thermal forcing through a common horizontal boundary. This system exhibits features consistent with either horizontal convection or lid-driven cavity flows depending on the ratio between thermal and mechanical stirring, and three different cases are visualized in the linked videos.

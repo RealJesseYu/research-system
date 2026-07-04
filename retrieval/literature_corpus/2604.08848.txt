@@ -1,0 +1,4 @@
+Universal Relation between Nusselt Number and Bejan Number in Natural Convection
+arXiv:2604.08848 (2026)
+
+We propose a universal scaling law linking the Nusselt number (Nu) and the Bejan number (Be) in natural convection. Using entropy generation analysis and boundary-layer scaling, we demonstrate that Be^-1 - 1 = a Nu^b emerges independently of geometry and boundary conditions when transport is governed by a single control parameter. The relation is validated using a canonical square cavity. This result establishes a direct connection between heat transfer and thermodynamic irreversibility, revealing a fundamental constraint in convective transport.

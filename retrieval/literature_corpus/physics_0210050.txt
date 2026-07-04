@@ -1,0 +1,4 @@
+Pattern of Reaction Diffusion Front in Laminar Flows
+arXiv:physics/0210050 (2002)
+
+Autocatalytic reaction between reacted and unreacted species may propagate as solitary waves, namely at a constant front velocity and with a stationary concentration profile, resulting from a balance between molecular diffusion and chemical reaction. The effect of advective flow on the autocatalytic reaction between iodate and arsenous acid in cylindrical tubes and Hele-Shaw cells is analyzed experimentally and numerically using lattice BGK simulations. We do observe the existence of solitary waves with concentration profiles exhibiting a cusp and we delineate the eikonal and mixing regimes recently predicted.

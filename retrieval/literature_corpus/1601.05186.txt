@@ -1,0 +1,4 @@
+Moffatt vortices in the lid-driven cavity flow
+arXiv:1601.05186 (2016)
+
+In incompressible viscous flows in a confined domain, vortices are known to form at the corners and in the vicinity of separation points. The existence of a sequence of vortices (known as Moffatt vortices) at the corner with diminishing size and rapidly decreasing intensity has been indicated by physical experiments as well as mathematical asymptotics. In this work, we establish the existence of Moffatt vortices for the flow in the famous Lid-driven square cavity at moderate Reynolds numbers by using an efficient Navier-Stokes solver on non-uniform space grids. We establish that Moffatt vortices in succession follow fixed geometric ratios in size and intensities for a particular Reynolds number. In order to eliminate the possibility of spurious solutions, we confirm the physical presence of the small scales by pressure gradient computation along the walls.

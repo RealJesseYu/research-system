@@ -1,0 +1,4 @@
+Decoupled structure-preserving discretization of incompressible MHD equations with general boundary conditions
+arXiv:2410.23973 (2024)
+
+In the framework of a mixed finite element method, a structure-preserving formulation for incompressible magnetohydrodynamic (MHD) equations with general boundary conditions is proposed. A leapfrog-type temporal scheme fully decouples the fluid part from the Maxwell part by means of staggered discrete time sequences and, in doing so, partially linearizes the system. Conservation and dissipation properties of the formulation before and after the decoupling are analyzed. We demonstrate optimal spatial and second-order temporal accuracy, as well as conservation and dissipation properties, of the proposed method using manufactured solutions, and apply it to the benchmark Orszag-Tang and lid-driven cavity cases.

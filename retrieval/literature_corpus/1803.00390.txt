@@ -1,0 +1,4 @@
+On the relationship between the diffuse reflection and bounce-back boundary condition in the continuum limit
+arXiv:1803.00390 (2018)
+
+In this work, we show that the widely used bounce-back boundary condition is an incomplete form of the diffuse reflection boundary condition at the continuum limit for lattice Boltzmann simulations. By utilizing this fact, we can force the diffuse reflection scheme to work at its continuum limit so that the no-slip boundary condition can be implemented without any non-physical slip velocity error being induced by the standard bounce-back scheme. The revised boundary formulation is validated numerically by solving a pressure-driven channel flow, a lid-driven cavity flow and channel flow around a square cylinder.

@@ -1,0 +1,4 @@
+Multiresolution relaxation times lattice Boltzmann schemes with projection
+arXiv:2412.17426 (2024)
+
+We propose to extend the multiresolution relaxation times lattice Boltzmann schemes with an additional projection step. For the explicit example of the D2Q9 scheme, we define this extended method. We prove that in general the projection step does not change the asymptotic partial differential equations at second order. We present four numerical test cases. One concerns linear stability with a Fourier analysis with a single-vertex scheme. Three bidimensional fluid flows with a coarse mesh have been tested: the Minion and Brown sheared flow, the Ghia, Ghia and Shin lid-driven cavity and an unsteady acoustic wave. Our results indicate that the bulk viscosity can be dramatically reduced with a better stability than the initial scheme.

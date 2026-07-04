@@ -1,0 +1,4 @@
+Multigoal-oriented error estimation and mesh adaptivity for fluid-structure interaction
+arXiv:2108.05654 (2021)
+
+In this work, we consider multigoal-oriented error estimation for stationary fluid-structure interaction. The problem is formulated within a variational-monolithic setting using arbitrary Lagrangian-Eulerian coordinates. Employing the dual-weighted residual method for goal-oriented a posteriori error estimation, adjoint sensitivities are required. For multigoal-oriented error estimation, a combined functional is formulated such that several quantities of interest are controlled simultaneously. As localization technique for mesh refinement we employ a partition-of-unity. Our algorithmic developments are substantiated with several numerical tests such as an elastic lid-driven cavity with two goal functionals, an elastic bar in a chamber with two goal functionals, and the FSI-1 benchmark with three goal functionals.

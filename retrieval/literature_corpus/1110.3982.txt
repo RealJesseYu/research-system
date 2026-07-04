@@ -1,0 +1,4 @@
+Levitating Drop in a Tilted Rotating Tank - Gallery of Fluid Motion Entry V044
+arXiv:1110.3982 (2011)
+
+A cylindrical acrylic tank with inner diameter D = 4 in. is mounted such that its axis of symmetry is at some angle measured from the vertical plane. The mixing tank is identical to that described in [1] The tank is filled with 200 mL of 1000 cSt silicone oil and a 5 mL drop of de-ionized water is placed in the oil volume. The water drop is allowed to come to rest and then a motor rotates the tank about its axis of symmetry at a fixed frequency = 0.3 Hz. Therefore the Reynolds number is fixed at about Re ~ 5 yielding laminar flow conditions. A CCD camera (PixeLink) is used to capture video of each experiment.

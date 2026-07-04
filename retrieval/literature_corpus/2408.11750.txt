@@ -1,0 +1,4 @@
+A Class of Generalized Shift-Splitting Preconditioners for Double Saddle Point Problems
+arXiv:2408.11750 (2024)
+
+In this paper, we propose a generalized shift-splitting (GSS) preconditioner, along with its two relaxed variants to solve the double saddle point problem (DSPP). The convergence of the associated GSS iterative method is analyzed, and sufficient conditions for its convergence are established. Spectral analyses are performed to derive sharp bounds for the eigenvalues of the preconditioned matrices. Numerical experiments based on examples arising from the PDE-constrained optimization problem and the leaky lid-driven cavity problem demonstrate the effectiveness and robustness of the proposed preconditioners compared with existing state-of-the-art preconditioners.

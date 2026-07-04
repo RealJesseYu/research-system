@@ -1,0 +1,4 @@
+A reduced-order model of three-dimensional unsteady flow in a cavity based on the resolvent operator
+arXiv:1606.04735 (2016)
+
+A novel reduced-order model for nonlinear flows is presented. The model arises from a resolvent decomposition in which the nonlinear advection terms of the Navier-Stokes equation are considered as the input to a linear system in Fourier space. Results show that Taylor-Görtler-like vortices can be represented from a low-order resolvent decomposition of a nonlinear lid-driven cavity flow. The present approach provides an approximation of the fluctuating velocity given the time-mean and the time history of a single velocity probe.

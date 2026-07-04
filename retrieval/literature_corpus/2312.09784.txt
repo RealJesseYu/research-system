@@ -1,0 +1,4 @@
+Quantum Algorithm for Solving the Advection Equation using Hamiltonian Simulation
+arXiv:2312.09784 (2023)
+
+A quantum algorithm for solving the advection equation by embedding the discrete time-marching operator into Hamiltonian simulations is presented. One-dimensional advection can be simulated directly since the central finite difference operator for first-order derivatives is anti-Hermitian. Here, this is extended to industrially relevant, multi-dimensional flows with realistic boundary conditions and arbitrary finite difference stencils. A single copy of the initial quantum state is required and the circuit depth grows linearly with the required number of time steps, the sparsity of the time-marching operator and the inverse of the allowable error. Statevector simulations of a scalar transported in a two-dimensional channel flow and lid-driven cavity configuration are presented as a proof of concept of the proposed approach.

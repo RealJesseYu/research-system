@@ -1,0 +1,4 @@
+Nonlinear Monolithic Two-Level Schwarz Methods for the Navier-Stokes Equations
+arXiv:2409.03041 (2024)
+
+Nonlinear domain decomposition methods became popular in recent years since they can improve the nonlinear convergence behavior of Newton's method significantly for many complex problems. In this article, a nonlinear two-level Schwarz approach is considered and, for the first time, equipped with monolithic GDSW (Generalized Dryja-Smith-Widlund) coarse basis functions for the Navier-Stokes equations. Results for lid-driven cavity problems with high Reynolds numbers are presented and compared with classical global Newton's method equipped with a linear Schwarz preconditioner. Different options, for example, local pressure corrections on the subdomain and recycling of coarse basis functions are discussed in the nonlinear Schwarz approach for the first time.

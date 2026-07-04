@@ -1,0 +1,4 @@
+High-fidelity experimental model verification for flow in fractured porous media
+arXiv:2312.14842 (2023)
+
+Mixed-dimensional mathematical models for flow in fractured media have been prevalent in the modeling community for almost two decades, utilizing the explicit representation of fractures by lower-dimensional manifolds embedded in the surrounding porous media. In this work, for the first time, direct qualitative and quantitative comparisons of mixed-dimensional models are drawn against laboratory experiments. Dedicated displacement experiments of steady-state laminar flow in fractured media are investigated using both high-resolution PET images as well as state-of-the-art numerical simulations.

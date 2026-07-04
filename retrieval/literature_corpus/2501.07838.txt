@@ -1,0 +1,4 @@
+Casting Computational Fluid Mechanics into a Convex Quadratic Optimization Framework
+arXiv:2501.07838 (2025)
+
+We employ the principle of minimum pressure gradient to transform problems in unsteady computational fluid dynamics (CFD) into a convex optimization framework subject to linear constraints. This formulation permits solving, for the first time, CFD problems efficiently using well-established quadratic programming tools or using the well-known Karush-Kuhn-Tucker (KKT) condition. The proposed approach is demonstrated using three benchmark examples. In particular, it is shown through comparison with traditional CFD tools that the proposed framework is capable of predicting the flow field in a lid-driven cavity, in a uniform pipe (Poiseuille flow), and that past a backward facing step. The results highlight the potential of the method as a simple, robust, and potentially transformative alternative to traditional CFD approaches.

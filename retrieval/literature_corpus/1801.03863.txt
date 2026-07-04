@@ -1,0 +1,4 @@
+Stabilization of the Lattice Boltzmann Method Using Information Theory
+arXiv:1801.03863 (2018)
+
+A novel Lattice Boltzmann method is derived using the Principle of Minimum Cross Entropy (MinxEnt) via the minimization of Kullback-Leibler Divergence (KLD). By carrying out the actual single step Newton-Raphson minimization (MinxEnt-LBM) a more accurate and stable Lattice Boltzmann Method can be implemented. To demonstrate this, 1D shock tube and 2D lid-driven cavity flow simulations are carried out and compared to Single Relaxation Time LBM, Two Relaxation Time LBM, Multiple Relaxation Time LBM and Eherenfest Step LBM.

@@ -1,0 +1,4 @@
+A highly efficient asymptotic preserving IMEX method for the quantum BGK equation
+arXiv:2312.16585 (2023)
+
+This paper presents an asymptotic preserving (AP) implicit-explicit (IMEX) scheme for solving the quantum BGK equation using the Hermite spectral method. The distribution function is expanded in a series of Hermite polynomials, with the Gaussian function serving as the weight function. The main challenge in this numerical scheme lies in efficiently expanding the quantum Maxwellian with the Hermite basis functions. To overcome this, we simplify the problem to the calculation of polylogarithms and propose an efficient algorithm to handle it, utilizing the Gauss-Hermite quadrature. Several numerical simulations, including a spatially 2D lid-driven cavity flow, demonstrate the AP property and remarkable efficiency of this method.

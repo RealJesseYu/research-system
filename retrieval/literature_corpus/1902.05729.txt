@@ -1,0 +1,4 @@
+Certified Reduced Basis VMS-Smagorinsky model for natural convection flow in a cavity with variable height
+arXiv:1902.05729 (2019)
+
+In this work we present a Reduced Basis VMS-Smagorinsky Boussinesq model, applied to natural convection problems in a variable height cavity, in which the buoyancy forces are involved. We take into account in this problem both physical and geometrical parametrizations, considering the Rayleigh number as a parameter, so as the height of the cavity. We perform an Empirical Interpolation Method to approximate the sub-grid eddy viscosity term that let us obtain an affine decomposition with respect to the parameters. We construct an a posterior error estimator, based upon the Brezzi-Rappaz-Raviart theory, used in the greedy algorithm for the selection of the basis functions. Finally we present several numerical tests for different parameter configuration.

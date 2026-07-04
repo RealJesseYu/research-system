@@ -1,0 +1,4 @@
+Enhancement of drag and mixing in a dilute solution of rodlike polymers at low Reynolds numbers
+arXiv:2112.14672 (2021)
+
+We study the dynamics of a dilute solution of rigid rodlike polymers in a viscous fluid at low Reynolds number by means of numerical simulations of a simple rheological model. We show that the rotational dynamics of polymers destabilizes the laminar flow and causes the emergence of a turbulent-like chaotic flow with a wide range of active scales. This regime displays an increased flow resistance, corresponding to a reduced mean flow at fixed external forcing, as well as an increased mixing efficiency. The latter effect is quantified by measuring the decay of the variance of a scalar field transported by the flow. By comparing the results of numerical simulations of the model in two- and three-dimensions, we show that the phenomena observed are qualitatively independent on the dimensionality of the space.

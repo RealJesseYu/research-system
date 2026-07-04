@@ -1,0 +1,1456 @@
+Chapter 4
+OpenFOAM cases
+This chapter deals with the ﬁle structure and organisation of OpenFOAM cases. Normally,
+a user would assign a name to a case, e.g. the tutorial case of aerodynamics of a motorbike
+is simply named motorBike. This name becomes the name of a directory in which all the
+case ﬁles and sub-directories are stored.
+When running a simulation, a case directory can be located anywhere on a user’s
+ﬁling system. However, we recommend putting cases within a run subdirectory of the
+user’s ﬁling system, i.e.$HOME/OpenFOAM/${USER}-12 as described at the beginning
+of chapter 2. The $FOAM_RUN environment variable is set to $HOME/OpenFOAM/-
+${USER}-12/run by default and the user can quickly move to that directory by executing
+a preset alias, run, at the command line.
+The tutorial cases that accompany the OpenFOAM distribution provide useful exam-
+ples of the case directory structures. The tutorials are located in the $FOAM_TUTORIALS
+directory, reached quickly by executing the tut alias at the command line. Users can view
+tutorial examples at their leisure while reading this chapter.
+4.1 File structure of OpenFOAM cases
+The basic directory structure of an OpenFOAM case, containing the minimum set of ﬁles
+required to run an application, is shown in Figure 4.1 and described as follows:
+constant directory that contains a full description of the case mesh in a subdirectory
+polyMesh and ﬁles specifying properties and models for the application concerned,
+e.g. physicalProperties and momentumTransport.
+system directory for setting parameters associated with the solution procedure itself.
+It contains at least the following three ﬁles: controlDict where run control param-
+eters are set including start/end time, time step and parameters for data output;
+fvSchemes where discretisation schemes used in the solution are selected; and, fv-
+Solution where the equation solvers, tolerances and other algorithm controls are set
+for the run.
+‘time’ directories containing individual ﬁles of data for particular ﬁelds, e.g. velocity
+and pressure. The data can be: either, initial values and boundary conditions
+that the user must specify to deﬁne the problem; or, results written to ﬁle by
+OpenFOAM. Fields must always be initialised, even when the solution does not
+strictly require it, as in steady-state problems. The name of each time directory
+is based on the simulated time at which the data is written and is described fully
+U-92 OpenFOAM cases
+<case>
+system
+controlDict
+fvSchemes
+polyMesh
+points
+. . . Properties
+constant
+fvSolution
+see section 4.4
+see section 4.5
+see section 4.6
+see section 5.2
+see chapter 8
+boundary
+time directories see section 4.2.9
+faces
+owner
+neighbour
+Figure 4.1: Case directory structure
+in section 4.4. Since we usually start our simulations at time t = 0 , the initial
+conditions are usually stored in a directory named 0. For example, in the motorBike
+tutorial, the velocity ﬁeld U and pressure ﬁeld p are initialised from ﬁles 0/U and
+0/p respectively.
+4.2 Basic input/output ﬁle format
+OpenFOAM needs to read a range of data structures such as strings, words, scalars,
+vectors, tensors, lists and ﬁelds. The input/output (I/O) format of ﬁles is extremely
+ﬂexible, following a consistent set of rules that make the ﬁles easy to interpret. The
+OpenFOAM ﬁle format is described in the following sections.
+4.2.1 General syntax rules
+The format resembles C++ code, following the general principles below.
+• Files have free form, with no particular meaning assigned to any column and no
+need to indicate continuation across lines.
+• Lines have no particular meaning except to a // comment delimiter which makes
+OpenFOAM ignore any text that follows it until the end of line.
+• A comment over multiple lines is done by enclosing the text between /* and */
+delimiters.
+4.2.2 Dictionaries
+OpenFOAM mainly uses dictionaries to specify data, in which data entries are retrieved
+by means of keywords. Each keyword entry follows the general format, beginning with
+the keyword and ending in semi-colon ( ;).
+OpenFOAM-12
+4.2 Basic input/output ﬁle format U-93
+<keyword> < dataEntry1> ... <dataEntryN>;
+Many entries include only a single data entry as shown below.
+<keyword> < dataEntry>;
+Most data ﬁles, e.g. controlDict, are themselves dictionaries since they contain a series
+of keyword entries. Any dictionary can contain one or more sub-dictionaries, usually
+denoted by a dictionary name and its keyword entries contained within curly braces {}
+as follows.
+<dictionaryName>
+{
+... keyword entries ...
+}
+(Sub-)dictionaries can be nested within others, as shown in the following example. The
+extract, from an fvSolution dictionary ﬁle, containing two dictionaries, solvers and PIMPLE.
+The solvers dictionary contains nested sub-dictionary for diﬀerent matrix equations based
+on diﬀerent solution variables, e.g. p, U and k (with some entries using regular expressions
+described in section 4.2.13).
+16
+17 solvers
+18 {
+19 p
+20 {
+21 solver GAMG;
+22 tolerance 1e-7;
+23 relTol 0.01;
+24
+25 smoother DICGaussSeidel;
+26
+27 }
+28
+29 pFinal
+30 {
+31 $p;
+32 relTol 0;
+33 }
+34
+35 "(U|k|epsilon)"
+36 {
+37 solver smoothSolver;
+38 smoother symGaussSeidel;
+39 tolerance 1e-05;
+40 relTol 0.1;
+41 }
+42
+43 "(U|k|epsilon)Final"
+44 {
+45 $U;
+46 relTol 0;
+47 }
+48 }
+49
+50 PIMPLE
+51 {
+52 nNonOrthogonalCorrectors 0;
+53 nCorrectors 2;
+54 }
+55
+56
+57 // ************************************************************************* //
+OpenFOAM-12
+U-94 OpenFOAM cases
+4.2.3 The data ﬁle header
+All data ﬁles that are read and written by OpenFOAM begin with a dictionary named
+FoamFile containing a standard set of keyword entries, listed below:
+• version: I/O format version, optional, defaults to 2.0
+• format: data format, ascii or binary
+• class: class relating to the data, either dictionary or a ﬁeld, e.g. volVectorField
+• object: ﬁlename, e.g. controlDict (mandatory, but not used)
+• location: path to the ﬁle (optional)
+A example header for a controlDict ﬁle is shown below.
+FoamFile
+{
+format ascii;
+class dictionary;
+location "system";
+object controlDict;
+}
+4.2.4 Lists
+OpenFOAM applications contain lists, e.g. a list of vertex coordinates for a mesh de-
+scription. Lists are commonly found in I/O and have a format of their own in which the
+entries are contained within round braces ( ) . When a user speciﬁes a list in an input
+ﬁle, e.g. the vertices list in a blockMeshDict ﬁle, it just includes the vertices keyword
+and the data in ( ) , e.g.
+vertices
+(
+... entries ...
+);
+When OpenFOAM writes out a list, it invariably preﬁxes it with the number of ele-
+ments in the list. For example the points ﬁle for the mesh in the pizDailySteady case con-
+tains the following (abbreviated) list, where 25012 denotes the number of vertex points
+in the mesh.
+25012
+(
+(-0.0206 0 -0.0005)
+(-0.01901716308 0 -0.0005)
+... entries ...
+);
+OpenFOAM-12
+4.2 Basic input/output ﬁle format U-95
+In some cases, when OpenFOAM writes out a list, it further preﬁxes it with the class
+name of the list. For example, the inGroups entry in a boundary ﬁle of a mesh contains
+a list where each group name is a word. The entry for the lowerWall patch from the
+pizDailySteady case is shown below, indicating the List<word> class with a single ( 1)
+element.
+lowerWall
+{
+type wall;
+inGroups List<word> 1(wall); // Note!
+nFaces 250;
+startFace 24480;
+}
+4.2.5 Scalars, vectors and tensors
+A scalar is a single number represented as such in a data ﬁle. A vector contains three
+values, expressed using the simple List format so that the vector (1.0, 1.1, 1.2) is written:
+(1.0 1.1 1.2)
+In OpenFOAM, a tensor contains nine elements, such that the identity tensor can be
+written:
+( 1 0 0 0 1 0 0 0 1 )
+The user can write the entry over multiple lines to give the “look” of a tensor as a 3 × 3
+entity.
+(
+1 0 0
+0 1 0
+0 0 1
+)
+4.2.6 Dimensional units
+In continuum mechanics, properties are represented in some chosen units, e.g. mass in
+kilograms ( kg), volume in cubic metres ( m3), pressure in Pascals ( kg m−1 s−2). Algebraic
+operations must be performed on these properties using consistent units of measurement;
+in particular, addition, subtraction and equality are only physically meaningful for prop-
+erties of the same dimensional units. As a safeguard against implementing a meaningless
+operation, OpenFOAM attaches dimensions to ﬁeld data and physical properties and
+performs dimension checking on any operation.
+Dimensions are described by the dimensionSet class which has its own unique I/O
+syntax using square brackets, e.g.
+[0 2 -1 0 0 0 0]
+OpenFOAM-12
+U-96 OpenFOAM cases
+where each of the values corresponds to the power of each of the base units of measurement
+listed in sequence below:
+1. mass, e.g. kilogram (kg), pound-mass (lbm);
+2. length, e.g. metre (m), foot (ft);
+3. time, e.g. second (s);
+4. temperature, e.g. Kelvin (K), degree Rankine ( ◦R);
+5. quantity, e.g. mole (mol);
+6. current, e.g. ampere (A);
+7. luminous intensity, e.g. candela (cd).
+The list presents the base dimensional units used in the Système International (SI) and
+the United States Customary System (USCS) . OpenFOAM v12 also allows the dimen-
+sional units to be speciﬁed by name, starting with the base units, named mass, length,
+time, temperature, moles, current, and luminousIntensity. Dimensional units can
+be expressed using these names, rather than the array of indices, e.g. dimensions of length
+can be written
+[length]
+instead of [0 1 0 0 0 0 0] . The example, [0 2 -1 0 0 0 0] , can be written as
+[sqr(length)/time]
+where sqr(length) denotes units of length*length. There are also names for “compos-
+ite” dimensional units that are commonly used. For example, area represents sqr(length),
+so the previous example could be written
+[area/time]
+In fact, these dimensions are those of kinematic viscosity, for which a named dimension
+is predeﬁned by
+[kinematicViscosity]
+Dimensions do not themselves suggest any particular system of units, e.g. SI or USCS.
+OpenFOAM can eﬀectively operate in any unit system, the only requirement being that
+the input data is correct for the chosen set of units . Input data may include physical
+constants, e.g. the Universal Gas Constant R, whose values must be correct for that
+speciﬁc unit system .
+OpenFOAM deﬁnes the constants in the DimensionedConstant sub-dictionary of main
+controlDict ﬁle of the OpenFOAM installation ( $WM_PROJECT_DIR/etc/controlDict).
+By default the constants are set in SI units. Those wishing to use the USCS or any other
+system of units should modify these constants to their chosen set of units accordingly, as
+described in section 4.3.
+OpenFOAM-12
+4.2 Basic input/output ﬁle format U-97
+4.2.7 Units and unit conversion
+OpenFOAM v12 also allows users to accompany single-valued input data with units.
+When the data is read with its units, it is converted into the base unit system using
+an appropriate factor. Units are deﬁned in the UnitConversions sub-dictionary of main
+controlDict ﬁle, including a long list of units and conversions to the SI system.
+The deﬁned SI units begin with base units, kg, m, s, K, kmol, A and Cd, with a
+conversion factor of 1, corresponding to the 7 base dimensional units. There are numerous
+derived units, e.g. [min] for minute which has a base unit of s and a conversion factor of
+60. Another example with a slightly more complex deﬁnition is [cal] for calorie, with a
+conversion to [J], with a factor of 4.184. The unit [J] denotes joule, which itself is [N
+m], where newton [N] is [kg m s^-2] .
+Units are added to single-valued parameters after the data value, as shown below in
+a snippet of an input ﬁle with a volumetric ﬂow rate speciﬁed in litres per second.
+inlet
+{
+type flowRateInletVelocity;
+volumetricFlowRate 0.1 [l/s];
+...
+OpenFOAM includes the foamUnit script, described in section 4.2.7, which lists available
+named units and dimensions and provided details about them.
+4.2.8 Dimensioned types
+Physical properties are typically speciﬁed with their associated dimensions. They are
+often described by the dimensioned class which includes three components: a word name;
+a dimensionSet and a value ( scalar, vector, etc.).
+The I/O for a dimensioned entry can include all three components, using indexed or
+named dimensions e.g.
+rho rho [1 -3 0 0 0 0 0] 1000;
+nu nu [kinematicViscosity] 1e-5;
+Note that the ﬁrst nu is the keyword; the second nu is the word name stored in class word;
+the next entry is the dimensionSet and the ﬁnal entry is the scalar value.
+Usually, the word and dimensionSet are speciﬁed in the code with default values, so
+can be omitted from the I/O as shown below.
+rho 1000;
+nu 1e-5;
+As described in the previous section, a value can be followed by a unit from which the
+value is converted to base units. In the example for kinematic viscosity nu, the value
+could be speciﬁed in centistokes by
+nu 10 [cSt];
+OpenFOAM-12
+U-98 OpenFOAM cases
+4.2.9 Fields
+Field ﬁles, e.g. U and p, that are read from and written into the time directories, possess
+their own customised I/O with the following three key entries.
+• dimensions: the dimensions of the ﬁeld, e.g. [1 -1 -2 0 0 0 0] or [pressure].
+• internalField: values within the internal ﬁeld, e.g. within each cell of a mesh.
+• boundaryField: condition ( type) and data for each patch of the mesh boundary.
+The internalField can be speciﬁed in two ways. First, when the user edits a ﬁeld ﬁle
+to initialise it, they generally specify a single value across all elements, i.e. the cells (or
+faces, points, depending on the type of ﬁeld) of the mesh. A single value of 0 is denoted
+by the uniform keyword as shown below.
+internalField uniform 0;
+A uniform ﬁeld can also be initialised using a set of units, e.g. for a pressure of 1 bar:
+internalField uniform 1 [bar];
+When results are written out, ﬁelds cannot generally be represented by a single value.
+The output uses the nonuniform keyword, followed by a suitable list of values. The
+abbreviated example below is from an output p ﬁle for a mesh of 12225 cells.
+internalField nonuniform List<scalar>
+12225
+(
+-4.92806
+-5.42676
+...
+);
+The boundaryField is a dictionary containing a set of entries corresponding to each
+patch listed in the boundary ﬁle in the polyMesh directory. Each entry is a sub-dictionary
+containing a list of keyword entries. The mandatory entry, type, describes the patch ﬁeld
+condition speciﬁed for the ﬁeld. The remaining entries correspond to the type of patch
+ﬁeld condition selected and can typically include ﬁeld data specifying initial conditions
+on patch faces. A selection of patch ﬁeld conditions available in OpenFOAM are listed
+in section 6.2, section 6.3 and section 6.4, with a description and the data that must be
+speciﬁed with it. Example ﬁeld dictionary entries for velocity U are shown below:
+16 dimensions [0 1 -1 0 0 0 0];
+17
+18 internalField uniform (0 0 0);
+19
+20 boundaryField
+21 {
+22 inlet
+23 {
+24 type fixedValue;
+25 value uniform (10 0 0);
+26 }
+27
+28 outlet
+29 {
+OpenFOAM-12
+4.2 Basic input/output ﬁle format U-99
+30 type zeroGradient;
+31 }
+32
+33 upperWall
+34 {
+35 type noSlip;
+36 }
+37
+38 lowerWall
+39 {
+40 type noSlip;
+41 }
+42
+43 frontAndBack
+44 {
+45 type empty;
+46 }
+47 }
+48
+49 // ************************************************************************* //
+4.2.10 Macro expansion
+The conﬁguration of case ﬁles can beneﬁt from a macro syntax which uses the dollar
+($) symbol in front of a keyword to expand the data associated with the keyword. For
+example the value set for keyword a below, 10, is expanded in the following line, so that
+the value of b is also 10.
+a 10;
+b $a;
+Variables can be accessed within diﬀerent levels of sub-dictionaries, or scope. Scoping
+is performed using a ‘ /’ (slash) syntax, illustrated by the following example, where b is
+set to the value of a, speciﬁed in a sub-dictionary called subdict.
+subdictA
+{
+a 20;
+}
+b $subdictA/a;
+There are further syntax rules for macro expansions:
+• to traverse up one level of sub-dictionary, use the ‘ ..’ (double-dot) preﬁx, see below;
+• to traverse up two levels use ‘ ../..’ preﬁx, etc.;
+• to traverse to the top level dictionary use the ‘ !’ (exclamation mark) preﬁx (most
+useful), see below;
+• to traverse into a separate ﬁle named otherFile, use ‘ otherFile!’, see below;
+• for multiple levels of macro substitution, each speciﬁed with the ‘ $’ dollar syntax,
+‘{}’ brackets are required to protect the expansion, see below.
+When accessing parameters from another ﬁle, the $FOAM_CASE environment variable is
+useful to specify the path to the ﬁle as described in section 4.2.12 and illustrated below.
+OpenFOAM-12
+U-100 OpenFOAM cases
+a 10;
+b a;
+c ${$b}; // returns 10, since $b returns "a", and $a returns 10
+subdictA
+{
+a 20;
+}
+subdictB
+{
+// double-dot takes scope up 1 level, then into "subdictA" => 20
+b $../subdictA/a;
+subsubdict
+{
+// exclamation mark takes scope to top level => 10
+b $!a;
+// "a" from another file named "otherFile"
+c $otherFile!a;
+// "a" from another file "otherFile" in the case directory
+d ${${FOAM_CASE}/otherFile!a};
+}
+}
+4.2.11 Including ﬁles
+Directives are commands that begin with the hash ( #) symbol which provide further
+ﬂexibility when conﬁguring case ﬁles. There is a set of directive commands for reading
+a data ﬁle from within another data ﬁle. If a case requires a single value of pressure of
+100 kPa, used in diﬀerent input ﬁles, we could create a ﬁle, e.g. named initialConditions,
+which contains the following entry:
+pressure 1e+05;
+In order to use this pressure for internal and initial boundary ﬁelds, the user could
+simply include the initialConditions ﬁle using the #include directive, then use a macro
+expansion on the pressure keyword, as follows.
+#include "initialConditions"
+internalField uniform $pressure;
+boundaryField
+{
+patch1
+{
+type fixedValue;
+OpenFOAM-12
+4.2 Basic input/output ﬁle format U-101
+value $internalField;
+}
+}
+This example works if the included ﬁle is in the same directory as the ﬁle that includes
+it. Otherwise, more generally the path to the ﬁle is required, e.g. if initialConditions is in
+the constant directory:
+#include "$FOAM_CASE/constant/initialConditions"
+Here $FOAM_CASE represents is the path of the case directory as described in the following
+section. The following special forms of the #include directive also exist.
+• #includeIfPresent: reads a ﬁle if it exists.
+• #includeEtc: reads a ﬁle with the $FOAM_ETC directory as the starting path.
+• #includeFunc: reads ﬁle containing a single functionObject conﬁguration, ﬁrst
+searching the case system directory, followed by the $FOAM_ETC directory.
+• #includeModel: reads a ﬁle containing a single fvModel conﬁguration, ﬁrst searching
+the case constant directory, followed by the $FOAM_ETC directory.
+• #includeConstraint: reads a ﬁle containing a single fvConstraint conﬁguration,
+ﬁrst searching the case system directory, followed by the $FOAM_ETC directory.
+Keyword entries can also be removed with the directive:
+#remove <keywordEntry>
+where <keywordEntry> can be either a single keyword or a regular expression.
+4.2.12 Environment variables
+Environment variables can be used in input ﬁles. For example, the $FOAM_RUN environ-
+ment variable can be used to identify the run directory, as described in the introduction
+to Chapter 2. This could be used to include a ﬁle, e.g. by
+#include "$FOAM_RUN/pitzDailySteady/0/U"
+In addition to environment variables like $FOAM_RUN, set within the operating sys-
+tem, a number of “internal” environment variables are recognised, including the following.
+• $FOAM_CASE: the path and directory of the running case.
+• $FOAM_CASENAME: the directory name of the running case.
+• $FOAM_APPLICATION: the name of the running application.
+OpenFOAM-12
+U-102 OpenFOAM cases
+4.2.13 Regular expressions
+As discussed, data is looked up from ﬁles using keywords. If a particular keyword does not
+exist, the I/O system will try to match the keyword with any POSIX regular expression ,
+speciﬁed inside double-quotations ( "...") in the input ﬁle.
+In some cases, when the I/O system searches for a keyword in a case ﬁle, a can be
+used to match the keyword
+When running an application, data is initialised by looking up keywords from dic-
+tionaries. The user can either provide an entry with a keyword that directly matches
+the one being looked up, or can provide a that matches the keyword, speciﬁed inside
+double-quotations ( "...").
+Regular expressions have an extensive syntax for various matches of text patterns but
+in OpenFOAM input ﬁles there are only two expressions that are generally used. Firstly,
+‘.’ denoting “any character”, and ‘ *’ denoting “repeated any number of times, including
+0 times” is often used in combination to match “any characters” . For example, to specify
+a noSlip boundary condition for any patch whose name ends Wall. . . , the user could
+specify in the boundaryField for U:
+".*Wall"
+{
+type noSlip;
+}
+The other common regular expression uses () to group expressions. For example, to a
+noSlip boundary condition on two wall patches named upper and lower, the user could
+specify:
+"(upper|lower)"
+{
+type noSlip;
+}
+4.2.14 Keyword ordering
+The order in which keywords are listed does not matter, except when the same keyword
+is speciﬁed multiple times . Where the same keyword is duplicated, the last instance is
+used. The most common example of a duplicate keyword occurs when a keyword is
+included from the ﬁle or expanded from a macro, and then overridden. The example
+below demonstrates this, where pFinal adopts all the keyword entries, including relTol
+0.05 in the p sub-dictionary by the macro expansion $p, then overrides the relTol entry.
+p
+{
+solver PCG;
+preconditioner DIC;
+tolerance 1e-6;
+relTol 0.05;
+}
+pFinal
+{
+OpenFOAM-12
+4.2 Basic input/output ﬁle format U-103
+$p;
+relTol 0;
+}
+Where a data lookup matches both a keyword and a regular expression, the keyword
+match takes precedence irrespective of the order of the entries.
+4.2.15 Inline calculations
+There are two further directives that enable calculations from within input ﬁles: #calc,
+described here, for simple calculations; and #codeStream, for more complex calculations,
+described in section 4.2.15.
+The pipeCyclic tutorial in $FOAM_TUTORIALS/incompressibleFluid demonstrates the
+#calc directive through its blockMesh conﬁguration in blockMeshDict:
+//- Half angle of wedge in degrees
+halfAngle 45.0;
+//- Radius of pipe [m]
+radius 0.5;
+radHalfAngle #calc "degToRad($halfAngle)";
+y #calc "$radius*sin($radHalfAngle)";
+z #calc "$radius*cos($radHalfAngle)";
+The ﬁle contains several calculations that calculate vertex ordinates, e.g. y, z, etc., from
+geometry dimensions, e.g. radius.
+Calculations include standard C++ functions including unit conversions, e.g. degToRad,
+and trigonometric functions, e.g. sin. They can also include OpenFOAM mathematical
+functions if the relevant header ﬁles are included for those functions. The #calcInclude
+directive enables header ﬁles to be included for use with #calc.
+The aerofoilNACA0012Steady example, using the ﬂuid solver module, sets the inlet ve-
+locity using an angle of attack using the code below. The transform function is provided
+by the transform.H header ﬁle, to rotate unit vectors by the angle of attack to set the lift
+and drag directions.
+angleOfAttack 5; // degs
+angle #calc "-degToRad($angleOfAttack)";
+#calcInclude "transform.H"
+liftDir #calc "transform(Ry($angle), vector(0, 0, 1))";
+dragDir #calc "transform(Ry($angle), vector(1, 0, 0))";
+Dictionary entries constructed with #calc or #codeStream (see below) can use variables
+that represent OpenFOAM classes, or types, such as vector, tensor, List, Field, string etc..
+To create a typed variable, the type is speciﬁed inside angled brackets <>, immediately
+after the $ symbol, e.g. $<vector>var or $<vector>{var} substitutes a variable named
+var as a vector. The following example shows a calculation c = a • b using #calc.
+OpenFOAM-12
+U-104 OpenFOAM cases
+a (1 2 3);
+b (1 1 0);
+c #calc "$<vector>a & $<vector>b";
+Care is required with calculations involving a division because the / character
+is otherwise used to identify keywords in sub-dictionaries, "$a/b" looks for a keyword b
+within a sub-dictionary named a. Where a division is required, the user can put spaces
+around the /, e.g.
+c #calc "$a / $b";
+or they can apply brackets around the ﬁrst variable, e.g.
+c #calc "$(a)/$b";
+The code string can also be delimited by #{. . .#} instead of quotation marks ". . .".
+The former delimiter supports code strings across multiple lines and avoids problems
+with string typed variables that may contain quotation marks, as shown in the following
+example.
+s "field";
+fieldName #calc
+#{
+$<string>s + "Name"
+#};
+Further examples can be found in ﬁles in the test/dictionary directory in the OpenFOAM
+installation.
+4.2.16 Inline code
+The #codeStream directive takes C++ code which is compiled and executed to deliver
+the dictionary entry. The code and compilation instructions are speciﬁed through the
+following keywords.
+• code: speciﬁes the code using arguments OStream& os and const dictionary&
+dict which can be used in the code, e.g. to lookup keyword entries from within the
+current case ﬁle.
+• codeInclude (optional): speciﬁes additional C++ #include statements to include
+code ﬁles.
+• codeOptions (optional): speciﬁes any extra compilation ﬂags to be added to EXE_INC
+in Make/options.
+• codeLibs (optional): speciﬁes any extra compilation ﬂags to be added to LIB_LIBS
+in Make/options.
+OpenFOAM-12
+4.3 Global controls U-105
+Code, like any string, can be written across multiple lines by enclosing it within hash-
+bracket delimiters, i.e. #{...#}. Anything in between these two delimiters becomes a
+string with all newlines, quotes, etc. preserved.
+An example of #codeStream is given below, where the code in the calculates moment
+of inertia of a box shaped geometry.
+momentOfInertia #codeStream
+{
+codeInclude
+#{
+#include "diagTensor.H"
+#};
+code
+#{
+scalar sqrLx = sqr($Lx);
+scalar sqrLy = sqr($Ly);
+scalar sqrLz = sqr($Lz);
+os <<
+$mass
+*diagTensor(sqrLy + sqrLz, sqrLx + sqrLz, sqrLx + sqrLy)/12.0;
+#};
+};
+4.2.17 Conditionals
+Input ﬁles support two conditional directives: #if. . .#else. . .#endif; and, #ifEq. . .
+#else. . . #endif. The #if conditional reads a switch that can be generated by a #calc
+directive, e.g.:
+angle 65;
+laplacianSchemes
+{
+#if #calc "${angle} < 75"
+default Gauss linear corrected;
+#else
+default Gauss linear limited corrected 0.5;
+#endif
+}
+The #ifEq compares a word or string, and executes based on a match, e.g.:
+rotating
+{
+timeScheme ${${FOAM_CASE}/system/fvSchemes!ddtSchemes/default};
+#ifeq $timeScheme steadyState
+type MRFnoSlip;
+#else
+type movingWallVelocity;
+#endif
+value uniform (0 0 0);
+}
+4.3 Global controls
+OpenFOAM includes a large number of global parameters that are conﬁgured by default
+in a ﬁle named controlDict. This is the so-called “global” controlDict ﬁle, as opposed to a
+case controlDict ﬁle that is described in the following section.
+The global controlDict ﬁle can be found in the installation within a directory named etc,
+represented by the environment variable $FOAM_ETC. The ﬁle contains sub-dictionaries
+for the following items.
+OpenFOAM-12
+U-106 OpenFOAM cases
+• Documentation: for opening documentation in a web browser.
+• InfoSwitches: controls information printed to standard output, i.e. the terminal.
+• OptimisationSwitches: for parallel communication and I/O, see section 3.4.2.
+• DebugSwitches: messaging switches to help debug code failures, as described in
+section 3.2.11.
+• DimensionedConstants: deﬁnes fundamental physical constants, e.g. Boltzmann’s
+Constant.
+• UnitConversions: deﬁnes units and conversion factors, e.g. cal for calorie, see
+section 4.2.7.
+4.3.1 Overriding global controls
+The values of the DimensionedConstants depend on the unit system being adopted, i.e.
+the International System of Units (SI units), or US Customary system (USCS), based on
+English units (pounds, feet, etc.). The default system is naturally SI, but some users may
+wish to override this with USCS units, either globally or for a speciﬁc case. The system
+is set through the unitSet keyword, i.e.
+DimensionedConstants
+{
+unitSet SI; // USCS
+}
+While a user could modify this setting in the etc/controlDict ﬁle in the installation,
+it is better practice to use a ﬁle in their user directory. OpenFOAM provides a set of
+directory locations, where global conﬁguration ﬁles can be included, which it looks up in
+an order of precedence. To list the locations, simply run the following command.
+foamEtcFile -list
+The listed locations include a local $HOME/.OpenFOAM directory and follow a descending
+order of precedence, i.e. the last location listed ( etc) is lowest precedence.
+If a user therefore wished to work permanently in USCS units, they could maintain a
+controlDict ﬁle in their $HOME/.OpenFOAM directory that includes the following entry.
+DimensionedConstants
+{
+unitSet USCS;
+}
+OpenFOAM would read the unitSet entry from this ﬁle, but read all other controlDict
+keyword entries from the global controlDict ﬁle.
+Alternatively, if a user wished to work on a single case in USCS units, they could add
+the same entry into the controlDict ﬁle in the system directory for their case. This ﬁle is
+discussed in the next section.
+OpenFOAM-12
+4.4 Time and data input/output control U-107
+4.4 Time and data input/output control
+The OpenFOAM solvers begin all runs by setting up a database. The database controls
+I/O and, since output of data is usually requested at intervals of time during the run, time
+is an inextricable part of the database. The controlDict dictionary sets input parameters
+essential for the creation of the database. The keyword entries in controlDict are listed in
+the following sections. Only the time control and writeInterval entries are mandatory,
+with the database using default values for any of the optional entries that are omitted.
+Example entries from a controlDict dictionary are given below:
+16
+17 application foamRun;
+18
+19 solver incompressibleFluid;
+20
+21 startFrom latestTime;
+22
+23 startTime 0;
+24
+25 stopAt endTime;
+26
+27 endTime 0.3;
+28
+29 deltaT 0.0001;
+30
+31 writeControl adjustableRunTime;
+32
+33 writeInterval 0.01;
+34
+35 purgeWrite 0;
+36
+37 writeFormat ascii;
+38
+39 writePrecision 6;
+40
+41 writeCompression off;
+42
+43 timeFormat general;
+44
+45 timePrecision 6;
+46
+47 runTimeModifiable yes;
+48
+49 adjustTimeStep yes;
+50
+51 maxCo 5;
+52
+53 // ************************************************************************* //
+4.4.1 Modules
+solver Choice of solver module for the simulation, e.g. incompressibleFluid
+regionSolvers Dictionary of solvers for diﬀerent domain regions, e.g. heat transfer of
+water ﬂowing over a plate might use the ﬂuid and solid modules as follows:
+regionSolvers
+{
+water fluid;
+plate solid;
+}
+libs List of additional libraries (existing on $LD_LIBRARY_PATH) to be loaded at run-
+time, e.g. ("libNew1.so" "libNew2.so")
+4.4.2 Time control
+startFrom Controls the start time of the simulation.
+OpenFOAM-12
+U-108 OpenFOAM cases
+• firstTime: Earliest time step from the set of time directories.
+• startTime: Time speciﬁed by the startTime keyword entry.
+• latestTime: Most recent time step from the set of time directories.
+startTime Start time for the simulation with startFrom startTime;
+stopAt Controls the end time of the simulation.
+• endTime: Time speciﬁed by the endTime keyword entry.
+• writeNow: Stops simulation on completion of current time step and writes
+data.
+• noWriteNow: Stops simulation on completion of current time step and does
+not write out data.
+• nextWrite: Stops simulation on completion of next scheduled write time, spec-
+iﬁed by writeControl.
+endTime End time for the simulation when stopAt endTime; is speciﬁed.
+deltaT Time step of the simulation.
+4.4.3 Data writing
+writeControl Controls the timing of write output to ﬁle.
+• timeStep: Writes data every writeInterval time steps.
+• runTime: Writes data every writeInterval seconds of simulated time.
+• adjustableRunTime: Writes data every writeInterval seconds of simulated
+time, adjusting the time steps to coincide with the writeInterval if necessary
+— used in cases with automatic time step adjustment.
+• cpuTime: Writes data every writeInterval seconds of CPU time.
+• clockTime: Writes data out every writeInterval seconds of real time.
+writeInterval Scalar used in conjunction with writeControl described above.
+purgeWrite Integer representing a limit on the number of time directories that are stored
+by overwriting time directories on a cyclic basis. For example, if the simulations
+starts at t = 5s and ∆t = 1s, then with purgeWrite 2; , data is ﬁrst written into 2
+directories, 6 and 7, then when 8 is written, 6 is deleted, and so on so that only 2 new
+results directories exists at any time. To disable the purging, specify purgeWrite
+0; (default).
+writeFormat Speciﬁes the format of the data ﬁles.
+• ascii (default): ASCII format, written to writePrecision signiﬁcant ﬁgures.
+• binary: binary format.
+writePrecision Integer used in conjunction with writeFormat described above, 6 by
+default.
+OpenFOAM-12
+4.5 Numerical schemes U-109
+writeCompression Switch to specify whether ﬁles are compressed with gzip when writ-
+ten: on/off (yes/no, true/false)
+timeFormat Choice of format of the naming of the time directories.
+• fixed: ±m.dddddd where the number of ds is set by timePrecision.
+• scientific: ±m.dddddde±xx where the number ofds is set by timePrecision.
+• general (default): Speciﬁes scientific format if the exponent is less than -4
+or greater than or equal to that speciﬁed by timePrecision.
+timePrecision Integer used in conjunction with timeFormat described above, 6 by de-
+fault.
+graphFormat Format for graph data written by an application.
+• raw (default): Raw ASCII format in columns.
+• gnuplot: Data in gnuplot format.
+• csv: Comma-separated values.
+• vtk: Visualisation Toolkit (VTK) format.
+• ensight: Ensight format.
+4.4.4 Other settings
+beginTime Optional entry to for cases with an unusual start time that causes inconve-
+nient write times. With beginTime, the write times are multiples of writeInterval,
+starting at the beginTime. For example, if the start time of 1.52 and a writeInterval
+of 1, results would be written at 2.52, 3.52, . . . If beginTime is set to 0 (or 1), the
+write times would be 2, 3, etc.
+Switch used by some solvers to adjust the time step during the simulation, usually
+according to maxCo.
+adjustTimeStep Switch used by some solvers to adjust the time step during the simula-
+tion, usually according to maxCo.
+maxCo Maximum Courant number, e.g. 0.5
+runTimeModifiable Switch for whether dictionaries, e.g.controlDict, are re-read during
+a simulation at the beginning of each time step, allowing the user to modify param-
+eters during a simulation.
+functions Dictionary of functions, e.g. probes to be loaded at run-time; see examples
+in $FOAM_TUTORIALS
+4.5 Numerical schemes
+The fvSchemes dictionary in the system directory sets the numerical schemes for terms,
+such as derivatives in equations, that are calculated during a simulation. This section
+describes how to specify the schemes in the fvSchemes dictionary. Details of the schemes
+are described in Chapter 3 of Notes on Computational Fluid Dynamics: General
+Principles.
+OpenFOAM-12
+U-110 OpenFOAM cases
+The aim for fvSchemes is to provide an unrestricted choice of schemes to the user for
+everything from derivatives, e.g. gradient ∇, to interpolations of values from one set of
+points to another. OpenFOAM uses the ﬁnite volume method so spatial derivatives are
+based on Gaussian integration which sums values on cell faces, which must be interpolated
+from cell centres. The user has a wide range of options for interpolation schemes, with
+certain schemes being speciﬁcally designed for particular derivative terms, especially the
+advection divergence ∇ • terms.
+The set of terms, for which numerical schemes must be speciﬁed, are subdivided within
+the fvSchemes dictionary into the categories below, using Ψ as an example ﬁeld variable.
+• timeScheme: ﬁrst and second time derivatives, e.g. ∂Ψ/∂t,∂ 2Ψ/∂2t
+• gradSchemes: gradient ∇Ψ
+• divSchemes: divergence ∇ • Ψ
+• laplacianSchemes: Laplacian ∇ • Γ∇Ψ, with diﬀusivity Γ
+• interpolationSchemes: cell to face interpolations of values.
+• snGradSchemes: component of gradient normal to a cell face.
+• wallDist: distance to wall calculation, where required.
+Each keyword is the name of a sub-dictionary which contains terms of a particular type,
+e.g. gradSchemes contains all the gradient derivative terms such as grad(p) (which rep-
+resents ∇p). Further examples can be seen in the extract from an fvSchemes dictionary
+below:
+16
+17 ddtSchemes
+18 {
+19 default Euler;
+20 }
+21
+22 gradSchemes
+23 {
+24 default Gauss linear;
+25 }
+26
+27 divSchemes
+28 {
+29 default none;
+30
+31 div(phi,U) Gauss linearUpwind grad(U);
+32 div(phi,k) Gauss upwind;
+33 div(phi,epsilon) Gauss upwind;
+34 div(phi,R) Gauss upwind;
+35 div(R) Gauss linear;
+36 div(phi,nuTilda) Gauss upwind;
+37
+38 div((nuEff*dev2(T(grad(U))))) Gauss linear;
+39 }
+40
+41 laplacianSchemes
+42 {
+43 default Gauss linear corrected;
+44 }
+45
+46 interpolationSchemes
+47 {
+48 default linear;
+49 }
+50
+51 snGradSchemes
+52 {
+53 default corrected;
+54 }
+OpenFOAM-12
+4.5 Numerical schemes U-111
+55
+56
+57 // ************************************************************************* //
+The example shows fvSchemes with 6 . . . Schemes subdictionaries, each containing key-
+word entries including: a default entry; other entries for the particular term speciﬁed,
+e.g. div(phi, k) for ∇ • (Uk). If a default scheme is speciﬁed in a particular . . . Schemes
+sub-dictionary, it is assigned to all of the terms to which the sub-dictionary refers, e.g.
+specifying a default in gradSchemes sets the scheme for all gradient terms in the appli-
+cation, e.g. ∇p, ∇U. With a default speciﬁed, the speciﬁc terms are not required in
+that sub-dictionary, i.e. the entries for grad(p), grad(U) are omitted in this example.
+Specifying a particular will however override the default scheme.
+The user can specify no default scheme by the none entry, as in the divSchemes in
+the example above. The user is then obliged to specify all terms in that sub-dictionary
+individually. Setting default to none ensures the user speciﬁes all terms individually
+which is common for divSchemes which requires precise conﬁguration.
+OpenFOAM includes a vast number of discretisation schemes, from which only a
+few are typically recommended for real-world, engineering applications. The user can
+get help with scheme selection by interrogating the tutorial cases for example scheme
+settings. They should look at the schemes used in relevant cases, e.g. for running a large-
+eddy simulation (LES), look at schemes used in tutorials running LES. Additionally,
+foamSearch is a useful tool to list the schemes used in all the tutorials. For example,
+to print all the default entries for ddtSchemes for cases in the $FOAM_TUTORIALS
+directory, the user can type:
+foamSearch $FOAM_TUTORIALS fvSchemes ddtSchemes/default
+which returns:
+default backward;
+default CrankNicolson 0.9;
+default Euler;
+default localEuler;
+default none;
+default steadyState;
+The schemes listed using foamSearch are described in the following sections.
+4.5.1 Time schemes
+The ﬁrst time derivative (∂/∂t ) terms are speciﬁed in the ddtSchemes sub-dictionary. The
+discretisation schemes for each term can be selected from those listed below.
+• steadyState: sets time derivatives to zero.
+• Euler: transient, ﬁrst order implicit, bounded.
+• backward: transient, second order implicit, potentially unbounded.
+• CrankNicolson: transient, second order implicit, bounded; requires an oﬀ-centering
+coeﬃcient ψ where:
+ψ =
+
+
+
+1 corresponds to pure CrankNicolson,
+0 corresponds to Euler;
+OpenFOAM-12
+U-112 OpenFOAM cases
+generallyψ = 0.9 is used to stabilise the scheme for practical engineering problems.
+• localEuler: pseudo transient for accelerating a solution to steady-state using local-
+time stepping; ﬁrst order implicit.
+Any second time derivative ( ∂2/∂t2) terms are speciﬁed in the d2dt2Schemes sub-
+dictionary. Only the Euler scheme is available for d2dt2Schemes.
+4.5.2 Gradient schemes
+The gradSchemes sub-dictionary contains gradient terms. The default discretisation
+scheme that is primarily used for gradient terms is:
+default Gauss linear;
+The Gauss entry speciﬁes the standard ﬁnite volume discretisation with Gaussian inte-
+gration which requires the interpolation of values from cell centres to face centres. The
+interpolation scheme is then given by the linear entry, meaning linear interpolation or
+central diﬀerencing.
+In some tutorials cases, particular involving poorer quality meshes, the discretisation
+of speciﬁc gradient terms is then overridden to improve boundedness and stability. The
+terms that are overridden in those cases are the velocity gradient
+grad(U) cellLimited Gauss linear 1;
+and, less frequently, the gradient of turbulence ﬁelds, e.g.
+grad(k) cellLimited Gauss linear 1;
+grad(epsilon) cellLimited Gauss linear 1;
+They use the cellLimited scheme which limits the gradient such that when cell values
+are extrapolated to faces using the calculated gradient, the face values do not fall outside
+the bounds of values in surrounding cells. A limiting coeﬃcient is speciﬁed after the
+underlying scheme for which 1 guarantees boundedness and 0 applies no limiting; 1 is
+invariably used.
+Other schemes that are rarely used are as follows.
+• leastSquares: a second-order, least squares distance calculation using all neigh-
+bour cells.
+• Gauss cubic : third-order scheme that appears in solidDisplacement and dnsFoam
+examples.
+4.5.3 Divergence schemes
+The divSchemes sub-dictionary contains divergence terms, i.e. terms of the form ∇ • . . . ,
+excluding Laplacian terms (of the form ∇ • Γ∇Ψ). This includes both advection terms,
+e.g. ∇ • (Uk), where velocity U provides the advective ﬂux, and other terms, that are
+often diﬀusive in nature, e.g. ∇ •ν(∇U)T.
+The fact that terms that are fundamentally diﬀerent reside in one sub-dictionary means
+that the default scheme in generally set to none in divSchemes. The non-advective terms
+then generally use the Gauss integration with linear interpolation, e.g.
+OpenFOAM-12
+4.5 Numerical schemes U-113
+div(U) Gauss linear;
+The treatment of advective terms is one of the major challenges in CFD numerics and
+so the options are more extensive. The keyword identiﬁer for the advective terms are
+usually of the form div(phi,...), where phi denotes the (volumetric) ﬂux of velocity
+on the cell faces for constant-density ﬂows and the mass ﬂux for compressible ﬂows,
+e.g. div(phi,U) for the advection of velocity, div(phi,e) for the advection of internal
+energy, etc. For advection of velocity, the user can run the foamSearch script to extract
+the div(phi,U) keyword from all tutorials.
+foamSearch $FOAM_TUTORIALS fvSchemes "divSchemes/div(phi,U)"
+The schemes are all based on Gauss integration, using the ﬂux phi and the advected
+ﬁeld being interpolated to the cell faces by one of a selection of schemes, e.g. linear,
+linearUpwind, etc. There is a bounded variant of the discretisation, discussed later.
+Ignoring ‘V’-schemes (with keywords ending “ V”), and rarely-used schemes such as
+Gauss cubic and vanLeerV, the interpolation schemes used in the tutorials are as follows.
+• linear: second order, unbounded.
+• linearUpwind: second order, upwind-biased, unbounded (but much less so than
+linear), that requires discretisation of the velocity gradient to be speciﬁed.
+• LUST: blended 75% linear/ 25%linearUpwind scheme, that requires discretisation
+of the velocity gradient to be speciﬁed.
+• limitedLinear: linear scheme that limits towards upwind in regions of rapidly
+changing gradient; requires a coeﬃcient, where 1 is strongest limiting, tending to-
+wards linear as the coeﬃcient tends to 0.
+• upwind: ﬁrst-order bounded, generally too inaccurate for velocity but more often
+used for transport of scalar ﬁelds.
+Example syntax for these schemes is as follows.
+div(phi,U) Gauss linear;
+div(phi,U) Gauss linearUpwind grad(U);
+div(phi,U) Gauss LUST grad(U);
+div(phi,U) Gauss LUST unlimitedGrad(U);
+div(phi,U) Gauss limitedLinear 1;
+div(phi,U) Gauss upwind;
+‘V’-schemes are specialised versions of schemes designed for vector ﬁelds. They
+diﬀer from conventional schemes by calculating a single limiter which is applied to all
+components of the vectors, rather than calculating separate limiters for each component
+of the vector. The ‘V’-schemes’ single limiter is calculated based on the direction of most
+rapidly changing gradient, resulting in the strongest limiter being calculated which is
+most stable but arguably less accurate. Example syntax is as follows.
+div(phi,U) Gauss limitedLinearV 1;
+div(phi,U) Gauss linearUpwindV grad(U);
+OpenFOAM-12
+U-114 OpenFOAM cases
+The bounded variants of schemes relate to the treatment of the material time derivative
+which can be expressed in terms of a spatial time derivative and convection, e.g. for ﬁeld
+e in incompressible ﬂow
+De
+Dt = ∂e
+∂t + U • ∇e = ∂e
+∂t + ∇ • (Ue) − (∇ • U)e (4.1)
+For numerical solution of incompressible ﬂows, ∇ • U = 0 at convergence, at which point
+the third term on the right hand side is zero. Before convergence is reached, however,
+∇ • U ̸= 0 and in some circumstances, particularly steady-state simulations, it is better
+to include the third term within a numerical solution to help maintain boundedness of
+the solution variable and promote better convergence. The bounded variant of the Gauss
+scheme provides this, automatically including the discretisation of the third-term with the
+advection term. Example syntax is as follows, as seen in fvSchemes ﬁles for steady-state
+cases.
+div(phi,U) bounded Gauss limitedLinearV 1;
+div(phi,U) bounded Gauss linearUpwindV grad(U);
+The schemes used for advection of scalar ﬁelds are similar to those for advection
+of velocity, although in general there is greater emphasis placed on boundedness than
+accuracy when selecting the schemes. For example, a search for schemes for advection of
+internal energy ( e) reveals the following.
+foamSearch $FOAM_TUTORIALS fvSchemes "divSchemes/div(phi,e)"
+div(phi,e) bounded Gauss upwind;
+div(phi,e) Gauss limitedLinear 1;
+div(phi,e) Gauss linearUpwind limited;
+div(phi,e) Gauss LUST grad(e);
+div(phi,e) Gauss upwind;
+div(phi,e) Gauss vanAlbada;
+In comparison with advection of velocity, there are no cases set up to use linear. The
+limitedLinear and upwind schemes are commonly used, with the additional appearance
+of vanLeer, another limited scheme, with less strong limiting than limitedLinear.
+There are specialised versions of the limited schemes for scalar ﬁelds that are commonly
+bounded between 0 and 1, e.g. the laminar ﬂame speed regress variable b. A search for
+the discretisation used for advection in the laminar ﬂame transport equation yields:
+div(phiSt,b) Gauss limitedLinear01 1;
+The underlying scheme is limitedLinear, specialised for stronger bounding between 0
+and 1 by adding 01 to the name of the scheme.
+The multivariateSelection mechanism also exists for grouping multiple equation
+terms together, and applying the same limiters on all terms, using the strongest limiter
+calculated for all terms. A good example of this is in a set of mass transport equations for
+ﬂuid species, where it is good practice to apply the same discretisation to all equations for
+consistency. The example below comes from the smallPoolFire3D tutorial in $FOAM_TUT-
+ORIALS/multicompon/entFluid, in which the equation for enthalpy h is included with the
+specie mass transport equations in the calculation of a single limiter.
+OpenFOAM-12
+4.5 Numerical schemes U-115
+div(phi,Yi_h) Gauss multivariateSelection
+{
+O2 limitedLinear01 1;
+CH4 limitedLinear01 1;
+N2 limitedLinear01 1;
+H2O limitedLinear01 1;
+CO2 limitedLinear01 1;
+h limitedLinear 1 ;
+}
+4.5.4 Surface normal gradient schemes
+It is worth explaining the snGradSchemes sub-dictionary that contains surface normal gra-
+dient terms, before discussion of laplacianSchemes, because they are required to evaluate
+a Laplacian term using Gaussian integration. A surface normal gradient is evaluated at a
+cell face; it is the component, normal to the face, of the gradient of values at the centres
+of the 2 cells that the face connects.
+A search for the default scheme for snGradSchemes reveals the following entries.
+default corrected;
+default limited corrected 0.33;
+default limited corrected 0.5;
+default orthogonal;
+default uncorrected;
+The basis of the gradient calculation at a face is to subtract the value at the cell
+centre on one side of the face from the value in the centre on the other side and divide
+by the distance. The calculation is second-order accurate for the gradient normal to the
+face if the vector connecting the cell centres is orthogonal to the face, i.e. they are at
+right-angles. This is the orthogonal scheme.
+Orthogonality requires a regular mesh, typically aligned with the Cartesian co-ordinate
+system, which does not generally occur with real world, engineering geometries. Therefore,
+to maintain second-order accuracy, an explicit non-orthogonal correction can be added to
+the orthogonal component, known as the corrected scheme. The correction increases in
+size as the non-orthogonality, i.e. the angle α between the cell-cell vector and face normal
+vector, increases.
+Asα tends towards 90◦, typically beyond 75◦, the explicit correction can be so large to
+cause a solution to go unstable. The solution can be stabilised by applying the limited
+scheme to the correction which requires a coeﬃcient ψ, 0 ≤ψ ≤ 1 where
+ψ =
+
+
+
+0 corresponds to uncorrected,
+0.333 non-orthogonal correction ≤ 0.5 × orthogonal part,
+0.5 non-orthogonal correction ≤ orthogonal part,
+1 corresponds to corrected.
+(4.2)
+Typically,psi is chosen to be 0.33 or 0.5, where 0.33 oﬀers greater stability and 0.5 greater
+accuracy.
+OpenFOAM-12
+U-116 OpenFOAM cases
+The corrected scheme applies under-relaxation in which the implicit orthogonal cal-
+culation is increased by cos−1α, with an equivalent boost within the non-orthogonal cor-
+rection. The uncorrected scheme is equivalent to the corrected scheme, without the
+non-orthogonal correction, so is like orthogonal but with the additional cos−1α under-
+relaxation.
+Generally the uncorrected and orthogonal schemes are only recommended for meshes
+with very low non-orthogonality ( e.g. maximum 5 ◦). The corrected scheme is generally
+recommended, but for maximum non-orthogonality above 75 ◦, limited may be required.
+At non-orthogonality above 85 ◦, convergence is generally hard to achieve.
+4.5.5 Laplacian schemes
+The laplacianSchemes sub-dictionary contains Laplacian terms. A typical Laplacian term
+is ∇ • (ν∇U), the diﬀusion term in the momentum equations, which corresponds to the
+keyword laplacian(nu,U) in laplacianSchemes. The Gauss scheme is the only choice of
+discretisation and requires a selection of both an interpolation scheme for the diﬀusion
+coeﬃcient, i.e. ν in our example, and a surface normal gradient scheme, i.e. ∇U. To
+summarise, the entries required are:
+Gauss <interpolationScheme> < snGradScheme>
+The user can search for the default scheme for laplacianSchemes in all the cases in the
+$FOAM_TUTORIALS directory.
+foamSearch $FOAM_TUTORIALS fvSchemes laplacianSchemes/default
+It reveals the following entries.
+default Gauss linear corrected;
+default Gauss linear limited corrected 0.33;
+default Gauss linear limited corrected 0.5;
+default Gauss linear orthogonal;
+default Gauss linear uncorrected;
+In all cases, the linear interpolation scheme is used for interpolation of the diﬀusiv-
+ity. The cases uses the same array of snGradSchemes based on the maximum non-
+orthogonality in the mesh, as described in section 4.5.4.
+4.5.6 Interpolation schemes
+The interpolationSchemes sub-dictionary contains terms that are interpolations of values
+typically from cell centres to face centres, primarily used in the interpolation of velocity
+to face centres for the calculation of ﬂux phi. There are numerous interpolation schemes
+in OpenFOAM, but a search for the default scheme in all the tutorial cases reveals that
+linear interpolation is used in almost every case, except for one stress analysis example
+which uses cubic interpolation.
+OpenFOAM-12
+4.6 Solution and algorithm control U-117
+4.6 Solution and algorithm control
+Once a matrix equation is constructed according to the schemes in the previous section, a
+linear solver is applied. A set of equations is also framed within an algorithm containing
+loops and controls. For information about the main algorithms and solvers in Open-
+FOAM, refer to Chapter 5 of Notes on Computational Fluid Dynamics: General
+Principles.
+The controls for algorithms and solvers are found in the fvSolution dictionary in the
+system directory. Below is an example set of entries from the fvSolution dictionary for a
+case using the incompressibleFluid modular solver.
+16
+17 solvers
+18 {
+19 p
+20 {
+21 solver GAMG;
+22 tolerance 1e-7;
+23 relTol 0.01;
+24
+25 smoother DICGaussSeidel;
+26
+27 }
+28
+29 pFinal
+30 {
+31 $p;
+32 relTol 0;
+33 }
+34
+35 "(U|k|epsilon)"
+36 {
+37 solver smoothSolver;
+38 smoother symGaussSeidel;
+39 tolerance 1e-05;
+40 relTol 0.1;
+41 }
+42
+43 "(U|k|epsilon)Final"
+44 {
+45 $U;
+46 relTol 0;
+47 }
+48 }
+49
+50 PIMPLE
+51 {
+52 nNonOrthogonalCorrectors 0;
+53 nCorrectors 2;
+54 }
+55
+56
+57 // ************************************************************************* //
+fvSolution contains a set of subdictionaries, described in the remainder of this section
+that includes: solvers; relaxationFactors; and, SIMPLE for steady-state cases or PIMPLE
+for transient or pseudo-transient cases.
+4.6.1 Linear solver control
+The ﬁrst sub-dictionary in our example is solvers. It speciﬁes each linear solver that is
+used for each discretised equation; here, the term linear solver refers to the method of
+number-crunching to solve a matrix equation, as opposed to an modular solver, such as
+incompressibleFluid which describes the entire set of equations and algorithms to solve a
+particular problem. The term ‘linear solver’ is abbreviated to ‘solver’ in much of what
+follows; hopefully the context of the term avoids any ambiguity.
+The syntax for each entry within solvers starts with a keyword that for the variable
+being solved in the particular equation. For example, incompressibleFluid solves equa-
+OpenFOAM-12
+U-118 OpenFOAM cases
+tions for pressure p, velocity U and often turbulence ﬁelds, hence the entries for p, U,
+k and epsilon. The keyword introduces a sub-dictionary containing the type of solver
+and the parameters that the solver uses. The solver is selected through the solver
+keyword from the options listed below. The parameters, including tolerance, relTol,
+preconditioner, etc. are described in following sections.
+• PCG/PBiCGStab: Stabilised preconditioned (bi-)conjugate gradient, for both sym-
+metric and asymmetric matrices.
+• PCG/PBiCG: preconditioned (bi-)conjugate gradient, with PCG for symmetric matri-
+ces, PBiCG for asymmetric matrices.
+• smoothSolver: solver that uses a smoother.
+• GAMG: generalised geometric-algebraic multi-grid.
+• diagonal: diagonal solver for explicit systems.
+The solvers distinguish between symmetric matrices and asymmetric matrices. The sym-
+metry of the matrix depends on the terms of the equation being solved, e.g. time deriva-
+tives and Laplacian terms form coeﬃcients of a symmetric matrix, whereas an advective
+derivative introduces asymmetry. If the user speciﬁes a symmetric solver for an asymmet-
+ric matrix, or vice versa, an error message will be written to advise the user accordingly,
+e.g.
+--> FOAM FATAL IO ERROR : Unknown asymmetric matrix solver PCG
+Valid asymmetric matrix solvers are :
+4
+(
+GAMG
+PBiCG
+PBiCGStab
+smoothSolver
+)
+4.6.2 Solution tolerances
+The ﬁnite volume method generally solves equations in a segregated, decoupled manner,
+meaning that each matrix equation solves for only one variable. The matrices are con-
+sequently sparse, meaning they predominately include coeﬃcients of 0. The solvers are
+generally iterative, i.e. they are based on reducing the equation residual over successive
+solutions. The residual is ostensibly a measure of the error in the solution so that the
+smaller it is, the more accurate the solution. More precisely, the residual is evaluated by
+substituting the current solution into the equation and taking the magnitude of the dif-
+ference between the left and right hand sides; it is also normalised to make it independent
+of the scale of the problem being analysed.
+Before solving an equation for a particular ﬁeld, the initial residual is evaluated based
+on the current values of the ﬁeld. After each solver iteration the residual is re-evaluated.
+The solver stops if any one of the following conditions are reached:
+• the residual falls below the solver tolerance, tolerance;
+OpenFOAM-12
+4.6 Solution and algorithm control U-119
+• the ratio of current to initial residuals falls below the solver relative tolerance ,
+relTol;
+• the number of iterations exceeds a maximum number of iterations , maxIter;
+The solver tolerance should represent the level at which the residual is small enough
+that the solution can be deemed suﬃciently accurate. The solver relative tolerance limits
+the relative improvement from initial to ﬁnal solution. In transient simulations, it is usual
+to set the solver relative tolerance to 0 to force the solution to converge to the solver
+tolerance in each time step. The tolerances, tolerance and relTol must be speciﬁed in
+the dictionaries for all solvers; maxIter is optional and defaults to a value of 1000.
+Equations are very often solved multiple times within one solution step, or time step.
+For example, when using the PIMPLE algorithm, a pressure equation is solved according
+to the number speciﬁed by nCorrectors, as described in section 4.6.7. Where this occurs,
+the solver is very often set up to use diﬀerent settings when solving the particular equation
+for the ﬁnal time, speciﬁed by a keyword that adds Final to the ﬁeld name. For example,
+in the transient pitzDaily example for the incompressibleFluid solver, the solver settings for
+pressure are as follows.
+p
+{
+solver GAMG;
+tolerance 1e-07;
+relTol 0.01;
+smoother DICGaussSeidel;
+}
+pFinal
+{
+$p;
+relTol 0;
+}
+If the case is speciﬁed to solve pressure 4 times within one time step, then the ﬁrst 3
+solutions would use the settings for p with relTol of 0.01, so that the cost of solving each
+equation is relatively low. Only when the equation is solved the ﬁnal (4th) time, it solves
+to a residual level speciﬁed by tolerance (since relTol is 0, eﬀectively deactivating it)
+for greater accuracy, but at greater cost.
+4.6.3 Preconditioned conjugate gradient solvers
+There are a range of options for preconditioning of matrices in the conjugate gradient
+solvers, represented by the preconditioner keyword in the solver dictionary, listed be-
+low. Note that the DIC/DILU preconditioners are exclusively speciﬁed in the tutorials in
+OpenFOAM.
+• DIC/DILU: diagonal incomplete-Cholesky (symmetric) and incomplete-LU (asym-
+metric)
+• FDIC: slightly faster diagonal incomplete-Cholesky ( DIC with caching, symmetric)
+OpenFOAM-12
+U-120 OpenFOAM cases
+• GAMG: geometric-algebraic multi-grid.
+• diagonal: diagonal preconditioning, not generally used.
+• none: no preconditioning.
+4.6.4 Smooth solvers
+The solvers that use a smoother require the choice of smoother to be speciﬁed. The
+smoother options are listed below. The symGaussSeidel and GaussSeidel smoothers
+are preferred in the tutorials.
+• GaussSeidel: Gauss-Seidel.
+• symGaussSeidel: symmetric Gauss-Seidel.
+• DIC/DILU: diagonal incomplete-Cholesky (symmetric), incomplete-LU (asymmet-
+ric).
+• DICGaussSeidel: diagonal incomplete-Cholesky/LU with Gauss-Seidel (symmetric/-
+asymmetric).
+When using the smooth solvers, the user can optionally specify the number of sweeps, by
+the nSweeps keyword, before the residual is recalculated. Without setting it, it reverts to
+a default value of 1.
+4.6.5 Geometric-algebraic multi-grid solvers
+The geometric-algebraic multi-grid (GAMG) method uses the principle of: generating a
+quick solution on a mesh with a small number of cells; mapping this solution onto a ﬁner
+mesh; using it as an initial guess to obtain an accurate solution on the ﬁne mesh. GAMG
+is faster than standard methods when the increase in speed by solving ﬁrst on coarser
+meshes outweighs the additional costs of mesh reﬁnement and mapping of ﬁeld data. In
+practice, GAMG starts with the original mesh and coarsens/reﬁnes the mesh in stages.
+The coarsening is limited by a speciﬁed minimum number of cells at the most coarse level.
+The agglomeration of cells is performed by the method speciﬁed by the agglomerator
+keyword. The tutorials all use the default faceAreaPair method. The agglomeration can
+be controlled using the following optional entries, most of which default in the tutorials.
+• cacheAgglomeration: switch specifying caching of the agglomeration strategy (de-
+fault true).
+• nCellsInCoarsestLevel: approximate mesh size at the most coarse level in terms
+of the number of cells (default 10).
+• directSolveCoarset: use a direct solver at the coarsest level (default false).
+• mergeLevels: keyword controls the speed at which coarsening or reﬁnement is
+performed; the default is 1, which is safest, but for simple meshes, the solution speed
+can be increased by coarsening/reﬁning 2 levels at a time, i.e. setting mergeLevels
+2.
+OpenFOAM-12
+4.6 Solution and algorithm control U-121
+Smoothing is speciﬁed by the smoother as described in section 4.6.4. The number
+of sweeps used by the smoother at diﬀerent levels of mesh density are speciﬁed by the
+following optional entries.
+• nPreSweeps: number of sweeps as the algorithm is coarsening (default 0).
+• preSweepsLevelMultiplier: multiplier for the number of sweeps between each
+coarsening level (default 1).
+• maxPreSweeps: maximum number of sweeps as the algorithm is coarsening (default
+4).
+• nPostSweeps: number of sweeps as the algorithm is reﬁning (default 2).
+• postSweepsLevelMultiplier: multiplier for the number of sweeps between each
+reﬁnement level (default 1).
+• maxPostSweeps: maximum number of sweeps as the algorithm is reﬁning (default
+4).
+• nFinestSweeps: number of sweeps at ﬁnest level (default 2).
+4.6.6 Solution under-relaxation
+The fvSolution ﬁle usually includes a relaxationFactors sub-dictionary which controls under-
+relaxation. Under-relaxation is used to improve stability of a computation, particularly
+for steady-state problems. It works by limiting the amount which a variable changes from
+one iteration to the next, either by manipulating the matrix equation prior to solving for
+a ﬁeld, or by modifying the ﬁeld afterwards. An under-relaxation factor α, 0 < α ≤ 1
+speciﬁes the amount of under-relaxation, as described below.
+• No speciﬁed α: no under-relaxation.
+• α = 1: guaranteed matrix diagonal equality/dominance.
+• α decreases, under-relaxation increases.
+• α = 0: solution does not change with successive iterations.
+An optimum choice of α is one that is small enough to ensure stable computation but
+large enough to move the iterative process forward quickly; values of α as high as 0.9
+can ensure stability in some cases and anything much below, say, 0.2 can be prohibitively
+restrictive in slowing the iterative process.
+Relaxation factors for under-relaxation of ﬁelds are speciﬁed within a ﬁeld sub-dictionary;
+relaxation factors for equation under-relaxation are within a equations sub-dictionary. An
+example is shown below from a case with the incompressibleFluid solver module running
+in steady-state mode. The factors are speciﬁed for pressure p, pressure U, and turbulent
+ﬁelds grouped using a regular expression.
+54 relaxationFactors
+55 {
+56 fields
+57 {
+58 p 0.3;
+59 }
+60 equations
+61 {
+OpenFOAM-12
+U-122 OpenFOAM cases
+62 U 0.7;
+63 "(k|omega|epsilon).*" 0.7;
+64 }
+65 }
+66
+67 // ************************************************************************* //
+For a transient case with the incompressibleFluid module, under-relaxation would simply
+slow convergence of the solution within each time step. Instead, the following setting is
+generally adopted to ensure diagonal equality which is generally required for convergence
+of a matrix equation.
+60 relaxationFactors
+61 {
+62 equations
+63 {
+64 ".*" 1;
+65 }
+66 }
+67
+68
+69 // ************************************************************************* //
+4.6.7 SIMPLE and PIMPLE algorithms
+Most ﬂuid solver modules use algorithms to couple equations for mass and momentum
+conservation known as:
+• SIMPLE (semi-implicit method for pressure-linked equations);
+• PIMPLE, a combination of PISO (pressure-implicit split-operator) and SIMPLE.
+Within in time, or solution, step, the algorithms solve a pressure equation, to enforce mass
+conservation, with an explicit correction to velocity to satisfy momentum conservation.
+They optionally begin each step by solving the momentum equation — the so-called
+momentum predictor.
+While all the algorithms solve the same governing equations (albeit in diﬀerent forms),
+the algorithms principally diﬀer in how they loop over the equations. The looping is
+controlled by input parameters that are listed below. They are set in a dictionary named
+after the algorithm, i.e. SIMPLE, or PIMPLE.
+• nCorrectors: used by PIMPLE, sets the number of times the algorithm solves the
+pressure equation and momentum corrector in each step; typically set to 2 or 3.
+• nNonOrthogonalCorrectors: used by all algorithms, speciﬁes repeated solutions
+of the pressure equation, used to update the explicit non-orthogonal correction,
+described in section 4.5.4, of the Laplacian term ∇ • ((1/A)∇p); typically set to 0
+for steady-state and 1 for transient cases.
+• nOuterCorrectors: used by PIMPLE, it enables looping over the entire system of
+equations within on time step, representing the total number of times the system is
+solved; must be ≥ 1 and is typically set to 1.
+• momentumPredictor: switch that controls solving of the momentum predictor; typ-
+ically set to off for some ﬂows, including low Reynolds number and multiphase.
+4.6.8 Pressure referencing
+In a closed incompressible system, pressure is relative: it is the pressure range that matters
+not the absolute values. In these cases, the solver sets a reference level of pRefValue in cell
+pRefCell. These entries are generally stored in the SIMPLE or PIMPLE sub-dictionary.
+OpenFOAM-12
+4.7 Case management tools U-123
+4.7 Case management tools
+There are a set of applications and scripts that help with managing case ﬁles and help
+the user ﬁnd and set keyword data entries in case ﬁles. The tools are described in the
+following sections.
+4.7.1 General ﬁle management
+There are some tools for general management of case ﬁles, including foamListTimes, foam-
+CleanCase and foamCloneCase. A case includes conﬁguration ﬁles for various processes
+such as meshing, case initialisation, simulation and post-processing. Each process gener-
+ates new data ﬁles in various directories, e.g. mesh data is stored in constant/polyMesh,
+CFD results in time directories, and further post-processing in a postProcessing directory.
+The foamListTimes utility lists the time directories for a case, omitting the 0 directory
+by default. Prior to re-running a CFD simulation, it can be useful to delete the results
+from the previous simulation. The foamListTimes utility provides this function through the
+-rm option which deletes the listed time directories, executed by the following command.
+foamListTimes -rm
+The foamCleanCase script aims to reset the case ﬁles to their original state, removing
+all ﬁles generated during a workﬂow including the meshing, post-processing. It deletes
+directories including: postProcessing and VTK; the constant/polyMesh directory; processor
+directories from parallel decomposition; and, dynamicCode for run-time compiled code.
+The script is simply run as follows.
+foamCleanCase
+The foamCloneCase script creates a new case, by copying the 0, system and constant
+directories from an existing case. The copied case is ready to run since the mesh is
+copied through the constant directory. If the original case is set up to run in parallel, the
+processor directories can also be copied using the -processor option. The basic command
+is executed simply as follows, where oldCase refers to an existing case directory.
+foamCloneCase oldCase newCase
+4.7.2 The foamDictionary utility
+The foamDictionary utility oﬀers several options for printing, editing and adding keyword
+entries in case ﬁles. The utility is executed with a case dictionary ﬁle as an argument,
+e.g. from within a case directory on the fvSchemes ﬁle.
+foamDictionary system/fvSchemes
+Without options, the utility prints the entries from the ﬁle, removing comments, e.g. as
+follows for the fvSchemes ﬁle in the pitzDailySteady tutorial case.
+FoamFile
+{
+format ascii;
+class dictionary;
+location "system";
+object fvSchemes;
+}
+OpenFOAM-12

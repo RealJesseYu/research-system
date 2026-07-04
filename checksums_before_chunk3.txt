@@ -1,0 +1,9 @@
+39140e3d9ef320cf594690423487800c52abe693  baton.py
+6bbce23d35802441e4511d58b4c78779b6ea1a86  model_call.py
+da39a3ee5e6b4b0d3255bfef95601890afd80709  stages/__init__.py
+2efb164baf2efad7b918b86561ba45181d3aaf42  stages/stage1_ideation.py
+1afa9e2b32f46603962756cd0513dc21e347e89a  stages/stage2_experiment_design.py
+74661fbe2b27b7f91b7c9ee5ee81e0cc308e1f58  stages/stage3_fidelity_gate.py
+5777babca7d7872b2052f8abe6b31d764eda4858  stages/stage4_simulation.py
+1a84cb8509c3889518f2de64ac43bb7f87c2ade8  stages/stage5_thought_layer.py
+0822aa5a83dc0150800c2f3ba9d9c440a64778fa  stages/stage6_paper.py

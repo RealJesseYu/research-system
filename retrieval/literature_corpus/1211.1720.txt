@@ -1,0 +1,4 @@
+A Novel Model Order Reduction Approach for Navier-Stokes Equations at High Reynolds Number
+arXiv:1211.1720 (2012)
+
+A new approach to model order reduction of the Navier-Stokes equations at high Reynolds number is proposed. Unlike traditional approaches, this method does not rely on empirical turbulence modeling or modification of the Navier-Stokes equations. It provides spatial basis functions different from the usual proper orthogonal decomposition basis function in that, in addition to optimally representing the training data set, the new basis functions also provide stable and accurate reduced-order models. The proposed approach is illustrated with two test cases: two-dimensional flow inside a square lid-driven cavity and a two-dimensional mixing layer.
