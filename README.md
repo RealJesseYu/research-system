@@ -1,13 +1,13 @@
 # research-system
 
-Phase B, Step 11: the deterministic six-stage skeleton is built and the
+Phase B, Step 12: the deterministic six-stage skeleton is built and the
 real stages are arriving one by one — stage 1 is real literature-grounded
 ideation, gate 1 is pick-one-of-k, stage 2 is real experiment design
-producing a typed, Python-validated spec, and stage 3 is a real Opus
-fidelity gate on the frozen spike v2 prompt. The spike's solver wrapper
-has graduated into `tools/run_cfd.py` (deterministic, with optional QoI
-extraction); it is not wired into any stage yet. See `CLAUDE.md` for the
-full architecture and current status.
+producing a typed, Python-validated spec, stage 3 is a real Opus
+fidelity gate on the frozen spike v2 prompt, and stage 4 is the real
+simulation runner (deterministic Python, zero model calls: verdict-gated
+case synthesis + execution through `tools/run_cfd.py` with optional QoI
+extraction). See `CLAUDE.md` for the full architecture and current status.
 
 ## Requirements
 This project has its own venv at `venv/`, containing `claude-agent-sdk`.
@@ -46,6 +46,15 @@ no stage-1/2 spend):
 
 ```
 venv/bin/python3 handfeed_stage3.py --source-run <run-directory-name>
+```
+
+To re-run stage 4 alone from a past run's stage-2/3 evidence (no model
+calls at all; `--force-label trust|refine|defer` overrides the verdict
+label and is recorded in the handfeed's source.json; `--payload <file>`
+feeds a hand-authored payload instead of a past run):
+
+```
+venv/bin/python3 handfeed_stage4.py --source-run <run-directory-name>
 ```
 
 To hand-drive the production solver wrapper on a case under `cases/` (no
@@ -123,8 +132,7 @@ yet. `supervisor.py` never touches `retrieval/`.
 ## What is NOT built yet
 
 No MCP tools. Gates 2 and 5 still take only y/n (gate 1 is
-pick-one-of-k). Stages 1–3 are real — ideation on Sonnet with Opus
-ranking, experiment design on Sonnet, the fidelity gate on Opus — while
-stages 4–6 are still separate-context Haiku ack stubs. The graduated
-`tools/run_cfd.py` wrapper (plus its `tools/drive_cfd.py` CLI) runs only
-by hand — wiring it into stage 4 is Step 12. See `CLAUDE.md`.
+pick-one-of-k). Stages 1–4 are real — ideation on Sonnet with Opus
+ranking, experiment design on Sonnet, the fidelity gate on Opus, and the
+simulation stage on deterministic Python (no model call) — while stages
+5–6 are still separate-context Haiku ack stubs. See `CLAUDE.md`.

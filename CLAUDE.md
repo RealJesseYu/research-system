@@ -3,16 +3,17 @@
 ## What this is
 This is the real build of an autonomous research system: a relay of six AI stages
 (Ideation → Experiment-Design → Fidelity-Gate → Simulation → Thought-Layer → Paper)
-coordinated by a plain-Python supervisor. We are in **Phase B, Step 11**. The
+coordinated by a plain-Python supervisor. We are in **Phase B, Step 12**. The
 deterministic skeleton is built and the real stages are arriving one by one: stage 1 is
 real literature-grounded ideation (generate → reflect → deterministic filter → Opus
 ranking), gate 1 is pick-one-of-k, stage 2 is real experiment design (one Sonnet
-call producing a typed spec enforced by Python validation), and stage 3 is a real
+call producing a typed spec enforced by Python validation), stage 3 is a real
 fidelity gate (one Opus call on the spike's frozen Step-6 v2 prompt, verdict
-enforced by Python). Stages 4–6 are still separate-context Haiku ack stubs. The
-spike's solver wrapper has graduated into `tools/run_cfd.py` (deterministic, with
-optional QoI extraction, its own container and cases dir); it is hand-driven only —
-wiring it into stage 4 is Step 12. An earlier
+enforced by Python), and stage 4 is the real simulation runner (deterministic
+Python, ZERO model calls: verdict-gated — defer skips, trust/refine executes —
+with deterministic case synthesis feeding `tools/run_cfd.py`, the graduated
+solver wrapper with optional QoI extraction). Stages 5–6 are still
+separate-context Haiku ack stubs. An earlier
 risky-bit spike at `~/research-spike` answered two yes/no questions: (a) can an AI agent
 drive and self-recover an OpenFOAM simulation, and (b) does a simple pre-run fidelity
 check work — the project's first original contribution. This project is the production
@@ -355,3 +356,74 @@ checksums_after_step11_chunk2.txt is this step's FINAL write.
 Step 11 COMPLETE (run_cfd graduated as production substrate with single-QoI
 extraction; contract truth-edited; gate re-run on five specs; demo
 witnessed). Step 12 next, scope not guessed here.
+
+Phase B, Step 12 — chunk 1 of 2 COMPLETE (2026-07-04): stage 4 is real —
+deterministic verdict-gated execution, the Haiku ack stub retired (stages
+5–6 stay stubs). Opening preflight: 31/31 Step-11 checksums OK, zero drift;
+of12-prod already Up; cavity_baseline's clean {0/, constant/, system/}
+intact but carrying its own Step-11 live-proof artifacts (time dirs 2–20,
+logs, postProcessing/) — reported, not repaired; the builder copies ONLY
+the clean subtrees (and not polyMesh — blockMesh regenerates the mesh) so
+synthesized cases can never inherit stale results a -latestTime QoI would
+silently read. stages/stage4_case_builder.py (NO model calls): build_case
+partitions each run's FULL param dict into buildable {kinematic_viscosity →
+physicalProperties nu (its true home in the baseline), lid_velocity → 0/U
+movingWall vector, cavity_length → blockMeshDict vertices (uniform scaling,
+depth included), mesh_resolution → N N 1 cell counts, end_time/time_step →
+controlDict endTime/deltaT with writeInterval = the exact step count so the
+final time dir is guaranteed (non-integral ratio = honest halt)} /
+ignorable (EMPTY, deliberately) / everything else → CaseSynthesisError
+naming every offender; reynolds_number is verified against an EXPLICIT
+U/L/nu decomposition (within 1%; inconsistent or undecomposable = halt —
+the builder never invents a decomposition); every template rewrite is
+subst-count-checked (exactly 1, or 8 vertices); blockMesh runs inside
+of12-prod as part of synthesis, failure = CaseSynthesisError with a bounded
+log tail. stages/stage4_simulation.py behind the frozen run(baton)->baton:
+defer → skipped_defer (nothing executed); trust/refine → sequential
+mini-runs, each build_case + run_cfd, cases cases/<run_id>_run<N>/;
+CaseSynthesisError → halted_synthesis (honest outcome, no further runs,
+relay onward); refine adds flag "refine — survivors require downstream
+confirmation"; the spec QoI becomes a qoi_request ONLY via machine-readable
+qoi {field, operation, component?} keys validated against the wrapper's own
+vocabularies (never parsed from free text; missing/invalid → per-run
+qoi_error "not extractable by contract"); evidence = full wrapper summaries
+at runs/<id>/stage4/results.json, payload.execution_results = conclusions
+only {status, flag?, runs:[{converged, qoi_value|qoi_error, wall_clock_s}]};
+one code-authored history note. handfeed_stage4.py side door: --source-run
+(prefers baton_after_stage_3.json; else spec.json + verdict.json + chosen
+record), --force-label trust|refine|defer (recorded as forced_label +
+original_label in source.json), and --payload <file> for hand-authored
+payloads (recorded hand_authored: true) — the addition Task 5a needed.
+specs/handcrafted_baseline_qoi.json: hand-authored two-run executable
+baseline spec (validate_spec = [], hypothesis_id hand-baseline), wrapped by
+specs/handcrafted_baseline_payload.json with a HAND-AUTHORED trust verdict
+(disclosed: not a stage-3 output). Three witnessed paths from disk: (a)
+EXECUTED handfeed4-20260704T083221Z — 2 real solver runs, both converged,
+run 1 volAverage(mag(U)) = 0.4168353 at t=20 (vs Step-11's 0.4168179, NOT
+exact: deltaT 0.005 here vs baseline 0.002 — different discretization,
+0.004% apart), run 2 = 0.1930067 (lid 1.0 — lower, as expected; sub-linear
+vs lid 2.0 because Re halves to 100), history "executed 2 mini-run(s): 2
+converged, 2 QoI extracted"; (b) SKIPPED handfeed4-20260704T083312Z from
+the demo's defer — execution_results exactly {status: skipped_defer}, zero
+case dirs created; (c) HALTED handfeed4-20260704T083329Z from the h4
+sinusoidal-floor spec forced trust — halted_synthesis at run 1 of 3 naming
+all eight unsupported parameters, zero solver invocations, plus the honest
+qoi_translation_error for its free-text QoI. Tests 47/47 (39 prior + 8 new:
+5 builder — clean build read back from tmp via test seams
+cases_root/run_mesh=False, unsupported halt, Re-inconsistency halt,
+Re-without-decomposition halt, non-integral end_time/time_step halt — and 3
+translate_qoi). Builder unit tests do NOT run blockMesh live (disclosed);
+the live proofs cover it. README truth-edits: header → Step 12 + stage 4
+real, "What is NOT built yet" → stubs 5–6, handfeed_stage4 usage added.
+Honest asterisks: stage4_case_builder.py lives in stages/ per the build
+order but is substrate-side machinery (tool-wrapper layer conceptually —
+stage code above it names no solver); extractable QoIs are signalled by
+machine keys inside spec.qoi that validate_spec tolerates but does not yet
+require/check (expand on evidence — stage 2's prompt doesn't know them yet,
+so today every model-authored spec records qoi_error); --payload was not in
+the task's flag list (needed for 5a, evidence marked hand_authored);
+synthesized-case controlDict keeps the template's "(answer key)" comment
+header (prose only); README "What you should see" doesn't yet describe
+stage 4's STAGE4 log lines — chunk 2's supervisor runs will truth-edit
+displays. Stage 4 has never run under the supervisor yet. NOT a step close
+— no checksum snapshot. Chunk 2 = auto run + human demo + close.
