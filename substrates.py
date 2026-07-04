@@ -53,6 +53,21 @@ On a run that completes, a small fixed summary — never the full solver log:
   - Courant number: the maximum reported Courant number.
   - continuity error: the last reported global continuity error.
   - runtime: solver execution time and wall-clock seconds.
+  - qoi (OPTIONAL, on request): the wrapper can extract ONE quantity of
+    interest per run from fields the case already wrote, at the latest
+    written time, using the solver's own stock post-processing machinery.
+    Supported operations: volAverage | min | max | volIntegrate over one
+    existing field, with an optional component (e.g. mag for a vector's
+    magnitude, or 0|1|2 for a single component). On success the summary
+    gains qoi {name, field, operation, value, time}. QoI extraction
+    requires the run to have reached its declared end time; convergence is
+    reported separately, and a QoI from an unconverged run is reported
+    without endorsement — judging whether such a value is usable is
+    downstream judgment, not the wrapper's.
+  - qoi_error: on ANY extraction failure (missing field, post-processing
+    error, unparseable output) the summary carries qoi_error with an
+    honest reason and NO qoi block — the instrument never fabricates a
+    number.
 On a failed run: converged is false and only a bounded set of error lines
 (at most 40) explaining the failure is returned. A run is killed after 600
 seconds of wall-clock time and reported as a failure.
@@ -66,15 +81,18 @@ project journal at ~2 s, but no log of it survives on disk.
   - 2D laminar flow only. There are no turbulence models; a case whose
     physics is actually turbulent will not be simulated correctly and the
     wrapper cannot detect that.
-  - Scalar-transport and mixing-field quantities (tracer concentration,
-    mixing indices, anything requiring reading the solved fields) are NOT
-    extractable by the current wrapper: it parses only residuals, Courant
-    number, continuity error, and timing from the log. A spec may still
-    request such a QoI — judging whether the instrument can feasibly serve
-    a spec is the fidelity gate's job, not stage 2's — but as of today no
-    field-derived quantity comes back through run_cfd.
-  - No post-processing of any kind: no field sampling, no probes, no
-    time-series of quantities other than what the solver prints on its own.
+  - Field-derived QoIs come ONLY from fields the solved case actually
+    wrote. For this substrate that means velocity- and pressure-field
+    statistics (e.g. volume-averaged |U|, min/max/integral of p) YES;
+    concentration fields NO: the incompressible laminar solve carries no
+    scalar-transport / tracer physics, so no concentration field exists to
+    read, and concentration-derived mixing QoIs remain unextractable. No
+    new fields the case didn't write. A spec may still request an
+    unservable QoI — judging whether the instrument can feasibly serve a
+    spec is the fidelity gate's job, not stage 2's.
+  - Post-processing is single-shot: one QoI per run, one value at the
+    latest written time only. No time-series extraction, no probes, no
+    field sampling beyond the volume reductions listed above.
   - Convergence is judged from residuals and end time only; it says the
     solver settled, not that the physics is resolved (mesh-independence is
     nobody's promise here).

@@ -48,6 +48,18 @@ no stage-1/2 spend):
 venv/bin/python3 handfeed_stage3.py --source-run <run-directory-name>
 ```
 
+To hand-drive the production solver wrapper on a case under `cases/` (no
+model calls, no supervisor; prints the summary JSON):
+
+```
+venv/bin/python3 tools/drive_cfd.py cavity_baseline \
+    --qoi-field U --qoi-operation volAverage --qoi-component mag
+```
+
+The QoI flags build the optional request `{"field": "<existing field, e.g.
+U or p>", "operation": "volAverage|min|max|volIntegrate", "component":
+"mag"|0|1|2 (optional)}`; omit them to just run the case.
+
 ## What you should see
 
 **Auto mode:** the run prints one line per stage ("STAGE N (name): done ->

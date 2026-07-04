@@ -311,3 +311,47 @@ gate is reached_end, not converged (fields exist either way; deliberate);
 summary byte sizes are of the pretty-printed JSON the driver prints. NOT a
 step close — no checksum snapshot. Chunk 2 = substrates.py contract
 truth-edit (QoIs are now extractable) + five-spec re-run + step close.
+
+Phase B, Step 11 — chunk 2 of 2 COMPLETE (2026-07-04): CAVITY_2D_CONTRACT
+truth-edited (substrates.py's only change; 39/39 tests still pass): section
+3 now offers the OPTIONAL single QoI per run (volAverage | min | max |
+volIntegrate on a field the case already wrote, optional component mag or
+0|1|2, latest written time only; qoi {name, field, operation, value, time}
+on success; reached-endTime precondition with convergence reported
+separately and unconverged QoIs unendorsed — usability is downstream
+judgment; qoi_error and NO number on ANY failure), and the two false limits
+bullets were replaced with the precise boundary: velocity/pressure-field
+statistics YES, concentration/tracer fields NO (no scalar-transport
+physics), no new fields, no time-series, no multi-QoI, single-shot only;
+every still-true limit kept verbatim (2D laminar, Re≈200 envelope,
+convergence ≠ physical validity, regime-assumption axis uncovered).
+Five-spec re-run through the UNCHANGED gate (same specs from disk, same
+gate code, same frozen prompt; the only moved variable was the contract):
+5/5 defer again, no label moved — NOT scored, no answer keys, rationales
+are the evidence; the rationales now cite the new precise boundary (no
+scalar-transport physics / no concentration field on three; the
+single-shot/no-time-series limit on one; the Re≈200 envelope on two) where
+Step 10 cited blanket no-field-extraction; runs
+handfeed3-20260704T062651Z/-062712Z/-062724Z/-062744Z/-062804Z, all
+attempts=1, zero RE-ASK, Opus fence 0/5. Builder's human demo
+20260704T063051Z verified from disk: rank 2 of 4 chosen at gate 1 (h4,
+S-shaped sidewall undulation), baton_after_gate_1 payload exactly {domain,
+chosen_hypothesis {id, statement, rationale}} matching the ranked list's
+rank-2 entry; spec.hypothesis_id h4 and fresh validate_spec []; verdict.json
+== payload.fidelity_verdict (defer: 2D momentum-only, no concentration
+field, cannot represent the 3D S-undulation nor extract the Danckwerts
+mixing index — engages the UPDATED contract's boundary); gates 2/5 answered
+y; 6 history entries; no supervisor gate vocabulary in history (substring
+hits triaged: stage name 'stage3_fidelity_gate' + stage-1's own 'ranked'
+note); run_record journaled; both new pretty headers durable in log.txt
+(SPEC line 65; boxed FIDELITY VERDICT lines 234–238) — logger.log writes
+them, not terminal-only. Demo mechanics: 18 model calls all attempts=1,
+zero RE-ASK; fence watch Sonnet 8/8, Haiku 3/3, Opus 0/7 (with re-run:
+running Opus total 0/68) — the fence-fix's fenced-unparseable undercount
+case has still never occurred naturally. Step-11 milestone journaled
+(run_id "step11") with load-bearing Q&As. README gained the drive_cfd
+usage + QoI request shape. Checksum snapshot
+checksums_after_step11_chunk2.txt is this step's FINAL write.
+Step 11 COMPLETE (run_cfd graduated as production substrate with single-QoI
+extraction; contract truth-edited; gate re-run on five specs; demo
+witnessed). Step 12 next, scope not guessed here.
