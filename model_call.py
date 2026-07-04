@@ -97,6 +97,25 @@ def _extract_json(reply: str) -> tuple[Any, bool]:
     return json.loads(text), fence_stripped
 
 
+def _log_reask(stage_name: str, stage_input: dict, attempt: int, error: str) -> None:
+    """Durably record a re-ask the moment it is triggered.
+
+    Appends one line to the same run log log_stage_call writes to
+    (runs/<run_id>/log.txt), with the verbatim error JSON-encoded so
+    multi-line errors stay on one log line. The run_id comes from
+    stage_input — every stage's input carries it, and it is the only
+    run-identifying thing this function is allowed to see. If stage_input
+    carries no run_id (e.g. a bare unit-test call), the line is printed
+    but cannot be durably logged.
+    """
+    line = f"RE-ASK stage={stage_name} attempt={attempt} error={json.dumps(error)}"
+    print(line)
+    run_id = stage_input.get("run_id") if isinstance(stage_input, dict) else None
+    if run_id:
+        with open(Path("runs") / str(run_id) / "log.txt", "a") as f:
+            f.write(line + "\n")
+
+
 def call_stage_model(
     stage_name: str,
     system_prompt: str,
@@ -137,6 +156,10 @@ def call_stage_model(
                     raise SchemaValidationError(" ".join(extra_errors))
         except (json.JSONDecodeError, SchemaValidationError) as e:
             last_error = f"{e} (raw reply: {reply!r})"
+            if attempt < MAX_ATTEMPTS:
+                # A re-ask is now certain: persist the correction verbatim so a
+                # success-after-re-ask still leaves a recoverable record.
+                _log_reask(stage_name, stage_input, attempt, last_error)
             continue
 
         duration = time.monotonic() - start

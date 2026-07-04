@@ -166,3 +166,44 @@ has not yet run under the supervisor, and stubs 3–6 have never seen the new
 {domain, chosen_hypothesis, experiment_spec} payload shape.
 Step 9 COMPLETE (stage 2 real; gate 1 pick-one-of-k); Step 10 next, scope
 not guessed here.
+
+Phase B, Step 10 — chunk 1 of 2 COMPLETE (2026-07-04): opening tidy + stage 3
+real. model_call.py now durably logs every re-ask the moment it fires — a
+RE-ASK line (stage, attempt, JSON-encoded verbatim error incl. raw reply,
+i.e. exactly what is re-sent to the model) appended to the run's log.txt for
+both schema and extra_validator failures; final-failure behavior, isolation,
+and the 3-attempt bound unchanged. Proven live from disk on
+runs/logging-test-20260704T030312Z (Haiku; stateful validator rejected
+attempt 1 with the verbatim marker string; attempts=2 recorded; throwaway
+script deleted, evidence kept). The log path is derived from
+stage_input["run_id"] because the calling stages were frozen this chunk — a
+bare call without run_id prints the line but cannot durably log it.
+Truth-edits applied (What-this-is; README header; stage2_spec.py docstring)
+plus the new spike-isolation invariant line (zero RUNTIME refs; prose
+provenance permitted; greps triaged code-vs-prose). Project-local git
+initialized from ~/research-system only (~/.git untouched), .gitignore
+exactly venv/ runs/ __pycache__/, opening commit "post-Step-9 tree + tidy" =
+1923 files. Stage 3 is real: ONE Opus (claude-opus-4-8) call through
+call_stage_model; the spike's PROMPT_V2 judgment text is frozen in the stage
+file and verified byte-identical (2015 bytes — zones, v2 trust-vs-refine
+paragraph, judge-only-from-given guard) against the read-only spike; the
+only swap is the output-format block + case-fill tail → JSON envelope
+{ack_run_id, verdict{label enum trust|refine|defer, rationale,
+right_instrument}} enforced in Python (extra_validator); no axis-3 language
+added, deliberately. Evidence at stage3/verdict.json; payload gains
+fidelity_verdict (no existing field removed); exactly one code-authored
+history entry; ECHO_CHECK logged. handfeed_stage3.py side door reconstructs
+the post-stage-2 payload from a source run's disk evidence (prefers
+baton_after_stage_2.json — all five sources used it) and runs stage 3 alone.
+Five-spec eyeball run (NOT scored; no answer keys; rationales are the
+evidence): h3 + h4 (Step-9 hand-feeds) and h5/h1/h4 (runs 20260703T035155Z /
+041005Z / 042647Z) ALL came back defer; five calls, all attempts=1, zero
+RE-ASK lines, Opus fence 0/5 (running Opus total now 0/41). Verified from
+disk: frozen list byte-identical vs Step-9 checksums; stage2_spec.py drift
+proven docstring-only by checksum reversal; 32/32 tests pass; spike grep = 2
+prose matches (substrates.py + stage 3 provenance docstrings), 0 code.
+Honest asterisks: tasks resequenced (tidy + git init before the model_call
+edit) so the opening commit is a true post-Step-9+tidy tree; stage 3 has
+only run through the side door, never under the supervisor; the 5/5 defer
+unanimity is an observation, not a scored result. NOT a step-closing chunk —
+no checksum snapshot written. Chunk 2 scope not guessed here.
