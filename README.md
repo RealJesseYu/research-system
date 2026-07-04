@@ -2,8 +2,9 @@
 
 Phase B, Step 10: the deterministic six-stage skeleton is built and the
 real stages are arriving one by one — stage 1 is real literature-grounded
-ideation, gate 1 is pick-one-of-k, and stage 2 is real experiment design
-producing a typed, Python-validated spec. See `CLAUDE.md` for the full
+ideation, gate 1 is pick-one-of-k, stage 2 is real experiment design
+producing a typed, Python-validated spec, and stage 3 is a real Opus
+fidelity gate on the frozen spike v2 prompt. See `CLAUDE.md` for the full
 architecture and current status.
 
 ## Requirements
@@ -36,6 +37,13 @@ no stage-1 spend):
 
 ```
 venv/bin/python3 handfeed_stage2.py --source-run <run_id> --hyp <hypothesis_id>
+```
+
+To re-run stage 3 alone from a past run's stage-2 evidence (no supervisor,
+no stage-1/2 spend):
+
+```
+venv/bin/python3 handfeed_stage3.py --source-run <run-directory-name>
 ```
 
 ## What you should see

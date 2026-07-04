@@ -6,9 +6,10 @@ This is the real build of an autonomous research system: a relay of six AI stage
 coordinated by a plain-Python supervisor. We are in **Phase B, Step 10**. The
 deterministic skeleton is built and the real stages are arriving one by one: stage 1 is
 real literature-grounded ideation (generate → reflect → deterministic filter → Opus
-ranking), gate 1 is pick-one-of-k, and stage 2 is real experiment design (one Sonnet
-call producing a typed spec enforced by Python validation). Stages 3–6 are still
-separate-context Haiku ack stubs. An earlier
+ranking), gate 1 is pick-one-of-k, stage 2 is real experiment design (one Sonnet
+call producing a typed spec enforced by Python validation), and stage 3 is a real
+fidelity gate (one Opus call on the spike's frozen Step-6 v2 prompt, verdict
+enforced by Python). Stages 4–6 are still separate-context Haiku ack stubs. An earlier
 risky-bit spike at `~/research-spike` answered two yes/no questions: (a) can an AI agent
 drive and self-recover an OpenFOAM simulation, and (b) does a simple pre-run fidelity
 check work — the project's first original contribution. This project is the production
@@ -207,3 +208,29 @@ edit) so the opening commit is a true post-Step-9+tidy tree; stage 3 has
 only run through the side door, never under the supervisor; the 5/5 defer
 unanimity is an observation, not a scored result. NOT a step-closing chunk —
 no checksum snapshot written. Chunk 2 scope not guessed here.
+
+Phase B, Step 10 — chunk 2 of 2 COMPLETE (2026-07-04): .gitignore gained
+.DS_Store (the one tracked copy removed from the index only;
+memory/journal.jsonl stays tracked, deliberately); prompt-freeze re-verified
+from disk — 2029 identical prefix bytes between stage 3's SYSTEM_PROMPT and
+the spike's PROMPT_V2, diverging exactly at the output-format swap (chunk
+1's reported 2015 was terminal line-wrap corruption). Full auto run
+20260704T033305Z verified from disk: 6 history entries, verdict.json ==
+payload.fidelity_verdict, payload byte-stable through stages 4–6 (plus the
+known stub iterate_decision:"exit"), spec valid on fresh validate_spec,
+run_record journaled — and the stage-2 RE-ASK correction loop fired LIVE
+for the first time (fenced attempt-1 reply rejected as unparseable,
+recovered on attempt 2; durable RE-ASK line in log.txt). Human demo
+20260704T034650Z verified from disk: rank 2 of 4 chosen at gate 1 (h3),
+valid spec, verdict defer with a spec-specific rationale (missing
+scalar-field extraction vs the auto run's missing spanwise dimension — two
+different, defensible defers), gates 2/5 answered y, no gate vocabulary in
+history, run_record journaled. Fence watch: auto run Sonnet 7 NOTEs + the
+unstripped fenced re-ask, Haiku 3/3, Opus 0/7; demo Sonnet 8/8, Haiku 3/3,
+Opus 0/8 — running Opus total 0/56. Gate 5 in human mode prints the FULL
+baton JSON (run_gate), so the verdict is visible but buried — surfacing it
+is a pending strategy-chat decision; no display change made this chunk.
+Step-10 milestone journaled (run_id "step10") with load-bearing Q&As.
+Step 10 COMPLETE (stage 3 real: Opus fidelity gate on the frozen Step-6 v2
+prompt; verdict in payload + runs/<id>/stage3/verdict.json; gate-surfacing
+decision pending). Step 11 next, scope not guessed here.
