@@ -80,21 +80,40 @@ async def _ask_once(system_prompt: str, user_turn: str, model: str) -> str:
     return "".join(parts).strip()
 
 
-def _extract_json(reply: str) -> tuple[Any, bool]:
-    """Parse reply as JSON, tolerating a leading/trailing code fence.
+def strip_fence(reply: str) -> tuple[str, bool]:
+    """Detect and remove a surrounding ``` code fence. Pure function, no I/O.
 
-    Returns (parsed_json, fence_stripped) so the caller can record when the
-    tolerance fired, without changing what gets parsed or how.
+    Returns (stripped_text, was_fenced). Stripping is exactly the tolerance
+    the old in-parse version applied: trim whitespace, strip backticks off
+    both ends, drop a leading "json" language tag, trim again. Detection is
+    separated from JSON parsing so a fence can be recorded whether or not
+    the reply then parses.
     """
     text = reply.strip()
-    fence_stripped = text.startswith("```")
-    if fence_stripped:
-        print("NOTE: fence_stripped — reply arrived wrapped in a ``` code fence")
+    was_fenced = text.startswith("```")
+    if was_fenced:
         text = text.strip("`")
         if text.startswith("json"):
             text = text[4:]
         text = text.strip()
-    return json.loads(text), fence_stripped
+    return text, was_fenced
+
+
+def _log_fence_note(stage_name: str, stage_input: dict) -> None:
+    """Durably record a fenced reply the moment it is seen, before any parse.
+
+    Same durable path and same limitation as _log_reask: the run log is
+    runs/<run_id>/log.txt with run_id taken from stage_input; without a
+    run_id the NOTE is printed but cannot be durably logged. The line format
+    matches what log_stage_call used to write, so the fence watch keeps
+    counting the same string — but now every fenced reply is counted, not
+    only the ones that went on to parse."""
+    line = f"NOTE stage={stage_name} fence_stripped — reply arrived wrapped in a ``` code fence"
+    print(line)
+    run_id = stage_input.get("run_id") if isinstance(stage_input, dict) else None
+    if run_id:
+        with open(Path("runs") / str(run_id) / "log.txt", "a") as f:
+            f.write(line + "\n")
 
 
 def _log_reask(stage_name: str, stage_input: dict, attempt: int, error: str) -> None:
@@ -147,8 +166,14 @@ def call_stage_model(
 
         reply = asyncio.run(_ask_once(system_prompt, user_turn, model))
 
+        text, fence_stripped = strip_fence(reply)
+        if fence_stripped:
+            # Recorded here, BEFORE any parse attempt, so a fenced reply that
+            # then fails to parse is still counted (the Step-10 undercount).
+            _log_fence_note(stage_name, stage_input)
+
         try:
-            data, fence_stripped = _extract_json(reply)
+            data = json.loads(text)
             validate_schema(data, schema)
             if extra_validator is not None:
                 extra_errors = extra_validator(data)
@@ -194,7 +219,6 @@ def log_stage_call(run_id: str, stage_name: str, timing: dict) -> None:
     print(line)
     with open(log_path, "a") as f:
         f.write(line + "\n")
-        if timing.get("fence_stripped"):
-            f.write(
-                f"NOTE stage={stage_name} fence_stripped — reply arrived wrapped in a ``` code fence\n"
-            )
+    # The fence NOTE is no longer written here: since Step 11 chunk 1 it is
+    # recorded by _log_fence_note at the moment of detection, per fenced
+    # reply, whether or not that reply parsed.

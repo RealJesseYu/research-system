@@ -1,11 +1,13 @@
 # research-system
 
-Phase B, Step 10: the deterministic six-stage skeleton is built and the
+Phase B, Step 11: the deterministic six-stage skeleton is built and the
 real stages are arriving one by one — stage 1 is real literature-grounded
 ideation, gate 1 is pick-one-of-k, stage 2 is real experiment design
 producing a typed, Python-validated spec, and stage 3 is a real Opus
-fidelity gate on the frozen spike v2 prompt. See `CLAUDE.md` for the full
-architecture and current status.
+fidelity gate on the frozen spike v2 prompt. The spike's solver wrapper
+has graduated into `tools/run_cfd.py` (deterministic, with optional QoI
+extraction); it is not wired into any stage yet. See `CLAUDE.md` for the
+full architecture and current status.
 
 ## Requirements
 This project has its own venv at `venv/`, containing `claude-agent-sdk`.
@@ -102,12 +104,15 @@ stage's conversation.
   venv/bin/python3 retrieval/search.py literature "placeholder literature corpus"
   ```
 
-Neither index is wired into any stage yet — that's Step 8+. `stages/` and
-`supervisor.py` never import `retrieval/`.
+The literature index is wired into stage 1 (Step 8: hypotheses are
+grounded in retrieved snippets); solver_docs is not wired into any stage
+yet. `supervisor.py` never touches `retrieval/`.
 
-## What this chunk does NOT do
+## What is NOT built yet
 
-No MCP tools, no richer gate answers (like "send back to ideation"), and no
-real stage intelligence — every stage's model call is still plumbing
-(Haiku, asked to just prove it read its input). Those arrive in later
-chunks/steps — see `CLAUDE.md`.
+No MCP tools. Gates 2 and 5 still take only y/n (gate 1 is
+pick-one-of-k). Stages 1–3 are real — ideation on Sonnet with Opus
+ranking, experiment design on Sonnet, the fidelity gate on Opus — while
+stages 4–6 are still separate-context Haiku ack stubs. The graduated
+`tools/run_cfd.py` wrapper (plus its `tools/drive_cfd.py` CLI) runs only
+by hand — wiring it into stage 4 is Step 12. See `CLAUDE.md`.

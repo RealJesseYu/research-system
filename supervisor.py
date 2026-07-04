@@ -80,6 +80,50 @@ def record_run_outcome(baton: Baton, how_far: str) -> None:
     journal_append({"run_id": baton.run_id, "kind": "run_record", "text": text, "extras": extras})
 
 
+def build_gate2_header(payload: dict) -> str:
+    """Pretty one-line summary of the experiment spec for gate after_stage_2.
+
+    Pure function, no I/O: payload -> str. Display only — the human still
+    sees (and the log still carries) the full baton dump right after it.
+    Missing or malformed pieces render as '?' rather than raising: a
+    display helper must never be able to kill a run.
+    """
+    spec = payload.get("experiment_spec")
+    if not isinstance(spec, dict):
+        spec = {}
+    qoi = spec.get("qoi")
+    full = spec.get("full_experiment")
+    title = spec.get("title") or "?"
+    qoi_name = (qoi.get("name") if isinstance(qoi, dict) else None) or "?"
+    run_count = full.get("estimated_run_count") if isinstance(full, dict) else None
+    return (
+        f"SPEC: {title} | QoI: {qoi_name} | "
+        f"estimated full-experiment runs: {run_count if run_count is not None else '?'}"
+    )
+
+
+def build_gate5_header(payload: dict) -> str:
+    """Prominent fidelity-verdict block for gate after_stage_5.
+
+    Pure function, no I/O: payload -> str. Same display-only, never-raise
+    contract as build_gate2_header — the verdict is otherwise buried in the
+    full baton dump the human has to read past.
+    """
+    verdict = payload.get("fidelity_verdict")
+    if not isinstance(verdict, dict):
+        verdict = {}
+    label = str(verdict.get("label") or "?").upper()
+    return "\n".join(
+        [
+            "==================================",
+            f"FIDELITY VERDICT: {label}",
+            f"  rationale: {verdict.get('rationale') or '?'}",
+            f"  right instrument: {verdict.get('right_instrument') or '?'}",
+            "==================================",
+        ]
+    )
+
+
 def run_gate(logger: Logger, baton: Baton, mode: str, gate_name: str) -> bool:
     """Handle one gate. Returns True to continue, False to halt.
 
@@ -92,6 +136,13 @@ def run_gate(logger: Logger, baton: Baton, mode: str, gate_name: str) -> bool:
     if mode == "auto":
         logger.log(f"GATE {gate_name}: auto-approved")
         return True
+
+    # Display-only pretty header (Step 11 ruling): summarize what this gate
+    # is actually deciding, BEFORE the full baton dump. No logic change.
+    if gate_name == "after_stage_2":
+        logger.log(build_gate2_header(baton.payload))
+    elif gate_name == "after_stage_5":
+        logger.log(build_gate5_header(baton.payload))
 
     logger.log(f"--- baton at gate {gate_name} ---")
     logger.log(baton.to_json())

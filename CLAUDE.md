@@ -3,13 +3,16 @@
 ## What this is
 This is the real build of an autonomous research system: a relay of six AI stages
 (Ideation → Experiment-Design → Fidelity-Gate → Simulation → Thought-Layer → Paper)
-coordinated by a plain-Python supervisor. We are in **Phase B, Step 10**. The
+coordinated by a plain-Python supervisor. We are in **Phase B, Step 11**. The
 deterministic skeleton is built and the real stages are arriving one by one: stage 1 is
 real literature-grounded ideation (generate → reflect → deterministic filter → Opus
 ranking), gate 1 is pick-one-of-k, stage 2 is real experiment design (one Sonnet
 call producing a typed spec enforced by Python validation), and stage 3 is a real
 fidelity gate (one Opus call on the spike's frozen Step-6 v2 prompt, verdict
-enforced by Python). Stages 4–6 are still separate-context Haiku ack stubs. An earlier
+enforced by Python). Stages 4–6 are still separate-context Haiku ack stubs. The
+spike's solver wrapper has graduated into `tools/run_cfd.py` (deterministic, with
+optional QoI extraction, its own container and cases dir); it is hand-driven only —
+wiring it into stage 4 is Step 12. An earlier
 risky-bit spike at `~/research-spike` answered two yes/no questions: (a) can an AI agent
 drive and self-recover an OpenFOAM simulation, and (b) does a simple pre-run fidelity
 check work — the project's first original contribution. This project is the production
@@ -234,3 +237,77 @@ Step-10 milestone journaled (run_id "step10") with load-bearing Q&As.
 Step 10 COMPLETE (stage 3 real: Opus fidelity gate on the frozen Step-6 v2
 prompt; verdict in payload + runs/<id>/stage3/verdict.json; gate-surfacing
 decision pending). Step 11 next, scope not guessed here.
+
+Phase B, Step 11 — chunk 1 of 2 COMPLETE (2026-07-04): opening preflight
+clean — all 25 Step-10 baseline checksums OK, zero drift. Tidy: model_call.py
+fence detection is now the pure function strip_fence(reply) -> (text,
+was_fenced), and a fence is recorded (terminal print + durable per-stage NOTE
+via _log_fence_note, same run_id-derived path and same bare-call limitation
+as RE-ASK) the moment it is seen, BEFORE any parse — so fenced-unparseable
+replies are now counted, closing the Step-10 undercount in code (live proof
+awaits the next natural fenced-unparseable reply, not contrived);
+log_stage_call no longer writes the NOTE (it would double-count), so the NOTE
+now precedes its STAGE_MODEL_CALL line in log.txt; correction loop,
+isolation, and the 3-attempt bound untouched; 1 new unit test. README
+truth-edits (header → Step 11 + wrapper line; the literature index IS wired
+into stage 1; stages 1–3 real on Sonnet/Sonnet/Opus, stubs 4–6 Haiku;
+stale "still plumbing (Haiku…)" section replaced by "What is NOT built
+yet"). supervisor.py gained DISPLAY-ONLY human-mode gate headers printed
+before the baton dump, built by pure never-raise payload->str functions:
+build_gate2_header (spec title | QoI name | estimated run count) and
+build_gate5_header (prominent FIDELITY VERDICT block: label / rationale /
+right_instrument — this closes Step-10's pending gate-surfacing decision);
+no logic/gating/parsing/snapshot/auto-mode change; 5 new unit tests.
+.gitignore gained cases/ (evidence-class, like runs/). What-this-is header
+truth-edited Step 10 → 11 + wrapper sentence (disclosed). Substrate probe:
+colima already running; of12 and of12-spike containers both alive; of12-img
+was MISSING → recreated per the named contingency (docker commit of12
+of12-img, sha 2c01407a5d61; of12 read, never modified); foamRun answers
+inside of12-spike, nothing written. Production substrate:
+cases/cavity_baseline copied from ~/research-spike/cases/lid_cavity and
+reset to {0/, constant/ (incl. polyMesh), system/} — DISCLOSED: the
+first-preference pristine scratchpad copy (lid_cavity_GOOD, spike session
+547170a4) survives only as an empty directory skeleton (tmp cleanup pruned
+every file), so the spike-cases fallback was used; container of12-prod
+created from of12-img exactly as: docker --context colima run -d --name
+of12-prod -v /Users/jesseyu/research-system/cases:/work/cases of12-img:latest
+sleep infinity (of12/of12-spike untouched). tools/run_cfd.py graduated
+(copy-never-link): every proven behavior survives — controlDict declares
+solver/endTime/deltaT (tool never guesses), docker exec with OpenFOAM bashrc
+sourced, output to log.<application> in the case dir, 600 s timeout, log
+parsed to the same small summary with the exact converged definition
+(endTime reached AND all start-of-final-step residuals < 1e-3), full log
+NEVER returned; only required adaptations (container of12-prod, paths under
+/work/cases); the remembered 5th-failure stop counter is NOT in the spike's
+run_cfd.py (it lived in the spike agent's MCP wrapper) so nothing
+experiment-specific needed a keep/remove call. New OPTIONAL QoI extraction
+(the step's one new capability, minimal tier): only after a run that reached
+endTime, postProcess runs at -latestTime with OpenFOAM's stock caseDicts
+volFieldValue configs (volAverage / cellMin / cellMax / volIntegrate,
+mapping operations {volAverage,min,max,volIntegrate}; component "mag" chains
+the stock mag() field function first; 0|1|2 picks from a parsed vector), and
+deterministic Python (parse_volfieldvalue_dat, pure) reads the last data row
+of postProcessing/<func>/<time>/volFieldValue.dat; success adds qoi {name,
+field, operation, value, time}, ANY failure adds qoi_error and never a
+number; field names are locked to an identifier regex before shell
+interpolation; parser unit-tested against a frozen REAL captured fixture
+(tests/fixtures/volFieldValue.dat). tools/drive_cfd.py is the minimal no-AI
+CLI. Live proof on cavity_baseline (foamRun/incompressibleFluid to t=20):
+(1) no-QoI run converged=true; (2) QoI volAverage(mag(U)) = 0.4168179 m/s at
+t=20 — physically plausible (0 < 0.417 < lid speed 2 m/s, Re≈200
+recirculating cavity); (3) determinism: identical repeat returned exactly
+0.4168179; (4) negative check field "c" → qoi_error "postProcess ran but
+wrote no volFieldValue output for volAverage(c)", NO qoi block. Summary
+sizes 470 / 610 / 610 / 556 bytes (pretty-printed) — the raw log appears in
+none. Verified from disk: 39/39 tests (32 prior + 7 new); frozen list
+byte-identical to the Step-10 baseline (drift exactly model_call.py,
+supervisor.py, README.md, CLAUDE.md, .gitignore + new files); spike grep = 2
+prose docstring matches (substrates.py, stage 3), 0 code. Honest asterisks:
+QoI extraction writes postProcessing/ and (for mag) a mag(U) field file into
+the case's latest time dir — case-local evidence, never returned; the
+negative check revealed postProcess exits 0 on a missing field, so that path
+is caught by the no-output-file check and its message is generic; the QoI
+gate is reached_end, not converged (fields exist either way; deliberate);
+summary byte sizes are of the pretty-printed JSON the driver prints. NOT a
+step close — no checksum snapshot. Chunk 2 = substrates.py contract
+truth-edit (QoIs are now extractable) + five-spec re-run + step close.
