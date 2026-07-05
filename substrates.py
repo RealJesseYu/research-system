@@ -71,11 +71,10 @@ On a run that completes, a small fixed summary — never the full solver log:
 On a failed run: converged is false and only a bounded set of error lines
 (at most 40) explaining the failure is returned. A run is killed after 600
 seconds of wall-clock time and reported as a failure.
-Indicative cost, from the spike's surviving transient log (64x64 cavity,
-endTime 20 s): solver ExecutionTime ~12.5 s to reach t=5 s and ~38 s to
-t=20 s, ClockTime ~47 s; run_cfd wall-clock adds container and meshing
-overhead on top. A steady-state solve of the same case was recorded in the
-project journal at ~2 s, but no log of it survives on disk.
+Indicative cost, measured in Step 12 from two production mini-runs on this
+substrate (64x64 mesh, deltaT 0.005 s, endTime 20 s, transient): solver
+ExecutionTime 9.2-9.3 s per run, run_cfd wall-clock 11.4-11.6 s per run —
+the wall-clock includes container exec, meshing, and log-parsing overhead.
 
 4. HONEST LIMITS
   - 2D laminar flow only. There are no turbulence models; a case whose
@@ -100,4 +99,21 @@ project journal at ~2 s, but no log of it survives on disk.
     checked anywhere in this contract; that open axis belongs to the
     fidelity gate's future work, and nothing here should be read as
     covering it.
+
+5. CANONICAL PARAMETER VOCABULARY
+The case builder honors exactly these canonical parameter names; a run
+whose parameters use them (with plain numeric values) can be synthesized
+into a runnable case:
+  - kinematic_viscosity  (m^2/s) — the fluid's kinematic viscosity
+  - lid_velocity         (m/s)   — the moving-wall speed
+  - cavity_length        (m)     — the cavity's side length (uniform scaling)
+  - mesh_resolution      (cells per side) — N, meshed as N x N x 1
+  - end_time             (s)     — simulated end time
+  - time_step            (s)     — solver time step
+Reynolds number is never buildable directly: specify lid_velocity,
+cavity_length, and kinematic_viscosity, and Re may be stated as a derived
+quantity (it will be verified against that decomposition, not honored on
+its own). Parameters beyond this vocabulary remain fully legitimate when
+the hypothesis genuinely requires them — but the current builder cannot
+honor them and will halt loudly, by name, on any it does not know.
 """

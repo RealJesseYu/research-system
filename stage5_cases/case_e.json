@@ -1,0 +1,144 @@
+{
+  "case_id": "case-e",
+  "provenance": {
+    "description": "halted synthesis \u2014 the real supervised refine run (the first natural non-defer), one disclosed assembly edit",
+    "sources": [
+      "runs/20260705T202645Z/baton_after_stage_4.json (chosen_hypothesis h3, experiment_spec, real refine verdict, execution_results with the verbatim unbuildable-parameters halt line and the refine flag)",
+      "runs/20260705T202645Z/stage4/results.json (qoi_translation_error)"
+    ],
+    "synthetic_edits": "qoi_translation_error copied verbatim from the run's stage4/results.json INTO execution_results (in a live run stage 5 would not see this key \u2014 stage 4 writes it to results.json only); everything else copied verbatim; run_id is synthetic (case-e-frozen); stage4_summaries [] because synthesis halted"
+  },
+  "prompt_inputs": {
+    "run_id": "case-e-frozen",
+    "chosen_hypothesis": {
+      "id": "h3",
+      "statement": "An S-shaped lid-driven cavity cross-section will generate steady secondary Dean-like counter-rotating vortex pairs at Re = 500, reducing the 90%-mixing length of a passive scalar by more than 40% relative to a rectangular cavity of equal volume driven at the same lid speed.",
+      "rationale": "Ref. 2205.08127 demonstrates that S-shaped microchannel geometry induces chaotic advection through secondary vortex formation even in purely laminar flows; the same curvature-driven centrifugal mechanism should produce persistent transverse vortices inside a lid-driven cavity and dramatically increase interfacial stretching."
+    },
+    "experiment_spec": {
+      "hypothesis_id": "h3",
+      "title": "S-shaped cavity secondary-vortex onset at Re = 500",
+      "objective": "Determine whether a 2D S-shaped staircase lid-driven cavity at Re = 500 produces secondary in-plane recirculations strong enough to raise the volume-averaged velocity magnitude above 0.35 m/s, a level exceeding the expected single-vortex rectangular baseline by at least 10\u201340 %.",
+      "parameters": [
+        {
+          "name": "s_amplitude_fraction",
+          "role": "sweep",
+          "units": "dimensionless",
+          "min": 0.0,
+          "max": 0.3
+        },
+        {
+          "name": "Re",
+          "role": "fixed",
+          "units": "dimensionless",
+          "value": 500
+        },
+        {
+          "name": "lid_velocity",
+          "role": "fixed",
+          "units": "m/s",
+          "value": 1.0
+        },
+        {
+          "name": "cavity_width",
+          "role": "fixed",
+          "units": "m",
+          "value": 1.0
+        },
+        {
+          "name": "cavity_height",
+          "role": "fixed",
+          "units": "m",
+          "value": 1.0
+        },
+        {
+          "name": "kinematic_viscosity",
+          "role": "fixed",
+          "units": "m^2/s",
+          "value": 0.002
+        },
+        {
+          "name": "mesh_cells_per_meter",
+          "role": "fixed",
+          "units": "cells/m",
+          "value": 64
+        }
+      ],
+      "qoi": {
+        "name": "vol_avg_speed",
+        "units": "m/s",
+        "definition": "Volume-averaged magnitude of the steady-state velocity field, (1/V) integral_V |U| dV, evaluated over the full cavity cross-section. Additional counter-rotating recirculation cells contribute additive kinetic energy throughout the domain and are expected to drive this metric measurably above the single-vortex rectangular baseline, making it a proxy for secondary vortex presence and intensity.",
+        "how_extracted": "Substrate qoi request: field=U, operation=volAverage, component=mag at the latest written time step."
+      },
+      "success_criterion": {
+        "statement": "At s_amplitude_fraction = 0.30 the vol_avg_speed exceeds 0.35 m/s. The rectangular baseline at Re = 500, U_lid = 1.0 m/s is estimated at 0.25\u20130.32 m/s based on known single-vortex cavity scaling; exceeding 0.35 m/s therefore requires a 10\u201340 % enhancement consistent with secondary vortex formation driven by S-shaped curvature.",
+        "threshold": 0.35,
+        "direction": "above"
+      },
+      "regime": {
+        "reynolds_min": 500,
+        "reynolds_max": 500,
+        "notes": "Re = 500 is 2.5x above the validated substrate envelope (spike at Re = 200) but remains deeply laminar; cavity-flow turbulence onset is typically Re > 7000, so the 2D laminar assumption is physically sound. The S-shaped cavity is realised as a four-block staircase: lower chamber (x in [0, W], y in [0, H/2]) plus upper chamber (x in [-alpha*W, (1-alpha)*W], y in [H/2, H]), sharing an interior fluid interface of width (1-alpha)*W at y = H/2, plus right dead-end nub (x in [(1-alpha)*W, W], y in [0, H/2]) and left dead-end nub (x in [-alpha*W, 0], y in [H/2, H]); total cross-sectional area = W*H for all alpha, equal-volume condition holds exactly. Multi-block blockMesh for non-rectangular topology is unproven on this substrate and flagged for the fidelity gate. In 2D the solver cannot produce true 3D Dean vortex pairs; what forms are in-plane secondary recirculations mechanistically analogous to counter-rotating Dean-like pairs but not identical. The hypothesis QoI (90%-mixing length of a passive scalar) is NOT extractable: the incompressible laminar solver carries no scalar-transport physics and writes no concentration field. vol_avg_speed is used as a velocity-field proxy for secondary vortex intensity; no quantitative bridge to the 40% mixing-length reduction claim is available with this substrate, and feasibility of the full mixing-length assertion is a downstream fidelity-gate judgment. The threshold of 0.35 m/s is estimated from the expected baseline; its validity is uncertain at the unvalidated Re = 500 operating point."
+      },
+      "mini_experiment": {
+        "runs": [
+          {
+            "s_amplitude_fraction": 0.0,
+            "Re": 500,
+            "lid_velocity": 1.0,
+            "cavity_width": 1.0,
+            "cavity_height": 1.0,
+            "kinematic_viscosity": 0.002,
+            "mesh_cells_per_meter": 64
+          },
+          {
+            "s_amplitude_fraction": 0.15,
+            "Re": 500,
+            "lid_velocity": 1.0,
+            "cavity_width": 1.0,
+            "cavity_height": 1.0,
+            "kinematic_viscosity": 0.002,
+            "mesh_cells_per_meter": 64
+          },
+          {
+            "s_amplitude_fraction": 0.3,
+            "Re": 500,
+            "lid_velocity": 1.0,
+            "cavity_width": 1.0,
+            "cavity_height": 1.0,
+            "kinematic_viscosity": 0.002,
+            "mesh_cells_per_meter": 64
+          }
+        ],
+        "expected_observation": "Run 1 (alpha = 0, rectangular) converges to a single Burggraf-type primary vortex; vol_avg_speed expected near 0.25\u20130.32 m/s. Run 2 (alpha = 0.15) shows the lower and upper sub-chambers beginning to develop weakly coupled recirculations fed by the S-throat; vol_avg_speed modestly above Run 1. Run 3 (alpha = 0.30) exhibits distinct secondary recirculations in each sub-chamber and a strong redirection jet at the S-throat; vol_avg_speed should exceed Run 1 by at least 10% and ideally surpass the 0.35 m/s threshold, providing preliminary evidence for the secondary-vortex mechanism."
+      },
+      "full_experiment": {
+        "design": "Sweep s_amplitude_fraction over six evenly spaced values (0.00, 0.06, 0.12, 0.18, 0.24, 0.30) at fixed Re = 500, lid_velocity = 1.0 m/s, kinematic_viscosity = 0.002 m^2/s, cavity_width = 1.0 m, cavity_height = 1.0 m, mesh_cells_per_meter = 64. Geometry: four-block blockMesh staircase S-shape as described in regime.notes; the moving lid is the top wall of the upper chamber (y = 1.0 m, x in [-alpha, 1-alpha] m) at +1.0 m/s in x; all other walls stationary no-slip. Solve with simpleFoam (steady incompressible) to convergence (all residuals < 1e-3). Mesh-independence check: add six additional runs at mesh_cells_per_meter = 32 and 96 for alpha in {0.00, 0.15, 0.30}, bracketing coarseness effects on vol_avg_speed. Total: 6 sweep + 6 mesh-independence = 12 runs. Analysis: plot vol_avg_speed vs alpha to identify the onset s_amplitude_fraction above which secondary recirculations produce a statistically distinct break in the curve, and compare the alpha = 0.30 value against the alpha = 0.00 baseline to evaluate the success criterion.",
+        "estimated_run_count": 12
+      }
+    },
+    "fidelity_verdict": {
+      "label": "refine",
+      "rationale": "The 2D laminar solver genuinely handles this cavity-class physics and directly computes vol_avg_speed, but it is being extrapolated well past its validated envelope (Re 2.5x higher, an unproven multi-block staircase mesh, no mesh-independence at the S-throat) so it yields a reliable predicted screen, not a reality-confirmed answer.",
+      "right_instrument": "cavity_2d (used as a screening filter; survivors require mesh-independence confirmation and real-world/human validation at Re=500)"
+    },
+    "execution_results": {
+      "status": "halted_synthesis",
+      "runs": [],
+      "reason": "run 1 of 3: cannot build: Re, cavity_height, cavity_width, mesh_cells_per_meter, s_amplitude_fraction not in the buildable set (kinematic_viscosity, lid_velocity, cavity_length, mesh_resolution, end_time, time_step)",
+      "flag": "refine \u2014 survivors require downstream confirmation",
+      "qoi_translation_error": "QoI 'vol_avg_speed' not extractable by contract: spec qoi carries no machine-readable field/operation keys (free-text definitions are not translated)"
+    },
+    "stage4_summaries": []
+  },
+  "answer_key": {
+    "triage_allowed": [
+      "setup_error"
+    ],
+    "decision_allowed": [
+      "back_to_design",
+      "back_to_ideation"
+    ],
+    "note": "case synthesis halted on unbuildable parameters \u2014 the experiment never executed"
+  }
+}

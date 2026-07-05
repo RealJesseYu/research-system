@@ -1,0 +1,159 @@
+{
+  "case_id": "case-d",
+  "provenance": {
+    "description": "skipped defer \u2014 the real supervised human-demo run, unmodified",
+    "sources": [
+      "runs/20260704T090024Z/baton_after_stage_4.json (chosen_hypothesis h2, experiment_spec with tracer QoI, real defer verdict, real skip execution_results)"
+    ],
+    "synthetic_edits": "none \u2014 every value copied verbatim; run_id is synthetic (case-d-frozen); stage4_summaries [] because stage 4 skipped"
+  },
+  "prompt_inputs": {
+    "run_id": "case-d-frozen",
+    "chosen_hypothesis": {
+      "id": "h2",
+      "statement": "Passive scalar concentration-variance decay rate in a cubical lid-driven cavity exhibits a local maximum immediately above the critical Reynolds number Re_c \u2248 1914 because the nascent limit-cycle oscillations of the primary vortex core produce periodic stretching-and-folding of material lines that is absent in the steady sub-critical regime.",
+      "rationale": "The Andronov\u2013Hopf bifurcation documented in 1607.05126 transitions the flow from a fixed point to a limit cycle, supplying the minimal dynamical ingredient for sustained stretching of passive scalar gradients; 3D scalar-transport simulations sweeping Re across 1800\u20132100 should reveal a sharply peaked mixing rate at the bifurcation."
+    },
+    "experiment_spec": {
+      "hypothesis_id": "h2",
+      "title": "Hopf-bifurcation-enhanced passive scalar mixing in lid-driven cavity near Re_c \u2248 1914",
+      "objective": "Determine whether the passive scalar concentration-variance decay rate exhibits a local maximum immediately above the Hopf bifurcation at Re_c \u2248 1914 by sweeping Reynolds number across 1800\u20132100 in a lid-driven cavity with concurrent passive scalar transport.",
+      "parameters": [
+        {
+          "name": "Re",
+          "role": "sweep",
+          "units": "dimensionless",
+          "min": 1800,
+          "max": 2100
+        },
+        {
+          "name": "nu",
+          "role": "sweep",
+          "units": "m^2/s",
+          "min": 0.0004762,
+          "max": 0.0005556
+        },
+        {
+          "name": "L",
+          "role": "fixed",
+          "units": "m",
+          "value": 1.0
+        },
+        {
+          "name": "U_lid",
+          "role": "fixed",
+          "units": "m/s",
+          "value": 1.0
+        },
+        {
+          "name": "mesh_N",
+          "role": "fixed",
+          "units": "cells per side",
+          "value": 64
+        },
+        {
+          "name": "end_time",
+          "role": "fixed",
+          "units": "s",
+          "value": 150.0
+        },
+        {
+          "name": "dt",
+          "role": "fixed",
+          "units": "s",
+          "value": 0.01
+        },
+        {
+          "name": "Sc",
+          "role": "fixed",
+          "units": "dimensionless",
+          "value": 0.7
+        },
+        {
+          "name": "c0_profile",
+          "role": "fixed",
+          "units": "dimensionless",
+          "value": "step: c=1 for y>0.5 m, c=0 for y<=0.5 m at t=0"
+        }
+      ],
+      "qoi": {
+        "name": "concentration_variance_decay_rate",
+        "units": "s^-1",
+        "definition": "Exponential decay rate lambda_sigma = -d/dt[ln(sigma^2_c(t))], where sigma^2_c(t) = (1/V) * integral_V [c(x,t) - c_mean(t)]^2 dV is the instantaneous spatial variance of the passive scalar concentration field c, V is the cavity volume, and c_mean = (1/V) integral_V c dV; lambda_sigma is estimated as the magnitude of the slope of a linear regression of ln(sigma^2_c) versus t over the window t in [80 s, 150 s], after initial transients have passed.",
+        "how_extracted": "Solve the passive scalar advection-diffusion equation dc/dt + U\u00b7grad(c) = D nabla^2(c) with D = nu/Sc concurrently with the incompressible Navier-Stokes equations (e.g., using OpenFOAM scalarTransportFoam or a combined momentum-scalar solver); write concentration field snapshots at intervals of 1 s; at each snapshot compute sigma^2_c via volIntegrate of (c - c_mean)^2 and record the time series; fit a linear regression to ln(sigma^2_c) over t in [80, 150] s to obtain lambda_sigma. This QoI requires a concentration field that the cavity_2d substrate does not carry \u2014 the substrate's incompressible laminar solver has no scalar transport physics \u2014 so this quantity is not extractable by the current instrument."
+      },
+      "success_criterion": {
+        "statement": "The concentration-variance decay rate lambda_sigma at the Reynolds number closest to and immediately above Re_c = 1914, specifically at Re = 1950, exceeds both the sub-critical value at Re = 1800 and the above-critical value at Re = 2100 by a factor of at least 1.10, i.e., lambda_sigma(Re=1950) / max(lambda_sigma(Re=1800), lambda_sigma(Re=2100)) >= 1.10, confirming a local maximum in mixing rate co-located with the bifurcation.",
+        "threshold": 1.1,
+        "direction": "above"
+      },
+      "regime": {
+        "reynolds_min": 1800,
+        "reynolds_max": 2100,
+        "notes": "Three critical mismatches between this experiment design and the cavity_2d substrate must be stated honestly. (1) Dimensionality: the hypothesis specifies a cubical (3D) cavity, but the substrate is strictly 2D. The Hopf bifurcation at Re_c \u2248 1914 documented in arXiv:1607.05126 is a 3D instability of the primary vortex core; in the 2D square lid-driven cavity, the first Hopf bifurcation occurs at Re \u2248 7400\u20138000 (Bruneau & Saad 2006; Peng et al. 2003). Over the Re range 1800\u20132100, a 2D simulation will almost certainly produce a steady fixed-point flow throughout, with no limit-cycle oscillations and therefore no periodic stretching-and-folding mechanism \u2014 the causal chain of the hypothesis will simply be absent in 2D. A fully 3D solver is required to test the stated hypothesis. (2) Scalar transport: the concentration-variance decay rate requires a passive scalar concentration field that the cavity_2d substrate does not produce; the OpenFOAM setup uses an incompressible laminar velocity-pressure solver with no scalar transport equation, so the concentration field c does not exist in any written output and the QoI cannot be extracted by any post-processing operation the substrate supports. (3) The c0_profile parameter describes the initial condition of the scalar field, which has no meaning in the velocity-only solver; it is declared here to fully specify the experiment the hypothesis requires, not the experiment the substrate can execute. The nu sweep is inversely related to Re by nu = U_lid * L / Re = 1.0 / Re; the two parameters are redundant but both declared because Re is the physically meaningful control variable while nu is the direct solver input. Flow is expected to remain laminar throughout; the Courant number with dt=0.01 s and 64-cell mesh (dx \u2248 0.016 m) at U_lid=1 m/s gives CFL \u2248 0.63, comfortably below unity."
+      },
+      "mini_experiment": {
+        "runs": [
+          {
+            "Re": 1800,
+            "nu": 0.0005556,
+            "L": 1.0,
+            "U_lid": 1.0,
+            "mesh_N": 64,
+            "end_time": 150.0,
+            "dt": 0.01,
+            "Sc": 0.7,
+            "c0_profile": "step: c=1 for y>0.5 m, c=0 for y<=0.5 m at t=0"
+          },
+          {
+            "Re": 1950,
+            "nu": 0.0005128,
+            "L": 1.0,
+            "U_lid": 1.0,
+            "mesh_N": 64,
+            "end_time": 150.0,
+            "dt": 0.01,
+            "Sc": 0.7,
+            "c0_profile": "step: c=1 for y>0.5 m, c=0 for y<=0.5 m at t=0"
+          },
+          {
+            "Re": 2100,
+            "nu": 0.0004762,
+            "L": 1.0,
+            "U_lid": 1.0,
+            "mesh_N": 64,
+            "end_time": 150.0,
+            "dt": 0.01,
+            "Sc": 0.7,
+            "c0_profile": "step: c=1 for y>0.5 m, c=0 for y<=0.5 m at t=0"
+          }
+        ],
+        "expected_observation": "On a correctly instrumented 3D solver with scalar transport: the Re=1950 run (just above Re_c) would show the highest lambda_sigma, roughly 15\u201340% above the Re=1800 sub-critical value, because the nascent limit-cycle vortex oscillations create periodic scalar filament stretching absent in the steady regime; the Re=2100 run would show a modestly lower lambda_sigma as the oscillation amplitude saturates and the flow approaches a fully developed unsteady regime without additional bifurcation enhancement. On the actual cavity_2d substrate without scalar transport: all three runs will produce velocity-pressure solutions only; the flow at Re=1800\u20132100 will be steady in 2D (far below the 2D bifurcation near Re\u22487400), all three runs will converge as steady-state solutions, and no QoI will be returned because the concentration field does not exist \u2014 qoi_error will be reported for all runs."
+      },
+      "full_experiment": {
+        "design": "Sweep Re in steps of 25 from 1800 to 2100 (13 values), plus 5 additional runs clustered in [1900, 1930] with spacing 7.5 to resolve the bifurcation sharply, for 18 Re values total. At each Re set nu = 1/Re (with U_lid=L=1), and run a transient simulation from the same step-function scalar initial condition with end_time=200 s and dt=0.005 s to accumulate at least 200 advective time units L/U. Extract lambda_sigma from the scalar variance time series over the window [100, 200] s after confirming attractor convergence (no drift in sigma^2_c slope). Fit a cubic spline to the 18 (Re, lambda_sigma) data points and identify any local maximum; if the maximum is within [1900, 1960], the hypothesis is supported. Supplement with a mesh-refinement study at Re=1800, 1950, 2100 at 128x128 (3 additional runs) to confirm mesh-independence of lambda_sigma to within 5%, and a Schmidt number sensitivity check at Sc=0.1 and Sc=7 at Re=1950 (2 additional runs) to verify the peak persists across diffusivity regimes, giving 23 total runs. This design requires a 3D cavity domain and a passive scalar transport solver not present in the current substrate.",
+        "estimated_run_count": 23
+      }
+    },
+    "fidelity_verdict": {
+      "label": "defer",
+      "rationale": "The 2D velocity-only substrate carries no scalar-transport physics (so the concentration-variance QoI does not exist) and cannot reproduce the 3D Hopf instability at Re_c\u22481914 that the hypothesis depends on.",
+      "right_instrument": "none \u2014 route to human/real experiment"
+    },
+    "execution_results": {
+      "status": "skipped_defer"
+    },
+    "stage4_summaries": []
+  },
+  "answer_key": {
+    "triage_allowed": [
+      "out_of_envelope"
+    ],
+    "decision_allowed": [
+      "back_to_ideation",
+      "back_to_design",
+      "exit"
+    ],
+    "note": "defer verdict: the instrument cannot model this experiment; nothing was executed"
+  }
+}

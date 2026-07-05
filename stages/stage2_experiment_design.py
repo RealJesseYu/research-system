@@ -37,6 +37,19 @@ SYSTEM_PROMPT = (
     "Choose exactly one quantity of interest, declare every parameter with role "
     '"sweep" (numeric min and max) or "fixed" (a value), and make every value '
     "physically sensible for the regime you state. "
+    "When, and only when, the quantity of interest is genuinely extractable per the "
+    "substrate contract — an existing field the case already writes, one of the "
+    "contract's allowed operations, optional component — the qoi object MUST "
+    'additionally carry the machine-readable keys "field", "operation", and '
+    'optionally "component", using exactly the contract\'s vocabulary; when the '
+    "quantity of interest is NOT extractable, those keys MUST be omitted (the "
+    "free-text qoi name, definition, and how_extracted remain either way). "
+    "When more than one quantity of interest could genuinely test the hypothesis, "
+    "prefer one the substrate contract can extract. "
+    "Use the substrate contract's canonical parameter name whenever the physical "
+    "quantity you are declaring matches one; parameters with no canonical "
+    "equivalent keep their natural names — this is a naming convention, not a "
+    "restriction on what may be designed. "
     "The mini_experiment is a cheap preview of 1 to 3 runs; every run must assign "
     "every declared parameter by name, keep fixed parameters at their declared "
     "values, and stay inside the declared sweep bounds. "
@@ -46,7 +59,8 @@ SYSTEM_PROMPT = (
     '"parameters": [{"name": "...", "role": "sweep", "units": "...", "min": <number>, '
     '"max": <number>} or {"name": "...", "role": "fixed", "units": "...", '
     '"value": <value>}, ...], "qoi": {"name": "...", "units": "...", '
-    '"definition": "...", "how_extracted": "..."}, "success_criterion": '
+    '"definition": "...", "how_extracted": "...", and the machine-readable keys '
+    "only in the extractable case}, \"success_criterion\": "
     '{"statement": "...", "threshold": <number>, "direction": "above" or "below"}, '
     '"regime": {"reynolds_min": <number>, "reynolds_max": <number>, "notes": "..."}, '
     '"mini_experiment": {"runs": [{"<parameter name>": <value>, ...}, ...], '

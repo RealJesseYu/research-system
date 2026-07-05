@@ -1,0 +1,198 @@
+{
+  "case_id": "case-a",
+  "provenance": {
+    "description": "clean success \u2014 the real Step-12 executed-path evidence, unmodified",
+    "sources": [
+      "specs/handcrafted_baseline_payload.json (chosen_hypothesis, experiment_spec, fidelity_verdict \u2014 the verdict is HAND-AUTHORED trust, disclosed there; not a stage-3 output)",
+      "runs/handfeed4-20260704T083221Z/baton_after_stage_4.json (execution_results)",
+      "runs/handfeed4-20260704T083221Z/stage4/results.json (both wrapper summaries)"
+    ],
+    "synthetic_edits": "none \u2014 every value copied verbatim; run_id is synthetic (case-a-frozen)",
+    "consistency_check": "verified before authoring: run 1 (lid 2.0) qoi 0.4168353 > success_criterion threshold 0.3 direction above; both runs converged; ratio 2.16 vs expected_observation 'roughly twice', 0.4168 vs 'near 0.42', 0.1930 vs 'near 0.21' \u2014 reads as consistent success"
+  },
+  "prompt_inputs": {
+    "run_id": "case-a-frozen",
+    "chosen_hypothesis": {
+      "id": "hand-baseline",
+      "statement": "baseline cavity mean-speed characterization",
+      "rationale": "HAND-FED (not stage-1 output): a known-executable baseline to witness the Step-12 executed path; legitimate through Step 16."
+    },
+    "experiment_spec": {
+      "hypothesis_id": "hand-baseline",
+      "title": "Baseline cavity mean-speed characterization",
+      "objective": "Characterize the volume-averaged flow speed of the baseline lid-driven cavity at two lid speeds, as an executable end-to-end proof of verdict-gated simulation with real QoI extraction.",
+      "parameters": [
+        {
+          "name": "lid_velocity",
+          "role": "sweep",
+          "units": "m/s",
+          "min": 1.0,
+          "max": 2.0
+        },
+        {
+          "name": "kinematic_viscosity",
+          "role": "fixed",
+          "units": "m^2/s",
+          "value": 0.01
+        },
+        {
+          "name": "cavity_length",
+          "role": "fixed",
+          "units": "m",
+          "value": 1.0
+        },
+        {
+          "name": "mesh_resolution",
+          "role": "fixed",
+          "units": "cells per side",
+          "value": 64
+        },
+        {
+          "name": "end_time",
+          "role": "fixed",
+          "units": "s",
+          "value": 20.0
+        },
+        {
+          "name": "time_step",
+          "role": "fixed",
+          "units": "s",
+          "value": 0.005
+        }
+      ],
+      "qoi": {
+        "name": "mean_flow_speed",
+        "units": "m/s",
+        "definition": "Volume-averaged velocity magnitude over the whole cavity at the final simulated time.",
+        "how_extracted": "Single-QoI extraction per the substrate contract: volAverage of mag(U) at the latest written time.",
+        "field": "U",
+        "operation": "volAverage",
+        "component": "mag"
+      },
+      "success_criterion": {
+        "statement": "The volume-averaged flow speed at lid_velocity 2.0 m/s exceeds 0.3 m/s.",
+        "threshold": 0.3,
+        "direction": "above"
+      },
+      "regime": {
+        "reynolds_min": 100,
+        "reynolds_max": 200,
+        "notes": "Steady laminar recirculating lid-driven cavity; Re = U*L/nu spans 100 (lid 1.0) to 200 (lid 2.0), inside the substrate's validated envelope."
+      },
+      "mini_experiment": {
+        "runs": [
+          {
+            "lid_velocity": 2.0,
+            "kinematic_viscosity": 0.01,
+            "cavity_length": 1.0,
+            "mesh_resolution": 64,
+            "end_time": 20.0,
+            "time_step": 0.005
+          },
+          {
+            "lid_velocity": 1.0,
+            "kinematic_viscosity": 0.01,
+            "cavity_length": 1.0,
+            "mesh_resolution": 64,
+            "end_time": 20.0,
+            "time_step": 0.005
+          }
+        ],
+        "expected_observation": "Both runs converge; the mean flow speed at lid 2.0 m/s is roughly twice that at lid 1.0 m/s (linear laminar scaling), near 0.42 m/s vs near 0.21 m/s."
+      },
+      "full_experiment": {
+        "design": "The two mini-experiment runs ARE the experiment: a two-point lid-speed characterization of the baseline cavity.",
+        "estimated_run_count": 2
+      }
+    },
+    "fidelity_verdict": {
+      "label": "trust",
+      "rationale": "hand-fed executable baseline for Step-12 path proof",
+      "right_instrument": "cavity_2d run_cfd"
+    },
+    "execution_results": {
+      "status": "executed",
+      "runs": [
+        {
+          "converged": true,
+          "wall_clock_s": 11.41,
+          "qoi_value": 0.4168353
+        },
+        {
+          "converged": true,
+          "wall_clock_s": 11.58,
+          "qoi_value": 0.1930067
+        }
+      ]
+    },
+    "stage4_summaries": [
+      {
+        "status": "ok",
+        "case": "handfeed4-20260704T083221Z_run1",
+        "solver": "foamRun",
+        "converged": true,
+        "reason": "reached endTime=20.0 with all final residuals < 0.001",
+        "final_time": 20.0,
+        "end_time": 20.0,
+        "residuals": {
+          "Ux": 2.30233e-08,
+          "Uy": 2.34411e-08,
+          "p": 6.65035e-07
+        },
+        "key_result": {
+          "max_Courant": 0.604011,
+          "continuity_global": -1.91432e-19
+        },
+        "runtime": {
+          "solver_execution_time_s": 9.29539,
+          "wall_clock_s": 11.41
+        },
+        "qoi": {
+          "name": "volAverage(mag(U))",
+          "field": "U",
+          "operation": "volAverage",
+          "value": 0.4168353,
+          "time": 20.0
+        }
+      },
+      {
+        "status": "ok",
+        "case": "handfeed4-20260704T083221Z_run2",
+        "solver": "foamRun",
+        "converged": true,
+        "reason": "reached endTime=20.0 with all final residuals < 0.001",
+        "final_time": 20.0,
+        "end_time": 20.0,
+        "residuals": {
+          "Ux": 7.3937e-08,
+          "Uy": 8.30401e-08,
+          "p": 8.77476e-07
+        },
+        "key_result": {
+          "max_Courant": 0.304697,
+          "continuity_global": 9.00111e-20
+        },
+        "runtime": {
+          "solver_execution_time_s": 9.22059,
+          "wall_clock_s": 11.58
+        },
+        "qoi": {
+          "name": "volAverage(mag(U))",
+          "field": "U",
+          "operation": "volAverage",
+          "value": 0.1930067,
+          "time": 20.0
+        }
+      }
+    ]
+  },
+  "answer_key": {
+    "triage_allowed": [
+      "none"
+    ],
+    "decision_allowed": [
+      "exit"
+    ],
+    "note": "real converged runs matching both prediction locations; nothing further is productive"
+  }
+}

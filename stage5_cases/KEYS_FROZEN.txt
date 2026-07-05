@@ -1,0 +1,10 @@
+KEYS FROZEN at 2026-07-05T21:22:58Z (UTC)
+From this write onward the Step-13 chunk-1 scored-experiment rules apply:
+no edits to case files, keys, the stage-5 system prompt, schema, or harness.
+
+cea967f6afbfcd749160830f1593b302597ef367fab1dff400c6645b219545ee  case_a.json
+02faa926a7b7335351b142c2206590f751b10003b2317bf6c046225458cd5160  case_b.json
+e8f514d24f9fabf1b9568ef3ee1509dddccf6d0dd1b300c5bfb66dc42e086045  case_c.json
+4bc75ac9eb655243a5c5eead9bf4faff1023c1ccac9186e41f2252da2ef531c6  case_d.json
+c9704e7336454568689bfb9d4923aeb1b7ebfb676feeda4a5877a40900b0488e  case_e.json
+5a6dd47d546f4a1b59aa089944207905c44ea9d52f9aedc728560a7ed01d458c  case_f.json

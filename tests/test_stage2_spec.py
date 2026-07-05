@@ -154,6 +154,27 @@ class TestOneRulePerViolation(unittest.TestCase):
         spec["qoi"] = [copy.deepcopy(make_valid_spec()["qoi"])]
         self.assert_error_mentioning(spec, "qoi must be a single object, never a list")
 
+    def test_qoi_machine_keys_valid_pass(self):
+        spec = make_valid_spec()
+        spec["qoi"].update({"field": "U", "operation": "volAverage", "component": "mag"})
+        self.assertEqual(validate_spec(spec, CHOSEN_ID), [])
+
+    def test_qoi_machine_keys_absent_pass(self):
+        spec = make_valid_spec()
+        for key in ("field", "operation", "component"):
+            self.assertNotIn(key, spec["qoi"])
+        self.assertEqual(validate_spec(spec, CHOSEN_ID), [])
+
+    def test_qoi_invalid_operation_rejected(self):
+        spec = make_valid_spec()
+        spec["qoi"].update({"field": "U", "operation": "timeAverage"})
+        self.assert_error_mentioning(spec, "qoi operation must be one of")
+
+    def test_qoi_invalid_component_rejected(self):
+        spec = make_valid_spec()
+        spec["qoi"].update({"field": "U", "operation": "volAverage", "component": "x"})
+        self.assert_error_mentioning(spec, "qoi component must be \"mag\" or 0|1|2")
+
 
 if __name__ == "__main__":
     unittest.main()

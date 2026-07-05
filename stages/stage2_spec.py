@@ -16,6 +16,10 @@ from __future__ import annotations
 
 from typing import Any
 
+# The wrapper's own QoI vocabularies are the single source of truth — imported,
+# never redefined here. (_QOI_FIELD_RE is the wrapper's field-identifier rule.)
+from tools.run_cfd import QOI_COMPONENTS, QOI_OPERATIONS, _QOI_FIELD_RE
+
 REQUIRED_SPEC_FIELDS = (
     "hypothesis_id",
     "title",
@@ -104,6 +108,28 @@ def _validate_qoi(qoi: Any, errors: list[str]) -> None:
     for field in QOI_REQUIRED_FIELDS:
         if field not in qoi:
             errors.append(f"qoi is missing '{field}'.")
+
+    # Optional machine-readable extraction keys: absent (all three) is valid —
+    # it declares the QoI not extractable by the substrate. Any that are
+    # present must use exactly the wrapper's vocabulary.
+    if "field" in qoi:
+        name = qoi["field"]
+        if not isinstance(name, str) or not _QOI_FIELD_RE.match(name):
+            errors.append(
+                f"qoi field must be the exact name of a field the case already "
+                f"writes — a plain identifier (letters, digits, underscore, dot, "
+                f"starting with a letter); got {name!r}."
+            )
+    if "operation" in qoi and qoi["operation"] not in QOI_OPERATIONS:
+        errors.append(
+            f"qoi operation must be one of {sorted(QOI_OPERATIONS)}; "
+            f"got {qoi['operation']!r}."
+        )
+    if "component" in qoi and qoi["component"] not in QOI_COMPONENTS:
+        errors.append(
+            f"qoi component must be \"mag\" or 0|1|2 (or omitted entirely); "
+            f"got {qoi['component']!r}."
+        )
 
 
 def _validate_success_criterion(sc: Any, errors: list[str]) -> None:
