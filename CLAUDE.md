@@ -76,6 +76,19 @@ convenient it seems in the moment:
 - **`runs/` is append-only evidence:** demo and failure runs are kept deliberately;
   pruning happens only at a recorded checkpoint, never silently mid-step. A retention
   policy gets designed only when accumulation actually hurts.
+- **QoI tie-break doctrine (Step-13 amendment).** When more than one quantity of
+  interest could genuinely test the hypothesis, prefer one the substrate contract can
+  extract — a tie-break among genuinely equivalent tests, never a license to substitute
+  a weaker test; the fidelity gate checks surrogacy claims.
+- **Single-sided success criteria are anomaly-blind in the passing direction.** Scored
+  case b proved a 3x-too-high result still "passes" an above-threshold criterion and
+  reads as clean success. Step-15 schema candidate: a two-sided expectation.
+- **The setup_error/out_of_envelope overlap at skips and halts is characterized and
+  deliberately unpatched.** When nothing executed, both labels are literally true; no
+  prompt or definition patch until evidence shows the ambiguity matters downstream.
+- **Learned-summary poison risk.** On non-exit decisions stage 5 journals its
+  learned_summary verbatim, and the thought layer can assert false physics confidently
+  (case b). Noted for Steps 21/23 (mechanical checks, journal hygiene).
 
 ## Pointers to the spike
 - `~/research-spike` is **read-only reference**. Never modify it from this project.
@@ -476,3 +489,7 @@ write.
 Step 12 COMPLETE (stage 4 real: verdict-gated deterministic runner; case
 synthesis with honest halts; mini-experiment execution through run_cfd;
 supervised in both modes). Step 13 next, scope not guessed here.
+
+Step 13 COMPLETE (stage 5 real; thought layer scored 4/6 triage, 5/6
+decision; over-trust characterization on record; supervisor records but
+does not loop). Step 14 next, scope not guessed here.

@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from supervisor import build_gate2_header, build_gate5_header
+from supervisor import build_gate2_header, build_gate5_header, build_thought_block
 
 CANNED_SPEC_PAYLOAD = {
     "domain": "fluid dynamics",
@@ -133,6 +133,44 @@ class TestGate5Header(unittest.TestCase):
             "reason: run 1 of 3: unsupported parameters: floor_amplitude, floor_wavelength",
             block,
         )
+
+    def test_refine_flag_present_renders_flag_line(self):
+        payload = {
+            "execution_results": {
+                "status": "executed",
+                "runs": [{"converged": True, "qoi_value": 0.42, "wall_clock_s": 11.4}],
+                "flag": "refine — survivors require downstream confirmation",
+            }
+        }
+        block = build_gate5_header(payload)
+        self.assertIn("flag: refine — survivors require downstream confirmation", block)
+
+    def test_refine_flag_absent_means_no_flag_line(self):
+        block = build_gate5_header(CANNED_EXECUTED_PAYLOAD)
+        self.assertNotIn("flag:", block)
+
+    def test_thought_present_renders_boxed_block(self):
+        payload = {
+            "thought": {
+                "assessment": "…",
+                "surprise_triage": "setup_error",
+                "iterate_decision": "back_to_design",
+                "justification": "The runs never executed.",
+                "learned_summary": "…",
+            }
+        }
+        block = build_thought_block(payload)
+        self.assertIn("THOUGHT", block)
+        self.assertIn("triage: setup_error", block)
+        self.assertIn("decision: back_to_design", block)
+        self.assertIn("justification: The runs never executed.", block)
+        header = build_gate5_header(payload)
+        self.assertIn("THOUGHT", header)
+
+    def test_thought_absent_means_no_thought_block(self):
+        self.assertEqual(build_thought_block(CANNED_EXECUTED_PAYLOAD), "")
+        self.assertEqual(build_thought_block({"thought": "not a dict"}), "")
+        self.assertNotIn("THOUGHT", build_gate5_header(CANNED_EXECUTED_PAYLOAD))
 
     def test_malformed_execution_results_never_raise(self):
         block = build_gate5_header({"execution_results": "not a dict"})

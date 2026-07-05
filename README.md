@@ -1,13 +1,17 @@
 # research-system
 
-Phase B, Step 12: the deterministic six-stage skeleton is built and the
+Phase B, Step 13: the deterministic six-stage skeleton is built and the
 real stages are arriving one by one — stage 1 is real literature-grounded
 ideation, gate 1 is pick-one-of-k, stage 2 is real experiment design
-producing a typed, Python-validated spec, stage 3 is a real Opus
-fidelity gate on the frozen spike v2 prompt, and stage 4 is the real
-simulation runner (deterministic Python, zero model calls: verdict-gated
-case synthesis + execution through `tools/run_cfd.py` with optional QoI
-extraction). See `CLAUDE.md` for the full architecture and current status.
+producing a typed, Python-validated spec (with machine-readable QoI keys
+when, and only when, the QoI is genuinely extractable by the substrate),
+stage 3 is a real Opus fidelity gate on the frozen spike v2 prompt,
+stage 4 is the real simulation runner (deterministic Python, zero model
+calls: verdict-gated case synthesis + execution through `tools/run_cfd.py`
+with optional QoI extraction), and stage 5 is the real thought layer (one
+Opus call that triages surprise and decides iteration; scored against six
+sealed cases before going live — see `stage5_cases/`). See `CLAUDE.md`
+for the full architecture and current status.
 
 ## Requirements
 This project has its own venv at `venv/`, containing `claude-agent-sdk`.
@@ -57,6 +61,14 @@ feeds a hand-authored payload instead of a past run):
 venv/bin/python3 handfeed_stage4.py --source-run <run-directory-name>
 ```
 
+To run the thought layer alone on a sealed scored case (no supervisor, no
+journal writes ever — the answer key never reaches the model; scores are
+written to the handfeed dir after the model evidence is saved):
+
+```
+venv/bin/python3 handfeed_stage5.py --case stage5_cases/case_a.json
+```
+
 To hand-drive the production solver wrapper on a case under `cases/` (no
 model calls, no supervisor; prints the summary JSON):
 
@@ -92,8 +104,10 @@ and after stage 5. Gate 1 lists the ranked hypotheses and asks you to pick
 one by number. Gates 2 and 5 print a display-only header first — gate 2 a
 one-line SPEC summary, gate 5 a boxed FIDELITY VERDICT block followed by
 an EXECUTION section showing what stage 4 did (status, plus per-run
-one-liners or the skip/halt reason) — then pretty-print the current baton
-and ask:
+one-liners or the skip/halt reason, plus a `flag:` line when the refine
+flag is present) and a boxed THOUGHT block (triage / decision /
+justification) when stage 5's thought exists — then pretty-print the
+current baton and ask:
 
 ```
 GATE after_stage_N: approve to continue [y] / stop [n]:
@@ -111,9 +125,10 @@ containing:
 - `baton_after_stage_1.json` through `baton_after_stage_6.json` — a
   snapshot of the baton after each stage ran. Useful for seeing exactly
   what any given stage received and produced.
-- `stage1/` … `stage4/` — each real stage's own evidence (ranked lists,
-  spec.json, verdict.json, and stage 4's `results.json` with the full
-  wrapper summaries; the baton carries conclusions only).
+- `stage1/` … `stage5/` — each real stage's own evidence (ranked lists,
+  spec.json, verdict.json, stage 4's `results.json` with the full wrapper
+  summaries, and stage 5's `thought.json`; the baton carries conclusions
+  only).
 - `log.txt` — everything printed to the terminal during the run, plus the
   gate decisions (auto-approvals or human y/n answers). This is the
   supervisor's own record; it is never read by any stage.
@@ -154,7 +169,11 @@ yet. `supervisor.py` never touches `retrieval/`.
 ## What is NOT built yet
 
 No MCP tools. Gates 2 and 5 still take only y/n (gate 1 is
-pick-one-of-k). Stages 1–4 are real — ideation on Sonnet with Opus
-ranking, experiment design on Sonnet, the fidelity gate on Opus, and the
-simulation stage on deterministic Python (no model call) — while stages
-5–6 are still separate-context Haiku ack stubs. See `CLAUDE.md`.
+pick-one-of-k). Stages 1–5 are real — ideation on Sonnet with Opus
+ranking, experiment design on Sonnet (the spec validator also enforces
+that machine-readable qoi keys, when any appear, carry both `field` and
+`operation` with the wrapper's exact vocabulary), the fidelity gate on
+Opus, the simulation stage on deterministic Python (no model call), and
+the thought layer on Opus — while stage 6 is still a separate-context
+Haiku ack stub. The supervisor records stage 5's iterate_decision but
+does not loop on it (Step 14/16 wires loop-back). See `CLAUDE.md`.

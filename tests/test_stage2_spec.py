@@ -170,6 +170,13 @@ class TestOneRulePerViolation(unittest.TestCase):
         spec["qoi"].update({"field": "U", "operation": "timeAverage"})
         self.assert_error_mentioning(spec, "qoi operation must be one of")
 
+    def test_qoi_component_only_rejected(self):
+        spec = make_valid_spec()
+        spec["qoi"]["component"] = "mag"
+        self.assert_error_mentioning(
+            spec, "must carry both 'field' and 'operation'"
+        )
+
     def test_qoi_invalid_component_rejected(self):
         spec = make_valid_spec()
         spec["qoi"].update({"field": "U", "operation": "volAverage", "component": "x"})

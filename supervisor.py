@@ -144,8 +144,35 @@ def build_gate5_header(payload: dict) -> str:
             lines.append("  nothing executed: defer verdict")
         else:
             lines.append(f"  reason: {exec_res.get('reason') or '?'}")
+        if exec_res.get("flag"):
+            lines.append(f"  flag: {exec_res['flag']}")
     lines.append("==================================")
+    thought_block = build_thought_block(payload)
+    if thought_block:
+        lines.append(thought_block)
     return "\n".join(lines)
+
+
+def build_thought_block(payload: dict) -> str:
+    """Boxed THOUGHT block for gate after_stage_5 (Step 13: stage 5 real).
+
+    Pure function, no I/O: payload -> str. Same display-only, never-raise
+    contract as the other headers; returns "" when the payload carries no
+    thought, so pre-Step-13 payload shapes render exactly as before.
+    """
+    thought = payload.get("thought")
+    if not isinstance(thought, dict):
+        return ""
+    return "\n".join(
+        [
+            "==================================",
+            "THOUGHT",
+            f"  triage: {thought.get('surprise_triage') or '?'}",
+            f"  decision: {thought.get('iterate_decision') or '?'}",
+            f"  justification: {thought.get('justification') or '?'}",
+            "==================================",
+        ]
+    )
 
 
 def run_gate(logger: Logger, baton: Baton, mode: str, gate_name: str) -> bool:

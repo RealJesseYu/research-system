@@ -111,7 +111,19 @@ def _validate_qoi(qoi: Any, errors: list[str]) -> None:
 
     # Optional machine-readable extraction keys: absent (all three) is valid —
     # it declares the QoI not extractable by the substrate. Any that are
-    # present must use exactly the wrapper's vocabulary.
+    # present must use exactly the wrapper's vocabulary, and a partial set is
+    # not a request the wrapper can serve: field and operation travel together.
+    machine_keys = [k for k in ("field", "operation", "component") if k in qoi]
+    if machine_keys:
+        for needed in ("field", "operation"):
+            if needed not in qoi:
+                errors.append(
+                    f"qoi carries the machine-readable key(s) "
+                    f"{', '.join(repr(k) for k in machine_keys)} but is missing "
+                    f"'{needed}' — an extractable qoi must carry both 'field' and "
+                    f"'operation' ('component' stays optional); either add "
+                    f"'{needed}' or omit all machine-readable keys."
+                )
     if "field" in qoi:
         name = qoi["field"]
         if not isinstance(name, str) or not _QOI_FIELD_RE.match(name):
