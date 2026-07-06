@@ -1,6 +1,6 @@
 # research-system
 
-Phase B, Step 15: the deterministic six-stage skeleton is built and the
+Phase B COMPLETE (Step 16): the deterministic six-stage skeleton is built and the
 real stages are arriving one by one — stage 1 is real literature-grounded
 ideation, gate 1 is pick-one-of-k, stage 2 is real experiment design
 producing a typed, Python-validated spec (with machine-readable QoI keys
@@ -33,6 +33,19 @@ tolerance > 0; no stage-4/5 consumer yet — it accumulates data for
 Step 16/21). Fixed parameter values must now be numeric. Pre-lock specs in
 old `runs/` dirs may fail the new rules; they are historical evidence and
 are deliberately not edited.
+
+Step 16 closed the loop: gate 5 is now a real decision (accept the thought
+layer's iterate decision, override it, or stop), and the supervisor enacts
+loop-backs — `back_to_design` re-enters stage 2 carrying the thought as
+`prior_thought` (ruled optional field at every boundary); `back_to_ideation`
+re-enters stage 1 with the payload reduced to `{domain}` (loop context
+arrives via the journal read-side, not the baton). At most 2 loop-backs
+per run (`MAX_LOOPBACKS`); a third non-exit decision forces an honest stop
+with the recommendation journaled. Enacting `more_data` also stops honestly
+— its machinery is Phase C (Step 19) and is not pretended. Chunk 1 added
+robustness: transport retries with durable `TRANSPORT-RETRY` lines, a
+stage-crash catch that journals a `crashed` run_record, and stage 4 now
+consumes spec-declared derived parameters (verified, never guessed).
 
 ## Requirements
 This project has its own venv at `venv/`, containing `claude-agent-sdk`.
@@ -120,22 +133,34 @@ depending on the fidelity verdict:
 - if a case can't be built:
   `STAGE4 halted_synthesis at run N of M: <every offending parameter>`
 
-**Human mode:** the run pauses three times — after stage 1, after stage 2,
-and after stage 5. Gate 1 lists the ranked hypotheses and asks you to pick
-one by number. Gates 2 and 5 print a display-only header first — gate 2 a
+**Human mode:** the run pauses at least three times — after stage 1, after
+stage 2, and after stage 5 (and again at each gate on every loop-back
+pass). Gate 1 lists the ranked hypotheses and asks you to pick one by
+number. Gates 2 and 5 print a display-only header first — gate 2 a
 one-line SPEC summary, gate 5 a boxed FIDELITY VERDICT block followed by
 an EXECUTION section showing what stage 4 did (status, plus per-run
 one-liners or the skip/halt reason, plus a `flag:` line when the refine
 flag is present) and a boxed THOUGHT block (triage / decision /
 justification) when stage 5's thought exists — then pretty-print the
-current baton and ask:
+current baton. Gate 2 asks:
 
 ```
-GATE after_stage_N: approve to continue [y] / stop [n]:
+GATE after_stage_2: approve to continue [y] / stop [n]:
 ```
 
-Type `y` and press Enter to continue. Typing anything else stops the run
-cleanly (no error, no partial mess) at that gate.
+Gate 5 (Step 16) shows `MODEL DECISION: <decision>` and asks a real
+decision:
+
+```
+GATE after_stage_5: accept model decision '<decision>' [a] / override
+[b=back_to_design, i=back_to_ideation, m=more_data, e=exit] / stop [n]:
+```
+
+Both the model's decision and the enacted one are logged
+(`model=X enacted=Y (accepted|overridden)`). Three invalid answers in a
+row halt the run (same bound as gate 1). Loop-backs re-run stages with
+gates live on every pass; re-entered stages write pass-suffixed snapshots
+(`baton_after_stage_N_pass2.json`, …) so every pass's evidence survives.
 
 ## Where the output goes
 
@@ -145,7 +170,9 @@ containing:
 
 - `baton_after_stage_1.json` through `baton_after_stage_6.json` — a
   snapshot of the baton after each stage ran. Useful for seeing exactly
-  what any given stage received and produced.
+  what any given stage received and produced. Loop-back passes add
+  pass-suffixed snapshots (`baton_after_stage_N_pass2.json`,
+  `baton_after_gate_1_pass2.json`, …) — pass 1 keeps the unsuffixed names.
 - `stage1/` … `stage5/` — each real stage's own evidence (ranked lists,
   spec.json, verdict.json, stage 4's `results.json` with the full wrapper
   summaries, and stage 5's `thought.json`; the baton carries conclusions
@@ -203,12 +230,13 @@ yet. `supervisor.py` never touches `retrieval/`.
 
 ## What is NOT built yet
 
-No MCP tools. Gates 2 and 5 still take only y/n (gate 1 is
-pick-one-of-k). Stages 1–5 are real — ideation on Sonnet with Opus
-ranking, experiment design on Sonnet (the spec validator also enforces
-that machine-readable qoi keys, when any appear, carry both `field` and
-`operation` with the wrapper's exact vocabulary), the fidelity gate on
-Opus, the simulation stage on deterministic Python (no model call), and
-the thought layer on Opus — while stage 6 is still a separate-context
-Haiku ack stub. The supervisor records stage 5's iterate_decision but
-does not loop on it (Step 14/16 wires loop-back). See `CLAUDE.md`.
+No MCP tools. Gate 2 still takes only y/n (gate 1 is pick-one-of-k;
+gate 5 is the Step-16 accept/override/stop decision). Stages 1–5 are
+real — ideation on Sonnet with Opus ranking, experiment design on Sonnet
+(the spec validator also enforces that machine-readable qoi keys, when
+any appear, carry both `field` and `operation` with the wrapper's exact
+vocabulary), the fidelity gate on Opus, the simulation stage on
+deterministic Python (no model call), and the thought layer on Opus —
+while stage 6 is still a separate-context Haiku ack stub. `more_data`
+machinery (Phase C, Step 19) is not built — enacting it stops the run
+honestly with a recommendation. See `CLAUDE.md`.

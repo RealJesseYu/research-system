@@ -120,6 +120,24 @@ convenient it seems in the moment:
   call_stage_model (an SDK/transport exception propagates uncaught, bypassing the
   3-attempt re-ask loop — first fired live in demo attempt 20260706T054646Z) and
   crashed-run journaling (a crashed run leaves no run_record; none backfilled).
+  Both closed in Step 16 chunk 1 (transport retry; stage-crash catch).
+- **Loop bound is 2 (Step 16)** — at most MAX_LOOPBACKS=2 loop-backs per run; a
+  third non-exit decision forces an honest stop with the recommendation journaled
+  (completed_loop_bound_forced_exit). Stays 2 until evidence demands otherwise.
+- **more_data is unwired until Step 19.** Enacting it ends the run honestly
+  (completed_more_data_unwired) — Phase-C experimentation intelligence is not built,
+  and no stub consumer is pretended.
+- **prior_thought ruling (Step 16, recorded schemas.py change).** Optional
+  prior_thought at post-gate-1 (back_to_design surgery), tolerated at every boundary,
+  valid thought shape when present; back_to_ideation carries NO prior_thought —
+  stage 1's journal read-side is the cross-hypothesis channel.
+- **Gate 5 logs model-vs-enacted, both, every pass** — "model=X enacted=Y
+  (accepted|overridden)" in log.txt; decisions never enter baton history.
+- **Sessions and Terminal runs have independent lifetimes.** Never assume a lost
+  builder session killed a run — the disk and the still-running process are ground
+  truth (the Step-16 demo survived its session and completed under human gates).
+- **External-kill sentinel is on the watch list.** A run killed from outside leaves
+  no run_record; zero live instances so far — build it only when one actually occurs.
 
 ## Pointers to the spike
 - `~/research-spike` is **read-only reference**. Never modify it from this project.
@@ -552,5 +570,7 @@ enforcement; docket ruled 3 in / 2 deferred / 1 rejected; audit: no Q1
 baton failures across defer/executed/halted paths). Step 16 next, scope
 not guessed here.
 
-Step 16 chunk 1 complete — robustness + derived convention landed;
-chunk 2 = loop-back milestone.
+Step 16 COMPLETE — PHASE B COMPLETE: the loop closes human-in-the-loop
+(gate-5 decision live, both loop-back types consumed, bound-2 witnessed
+firing in both modes; robustness: transport retry, crash catch; derived
+convention consumed). Step 17 next (Phase C), scope not guessed here.
