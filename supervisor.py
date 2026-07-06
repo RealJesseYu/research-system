@@ -16,6 +16,7 @@ any stage does.
 
 import argparse
 import sys
+import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -112,6 +113,39 @@ def enforce_boundary_schema(logger: Logger, baton: Baton, boundary: str, validat
         )
         sys.exit(1)
     logger.log(f"SCHEMA OK after {boundary}: payload passed {validator.__name__}")
+
+
+def run_single_stage(logger: Logger, baton: Baton, name: str, stage_fn) -> Baton:
+    """Run one stage with a crash catch (Step 16, JC1b). Deterministic Python.
+
+    INVARIANT: every run that starts leaves a run_record, no matter how it
+    ends. Before this catch, a stage exception killed the process before
+    record_run_outcome (first fired live in the Step-15 crashed demo
+    20260706T054646Z). Now: durable STAGE-CRASH line (stage, exception
+    class, message, last ~5 traceback lines), a "crashed" run_record with
+    the exception summary, exit 1.
+
+    Designed loud halts that surface as exceptions — e.g. stage 1's
+    zero-survivors RuntimeError, or a model-call loud halt after 3 re-asks —
+    are recorded under the same "crashed" status with their honest message;
+    refining that taxonomy waits for evidence.
+    """
+    try:
+        return stage_fn(baton)
+    except Exception as exc:
+        first_line = str(exc).splitlines()[0] if str(exc) else ""
+        logger.log(
+            f"STAGE-CRASH stage={name} exception={type(exc).__name__}: {first_line}"
+        )
+        for tb_line in traceback.format_exc().splitlines()[-5:]:
+            logger.log(f"STAGE-CRASH | {tb_line}")
+        record_run_outcome(
+            baton, f"crashed at {name}: {type(exc).__name__}: {first_line}"
+        )
+        logger.log(
+            f"=== supervisor run {baton.run_id} CRASHED at stage {name} ==="
+        )
+        sys.exit(1)
 
 
 def build_gate2_header(payload: dict) -> str:
@@ -353,7 +387,7 @@ def main() -> None:
     baton.validate()
 
     for i, (name, stage_fn) in enumerate(STAGES):
-        baton = stage_fn(baton)
+        baton = run_single_stage(logger, baton, name, stage_fn)
         baton.validate()
 
         stage_number = i + 1

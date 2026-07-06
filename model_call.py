@@ -80,6 +80,61 @@ async def _ask_once(system_prompt: str, user_turn: str, model: str) -> str:
     return "".join(parts).strip()
 
 
+# Backoff before transport retry 1 and retry 2 (Step 16: initial attempt +
+# at most 2 retries; the Step-15 crashed demo proved an SDK exception used
+# to propagate uncaught).
+TRANSPORT_RETRY_BACKOFFS = (2.0, 5.0)
+
+
+def _invoke_transport(system_prompt: str, user_turn: str, model: str) -> str:
+    """The ONE SDK invocation seam — exactly the old asyncio.run(_ask_once(...))
+    call site, factored out (Step 16, disclosed) so tests can substitute a
+    fake transport by patching this function."""
+    return asyncio.run(_ask_once(system_prompt, user_turn, model))
+
+
+def _log_transport_retry(stage_name: str, stage_input: dict, retry_number: int, exc: Exception) -> None:
+    """Durably record one transport retry the moment it is decided.
+
+    Same run-dir derivation and same bare-call limitation as RE-ASK lines:
+    run_id from stage_input; without one, the line is printed but cannot be
+    durably logged."""
+    first_line = str(exc).splitlines()[0] if str(exc) else ""
+    line = (
+        f"TRANSPORT-RETRY stage={stage_name} retry={retry_number} "
+        f"exception={type(exc).__name__}: {first_line}"
+    )
+    print(line)
+    run_id = stage_input.get("run_id") if isinstance(stage_input, dict) else None
+    if run_id:
+        with open(Path("runs") / str(run_id) / "log.txt", "a") as f:
+            f.write(line + "\n")
+
+
+def _transport_with_retry(
+    stage_name: str, stage_input: dict, system_prompt: str, user_turn: str, model: str
+) -> str:
+    """Bounded transport retry around _invoke_transport (Step 16).
+
+    Catches Exception from the transport/SDK layer ONLY — our own
+    SchemaValidationError and json.JSONDecodeError are raised later, in
+    parsing/validation, and never enter this path. Initial attempt plus at
+    most len(TRANSPORT_RETRY_BACKOFFS) retries with short backoff; each
+    retry writes a durable TRANSPORT-RETRY line; exhaustion re-raises the
+    original exception unwrapped. The validation re-ask counter is
+    UNTOUCHED: transport retries correct DELIVERY, the validation loop
+    corrects CONTENT — the two bounds never interact."""
+    for transport_try in range(1 + len(TRANSPORT_RETRY_BACKOFFS)):
+        try:
+            return _invoke_transport(system_prompt, user_turn, model)
+        except Exception as exc:
+            if transport_try == len(TRANSPORT_RETRY_BACKOFFS):
+                raise
+            _log_transport_retry(stage_name, stage_input, transport_try + 1, exc)
+            time.sleep(TRANSPORT_RETRY_BACKOFFS[transport_try])
+    raise RuntimeError("unreachable")  # loop always returns or raises
+
+
 def strip_fence(reply: str) -> tuple[str, bool]:
     """Detect and remove a surrounding ``` code fence. Pure function, no I/O.
 
@@ -213,7 +268,7 @@ def call_stage_model(
                 {"original_input": stage_input, "validation_error": last_error}
             )
 
-        reply = asyncio.run(_ask_once(system_prompt, user_turn, model))
+        reply = _transport_with_retry(stage_name, stage_input, system_prompt, user_turn, model)
 
         text, fence_stripped = strip_fence(reply)
         if fence_stripped:

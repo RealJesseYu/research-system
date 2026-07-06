@@ -75,6 +75,24 @@ def translate_qoi(spec_qoi) -> tuple[dict | None, str | None]:
     return request, None
 
 
+def extract_parameter_roles(parameters) -> dict:
+    """{name: {role, derived_from?}} from the spec's parameters list (Step 16).
+
+    Pure function, never raises: malformed entries are simply omitted — the
+    builder treats an absent roles entry exactly like a non-derived
+    parameter, so nothing here can invent a role the spec did not declare.
+    """
+    roles: dict = {}
+    if isinstance(parameters, list):
+        for p in parameters:
+            if isinstance(p, dict) and isinstance(p.get("name"), str) and p["name"]:
+                entry = {"role": p.get("role")}
+                if "derived_from" in p:
+                    entry["derived_from"] = p["derived_from"]
+                roles[p["name"]] = entry
+    return roles
+
+
 def _log_line(run_id: str, line: str) -> None:
     """Append one line to runs/<run_id>/log.txt (same path rule as stage 3)."""
     print(line)
@@ -122,6 +140,7 @@ def run(baton: Baton) -> Baton:
 
     spec = baton.payload["experiment_spec"]
     mini_runs = spec["mini_experiment"]["runs"]
+    parameter_roles = extract_parameter_roles(spec.get("parameters"))
     qoi_name = spec.get("qoi", {}).get("name") if isinstance(spec.get("qoi"), dict) else None
     qoi_request, refusal = translate_qoi(spec.get("qoi"))
     qoi_error_fallback = (
@@ -139,7 +158,7 @@ def run(baton: Baton) -> Baton:
     for index, params in enumerate(mini_runs, start=1):
         case_name = f"{baton.run_id}_run{index}"
         try:
-            build_case(params, case_name)
+            build_case(params, case_name, roles=parameter_roles)
         except CaseSynthesisError as exc:
             halt_reason = f"run {index} of {len(mini_runs)}: {exc}"
             _log_line(baton.run_id, f"STAGE4 halted_synthesis at {halt_reason}")

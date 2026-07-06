@@ -26,6 +26,17 @@ lid_velocity + cavity_length + kinematic_viscosity decomposition it is
 VERIFIED (Re = U*L/nu within 1%) and the build proceeds; inconsistent, it
 halts with the numbers; supplied without the full explicit decomposition it
 halts — this builder never invents a decomposition.
+
+Step 16 (derived-parameter convention): parameters the SPEC declared with
+role "derived" (delivered via the roles map, never guessed) are excluded
+from the buildable-set check when they appear in run dicts — but never
+waved through: the builder has exactly ONE verifiable rule today, the
+Reynolds decomposition. A derived parameter qualifies iff its derived_from
+string names all of lid_velocity, cavity_length, kinematic_viscosity; it is
+then verified against U*L/nu computed from that run dict's own values
+(within 1%, halt on mismatch). Any other derived rule halts by name — an
+unverified derived claim is the converged-but-wrong seed, and halting is
+the honest behavior.
 """
 
 from __future__ import annotations
@@ -65,6 +76,10 @@ IGNORABLE_PARAMS: frozenset[str] = frozenset()
 REYNOLDS_KEY = "reynolds_number"
 REYNOLDS_TOLERANCE = 0.01  # relative: |Re_given - U*L/nu| / Re_given <= 1%
 
+# The ONE derived rule this builder can verify today (Step 16): a derived
+# parameter qualifies iff its derived_from string names all three of these.
+DERIVED_DECOMPOSITION = ("lid_velocity", "cavity_length", "kinematic_viscosity")
+
 # Case names are interpolated into a container shell line, so they are locked
 # to plain path-safe characters — anything else is refused, never quoted in.
 _CASE_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
@@ -80,17 +95,23 @@ def _is_number(value) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
-def partition_params(params: dict) -> tuple[dict, dict, list[str]]:
+def partition_params(
+    params: dict, derived_names: frozenset[str] | set[str] = frozenset()
+) -> tuple[dict, dict, list[str]]:
     """Split one run's full parameter dict into (buildable, ignored, unsupported).
 
     reynolds_number goes in neither bucket — it is handled by check_reynolds.
-    Pure function; raises nothing.
+    Names in derived_names (spec-declared role "derived", Step 16) are
+    likewise excluded here — check_derived owns their verification; exclusion
+    without verification never happens. Pure function; raises nothing.
     """
     buildable: dict = {}
     ignored: dict = {}
     unsupported: list[str] = []
     for name, value in params.items():
         if name == REYNOLDS_KEY:
+            continue
+        elif name in derived_names:
             continue
         elif name in BUILDABLE_PARAMS:
             buildable[name] = value
@@ -126,6 +147,55 @@ def check_reynolds(params: dict) -> None:
             f"U*L/nu = {u}*{length}/{nu} = {re_actual:g} (difference exceeds "
             f"{REYNOLDS_TOLERANCE:.0%})"
         )
+
+
+def check_derived(params: dict, roles: dict, derived_names: set[str]) -> None:
+    """Verify every spec-declared derived parameter present in this run dict
+    (Step 16). Raises CaseSynthesisError; verifies, never invents.
+
+    Qualification: the derived_from rule string must name all three of
+    DERIVED_DECOMPOSITION — the one rule this builder can verify today.
+    Qualifying: the declared value must match lid_velocity * cavity_length /
+    kinematic_viscosity computed from this run dict's own values within
+    REYNOLDS_TOLERANCE. Anything else halts loudly by name: an unverified
+    derived claim is the converged-but-wrong seed. reynolds_number itself is
+    exempt here — check_reynolds already owns exactly that verification.
+    """
+    for name in sorted(derived_names):
+        if name not in params or name == REYNOLDS_KEY:
+            continue
+        rule = roles.get(name, {}).get("derived_from")
+        rule_text = rule if isinstance(rule, str) else ""
+        if not all(part in rule_text for part in DERIVED_DECOMPOSITION):
+            raise CaseSynthesisError(
+                f"cannot build: derived parameter {name}: rule not verifiable by "
+                f"this builder (the only verifiable rule today is the Reynolds "
+                f"decomposition naming {', '.join(DERIVED_DECOMPOSITION)}; "
+                f"derived_from was {rule!r})"
+            )
+        declared = params[name]
+        if not _is_number(declared) or declared <= 0:
+            raise CaseSynthesisError(
+                f"cannot build: derived parameter {name} must be a positive "
+                f"number to verify; got {declared!r}"
+            )
+        missing = [
+            k for k in DERIVED_DECOMPOSITION if not _is_number(params.get(k))
+        ]
+        if missing:
+            raise CaseSynthesisError(
+                f"cannot build: derived parameter {name} cannot be verified — "
+                f"this run dict is missing numeric {', '.join(missing)}"
+            )
+        u, length, nu = (params[k] for k in DERIVED_DECOMPOSITION)
+        computed = u * length / nu
+        if abs(declared - computed) / declared > REYNOLDS_TOLERANCE:
+            raise CaseSynthesisError(
+                f"cannot build: derived parameter {name} declared {declared} but "
+                f"its rule computes lid_velocity*cavity_length/"
+                f"kinematic_viscosity = {u}*{length}/{nu} = {computed:g} "
+                f"(difference exceeds {REYNOLDS_TOLERANCE:.0%})"
+            )
 
 
 def _validate_buildable_values(buildable: dict) -> None:
@@ -321,15 +391,19 @@ def build_case(
     spec_run_params: dict,
     case_name: str,
     *,
+    roles: dict | None = None,
     template: Path = TEMPLATE,
     cases_root: Path = SHARED_HOST,
     run_mesh: bool = True,
 ) -> Path:
     """Synthesize one runnable case under cases/ from one mini-experiment run's
     FULL parameter dict. Returns the case directory. Raises CaseSynthesisError
-    on any honest halt. template/cases_root/run_mesh are test seams only —
-    production callers use the defaults (run_mesh needs the container's bind
-    mount, so it requires the default cases_root).
+    on any honest halt. roles (Step 16) is the spec's {name: {role,
+    derived_from?}} map — parameters it declares "derived" skip the
+    buildable-set check and are verified by check_derived instead; omitted,
+    behavior is exactly pre-Step-16. template/cases_root/run_mesh are test
+    seams only — production callers use the defaults (run_mesh needs the
+    container's bind mount, so it requires the default cases_root).
     """
     if not isinstance(spec_run_params, dict):
         raise CaseSynthesisError("cannot build: run parameters must be a dict")
@@ -340,7 +414,13 @@ def build_case(
     if run_mesh and cases_root != SHARED_HOST:
         raise ValueError("run_mesh=True requires the default cases_root (container bind mount)")
 
-    buildable, _ignored, unsupported = partition_params(spec_run_params)
+    roles = roles if isinstance(roles, dict) else {}
+    derived_names = {
+        name
+        for name, entry in roles.items()
+        if isinstance(entry, dict) and entry.get("role") == "derived"
+    }
+    buildable, _ignored, unsupported = partition_params(spec_run_params, derived_names)
     if unsupported:
         raise CaseSynthesisError(
             f"cannot build: {', '.join(unsupported)} not in the buildable set "
@@ -348,6 +428,7 @@ def build_case(
         )
     _validate_buildable_values(buildable)
     check_reynolds(spec_run_params)
+    check_derived(spec_run_params, roles, derived_names)
 
     case_dir = cases_root / case_name
     if case_dir.exists():

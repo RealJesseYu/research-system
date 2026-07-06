@@ -115,6 +115,96 @@ class TestBuildCase(unittest.TestCase):
         self.assertIn("whole number of", str(ctx.exception))
 
 
+class TestDerivedRole(unittest.TestCase):
+    """Step 16 (JC2): spec-declared derived parameters are excluded from the
+    buildable-set check but verified, never waved through. The shape mirrors
+    the Step-15 crashed demo's spec: derived 'Re' with the exact
+    decomposition rule, present in every mini-run dict."""
+
+    DERIVED_ROLES = {
+        "Re": {
+            "role": "derived",
+            "derived_from": "lid_velocity * cavity_length / kinematic_viscosity",
+        },
+        "lid_velocity": {"role": "fixed"},
+    }
+
+    def _params(self, re_value):
+        # U*L/nu = 1.5 * 2.0 / 0.02 = 150 from CLEAN_PARAMS' values.
+        params = dict(CLEAN_PARAMS)
+        del params["reynolds_number"]  # 'Re' is the derived key under test
+        params["Re"] = re_value
+        return params
+
+    @unittest.skipUnless(TEMPLATE.is_dir(), "local cases/cavity_baseline template absent")
+    def test_consistent_derived_re_passes_exclusion_and_verification(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            case_dir = build_case(
+                self._params(150),
+                "unit_derived_ok",
+                roles=self.DERIVED_ROLES,
+                cases_root=Path(tmp),
+                run_mesh=False,
+            )
+            self.assertTrue(case_dir.is_dir())
+
+    def test_inconsistent_derived_re_halts_naming_declared_vs_computed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(CaseSynthesisError) as ctx:
+                build_case(
+                    self._params(500),
+                    "unit_derived_bad",
+                    roles=self.DERIVED_ROLES,
+                    cases_root=Path(tmp),
+                    run_mesh=False,
+                )
+        message = str(ctx.exception)
+        self.assertIn("derived parameter Re", message)
+        self.assertIn("500", message)   # declared
+        self.assertIn("150", message)   # computed
+        self.assertIn("computes", message)
+
+    def test_unverifiable_derived_rule_halts_by_name(self):
+        roles = {
+            "peclet_number": {
+                "role": "derived",
+                "derived_from": "lid_velocity * cavity_length / diffusivity",
+            }
+        }
+        params = dict(CLEAN_PARAMS)
+        del params["reynolds_number"]
+        params["peclet_number"] = 300
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(CaseSynthesisError) as ctx:
+                build_case(
+                    params,
+                    "unit_derived_unverifiable",
+                    roles=roles,
+                    cases_root=Path(tmp),
+                    run_mesh=False,
+                )
+        self.assertIn(
+            "derived parameter peclet_number: rule not verifiable by this builder",
+            str(ctx.exception),
+        )
+
+    def test_non_derived_unbuildable_key_still_halts_as_before(self):
+        params = dict(CLEAN_PARAMS)
+        params["s_amplitude_fraction"] = 0.3  # NOT declared derived
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(CaseSynthesisError) as ctx:
+                build_case(
+                    params,
+                    "unit_nonderived_regression",
+                    roles=self.DERIVED_ROLES,
+                    cases_root=Path(tmp),
+                    run_mesh=False,
+                )
+        message = str(ctx.exception)
+        self.assertIn("s_amplitude_fraction", message)
+        self.assertIn("not in the buildable set", message)
+
+
 class TestTranslateQoi(unittest.TestCase):
     def test_machine_readable_qoi_translates_to_a_request(self):
         request, reason = translate_qoi(
