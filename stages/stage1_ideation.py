@@ -18,6 +18,13 @@ deterministic Python once the verdicts are in.
 Full generation/reflection/survivor/ranking records are evidence on disk
 under runs/<run_id>/stage1/; only {id, statement, rationale} for the
 survivors, in ranked order, ever reaches the baton payload.
+
+Journal read-side (Step 14): before Generation, deterministic stage code
+reads the last 3 learned_summary journal entries, saves them verbatim to
+runs/<run_id>/stage1/retrieved_memory.json, and (when any exist) appends a
+framed prior-observations block as an explicit field of the Generation and
+Reflection inputs — through the call's own arguments, preserving
+construction-level isolation. Ranking and every other stage get nothing.
 """
 
 from __future__ import annotations
@@ -28,6 +35,7 @@ import sys
 from pathlib import Path
 
 from baton import Baton
+from memory.journal import journal_recent_by_kind
 from model_call import call_stage_model, log_stage_call
 
 _RETRIEVAL_DIR = Path(__file__).resolve().parent.parent / "retrieval"
@@ -82,6 +90,29 @@ RANKING_SYSTEM_PROMPT = (
 )
 
 MAX_SURVIVORS = 4
+
+MEMORY_HEADER = (
+    "PRIOR OBSERVATIONS FROM EARLIER RUNS (unverified model text - treat "
+    "as leads, not established facts):"
+)
+
+
+def build_memory_block(entries: list[dict]) -> str | None:
+    """Pure, no I/O: format journal entries into the prior-observations block.
+
+    Returns None when `entries` is empty; otherwise the exact MEMORY_HEADER
+    line followed by one line per entry:
+    "- [run <run_id>, hypothesis <hypothesis_id>] <text>". The framing marks
+    the content as unverified model text — leads, not established facts.
+    """
+    if not entries:
+        return None
+    lines = [MEMORY_HEADER]
+    for e in entries:
+        lines.append(
+            f"- [run {e.get('run_id')}, hypothesis {e.get('hypothesis_id')}] {e.get('text')}"
+        )
+    return "\n".join(lines)
 
 
 def _log(run_id: str, line: str) -> None:
@@ -150,6 +181,15 @@ def run(baton: Baton) -> Baton:
     run_dir = Path("runs") / baton.run_id / "stage1"
     run_dir.mkdir(parents=True, exist_ok=True)
 
+    # --- Journal read-side (deterministic, before any model call) ---
+    memory_entries = journal_recent_by_kind("learned_summary", 3)
+    (run_dir / "retrieved_memory.json").write_text(json.dumps(memory_entries, indent=2))
+    memory_block = build_memory_block(memory_entries)
+    _log(
+        baton.run_id,
+        f"STAGE1_MEMORY retrieved {len(memory_entries)} learned_summary entries",
+    )
+
     # --- Generation ---
     lit_snippets = search_index("literature", domain, top_k=3)
     gen_input = {
@@ -157,6 +197,8 @@ def run(baton: Baton) -> Baton:
         "domain": domain,
         "literature_snippets": _format_snippets(lit_snippets),
     }
+    if memory_block is not None:
+        gen_input["prior_observations"] = memory_block
     gen_data, gen_timing = call_stage_model(
         "stage1_ideation_generation",
         GENERATION_SYSTEM_PROMPT,
@@ -188,6 +230,8 @@ def run(baton: Baton) -> Baton:
             "hypothesis_rationale": h["rationale"],
             "literature_snippets": _format_snippets(ref_snippets),
         }
+        if memory_block is not None:
+            ref_input["prior_observations"] = memory_block
         ref_data, ref_timing = call_stage_model(
             f"stage1_ideation_reflection_{h['id']}",
             REFLECTION_SYSTEM_PROMPT,

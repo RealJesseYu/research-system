@@ -116,6 +116,53 @@ def _log_fence_note(stage_name: str, stage_input: dict) -> None:
             f.write(line + "\n")
 
 
+_TRANSCRIPT_SEQ = 0
+
+
+def _write_transcript(
+    stage_name: str,
+    system_prompt: str,
+    stage_input: dict,
+    stage_input_serialized: str,
+    model: str,
+) -> None:
+    """Write the fully assembled model input to runs/<run_id>/transcripts/.
+
+    Called immediately after the model input is assembled and BEFORE the
+    model is called, so a crashed call still leaves its transcript. One file
+    per call, named <zero-padded per-process sequence>_<stage_name>.json —
+    unique and sortable in call order. Contents are exactly
+    {stage_name, model, timestamp_utc, system_prompt, stage_input_serialized},
+    where stage_input_serialized is the byte-for-byte string sent to the
+    model. The transcript captures the attempt-1 assembled input; re-ask
+    additions on attempts 2+ are already durably captured verbatim by RE-ASK
+    lines in log.txt, so attempt-2+ inputs are reconstructible from this file
+    plus those lines.
+
+    Transcripts are WRITE-ONLY evidence: no code path in the project may read
+    a transcript back into any model input or any stage logic. Run-dir
+    derivation is the same single source of truth as _log_reask /
+    _log_fence_note: run_id from stage_input; a bare call without run_id
+    writes no transcript.
+    """
+    run_id = stage_input.get("run_id") if isinstance(stage_input, dict) else None
+    if not run_id:
+        return
+    global _TRANSCRIPT_SEQ
+    _TRANSCRIPT_SEQ += 1
+    transcripts_dir = Path("runs") / str(run_id) / "transcripts"
+    transcripts_dir.mkdir(parents=True, exist_ok=True)
+    record = {
+        "stage_name": stage_name,
+        "model": model,
+        "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "system_prompt": system_prompt,
+        "stage_input_serialized": stage_input_serialized,
+    }
+    with open(transcripts_dir / f"{_TRANSCRIPT_SEQ:04d}_{stage_name}.json", "w") as f:
+        json.dump(record, f, indent=2)
+
+
 def _log_reask(stage_name: str, stage_input: dict, attempt: int, error: str) -> None:
     """Durably record a re-ask the moment it is triggered.
 
@@ -156,6 +203,8 @@ def call_stage_model(
     """
     start = time.monotonic()
     user_turn = json.dumps(stage_input)
+    # The input is now fully assembled; record it verbatim before the call.
+    _write_transcript(stage_name, system_prompt, stage_input, user_turn, model)
     last_error = ""
 
     for attempt in range(1, MAX_ATTEMPTS + 1):
