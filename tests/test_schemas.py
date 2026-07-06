@@ -348,6 +348,48 @@ class TestPostStage4(unittest.TestCase):
         )
 
 
+class TestPriorThought(unittest.TestCase):
+    """Ruled change, Step 16: optional prior_thought at post-gate-1
+    (loop-back re-entry), tolerated at every later boundary."""
+
+    def _gate1_payload(self) -> dict:
+        base = _base_post_stage3()
+        return {
+            "domain": base["domain"],
+            "chosen_hypothesis": base["chosen_hypothesis"],
+        }
+
+    def test_absent_passes(self):
+        self.assertEqual(validate_payload_post_gate1(self._gate1_payload()), [])
+
+    def test_present_and_valid_passes_post_gate1(self):
+        payload = self._gate1_payload()
+        payload["prior_thought"] = dict(RUN_B_THOUGHT)
+        self.assertEqual(validate_payload_post_gate1(payload), [])
+
+    def test_present_and_malformed_fails(self):
+        payload = self._gate1_payload()
+        bad = dict(RUN_B_THOUGHT)
+        bad["surprise_triage"] = "shrug"
+        del bad["justification"]
+        payload["prior_thought"] = bad
+        errors = validate_payload_post_gate1(payload)
+        self.assertTrue(any("prior_thought surprise_triage" in e for e in errors))
+        self.assertTrue(any("prior_thought justification" in e for e in errors))
+
+    def test_persists_through_pass2_boundaries(self):
+        # The same prior_thought must be tolerated at post-stage-2 through
+        # post-stage-5 (it rides the payload through the whole second pass).
+        payload = _base_post_stage3()
+        payload["prior_thought"] = dict(RUN_B_THOUGHT)
+        self.assertEqual(validate_payload_post_stage3(payload), [])
+        payload["execution_results"] = json.loads(json.dumps(RUN_B_EXECUTION_RESULTS))
+        self.assertEqual(validate_payload_post_stage4(payload), [])
+        payload["thought"] = dict(RUN_B_THOUGHT)
+        payload["iterate_decision"] = "exit"
+        self.assertEqual(validate_payload_post_stage5(payload), [])
+
+
 class TestPostStage5(unittest.TestCase):
     def _run_b_payload(self) -> dict:
         payload = _base_post_stage3()

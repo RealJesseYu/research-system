@@ -53,6 +53,9 @@ SYSTEM_PROMPT = (
     "If the spec declares a parameter whose value is derived from other "
     'parameters, give it role "derived" and state the rule in a "derived_from" '
     "string. "
+    "When prior_thought is present, the previous design for this hypothesis "
+    "failed for the reasons it states — the new spec must directly address that "
+    "assessment and justification, and must not resubmit an unchanged design. "
     "Use the substrate contract's canonical parameter name whenever the physical "
     "quantity you are declaring matches one; parameters with no canonical "
     "equivalent keep their natural names — this is a naming convention, not a "
@@ -110,11 +113,18 @@ def run(baton: Baton) -> Baton:
     domain = baton.payload["domain"]
     chosen = baton.payload["chosen_hypothesis"]
 
+    # Step 16 (loop-back): prior_thought is the thought layer's verdict on a
+    # previous design of this same hypothesis (None on pass 1); it enters the
+    # model input so the redesign can address it, and stays in the payload so
+    # pass-2 boundaries and evidence keep the context.
+    prior_thought = baton.payload.get("prior_thought")
+
     stage_input = {
         "run_id": baton.run_id,
         "domain": domain,
         "chosen_hypothesis": chosen,
         "substrate_contract": CAVITY_2D_CONTRACT,
+        "prior_thought": prior_thought,
     }
     data, timing = call_stage_model(
         "stage2_experiment_design",
@@ -155,6 +165,8 @@ def run(baton: Baton) -> Baton:
         "chosen_hypothesis": chosen,
         "experiment_spec": spec,
     }
+    if prior_thought is not None:
+        baton.payload["prior_thought"] = prior_thought
     baton.add_history("stage2_experiment_design", note)
     log_stage_call(baton.run_id, "stage2_experiment_design", timing)
     return baton

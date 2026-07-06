@@ -2,7 +2,11 @@
 schemas.py — the locked baton-payload schemas, one validator per boundary.
 
 LOCKED AT STEP 15. Changes require a recorded ruling (same discipline as
-frozen prompts). Deferred candidates and wake conditions:
+frozen prompts).
+Ruled change, Step 16: optional prior_thought at post-gate-1 (loop-back
+re-entry), persists through pass-2 boundaries — every boundary tolerates
+it, and when present it must be a valid thought shape.
+Deferred candidates and wake conditions:
   - candidate 1 (categorical parameter role): wake on a second live
     categorical occurrence or a downstream mis-read;
   - candidate 4 (coupled/redundant sweep declaration): wake on a
@@ -56,21 +60,26 @@ def _is_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
+OPTIONAL_PAYLOAD_KEYS = ("prior_thought",)  # ruled Step 16, every boundary
+
+
 def _check_exact_keys(
     obj: dict, allowed: tuple, boundary: str, errors: list[str]
 ) -> None:
     """The payload at a boundary carries exactly its boundary's keys —
-    nothing missing, nothing extra."""
+    nothing missing, nothing extra — plus the ruled optional keys
+    (prior_thought, Step 16), which may be present at any boundary."""
     for key in allowed:
         if key not in obj:
             errors.append(
                 f"the {boundary} payload is missing required field '{key}'."
             )
     for key in obj:
-        if key not in allowed:
+        if key not in allowed and key not in OPTIONAL_PAYLOAD_KEYS:
             errors.append(
                 f"payload field '{key}' is not part of the {boundary} payload — "
-                f"it carries exactly: {', '.join(allowed)}."
+                f"it carries exactly: {', '.join(allowed)} (plus optionally "
+                f"{', '.join(OPTIONAL_PAYLOAD_KEYS)})."
             )
 
 
@@ -270,50 +279,65 @@ def _check_execution_results(payload: dict, errors: list[str]) -> None:
             )
 
 
+def _check_thought_shape(thought: Any, label: str, errors: list[str]) -> None:
+    """One thought-shaped object: exactly the five fields, non-empty strings,
+    both enums valid. Shared by the payload's thought and (Step 16, ruled)
+    the optional prior_thought carried back on loop-back re-entry."""
+    if not isinstance(thought, dict):
+        errors.append(
+            f"{label} must be an object with exactly: "
+            + ", ".join(THOUGHT_FIELDS)
+            + "."
+        )
+        return
+    for field in THOUGHT_FIELDS:
+        if not _is_non_empty_str(thought.get(field)):
+            errors.append(
+                f"{label} {field} must be a non-empty string; "
+                f"got {thought.get(field)!r}."
+            )
+    if thought.get("surprise_triage") not in TRIAGE_VALUES:
+        errors.append(
+            f"{label} surprise_triage must be exactly one of "
+            f"{' | '.join(TRIAGE_VALUES)}; "
+            f"got {thought.get('surprise_triage')!r}."
+        )
+    if thought.get("iterate_decision") not in DECISION_VALUES:
+        errors.append(
+            f"{label} iterate_decision must be exactly one of "
+            f"{' | '.join(DECISION_VALUES)}; "
+            f"got {thought.get('iterate_decision')!r}."
+        )
+    for key in thought:
+        if key not in THOUGHT_FIELDS:
+            errors.append(
+                f"{label} field '{key}' is not allowed — the {label} "
+                f"carries exactly: {', '.join(THOUGHT_FIELDS)}."
+            )
+
+
+def _check_prior_thought(payload: dict, errors: list[str]) -> None:
+    """Ruled Step 16: prior_thought is OPTIONAL at every boundary; when
+    present it must be a valid thought shape."""
+    if "prior_thought" in payload:
+        _check_thought_shape(payload["prior_thought"], "prior_thought", errors)
+
+
 def _check_thought_and_decision(payload: dict, errors: list[str]) -> None:
     if "thought" in payload:
         thought = payload["thought"]
-        if not isinstance(thought, dict):
+        _check_thought_shape(thought, "thought", errors)
+        if (
+            isinstance(thought, dict)
+            and "iterate_decision" in payload
+            and payload["iterate_decision"] != thought.get("iterate_decision")
+        ):
             errors.append(
-                "thought must be an object with exactly: "
-                + ", ".join(THOUGHT_FIELDS)
-                + "."
+                f"payload iterate_decision must match thought."
+                f"iterate_decision exactly; got payload "
+                f"{payload['iterate_decision']!r} vs thought "
+                f"{thought.get('iterate_decision')!r}."
             )
-        else:
-            for field in THOUGHT_FIELDS:
-                if not _is_non_empty_str(thought.get(field)):
-                    errors.append(
-                        f"thought {field} must be a non-empty string; "
-                        f"got {thought.get(field)!r}."
-                    )
-            if thought.get("surprise_triage") not in TRIAGE_VALUES:
-                errors.append(
-                    f"thought surprise_triage must be exactly one of "
-                    f"{' | '.join(TRIAGE_VALUES)}; "
-                    f"got {thought.get('surprise_triage')!r}."
-                )
-            if thought.get("iterate_decision") not in DECISION_VALUES:
-                errors.append(
-                    f"thought iterate_decision must be exactly one of "
-                    f"{' | '.join(DECISION_VALUES)}; "
-                    f"got {thought.get('iterate_decision')!r}."
-                )
-            for key in thought:
-                if key not in THOUGHT_FIELDS:
-                    errors.append(
-                        f"thought field '{key}' is not allowed — the thought "
-                        f"carries exactly: {', '.join(THOUGHT_FIELDS)}."
-                    )
-            if (
-                "iterate_decision" in payload
-                and payload["iterate_decision"] != thought.get("iterate_decision")
-            ):
-                errors.append(
-                    f"payload iterate_decision must match thought."
-                    f"iterate_decision exactly; got payload "
-                    f"{payload['iterate_decision']!r} vs thought "
-                    f"{thought.get('iterate_decision')!r}."
-                )
     if (
         "iterate_decision" in payload
         and payload["iterate_decision"] not in DECISION_VALUES
@@ -338,6 +362,7 @@ def validate_payload_post_gate1(payload: Any) -> list[str]:
     if payload is None:
         return errors
     _check_exact_keys(payload, POST_GATE1_KEYS, "post-gate-1", errors)
+    _check_prior_thought(payload, errors)
     _check_domain(payload, errors)
     _check_chosen_hypothesis(payload, errors)
     return errors
@@ -351,6 +376,7 @@ def validate_payload_post_stage2(payload: Any) -> list[str]:
     if payload is None:
         return errors
     _check_exact_keys(payload, POST_STAGE2_KEYS, "post-stage-2", errors)
+    _check_prior_thought(payload, errors)
     _check_domain(payload, errors)
     _check_chosen_hypothesis(payload, errors)
     _check_experiment_spec(payload, errors)
@@ -366,6 +392,7 @@ def validate_payload_post_stage3(payload: Any) -> list[str]:
     if payload is None:
         return errors
     _check_exact_keys(payload, POST_STAGE3_KEYS, "post-stage-3", errors)
+    _check_prior_thought(payload, errors)
     _check_domain(payload, errors)
     _check_chosen_hypothesis(payload, errors)
     _check_experiment_spec(payload, errors)
@@ -382,6 +409,7 @@ def validate_payload_post_stage4(payload: Any) -> list[str]:
     if payload is None:
         return errors
     _check_exact_keys(payload, POST_STAGE4_KEYS, "post-stage-4", errors)
+    _check_prior_thought(payload, errors)
     _check_domain(payload, errors)
     _check_chosen_hypothesis(payload, errors)
     _check_experiment_spec(payload, errors)
@@ -400,6 +428,7 @@ def validate_payload_post_stage5(payload: Any) -> list[str]:
     if payload is None:
         return errors
     _check_exact_keys(payload, POST_STAGE5_KEYS, "post-stage-5", errors)
+    _check_prior_thought(payload, errors)
     _check_domain(payload, errors)
     _check_chosen_hypothesis(payload, errors)
     _check_experiment_spec(payload, errors)

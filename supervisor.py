@@ -1,13 +1,17 @@
 """
 supervisor.py — the deterministic traffic cop. NO AI calls anywhere in this
 file, ever. Its only job: run the six stages in order, save the baton after
-every stage, and pause at the three gates.
+every stage, pause at the three gates, and (Step 16) enact the thought
+layer's iterate decision — loop back to stage 1 or 2, bounded at
+MAX_LOOPBACKS per run.
 
 Usage:
     python3 supervisor.py --mode human   (pauses at each gate: pick-one-of-k
-                                          after stage 1, y/n at the other two)
-    python3 supervisor.py --mode auto    (gate 1 selects rank 1; the other two
-                                          log "auto-approved"; never pauses)
+                                          after stage 1, y/n after stage 2,
+                                          accept/override/stop at gate 5)
+    python3 supervisor.py --mode auto    (gate 1 selects rank 1; gate 2 logs
+                                          "auto-approved"; gate 5 enacts the
+                                          model decision; never pauses)
 (default mode is human)
 
 The mode switch changes ONLY what happens at a gate. It never changes what
@@ -49,7 +53,20 @@ STAGES = [
 GATE_AFTER_STAGE_INDEX = {0, 1, 4}
 
 # Gate 1 (pick-one-of-k) halts after this many invalid human answers in a row.
+# Gate 5's decision prompt reuses the same bound (Step 16).
 MAX_GATE1_INVALID_ANSWERS = 3
+
+# Step 16: at most this many loop-backs (back_to_design / back_to_ideation)
+# per run; a further non-exit decision forces a stop with a recommendation.
+MAX_LOOPBACKS = 2
+
+# Gate-5 override letters -> iterate decisions (Step 16).
+GATE5_OVERRIDES = {
+    "b": "back_to_design",
+    "i": "back_to_ideation",
+    "m": "more_data",
+    "e": "exit",
+}
 
 # Step 15: the locked baton-payload schema enforced at each boundary — the
 # validator that must pass right after the stage at this number returns
@@ -276,6 +293,75 @@ def run_gate(logger: Logger, baton: Baton, mode: str, gate_name: str) -> bool:
     return False
 
 
+def parse_gate5_decision(raw: str) -> tuple:
+    """Classify one raw gate-5 answer (Step 16). Pure function, no I/O.
+
+    Returns ("accept",) for a/A, ("override", <decision>) for one of the
+    GATE5_OVERRIDES letters, ("halt",) for n/N, ("invalid",) for everything
+    else — whitespace and case tolerated throughout.
+    """
+    text = raw.strip().lower()
+    if text == "a":
+        return ("accept",)
+    if text == "n":
+        return ("halt",)
+    if text in GATE5_OVERRIDES:
+        return ("override", GATE5_OVERRIDES[text])
+    return ("invalid",)
+
+
+def run_gate5(logger: Logger, baton: Baton, mode: str) -> tuple:
+    """Gate after stage 5 (Step 16): accept or override the model's iterate
+    decision, or stop. Returns ("enact", decision, "accepted"|"overridden")
+    or ("halt",).
+
+    Auto mode enacts the model decision without pausing. Human mode shows
+    the VERDICT/EXECUTION/THOUGHT header and baton (as before), prints the
+    model decision prominently, and prompts; after
+    MAX_GATE1_INVALID_ANSWERS invalid answers it halts (gate-1 pattern).
+    Like every gate, decisions are recorded in the LOG only, never in the
+    baton's history.
+    """
+    gate_name = "after_stage_5"
+    logger.log(f"GATE {gate_name}: reached")
+    model_decision = baton.payload.get("iterate_decision")
+
+    if mode == "auto":
+        return ("enact", model_decision, "accepted")
+
+    logger.log(build_gate5_header(baton.payload))
+    logger.log(f"--- baton at gate {gate_name} ---")
+    logger.log(baton.to_json())
+    logger.log("--- end baton ---")
+    logger.log(f"MODEL DECISION: {model_decision}")
+
+    prompt = (
+        f"GATE {gate_name}: accept model decision '{model_decision}' [a] / "
+        "override [b=back_to_design, i=back_to_ideation, m=more_data, "
+        "e=exit] / stop [n]: "
+    )
+    invalid_count = 0
+    while invalid_count < MAX_GATE1_INVALID_ANSWERS:
+        logger.log(f"GATE {gate_name}: prompting {prompt!r}")
+        answer = input(prompt)
+        logger.log(f"GATE {gate_name}: human answered {answer!r}")
+        parsed = parse_gate5_decision(answer)
+        if parsed[0] == "accept":
+            return ("enact", model_decision, "accepted")
+        if parsed[0] == "override":
+            return ("enact", parsed[1], "overridden")
+        if parsed[0] == "halt":
+            return ("halt",)
+        invalid_count += 1
+        logger.log(
+            f"GATE {gate_name}: invalid answer "
+            f"({invalid_count} of {MAX_GATE1_INVALID_ANSWERS} allowed)"
+        )
+
+    logger.log(f"GATE {gate_name}: {MAX_GATE1_INVALID_ANSWERS} invalid answers, halting")
+    return ("halt",)
+
+
 def parse_gate1_selection(raw: str, k: int) -> tuple:
     """Classify one raw gate-1 answer. Pure function, no I/O.
 
@@ -337,12 +423,15 @@ def run_gate1(logger: Logger, baton: Baton, mode: str) -> tuple:
     return ("halt",)
 
 
-def apply_gate1_selection(logger: Logger, baton: Baton, mode: str, rank: int, run_dir: Path) -> None:
+def apply_gate1_selection(
+    logger: Logger, baton: Baton, mode: str, rank: int, run_dir: Path, pass_number: int = 1
+) -> None:
     """Deterministic Python, no model call: replace the baton payload with the
     chosen hypothesis. The ranked list and the hypotheses_ranked flag do not
     travel further — they remain on disk in stage1/ evidence and in
     baton_after_stage_1.json. Baton history is untouched: gates never write
-    history entries.
+    history entries. pass_number > 1 (Step 16 loop-back re-entry) writes a
+    pass-suffixed snapshot so the first pass's record survives.
     """
     hypotheses = baton.payload["hypotheses"]
     k = len(hypotheses)
@@ -360,9 +449,176 @@ def apply_gate1_selection(logger: Logger, baton: Baton, mode: str, rank: int, ru
     }
     baton.validate()
 
-    snapshot_path = run_dir / "baton_after_gate_1.json"
+    suffix = "" if pass_number == 1 else f"_pass{pass_number}"
+    snapshot_path = run_dir / f"baton_after_gate_1{suffix}.json"
     snapshot_path.write_text(baton.to_json())
     logger.log(f"GATE after_stage_1: payload replaced with chosen hypothesis -> saved {snapshot_path.name}")
+
+
+def apply_loopback_surgery(logger: Logger, baton: Baton, enacted: str) -> int:
+    """Deterministic loop-back payload surgery (Step 16). Returns the 0-based
+    stage index to re-enter.
+
+    back_to_design: the payload is reduced to {domain, chosen_hypothesis,
+    prior_thought} — prior_thought is the just-recorded thought object, and
+    the stale spec/verdict/execution/thought fields are REMOVED (they live
+    on in the pass's snapshots and stage evidence; the fresh pass rebuilds
+    them).
+
+    back_to_ideation: the payload is reduced to {domain}. NO prior_thought,
+    deliberately: stage 1's journal read-side (Step 14) already retrieves
+    the learned_summary stage 5 just appended, so the loop context arrives
+    through memory, not the baton.
+    """
+    if enacted == "back_to_design":
+        baton.payload = {
+            "domain": baton.payload["domain"],
+            "chosen_hypothesis": baton.payload["chosen_hypothesis"],
+            "prior_thought": baton.payload["thought"],
+        }
+        re_enter_index = 1
+    elif enacted == "back_to_ideation":
+        baton.payload = {"domain": baton.payload["domain"]}
+        re_enter_index = 0
+    else:
+        raise ValueError(f"apply_loopback_surgery: not a loop-back decision: {enacted!r}")
+    baton.validate()
+    logger.log(
+        f"LOOP-BACK ({enacted}): payload reduced to "
+        f"{{{', '.join(baton.payload)}}} — re-entering at stage {re_enter_index + 1}"
+    )
+    return re_enter_index
+
+
+def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=None) -> None:
+    """The stage relay with loop control (Step 16). Deterministic Python.
+
+    Runs the stages in order; at gate 5 the enacted iterate decision drives
+    control flow: exit -> stage 6 exactly as before; more_data -> honest
+    stop (Phase-C machinery, Step 19, is not built); back_to_design /
+    back_to_ideation -> payload surgery + re-entry at stage 2 / stage 1,
+    at most MAX_LOOPBACKS times per run.
+
+    History invariant (restated Step 16): one entry per stage EXECUTION —
+    a twice-run stage appears twice. Snapshots are pass-aware only for
+    re-entered stages: pass 1 keeps baton_after_stage_N.json, re-entries
+    write baton_after_stage_N_pass2.json etc. Gates behave per mode on
+    every pass exactly as on pass 1 — human-in-the-loop by design.
+
+    `stages` is a test seam (stub stages, no model calls); production uses
+    the module STAGES.
+    """
+    stages = STAGES if stages is None else stages
+    execution_counts: dict[int, int] = {}
+    loopbacks_used = 0
+    i = 0
+    while i < len(stages):
+        name, stage_fn = stages[i]
+        stage_number = i + 1
+
+        baton = run_single_stage(logger, baton, name, stage_fn)
+        baton.validate()
+
+        execution_counts[stage_number] = execution_counts.get(stage_number, 0) + 1
+        pass_number = execution_counts[stage_number]
+        suffix = "" if pass_number == 1 else f"_pass{pass_number}"
+        pass_label = "" if pass_number == 1 else f" (pass {pass_number})"
+
+        snapshot_path = run_dir / f"baton_after_stage_{stage_number}{suffix}.json"
+        snapshot_path.write_text(baton.to_json())
+        logger.log(f"STAGE {stage_number} ({name}): done -> saved {snapshot_path.name}")
+
+        # Step 15: boundary enforcement — after the stage returns, before any
+        # gate display and before the next stage. The snapshot is written
+        # first so a violating baton survives on disk as evidence.
+        if stage_number in STAGE_BOUNDARY_VALIDATORS:
+            enforce_boundary_schema(
+                logger,
+                baton,
+                f"stage {stage_number}{pass_label}",
+                STAGE_BOUNDARY_VALIDATORS[stage_number],
+            )
+
+        if i in GATE_AFTER_STAGE_INDEX:
+            gate_name = f"after_stage_{stage_number}"
+            if gate_name == "after_stage_1":
+                outcome = run_gate1(logger, baton, mode)
+                if outcome[0] == "halt":
+                    logger.log(f"=== supervisor run {baton.run_id} HALTED at gate {gate_name} ===")
+                    record_run_outcome(baton, f"halted at gate {gate_name}")
+                    sys.exit(0)
+                apply_gate1_selection(logger, baton, mode, outcome[1], run_dir, pass_number)
+                # Step 15: the post-gate-1 payload is the first locked
+                # boundary shape (the ranked-list payload before it is
+                # gate-owned, not a stage boundary).
+                enforce_boundary_schema(
+                    logger,
+                    baton,
+                    f"gate 1{pass_label}",
+                    schemas.validate_payload_post_gate1,
+                )
+            elif gate_name == "after_stage_2":
+                should_continue = run_gate(logger, baton, mode, gate_name)
+                if not should_continue:
+                    logger.log(f"=== supervisor run {baton.run_id} HALTED at gate {gate_name} ===")
+                    record_run_outcome(baton, f"halted at gate {gate_name}")
+                    sys.exit(0)
+            else:  # after_stage_5: the iterate decision (Step 16)
+                model_decision = baton.payload.get("iterate_decision")
+                outcome = run_gate5(logger, baton, mode)
+                if outcome[0] == "halt":
+                    logger.log(f"=== supervisor run {baton.run_id} HALTED at gate {gate_name} ===")
+                    record_run_outcome(baton, f"halted at gate {gate_name}")
+                    sys.exit(0)
+                _, enacted, how = outcome
+                logger.log(
+                    f"GATE after_stage_5 [{mode}]: model={model_decision} "
+                    f"enacted={enacted} ({how})"
+                )
+                if enacted == "more_data":
+                    logger.log(
+                        "MORE_DATA requires Phase-C experimentation intelligence "
+                        "(Step 19) — ending run with recommendation"
+                    )
+                    logger.log(
+                        f"=== supervisor run {baton.run_id} ended (more_data, "
+                        f"unwired): {len(baton.history)} history entries ==="
+                    )
+                    record_run_outcome(baton, "completed_more_data_unwired")
+                    return
+                if enacted in ("back_to_design", "back_to_ideation"):
+                    if loopbacks_used >= MAX_LOOPBACKS:
+                        logger.log(
+                            f"LOOP BOUND reached ({MAX_LOOPBACKS}) — forced exit "
+                            "with recommendation"
+                        )
+                        logger.log(
+                            f"=== supervisor run {baton.run_id} ended (loop bound): "
+                            f"{len(baton.history)} history entries ==="
+                        )
+                        record_run_outcome(baton, "completed_loop_bound_forced_exit")
+                        return
+                    loopbacks_used += 1
+                    i = apply_loopback_surgery(logger, baton, enacted)
+                    if enacted == "back_to_design":
+                        # The reduced payload is the post-gate-1 shape plus
+                        # the ruled prior_thought — validate it before the
+                        # re-entered pass consumes it.
+                        enforce_boundary_schema(
+                            logger,
+                            baton,
+                            f"gate 1 (pass {execution_counts.get(2, 0) + 1})",
+                            schemas.validate_payload_post_gate1,
+                        )
+                    continue
+                # enacted == "exit": fall through to stage 6 exactly as before.
+
+        i += 1
+
+    logger.log(
+        f"=== supervisor run {baton.run_id} complete: {len(baton.history)} history entries ==="
+    )
+    record_run_outcome(baton, "completed")
 
 
 def main() -> None:
@@ -386,50 +642,7 @@ def main() -> None:
     )
     baton.validate()
 
-    for i, (name, stage_fn) in enumerate(STAGES):
-        baton = run_single_stage(logger, baton, name, stage_fn)
-        baton.validate()
-
-        stage_number = i + 1
-        snapshot_path = run_dir / f"baton_after_stage_{stage_number}.json"
-        snapshot_path.write_text(baton.to_json())
-        logger.log(f"STAGE {stage_number} ({name}): done -> saved {snapshot_path.name}")
-
-        # Step 15: boundary enforcement — after the stage returns, before any
-        # gate display and before the next stage. The snapshot is written
-        # first so a violating baton survives on disk as evidence.
-        if stage_number in STAGE_BOUNDARY_VALIDATORS:
-            enforce_boundary_schema(
-                logger,
-                baton,
-                f"stage {stage_number}",
-                STAGE_BOUNDARY_VALIDATORS[stage_number],
-            )
-
-        if i in GATE_AFTER_STAGE_INDEX:
-            gate_name = f"after_stage_{stage_number}"
-            if gate_name == "after_stage_1":
-                outcome = run_gate1(logger, baton, args.mode)
-                if outcome[0] == "halt":
-                    logger.log(f"=== supervisor run {run_id} HALTED at gate {gate_name} ===")
-                    record_run_outcome(baton, f"halted at gate {gate_name}")
-                    sys.exit(0)
-                apply_gate1_selection(logger, baton, args.mode, outcome[1], run_dir)
-                # Step 15: the post-gate-1 payload is the first locked
-                # boundary shape (the ranked-list payload before it is
-                # gate-owned, not a stage boundary).
-                enforce_boundary_schema(
-                    logger, baton, "gate 1", schemas.validate_payload_post_gate1
-                )
-            else:
-                should_continue = run_gate(logger, baton, args.mode, gate_name)
-                if not should_continue:
-                    logger.log(f"=== supervisor run {run_id} HALTED at gate {gate_name} ===")
-                    record_run_outcome(baton, f"halted at gate {gate_name}")
-                    sys.exit(0)
-
-    logger.log(f"=== supervisor run {run_id} complete: {len(baton.history)} history entries ===")
-    record_run_outcome(baton, "completed")
+    run_relay(logger, baton, run_dir, args.mode)
 
 
 if __name__ == "__main__":
