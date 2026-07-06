@@ -551,3 +551,6 @@ Step 15 COMPLETE (baton schemas locked: schemas.py + supervisor boundary
 enforcement; docket ruled 3 in / 2 deferred / 1 rejected; audit: no Q1
 baton failures across defer/executed/halted paths). Step 16 next, scope
 not guessed here.
+
+Step 16 chunk 1 complete — robustness + derived convention landed;
+chunk 2 = loop-back milestone.
