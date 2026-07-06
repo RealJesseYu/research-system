@@ -24,6 +24,15 @@ Two payload sources, mutually exclusive:
 handfeed only (recorded in source.json as forced_label) — needed because no
 existing run carries a trust verdict yet.
 
+--then-stage5 (Step 15 chunk 1, default off; behavior without it unchanged):
+after stage 4 completes, invoke the LIVE stages/stage5_thought_layer.run()
+on the same baton. Because the baton's run_id is this handfeed's run id,
+stage 5 reads runs/<handfeed-id>/stage4/results.json and writes its
+thought.json and transcript into this handfeed's run dir. The live path's
+journaling (JC6) is deliberately NOT suppressed — a non-exit decision
+appends a learned_summary to memory/journal.jsonl, and that behavior is
+part of what the flag exists to observe.
+
 Usage: venv/bin/python3 handfeed_stage4.py --source-run <run-directory-name>
        venv/bin/python3 handfeed_stage4.py --source-run <run-dir> --force-label trust
        venv/bin/python3 handfeed_stage4.py --payload specs/<payload>.json
@@ -38,7 +47,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from baton import Baton
-from stages import stage4_simulation
+from stages import stage4_simulation, stage5_thought_layer
 
 PAYLOAD_KEYS = ("domain", "chosen_hypothesis", "experiment_spec", "fidelity_verdict")
 
@@ -106,6 +115,12 @@ def main() -> None:
         choices=("trust", "refine", "defer"),
         help="REPLACE the verdict label for this handfeed (recorded as forced_label)",
     )
+    parser.add_argument(
+        "--then-stage5",
+        action="store_true",
+        help="after stage 4, run the LIVE stage 5 thought layer on the same "
+        "baton (journaling NOT suppressed)",
+    )
     args = parser.parse_args()
 
     if args.source_run:
@@ -159,10 +174,19 @@ def main() -> None:
     baton.validate()
     (run_dir / "baton_after_stage_4.json").write_text(baton.to_json())
 
+    if args.then_stage5:
+        with open(run_dir / "log.txt", "a") as f:
+            f.write("HANDFEED4 --then-stage5: invoking LIVE stage 5 on the same baton\n")
+        baton = stage5_thought_layer.run(baton)
+        baton.validate()
+        (run_dir / "baton_after_stage_5.json").write_text(baton.to_json())
+
     print(f"evidence: {run_dir}/")
     print(f"  source:    {run_dir / 'source.json'}")
     print(f"  results:   {run_dir / 'stage4' / 'results.json'}")
     print(f"  snapshots: baton_before_stage_4.json, baton_after_stage_4.json")
+    if args.then_stage5:
+        print(f"  stage 5:   {run_dir / 'stage5' / 'thought.json'}, baton_after_stage_5.json")
     print(f"  log:       {run_dir / 'log.txt'}")
 
 
