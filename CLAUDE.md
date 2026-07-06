@@ -515,4 +515,15 @@ Step 14 COMPLETE (transcripts + trace audit; journal read-side into
 ideation; memory-steering characterized: the domain string, not the memory
 frame, steers ideation flavor — arm 2 drifted all four hypotheses to
 velocity/vortex QoIs, but executability was not reached, both runs defer).
-Step 15 next, scope not guessed here.
+
+Step 15 chunk 1 COMPLETE (2026-07-06): three-run baton evidence gathered —
+RUN A full auto (defer → skipped_defer, setup_error/back_to_design), RUN B
+executed path via new handfeed --then-stage5 (QoIs 0.4168353/0.1930067
+exactly reproduce Step 12; thought engaged the sharpened free-text
+expectation, none/exit, no journal append), RUN C halted path (five
+offenders named; setup_error/back_to_design, learned_summary journaled);
+schema_audit_step15.md (JC1 lens: zero Q1 schema failures across all
+exercised boundaries; two weak Q2 trim signals) and docket_step15_draft.md
+(six draft dispositions) written. AWAITING joint docket ruling in the
+strategy chat (HARD STOP); chunk 2 = schema lock. No snapshot yet — this
+is NOT a step-closing chunk.
