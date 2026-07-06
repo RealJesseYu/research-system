@@ -19,6 +19,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import schemas
 from baton import Baton
 from memory.journal import journal_append
 from stages import (
@@ -49,6 +50,17 @@ GATE_AFTER_STAGE_INDEX = {0, 1, 4}
 # Gate 1 (pick-one-of-k) halts after this many invalid human answers in a row.
 MAX_GATE1_INVALID_ANSWERS = 3
 
+# Step 15: the locked baton-payload schema enforced at each boundary — the
+# validator that must pass right after the stage at this number returns
+# (stage 1 has no entry: its ranked-list payload is reshaped by gate 1, and
+# the post-gate-1 validator runs after apply_gate1_selection instead).
+STAGE_BOUNDARY_VALIDATORS = {
+    2: schemas.validate_payload_post_stage2,
+    3: schemas.validate_payload_post_stage3,
+    4: schemas.validate_payload_post_stage4,
+    5: schemas.validate_payload_post_stage5,
+}
+
 
 class Logger:
     """Writes every line to both the terminal and runs/<run_id>/log.txt."""
@@ -78,6 +90,28 @@ def record_run_outcome(baton: Baton, how_far: str) -> None:
         text += f", iterate_decision={iterate_decision}"
         extras["iterate_decision"] = iterate_decision
     journal_append({"run_id": baton.run_id, "kind": "run_record", "text": text, "extras": extras})
+
+
+def enforce_boundary_schema(logger: Logger, baton: Baton, boundary: str, validator) -> None:
+    """Validate baton.payload at one boundary against the locked schema
+    (schemas.py, Step 15). Deterministic Python, no model call.
+
+    Non-empty errors are a broken architecture invariant, not a model error:
+    the run halts loudly (durable SCHEMA VIOLATION line, a halted-schema
+    run_record in the journal, exit) — there is NO re-ask and NO correction
+    loop here, deliberately. On success a durable SCHEMA OK line records
+    that the boundary was actually checked.
+    """
+    errors = validator(baton.payload)
+    if errors:
+        logger.log(f"SCHEMA VIOLATION after {boundary}: {errors}")
+        record_run_outcome(baton, f"halted: schema violation after {boundary}")
+        logger.log(
+            f"=== supervisor run {baton.run_id} HALTED: schema violation "
+            f"after {boundary} ==="
+        )
+        sys.exit(1)
+    logger.log(f"SCHEMA OK after {boundary}: payload passed {validator.__name__}")
 
 
 def build_gate2_header(payload: dict) -> str:
@@ -327,6 +361,17 @@ def main() -> None:
         snapshot_path.write_text(baton.to_json())
         logger.log(f"STAGE {stage_number} ({name}): done -> saved {snapshot_path.name}")
 
+        # Step 15: boundary enforcement — after the stage returns, before any
+        # gate display and before the next stage. The snapshot is written
+        # first so a violating baton survives on disk as evidence.
+        if stage_number in STAGE_BOUNDARY_VALIDATORS:
+            enforce_boundary_schema(
+                logger,
+                baton,
+                f"stage {stage_number}",
+                STAGE_BOUNDARY_VALIDATORS[stage_number],
+            )
+
         if i in GATE_AFTER_STAGE_INDEX:
             gate_name = f"after_stage_{stage_number}"
             if gate_name == "after_stage_1":
@@ -336,6 +381,12 @@ def main() -> None:
                     record_run_outcome(baton, f"halted at gate {gate_name}")
                     sys.exit(0)
                 apply_gate1_selection(logger, baton, args.mode, outcome[1], run_dir)
+                # Step 15: the post-gate-1 payload is the first locked
+                # boundary shape (the ranked-list payload before it is
+                # gate-owned, not a stage boundary).
+                enforce_boundary_schema(
+                    logger, baton, "gate 1", schemas.validate_payload_post_gate1
+                )
             else:
                 should_continue = run_gate(logger, baton, args.mode, gate_name)
                 if not should_continue:

@@ -46,6 +46,13 @@ SYSTEM_PROMPT = (
     "free-text qoi name, definition, and how_extracted remain either way). "
     "When more than one quantity of interest could genuinely test the hypothesis, "
     "prefer one the substrate contract can extract. "
+    "When the design genuinely predicts a numeric value for the quantity of "
+    'interest, the success_criterion should additionally carry "expected_value" '
+    '(the predicted number) and "tolerance" (a positive number: the acceptable '
+    "absolute deviation); when it does not, omit both. "
+    "If the spec declares a parameter whose value is derived from other "
+    'parameters, give it role "derived" and state the rule in a "derived_from" '
+    "string. "
     "Use the substrate contract's canonical parameter name whenever the physical "
     "quantity you are declaring matches one; parameters with no canonical "
     "equivalent keep their natural names — this is a naming convention, not a "

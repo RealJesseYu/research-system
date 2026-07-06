@@ -1,6 +1,6 @@
 # research-system
 
-Phase B, Step 14: the deterministic six-stage skeleton is built and the
+Phase B, Step 15: the deterministic six-stage skeleton is built and the
 real stages are arriving one by one — stage 1 is real literature-grounded
 ideation, gate 1 is pick-one-of-k, stage 2 is real experiment design
 producing a typed, Python-validated spec (with machine-readable QoI keys
@@ -19,6 +19,20 @@ Its two-arm memory-steering experiment showed that the domain string, not
 the retrieved-memory frame, steers ideation flavor: the same memory
 produced all-scalar hypotheses on a mixing domain and all-velocity/vortex
 hypotheses on an instrument-matched domain (both runs still drew defer).
+
+Step 15 locked the baton schemas: `schemas.py` holds one pure validator
+per baton boundary (shapes derived from disk evidence, not invented —
+`schema_audit_step15.md` is the audit, `docket_step15_draft.md` the ruled
+candidate docket), and the supervisor enforces them at every boundary — a
+malformed payload is a loud halt (durable `SCHEMA VIOLATION` line plus a
+halted-schema journal record), never a re-ask. The spec schema gained two
+optional fields: a parameter may declare role `"derived"` with a
+`derived_from` string stating its rule, and `success_criterion` may carry
+a two-sided expectation `expected_value` + `tolerance` (both-or-neither,
+tolerance > 0; no stage-4/5 consumer yet — it accumulates data for
+Step 16/21). Fixed parameter values must now be numeric. Pre-lock specs in
+old `runs/` dirs may fail the new rules; they are historical evidence and
+are deliberately not edited.
 
 ## Requirements
 This project has its own venv at `venv/`, containing `claude-agent-sdk`.
@@ -144,7 +158,9 @@ containing:
   written BEFORE the call fires. Write-only evidence: no code ever reads a
   transcript back into a model input or stage logic.
 - `log.txt` — everything printed to the terminal during the run, plus the
-  gate decisions (auto-approvals or human y/n answers). This is the
+  gate decisions (auto-approvals or human y/n answers) and one
+  `SCHEMA OK after <boundary>` line per passed boundary validation
+  (five per completed run: gate 1, stages 2–5). This is the
   supervisor's own record; it is never read by any stage.
 
 Executed mini-runs also synthesize solver cases under

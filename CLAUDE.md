@@ -101,6 +101,25 @@ convenient it seems in the moment:
   same memory): all four hypotheses drifted to velocity/vortex QoIs. Steering lives in
   the domain string, not the memory frame; drift did not by itself reach executability
   (both arm-2 runs defer on spatial-masking/derived-field QoIs).
+- **Baton schemas are locked (Step 15).** schemas.py is the lock artifact; changes to
+  it require a recorded ruling, same discipline as frozen prompts.
+- **Schema violations halt loudly, never re-ask.** A malformed baton after a stage
+  returned is a broken invariant, not a model error — the supervisor logs SCHEMA
+  VIOLATION, journals a halted-schema run_record, and stops; no correction loop.
+- **Deferred schema candidates and their wake conditions (Step-15 docket).**
+  Candidate 1 (categorical parameter role): wake on a second live categorical
+  occurrence or a downstream mis-read. Candidate 4 (coupled/redundant sweep
+  declaration): wake on a consistent-redundant sweep misleading a downstream stage —
+  half-met in the Step-15 crashed demo (a derived 'Re' in mini-run dicts halted the
+  builder loudly rather than misleading); the derived-parameter mini-run convention
+  question is deferred to Step 16.
+- **Two-sided expectation accumulates unconsumed until Step 16/21.** success_criterion
+  MAY carry expected_value + tolerance (both-or-neither, validated); no stage-4/5
+  consumer is wired yet, deliberately — the field gathers real usage data first.
+- **Step-16 named opening items (from the Step-15 crash).** SDK-exception handling in
+  call_stage_model (an SDK/transport exception propagates uncaught, bypassing the
+  3-attempt re-ask loop — first fired live in demo attempt 20260706T054646Z) and
+  crashed-run journaling (a crashed run leaves no run_record; none backfilled).
 
 ## Pointers to the spike
 - `~/research-spike` is **read-only reference**. Never modify it from this project.
@@ -527,3 +546,8 @@ exercised boundaries; two weak Q2 trim signals) and docket_step15_draft.md
 (six draft dispositions) written. AWAITING joint docket ruling in the
 strategy chat (HARD STOP); chunk 2 = schema lock. No snapshot yet — this
 is NOT a step-closing chunk.
+
+Step 15 COMPLETE (baton schemas locked: schemas.py + supervisor boundary
+enforcement; docket ruled 3 in / 2 deferred / 1 rejected; audit: no Q1
+baton failures across defer/executed/halted paths). Step 16 next, scope
+not guessed here.

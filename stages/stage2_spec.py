@@ -43,17 +43,18 @@ def _is_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
-def _validate_parameters(params: Any, errors: list[str]) -> tuple[dict, dict]:
-    """Check the parameters list; return (sweep_ranges, fixed_values) for the
-    entries that validated, so the mini_experiment checks only test against
-    declarations that are themselves sound.
+def _validate_parameters(params: Any, errors: list[str]) -> tuple[dict, dict, set]:
+    """Check the parameters list; return (sweep_ranges, fixed_values,
+    derived_names) for the entries that validated, so the mini_experiment
+    checks only test against declarations that are themselves sound.
     """
     sweep_ranges: dict[str, tuple[float, float]] = {}
     fixed_values: dict[str, Any] = {}
+    derived_names: set[str] = set()
 
     if not isinstance(params, list):
         errors.append("parameters must be a list of parameter objects.")
-        return sweep_ranges, fixed_values
+        return sweep_ranges, fixed_values, derived_names
 
     for idx, p in enumerate(params):
         label = f"parameters[{idx}]"
@@ -83,16 +84,40 @@ def _validate_parameters(params: Any, errors: list[str]) -> tuple[dict, dict]:
             else:
                 sweep_ranges[name] = (lo, hi)
         elif role == "fixed":
+            # Step-15 docket, candidate 3: a fixed parameter is a numeric
+            # quantity — prose or other non-numeric content is not a value.
             if "value" not in p:
                 errors.append(f"fixed parameter '{name}' must carry a 'value'.")
+            elif not _is_number(p["value"]):
+                errors.append(
+                    f"fixed parameter '{name}' must carry a numeric 'value'; got "
+                    f"{p['value']!r} — non-numeric content is not a parameter "
+                    f"value (describe it in the qoi definition or regime notes "
+                    f"instead)."
+                )
             else:
                 fixed_values[name] = p["value"]
+        elif role == "derived":
+            # Step-15 docket, candidate 2: a derived parameter must state its
+            # rule. Undeclared derivations are NOT detected here — the case
+            # builder's consistency halt owns that side.
+            derived_from = p.get("derived_from")
+            if not isinstance(derived_from, str) or not derived_from.strip():
+                errors.append(
+                    f"derived parameter '{name}' must carry a non-empty "
+                    f"'derived_from' string stating the rule it is computed by "
+                    f"(e.g. \"Re = lid_velocity * cavity_length / "
+                    f"kinematic_viscosity\")."
+                )
+            else:
+                derived_names.add(name)
         else:
             errors.append(
-                f"parameter '{name}' has role {role!r}; role must be \"sweep\" or \"fixed\"."
+                f"parameter '{name}' has role {role!r}; role must be \"sweep\", "
+                f"\"fixed\", or \"derived\"."
             )
 
-    return sweep_ranges, fixed_values
+    return sweep_ranges, fixed_values, derived_names
 
 
 def _validate_qoi(qoi: Any, errors: list[str]) -> None:
@@ -161,6 +186,32 @@ def _validate_success_criterion(sc: Any, errors: list[str]) -> None:
             f"success_criterion direction must be \"above\" or \"below\"; "
             f"got {sc.get('direction')!r}."
         )
+    # Step-15 docket, candidate 5: OPTIONAL two-sided expectation. When the
+    # design genuinely predicts a numeric QoI value, expected_value and
+    # tolerance travel together; threshold and direction stay required
+    # regardless. No stage-4/5 consumer is wired yet, deliberately — the
+    # field accumulates data for Step 16/21 design.
+    has_expected = "expected_value" in sc
+    has_tolerance = "tolerance" in sc
+    if has_expected != has_tolerance:
+        present, missing = (
+            ("expected_value", "tolerance") if has_expected else ("tolerance", "expected_value")
+        )
+        errors.append(
+            f"success_criterion carries '{present}' but not '{missing}' — the "
+            f"two-sided expectation must carry both 'expected_value' and "
+            f"'tolerance', or neither."
+        )
+    if has_expected and not _is_number(sc["expected_value"]):
+        errors.append(
+            f"success_criterion expected_value must be a number; "
+            f"got {sc['expected_value']!r}."
+        )
+    if has_tolerance and (not _is_number(sc["tolerance"]) or sc["tolerance"] <= 0):
+        errors.append(
+            f"success_criterion tolerance must be a number greater than zero; "
+            f"got {sc['tolerance']!r}."
+        )
 
 
 def _validate_regime(regime: Any, errors: list[str]) -> None:
@@ -183,7 +234,11 @@ def _validate_regime(regime: Any, errors: list[str]) -> None:
 
 
 def _validate_mini_experiment(
-    mini: Any, sweep_ranges: dict, fixed_values: dict, errors: list[str]
+    mini: Any,
+    sweep_ranges: dict,
+    fixed_values: dict,
+    derived_names: set,
+    errors: list[str],
 ) -> None:
     if not isinstance(mini, dict):
         errors.append("mini_experiment must be an object with runs and expected_observation.")
@@ -199,7 +254,7 @@ def _validate_mini_experiment(
         )
         return
 
-    declared_names = sorted(set(sweep_ranges) | set(fixed_values))
+    declared_names = sorted(set(sweep_ranges) | set(fixed_values) | derived_names)
     for idx, run in enumerate(runs, start=1):
         if not isinstance(run, dict):
             errors.append(f"mini_experiment run {idx} must be a dict of parameter values.")
@@ -274,8 +329,11 @@ def validate_spec(spec: Any, chosen_id: str) -> list[str]:
 
     sweep_ranges: dict = {}
     fixed_values: dict = {}
+    derived_names: set = set()
     if "parameters" in spec:
-        sweep_ranges, fixed_values = _validate_parameters(spec["parameters"], errors)
+        sweep_ranges, fixed_values, derived_names = _validate_parameters(
+            spec["parameters"], errors
+        )
     if "qoi" in spec:
         _validate_qoi(spec["qoi"], errors)
     if "success_criterion" in spec:
@@ -283,7 +341,9 @@ def validate_spec(spec: Any, chosen_id: str) -> list[str]:
     if "regime" in spec:
         _validate_regime(spec["regime"], errors)
     if "mini_experiment" in spec:
-        _validate_mini_experiment(spec["mini_experiment"], sweep_ranges, fixed_values, errors)
+        _validate_mini_experiment(
+            spec["mini_experiment"], sweep_ranges, fixed_values, derived_names, errors
+        )
     if "full_experiment" in spec:
         _validate_full_experiment(spec["full_experiment"], errors)
 

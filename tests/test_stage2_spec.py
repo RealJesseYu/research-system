@@ -183,5 +183,110 @@ class TestOneRulePerViolation(unittest.TestCase):
         self.assert_error_mentioning(spec, "qoi component must be \"mag\" or 0|1|2")
 
 
+class TestStep15DocketInclusions(unittest.TestCase):
+    """The three Step-15 ruled inclusions: candidate 3 (typed fixed values),
+    candidate 2 (derived parameters state their rule), candidate 5 (optional
+    two-sided expectation). One passing and at least one failing case each."""
+
+    def assert_error_mentioning(self, spec: dict, fragment: str):
+        errors = validate_spec(spec, CHOSEN_ID)
+        self.assertTrue(
+            any(fragment in e for e in errors),
+            f"expected an error containing {fragment!r}, got: {errors}",
+        )
+
+    # Candidate 3 — typed fixed values.
+    def test_numeric_fixed_value_passes(self):
+        # make_valid_spec's viscosity 0.01 is the passing case.
+        self.assertEqual(validate_spec(make_valid_spec(), CHOSEN_ID), [])
+
+    def test_string_fixed_value_rejected(self):
+        spec = make_valid_spec()
+        spec["parameters"][1]["value"] = "step: c=1 for y>0.5 m"  # the S12 shape
+        # keep the mini runs consistent with the (invalid) declaration:
+        for run in spec["mini_experiment"]["runs"]:
+            run["viscosity"] = "step: c=1 for y>0.5 m"
+        self.assert_error_mentioning(spec, "must carry a numeric 'value'")
+
+    def test_bool_fixed_value_rejected(self):
+        spec = make_valid_spec()
+        spec["parameters"][1]["value"] = True
+        self.assert_error_mentioning(spec, "must carry a numeric 'value'")
+
+    # Candidate 2 — derived parameters state their rule.
+    def test_derived_with_rule_passes(self):
+        spec = make_valid_spec()
+        spec["parameters"].append(
+            {
+                "name": "reynolds_number",
+                "role": "derived",
+                "units": "dimensionless",
+                "derived_from": "Re = lid_velocity * 1.0 m / viscosity",
+            }
+        )
+        self.assertEqual(validate_spec(spec, CHOSEN_ID), [])
+
+    def test_derived_name_allowed_in_mini_runs(self):
+        spec = make_valid_spec()
+        spec["parameters"].append(
+            {
+                "name": "reynolds_number",
+                "role": "derived",
+                "units": "dimensionless",
+                "derived_from": "Re = lid_velocity * 1.0 m / viscosity",
+            }
+        )
+        spec["mini_experiment"]["runs"][0]["reynolds_number"] = 50
+        self.assertEqual(validate_spec(spec, CHOSEN_ID), [])
+
+    def test_derived_without_rule_rejected(self):
+        spec = make_valid_spec()
+        spec["parameters"].append(
+            {"name": "reynolds_number", "role": "derived", "units": "dimensionless"}
+        )
+        self.assert_error_mentioning(spec, "'derived_from'")
+
+    def test_derived_with_empty_rule_rejected(self):
+        spec = make_valid_spec()
+        spec["parameters"].append(
+            {
+                "name": "reynolds_number",
+                "role": "derived",
+                "units": "dimensionless",
+                "derived_from": "   ",
+            }
+        )
+        self.assert_error_mentioning(spec, "'derived_from'")
+
+    # Candidate 5 — optional two-sided expectation.
+    def test_two_sided_expectation_passes(self):
+        spec = make_valid_spec()
+        spec["success_criterion"]["expected_value"] = 0.15
+        spec["success_criterion"]["tolerance"] = 0.03
+        self.assertEqual(validate_spec(spec, CHOSEN_ID), [])
+
+    def test_expected_value_without_tolerance_rejected(self):
+        spec = make_valid_spec()
+        spec["success_criterion"]["expected_value"] = 0.15
+        self.assert_error_mentioning(spec, "both 'expected_value' and 'tolerance'")
+
+    def test_tolerance_without_expected_value_rejected(self):
+        spec = make_valid_spec()
+        spec["success_criterion"]["tolerance"] = 0.03
+        self.assert_error_mentioning(spec, "both 'expected_value' and 'tolerance'")
+
+    def test_non_numeric_expected_value_rejected(self):
+        spec = make_valid_spec()
+        spec["success_criterion"]["expected_value"] = "about 0.15"
+        spec["success_criterion"]["tolerance"] = 0.03
+        self.assert_error_mentioning(spec, "expected_value must be a number")
+
+    def test_non_positive_tolerance_rejected(self):
+        spec = make_valid_spec()
+        spec["success_criterion"]["expected_value"] = 0.15
+        spec["success_criterion"]["tolerance"] = 0
+        self.assert_error_mentioning(spec, "tolerance must be a number greater than zero")
+
+
 if __name__ == "__main__":
     unittest.main()
