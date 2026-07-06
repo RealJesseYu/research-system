@@ -1,6 +1,6 @@
 # research-system
 
-Phase B, Step 13: the deterministic six-stage skeleton is built and the
+Phase B, Step 14: the deterministic six-stage skeleton is built and the
 real stages are arriving one by one — stage 1 is real literature-grounded
 ideation, gate 1 is pick-one-of-k, stage 2 is real experiment design
 producing a typed, Python-validated spec (with machine-readable QoI keys
@@ -12,6 +12,13 @@ with optional QoI extraction), and stage 5 is the real thought layer (one
 Opus call that triages surprise and decides iteration; scored against six
 sealed cases before going live — see `stage5_cases/`). See `CLAUDE.md`
 for the full architecture and current status.
+
+Step 14 added model-input transcripts and a formal trace audit of one full
+run (`trace_audit_step14.md`), plus the journal read-side into ideation.
+Its two-arm memory-steering experiment showed that the domain string, not
+the retrieved-memory frame, steers ideation flavor: the same memory
+produced all-scalar hypotheses on a mixing domain and all-velocity/vortex
+hypotheses on an instrument-matched domain (both runs still drew defer).
 
 ## Requirements
 This project has its own venv at `venv/`, containing `claude-agent-sdk`.
@@ -128,7 +135,14 @@ containing:
 - `stage1/` … `stage5/` — each real stage's own evidence (ranked lists,
   spec.json, verdict.json, stage 4's `results.json` with the full wrapper
   summaries, and stage 5's `thought.json`; the baton carries conclusions
-  only).
+  only). `stage1/retrieved_memory.json` records verbatim the journal
+  entries stage 1 retrieved at launch (the last-3 window slides as runs
+  append, so this file is the proof of what THIS run saw).
+- `transcripts/` — one JSON file per model call
+  (`<seq>_<stage_name>.json`) holding the fully assembled model input
+  (stage_name, model, timestamp, system prompt, serialized stage input),
+  written BEFORE the call fires. Write-only evidence: no code ever reads a
+  transcript back into a model input or stage logic.
 - `log.txt` — everything printed to the terminal during the run, plus the
   gate decisions (auto-approvals or human y/n answers). This is the
   supervisor's own record; it is never read by any stage.
@@ -143,7 +157,12 @@ stage's conversation.
 
 - **Journal** (`memory/journal.jsonl`): an append-only log, one JSON object
   per line, of every run's outcome. The supervisor appends one entry per
-  run automatically (on completion or on halting at a gate). To search it
+  run automatically (on completion or on halting at a gate), and stage 5
+  appends a `learned_summary` on non-exit decisions. Stage 1 also READS
+  the journal (Step 14): it retrieves the last 3 `learned_summary`
+  entries, saves them verbatim to `runs/<id>/stage1/retrieved_memory.json`,
+  and injects them into its generation and reflection inputs only, under
+  an explicit leads-not-facts frame. To search it
   by hand:
   ```
   venv/bin/python3 -c "from memory.journal import journal_search; [print(e) for e in journal_search(limit=5)]"

@@ -89,6 +89,18 @@ convenient it seems in the moment:
 - **Learned-summary poison risk.** On non-exit decisions stage 5 journals its
   learned_summary verbatim, and the thought layer can assert false physics confidently
   (case b). Noted for Steps 21/23 (mechanical checks, journal hygiene).
+- **Transcripts are write-only evidence.** runs/<id>/transcripts/ records every
+  assembled model input, written before the call fires. No code may ever read a
+  transcript back into a model input or stage logic (unit tests excepted) — a read-back
+  would be a covert channel between fresh contexts.
+- **Per-process transcript sequencing joins the parallelization revisit list.** The
+  transcript sequence counter is process-global; if stages ever run in parallel
+  processes, sequencing must be revisited.
+- **Memory-steering characterization (Step-14 two-arm result).** Arm 1 (mixing domain,
+  memory visible): zero drift, all-scalar ideation. Arm 2 (instrument-matched domain,
+  same memory): all four hypotheses drifted to velocity/vortex QoIs. Steering lives in
+  the domain string, not the memory frame; drift did not by itself reach executability
+  (both arm-2 runs defer on spatial-masking/derived-field QoIs).
 
 ## Pointers to the spike
 - `~/research-spike` is **read-only reference**. Never modify it from this project.
@@ -493,3 +505,14 @@ supervised in both modes). Step 13 next, scope not guessed here.
 Step 13 COMPLETE (stage 5 real; thought layer scored 4/6 triage, 5/6
 decision; over-trust characterization on record; supervisor records but
 does not loop). Step 14 next, scope not guessed here.
+
+Step 14 chunk 1 COMPLETE (model-input transcripts live, 17/17 verified;
+journal read-side into ideation with leads-not-facts frame; arm-1
+memory-steering result: zero drift on mixing domain). Chunk 2 next:
+instrument-matched domain runs + trace audit + step close.
+
+Step 14 COMPLETE (transcripts + trace audit; journal read-side into
+ideation; memory-steering characterized: the domain string, not the memory
+frame, steers ideation flavor — arm 2 drifted all four hypotheses to
+velocity/vortex QoIs, but executability was not reached, both runs defer).
+Step 15 next, scope not guessed here.
