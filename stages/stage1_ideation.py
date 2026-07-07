@@ -4,11 +4,28 @@ deterministic novelty/quality filter + Ranking, backed by Sonnet for
 Generation/Reflection and Opus for Ranking (a hard judgment call, per
 CLAUDE.md's model roles).
 
-Generation asks Sonnet for six hypotheses grounded in three literature
-snippets retrieved for the domain (deterministic TF-IDF search, no model
-involved in retrieval itself). Reflection then asks Sonnet, once per
-hypothesis and with three snippets retrieved for that hypothesis
-specifically, to judge novelty and quality. A pure-Python filter (no model
+Generation (rebuilt in Step 17 to faithfully match Co-Scientist's four
+generation strategies — see stages/generation_strategies.py) produces a
+combined candidate pool via: (1) literature exploration grounded in the
+corpus RAG plus live arXiv/Semantic Scholar/web search, (2) a bounded
+simulated scientific debate among expert personas converging on one
+refined hypothesis, (3) iterative assumptions identification aggregated
+into hypotheses, and (4) research expansion into directions the run's
+existing candidates left unexplored. All retrieval passes through the
+wrappers' bounded records, and every record a run used is saved under
+runs/<run_id>/stage1/ as evidence. Reflection (rebuilt in Step 17 to
+faithfully match Co-Scientist's six review types — see
+stages/reflection_reviews.py) applies to that pool: (1) a fast no-tools
+initial review that gates the pool before any tool spend, then per survivor
+(2) a full review grounded in live per-hypothesis retrieval (corpus + arXiv
+required, Semantic Scholar + web best-effort) whose novelty verdict must
+cite the refs actually shown, (3) a deep-verification review decomposing
+assumptions (a fundamental flaw discards deterministically), (4) an
+observation review against retrieved snippets and journal leads, (5) a
+step-wise simulation review surfacing failure scenarios, and (6) an inert
+recurrent/tournament-review seam awaiting the tournament chunk. The result
+per surviving candidate is the same reflection object as always:
+{hypothesis_id, novelty, critique, quality}. A pure-Python filter (no model
 call) then discards anything judged "known" and keeps at most four survivors
 by quality, ties broken by generation order. Ranking then asks Opus to judge
 every unordered pair of survivors once (round-robin); rank is win count,
@@ -24,58 +41,28 @@ reads the last 3 learned_summary journal entries, saves them verbatim to
 runs/<run_id>/stage1/retrieved_memory.json, and (when any exist) appends a
 framed prior-observations block as an explicit field of the Generation and
 Reflection inputs — through the call's own arguments, preserving
-construction-level isolation. Ranking and every other stage get nothing.
+construction-level isolation. Within Generation the block goes to the two
+hypothesis-proposing strategies that historically saw it (literature
+exploration, as old Generation's descendant, and research expansion, whose
+job is steering); debate and assumptions stay memory-free. Within Reflection
+(since Step 17) it goes only to the observation review — the unit whose job
+is prior observations. Ranking and every other stage get nothing.
 """
 
 from __future__ import annotations
 
 import itertools
 import json
-import sys
 from pathlib import Path
 
 from baton import Baton
 from memory.journal import journal_recent_by_kind
 from model_call import call_stage_model, log_stage_call
-
-_RETRIEVAL_DIR = Path(__file__).resolve().parent.parent / "retrieval"
-if str(_RETRIEVAL_DIR) not in sys.path:
-    sys.path.insert(0, str(_RETRIEVAL_DIR))
-
-from search import search_index  # noqa: E402 (path must be set up first)
+from stages.generation_strategies import generate_candidate_pool
+from stages.reflection_reviews import reflect_on_pool
 
 SONNET_MODEL = "claude-sonnet-4-6"
 OPUS_MODEL = "claude-opus-4-8"
-
-GENERATION_SYSTEM_PROMPT = (
-    "You are the Ideation stage of an autonomous research pipeline. You are given a "
-    "research domain and a handful of literature snippets retrieved for it. Propose "
-    "exactly six hypotheses that are grounded in that literature without merely "
-    "restating it, each one concrete enough to be tested by a simulation. "
-    "Reply ONLY with JSON of the form "
-    '{"ack_run_id": "<the run_id you were given>", "hypotheses": '
-    '[{"id": "h1", "statement": "<one sentence>", "rationale": "<one sentence>"}, '
-    "... exactly 6 such objects total]}."
-)
-
-GENERATION_SCHEMA = {"required": ["ack_run_id", "hypotheses"]}
-
-REFLECTION_SYSTEM_PROMPT = (
-    "You are a critical-reviewer stage in an autonomous research pipeline, judging one "
-    "proposed hypothesis at a time. You are given that hypothesis plus literature "
-    "snippets retrieved specifically for it. Judge its novelty strictly against those "
-    "snippets and your own general knowledge, and rate its quality for simulation-based "
-    "study from 1 (weak) to 5 (strong). "
-    "Reply ONLY with JSON of the form "
-    '{"ack_run_id": "<the run_id you were given>", '
-    '"hypothesis_id": "<the hypothesis id you were given>", '
-    '"novelty": "novel" or "known", "critique": "<one sentence>", "quality": <integer 1-5>}.'
-)
-
-REFLECTION_SCHEMA = {
-    "required": ["ack_run_id", "hypothesis_id", "novelty", "critique", "quality"],
-    "enums": {"novelty": ["novel", "known"]},
-}
 
 RANKING_SYSTEM_PROMPT = (
     "You are a comparative-judge stage in an autonomous research pipeline, evaluating two "
@@ -127,25 +114,6 @@ def _log(run_id: str, line: str) -> None:
         f.write(line + "\n")
 
 
-def _format_snippets(results: list[dict]) -> list[dict]:
-    """Reduce raw search_index() results to the fields worth showing a model."""
-    return [{"title": r["title"], "source": r["source"], "snippet": r["snippet"]} for r in results]
-
-
-def _validate_hypotheses_shape(hypotheses) -> None:
-    if not isinstance(hypotheses, list) or len(hypotheses) != 6:
-        raise RuntimeError(
-            f"stage1_ideation generation: expected exactly 6 hypotheses, got {hypotheses!r}"
-        )
-    seen_ids = set()
-    for h in hypotheses:
-        if not isinstance(h, dict) or not all(k in h for k in ("id", "statement", "rationale")):
-            raise RuntimeError(f"stage1_ideation generation: malformed hypothesis entry {h!r}")
-        if h["id"] in seen_ids:
-            raise RuntimeError(f"stage1_ideation generation: duplicate hypothesis id {h['id']!r}")
-        seen_ids.add(h["id"])
-
-
 def filter_survivors(reflections: list[dict]) -> list[dict]:
     """Pure-Python, no model call: discard 'known' reflections, keep at most
     MAX_SURVIVORS by quality (highest first), ties broken by original
@@ -190,87 +158,23 @@ def run(baton: Baton) -> Baton:
         f"STAGE1_MEMORY retrieved {len(memory_entries)} learned_summary entries",
     )
 
-    # --- Generation ---
-    lit_snippets = search_index("literature", domain, top_k=3)
-    gen_input = {
-        "run_id": baton.run_id,
-        "domain": domain,
-        "literature_snippets": _format_snippets(lit_snippets),
-    }
-    if memory_block is not None:
-        gen_input["prior_observations"] = memory_block
-    gen_data, gen_timing = call_stage_model(
-        "stage1_ideation_generation",
-        GENERATION_SYSTEM_PROMPT,
-        gen_input,
-        GENERATION_SCHEMA,
-        model=SONNET_MODEL,
+    # --- Generation (Step 17: the four Co-Scientist strategies; every model
+    # call, retrieval, evidence write, and the pool's canonical h1..hN ids
+    # live in stages/generation_strategies.py) ---
+    pool = generate_candidate_pool(baton.run_id, domain, memory_block, run_dir)
+    hypotheses = [
+        {"id": c["id"], "statement": c["statement"], "rationale": c["rationale"]}
+        for c in pool
+    ]
+
+    # --- Reflection (Step 17: the six Co-Scientist review types; every model
+    # call, per-hypothesis retrieval, evidence write, and both deterministic
+    # discard rules live in stages/reflection_reviews.py; the returned
+    # reflection objects keep the exact {hypothesis_id, novelty, critique,
+    # quality} contract the filter below has consumed since Step 8) ---
+    reflections, review_summary = reflect_on_pool(
+        baton.run_id, domain, hypotheses, memory_block, run_dir
     )
-
-    if gen_data["ack_run_id"] != baton.run_id:
-        raise RuntimeError(
-            f"stage1_ideation generation: ack_run_id mismatch — got "
-            f"{gen_data['ack_run_id']!r}, expected {baton.run_id!r}"
-        )
-    _log(baton.run_id, "STAGE1_ACK_CHECK generation: ack_run_id passed")
-    log_stage_call(baton.run_id, "stage1_ideation_generation", gen_timing)
-
-    hypotheses = gen_data["hypotheses"]
-    _validate_hypotheses_shape(hypotheses)
-    (run_dir / "generation.json").write_text(json.dumps(gen_data, indent=2))
-
-    # --- Reflection ---
-    reflections = []
-    for h in hypotheses:
-        ref_snippets = search_index("literature", h["statement"], top_k=3)
-        ref_input = {
-            "run_id": baton.run_id,
-            "hypothesis_id": h["id"],
-            "hypothesis_statement": h["statement"],
-            "hypothesis_rationale": h["rationale"],
-            "literature_snippets": _format_snippets(ref_snippets),
-        }
-        if memory_block is not None:
-            ref_input["prior_observations"] = memory_block
-        ref_data, ref_timing = call_stage_model(
-            f"stage1_ideation_reflection_{h['id']}",
-            REFLECTION_SYSTEM_PROMPT,
-            ref_input,
-            REFLECTION_SCHEMA,
-            model=SONNET_MODEL,
-        )
-
-        if ref_data["ack_run_id"] != baton.run_id:
-            raise RuntimeError(
-                f"stage1_ideation reflection {h['id']}: ack_run_id mismatch — got "
-                f"{ref_data['ack_run_id']!r}, expected {baton.run_id!r}"
-            )
-        _log(baton.run_id, f"STAGE1_ACK_CHECK reflection {h['id']}: ack_run_id passed")
-
-        if ref_data["hypothesis_id"] != h["id"]:
-            raise RuntimeError(
-                f"stage1_ideation reflection {h['id']}: hypothesis_id mismatch — got "
-                f"{ref_data['hypothesis_id']!r}, expected {h['id']!r}"
-            )
-        _log(baton.run_id, f"STAGE1_ACK_CHECK reflection {h['id']}: hypothesis_id passed")
-
-        quality = ref_data["quality"]
-        if isinstance(quality, bool) or not isinstance(quality, (int, float)) or not (1 <= quality <= 5):
-            raise RuntimeError(
-                f"stage1_ideation reflection {h['id']}: quality must be 1-5, got {quality!r}"
-            )
-
-        log_stage_call(baton.run_id, f"stage1_ideation_reflection_{h['id']}", ref_timing)
-
-        reflections.append(
-            {
-                "hypothesis_id": h["id"],
-                "novelty": ref_data["novelty"],
-                "critique": ref_data["critique"],
-                "quality": int(quality),
-            }
-        )
-
     (run_dir / "reflections.json").write_text(json.dumps(reflections, indent=2))
 
     # --- Deterministic filter (no model) ---
@@ -362,6 +266,9 @@ def run(baton: Baton) -> Baton:
 
     baton.add_history(
         "stage1_ideation",
-        f"generated {len(hypotheses)}, {len(survivors_full)} survived reflection, {ranking_note}",
+        f"generated {len(hypotheses)} across 4 strategies, "
+        f"{review_summary['initial_pass']} passed initial review, "
+        f"{review_summary['reflected']} exited six-review reflection, "
+        f"{len(survivors_full)} survived filter, {ranking_note}",
     )
     return baton

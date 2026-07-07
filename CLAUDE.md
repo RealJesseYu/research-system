@@ -574,3 +574,155 @@ Step 16 COMPLETE — PHASE B COMPLETE: the loop closes human-in-the-loop
 (gate-5 decision live, both loop-back types consumed, bound-2 witnessed
 firing in both modes; robustness: transport retry, crash catch; derived
 convention consumed). Step 17 next (Phase C), scope not guessed here.
+
+Phase C, Step 17 — chunk 1 COMPLETE (2026-07-06): three retrieval tools for
+the Co-Scientist ideation rebuild, built and proven in isolation — NO Stage-1
+wiring yet. retrieval/scholar_search.py (search_arxiv + search_semantic_scholar,
+stdlib+certifi in the fetch_literature.py style, 1400-char snippet cap, arXiv
+1-per-3s throttle, bounded 429/503 retry, honest errors);
+retrieval/materials_lookup.py (direct REST to api.materialsproject.org
+materials/summary with _fields + X-API-KEY — mp-api/pymatgen deliberately NOT
+installed per ruling; MP_API_KEY read from project-root .env via python-dotenv;
+ground state chosen by lowest energy_above_hull; scalar-only returns, raises on
+every failure mode); retrieval/web_search.py (the RULED exception: retrieval is
+deterministic EXCEPT this one tool — one bounded Haiku call through the same
+SDK/auth path as model_call.py with allowed_tools=["WebSearch"], max_turns=6,
+JSON-array-only output enforced in Python; transcript written to
+runs/<id>/transcripts/ BEFORE the call fires, hence the run_id parameter;
+model_call.py untouched — the wrapper carries its OWN per-process transcript
+sequence counter, filenames can't collide with model_call's but cross-module
+sort order isn't guaranteed, joining the parallelization revisit item).
+.gitignore gained .env; .env holds the personal MP key and is confirmed
+untracked. Zero pip installs (pip list diff empty); 146/146 tests pass;
+everything downstream of gate 1 byte-untouched. Proofs on query "lid-driven
+cavity flow bifurcation": arXiv 3 on-topic records (incl. the cubical-cavity
+Hopf bifurcation at Re_c=1914); web_search 3 records under run
+websearch-smoke-20260706T185225Z with transcript 0001_web_search.json on disk
+(one result independently corroborating Re_c=1914); lookup_material("Al",
+["density"]) → density 2.7200502 g/cm3 (matches aluminum ~2.70). Honest
+asterisks: search_semantic_scholar returned HTTP 429 through two full bounded
+retry cycles (keyless shared pool throttled) — the FAILURE path is proven live,
+the success path has never run; the free S2_API_KEY env var is already
+supported and is the fix if 429s persist. web_search does not durably log
+fence NOTEs (its fence-strip is silent — the fence watch does not count this
+wrapper); it also has NO transport retry (one call by ruling; model_call's
+Step-16 retry does not cover it). The MP material_id returned
+(mp-aaaaaafe) is an unfamiliar id format vs classic mp-134 — value plausible,
+format noted for watching. The builder wrote the user's MP key into .env after
+the user pasted it into the chat (disclosed; the key now exists in that chat
+transcript — regenerate it if the transcript is ever shared). NOT a step
+close — no checksum snapshot, no commit. Chunk 2 next, scope not guessed here.
+
+Phase C, Step 17 — chunk 2 COMPLETE (2026-07-06): Generation rebuilt to the
+four Co-Scientist strategies. stages/generation_strategies.py (the one
+permitted helper module — keeps the four strategies legible and
+independently testable while stage1_ideation.py keeps its stage-flow role)
+holds retrieval gathering, all four strategies, and pool assembly;
+stage1_ideation.py's Generation block now calls generate_candidate_pool, and
+Reflection/filter/Ranking plus the delivered object are UNTOUCHED. The
+strategies (all Sonnet through call_stage_model, per the Generation-is-
+generative ruling): (1) literature_exploration — corpus RAG + live arXiv
+REQUIRED (their failure propagates, an honest stage failure), S2 + web
+optional-preferred (a RuntimeError is recorded in evidence and the run
+proceeds); one call producing exactly 4 hypotheses, each citing ref ids
+validated against the actually-provided snippets inside the re-ask loop.
+(2) simulated_debate — HARD CAP DEBATE_TURNS=3, one fresh Sonnet call per
+persona (theorist / computational scientist / skeptical reviewer), each
+receiving the same bounded refs + structured debate-so-far through call
+arguments (construction-level isolation; never a transcript); the final
+turn's hypothesis is the converged result → 1 candidate. (3)
+assumptions_identification — two calls: identify 3-5 testable intermediate
+assumptions (conditional reasoning, no retrieval), aggregate into exactly 3
+hypotheses citing assumption numbers (validated). (4) research_expansion —
+one call reviewing the pool-so-far → exactly 2 hypotheses each naming the
+gap it fills; meta_review_feedback is a None-defaulted UNUSED seam parameter
+(Meta-review is a later chunk; no feedback channel invented). Pool = 10
+candidates (4/1/3/2), canonical ids h1..h10 assigned in deterministic
+Python; per-run evidence: retrieved_literature.json (per-source records +
+per-source errors + the combined ref-tagged list), debate.json,
+assumptions.json, generation.json (pool with per-candidate strategy
+provenance). The leads-not-facts memory block goes to strategies 1 and 4
+only (1 as old Generation's descendant, 4 because steering is its job);
+debate and assumptions stay memory-free. Smoke run
+gen4smoke-20260707T002700Z verified from disk: 11 combined refs (corpus 3,
+arXiv 3, S2 2, web 3) — Semantic Scholar's keyless SUCCESS path ran live
+for the first time (chunk 1 had only ever proven its 429 path; S2_API_KEY=
+placeholder added to .env, user chose to proceed keyless); all four
+strategies contributed; citations are real (h2 ties arXiv:1607.05126's
+Re_c≈1914 Hopf bifurcation to a web benchmark's vortex-center
+trajectories); web_search received the run_id and its write-before-call
+transcript 0001_web_search.json is on disk; snippets capped at 1400 chars
+both in evidence and inside the literature call's assembled input (12,353
+bytes total) — no raw tool output entered any Generation context; 7 Sonnet
+calls all attempts=1, zero RE-ASK, Sonnet fence 7/7 (running watch).
+Verified: 146/146 tests, pip list fingerprint identical (zero installs),
+schemas.py/supervisor/model_call/baton/tools/stages 2-6/tests all
+byte-untouched (git diff empty on the frozen surface). Honest asterisks:
+the full supervised pipeline has not yet run over the new Generation —
+Reflection now receives 10 candidates instead of 6 (cost grew accordingly)
+and the next chunk's runs will witness that path; the two per-process
+transcript counters (model_call + web_search) both emitted 0001_*.json into
+the same run dir — the known cross-module sort-order caveat, now witnessed
+live, stays on the parallelization revisit list; materials_lookup is
+deliberately NOT wired into Generation (no strategy names it and a fluids
+domain carries no formula — wake when a domain does); the old
+"stage1_ideation_generation" transcript/log stage name is retired in favor
+of per-strategy names. NOT a step close — no checksum snapshot, no commit.
+Chunk 3 next, scope not guessed here.
+
+Phase C, Step 17 — chunk 3 COMPLETE (2026-07-07): Reflection rebuilt to the
+six Co-Scientist review types. stages/reflection_reviews.py (the one
+permitted helper module, mirroring generation_strategies.py's role) holds
+all six review units, per-hypothesis retrieval, and the orchestrator;
+stage1_ideation.py's Reflection block now calls reflect_on_pool, and the
+filter/Ranking/delivered object are UNTOUCHED — reflections keep the exact
+{hypothesis_id, novelty, critique, quality} contract, and no schemas.py
+change was needed (the enforced boundary is post-gate-1, unchanged). The
+six types: (1) initial review — ONE Sonnet call over the whole pool, NO
+tools, pass/discard per candidate on correctness/quality/novelty/
+preliminary-safety, gating BEFORE any tool spend; (2) full review — one
+call per initial survivor, grounded in per-hypothesis retrieval (corpus +
+arXiv required, S2 + web best-effort — same source policy as Generation);
+the novelty verdict must cite ref ids actually shown (extra_validator
+inside the re-ask loop; a 'known' verdict requires ≥1 ref) and verdict +
+rationale + cited refs are saved per hypothesis — THE WATCH; this review
+supplies the filter's novelty/critique/quality fields; (3) deep
+verification — assumptions → sub-assumptions → per-assumption evaluation,
+invalidating elements, fundamental_flaw bool; a fundamental flaw discards
+DETERMINISTICALLY (Python, not prompt hope); (4) observation review — same
+bounded refs plus journal leads (the ONE review unit receiving memory,
+leads-not-facts frame preserved); (5) simulation review — step-wise mental
+simulation + failure scenarios; (6) recurrent/tournament review — INERT
+SEAM (None-defaulted tournament_state; no model call when None; raises on
+non-None rather than silently ignoring it — same pattern as
+meta_review_feedback). Evidence: stage1/reflection_reviews.json (initial
+verdicts, per-hypothesis retrieval records incl. per-source errors, all
+review outputs, both discard lists, final reflections). Smoke run
+reflect6smoke-20260707T010004Z (full Stage 1, ~58 min wall, 40 Sonnet
+calls all attempts=1 + 9 web-search Haiku calls, zero RE-ASK, Sonnet fence
+40/40, ZERO Opus calls — ranking was trivial): 10 generated → 8 passed
+initial review (h6/h8 discarded citing benchmark contradictions) → 7 of 8
+discarded at deep verification (fundamental_flaw=true, each naming
+specific physics) → 1 reflected → 1 survived filter → k=1 trivial ranking
+→ delivered object {domain, hypotheses, hypotheses_ranked} intact: the
+pipeline CLOSES over chunk-2's Generation. Novelty-check inspection
+(h5/h1/h3): verdicts genuinely grounded — each rationale names what the
+cited refs do and do not establish (e.g. h5: benchmarks tabulate ψ extrema
+but no log-log β fit exists); web records did the heavy lifting, corpus
+contributed, but per-hypothesis arXiv retrieval returned OFF-TOPIC noise
+(full-sentence statements as all:-queries matched CMS/ATLAS/IceCube
+papers; the models correctly never cited them), and S2 contributed ZERO
+the entire run — 429s plus a NEWLY WITNESSED failure shape: zero-hit S2
+replies omit 'data' entirely (keys [offset, total]), so the wrapper
+reports legitimate no-results as an error (retrieval/ was frozen this
+chunk; needs a ruling). Honest asterisks: deep verification is
+aggressively lethal (7/8 discarded) — whether those are true fundamental
+flaws or systematic over-triggering is the open watch, and it left k=1 so
+Ranking had nothing to judge; the arXiv noise strengthens the OpenAlex
+case; per-run cost grew to 49 model calls (the initial gate saved ~8
+Sonnet calls + 2 retrieval rounds by discarding 2 of 10); the two
+per-process transcript counters now interleave at scale (9 web + 40
+model_call in one run dir). 146/146 tests; pip fingerprint identical;
+58/60 Step-16 checksums OK (drift exactly CLAUDE.md + stage1_ideation.py).
+NOT a step close — no checksum snapshot, no commit. Chunk 4 next, scope
+not guessed here.
