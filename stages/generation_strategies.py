@@ -50,9 +50,10 @@ from scholar_search import search_arxiv, search_semantic_scholar  # noqa: E402
 from search import search_index  # noqa: E402
 from web_search import web_search  # noqa: E402
 
-# Same value as stage1_ideation.SONNET_MODEL (importing it from there would
-# be circular — stage1_ideation imports this module).
-SONNET_MODEL = "claude-sonnet-4-6"
+# Step 18.7 downgrade: all four Generation strategies run on Haiku (the
+# Sonnet proving batch locked the baseline; the kill-rate/k battery is the
+# quality signal for this move).
+HAIKU_MODEL = "claude-haiku-4-5-20251001"
 
 TOP_K_PER_SOURCE = 3
 
@@ -286,7 +287,7 @@ def strategy_literature_exploration(
         LITERATURE_SYSTEM_PROMPT,
         stage_input,
         {"required": ["ack_run_id", "hypotheses"]},
-        model=SONNET_MODEL,
+        model=HAIKU_MODEL,
         extra_validator=validator,
     )
     _check_ack(data, run_id, "literature_exploration")
@@ -346,7 +347,7 @@ def strategy_simulated_debate(
             DEBATE_SYSTEM_PROMPT,
             stage_input,
             {"required": ["ack_run_id", "argument", "hypothesis"]},
-            model=SONNET_MODEL,
+            model=HAIKU_MODEL,
             extra_validator=validator,
         )
         _check_ack(data, run_id, f"simulated_debate turn {turn}")
@@ -400,7 +401,7 @@ def strategy_assumptions_identification(
         ASSUMPTIONS_IDENTIFY_SYSTEM_PROMPT,
         {"run_id": run_id, "domain": domain},
         {"required": ["ack_run_id", "assumptions"]},
-        model=SONNET_MODEL,
+        model=HAIKU_MODEL,
         extra_validator=identify_validator,
     )
     _check_ack(identify_data, run_id, "assumptions_identify")
@@ -441,7 +442,7 @@ def strategy_assumptions_identification(
         ASSUMPTIONS_AGGREGATE_SYSTEM_PROMPT,
         {"run_id": run_id, "domain": domain, "assumptions": numbered},
         {"required": ["ack_run_id", "hypotheses"]},
-        model=SONNET_MODEL,
+        model=HAIKU_MODEL,
         extra_validator=aggregate_validator,
     )
     _check_ack(aggregate_data, run_id, "assumptions_aggregate")
@@ -515,7 +516,7 @@ def strategy_research_expansion(
         EXPANSION_SYSTEM_PROMPT,
         stage_input,
         {"required": ["ack_run_id", "hypotheses"]},
-        model=SONNET_MODEL,
+        model=HAIKU_MODEL,
         extra_validator=validator,
     )
     _check_ack(data, run_id, "research_expansion")

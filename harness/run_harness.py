@@ -89,6 +89,25 @@ def _format_calls(calls: dict) -> str:
     return f"{doors} total={calls['total']}"
 
 
+def format_reject_line(stages: dict) -> str:
+    """The per-run REJECT line (Step 18.7 chunk 1): per-stage
+    {calls, rejects, reject_rate} plus the total row, from cost_meter's
+    "stages" section. A stage with zero calls this run does not appear
+    (the meter only holds stages that fired); web_search calls carry no
+    stage_name and are deliberately absent — door-only, as always."""
+    per_stage = " ".join(
+        f"{stage}: calls={v['calls']} rejects={v['rejects']} rate={v['reject_rate']}"
+        for stage, v in stages.items()
+        if stage != "total"
+    )
+    total = stages["total"]
+    return (
+        "REJECTS (schema/validator re-asks): "
+        + (per_stage + " | " if per_stage else "(no stage-attributed calls) ")
+        + f"TOTAL calls={total['calls']} rejects={total['rejects']} rate={total['reject_rate']}"
+    )
+
+
 def print_battery_report(report: dict) -> None:
     battery = report["battery"]
     print()
@@ -161,6 +180,7 @@ def print_cost_report(report: dict) -> None:
         f"wall_time_seconds={totals['wall_time_seconds']}"
     )
     print(f"    tokens: {json.dumps(totals['tokens'])}")
+    print(f"  {format_reject_line(totals['stage_rejects'])}")
     activity = report["ledger_activity"]
     print(
         f"  LEDGER ACTIVITY this run: fidelity_entries={activity['fidelity_entries']} "
@@ -250,6 +270,7 @@ def run_harness(mode: str) -> int:
             "model_calls": final_meter["model_calls"],
             "attempts": final_meter["attempts"],
             "tokens": final_meter["tokens"],
+            "stage_rejects": final_meter["stages"],
             "wall_time_seconds": round(total_wall, 3),
         },
         "ledger_activity": {

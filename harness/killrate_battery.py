@@ -89,10 +89,10 @@ def current_model_pins() -> dict:
     from stages import generation_strategies, reflection_reviews, stage1_ideation
 
     return {
-        "stage1_ideation.SONNET_MODEL": stage1_ideation.SONNET_MODEL,
         "stage1_ideation.OPUS_MODEL": stage1_ideation.OPUS_MODEL,
-        "generation_strategies.SONNET_MODEL": generation_strategies.SONNET_MODEL,
-        "reflection_reviews.SONNET_MODEL": reflection_reviews.SONNET_MODEL,
+        "generation_strategies.HAIKU_MODEL": generation_strategies.HAIKU_MODEL,
+        "reflection_reviews.HAIKU_MODEL": reflection_reviews.HAIKU_MODEL,
+        "reflection_reviews.DEEP_VERIFY_MODEL": reflection_reviews.DEEP_VERIFY_MODEL,
         "web_search.HAIKU_MODEL": web_search.HAIKU_MODEL,
         "model_call.HAIKU_MODEL_default": model_call.HAIKU_MODEL,
     }
@@ -120,6 +120,7 @@ def _meter_totals() -> dict:
     return {
         "model_calls": dict(m["model_calls"]),
         "attempts": dict(m["attempts"]),
+        "stages": {stage: dict(stats) for stage, stats in m["stages"].items()},
     }
 
 
@@ -131,6 +132,34 @@ def _delta(after: dict, before: dict) -> dict:
         }
         for section in ("model_calls", "attempts")
     }
+
+
+def _stage_reject_delta(after: dict, before: dict) -> dict:
+    """Per-stage {calls, rejects, reject_rate} for ONE run (Step 18.7
+    chunk 1): the difference between two cost_meter "stages" snapshots,
+    with the rate computed on the delta. Stages with zero activity in the
+    window do not appear; a "total" row always does."""
+    out: dict[str, dict] = {}
+    total_calls = total_rejects = 0
+    for stage in sorted(set(after) | set(before)):
+        if stage == "total":
+            continue
+        calls = after.get(stage, {}).get("calls", 0) - before.get(stage, {}).get("calls", 0)
+        rejects = after.get(stage, {}).get("rejects", 0) - before.get(stage, {}).get("rejects", 0)
+        total_calls += calls
+        total_rejects += rejects
+        if calls or rejects:
+            out[stage] = {
+                "calls": calls,
+                "rejects": rejects,
+                "reject_rate": round(rejects / calls, 3) if calls else 0.0,
+            }
+    out["total"] = {
+        "calls": total_calls,
+        "rejects": total_rejects,
+        "reject_rate": round(total_rejects / total_calls, 3) if total_calls else 0.0,
+    }
+    return out
 
 
 def _launch_one(slot: str, domain: str) -> dict:
@@ -167,6 +196,7 @@ def _launch_one(slot: str, domain: str) -> dict:
     counted = survival_counter.count_run(run_dir)
     memory_md5 = _memory_md5(run_dir)
     comparable = memory_md5 == EXPECTED_MEMORY_MD5
+    meter_after = _meter_totals()
     record = {
         "run_id": run_id,
         "slot": slot,
@@ -174,7 +204,8 @@ def _launch_one(slot: str, domain: str) -> dict:
         "exception": exception_text,
         "memory_md5": memory_md5,
         "comparable": comparable,
-        "cost_delta": _delta(_meter_totals(), meter_before),
+        "cost_delta": _delta(meter_after, meter_before),
+        "reject_stats": _stage_reject_delta(meter_after["stages"], meter_before["stages"]),
         **{k: counted[k] for k in (
             "status", "k", "k_reason",
             "initial_survivor_count", "deep_verify_discards",
@@ -290,6 +321,7 @@ def run_battery(repeats: int) -> int:
             "model_calls": meter["model_calls"],
             "attempts": meter["attempts"],
             "tokens": meter["tokens"],
+            "stage_rejects": meter["stages"],
             "wall_time_seconds": total_wall,
         },
         "ledger_activity": {
@@ -312,6 +344,9 @@ def run_battery(repeats: int) -> int:
     totals = report["totals"]
     calls = " ".join(f"{k}={v}" for k, v in totals["model_calls"].items())
     print(f"TOTAL COST: model_calls {calls} | wall_time_seconds={totals['wall_time_seconds']}")
+    from harness.run_harness import format_reject_line  # lazy: mirrors run_harness's lazy import of this module
+
+    print(format_reject_line(totals["stage_rejects"]))
     activity = report["ledger_activity"]
     print(f"LEDGER ACTIVITY this battery: fidelity_entries={activity['fidelity_entries']} "
           f"override_entries={activity['override_entries']}"

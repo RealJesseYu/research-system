@@ -61,7 +61,6 @@ from model_call import call_stage_model, log_stage_call
 from stages.generation_strategies import generate_candidate_pool
 from stages.reflection_reviews import reflect_on_pool
 
-SONNET_MODEL = "claude-sonnet-4-6"
 OPUS_MODEL = "claude-opus-4-8"
 
 RANKING_SYSTEM_PROMPT = (

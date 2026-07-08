@@ -281,6 +281,9 @@ def call_stage_model(
             )
 
         reply = _transport_with_retry(stage_name, stage_input, system_prompt, user_turn, model)
+        # Step 18.7: attribute this COMPLETED call to its stage (the door-level
+        # record_call cannot see stage_name). Observation only.
+        cost_meter.record_stage_call(stage_name)
 
         text, fence_stripped = strip_fence(reply)
         if fence_stripped:
@@ -299,7 +302,10 @@ def call_stage_model(
             last_error = f"{e} (raw reply: {reply!r})"
             if attempt < MAX_ATTEMPTS:
                 # A re-ask is now certain: persist the correction verbatim so a
-                # success-after-re-ask still leaves a recoverable record.
+                # success-after-re-ask still leaves a recoverable record, and
+                # count the REJECT into the stage-keyed meter (Step 18.7 —
+                # observation only; the loop's behavior is unchanged).
+                cost_meter.record_reject(stage_name)
                 _log_reask(stage_name, stage_input, attempt, last_error)
             continue
 

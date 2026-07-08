@@ -32,12 +32,21 @@ _calls: dict[str, int] = {}
 _attempts: dict[str, int] = {}
 _tokens: dict[str, dict[str, int]] = {}
 
+# Step 18.7 chunk 1: per-STAGE attribution, model_call door only. The door
+# counters above are per-door and cannot see stage_name; call_stage_model
+# can, and reports every COMPLETED call and every schema/validator REJECT
+# here. web_search calls carry no stage_name and stay door-only, by design.
+_stage_calls: dict[str, int] = {}
+_stage_rejects: dict[str, int] = {}
+
 
 def reset() -> None:
     """Zero the meter. Called at the start of each harness run."""
     _calls.clear()
     _attempts.clear()
     _tokens.clear()
+    _stage_calls.clear()
+    _stage_rejects.clear()
 
 
 def record_attempt(source: str) -> None:
@@ -70,10 +79,44 @@ def record_call(source: str, usage: Optional[Any] = None) -> None:
                 bucket[key] = bucket.get(key, 0) + value
 
 
+def record_stage_call(stage_name: str) -> None:
+    """Attribute one COMPLETED model_call-door call to `stage_name`.
+
+    Step 18.7 chunk 1: fired by call_stage_model immediately after the
+    transport returns a completed reply — the one point where both the
+    completion and the stage are known. Gives reject-RATE a denominator
+    (rejects/calls per stage), not just a raw reject count.
+    """
+    _stage_calls[stage_name] = _stage_calls.get(stage_name, 0) + 1
+
+
+def record_reject(stage_name: str) -> None:
+    """Record one REJECT for `stage_name`: a completed call whose output
+    failed schema or extra_validator and is being re-asked.
+
+    Step 18.7 chunk 1: fired by call_stage_model at the re-ask point,
+    alongside the durable RE-ASK line. Distinct from a TRANSPORT attempt
+    that raised mid-stream (those never reach validation and are already
+    visible as the attempts-minus-calls gap); a reject is a new completed
+    call, invisible in that gap — which is exactly why this counter exists.
+    """
+    _stage_rejects[stage_name] = _stage_rejects.get(stage_name, 0) + 1
+
+
+def _stage_stats(calls: int, rejects: int) -> dict:
+    return {
+        "calls": calls,
+        "rejects": rejects,
+        "reject_rate": round(rejects / calls, 3) if calls else 0.0,
+    }
+
+
 def read() -> dict:
     """Snapshot the meter: per-door call counts + combined total, per-door
     ATTEMPT counts (recorded before each SDK call fires) + combined total,
-    and per-door token-field sums + a combined per-field total.
+    per-door token-field sums + a combined per-field total, and per-STAGE
+    {calls, rejects, reject_rate} + a "total" row (Step 18.7 chunk 1; a
+    stage with zero calls this run simply does not appear).
 
     Returns a plain dict copy — callers can diff two snapshots for a
     per-case delta without touching the live counters.
@@ -99,8 +142,17 @@ def read() -> dict:
             combined[field] = combined.get(field, 0) + value
     tokens_report["total"] = combined
 
+    stages_report: dict[str, dict] = {
+        stage: _stage_stats(_stage_calls.get(stage, 0), _stage_rejects.get(stage, 0))
+        for stage in sorted(set(_stage_calls) | set(_stage_rejects))
+    }
+    stages_report["total"] = _stage_stats(
+        sum(_stage_calls.values()), sum(_stage_rejects.values())
+    )
+
     return {
         "model_calls": calls_report,
         "attempts": attempts_report,
         "tokens": tokens_report,
+        "stages": stages_report,
     }

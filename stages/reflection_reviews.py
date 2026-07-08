@@ -75,9 +75,12 @@ from scholar_search import search_arxiv, search_semantic_scholar  # noqa: E402
 from search import search_index  # noqa: E402
 from web_search import web_search  # noqa: E402
 
-# Same value as stage1_ideation.SONNET_MODEL (importing it from there would
-# be circular — stage1_ideation imports this module).
-SONNET_MODEL = "claude-sonnet-4-6"
+# Step 18.7 downgrade: initial/full/observation/simulation reviews run on
+# Haiku; deep verification stays on Sonnet — it feeds a DETERMINISTIC discard
+# with no judgment net downstream, so downgrading it is deferred to its own
+# watched move (see DEEP_VERIFY_MODEL at its sole use site).
+HAIKU_MODEL = "claude-haiku-4-5-20251001"
+DEEP_VERIFY_MODEL = "claude-sonnet-4-6"
 
 TOP_K_PER_SOURCE = 3
 
@@ -340,7 +343,7 @@ def initial_review(run_id: str, domain: str, hypotheses: list[dict]) -> list[dic
             ],
         },
         {"required": ["ack_run_id", "reviews"]},
-        model=SONNET_MODEL,
+        model=HAIKU_MODEL,
         extra_validator=validator,
     )
     _check_ack(data, run_id, "initial_review")
@@ -408,7 +411,7 @@ def full_review(run_id: str, domain: str, hypothesis: dict, refs: list[dict]) ->
             ],
             "enums": {"novelty": ["novel", "known"]},
         },
-        model=SONNET_MODEL,
+        model=HAIKU_MODEL,
         extra_validator=validator,
     )
     _check_ack(data, run_id, f"full_review {hypothesis['id']}")
@@ -475,7 +478,7 @@ def deep_verification_review(run_id: str, domain: str, hypothesis: dict) -> dict
         },
         {"required": ["ack_run_id", "hypothesis_id", "assumptions",
                       "invalidating_elements", "fundamental_flaw", "summary"]},
-        model=SONNET_MODEL,
+        model=DEEP_VERIFY_MODEL,
         extra_validator=validator,
     )
     _check_ack(data, run_id, f"deep_verification {hypothesis['id']}")
@@ -531,7 +534,7 @@ def observation_review(
                          "accounts_for", "assessment"],
             "enums": {"accounts_for": ["yes", "partially", "no"]},
         },
-        model=SONNET_MODEL,
+        model=HAIKU_MODEL,
         extra_validator=validator,
     )
     _check_ack(data, run_id, f"observation_review {hypothesis['id']}")
@@ -579,7 +582,7 @@ def simulation_review(run_id: str, domain: str, hypothesis: dict) -> dict:
         },
         {"required": ["ack_run_id", "hypothesis_id", "mental_simulation",
                       "failure_scenarios", "assessment"]},
-        model=SONNET_MODEL,
+        model=HAIKU_MODEL,
         extra_validator=validator,
     )
     _check_ack(data, run_id, f"simulation_review {hypothesis['id']}")
