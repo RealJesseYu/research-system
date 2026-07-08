@@ -33,6 +33,7 @@ import json
 from pathlib import Path
 
 from baton import Baton
+from memory.ledgers import fidelity_append
 from model_call import call_stage_model, log_stage_call
 from substrates import CAVITY_2D_CONTRACT
 
@@ -93,6 +94,21 @@ def _validate_verdict(parsed: dict) -> list[str]:
     return errors
 
 
+def _contract_substrate_name(contract_text: str) -> str | None:
+    """Read the substrate's name off the contract's own header line
+    ("SUBSTRATE CONTRACT: <name>"). Pure function, no I/O; returns None if
+    the header isn't there. Stage code stays substrate-agnostic: the name is
+    data read from the contract it was handed, never hardcoded or branched
+    on — it goes into the fidelity ledger, not into stage logic.
+    """
+    first_line = contract_text.strip().splitlines()[0] if contract_text.strip() else ""
+    prefix = "SUBSTRATE CONTRACT:"
+    if first_line.startswith(prefix):
+        name = first_line[len(prefix):].strip()
+        return name or None
+    return None
+
+
 def _log_line(run_id: str, line: str) -> None:
     """Append one line to runs/<run_id>/log.txt (same path rule as log_stage_call)."""
     print(line)
@@ -130,6 +146,17 @@ def run(baton: Baton) -> Baton:
     stage_dir = Path("runs") / baton.run_id / "stage3"
     stage_dir.mkdir(parents=True, exist_ok=True)
     (stage_dir / "verdict.json").write_text(json.dumps(verdict, indent=2))
+
+    # Step 16.6 chunk 2: observing hook — one fidelity-ledger entry per
+    # rendered verdict. The rationale is already the gate's one-sentence
+    # summary (summarize-at-the-source); outcome stays null until Step 21.
+    # Purely observational: nothing about the returned baton changes.
+    fidelity_append(
+        run_id=baton.run_id,
+        verdict=verdict["label"],
+        substrate=_contract_substrate_name(CAVITY_2D_CONTRACT),
+        rationale=verdict["rationale"],
+    )
 
     rationale = verdict["rationale"].strip()
     excerpt = rationale if len(rationale) <= 100 else rationale[:100].rstrip() + "…"

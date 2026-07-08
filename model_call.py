@@ -22,7 +22,9 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, TextBlock, query
+from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage, TextBlock, query
+
+import cost_meter
 
 HAIKU_MODEL = "claude-haiku-4-5-20251001"
 
@@ -63,6 +65,9 @@ def validate_schema(data: Any, schema: dict) -> None:
 
 async def _ask_once(system_prompt: str, user_turn: str, model: str) -> str:
     """Send exactly one isolated, tool-free turn to `model` and return its raw text reply."""
+    # Step 16.6 chunk 2: record the ATTEMPT before the SDK call fires, so a
+    # transport failure mid-stream still leaves a trace in the meter.
+    cost_meter.record_attempt("model_call")
     options = ClaudeAgentOptions(
         model=model,
         system_prompt=system_prompt,
@@ -72,11 +77,18 @@ async def _ask_once(system_prompt: str, user_turn: str, model: str) -> str:
         max_turns=1,
     )
     parts: list[str] = []
+    result_usage = None
     async for message in query(prompt=user_turn, options=options):
         if isinstance(message, AssistantMessage):
             for block in message.content:
                 if isinstance(block, TextBlock):
                     parts.append(block.text)
+        elif isinstance(message, ResultMessage):
+            result_usage = message.usage
+    # Step 16.6: the ONE observing touch at this door — count the completed
+    # call (+ SDK-reported usage) into the shared cost meter. Observation
+    # only; the return value is untouched.
+    cost_meter.record_call("model_call", result_usage)
     return "".join(parts).strip()
 
 

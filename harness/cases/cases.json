@@ -1,0 +1,197 @@
+{
+  "_README": "Step 6 fidelity-gate test set. Each case has a prompt_inputs block (the ONLY thing Opus sees: the substrate's validated envelope + the experiment's regime) and an answer_key block (hidden from Opus). Primary score = trust/refine/defer vs answer_key.true_label. Routing = did Opus name the right instrument (answer_key.right_instrument), judged by hand. Cases 13-16 are boundary cases: they LOOK like one zone and are actually another. Cases 1,4,6,13,16 are fluids cases the builder personally vouches for.",
+  "cases": [
+    {
+      "id": 1,
+      "prompt_inputs": {
+        "substrate": "OpenFOAM, icoFoam solver (incompressible, laminar).",
+        "envelope": "Validated for laminar incompressible flow, roughly Re < 2000 for internal flows. No turbulence model.",
+        "experiment": "Lid-driven cavity, Re = 100. Predict steady-state velocity field."
+      },
+      "answer_key": {
+        "true_label": "trust",
+        "right_instrument": "CFD solver (icoFoam)"
+      }
+    },
+    {
+      "id": 2,
+      "prompt_inputs": {
+        "substrate": "Materials Project database (DFT-computed properties).",
+        "envelope": "Contains computed formation energies, band gaps, elastic moduli for ~150k known inorganic crystals. A lookup, not a prediction.",
+        "experiment": "Retrieve the bulk modulus of crystalline silicon."
+      },
+      "answer_key": {
+        "true_label": "trust",
+        "right_instrument": "Database lookup (Materials Project)"
+      }
+    },
+    {
+      "id": 3,
+      "prompt_inputs": {
+        "substrate": "ngspice circuit simulator.",
+        "envelope": "Validated for lumped-element analog circuits within device model ranges.",
+        "experiment": "Predict the -3dB cutoff frequency of a passive RC low-pass filter, R=1k, C=100nF."
+      },
+      "answer_key": {
+        "true_label": "trust",
+        "right_instrument": "Circuit simulator (ngspice)"
+      }
+    },
+    {
+      "id": 4,
+      "prompt_inputs": {
+        "substrate": "OpenFOAM, simpleFoam (steady RANS, k-omega SST turbulence model).",
+        "envelope": "Validated for attached and mildly separated turbulent flows; RANS degrades as separation grows.",
+        "experiment": "Drag on a streamlined airfoil at 3 degrees angle of attack, Re = 6e6. Fully attached flow."
+      },
+      "answer_key": {
+        "true_label": "refine",
+        "right_instrument": "CFD solver (simpleFoam)"
+      }
+    },
+    {
+      "id": 5,
+      "prompt_inputs": {
+        "substrate": "AlphaFold2 structure predictor.",
+        "envelope": "Predicts 3D structure from sequence; per-residue pLDDT confidence. Strong for single globular domains with homologs.",
+        "experiment": "Predict the folded structure of a 300-residue single-domain enzyme with many known homologs."
+      },
+      "answer_key": {
+        "true_label": "refine",
+        "right_instrument": "ML predictor (AlphaFold)"
+      }
+    },
+    {
+      "id": 6,
+      "prompt_inputs": {
+        "substrate": "OpenFOAM, icoFoam solver (incompressible, laminar).",
+        "envelope": "Validated for laminar incompressible flow, roughly Re < 2000 internal. No turbulence model.",
+        "experiment": "Flow in a pipe at Re = 40000. Predict pressure drop."
+      },
+      "answer_key": {
+        "true_label": "defer",
+        "right_instrument": "A turbulent solver (e.g. simpleFoam), NOT icoFoam"
+      }
+    },
+    {
+      "id": 7,
+      "prompt_inputs": {
+        "substrate": "Any first-principles simulation substrate available (CFD/FEA/MD/DFT/circuits).",
+        "envelope": "Physics solvers model physical systems from governing equations.",
+        "experiment": "Will this new antiviral drug be safe and effective in humans?"
+      },
+      "answer_key": {
+        "true_label": "defer",
+        "right_instrument": "None — route to a human / real clinical experiment"
+      }
+    },
+    {
+      "id": 8,
+      "prompt_inputs": {
+        "substrate": "Materials Project database + DFT.",
+        "envelope": "DFT computes ground-state electronic properties well; notoriously underestimates band gaps and does not model high-Tc superconductivity.",
+        "experiment": "Predict the superconducting critical temperature (Tc) of a newly proposed cuprate compound."
+      },
+      "answer_key": {
+        "true_label": "defer",
+        "right_instrument": "None — no working theory; route to a real experiment"
+      }
+    },
+    {
+      "id": 9,
+      "prompt_inputs": {
+        "substrate": "FEA structural solver (CalculiX), linear elastic.",
+        "envelope": "Validated for small-strain linear-elastic response of standard metals below yield.",
+        "experiment": "Peak stress in a steel mounting bracket under a 500 N static load, well below yield."
+      },
+      "answer_key": {
+        "true_label": "trust",
+        "right_instrument": "FEA solver (CalculiX)"
+      }
+    },
+    {
+      "id": 10,
+      "prompt_inputs": {
+        "substrate": "Global weather forecast model.",
+        "envelope": "Skillful to roughly one week; skill decays with lead time; chaotic system.",
+        "experiment": "Forecast the temperature in Chicago 4 days from now."
+      },
+      "answer_key": {
+        "true_label": "refine",
+        "right_instrument": "Weather model"
+      }
+    },
+    {
+      "id": 11,
+      "prompt_inputs": {
+        "substrate": "LAMMPS molecular dynamics with a validated embedded-atom potential for copper.",
+        "envelope": "Validated for bulk mechanical/thermal behavior of the specific metals the potential was fit to.",
+        "experiment": "Compute the thermal expansion coefficient of bulk crystalline copper at 300K using the validated Cu potential."
+      },
+      "answer_key": {
+        "true_label": "trust",
+        "right_instrument": "MD solver (LAMMPS)"
+      }
+    },
+    {
+      "id": 12,
+      "prompt_inputs": {
+        "substrate": "First-principles physics solvers generally.",
+        "envelope": "Model physical systems from governing equations.",
+        "experiment": "Will consumers prefer the taste of this reformulated cola over the original?"
+      },
+      "answer_key": {
+        "true_label": "defer",
+        "right_instrument": "None — human sensory panel / real test"
+      }
+    },
+    {
+      "id": 13,
+      "prompt_inputs": {
+        "substrate": "OpenFOAM, icoFoam solver (incompressible, laminar).",
+        "envelope": "Validated for laminar incompressible flow, roughly Re < 2000 internal. No turbulence model.",
+        "experiment": "Flow through a channel at Re = 1900. Predict the velocity profile."
+      },
+      "answer_key": {
+        "true_label": "refine",
+        "right_instrument": "CFD solver (icoFoam) as a laminar screen; confirm near-transition result against a transition-capable method or physical test"
+      }
+    },
+    {
+      "id": 14,
+      "prompt_inputs": {
+        "substrate": "Materials Project database (DFT-computed properties of known crystals).",
+        "envelope": "Fast, reliable lookup of computed properties for catalogued inorganic crystals.",
+        "experiment": "Look up the fatigue life of a welded steel joint in a bridge subjected to 20 years of traffic loading."
+      },
+      "answer_key": {
+        "true_label": "defer",
+        "right_instrument": "None via this substrate — fatigue of a specific real weld is not a crystal-property lookup"
+      }
+    },
+    {
+      "id": 15,
+      "prompt_inputs": {
+        "substrate": "AlphaFold2 structure predictor.",
+        "envelope": "Predicts a single folded 3D structure from one sequence; pLDDT confidence per residue. Trained on folded single structures.",
+        "experiment": "Predict how an intrinsically disordered protein changes conformation when it binds three different partner proteins in sequence."
+      },
+      "answer_key": {
+        "true_label": "defer",
+        "right_instrument": "None via this substrate — outside what a single-structure predictor does"
+      }
+    },
+    {
+      "id": 16,
+      "prompt_inputs": {
+        "substrate": "OpenFOAM, simpleFoam (steady RANS, k-omega SST turbulence model).",
+        "envelope": "Validated for attached and mildly separated turbulent flows. RANS accuracy degrades badly in large separated/stalled regions; steady RANS cannot capture innately unsteady massive separation.",
+        "experiment": "Lift on an airfoil at 18 degrees angle of attack, deep in stall, with massive flow separation."
+      },
+      "answer_key": {
+        "true_label": "defer",
+        "right_instrument": "A higher-fidelity approach (LES/DES) or a wind tunnel — not steady RANS"
+      }
+    }
+  ]
+}

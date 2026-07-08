@@ -30,10 +30,21 @@ from __future__ import annotations
 
 import asyncio
 import json
+import sys
 import time
 from pathlib import Path
 
-from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, TextBlock, query
+from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage, TextBlock, query
+
+# Step 16.6: the shared cost meter lives at the project root; cost_meter is a
+# leaf module (imports nothing project-local), so this is NOT the layer
+# inversion importing model_call would be. The path insert mirrors the
+# stages/ convention and only matters when this file runs standalone.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
+import cost_meter  # noqa: E402
 
 HAIKU_MODEL = "claude-haiku-4-5-20251001"
 MAX_TURNS = 6  # enough turns to search and read before answering
@@ -94,6 +105,9 @@ def _strip_fence(reply: str) -> str:
 
 async def _search_once(system_prompt: str, user_turn: str) -> str:
     """One fresh-session Haiku call that may use ONLY the WebSearch tool."""
+    # Step 16.6 chunk 2: record the ATTEMPT before the SDK call fires, so a
+    # transport failure mid-stream still leaves a trace in the meter.
+    cost_meter.record_attempt("web_search")
     options = ClaudeAgentOptions(
         model=HAIKU_MODEL,
         system_prompt=system_prompt,
@@ -103,11 +117,18 @@ async def _search_once(system_prompt: str, user_turn: str) -> str:
         max_turns=MAX_TURNS,
     )
     parts: list[str] = []
+    result_usage = None
     async for message in query(prompt=user_turn, options=options):
         if isinstance(message, AssistantMessage):
             for block in message.content:
                 if isinstance(block, TextBlock):
                     parts.append(block.text)
+        elif isinstance(message, ResultMessage):
+            result_usage = message.usage
+    # Step 16.6: the ONE observing touch at this door — count the completed
+    # call (+ SDK-reported usage) into the shared cost meter. Observation
+    # only; the return value is untouched.
+    cost_meter.record_call("web_search", result_usage)
     # Interleaved text from pre-search turns would corrupt the JSON parse;
     # the final text block is the answer, so keep only the LAST JSON-looking
     # segment: take the last block that starts like an array once stripped.

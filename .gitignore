@@ -2,5 +2,7 @@ venv/
 runs/
 __pycache__/
 .DS_Store
-cases/
+/cases/
 .env
+harness/last_run.json
+harness/killrate_last_run.json

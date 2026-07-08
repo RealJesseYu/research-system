@@ -27,6 +27,7 @@ from pathlib import Path
 import schemas
 from baton import Baton
 from memory.journal import journal_append
+from memory.ledgers import override_append
 from stages import (
     stage1_ideation,
     stage2_experiment_design,
@@ -286,7 +287,21 @@ def run_gate(logger: Logger, baton: Baton, mode: str, gate_name: str) -> bool:
     answer = input(f"GATE {gate_name}: approve to continue [y] / stop [n]: ").strip().lower()
     logger.log(f"GATE {gate_name}: human answered {answer!r}")
 
-    if answer == "y":
+    # Step 16.6 chunk 2: observing hook — record the human's gate-2
+    # resolution in the override ledger. The system's own decision at this
+    # gate is what auto mode would do: approve. Reached only in human mode
+    # (auto returned above), so auto runs never write here. Control flow
+    # is untouched.
+    approved = answer == "y"
+    override_append(
+        run_id=baton.run_id,
+        gate=2,
+        system_decision="approve",
+        human_decision="approve" if approved else "halt",
+        did_override=not approved,
+    )
+
+    if approved:
         logger.log(f"GATE {gate_name}: approved, continuing")
         return True
     logger.log(f"GATE {gate_name}: not approved, halting")
@@ -340,6 +355,10 @@ def run_gate5(logger: Logger, baton: Baton, mode: str) -> tuple:
         "override [b=back_to_design, i=back_to_ideation, m=more_data, "
         "e=exit] / stop [n]: "
     )
+    # Step 16.6 chunk 2: observing hooks below — each human resolution of
+    # this gate writes one override-ledger entry (system's recommendation =
+    # the model's iterate decision). Auto mode returned above and never
+    # writes here. Control flow and return values are untouched.
     invalid_count = 0
     while invalid_count < MAX_GATE1_INVALID_ANSWERS:
         logger.log(f"GATE {gate_name}: prompting {prompt!r}")
@@ -347,10 +366,31 @@ def run_gate5(logger: Logger, baton: Baton, mode: str) -> tuple:
         logger.log(f"GATE {gate_name}: human answered {answer!r}")
         parsed = parse_gate5_decision(answer)
         if parsed[0] == "accept":
+            override_append(
+                run_id=baton.run_id,
+                gate=5,
+                system_decision=model_decision,
+                human_decision=model_decision,
+                did_override=False,
+            )
             return ("enact", model_decision, "accepted")
         if parsed[0] == "override":
+            override_append(
+                run_id=baton.run_id,
+                gate=5,
+                system_decision=model_decision,
+                human_decision=parsed[1],
+                did_override=True,
+            )
             return ("enact", parsed[1], "overridden")
         if parsed[0] == "halt":
+            override_append(
+                run_id=baton.run_id,
+                gate=5,
+                system_decision=model_decision,
+                human_decision="halt",
+                did_override=True,
+            )
             return ("halt",)
         invalid_count += 1
         logger.log(
@@ -359,6 +399,13 @@ def run_gate5(logger: Logger, baton: Baton, mode: str) -> tuple:
         )
 
     logger.log(f"GATE {gate_name}: {MAX_GATE1_INVALID_ANSWERS} invalid answers, halting")
+    override_append(
+        run_id=baton.run_id,
+        gate=5,
+        system_decision=model_decision,
+        human_decision=f"halt ({MAX_GATE1_INVALID_ANSWERS} invalid answers)",
+        did_override=True,
+    )
     return ("halt",)
 
 
@@ -403,6 +450,10 @@ def run_gate1(logger: Logger, baton: Baton, mode: str) -> tuple:
         logger.log(f"rank {rank}: {h['id']} — {h['statement']}")
     logger.log("--- end ranked hypotheses ---")
 
+    # Step 16.6 chunk 2: observing hooks below — each human resolution of
+    # this gate writes one override-ledger entry. The system's own decision
+    # at this gate is what auto mode would do: select rank 1. Auto mode
+    # returned above and never writes here. Control flow is untouched.
     invalid_count = 0
     while invalid_count < MAX_GATE1_INVALID_ANSWERS:
         prompt = f"GATE {gate_name}: pick 1..{k}, or n to stop: "
@@ -412,6 +463,19 @@ def run_gate1(logger: Logger, baton: Baton, mode: str) -> tuple:
 
         parsed = parse_gate1_selection(answer, k)
         if parsed[0] != "invalid":
+            if parsed[0] == "select":
+                human_decision = f"select rank {parsed[1]}"
+                did_override = parsed[1] != 1
+            else:  # ("halt",)
+                human_decision = "halt"
+                did_override = True
+            override_append(
+                run_id=baton.run_id,
+                gate=1,
+                system_decision="select rank 1",
+                human_decision=human_decision,
+                did_override=did_override,
+            )
             return parsed
         invalid_count += 1
         logger.log(
@@ -420,6 +484,13 @@ def run_gate1(logger: Logger, baton: Baton, mode: str) -> tuple:
         )
 
     logger.log(f"GATE {gate_name}: {MAX_GATE1_INVALID_ANSWERS} invalid answers, halting")
+    override_append(
+        run_id=baton.run_id,
+        gate=1,
+        system_decision="select rank 1",
+        human_decision=f"halt ({MAX_GATE1_INVALID_ANSWERS} invalid answers)",
+        did_override=True,
+    )
     return ("halt",)
 
 

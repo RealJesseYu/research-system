@@ -1,0 +1,261 @@
+{
+ "same1": {
+  "run_id": "diag4a-20260707T032231Z-same1",
+  "pool_size": 10,
+  "initial_survivors": 9,
+  "initial_discards": [
+   {
+    "id": "h3",
+    "verdict": "discard",
+    "reason": "Correctness failure: u(x) = U\u2080 sin(\u03c0x/L) is non-negative everywhere on x \u2208 [0, L], producing a unidirectional (though spatially non-uniform) lid drive that cannot directly generate two counter-rotating primary vortices, making the core topological claim physically unsound for the stated profile."
+   }
+  ],
+  "deepverify_discards": [
+   {
+    "id": "h4",
+    "statement": "In a cubical lid-driven cavity, the laminar primary vortex core radius (measured from steady 3D solutions) decreases as Re approaches the Hopf bifurcation point Re_c \u2248 1914, and this core-thinning metric\u2014extracted from s",
+    "reason": "The hypothesis rests on an unestablished monotonic core-thinning trend whose physical mechanism is contested, and its defining quantitative claim\u20145% accuracy in Re_c from three far-subcritical data points\u2014is unsupported because no theoretically justified extrapolation form exists to control the fitting error, making the surrogate-prediction framework fundamentally unreliable as stated."
+   },
+   {
+    "id": "h6",
+    "statement": "In a unit-aspect-ratio square lid-driven cavity, as Re is swept from 100 to 10,000, the primary vortex center migrates monotonically from the geometric upper-center toward the cavity centroid while simultaneously the cir",
+    "reason": "The hypothesis is fundamentally undermined by an ambiguous C_\u0393 definition that either makes the plateau claim trivially vacuous (full-boundary integral) or empirically premature at Re \u2248 400 (primary-vortex integral), and by extending the steady-flow analysis beyond the Hopf bifurcation into a regime where no stable 2-D steady solution exists."
+   },
+   {
+    "id": "h9",
+    "statement": "In a square cavity driven by two opposing walls moving at equal speeds in opposite directions (top wall at +U, bottom wall at \u2212U), the flow sustains two counter-rotating primary vortices of equal peak vorticity for Re \u2264 ",
+    "reason": "The hypothesis is fundamentally flawed because its core selection mechanism\u2014a 'stronger shear layer' pre-determining the dominant vortex\u2014is impossible under the perfectly symmetric \u00b1U forcing, and the claimed steady symmetry-breaking bifurcation in Re = 400\u2013700 contradicts the established (temporal, not steady) character of instability in anti-parallel two-sided lid-driven cavities."
+   },
+   {
+    "id": "h10",
+    "statement": "In a square single-lid-driven cavity solved at Re = 1 (creeping-flow limit) with sufficient near-corner grid resolution (at least five grid points within a distance of 0.001L from each bottom corner), the peak-vorticity ",
+    "reason": "The hypothesis is fundamentally flawed because its core quantitative benchmark (~356 as a peak-vorticity ratio) misidentifies Moffatt's stream function result as a vorticity result\u2014the true Stokes vorticity ratio for 90\u00b0 corners differs by ~40% from 356\u2014and the prescribed grid resolution is orders of magnitude too coarse to resolve the second Moffatt corner eddy, rendering both the Re = 1 validation and the Re = 400 comparison ill-posed."
+   }
+  ],
+  "final_reflections": [
+   {
+    "id": "h1",
+    "novelty": "novel",
+    "quality": 3
+   },
+   {
+    "id": "h2",
+    "novelty": "novel",
+    "quality": 3
+   },
+   {
+    "id": "h5",
+    "novelty": "novel",
+    "quality": 3
+   },
+   {
+    "id": "h7",
+    "novelty": "known",
+    "quality": 3
+   },
+   {
+    "id": "h8",
+    "novelty": "known",
+    "quality": 3
+   }
+  ],
+  "filter_survivors": [
+   "h1",
+   "h2",
+   "h5"
+  ],
+  "history_note": "generated 10 across 4 strategies, 9 passed initial review, 5 exited six-review reflection, 3 survived filter, ranked via 3 pairwise calls"
+ },
+ "same2": {
+  "run_id": "diag4a-20260707T055521Z-same2",
+  "pool_size": 10,
+  "initial_survivors": 9,
+  "initial_discards": [
+   {
+    "id": "h5",
+    "verdict": "discard",
+    "reason": "Novelty: the specific numerical predictions (vortex-center migration from y/L \u2248 0.76 to 0.56, stream-function minimum near-saturation, corner-vortex ratio rising to ~0.05 at Re=1000) essentially reproduce values already tabulated in the Ghia et al. benchmark and subsequent replication studies, making this a verification exercise rather than a novel hypothesis."
+   }
+  ],
+  "deepverify_discards": [
+   {
+    "id": "h1",
+    "statement": "In a 2D square laminar lid-driven cavity at Re = 1000, introducing a central square obstacle increases the palinstrophy-to-enstrophy ratio monotonically with obstacle aspect ratio (AR = 0 \u2192 0.6L), with the ratio rising s",
+    "reason": "The hypothesis makes two specific, physically ungrounded empirical claims \u2014 that P/E grows monotonically with AR and accelerates superlinearly at AR = 0.5L \u2014 neither of which follows from known lid-driven cavity physics, and either claim being false is sufficient to invalidate the proposed rotation-to-strain transition interpretation."
+   },
+   {
+    "id": "h2",
+    "statement": "In a 2D square lid-driven cavity for Re \u2208 [100, 2000], the distance of the primary vortex centroid from the geometric cavity centre follows a power-law decay Re^{-\u03b1} with \u03b1 \u2248 0.3\u20130.5 under a uniform lid velocity, and sub",
+    "reason": "While monotone centroid migration is well established, the claimed \u03b1 range of 0.3\u20130.5 is likely underestimated by roughly 0.1 based on Ghia et al. data, and the hypothesis's load-bearing comparative prediction \u2014 that sinusoidal lid velocity decreases \u03b1 \u2014 lacks physical justification and could plausibly be reversed, constituting a fundamental flaw in the core claim."
+   },
+   {
+    "id": "h3",
+    "statement": "The critical Reynolds number for the Andronov-Poincar\u00e9-Hopf bifurcation in a 3D cubical lid-driven cavity (Re_c \u2248 1914 in the unobstructed case) decreases by more than 10 % when a central square obstacle of AR = 0.4L is ",
+    "reason": "The hypothesis makes an unsubstantiated directional prediction\u2014that a large central obstacle necessarily lowers Re_c by amplifying centrifugal instability\u2014when obstructed-cavity physics permits Re_c to increase, decrease, or change bifurcation character depending on blockage topology, rendering the specific quantitative claim (>10% decrease) unsupported without direct DNS evidence."
+   },
+   {
+    "id": "h4",
+    "statement": "In a 2D lid-driven cavity at Re = 400, the circulation strength of secondary corner vortices relative to the primary vortex peaks at a cavity aspect ratio near height/length \u2248 1.5 for Newtonian flow, while viscoelastic f",
+    "reason": "The hypothesis is fundamentally flawed because its central universal claim\u2014viscoelastic secondary-vortex strength is strictly lower at every aspect ratio in [0.125, 4.0]\u2014is directly undermined by the elastic instabilities cited in its own rationale, which can enhance rather than suppress corner-vortex circulation at particular aspect ratios, and because the specific Newtonian peak at AR \u2248 1.5 lacks strong empirical grounding."
+   },
+   {
+    "id": "h6",
+    "statement": "In a square lid-driven cavity simulated over Re = 100\u20131000, the Re^(\u22121/2) contraction of the driven-lid shear-layer thickness and the monotonic migration of the primary vortex center toward the geometric center are gover",
+    "reason": "The hypothesis's central quantitative prediction\u2014an approximately constant ratio\u2014is systematically violated because vortex-center displacement scales as Re^(\u22120.57) rather than Re^(\u22120.50), and its mechanistic premise that the two phenomena share a single governing length scale is unsupported by theory and contradicted by the independent role of corner-eddy and side-wall dynamics in setting centroid position."
+   },
+   {
+    "id": "h7",
+    "statement": "The superlinear power-law exponent relating secondary corner-vortex circulation to primary vortex circulation will shift to a measurably larger value above Re = 400, where primary vorticity growth transitions from linear",
+    "reason": "The hypothesis rests on the false premise that primary vortex vorticity growth transitions from linear to sublinear at Re = 400; benchmark data show near-saturated, uniformly sublinear primary vortex growth across the full laminar range, eliminating the mechanistic basis for the predicted power-law exponent break in corner vortex circulation."
+   },
+   {
+    "id": "h8",
+    "statement": "A parametric lid-driven cavity simulation sweeping aspect ratio (H/W) from 1.0 to 4.0 at fixed Re = 400 will identify a sharp topological bifurcation near H/W \u2248 2.5 at which the number of streamfunction saddle points inc",
+    "reason": "The hypothesis correctly identifies that a topological bifurcation adding a second recirculation cell occurs in tall lid-driven cavities, but its core characterization of the resulting pair as co-rotating is physically wrong \u2014 adjacent stacked cells counter-rotate by the viscous-shear coupling mechanism \u2014 making the main claimed outcome of the bifurcation incorrect."
+   },
+   {
+    "id": "h9",
+    "statement": "In a 2D square lid-driven cavity at Re \u2208 {100, 400, 700, 1000}, the geometric ratio of successive bottom-corner Moffatt eddy stream-function extrema r = |\u03c8_{n+1}|/|\u03c8_n| increases monotonically above the Stokes-theory val",
+    "reason": "The hypothesis is fundamentally flawed because it misidentifies the Moffatt stream-function intensity ratio for a 90\u00b0 corner (citing ~0.36 when the eigenvalue-derived value is ~10^{\u22125}), inverts the known direction of inertial influence on corner eddies, and asserts a quantitative threshold (r > 0.50 at Re = 1000) contradicted by benchmark lid-driven cavity data."
+   },
+   {
+    "id": "h10",
+    "statement": "In a 2D square lid-driven cavity with a temporally oscillating lid velocity U(t) = U\u2080 sin(2\u03c0ft) at mean-flow Re = 400, a critical Strouhal number St_c = fL/U\u2080 in the range 0.10\u20130.30 separates a quasi-static regime (prima",
+    "reason": "The hypothesis is fundamentally flawed because the sinusoidal lid forcing U(t) = U\u2080 sin(2\u03c0ft) has zero time-mean, so by cavity symmetry the quasi-static time-mean centroid converges to the geometric center rather than to the steady-lid off-center position, invalidating the core regime-identification criterion and rendering the proposed experimental protocol unable to distinguish the two regimes as described."
+   }
+  ],
+  "final_reflections": [],
+  "filter_survivors": null,
+  "history_note": "NO BATON (failed)"
+ },
+ "same3": {
+  "run_id": "diag4a-20260707T070010Z-same3",
+  "pool_size": 10,
+  "initial_survivors": 8,
+  "initial_discards": [
+   {
+    "id": "h3",
+    "verdict": "discard",
+    "reason": "Novelty: the monotonic migration of the primary vortex center toward the cavity midpoint with increasing Re is a canonical result explicitly tabulated in the Ghia et al. 1982 benchmark, making this a restatement of a classic well-established finding."
+   },
+   {
+    "id": "h8",
+    "verdict": "discard",
+    "reason": "Correctness: stacked vortices in tall lid-driven cavities are counter-rotating (alternating sense) by established Moffatt-vortex physics, not co-rotating as claimed."
+   }
+  ],
+  "deepverify_discards": [
+   {
+    "id": "h4",
+    "statement": "In non-square 2D lid-driven cavities, the peak vorticity of the primary vortex at fixed Re = 400 scales non-monotonically with aspect ratio (height/length), reaching a local maximum near aspect ratio \u2248 1 and decreasing f",
+    "reason": "The hypothesis is fundamentally flawed because its tall-cavity prediction\u2014peak vorticity decreasing for AR > 2\u2014contradicts the physical expectation that the lid-proximate primary vortex decouples from the receding bottom wall and maintains or exceeds square-cavity peak vorticity, thereby eliminating the non-monotonic (unimodal) response on which the entire hypothesis rests."
+   },
+   {
+    "id": "h5",
+    "statement": "In steady laminar 2D lid-driven square cavity flow over Re \u2208 [100, 5000], the ratio of secondary-to-primary vortex strength measured by streamfunction extrema (|\u03c8_secondary|/|\u03c8_primary|) follows a power law Re^{\u2212\u03b1} with ",
+    "reason": "The hypothesis is fundamentally flawed because it predicts a decreasing ratio |\u03c8_secondary|/|\u03c8_primary| ~ Re^{\u22121}, whereas benchmark data unambiguously show this ratio increases with Re across [100, 5000], invalidating both the power-law direction and the underlying \u03b4\u00b2 physical mechanism."
+   },
+   {
+    "id": "h7",
+    "statement": "Bottom-corner secondary vortex circulation follows a power law \u0393_corner \u221d Re^\u03b1 (\u03b1 > 0) throughout the laminar steady regime Re \u2208 [100, 7000], and the exponent \u03b1 is large enough that corner-vortex circulation overtakes th",
+    "reason": "The hypothesis fails fundamentally because its core crossover prediction requires the primary vortex streamfunction minimum to plateau near Re \u2248 7400, but benchmark steady-state computations show |\u03c8_min| growing monotonically well past Re = 7000, removing the condition under which corner-vortex circulation could overtake the primary within the laminar regime."
+   },
+   {
+    "id": "h9",
+    "statement": "In a square 2D lid-driven cavity over the laminar steady regime Re \u2208 [100, 3000], the domain-integrated enstrophy E_\u03a9 = \u222c\u03c9\u00b2 dA scales as Re^\u03b2 with \u03b2 \u2208 (1.0, 2.0), and this global exponent strictly exceeds the local strea",
+    "reason": "The hypothesis is fundamentally flawed: the energy balance and boundary-layer area argument constrain \u03b2 \u2248 0.5, not \u03b2 \u2208 (1.0, 2.0), because the thinning boundary layer concentrates high vorticity into a shrinking area, exactly canceling the \u03c9\u00b2 growth and keeping enstrophy well below super-linear scaling in Re."
+   },
+   {
+    "id": "h10",
+    "statement": "At fixed Re = 1000 in a square 2D lid-driven cavity, replacing the standard discontinuous (uniform step-function) lid velocity with the regularized profile u_lid(x) = sin(\u03c0x/L) reduces |\u03c8_primary| by more than 15% and di",
+    "reason": "The hypothesis contains a fundamental flaw: the \u22654%-toward-center displacement claim is directionally uncertain because Re-dependence evidence associates lower effective driving with outward vortex-center migration, and the design cannot isolate corner-singularity effects from the confounded ~37% reduction in mean lid velocity, undermining both the mechanistic rationale and the validity of one of the two core quantitative predictions."
+   }
+  ],
+  "final_reflections": [
+   {
+    "id": "h1",
+    "novelty": "novel",
+    "quality": 3
+   },
+   {
+    "id": "h2",
+    "novelty": "novel",
+    "quality": 4
+   },
+   {
+    "id": "h6",
+    "novelty": "novel",
+    "quality": 3
+   }
+  ],
+  "filter_survivors": [
+   "h2",
+   "h1",
+   "h6"
+  ],
+  "history_note": "generated 10 across 4 strategies, 8 passed initial review, 3 exited six-review reflection, 3 survived filter, ranked via 3 pairwise calls"
+ },
+ "alt1": {
+  "run_id": "diag4a-20260707T080219Z-alt1",
+  "pool_size": 10,
+  "initial_survivors": 8,
+  "initial_discards": [
+   {
+    "id": "h7",
+    "verdict": "discard",
+    "reason": "Novelty: this is essentially a numerical verification of Moffatt's (1964) classical right-angle eigenvalue ratio in the Stokes limit, a result already well established theoretically and confirmed many times in cavity-flow simulations."
+   },
+   {
+    "id": "h8",
+    "verdict": "discard",
+    "reason": "Correctness: the lid-driven cavity flow is not left-right symmetric because the lid translates in one direction, so the bottom-left and bottom-right corner eddies are physically distinct (different sizes and strengths at all Re), making machine-precision mirror symmetry between them impossible and contradicting well-documented asymmetry in the literature."
+   }
+  ],
+  "deepverify_discards": [
+   {
+    "id": "h2",
+    "statement": "The cross-sectional area enclosed by the secondary bottom-corner eddy (measured from closed streamfunction contours) grows monotonically with Re below a stagnation Reynolds number at which the adverse pressure gradient o",
+    "reason": "The hypothesis's central and novel claim \u2014 that secondary eddy area plateaus at a discrete 'stagnation Reynolds number' before tertiary vortex nucleation \u2014 rests on an unestablished causal ordering and a mechanistic threshold concept unsupported by the lid-driven cavity literature, constituting a fundamental flaw that invalidates the hypothesis as stated even if the general observation of secondary eddy growth with Re is correct."
+   },
+   {
+    "id": "h3",
+    "statement": "Replacing the standard step-discontinuity lid velocity with a smoothed profile that removes the corner singularity will reduce the peak vorticity of secondary corner eddies by a measurable and Re-dependent fraction relat",
+    "reason": "The hypothesis is fundamentally flawed because the proposed metric (streamfunction extrema) does not measure peak vorticity and therefore cannot support the stated quantitative claim, and because the smoothed-lid perturbation confounds singularity removal with global profile-shape change, making causal attribution impossible without an additional extrapolation procedure."
+   },
+   {
+    "id": "h4",
+    "statement": "The peak vorticity magnitude of the primary downstream (bottom-right) corner eddy scales as a power law Re^\u03b1 with \u03b1 > 1 for 1,000 < Re < 10,000 in the steady laminar regime, but the exponent \u03b1 decreases significantly abo",
+    "reason": "The hypothesis is fundamentally flawed because it treats computationally-continued unstable steady-state solutions above the Hopf bifurcation (Re \u2248 7,400\u20138,000) as physically realized 'steady laminar' flow, which undermines both the empirical power-law claim and the enstrophy-redistribution mechanism that depends on it."
+   },
+   {
+    "id": "h5",
+    "statement": "In 2D laminar lid-driven square-cavity flow with a regularized (singularity-free) lid velocity, the Re-dependence of secondary corner eddies is characterized on meshes \u2265601\u00d7601 by simultaneously tracking (i) the peak str",
+    "reason": "The hypothesis contains a fundamental flaw: its central claim of discrete inertial corner-eddy bifurcations has no support in established theory or simulation literature for 2D lid-driven square-cavity flow, the proposed diagnostic criteria (Moffatt-ratio departure plus \u03b1 \u2260 1 power law) cannot in principle distinguish bifurcation from continuous amplification, and the Re sweep extends well above the Hopf bifurcation point where steady 2D solutions are physically unstable, collectively undermining both the existence claim and the measurement methodology."
+   },
+   {
+    "id": "h6",
+    "statement": "Secondary corner eddies in two-dimensional lid-driven cavity flow emerge at a sharp, bisection-localizable critical Reynolds number Re_c, above which the enclosed area of each bottom-corner eddy grows monotonically and c",
+    "reason": "The hypothesis is fundamentally flawed on two independent grounds: Moffatt's theory removes the premise of a finite bifurcation onset (making Re_c a resolution artifact, not a physical critical point), and the broken left-right symmetry of the cavity gives each bottom corner a different effective onset Re, so neither the bisection-localizable Re_c concept nor the shared 'each-corner' framing survives contact with established fluid-mechanics theory."
+   },
+   {
+    "id": "h9",
+    "statement": "The spatial centroid of each secondary bottom-corner eddy\u2014defined as the (x, y) location of the streamfunction extremum\u2014migrates continuously away from the geometric corner vertex toward the cavity interior as Re increas",
+    "reason": "The hypothesis is fundamentally flawed because its distinguishing quantitative claim\u2014a global power-law (Re \u2212 Re_c)^\u03b2 holding over [Re_c, 15,000] with \u03b2 \u2260 0.5\u2014has no theoretical basis beyond the bifurcation neighbourhood, the upper range lies above the Hopf bifurcation where steady laminar flow is physically unrealised, and non-monotonic centroid displacement at high Re further undermines the single-exponent description."
+   },
+   {
+    "id": "h10",
+    "statement": "In steady 2D lid-driven square-cavity flow over Re \u2208 [500, 10,000], the secondary eddies in the top-left and top-right corners (directly adjacent to the moving lid) exhibit a significantly steeper power-law Re-scaling ex",
+    "reason": "The hypothesis is fundamentally flawed because top-corner secondary eddies do not exist as well-defined, continuously trackable vortical structures at the low end of the stated Re range, the Re range extends into the unsteady regime where steady solutions are unstable, and the mechanistic rationale mischaracterizes the dominant forcing physics at moderate-to-high Re."
+   }
+  ],
+  "final_reflections": [
+   {
+    "id": "h1",
+    "novelty": "known",
+    "quality": 2
+   }
+  ],
+  "filter_survivors": null,
+  "history_note": "NO BATON (failed)"
+ }
+}

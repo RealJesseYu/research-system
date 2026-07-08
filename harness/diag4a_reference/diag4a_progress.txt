@@ -1,0 +1,15 @@
+START	diag4a-20260707T025810Z-same1	mean-flow structure and vortex strength in laminar lid-driven cavity flows
+DONE	diag4a-20260707T025810Z-same1	FAILED: RuntimeError: arXiv request failed with HTTP 429 and was not retried further. No results were returned — nothing was fabricated.	wall_s=209
+START	diag4a-20260707T030139Z-same2	mean-flow structure and vortex strength in laminar lid-driven cavity flows
+DONE	diag4a-20260707T030139Z-same2	FAILED: RuntimeError: arXiv was unreachable after 5 attempts (last error: The read operation timed out). No results were returned — nothing was fabricated.	wall_s=271
+START	diag4a-20260707T030610Z-same3	mean-flow structure and vortex strength in laminar lid-driven cavity flows
+START	diag4a-20260707T032231Z-same1	mean-flow structure and vortex strength in laminar lid-driven cavity flows
+DONE	diag4a-20260707T032231Z-same1	OK	wall_s=4134
+START	diag4a-20260707T043425Z-same2	mean-flow structure and vortex strength in laminar lid-driven cavity flows
+START	diag4a-20260707T052338Z-same2	mean-flow structure and vortex strength in laminar lid-driven cavity flows
+START	diag4a-20260707T055521Z-same2	mean-flow structure and vortex strength in laminar lid-driven cavity flows
+DONE	diag4a-20260707T055521Z-same2	FAILED: RuntimeError: stage1 reflection: all 10 candidates were discarded (1 at the initial review, 9 on fundamental flaws at deep verification). Zero reviewed hypotheses remain — this run halts here rather than continuing on a hypothesis nobody vetted.	wall_s=3708
+START	diag4a-20260707T070010Z-same3	mean-flow structure and vortex strength in laminar lid-driven cavity flows
+DONE	diag4a-20260707T070010Z-same3	OK	wall_s=3550
+START	diag4a-20260707T080219Z-alt1	secondary corner eddies and their dependence on Reynolds number in two-dimensional laminar lid-driven cavity flow
+DONE	diag4a-20260707T080219Z-alt1	FAILED: RuntimeError: stage1_ideation: all 1 hypotheses were judged 'known' against the literature. Zero survivors — there is no validated hypothesis to hand to experiment design, so this run halts here rather than continuing on a hypothesis nobody vetted as novel.	wall_s=3285

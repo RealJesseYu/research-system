@@ -1,0 +1,19 @@
+{
+  "_README": "Cost-routing trap case (Step 16.6 chunk 3). Fully developed laminar pipe flow has an exact closed-form answer (the Hagen-Poiseuille equation); the point of this case is ROUTING, not physics — a well-built gate must send it to the analytic tier, never to CFD, because burning solver time on a textbook formula is a cost failure even though CFD would return the right number. REGISTERED BUT NOT RUN: the battery lists it as SKIPPED with reason 'pending: analytic tier not built (Step 12)'. It executes nothing today; when the analytic tier exists, scoring is BOTH the label AND the routing (right_instrument must name the analytic solution, not CFD).",
+  "case": {
+    "id": "trap-hagen-poiseuille",
+    "prompt_inputs": {
+      "substrate": "Tiered instrument set: (a) analytic closed-form fluid-mechanics solutions; (b) OpenFOAM icoFoam CFD solver (incompressible, laminar).",
+      "envelope": "Analytic tier: exact where a closed-form solution exists (fully developed laminar duct flows, Stokes flows). CFD tier: validated for laminar incompressible flow, roughly Re < 2000 for internal flows.",
+      "experiment": "Pressure drop per unit length in fully developed laminar flow through a straight circular pipe, D = 10 mm, water, Re = 500."
+    },
+    "answer_key": {
+      "true_label": "trust",
+      "right_instrument": "Analytic solution (Hagen-Poiseuille equation) — exact for this flow; routing it to CFD would be pure wasted cost"
+    },
+    "skip": {
+      "status": "SKIPPED",
+      "reason": "pending: analytic tier not built (Step 12)"
+    }
+  }
+}
