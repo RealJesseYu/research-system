@@ -160,6 +160,16 @@ def print_battery_report(report: dict) -> None:
     print("=" * 61)
 
 
+def format_signals_line(signals: dict) -> str:
+    """The per-run SIGNALS line (Step 17-fix-A): warn-only instrumentation
+    counts from cost_meter's "signals" section — observations recorded by a
+    validator WITHOUT rejecting the reply. Deliberately separate from the
+    REJECTS line: a signal never triggers a re-ask and never enters any
+    reject_rate."""
+    body = " ".join(f"{tag}={count}" for tag, count in sorted(signals.items()))
+    return "SIGNALS (warn-only, never re-asked): " + (body if body else "(none)")
+
+
 def print_cost_report(report: dict) -> None:
     print()
     print("=" * 24 + " COST REPORT " + "=" * 24)
@@ -181,6 +191,7 @@ def print_cost_report(report: dict) -> None:
     )
     print(f"    tokens: {json.dumps(totals['tokens'])}")
     print(f"  {format_reject_line(totals['stage_rejects'])}")
+    print(f"  {format_signals_line(totals['signals'])}")
     activity = report["ledger_activity"]
     print(
         f"  LEDGER ACTIVITY this run: fidelity_entries={activity['fidelity_entries']} "
@@ -271,6 +282,7 @@ def run_harness(mode: str) -> int:
             "attempts": final_meter["attempts"],
             "tokens": final_meter["tokens"],
             "stage_rejects": final_meter["stages"],
+            "signals": final_meter["signals"],
             "wall_time_seconds": round(total_wall, 3),
         },
         "ledger_activity": {

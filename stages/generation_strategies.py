@@ -20,15 +20,18 @@ The four strategies (faithful to the Co-Scientist Generation agent):
      the None-defaulted meta_review_feedback parameter, unused for now.
 
 Discipline preserved:
-  - Every model call is Sonnet through call_stage_model (Generation is a
-    generative role, not a hard judgment) — same door, same isolation,
-    same bounded re-ask loop, same write-before-call transcripts.
+  - Every model call is Haiku through call_stage_model (Step 18.7
+    downgrade: Generation is volume work, not a hard judgment) — same
+    door, same isolation, same bounded re-ask loop, same
+    write-before-call transcripts.
   - Summarize-at-the-wrapper: only the retrieval tools' bounded records
     ever enter a model input; no raw tool output exists at this layer.
   - Live-search non-determinism is answered by evidence, not mechanism:
     every retrieved record a run used is saved verbatim under
     runs/<run_id>/stage1/ (retrieved_literature.json, debate.json,
-    assumptions.json, and the pooled generation.json).
+    assumptions.json, the pooled generation.json, and — Step 17-fix-A —
+    generation_number_signals.json, the warn-only record of unsupported
+    numeric literals in strategy 1's accepted hypotheses).
   - Journal-poison ruling: any memory content arrives already framed as
     leads-not-facts (MEMORY_HEADER, built by stage1_ideation) and is
     passed through unchanged — never elevated to fact here.
@@ -37,9 +40,12 @@ Discipline preserved:
 from __future__ import annotations
 
 import json
+import math
+import re
 import sys
 from pathlib import Path
 
+import cost_meter
 from model_call import call_stage_model, log_stage_call
 
 _RETRIEVAL_DIR = Path(__file__).resolve().parent.parent / "retrieval"
@@ -71,6 +77,67 @@ DEBATE_PERSONAS = (
 )
 DEBATE_TURNS = len(DEBATE_PERSONAS)  # hard cap: 3 turns, never more
 
+# Step 17-fix-A: shared no-invented-numbers instruction, appended to every
+# hypothesis-producing strategy prompt. The chunk-4a diagnostic showed
+# Generation inventing quantitative claims no retrieved snippet supports —
+# and those invented specifics are exactly what deep verification then
+# executes on.
+NO_INVENTED_NUMBERS_INSTRUCTION = (
+    "Do NOT state a specific numeric value (an exponent, threshold, ratio, percentage, or "
+    "dimensioned constant) unless that exact value appears in one of the provided literature "
+    "snippets and you cite its ref id. If you have no snippet for a number, express the "
+    "claim qualitatively or directionally (e.g. 'increases with', 'is smaller than') instead "
+    "of inventing a figure. A hypothesis with no supporting snippet must remain qualitative. "
+)
+
+# Loose numeric-literal extraction for strategy 1's WARN-ONLY scan (Step
+# 17-fix-A). Matches plain integers/decimals ("1914", "0.036"), scientific
+# notation ("1e-5", "3.6E-2"), and power-of-ten forms ("10^-5",
+# "3.6 x 10^-2", "3.6×10^2"). A literal glued to a letter ("2D", "R3") is
+# a label, not a numeric claim, and is skipped.
+_PLAIN_NUMBER_RE = re.compile(r"(?<![\w.])\d+(?:\.\d+)?(?:[eE][+-]?\d+)?(?!\w)")
+_POWER_OF_TEN_RE = re.compile(r"(?:(\d+(?:\.\d+)?)\s*[x×*]\s*)?10\s*\^\s*([+-]?\d+)")
+
+
+def _extract_numbers(text: str) -> set[float]:
+    """Every numeric value stated in `text`, as floats. A value followed by
+    '%' is recorded as its fraction (3.6% -> 0.036), so '3.6%' and '0.036'
+    cross-match in either direction."""
+    values: set[float] = set()
+    power_spans: list[tuple[int, int]] = []
+    for m in _POWER_OF_TEN_RE.finditer(text):
+        mantissa = float(m.group(1)) if m.group(1) else 1.0
+        values.add(mantissa * 10.0 ** int(m.group(2)))
+        power_spans.append(m.span())
+    for m in _PLAIN_NUMBER_RE.finditer(text):
+        # skip literals that are part of a power-of-ten form (the "10" and
+        # exponent digits of "10^-5" are not separate numeric claims)
+        if any(start <= m.start() < end for start, end in power_spans):
+            continue
+        value = float(m.group(0))
+        if text[m.end():m.end() + 1] == "%" or text[m.end():m.end() + 2] == " %":
+            values.add(value / 100.0)
+        else:
+            values.add(value)
+    return values
+
+
+def _unsupported_numbers(statement: str, cited_texts: list[str]) -> list[float]:
+    """The statement's numeric literals with no loose match in any cited
+    snippet text. Deliberately tolerant (values compare within 0.1%
+    relative, plus the '%' and power-of-ten normalizations above) so
+    formatting differences do not fire the signal."""
+    snippet_values: set[float] = set()
+    for text in cited_texts:
+        snippet_values |= _extract_numbers(text)
+    return [
+        v
+        for v in sorted(_extract_numbers(statement))
+        if not any(
+            math.isclose(v, s, rel_tol=1e-3, abs_tol=1e-9) for s in snippet_values
+        )
+    ]
+
 
 LITERATURE_SYSTEM_PROMPT = (
     "You are the literature-exploration generation strategy inside the Ideation stage of an "
@@ -79,6 +146,7 @@ LITERATURE_SYSTEM_PROMPT = (
     f"{LITERATURE_HYPOTHESIS_COUNT} hypotheses that are grounded in those snippets without "
     "merely restating them, each one concrete enough to be tested by a simulation, and each "
     "citing the ref ids of the snippets that ground it. "
+    + NO_INVENTED_NUMBERS_INSTRUCTION +
     "Reply ONLY with JSON of the form "
     '{"ack_run_id": "<the run_id you were given>", "hypotheses": '
     '[{"statement": "<one sentence>", "rationale": "<one sentence>", '
@@ -94,7 +162,9 @@ DEBATE_SYSTEM_PROMPT = (
     "or sharpen what came before — and your persona's current best version of the single "
     "hypothesis under debate, concrete enough to be tested by a simulation. On the final "
     "turn (turn number equals of_turns), your hypothesis is taken as the debate's converged "
-    "result. Reply ONLY with JSON of the form "
+    "result. "
+    + NO_INVENTED_NUMBERS_INSTRUCTION +
+    "Reply ONLY with JSON of the form "
     '{"ack_run_id": "<the run_id you were given>", '
     '"argument": "<one to three sentences>", '
     '"hypothesis": {"statement": "<one sentence>", "rationale": "<one sentence>"}}.'
@@ -119,6 +189,7 @@ ASSUMPTIONS_AGGREGATE_SYSTEM_PROMPT = (
     f"exactly {ASSUMPTION_HYPOTHESIS_COUNT} complete hypotheses, each one concrete enough to "
     "be tested by a simulation, each building on one or more of the numbered assumptions and "
     "citing their numbers. "
+    + NO_INVENTED_NUMBERS_INSTRUCTION +
     "Reply ONLY with JSON of the form "
     '{"ack_run_id": "<the run_id you were given>", "hypotheses": '
     '[{"statement": "<one sentence>", "rationale": "<one sentence>", '
@@ -133,7 +204,9 @@ EXPANSION_SYSTEM_PROMPT = (
     "within the domain those candidates have NOT explored, and propose exactly "
     f"{EXPANSION_HYPOTHESIS_COUNT} new hypotheses in unexplored directions, each one "
     "concrete enough to be tested by a simulation and clearly distinct from every existing "
-    "candidate. Reply ONLY with JSON of the form "
+    "candidate. "
+    + NO_INVENTED_NUMBERS_INSTRUCTION +
+    "Reply ONLY with JSON of the form "
     '{"ack_run_id": "<the run_id you were given>", "hypotheses": '
     '[{"statement": "<one sentence>", "rationale": "<one sentence>", '
     '"unexplored_because": "<one sentence naming the gap this fills>"}, '
@@ -244,14 +317,30 @@ def gather_literature_evidence(run_id: str, domain: str, run_dir: Path) -> list[
 
 def strategy_literature_exploration(
     run_id: str, domain: str, literature_refs: list[dict], memory_block: str | None
-) -> list[dict]:
+) -> tuple[list[dict], list[dict]]:
     """One Sonnet call: hypotheses grounded in the combined retrieved
     snippets, each citing the ref ids that ground it (cited refs are
-    validated against the refs actually provided — inside the re-ask loop)."""
+    validated against the refs actually provided — inside the re-ask loop).
+
+    Step 17-fix-A: the validator ALSO scans each statement for numeric
+    literals absent from its cited snippets — WARN-ONLY: each occurrence is
+    counted as the cost_meter signal "generation_unsupported_number" and
+    never appended to the errors list, so it can never trigger a re-ask or
+    reject the hypothesis. Returns (candidates, number_warnings):
+    number_warnings holds the ACCEPTED reply's offending literals, one
+    record per offending hypothesis {entry, statement, unsupported_numbers}
+    (each validator invocation overwrites the list, and the last invocation
+    is the accepted reply, so rejected attempts never linger in it — the
+    cost_meter count, by contrast, counts every attempt). The caller that
+    owns canonical ids (generate_candidate_pool) maps entry -> id and
+    writes the durable per-run artifact."""
     valid_refs = {r["ref"] for r in literature_refs}
+    refs_by_id = {r["ref"]: r for r in literature_refs}
+    number_warnings: list[dict] = []
 
     def validator(data: dict) -> list[str]:
         errors: list[str] = []
+        invocation_warnings: list[dict] = []
         hyps = data.get("hypotheses")
         if not isinstance(hyps, list) or len(hyps) != LITERATURE_HYPOTHESIS_COUNT:
             return [
@@ -273,6 +362,26 @@ def strategy_literature_exploration(
                         f"entry {n} grounded_in cites unknown refs {unknown}; "
                         f"the provided refs are {sorted(valid_refs)}."
                     )
+                elif isinstance(h.get("statement"), str):
+                    # WARN-ONLY (Step 17-fix-A): count numbers the cited
+                    # snippets do not contain. Never touches `errors`.
+                    unsupported = _unsupported_numbers(h["statement"], [
+                        " ".join(
+                            str(v) for v in refs_by_id[r].values() if isinstance(v, str)
+                        )
+                        for r in grounded
+                    ])
+                    for _value in unsupported:
+                        cost_meter.record_signal("generation_unsupported_number")
+                    if unsupported:
+                        invocation_warnings.append(
+                            {
+                                "entry": n,
+                                "statement": h["statement"],
+                                "unsupported_numbers": unsupported,
+                            }
+                        )
+        number_warnings[:] = invocation_warnings  # last invocation = accepted reply
         return errors
 
     stage_input = {
@@ -293,7 +402,7 @@ def strategy_literature_exploration(
     _check_ack(data, run_id, "literature_exploration")
     log_stage_call(run_id, "stage1_generation_literature", timing)
 
-    return [
+    candidates = [
         {
             "strategy": "literature_exploration",
             "statement": h["statement"],
@@ -302,6 +411,7 @@ def strategy_literature_exploration(
         }
         for h in data["hypotheses"]
     ]
+    return candidates, number_warnings
 
 
 # --- Strategy 2: simulated scientific debate --------------------------------
@@ -554,7 +664,9 @@ def generate_candidate_pool(
     """
     literature_refs = gather_literature_evidence(run_id, domain, run_dir)
 
-    lit = strategy_literature_exploration(run_id, domain, literature_refs, memory_block)
+    lit, lit_number_warnings = strategy_literature_exploration(
+        run_id, domain, literature_refs, memory_block
+    )
     debate = strategy_simulated_debate(run_id, domain, literature_refs, run_dir)
     assumptions = strategy_assumptions_identification(run_id, domain, run_dir)
     expansion = strategy_research_expansion(
@@ -570,6 +682,30 @@ def generate_candidate_pool(
         counts[c["strategy"]] = counts.get(c["strategy"], 0) + 1
     (run_dir / "generation.json").write_text(
         json.dumps({"domain": domain, "strategy_counts": counts, "pool": pool}, indent=2)
+    )
+
+    # Step 17-fix-A follow-up: durable per-run record of WHICH numbers fired
+    # the strategy-1 warn-only signal, with the canonical id each came from
+    # (this function owns the entry->id mapping). Diagnostic evidence only —
+    # written ALWAYS (an empty occurrences list is positive proof the scan
+    # ran and found nothing), and never read back by any stage.
+    lit_ids = [c["id"] for c in pool if c["strategy"] == "literature_exploration"]
+    (run_dir / "generation_number_signals.json").write_text(
+        json.dumps(
+            {
+                "signal": "generation_unsupported_number",
+                "strategy": "literature_exploration",
+                "occurrences": [
+                    {
+                        "hypothesis_id": lit_ids[w["entry"] - 1],
+                        "unsupported_numbers": w["unsupported_numbers"],
+                        "statement": w["statement"],
+                    }
+                    for w in lit_number_warnings
+                ],
+            },
+            indent=2,
+        )
     )
     _log(
         run_id,

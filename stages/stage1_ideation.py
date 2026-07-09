@@ -188,6 +188,12 @@ def run(baton: Baton) -> Baton:
             "novelty": r["novelty"],
             "critique": r["critique"],
             "quality": r["quality"],
+            # Step 17-fix-A follow-up: deep verification's non-fatal
+            # concerns travel with the survivor into ranking evidence
+            # (survivors.json). Stage-1 evidence only — the payload below
+            # is rebuilt {id, statement, rationale}, so this never crosses
+            # gate 1.
+            "addressable_notes": r.get("addressable_notes", []),
         }
         for r in survivor_reflections
     ]

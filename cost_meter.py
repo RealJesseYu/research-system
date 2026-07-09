@@ -39,6 +39,14 @@ _tokens: dict[str, dict[str, int]] = {}
 _stage_calls: dict[str, int] = {}
 _stage_rejects: dict[str, int] = {}
 
+# Step 17-fix-A: warn-only instrumentation SIGNALS, keyed by tag. A signal
+# is an observation worth counting (e.g. a Generation hypothesis stating a
+# number its cited snippets do not contain) that is NOT a reject — it never
+# triggers a re-ask and must never contaminate the per-stage reject
+# counters or any reject_rate, so it lives in its own bucket and is
+# reported separately.
+_signals: dict[str, int] = {}
+
 
 def reset() -> None:
     """Zero the meter. Called at the start of each harness run."""
@@ -47,6 +55,7 @@ def reset() -> None:
     _tokens.clear()
     _stage_calls.clear()
     _stage_rejects.clear()
+    _signals.clear()
 
 
 def record_attempt(source: str) -> None:
@@ -103,6 +112,17 @@ def record_reject(stage_name: str) -> None:
     _stage_rejects[stage_name] = _stage_rejects.get(stage_name, 0) + 1
 
 
+def record_signal(tag: str) -> None:
+    """Record one warn-only instrumentation signal under `tag`.
+
+    Step 17-fix-A: fired by a validator (or any observer) that noticed
+    something worth counting WITHOUT rejecting the reply — the reply is
+    accepted as-is and no re-ask fires. Deliberately a separate bucket from
+    record_reject so signals can never inflate rejects or reject_rate.
+    """
+    _signals[tag] = _signals.get(tag, 0) + 1
+
+
 def _stage_stats(calls: int, rejects: int) -> dict:
     return {
         "calls": calls,
@@ -116,7 +136,8 @@ def read() -> dict:
     ATTEMPT counts (recorded before each SDK call fires) + combined total,
     per-door token-field sums + a combined per-field total, and per-STAGE
     {calls, rejects, reject_rate} + a "total" row (Step 18.7 chunk 1; a
-    stage with zero calls this run simply does not appear).
+    stage with zero calls this run simply does not appear), and per-tag
+    warn-only SIGNAL counts (Step 17-fix-A; empty dict when none fired).
 
     Returns a plain dict copy — callers can diff two snapshots for a
     per-case delta without touching the live counters.
@@ -155,4 +176,5 @@ def read() -> dict:
         "attempts": attempts_report,
         "tokens": tokens_report,
         "stages": stages_report,
+        "signals": dict(_signals),
     }

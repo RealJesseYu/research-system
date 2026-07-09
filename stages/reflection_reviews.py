@@ -23,10 +23,14 @@ The six review types (faithful to the Co-Scientist Reflection agent):
      inspectable from evidence alone.
   3. deep_verification_review — decompose the hypothesis into constituent
      assumptions, break each into sub-assumptions, evaluate each for
-     correctness, identify invalidating elements, and judge whether any
-     flawed assumption is FUNDAMENTAL. A non-fundamental flaw does not
-     kill a hypothesis; a fundamental one discards it — that consequence
-     is enforced deterministically by the orchestrator, not by prompt hope.
+     correctness, identify invalidating elements, and classify each as
+     FUNDAMENTAL (the core claim cannot survive it — sets fundamental_flaw)
+     or ADDRESSABLE (a detail refinement or the experiment itself would
+     resolve — recorded in addressable_notes, never fatal; Step 17-fix-A).
+     This review runs WITHOUT retrieval, so an objection resting on a
+     remembered numeric value is by definition addressable, never a kill.
+     A fundamental flaw discards the hypothesis — that consequence is
+     enforced deterministically by the orchestrator, not by prompt hope.
   4. observation_review — can the hypothesis account for existing
      observations (the same bounded retrieved snippets, plus journal leads
      when present — already framed leads-not-facts)? Is it a superior
@@ -42,9 +46,11 @@ The six review types (faithful to the Co-Scientist Reflection agent):
      No tournament input is invented.
 
 Discipline preserved (same as generation_strategies.py):
-  - Every model call is Sonnet through call_stage_model (review/critique
-    is not a hard judgment) — same door, same isolation, same bounded
-    re-ask loop, same write-before-call transcripts.
+  - Every model call goes through call_stage_model — initial / full /
+    observation / simulation reviews on Haiku (Step 18.7 downgrade), deep
+    verification HELD on Sonnet (it feeds a deterministic kill with no
+    judgment net) — same door, same isolation, same bounded re-ask loop,
+    same write-before-call transcripts.
   - Summarize-at-the-wrapper: only the retrieval tools' bounded records
     enter any review input; no raw tool output exists at this layer.
   - Evidence over mechanism: everything each review saw and returned is
@@ -54,9 +60,11 @@ Discipline preserved (same as generation_strategies.py):
   - Journal-poison ruling: memory content arrives already framed
     leads-not-facts (the block is built by stage1_ideation) and goes ONLY
     to the observation review — the unit whose job is prior observations.
-  - The downstream contract is unchanged: the orchestrator returns
-    reflections shaped exactly {hypothesis_id, novelty, critique, quality},
-    the fields filter_survivors has consumed since Step 8.
+  - The downstream contract filter_survivors consumes is unchanged: the
+    orchestrator returns reflections carrying {hypothesis_id, novelty,
+    critique, quality} — the fields consumed since Step 8 — plus, since
+    Step 17-fix-A, the survivor's addressable_notes from deep verification
+    (Stage-1 evidence only; it never crosses gate 1).
 """
 
 from __future__ import annotations
@@ -126,9 +134,20 @@ DEEP_VERIFICATION_SYSTEM_PROMPT = (
     "pipeline, reviewing ONE candidate hypothesis. Decompose the hypothesis into its "
     "constituent assumptions; break each assumption into its sub-assumptions; evaluate "
     "each for correctness; and identify any element that would invalidate the hypothesis "
-    "if it is wrong. A flawed assumption that is NOT fundamental does not kill the "
-    "hypothesis — decide honestly whether any flawed assumption is fundamental to the "
-    "claim. Reply ONLY with JSON of the form "
+    "if it is wrong. Classify each invalidating element as EITHER fundamental — the core "
+    "claim cannot survive it — OR addressable — a detail that refinement or the experiment "
+    "itself would resolve, such as an imprecise parameter range, an open empirical question "
+    "the experiment would test, or a missing justification that could be supplied. Only "
+    "fundamental elements set fundamental_flaw to true; addressable elements go into "
+    "addressable_notes and do NOT set it. You are running WITHOUT retrieval: you have no "
+    "literature snippets, so you must NOT assert any specific physical constant, "
+    "eigenvalue, benchmark value, or numeric ratio as an 'established' or 'known' fact to "
+    "justify a kill. If your objection depends on a specific remembered numeric value you "
+    "cannot cite from a provided snippet (you have none), that objection is by definition "
+    "ADDRESSABLE, not fundamental — it goes to addressable_notes, never to "
+    "fundamental_flaw. A kill (fundamental_flaw=true) must rest on a qualitative "
+    "structural or logical defect in the core claim, not on a remembered number. "
+    "Reply ONLY with JSON of the form "
     '{"ack_run_id": "<the run_id you were given>", '
     '"hypothesis_id": "<the hypothesis id you were given>", '
     '"assumptions": [{"assumption": "<one sentence>", '
@@ -136,6 +155,7 @@ DEEP_VERIFICATION_SYSTEM_PROMPT = (
     '"evaluation": "<one sentence: correct, or flawed and why>"}, '
     "... 2 to 5 such objects], "
     '"invalidating_elements": ["<one sentence each>", ... possibly empty], '
+    '"addressable_notes": ["<one short note each>", ... possibly empty], '
     '"fundamental_flaw": true or false, '
     '"summary": "<one sentence>"}.'
 )
@@ -431,9 +451,13 @@ def full_review(run_id: str, domain: str, hypothesis: dict, refs: list[dict]) ->
 
 def deep_verification_review(run_id: str, domain: str, hypothesis: dict) -> dict:
     """One Sonnet call per survivor, no retrieval: assumptions decomposed
-    into sub-assumptions, each evaluated; invalidating elements named; and
-    the fundamental-or-not judgment on any flawed assumption. The
-    orchestrator (deterministic Python) discards on fundamental_flaw=true."""
+    into sub-assumptions, each evaluated; invalidating elements named and
+    classified fundamental-vs-addressable (Step 17-fix-A) — fundamental
+    elements set fundamental_flaw, addressable ones land in
+    addressable_notes and are never fatal; an objection resting on a
+    remembered numeric value the model cannot cite is by definition
+    addressable (the constant guard). The orchestrator (deterministic
+    Python) discards on fundamental_flaw=true."""
 
     def validator(data: dict) -> list[str]:
         errors: list[str] = []
@@ -459,6 +483,10 @@ def deep_verification_review(run_id: str, domain: str, hypothesis: dict) -> dict
             errors.append(
                 "invalidating_elements must be a list of non-empty strings (possibly empty)."
             )
+        if not _is_str_list(data.get("addressable_notes")):
+            errors.append(
+                "addressable_notes must be a list of non-empty strings (possibly empty)."
+            )
         if not isinstance(data.get("fundamental_flaw"), bool):
             errors.append("fundamental_flaw must be true or false.")
         summary = data.get("summary")
@@ -477,7 +505,8 @@ def deep_verification_review(run_id: str, domain: str, hypothesis: dict) -> dict
             "hypothesis_rationale": hypothesis["rationale"],
         },
         {"required": ["ack_run_id", "hypothesis_id", "assumptions",
-                      "invalidating_elements", "fundamental_flaw", "summary"]},
+                      "invalidating_elements", "addressable_notes",
+                      "fundamental_flaw", "summary"]},
         model=DEEP_VERIFY_MODEL,
         extra_validator=validator,
     )
@@ -487,6 +516,7 @@ def deep_verification_review(run_id: str, domain: str, hypothesis: dict) -> dict
     return {
         "assumptions": data["assumptions"],
         "invalidating_elements": data["invalidating_elements"],
+        "addressable_notes": data["addressable_notes"],
         "fundamental_flaw": data["fundamental_flaw"],
         "summary": data["summary"],
     }
@@ -646,9 +676,11 @@ def reflect_on_pool(
       - initial verdict 'discard' → candidate exits before any tool spend;
       - deep verification fundamental_flaw=true → candidate exits;
       - everything else becomes a reflection {hypothesis_id, novelty,
-        critique, quality} — exactly the fields the existing downstream
-        filter consumes (novelty/critique/quality from the grounded full
-        review).
+        critique, quality, addressable_notes} — novelty/critique/quality
+        from the grounded full review are exactly the fields the existing
+        downstream filter consumes; addressable_notes (Step 17-fix-A)
+        carries deep verification's non-fatal concerns with the survivor
+        as Stage-1 evidence and never crosses gate 1.
     All evidence — per-candidate initial verdicts, per-hypothesis retrieval
     records, all review outputs, both discard lists, and the final
     reflections — is saved to runs/<run_id>/stage1/reflection_reviews.json.
@@ -707,6 +739,11 @@ def reflect_on_pool(
                 "novelty": full["novelty"],
                 "critique": full["critique"],
                 "quality": int(full["quality"]),
+                # Step 17-fix-A: deep verification's non-fatal concerns
+                # travel with the survivor (Stage-1 evidence only — the
+                # payload hypotheses are rebuilt {id, statement, rationale}
+                # downstream, so this never crosses gate 1).
+                "addressable_notes": deep["addressable_notes"],
             }
         )
 

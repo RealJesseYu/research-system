@@ -121,6 +121,7 @@ def _meter_totals() -> dict:
         "model_calls": dict(m["model_calls"]),
         "attempts": dict(m["attempts"]),
         "stages": {stage: dict(stats) for stage, stats in m["stages"].items()},
+        "signals": dict(m["signals"]),
     }
 
 
@@ -206,6 +207,12 @@ def _launch_one(slot: str, domain: str) -> dict:
         "comparable": comparable,
         "cost_delta": _delta(meter_after, meter_before),
         "reject_stats": _stage_reject_delta(meter_after["stages"], meter_before["stages"]),
+        # Step 17-fix-A: warn-only signal counts for THIS run (never part
+        # of reject_stats — a signal is not a reject and feeds no re-ask).
+        "signals": {
+            tag: meter_after["signals"].get(tag, 0) - meter_before["signals"].get(tag, 0)
+            for tag in set(meter_after["signals"]) | set(meter_before["signals"])
+        },
         **{k: counted[k] for k in (
             "status", "k", "k_reason",
             "initial_survivor_count", "deep_verify_discards",
@@ -322,6 +329,7 @@ def run_battery(repeats: int) -> int:
             "attempts": meter["attempts"],
             "tokens": meter["tokens"],
             "stage_rejects": meter["stages"],
+            "signals": meter["signals"],
             "wall_time_seconds": total_wall,
         },
         "ledger_activity": {
@@ -344,9 +352,10 @@ def run_battery(repeats: int) -> int:
     totals = report["totals"]
     calls = " ".join(f"{k}={v}" for k, v in totals["model_calls"].items())
     print(f"TOTAL COST: model_calls {calls} | wall_time_seconds={totals['wall_time_seconds']}")
-    from harness.run_harness import format_reject_line  # lazy: mirrors run_harness's lazy import of this module
+    from harness.run_harness import format_reject_line, format_signals_line  # lazy: mirrors run_harness's lazy import of this module
 
     print(format_reject_line(totals["stage_rejects"]))
+    print(format_signals_line(totals["signals"]))
     activity = report["ledger_activity"]
     print(f"LEDGER ACTIVITY this battery: fidelity_entries={activity['fidelity_entries']} "
           f"override_entries={activity['override_entries']}"
