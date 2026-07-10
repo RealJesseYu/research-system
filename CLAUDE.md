@@ -777,8 +777,10 @@ survival_counter --validate ALL MATCH. Milestone journaled (run_id
 FINAL write.
 17-fix-A COMPLETE.
 17-fix-B (S2 zero-hit fix + keyed-free OpenAlex hard-required novelty
-grounding, cfa767e): merged to main at fc0c6b7 (2026-07-10); still owes
-witnessed kill-rate run + live S2 re-probe.
+grounding, cfa767e): merged to main at fc0c6b7 (2026-07-10); witnessed
+kill-rate run PASSED 2026-07-10 (4/4 slots resolved, zero relaunches, all
+md5-comparable; see docs/milestone_17fixB_witness.md); owes live S2
+re-probe only.
 docs/milestone_17fixA.md now exists (reconstructed; see its RECORD
 CORRECTION block).
 Next: build Step 17-C (tournament).
