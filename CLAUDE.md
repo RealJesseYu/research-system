@@ -775,6 +775,10 @@ hard-gate 3/3 / zero watch misses / ledger 0/0 / exit 0,
 survival_counter --validate ALL MATCH. Milestone journaled (run_id
 "17-fix-A"). Checksum snapshot checksums_after_17fixA.txt is this close's
 FINAL write.
-17-fix-A COMPLETE. Next: 17-fix-B is the named next fix (retrieval ruling:
-S2 zero-hit misreport + OpenAlex, both already evidence-approved); scope
-not re-guessed here.
+17-fix-A COMPLETE.
+17-fix-B (S2 zero-hit fix + keyed-free OpenAlex hard-required novelty
+grounding, cfa767e): merged to main at fc0c6b7 (2026-07-10); still owes
+witnessed kill-rate run + live S2 re-probe.
+docs/milestone_17fixA.md now exists (reconstructed; see its RECORD
+CORRECTION block).
+Next: build Step 17-C (tournament).
