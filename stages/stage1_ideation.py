@@ -27,10 +27,18 @@ recurrent/tournament-review seam awaiting the tournament chunk. The result
 per surviving candidate is the same reflection object as always:
 {hypothesis_id, novelty, critique, quality}. A pure-Python filter (no model
 call) then discards anything judged "known" and keeps at most four survivors
-by quality, ties broken by generation order. Ranking then asks Opus to judge
-every unordered pair of survivors once (round-robin); rank is win count,
-descending, ties broken by reflection quality then generation order — pure
-deterministic Python once the verdicts are in.
+by quality, ties broken by generation order. Ranking (rebuilt in Step 17-C
+as an Elo tournament — pure math in stages/tournament.py, Opus judgments
+here) plays every unordered pair of survivors once, most-similar pairs first
+(TF-IDF proximity), with A/B presentation randomized per match from a
+run_id-seeded RNG: a match between the current top-2 by live Elo is a full
+two-ordering three-turn debate (advocate A, advocate B, judge — twice with
+A/B swapped; agreeing verdicts score 1.0, disagreeing draw at 0.5), any
+other match is one single-turn judge call. Elo (K=32, init 1200) updates
+after each match in deterministic order; final rank is Elo descending, ties
+broken by the survivors' existing (quality, generation) order, and near-
+duplicate survivors (cosine >= 0.85) are flagged deduped_by their higher-
+ranked sibling in the evidence — never removed.
 
 Full generation/reflection/survivor/ranking records are evidence on disk
 under runs/<run_id>/stage1/; only {id, statement, rationale} for the
@@ -53,23 +61,58 @@ from __future__ import annotations
 
 import itertools
 import json
+import random
 from pathlib import Path
 
 from baton import Baton
 from memory.journal import journal_recent_by_kind
 from model_call import call_stage_model, log_stage_call
+from stages import tournament
 from stages.generation_strategies import generate_candidate_pool
 from stages.reflection_reviews import reflect_on_pool
 
 OPUS_MODEL = "claude-opus-4-8"
 
-RANKING_SYSTEM_PROMPT = (
+RANKING_SYSTEM_PROMPT_V2 = (
     "You are a comparative-judge stage in an autonomous research pipeline, evaluating two "
-    "candidate hypotheses proposed for a given research domain. Judge only which of the two "
-    "is the more promising next simulation experiment, weighing how well-grounded it is, how "
-    "testable it is in simulation, and the insight it would yield if confirmed. The order in "
-    "which the two hypotheses are presented to you carries no information about which is better. "
-    "Reply ONLY with JSON of the form "
+    "candidate hypotheses proposed for a given research domain. Judge which of the two is "
+    "the more promising next simulation experiment as a scientific comparison on three "
+    "axes: novelty (does it go beyond what is already established), correctness (is the "
+    "proposed mechanism physically sound), and testability (can a simulation actually "
+    "resolve and measure what it claims). Each hypothesis may carry addressable_notes — "
+    "concerns already identified during review that its proposer would need to address "
+    "downstream; weigh them as carried concerns, not automatic disqualifiers. The order in "
+    "which the two hypotheses are presented to you carries no information about which is "
+    "better. Reply ONLY with JSON of the form "
+    '{"ack_run_id": "<the run_id you were given>", '
+    '"winner_id": "<the id of the hypothesis you judge more promising>", '
+    '"reason": "<one decisive sentence>"}.'
+)
+
+DEBATE_ADVOCATE_SYSTEM_PROMPT = (
+    "You are one advocate turn in a two-hypothesis ranking debate inside an autonomous "
+    "research pipeline. Two candidate hypotheses are competing for rank; advocate_for "
+    "names the one you must argue for. Read both hypotheses and the debate so far, then "
+    "make the strongest honest scientific case for your assigned hypothesis on novelty, "
+    "correctness, and testability — rebutting the debate so far where it attacked your "
+    "side. Each hypothesis may carry addressable_notes — concerns already identified "
+    "during review; weigh and answer them as carried concerns, not automatic "
+    "disqualifiers. Reply ONLY with JSON of the form "
+    '{"ack_run_id": "<the run_id you were given>", '
+    '"argument": "<two to four sentences>"}.'
+)
+
+DEBATE_JUDGE_SYSTEM_PROMPT = (
+    "You are the judge turn concluding a two-hypothesis ranking debate inside an "
+    "autonomous research pipeline. Read both hypotheses and both advocates' arguments, "
+    "then judge which hypothesis is the more promising next simulation experiment as a "
+    "scientific comparison on three axes: novelty (does it go beyond what is already "
+    "established), correctness (is the proposed mechanism physically sound), and "
+    "testability (can a simulation actually resolve and measure what it claims). Each "
+    "hypothesis may carry addressable_notes — concerns already identified during review; "
+    "weigh them as carried concerns, not automatic disqualifiers. The order in which the "
+    "hypotheses and arguments are presented to you carries no information about which is "
+    "better. Reply ONLY with JSON of the form "
     '{"ack_run_id": "<the run_id you were given>", '
     '"winner_id": "<the id of the hypothesis you judge more promising>", '
     '"reason": "<one decisive sentence>"}.'
@@ -131,16 +174,155 @@ def filter_survivors(reflections: list[dict]) -> list[dict]:
     return [r for _, r in novel[:MAX_SURVIVORS]]
 
 
-def _compute_rank(survivors_full: list[dict], verdicts: list[dict]) -> tuple[list[dict], dict]:
-    """Pure Python, no model call: rank survivors by descending pairwise win
-    count. Ties break by `survivors_full`'s existing order, which is already
-    (reflection quality desc, generation order asc) from filter_survivors.
-    """
-    win_counts = {s["id"]: 0 for s in survivors_full}
-    for v in verdicts:
-        win_counts[v["winner_id"]] += 1
-    order = sorted(range(len(survivors_full)), key=lambda i: (-win_counts[survivors_full[i]["id"]], i))
-    return [survivors_full[i] for i in order], win_counts
+def _judge_view(s: dict) -> dict:
+    """J6: what a tournament judge/advocate sees of one hypothesis — id,
+    statement, rationale, and addressable_notes (carried concerns to weigh) —
+    NOT critique, NOT quality."""
+    return {
+        "id": s["id"],
+        "statement": s["statement"],
+        "rationale": s["rationale"],
+        "addressable_notes": s.get("addressable_notes", []),
+    }
+
+
+def _live_top2(ratings: dict[str, float], survivors_full: list[dict]) -> set[str]:
+    """J2 tier check: the ids currently ranked top-2 by live Elo; equal Elo
+    breaks by survivors_full's existing order — the same J9 tiebreak
+    tournament.final_ranking applies at the end."""
+    order = sorted(
+        range(len(survivors_full)),
+        key=lambda i: (-ratings[survivors_full[i]["id"]], i),
+    )
+    return {survivors_full[i]["id"] for i in order[:2]}
+
+
+def _check_verdict(data: dict, run_id: str, h_a: dict, h_b: dict, context: str) -> None:
+    """Mirror of the pre-17-C ranking checks: ack_run_id must echo the run,
+    winner_id must be one of the two presented ids (already enum-pinned in
+    the schema; this is the same belt-and-suspenders re-check as before)."""
+    if data["ack_run_id"] != run_id:
+        raise RuntimeError(
+            f"stage1_ideation {context}: ack_run_id mismatch — got "
+            f"{data['ack_run_id']!r}, expected {run_id!r}"
+        )
+    _log(run_id, f"STAGE1_ACK_CHECK {context}: ack_run_id passed")
+    winner_id = data["winner_id"]
+    if winner_id not in (h_a["id"], h_b["id"]):
+        raise RuntimeError(
+            f"stage1_ideation {context}: winner_id {winner_id!r} is not "
+            f"one of the presented ids ({h_a['id']!r}, {h_b['id']!r})"
+        )
+    _log(run_id, f"STAGE1_ACK_CHECK {context}: winner_id valid ({winner_id})")
+
+
+def _single_turn_judge(run_id: str, domain: str, h_a: dict, h_b: dict) -> dict:
+    """One Opus judge call for a non-top-2 match (J2), presented in the
+    (h_a, h_b) order the caller randomized. Returns a verdict in ranking.json's
+    exact historical shape: {pair, ack_run_id, winner_id, reason}."""
+    pair_name = f"{h_a['id']}_vs_{h_b['id']}"
+    rank_input = {
+        "run_id": run_id,
+        "domain": domain,
+        "hypothesis_a": _judge_view(h_a),
+        "hypothesis_b": _judge_view(h_b),
+    }
+    rank_schema = {
+        "required": ["ack_run_id", "winner_id", "reason"],
+        "enums": {"winner_id": [h_a["id"], h_b["id"]]},
+    }
+    rank_data, rank_timing = call_stage_model(
+        "stage1_tournament_judge",
+        RANKING_SYSTEM_PROMPT_V2,
+        rank_input,
+        rank_schema,
+        model=OPUS_MODEL,
+    )
+    _check_verdict(rank_data, run_id, h_a, h_b, f"tournament judge {pair_name}")
+    log_stage_call(run_id, "stage1_tournament_judge", rank_timing)
+    return {
+        "pair": [h_a["id"], h_b["id"]],
+        "ack_run_id": rank_data["ack_run_id"],
+        "winner_id": rank_data["winner_id"],
+        "reason": rank_data["reason"],
+    }
+
+
+def _debate_once(run_id: str, domain: str, h_a: dict, h_b: dict) -> dict:
+    """One full three-turn debate at the presented (h_a, h_b) ordering
+    (J4), following generation_strategies.strategy_simulated_debate's
+    construction pattern: three independent Opus calls, the structured
+    debate-so-far passed inside stage_input's own arguments — never a
+    transcript. Turn 1 advocates for hypothesis_a, turn 2 advocates for
+    hypothesis_b (sees turn 1), turn 3 judges (sees both) with the same
+    verdict schema as a single-turn match. The caller runs this twice with
+    A/B swapped (J5). Returns the judge's verdict in ranking.json's shape."""
+
+    def argument_validator(data: dict) -> list[str]:
+        if not isinstance(data.get("argument"), str) or not data["argument"].strip():
+            return ["argument must be a non-empty string."]
+        return []
+
+    pair_name = f"{h_a['id']}_vs_{h_b['id']}"
+    debate_so_far: list[dict] = []
+    for turn, advocate in ((1, h_a), (2, h_b)):
+        stage_input = {
+            "run_id": run_id,
+            "domain": domain,
+            "advocate_for": advocate["id"],
+            "turn": turn,
+            "of_turns": 3,
+            "hypothesis_a": _judge_view(h_a),
+            "hypothesis_b": _judge_view(h_b),
+            "debate_so_far": debate_so_far,
+        }
+        data, timing = call_stage_model(
+            f"stage1_tournament_debate_turn{turn}",
+            DEBATE_ADVOCATE_SYSTEM_PROMPT,
+            stage_input,
+            {"required": ["ack_run_id", "argument"]},
+            model=OPUS_MODEL,
+            extra_validator=argument_validator,
+        )
+        if data["ack_run_id"] != run_id:
+            raise RuntimeError(
+                f"stage1_ideation debate {pair_name} turn {turn}: ack_run_id "
+                f"mismatch — got {data['ack_run_id']!r}, expected {run_id!r}"
+            )
+        _log(run_id, f"STAGE1_ACK_CHECK debate {pair_name} turn {turn}: ack_run_id passed")
+        log_stage_call(run_id, f"stage1_tournament_debate_turn{turn}", timing)
+        debate_so_far.append(
+            {"turn": turn, "advocate_for": advocate["id"], "argument": data["argument"]}
+        )
+
+    judge_input = {
+        "run_id": run_id,
+        "domain": domain,
+        "turn": 3,
+        "of_turns": 3,
+        "hypothesis_a": _judge_view(h_a),
+        "hypothesis_b": _judge_view(h_b),
+        "debate_so_far": debate_so_far,
+    }
+    judge_schema = {
+        "required": ["ack_run_id", "winner_id", "reason"],
+        "enums": {"winner_id": [h_a["id"], h_b["id"]]},
+    }
+    judge_data, judge_timing = call_stage_model(
+        "stage1_tournament_debate_turn3",
+        DEBATE_JUDGE_SYSTEM_PROMPT,
+        judge_input,
+        judge_schema,
+        model=OPUS_MODEL,
+    )
+    _check_verdict(judge_data, run_id, h_a, h_b, f"debate judge {pair_name}")
+    log_stage_call(run_id, "stage1_tournament_debate_turn3", judge_timing)
+    return {
+        "pair": [h_a["id"], h_b["id"]],
+        "ack_run_id": judge_data["ack_run_id"],
+        "winner_id": judge_data["winner_id"],
+        "reason": judge_data["reason"],
+    }
 
 
 def run(baton: Baton) -> Baton:
@@ -199,7 +381,8 @@ def run(baton: Baton) -> Baton:
     ]
     (run_dir / "survivors.json").write_text(json.dumps(survivors_full, indent=2))
 
-    # --- Ranking (Opus, round-robin pairwise) ---
+    # --- Ranking (Step 17-C: Elo tournament — pure math in
+    # stages/tournament.py, Opus judgments through the helpers above) ---
     k = len(survivors_full)
     verdicts: list[dict] = []
 
@@ -208,58 +391,96 @@ def run(baton: Baton) -> Baton:
         ranked_survivors = survivors_full
         ranking_note = "ranking trivial (k=1)"
     else:
-        for i, j in itertools.combinations(range(k), 2):
-            h_a = survivors_full[i]
-            h_b = survivors_full[j]
-            pair_name = f"{h_a['id']}_vs_{h_b['id']}"
+        rng_seed = baton.run_id
+        rng = random.Random(rng_seed)
+        _log(
+            baton.run_id,
+            f"STAGE1_TOURNAMENT rng_seed={rng_seed} "
+            f"elo_init={tournament.ELO_INIT} k_factor={tournament.K_FACTOR}",
+        )
 
-            rank_input = {
-                "run_id": baton.run_id,
-                "domain": domain,
-                "hypothesis_a": {"id": h_a["id"], "statement": h_a["statement"], "rationale": h_a["rationale"]},
-                "hypothesis_b": {"id": h_b["id"], "statement": h_b["statement"], "rationale": h_b["rationale"]},
-            }
-            rank_schema = {
-                "required": ["ack_run_id", "winner_id", "reason"],
-                "enums": {"winner_id": [h_a["id"], h_b["id"]]},
-            }
-            rank_data, rank_timing = call_stage_model(
-                f"stage1_ideation_ranking_{pair_name}",
-                RANKING_SYSTEM_PROMPT,
-                rank_input,
-                rank_schema,
-                model=OPUS_MODEL,
+        ratings = {s["id"]: tournament.ELO_INIT for s in survivors_full}
+        ids = [s["id"] for s in survivors_full]
+        matrix = tournament.proximity_matrix(survivors_full)
+        flags = tournament.dedup_flags(matrix)
+        for fi, fj, sim in flags:
+            _log(
+                baton.run_id,
+                f"STAGE1_TOURNAMENT dedup_flag {ids[fi]}_vs_{ids[fj]} sim={sim:.3f}",
+            )
+        matches = tournament.order_matches(
+            list(itertools.combinations(range(k), 2)), matrix
+        )
+
+        match_log: list[dict] = []
+        debate_count = 0
+        for i, j in matches:
+            h_i, h_j = survivors_full[i], survivors_full[j]
+            pair_ids = [h_i["id"], h_j["id"]]
+            # Randomized A/B presentation, reproducible from the logged seed.
+            h_a, h_b = (h_i, h_j) if rng.random() < 0.5 else (h_j, h_i)
+
+            top2 = _live_top2(ratings, survivors_full)
+            tier = (
+                "debate"
+                if h_i["id"] in top2 and h_j["id"] in top2
+                else "single_turn"
+            )
+            elo_before = {pid: ratings[pid] for pid in pair_ids}
+
+            if tier == "debate":
+                debate_count += 1
+                v1 = _debate_once(baton.run_id, domain, h_a, h_b)
+                v2 = _debate_once(baton.run_id, domain, h_b, h_a)
+                match_verdicts = [v1, v2]
+                orderings = [[h_a["id"], h_b["id"]], [h_b["id"], h_a["id"]]]
+                score_a = tournament.debate_score(
+                    h_a["id"], h_b["id"], v1["winner_id"], v2["winner_id"]
+                )
+            else:
+                v1 = _single_turn_judge(baton.run_id, domain, h_a, h_b)
+                match_verdicts = [v1]
+                orderings = [[h_a["id"], h_b["id"]]]
+                score_a = 1.0 if v1["winner_id"] == h_a["id"] else 0.0
+
+            verdicts.extend(match_verdicts)
+            ratings[h_a["id"]], ratings[h_b["id"]] = tournament.elo_update(
+                ratings[h_a["id"]], ratings[h_b["id"]], score_a
+            )
+            elo_after = {pid: ratings[pid] for pid in pair_ids}
+
+            match_log.append(
+                tournament.build_match_record(
+                    pair_ids,
+                    tier,
+                    orderings,
+                    [v["winner_id"] for v in match_verdicts],
+                    [v["reason"] for v in match_verdicts],
+                    elo_before,
+                    elo_after,
+                )
+            )
+            _log(
+                baton.run_id,
+                f"STAGE1_TOURNAMENT match {pair_ids[0]}_vs_{pair_ids[1]} tier={tier} "
+                f"orderings={orderings} verdicts={[v['winner_id'] for v in match_verdicts]} "
+                f"elo_before={elo_before} elo_after={elo_after}",
             )
 
-            if rank_data["ack_run_id"] != baton.run_id:
-                raise RuntimeError(
-                    f"stage1_ideation ranking {pair_name}: ack_run_id mismatch — got "
-                    f"{rank_data['ack_run_id']!r}, expected {baton.run_id!r}"
-                )
-            _log(baton.run_id, f"STAGE1_ACK_CHECK ranking {pair_name}: ack_run_id passed")
-
-            winner_id = rank_data["winner_id"]
-            if winner_id not in (h_a["id"], h_b["id"]):
-                raise RuntimeError(
-                    f"stage1_ideation ranking {pair_name}: winner_id {winner_id!r} is not "
-                    f"one of the presented ids ({h_a['id']!r}, {h_b['id']!r})"
-                )
-            _log(baton.run_id, f"STAGE1_ACK_CHECK ranking {pair_name}: winner_id valid ({winner_id})")
-
-            log_stage_call(baton.run_id, f"stage1_ideation_ranking_{pair_name}", rank_timing)
-
-            verdicts.append(
-                {
-                    "pair": [h_a["id"], h_b["id"]],
-                    "ack_run_id": rank_data["ack_run_id"],
-                    "winner_id": winner_id,
-                    "reason": rank_data["reason"],
-                }
+        ranked_survivors = tournament.final_ranking(ratings, survivors_full, flags)
+        (run_dir / "tournament_state.json").write_text(
+            json.dumps(
+                tournament.build_state(
+                    rng_seed, ratings, match_log, ids, matrix, flags, ranked_survivors
+                ),
+                indent=2,
             )
-
-        ranked_survivors, win_counts = _compute_rank(survivors_full, verdicts)
-        _log(baton.run_id, f"STAGE1_RANKING win_counts: {win_counts}")
-        ranking_note = f"ranked via {len(verdicts)} pairwise calls"
+        )
+        _log(baton.run_id, f"STAGE1_TOURNAMENT final_elo: {ratings}")
+        ranking_note = (
+            f"ranked via Elo tournament: {len(matches)} matches "
+            f"({debate_count} debate, {len(matches) - debate_count} single-turn)"
+        )
 
     (run_dir / "ranking.json").write_text(json.dumps(verdicts, indent=2))
 
