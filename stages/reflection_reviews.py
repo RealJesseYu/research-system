@@ -315,7 +315,7 @@ def gather_review_refs(run_id: str, hypothesis: dict) -> tuple[list[dict], dict]
 
 
 def initial_review(run_id: str, domain: str, hypotheses: list[dict]) -> list[dict]:
-    """ONE Sonnet call over the whole pool, no retrieval: quick pass/discard
+    """ONE Haiku call over the whole pool, no retrieval: quick pass/discard
     per candidate on correctness / quality / novelty / preliminary safety.
     Returns one {id, verdict, reason} per candidate; the validator enforces
     exactly one review per pool id, inside the re-ask loop."""
@@ -378,7 +378,7 @@ def initial_review(run_id: str, domain: str, hypotheses: list[dict]) -> list[dic
 
 
 def full_review(run_id: str, domain: str, hypothesis: dict, refs: list[dict]) -> dict:
-    """One Sonnet call per survivor WITH the retrieved snippets: the grounded
+    """One Haiku call per survivor WITH the retrieved snippets: the grounded
     novelty verdict (cited refs validated against the refs actually shown —
     a 'known' verdict must cite at least one) plus the correctness/quality
     critique. This review supplies the novelty, critique, and quality fields
@@ -528,7 +528,7 @@ def deep_verification_review(run_id: str, domain: str, hypothesis: dict) -> dict
 def observation_review(
     run_id: str, domain: str, hypothesis: dict, refs: list[dict], memory_block: str | None
 ) -> dict:
-    """One Sonnet call per survivor: can the hypothesis account for existing
+    """One Haiku call per survivor: can the hypothesis account for existing
     observations? Sees the SAME bounded refs the full review saw (no second
     retrieval) plus, when present, the journal leads — this is the one
     review unit that receives memory, because prior observations are its
@@ -581,7 +581,7 @@ def observation_review(
 
 
 def simulation_review(run_id: str, domain: str, hypothesis: dict) -> dict:
-    """One Sonnet call per survivor, no retrieval: step-wise mental
+    """One Haiku call per survivor, no retrieval: step-wise mental
     simulation of the proposed mechanism, surfacing failure scenarios."""
 
     def validator(data: dict) -> list[str]:

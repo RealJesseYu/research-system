@@ -726,3 +726,55 @@ model_call in one run dir). 146/146 tests; pip fingerprint identical;
 58/60 Step-16 checksums OK (drift exactly CLAUDE.md + stage1_ideation.py).
 NOT a step close — no checksum snapshot, no commit. Chunk 4 next, scope
 not guessed here.
+
+Catch-up (this status section previously ended at Step 17 chunk 3; the
+interim record lives in journal milestones step17-progress-and-reorder /
+step16.6 / step18.7, commits 964d482→74e0ecd→7f9c112→a4dd853, and
+docs/context_after_18.7.md): the Step-17 chunk-4a diagnostic triaged deep
+verification's lethality (~55-60% of kills genuinely fundamental, ~40-45%
+should have survived) and Phase C was reordered instruments-and-cost-first.
+Step 16.6 CLOSED (measurement rails: cost meter, ledgers, FAST merge gate —
+hard-gate 1/6/16, exit 0, never skipped before a merge — and the kill-rate
+battery; snapshot checksums_after_step16_6.txt). Step 18.7 CLOSED (model
+tiers: per-stage reject gauge; Generation all-4-strategies + Reflection
+initial/full/observation/simulation Sonnet→Haiku, deep-verify HELD on
+Sonnet (feeds a deterministic kill, no judgment net), stage 2 HELD on
+Sonnet, Opus stages unchanged; downgrade validated — Haiku baseline in the
+Sonnet regime; the 10-run Haiku kill-rate baseline LOCKED as 17-fix-A's
+"before": same-domain k={0,0,0,0,1} kills 86-100%, alt k={2,1,1,1,0} kills
+70-90%, reject ~0.04, memory md5 373c886b; snapshot
+checksums_after_step18_7.txt).
+
+17-fix-A CLOSED (2026-07-10): the coupled Generation/deep-verify fix
+(commit b000274 — Generation no-invented-numbers instruction + warn-only
+unsupported-number signal; deep-verify fundamental-vs-addressable with
+addressable_notes never fatal; constant guard: a kill may not rest on a
+remembered constant) measured against the locked Haiku baseline
+(harness/killrate_17fixA.log). HONEST RESULT: 8 of 10 slots produced
+comparable data — same5 and alt1 UNRESOLVED (arXiv 429/503 exhausted
+MAX_RELAUNCHES; a grounding-transport failure, NOT a fix failure).
+Same-domain k={1,1,3,1}, alt-domain k={2,1,3,4}; ZERO zero-survivor runs
+(vs baseline 4/5 same-domain) — tournament starvation eliminated.
+Deep-verify kill rate 25-67% same / 20-67% alt (vs baseline 86-100% /
+70-90%). generation_unsupported_number = 7 total, 0 in most scored runs;
+reject_rate 0.013; ledger 0/0; all 8 comparable runs matched memory md5
+373c886b. Manual inspection confirmed: remaining kills are genuinely
+fundamental (structural/circular/scale defects; no remembered-constant
+kills — the constant guard holds), survivors are real, and carried
+addressable_notes correctly kept otherwise-killed hypotheses as rankable
+survivors. VERDICT: both halves of the success criterion met, with
+disclosed caveats — 8/10 comparability, and "reliably ≥1, frequently ≥2,
+occasionally ceiling-4" survivors rather than a clean always-≥2. Close
+work: the carried Step-16 QoI-name watch item folded in (tools/run_cfd.py
+reports 'cellMax(U)[1]'-style names — a numeric component now shows in the
+QoI name; the on-disk postProcessing/ dir name is unchanged) and the two
+stale per-function docstring sets corrected to the post-18.7 pins
+(generation_strategies.py, reflection_reviews.py — deep-verify's Sonnet
+docstring untouched). Verified GREEN at close: 146/146 tests, FAST
+hard-gate 3/3 / zero watch misses / ledger 0/0 / exit 0,
+survival_counter --validate ALL MATCH. Milestone journaled (run_id
+"17-fix-A"). Checksum snapshot checksums_after_17fixA.txt is this close's
+FINAL write.
+17-fix-A COMPLETE. Next: 17-fix-B is the named next fix (retrieval ruling:
+S2 zero-hit misreport + OpenAlex, both already evidence-approved); scope
+not re-guessed here.

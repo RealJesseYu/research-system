@@ -272,7 +272,11 @@ def _extract_qoi(case: str, qoi_request: dict) -> dict:
     elif component in (0, 1, 2):
         return {"qoi_error": f"component {component!r} requested but {target!r} is a scalar"}
 
-    return {"qoi": {"name": func_name, "field": field, "operation": operation,
+    # The reported name must show a numeric component (Step-16 watch item:
+    # 'cellMax(U)' hid that component 1 was taken, misleading downstream
+    # judgment); func_name itself stays as postProcess writes it on disk.
+    qoi_name = f"{func_name}[{component}]" if component in (0, 1, 2) else func_name
+    return {"qoi": {"name": qoi_name, "field": field, "operation": operation,
                     "value": value, "time": row_time}}
 
 

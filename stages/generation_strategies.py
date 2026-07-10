@@ -318,7 +318,7 @@ def gather_literature_evidence(run_id: str, domain: str, run_dir: Path) -> list[
 def strategy_literature_exploration(
     run_id: str, domain: str, literature_refs: list[dict], memory_block: str | None
 ) -> tuple[list[dict], list[dict]]:
-    """One Sonnet call: hypotheses grounded in the combined retrieved
+    """One Haiku call: hypotheses grounded in the combined retrieved
     snippets, each citing the ref ids that ground it (cited refs are
     validated against the refs actually provided — inside the re-ask loop).
 
@@ -420,7 +420,7 @@ def strategy_literature_exploration(
 def strategy_simulated_debate(
     run_id: str, domain: str, literature_refs: list[dict], run_dir: Path
 ) -> list[dict]:
-    """Bounded multi-turn self-play: one Sonnet call per persona (hard cap
+    """Bounded multi-turn self-play: one Haiku call per persona (hard cap
     DEBATE_TURNS), each seeing the same bounded literature refs plus the
     structured debate so far — construction-level input through the call's
     own arguments, exactly like every other stage-1 input; no transcript is
@@ -490,7 +490,7 @@ def strategy_simulated_debate(
 def strategy_assumptions_identification(
     run_id: str, domain: str, run_dir: Path
 ) -> list[dict]:
-    """Two Sonnet calls: (a) identify 3-5 testable intermediate assumptions
+    """Two Haiku calls: (a) identify 3-5 testable intermediate assumptions
     via conditional reasoning, (b) aggregate them into complete hypotheses
     that cite the assumption numbers they build on. Pure reasoning from the
     domain — this strategy does not retrieve (faithful to Co-Scientist; the
@@ -586,7 +586,7 @@ def strategy_research_expansion(
     memory_block: str | None,
     meta_review_feedback: dict | None = None,
 ) -> list[dict]:
-    """One Sonnet call: review the run's existing candidates and propose
+    """One Haiku call: review the run's existing candidates and propose
     hypotheses in unexplored directions.
 
     SEAM (later chunk): meta_review_feedback is where the Meta-review
