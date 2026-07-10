@@ -1,15 +1,20 @@
 """
 scholar_search.py — live scholarly retrieval for the Step-17 ideation rebuild:
-arXiv (grounding) and Semantic Scholar (novelty-checking, cross-publisher
-coverage plus citation counts).
+arXiv, Semantic Scholar (cross-publisher coverage plus citation counts), and
+— since 17-fix-B — OpenAlex, the preferred novelty-grounding source
+(citation-aware, and its `search` endpoint stays on-topic where arXiv's
+full-sentence all:-queries returned off-topic noise).
 
-Both functions follow the summarize-at-the-wrapper rule: they return small
+All functions follow the summarize-at-the-wrapper rule: they return small
 bounded records (snippet capped at SNIPPET_CAP chars) and never the raw
 HTTP/XML/JSON response. HTTP style copied from fetch_literature.py (the
 repo's proven arXiv code): stdlib urllib + certifi, a descriptive
-User-Agent, polite throttling, bounded retry with backoff. No API key is
-required by either function; an optional S2_API_KEY environment variable,
-when present, is sent to Semantic Scholar for a dedicated rate limit.
+User-Agent, polite throttling, bounded retry with backoff. arXiv and
+Semantic Scholar need no API key (an optional S2_API_KEY environment
+variable, when present, is sent to Semantic Scholar for a dedicated rate
+limit); OpenAlex requires a free key — anonymous access is metered too low
+for a battery — read as OPENALEX_API_KEY from the project root's .env via
+python-dotenv, the materials_lookup.py precedent.
 
 On any failure these functions raise a plain-language error — they never
 fabricate results.
@@ -25,6 +30,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+from pathlib import Path
+
+from dotenv import load_dotenv
 
 try:
     # certifi is already present in venv/ (pulled in transitively by the
@@ -38,6 +46,15 @@ except ImportError:
 ARXIV_API_URL = "https://export.arxiv.org/api/query"
 S2_API_URL = "https://api.semanticscholar.org/graph/v1/paper/search"
 S2_FIELDS = "title,abstract,year,citationCount"
+OPENALEX_API_URL = "https://api.openalex.org/works"
+# select= bounds the per-work payload (~19KB unfiltered) to just these
+# root-level fields; abstract_inverted_index is how OpenAlex ships abstracts.
+OPENALEX_SELECT = "id,title,publication_year,cited_by_count,abstract_inverted_index"
+# OpenAlex "polite pool" convention: identify yourself with a mailto param.
+OPENALEX_MAILTO = "jesse.gift.yu@gmail.com"
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_ENV_PATH = _PROJECT_ROOT / ".env"
 
 SNIPPET_CAP = 1400
 USER_AGENT = "research-system/step17-scholar_search.py (ideation literature retrieval)"
@@ -193,8 +210,12 @@ def search_semantic_scholar(query: str, top_k: int = 3) -> list[dict]:
 
     papers = parsed.get("data")
     if papers is None:
-        # A well-formed reply always carries "data" (possibly empty); its
-        # absence means an error envelope we should surface, not paper data.
+        # Zero-hit replies legitimately omit "data" and carry "total"
+        # (witnessed live in Step 17 chunk 3: reply keys ['offset', 'total']).
+        # That is a well-formed empty result, not an error. Only a reply
+        # missing BOTH "data" and "total" is a malformed/error envelope.
+        if isinstance(parsed, dict) and "total" in parsed:
+            return []
         raise RuntimeError(
             "Semantic Scholar replied without a 'data' field "
             f"(reply keys: {sorted(parsed) if isinstance(parsed, dict) else type(parsed).__name__}). "
@@ -214,6 +235,108 @@ def search_semantic_scholar(query: str, top_k: int = 3) -> list[dict]:
                 "title": " ".join(title.split()),
                 "year": paper.get("year"),
                 "citation_count": paper.get("citationCount"),
+                "snippet": " ".join(abstract.split())[:SNIPPET_CAP],
+            }
+        )
+        if len(records) == top_k:
+            break
+    return records
+
+
+def _load_openalex_api_key() -> str:
+    """Same mechanism as materials_lookup._load_api_key: project-root .env
+    via python-dotenv, plain-language error naming the exact variable."""
+    load_dotenv(_ENV_PATH)
+    key = os.environ.get("OPENALEX_API_KEY", "").strip()
+    if not key:
+        raise RuntimeError(
+            f"No OpenAlex API key found. Open {_ENV_PATH} and paste your key "
+            "directly after OPENALEX_API_KEY= (no quotes, no spaces). Keys are "
+            "free: create one at openalex.org — anonymous access is metered to "
+            "a handful of searches per day, too few for a battery. "
+            "No results were returned — nothing was fabricated."
+        )
+    return key
+
+
+def _reconstruct_abstract(inverted_index: dict) -> str:
+    """Rebuild plain abstract text from OpenAlex's abstract_inverted_index
+    ({word: [positions...]}). Deterministic: words sorted by position."""
+    placed = [
+        (pos, word)
+        for word, positions in inverted_index.items()
+        if isinstance(positions, list)
+        for pos in positions
+    ]
+    placed.sort()
+    return " ".join(word for _, word in placed)
+
+
+def search_openalex(query: str, top_k: int = 3) -> list[dict]:
+    """Search OpenAlex works by relevance and return at most top_k bounded records.
+
+    Each record is {"source": "openalex:<Wid>", "title", "year",
+    "citation_count", "snippet": <abstract capped at SNIPPET_CAP chars>}.
+    OpenAlex ships abstracts as an inverted index, absent on some works —
+    present it is reconstructed; absent the snippet is empty, honest, never
+    invented (same behavior as S2 on a missing abstract). A zero-hit reply
+    returns [] — not an error; transport/HTTP failure raises so a
+    best-effort caller can record it. Requires OPENALEX_API_KEY (see
+    _load_openalex_api_key). Makes NO model call and reports nothing to
+    cost_meter — pure keyed HTTP, like search_arxiv/search_semantic_scholar.
+    """
+    if not query or not query.strip():
+        raise ValueError("search_openalex: query must be a non-empty string")
+    if top_k < 1:
+        raise ValueError(f"search_openalex: top_k must be >= 1, got {top_k}")
+
+    api_key = _load_openalex_api_key()
+    params = {
+        "search": query.strip(),
+        "per-page": top_k,
+        "select": OPENALEX_SELECT,
+        "mailto": OPENALEX_MAILTO,
+        "api_key": api_key,
+    }
+    url = f"{OPENALEX_API_URL}?{urllib.parse.urlencode(params)}"
+    body = _http_get(url, headers={"User-Agent": USER_AGENT}, what="OpenAlex")
+
+    try:
+        parsed = json.loads(body)
+    except json.JSONDecodeError as e:
+        raise RuntimeError(
+            f"OpenAlex replied but its response was not parseable JSON ({e}). "
+            "No results were returned — nothing was fabricated."
+        ) from e
+
+    works = parsed.get("results") if isinstance(parsed, dict) else None
+    if works is None:
+        # A well-formed works reply always carries "results" (an empty list
+        # on zero hits — unlike S2, OpenAlex does not drop the key); its
+        # absence means an error envelope we should surface, not work data.
+        raise RuntimeError(
+            "OpenAlex replied without a 'results' field "
+            f"(reply keys: {sorted(parsed) if isinstance(parsed, dict) else type(parsed).__name__}). "
+            "No results were returned — nothing was fabricated."
+        )
+
+    records = []
+    for work in works:
+        raw_id = (work.get("id") or "").strip()
+        # raw_id looks like "https://openalex.org/W2741809807"; the stable
+        # work id is the trailing W-number.
+        work_id = raw_id.rsplit("/", 1)[-1]
+        title = work.get("title")
+        if not work_id or not title:
+            continue
+        inverted = work.get("abstract_inverted_index")
+        abstract = _reconstruct_abstract(inverted) if isinstance(inverted, dict) else ""
+        records.append(
+            {
+                "source": f"openalex:{work_id}",
+                "title": " ".join(title.split()),
+                "year": work.get("publication_year"),
+                "citation_count": work.get("cited_by_count"),
                 "snippet": " ".join(abstract.split())[:SNIPPET_CAP],
             }
         )

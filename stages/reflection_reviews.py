@@ -79,7 +79,7 @@ _RETRIEVAL_DIR = Path(__file__).resolve().parent.parent / "retrieval"
 if str(_RETRIEVAL_DIR) not in sys.path:
     sys.path.insert(0, str(_RETRIEVAL_DIR))
 
-from scholar_search import search_arxiv, search_semantic_scholar  # noqa: E402
+from scholar_search import search_arxiv, search_openalex, search_semantic_scholar  # noqa: E402
 from search import search_index  # noqa: E402
 from web_search import web_search  # noqa: E402
 
@@ -244,22 +244,40 @@ def gather_review_refs(run_id: str, hypothesis: dict) -> tuple[list[dict], dict]
     statement) and return (combined ref-tagged list, evidence dict).
 
     Same source policy as Generation's gather_literature_evidence: corpus
-    RAG and arXiv are REQUIRED — a failure there propagates (an honest
-    stage failure). Semantic Scholar and web search are best-effort: a
-    RuntimeError from either is recorded in the evidence and retrieval
-    proceeds without that source. Every record is already bounded by its
-    wrapper (snippet caps); nothing raw exists at this layer. web_search is
-    the one tool that needs run_id — its own transcript is written before
-    its call fires. Ref ids R1..Rn are scoped to this hypothesis's reviews;
-    the evidence dict is stored under the hypothesis's entry in
-    reflection_reviews.json rather than a separate file per hypothesis.
+    RAG and OpenAlex are REQUIRED — a failure there propagates (an honest
+    stage failure that aborts the run; the kill-rate battery classifies it
+    ABORTED and relaunches). OpenAlex is the PREFERRED novelty-grounding
+    source (17-fix-B: it superseded arXiv, whose full-sentence all:-queries
+    returned off-topic noise; hard-required by human ruling — grounding
+    must fail loud, never silently thin out). A zero-hit OpenAlex [] is a
+    valid outcome (no relevant citations found), not a failure. arXiv,
+    Semantic Scholar and web search are best-effort: a RuntimeError from
+    any is recorded in the evidence and retrieval proceeds without that
+    source. Every record is already bounded by its wrapper (snippet caps);
+    nothing raw exists at this layer. web_search is the one tool that
+    needs run_id — its own transcript is written before its call fires.
+    Ref ids R1..Rn are scoped to this hypothesis's reviews; the evidence
+    dict is stored under the hypothesis's entry in reflection_reviews.json
+    rather than a separate file per hypothesis.
     """
     query = hypothesis["statement"]
     corpus_records = [
         {"source": r["source"], "title": r["title"], "snippet": r["snippet"]}
         for r in search_index("literature", query, top_k=TOP_K_PER_SOURCE)
     ]
-    arxiv_records = search_arxiv(query, top_k=TOP_K_PER_SOURCE)
+    openalex_records = search_openalex(query, top_k=TOP_K_PER_SOURCE)
+
+    try:
+        arxiv_records = search_arxiv(query, top_k=TOP_K_PER_SOURCE)
+        arxiv_evidence: list | dict = arxiv_records
+    except RuntimeError as e:
+        arxiv_records = []
+        arxiv_evidence = {"error": str(e)}
+        _log(
+            run_id,
+            f"STAGE1_REFLECTION_RETRIEVAL {hypothesis['id']} arxiv failed "
+            f"(recorded, proceeding): {str(e).splitlines()[0]}",
+        )
 
     try:
         s2_records = search_semantic_scholar(query, top_k=TOP_K_PER_SOURCE)
@@ -288,14 +306,16 @@ def gather_review_refs(run_id: str, hypothesis: dict) -> tuple[list[dict], dict]
     combined_refs = [
         {"ref": f"R{n}", **record}
         for n, record in enumerate(
-            [*corpus_records, *arxiv_records, *s2_records, *web_records], start=1
+            [*corpus_records, *openalex_records, *arxiv_records, *s2_records, *web_records],
+            start=1,
         )
     ]
 
     evidence = {
         "query": query,
         "corpus": corpus_records,
-        "arxiv": arxiv_records,
+        "openalex": openalex_records,
+        "arxiv": arxiv_evidence,
         "semantic_scholar": s2_evidence,
         "web": web_evidence,
         "combined_refs": combined_refs,
@@ -303,7 +323,8 @@ def gather_review_refs(run_id: str, hypothesis: dict) -> tuple[list[dict], dict]
     _log(
         run_id,
         f"STAGE1_REFLECTION_RETRIEVAL {hypothesis['id']} corpus={len(corpus_records)} "
-        f"arxiv={len(arxiv_records)} "
+        f"openalex={len(openalex_records)} "
+        f"arxiv={len(arxiv_records) if isinstance(arxiv_evidence, list) else 'error'} "
         f"s2={len(s2_records) if isinstance(s2_evidence, list) else 'error'} "
         f"web={len(web_records) if isinstance(web_evidence, list) else 'error'} "
         f"-> {len(combined_refs)} combined refs",
