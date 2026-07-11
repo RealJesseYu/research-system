@@ -783,4 +783,7 @@ md5-comparable; see docs/milestone_17fixB_witness.md); owes live S2
 re-probe only.
 docs/milestone_17fixA.md now exists (reconstructed; see its RECORD
 CORRECTION block).
-Next: build Step 17-C (tournament).
+17-C (Elo tournament) CLOSED (built 5038c1e; witnessed PASS, 4/4 slots,
+zero relaunches, all md5-comparable; HARD STOP read recorded — see
+docs/milestone_17C.md).
+Next: 17-D (Evolution) + 22 (paper agent), parallel worktrees.
