@@ -1,0 +1,5 @@
+{
+  "label": "defer",
+  "rationale": "The hypothesis requires scalar-transport physics: the 2D momentum-only cavity carries no concentration field, so the proposed mixing-index QoI does not exist in this instrument and no run can test the claim.",
+  "right_instrument": "no — a solver with passive-scalar transport is required to measure the proposed mixing index."
+}

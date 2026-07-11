@@ -1,0 +1,8 @@
+{
+  "fidelity_class": "refine",
+  "validation_items": [
+    {
+      "claim": "A claim whose class contradicts the on-disk trust verdict — the lint must catch the mismatch."
+    }
+  ]
+}

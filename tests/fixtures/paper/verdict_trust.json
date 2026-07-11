@@ -1,0 +1,5 @@
+{
+  "label": "trust",
+  "rationale": "The requested QoI is a volume-averaged velocity-field statistic the 2D laminar cavity instrument extracts natively, and both sweep points sit inside the validated Re~200 envelope.",
+  "right_instrument": "yes — a steady 2D laminar cavity solve resolves the requested bulk-velocity statistic directly."
+}

@@ -1,0 +1,8 @@
+{
+  "fidelity_class": "refine",
+  "validation_items": [
+    {
+      "claim": "The volAverage(mag(U)) shift across the lid-speed sweep requires downstream confirmation at finer mesh resolution before the trend is trusted."
+    }
+  ]
+}

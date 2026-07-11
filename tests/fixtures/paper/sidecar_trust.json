@@ -1,0 +1,9 @@
+{
+  "fidelity_class": "trust",
+  "validation_items": [
+    {
+      "kind": "none_required",
+      "reason": "The fidelity gate trusted the instrument for this volume-averaged velocity QoI inside its validated Re~200 envelope, so no downstream human validation is required."
+    }
+  ]
+}
