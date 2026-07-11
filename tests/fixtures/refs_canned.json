@@ -1,0 +1,17 @@
+[
+  {
+    "source": "canned",
+    "title": "High-Re solutions for incompressible flow using the Navier-Stokes equations and a multigrid method",
+    "snippet": "Tabulated steady-state benchmark solutions for the lid-driven cavity: velocity profiles along the centerlines and vortex-center locations for Re = 100 to 10000."
+  },
+  {
+    "source": "canned",
+    "title": "Benchmark spectral results on the lid-driven cavity flow",
+    "snippet": "Spectral-accuracy reference data for the two-dimensional lid-driven cavity, including streamfunction extrema and secondary-vortex intensities at moderate Reynolds numbers."
+  },
+  {
+    "source": "canned",
+    "title": "Hopf bifurcation of the unsteady regularized driven cavity flow",
+    "snippet": "Locates the first Hopf bifurcation of the driven cavity and characterizes the transition from steady to periodic flow as the Reynolds number increases."
+  }
+]

@@ -306,7 +306,9 @@ def run_harness(mode: str) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Measurement-rails harness (Step 16.6).")
-    parser.add_argument("--mode", choices=["fast", "heavy", "killrate"], required=True)
+    parser.add_argument(
+        "--mode", choices=["fast", "heavy", "killrate", "paperlint"], required=True
+    )
     parser.add_argument(
         "--repeats",
         type=int,
@@ -320,7 +322,38 @@ def main() -> int:
         help="killrate mode only: print the run plan and expected cost "
         "without firing ideation",
     )
+    parser.add_argument(
+        "--run-id",
+        default=None,
+        help="paperlint mode only: the run whose stage6 output to lint",
+    )
     args = parser.parse_args()
+    if args.mode == "paperlint":
+        # Step 22: lint one run's stage-6 output (paper.md + the validation
+        # sidecar vs the on-disk stage-3 verdict). Lazy import per the
+        # killrate pattern; deterministic, ZERO model calls.
+        from harness import paper_lint
+
+        if args.repeats is not None or args.dry_run:
+            parser.error("--repeats/--dry-run apply only to --mode killrate")
+        if args.run_id is None:
+            parser.error("--mode paperlint requires --run-id")
+        failures = paper_lint.lint_paper(args.run_id)
+        for failure in failures:
+            print(
+                f"PAPERLINT FAIL [{failure['code']}] "
+                f"target={failure['target']}: {failure['message']}"
+            )
+        if failures:
+            print(
+                f"PAPERLINT: FAIL — {len(failures)} failure(s) "
+                f"for run {args.run_id}"
+            )
+            return 1
+        print(f"PAPERLINT: PASS — run {args.run_id} (0 failures)")
+        return 0
+    if args.run_id is not None:
+        parser.error("--run-id applies only to --mode paperlint")
     if args.mode == "killrate":
         # The HEAVY kill-rate battery (chunk 4): Stage-1 ideation runs
         # scored by harness/survival_counter.py — a different instrument

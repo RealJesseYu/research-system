@@ -1,0 +1,10 @@
+{
+  "fidelity_class": "defer",
+  "validation_items": [
+    {
+      "substrate": "a scalar-transport-capable incompressible solver",
+      "conditions": "Re 200 lid-driven cavity with the designed floor geometry and a passive tracer initialized as a top-half step",
+      "measurement": "decay rate of concentration variance over 20 s of physical time"
+    }
+  ]
+}

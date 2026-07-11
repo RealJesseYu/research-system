@@ -1,0 +1,5 @@
+{
+  "label": "refine",
+  "rationale": "The instrument can approximate the hypothesized trend, but the requested mesh resolution is coarse for the secondary-vortex region, so any extracted QoI shift needs downstream confirmation at finer resolution before it is trusted.",
+  "right_instrument": "partially — usable for a first pass, but the QoI requires confirmation on a refined mesh."
+}
