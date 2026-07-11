@@ -22,6 +22,36 @@ from baton import Baton
 from stages import stage2_experiment_design
 
 
+def resolve_hypothesis(source_dir: Path, hyp_id: str) -> dict:
+    """Find hyp_id in the source run's stage1/survivors.json; on a miss,
+    fall back to stage1/evolution_variants.json — ACCEPTED records only
+    (Step 17-D: accepted variants are selectable at gate 1, so the side
+    door must reach them too; rejected variants never rank and stay
+    unreachable). Exits with the ids available in both files when neither
+    has it. Returns the {id, statement, rationale} view stage 2 consumes."""
+    survivors = json.loads((source_dir / "stage1" / "survivors.json").read_text())
+    matches = [h for h in survivors if h["id"] == hyp_id]
+    if not matches:
+        variants_path = source_dir / "stage1" / "evolution_variants.json"
+        accepted = []
+        if variants_path.exists():
+            accepted = [
+                v
+                for v in json.loads(variants_path.read_text())
+                if v.get("accepted") is True
+            ]
+        matches = [v for v in accepted if v["id"] == hyp_id]
+        if not matches:
+            sys.exit(
+                f"hypothesis {hyp_id!r} not found in "
+                f"{source_dir / 'stage1' / 'survivors.json'} "
+                f"(ids there: {[h['id'] for h in survivors]}) nor among accepted "
+                f"evolution variants in {variants_path} "
+                f"(accepted ids there: {[v['id'] for v in accepted]})"
+            )
+    return {k: matches[0][k] for k in ("id", "statement", "rationale")}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-run", required=True, help="run_id under runs/ to feed from")
@@ -29,14 +59,7 @@ def main() -> None:
     args = parser.parse_args()
 
     source_dir = Path("runs") / args.source_run
-    survivors = json.loads((source_dir / "stage1" / "survivors.json").read_text())
-    matches = [h for h in survivors if h["id"] == args.hyp]
-    if not matches:
-        sys.exit(
-            f"hypothesis {args.hyp!r} not found in {source_dir / 'stage1' / 'survivors.json'}; "
-            f"ids there: {[h['id'] for h in survivors]}"
-        )
-    chosen = {k: matches[0][k] for k in ("id", "statement", "rationale")}
+    chosen = resolve_hypothesis(source_dir, args.hyp)
 
     gate1_snapshot = source_dir / "baton_after_gate_1.json"
     domain_source = (
