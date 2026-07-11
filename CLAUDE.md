@@ -786,4 +786,23 @@ CORRECTION block).
 17-C (Elo tournament) CLOSED (built 5038c1e; witnessed PASS, 4/4 slots,
 zero relaunches, all md5-comparable; HARD STOP read recorded — see
 docs/milestone_17C.md).
-Next: 17-D (Evolution) + 22 (paper agent), parallel worktrees.
+17-D (Evolution) MERGED to main (2026-07-11, true merge 04d27e8, build
+commit e599e47 preserved verbatim): four strategies on Sonnet pin
+(EVOLUTION_MODEL claude-sonnet-4-6); 2-variant cap — simplification
+always + seeded rotation; variants reviewed by the full Reflection chain
+and ranked via in-memory tournament pool; evolution_variants.json
+evidence; survivors.json and battery k untouched. Owes tonight's dedup
+witness.
+Step 22 (paper agent) MERGED to main (2026-07-11, true merge c957f3b,
+build commit 6bda1fd preserved verbatim): sidecar-first validation
+handoff on Haiku pin (STAGE6_MODEL claude-haiku-4-5-20251001); mandatory
+What-Humans-Must-Validate from the sidecar; markdown deliverable, TeX
+queued; lint-with-error-feedback; harness --mode paperlint; offline-refs
+seam. Smoke witnessed live; owes supervised real-run outing at 17-CLOSE.
+Merge-session verification (2026-07-11): union suite on the combined
+tree 218/218 tests across 21 files, all green (supersedes the stale
+146-test count above); FAST run twice, both GREEN hard-gate 3/3 (second
+run logged a warn-only watch miss, case 13 refine→trust — recorded, does
+not affect GREEN). Main HEAD at status write: c957f3b (pasted from
+git rev-parse in-session).
+Next: 17-D dedup witness overnight, then Day 3: 17-E.
