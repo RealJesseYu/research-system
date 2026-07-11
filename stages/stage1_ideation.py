@@ -68,6 +68,7 @@ from baton import Baton
 from memory.journal import journal_recent_by_kind
 from model_call import call_stage_model, log_stage_call
 from stages import tournament
+from stages.evolution_strategies import evolve_and_review
 from stages.generation_strategies import generate_candidate_pool
 from stages.reflection_reviews import reflect_on_pool
 
@@ -381,14 +382,26 @@ def run(baton: Baton) -> Baton:
     ]
     (run_dir / "survivors.json").write_text(json.dumps(survivors_full, indent=2))
 
+    # --- Evolution (Step 17-D: up to 2 variants from the finalized parents,
+    # emitted and reviewed by the same Reflection machinery in
+    # stages/evolution_strategies.py — never raises; zero accepted variants
+    # means the run proceeds over the parents alone). Accepted variants join
+    # the tournament pool IN MEMORY ONLY: survivors_full and survivors.json
+    # are never mutated, and the battery's k stays len(survivors.json). ---
+    accepted_variants = evolve_and_review(
+        baton.run_id, domain, survivors_full, memory_block, run_dir
+    )
+    tournament_pool = survivors_full + accepted_variants
+
     # --- Ranking (Step 17-C: Elo tournament — pure math in
-    # stages/tournament.py, Opus judgments through the helpers above) ---
-    k = len(survivors_full)
+    # stages/tournament.py, Opus judgments through the helpers above;
+    # since Step 17-D everything below keys off tournament_pool) ---
+    k = len(tournament_pool)
     verdicts: list[dict] = []
 
     if k == 1:
         _log(baton.run_id, "STAGE1_RANKING ranking trivial (k=1)")
-        ranked_survivors = survivors_full
+        ranked_survivors = tournament_pool
         ranking_note = "ranking trivial (k=1)"
     else:
         rng_seed = baton.run_id
@@ -399,9 +412,9 @@ def run(baton: Baton) -> Baton:
             f"elo_init={tournament.ELO_INIT} k_factor={tournament.K_FACTOR}",
         )
 
-        ratings = {s["id"]: tournament.ELO_INIT for s in survivors_full}
-        ids = [s["id"] for s in survivors_full]
-        matrix = tournament.proximity_matrix(survivors_full)
+        ratings = {s["id"]: tournament.ELO_INIT for s in tournament_pool}
+        ids = [s["id"] for s in tournament_pool]
+        matrix = tournament.proximity_matrix(tournament_pool)
         flags = tournament.dedup_flags(matrix)
         for fi, fj, sim in flags:
             _log(
@@ -415,12 +428,12 @@ def run(baton: Baton) -> Baton:
         match_log: list[dict] = []
         debate_count = 0
         for i, j in matches:
-            h_i, h_j = survivors_full[i], survivors_full[j]
+            h_i, h_j = tournament_pool[i], tournament_pool[j]
             pair_ids = [h_i["id"], h_j["id"]]
             # Randomized A/B presentation, reproducible from the logged seed.
             h_a, h_b = (h_i, h_j) if rng.random() < 0.5 else (h_j, h_i)
 
-            top2 = _live_top2(ratings, survivors_full)
+            top2 = _live_top2(ratings, tournament_pool)
             tier = (
                 "debate"
                 if h_i["id"] in top2 and h_j["id"] in top2
@@ -467,7 +480,7 @@ def run(baton: Baton) -> Baton:
                 f"elo_before={elo_before} elo_after={elo_after}",
             )
 
-        ranked_survivors = tournament.final_ranking(ratings, survivors_full, flags)
+        ranked_survivors = tournament.final_ranking(ratings, tournament_pool, flags)
         (run_dir / "tournament_state.json").write_text(
             json.dumps(
                 tournament.build_state(

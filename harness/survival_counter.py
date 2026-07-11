@@ -40,6 +40,7 @@ from typing import Optional
 REFLECTION_REVIEWS = "reflection_reviews.json"
 REFLECTIONS = "reflections.json"
 SURVIVORS = "survivors.json"
+EVOLUTION_VARIANTS = "evolution_variants.json"
 
 # k=0 reason tags (real zero-survivor outcomes, not aborts)
 DEEP_VERIFY_DISCARDED_ALL = "deep_verify_discarded_all"
@@ -71,6 +72,14 @@ def count_run(run_dir: Path | str) -> dict:
                               computable; None otherwise
       abort_reason            for aborted runs: what is missing
       files_present           the stage1/ filenames actually on disk
+      variants_emitted        Step 17-D, ADDITIVE: record count in
+                              stage1/evolution_variants.json (each record is
+                              one variant slot Evolution attempted, emission
+                              failures included as accepted-false records);
+                              0 when the file is absent (pre-17-D runs)
+      variants_accepted       accepted-true records in that file; 0 when
+                              absent. Variants NEVER enter k — k stays
+                              len(survivors.json), byte-identical to 17-C.
     """
     run_dir = Path(run_dir)
     stage1 = run_dir / "stage1"
@@ -88,7 +97,19 @@ def count_run(run_dir: Path | str) -> dict:
         "deep_verify_kill_rate": None,
         "abort_reason": None,
         "files_present": files_present,
+        "variants_emitted": 0,
+        "variants_accepted": 0,
     }
+
+    # Step 17-D, ADDITIVE ONLY: Evolution's variant counts, read from its
+    # evidence file when present. Absent file (every pre-17-D run) -> 0/0,
+    # never an error. Nothing below this block changed.
+    variants = _load_json(stage1 / EVOLUTION_VARIANTS)
+    if isinstance(variants, list):
+        result["variants_emitted"] = len(variants)
+        result["variants_accepted"] = sum(
+            1 for v in variants if isinstance(v, dict) and v.get("accepted") is True
+        )
 
     reviews = _load_json(stage1 / REFLECTION_REVIEWS)
 
