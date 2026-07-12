@@ -841,6 +841,50 @@ dedicated forensic session before 17-CLOSE, and Step 18 does not launch
 until it resolves. One dictation-vs-disk asterisk recorded in the doc:
 S2 429'd 38 non-zero-hit retrieval rounds on disk (dictated 39; 9
 zero-hit-repaired rounds confirmed; 47 rounds total).
-Next: 17-E build (slate pending) + overnight witness --repeats 2
---rounds 2. Main HEAD at status write: 14f96e6 (pasted from
-git rev-parse in-session).
+17-E BUILT (2026-07-12, committed on main together with this status edit;
+parent HEAD 14f96e6): meta-review + feedback loop + research overview +
+iteration controller. stages/meta_review.py — META_REVIEW_MODEL
+claude-opus-4-8, ONE Opus call per round boundary over a code-composed
+round_record (reflection outcomes incl. kill reasons; tournament results
+resolved to statements incl. verdict reasons and debate verdicts;
+evolution outcomes + reject reasons; dedup flags; the standing
+ranking-withhold pattern verbatim); schema-checked with bounded list
+sizes; NEVER crashes the run — any failure degrades to the empty feedback
+object, logged and recorded. Per-family feedback blocks
+(compose_feedback_block, round 1 = explicit empty block) code-appended to
+Generation (framed for selective use + the prior round's research-overview
+directions; the dead meta_review_feedback seam revived across all 5
+Generation prompt sites), Reflection (framed as recurring factors every
+future review must definitively address; all 5 review call sites), and
+the 3 tournament-judge sites. stage1/research_overview.json written every
+round (last round = end-of-run synthesis); it never enters the baton —
+the gate-1 payload wall is untouched, no schemas.py change. Review 6
+ACTIVE on Haiku pin claude-haiku-4-5-20251001: one call per survivor over
+prior-round tournament results resolved to statements by the controller
+(raw cross-round ids never reach it); ADVISORY only — no new kill path;
+tournament_state=None keeps the inert path, reason string corrected.
+Iteration controller inside stage1_ideation.run: ROUNDS=2 beside
+MAX_SURVIVORS, run() rounds override, battery --rounds default 1 (scored
+runs stay baseline-comparable single passes); memory retrieval stays
+outside the loop (md5 pin meaning preserved); rounds work in
+stage1/round<N>/ and canonical stage1 files = LAST SUCCESSFUL round;
+rounds.json per-round audit trail; k=1 rounds write a trivial-marker
+tournament_state.json; zero-survivor raise in round >=2 terminates
+standing on the last successful round (round 1 crashes honestly, exactly
+as before); termination = round budget + MAX_SURVIVORS count cap ONLY
+(ranking-stability detection deferred — cross-round ids unstable);
+exactly ONE add_history per run. Battery slot records gain
+variants_emitted / variants_accepted / rounds_completed /
+termination_reason — k derivation byte-identical. Stale tournament-seam
+prose corrected (reflection_reviews.py, stage1_ideation.py,
+generation_strategies.py). Deviations disclosed: research-contacts
+identification and publication-format decoding omitted. Verified:
+250/250 tests offline (32 new in tests/test_meta_review.py; one
+spec-driven edit to test_evolution's trivial-branch assertion — the
+trivial marker replaced the old no-state-file behavior); FAST GREEN
+hard-gate 3/3, zero watch misses, ledger 0/0, exit 0 (the session's only
+live calls). 17-E OWES the overnight witness: --mode killrate
+--repeats 2 --rounds 2; the 17-D-armed trigger (any k=0 slot OR >=2
+slots at k<=1 → forensic session before 17-CLOSE) applies to its read.
+Next: 17-E overnight witness --repeats 2 --rounds 2 + witness read;
+then 17-CLOSE.

@@ -22,8 +22,10 @@ required, Semantic Scholar + web best-effort) whose novelty verdict must
 cite the refs actually shown, (3) a deep-verification review decomposing
 assumptions (a fundamental flaw discards deterministically), (4) an
 observation review against retrieved snippets and journal leads, (5) a
-step-wise simulation review surfacing failure scenarios, and (6) an inert
-recurrent/tournament-review seam awaiting the tournament chunk. The result
+step-wise simulation review surfacing failure scenarios, and (6) a
+recurrent/tournament review (active since Step 17-E) over the prior
+round's tournament results resolved to plain statements — advisory only,
+inert on round 1 or after a trivially-ranked prior round. The result
 per surviving candidate is the same reflection object as always:
 {hypothesis_id, novelty, critique, quality}. A pure-Python filter (no model
 call) then discards anything judged "known" and keeps at most four survivors
@@ -44,6 +46,42 @@ Full generation/reflection/survivor/ranking records are evidence on disk
 under runs/<run_id>/stage1/; only {id, statement, rationale} for the
 survivors, in ranked order, ever reaches the baton payload.
 
+Iteration controller (Step 17-E): run() loops the whole Generation →
+Reflection → filter → Evolution → Ranking relay up to ROUNDS times
+(default 2; the kill-rate battery passes rounds=1, so scored battery runs
+stay baseline-comparable single passes unless flagged). Memory retrieval
+stays OUTSIDE the loop — one journal read per run, which is what the
+battery's memory-comparability md5 pin has always meant. Each round works
+in stage1/round<N>/ and, on success, its files are copied up to stage1/ —
+so the canonical stage1 files are always the LAST SUCCESSFUL round's.
+stage1/rounds.json is the per-run round audit trail (one appended entry
+per round: pool statements, k, the ranking resolved to statements, the
+full meta-review critique, termination_reason); stage1/
+research_overview.json is rewritten at every round boundary and the last
+round's version is the end-of-run synthesis — it never enters the baton
+(the gate-1 payload wall is untouched). Meta-review
+(stages/meta_review.py, one Opus call) runs at EVERY round boundary,
+including after the final round: the final round's critique is recorded in
+rounds.json but has no next round to consume it — recorded-but-unconsumed,
+deliberately. Between rounds the critique feeds per-family feedback blocks
+(meta_review.compose_feedback_block) into Generation (framed for selective
+use, plus the prior round's research-overview directions), Reflection
+(framed as recurring factors every future review must definitively
+address), and the tournament judge family (plain-labeled); the prior
+round's tournament results, resolved to plain statements
+(resolve_tournament_to_statements — canonical ids are reassigned every
+round, so raw ids must never cross a round boundary), feed Reflection's
+review 6. Termination is by round budget and the MAX_SURVIVORS count cap
+ONLY; ranking-stability detection is deliberately deferred — cross-round
+ids are unstable, so an id-based stability test would be meaningless. A
+zero-survivor raise in round 1 crashes honestly exactly as the single-pass
+stage always did; in round >= 2 it is caught, the loop terminates, and the
+run stands on the last successful round (recorded in rounds.json). Rounds
+with a single tournament candidate write a trivial-marker
+tournament_state.json so stale multi-candidate state never lies beside an
+empty ranking. Exactly ONE history entry is added per run() regardless of
+rounds.
+
 Journal read-side (Step 14): before Generation, deterministic stage code
 reads the last 3 learned_summary journal entries, saves them verbatim to
 runs/<run_id>/stage1/retrieved_memory.json, and (when any exist) appends a
@@ -62,6 +100,7 @@ from __future__ import annotations
 import itertools
 import json
 import random
+import shutil
 from pathlib import Path
 
 from baton import Baton
@@ -70,6 +109,13 @@ from model_call import call_stage_model, log_stage_call
 from stages import tournament
 from stages.evolution_strategies import evolve_and_review
 from stages.generation_strategies import generate_candidate_pool
+from stages.meta_review import (
+    append_rounds_entry,
+    build_meta_review,
+    compose_feedback_block,
+    compose_round_record,
+    empty_feedback,
+)
 from stages.reflection_reviews import reflect_on_pool
 
 OPUS_MODEL = "claude-opus-4-8"
@@ -120,6 +166,18 @@ DEBATE_JUDGE_SYSTEM_PROMPT = (
 )
 
 MAX_SURVIVORS = 4
+
+# Step 17-E iteration controller: rounds per run. The supervisor's default;
+# the kill-rate battery overrides to 1 so scored runs stay single-pass and
+# baseline-comparable. Termination is round budget + the MAX_SURVIVORS count
+# cap only (see the module docstring for the deferred stability criterion).
+ROUNDS = 2
+
+# The two zero-survivor raises (reflect_on_pool's and filter_survivors')
+# are identified by these message markers — their raise sites are frozen
+# (the deterministic kill rules), so the controller matches message text
+# rather than editing frozen code to raise a dedicated exception class.
+_ZERO_SURVIVOR_MARKERS = ("Zero survivors", "Zero reviewed hypotheses")
 
 MEMORY_HEADER = (
     "PRIOR OBSERVATIONS FROM EARLIER RUNS (unverified model text - treat "
@@ -217,10 +275,14 @@ def _check_verdict(data: dict, run_id: str, h_a: dict, h_b: dict, context: str) 
     _log(run_id, f"STAGE1_ACK_CHECK {context}: winner_id valid ({winner_id})")
 
 
-def _single_turn_judge(run_id: str, domain: str, h_a: dict, h_b: dict) -> dict:
+def _single_turn_judge(
+    run_id: str, domain: str, h_a: dict, h_b: dict, feedback_block: str | None = None
+) -> dict:
     """One Opus judge call for a non-top-2 match (J2), presented in the
-    (h_a, h_b) order the caller randomized. Returns a verdict in ranking.json's
-    exact historical shape: {pair, ack_run_id, winner_id, reason}."""
+    (h_a, h_b) order the caller randomized. feedback_block (Step 17-E) is
+    the ranking family's composed meta-review feedback, attached as its own
+    input field when present. Returns a verdict in ranking.json's exact
+    historical shape: {pair, ack_run_id, winner_id, reason}."""
     pair_name = f"{h_a['id']}_vs_{h_b['id']}"
     rank_input = {
         "run_id": run_id,
@@ -228,6 +290,8 @@ def _single_turn_judge(run_id: str, domain: str, h_a: dict, h_b: dict) -> dict:
         "hypothesis_a": _judge_view(h_a),
         "hypothesis_b": _judge_view(h_b),
     }
+    if feedback_block is not None:
+        rank_input["meta_review_feedback"] = feedback_block
     rank_schema = {
         "required": ["ack_run_id", "winner_id", "reason"],
         "enums": {"winner_id": [h_a["id"], h_b["id"]]},
@@ -249,7 +313,9 @@ def _single_turn_judge(run_id: str, domain: str, h_a: dict, h_b: dict) -> dict:
     }
 
 
-def _debate_once(run_id: str, domain: str, h_a: dict, h_b: dict) -> dict:
+def _debate_once(
+    run_id: str, domain: str, h_a: dict, h_b: dict, feedback_block: str | None = None
+) -> dict:
     """One full three-turn debate at the presented (h_a, h_b) ordering
     (J4), following generation_strategies.strategy_simulated_debate's
     construction pattern: three independent Opus calls, the structured
@@ -277,6 +343,8 @@ def _debate_once(run_id: str, domain: str, h_a: dict, h_b: dict) -> dict:
             "hypothesis_b": _judge_view(h_b),
             "debate_so_far": debate_so_far,
         }
+        if feedback_block is not None:
+            stage_input["meta_review_feedback"] = feedback_block
         data, timing = call_stage_model(
             f"stage1_tournament_debate_turn{turn}",
             DEBATE_ADVOCATE_SYSTEM_PROMPT,
@@ -305,6 +373,8 @@ def _debate_once(run_id: str, domain: str, h_a: dict, h_b: dict) -> dict:
         "hypothesis_b": _judge_view(h_b),
         "debate_so_far": debate_so_far,
     }
+    if feedback_block is not None:
+        judge_input["meta_review_feedback"] = feedback_block
     judge_schema = {
         "required": ["ack_run_id", "winner_id", "reason"],
         "enums": {"winner_id": [h_a["id"], h_b["id"]]},
@@ -326,24 +396,67 @@ def _debate_once(run_id: str, domain: str, h_a: dict, h_b: dict) -> dict:
     }
 
 
-def run(baton: Baton) -> Baton:
-    domain = baton.payload["domain"]
-    run_dir = Path("runs") / baton.run_id / "stage1"
-    run_dir.mkdir(parents=True, exist_ok=True)
+def resolve_tournament_to_statements(state: dict, statements_by_id: dict[str, str]) -> dict:
+    """Pure: a tournament state (tournament.build_state's shape) with every
+    hypothesis id replaced by its statement. Canonical ids are reassigned
+    every round, so raw ids must never cross a round boundary — this
+    resolved view is what review 6 and meta-review receive."""
+    return {
+        "final_ranking": [
+            {"statement": statements_by_id[e["id"]], "elo": e["elo"]}
+            for e in state["final_ranking"]
+        ],
+        "matches": [
+            {
+                "statements": [statements_by_id[pid] for pid in m["pair"]],
+                "tier": m["tier"],
+                "winner_statements": [statements_by_id[w] for w in m["verdicts"]],
+                "reasons": m["reasons"],
+            }
+            for m in state["match_log"]
+        ],
+        "dedup_flags": [
+            {
+                "statements": [statements_by_id[pid] for pid in f["pair"]],
+                "similarity": f["similarity"],
+            }
+            for f in state["proximity"]["dedup_flags"]
+        ],
+    }
 
-    # --- Journal read-side (deterministic, before any model call) ---
-    memory_entries = journal_recent_by_kind("learned_summary", 3)
-    (run_dir / "retrieved_memory.json").write_text(json.dumps(memory_entries, indent=2))
-    memory_block = build_memory_block(memory_entries)
-    _log(
-        baton.run_id,
-        f"STAGE1_MEMORY retrieved {len(memory_entries)} learned_summary entries",
-    )
+
+def _is_zero_survivor_error(exc: Exception) -> bool:
+    """True when `exc` is one of the two zero-survivor raises (identified
+    by the frozen raise sites' message markers — see _ZERO_SURVIVOR_MARKERS)."""
+    text = str(exc)
+    return any(marker in text for marker in _ZERO_SURVIVOR_MARKERS)
+
+
+def _run_round(
+    run_id: str,
+    domain: str,
+    memory_block: str | None,
+    round_dir: Path,
+    round_index: int,
+    gen_block: str,
+    refl_block: str,
+    rank_block: str,
+    prior_tournament_resolved: dict | None,
+) -> dict:
+    """One full Generation → Reflection → filter → Evolution → Ranking pass,
+    writing every per-round artifact into round_dir (stage1/round<N>/); the
+    caller promotes a successful round's files to the canonical stage1/ set.
+    Raises exactly like the single-pass stage always did — the caller
+    decides what a raise means for the loop (round 1: honest crash;
+    round >= 2 zero-survivor: recorded termination)."""
 
     # --- Generation (Step 17: the four Co-Scientist strategies; every model
     # call, retrieval, evidence write, and the pool's canonical h1..hN ids
-    # live in stages/generation_strategies.py) ---
-    pool = generate_candidate_pool(baton.run_id, domain, memory_block, run_dir)
+    # live in stages/generation_strategies.py; gen_block is the composed
+    # meta-review feedback for the generation family, Step 17-E) ---
+    pool = generate_candidate_pool(
+        run_id, domain, memory_block, round_dir, meta_review_feedback=gen_block
+    )
     hypotheses = [
         {"id": c["id"], "statement": c["statement"], "rationale": c["rationale"]}
         for c in pool
@@ -353,11 +466,19 @@ def run(baton: Baton) -> Baton:
     # call, per-hypothesis retrieval, evidence write, and both deterministic
     # discard rules live in stages/reflection_reviews.py; the returned
     # reflection objects keep the exact {hypothesis_id, novelty, critique,
-    # quality} contract the filter below has consumed since Step 8) ---
+    # quality} contract the filter below has consumed since Step 8. Step
+    # 17-E: refl_block is the reflection family's feedback; the prior
+    # round's statement-resolved tournament results feed review 6) ---
     reflections, review_summary = reflect_on_pool(
-        baton.run_id, domain, hypotheses, memory_block, run_dir
+        run_id,
+        domain,
+        hypotheses,
+        memory_block,
+        round_dir,
+        tournament_state=prior_tournament_resolved,
+        feedback_block=refl_block,
     )
-    (run_dir / "reflections.json").write_text(json.dumps(reflections, indent=2))
+    (round_dir / "reflections.json").write_text(json.dumps(reflections, indent=2))
 
     # --- Deterministic filter (no model) ---
     survivor_reflections = filter_survivors(reflections)
@@ -380,7 +501,7 @@ def run(baton: Baton) -> Baton:
         }
         for r in survivor_reflections
     ]
-    (run_dir / "survivors.json").write_text(json.dumps(survivors_full, indent=2))
+    (round_dir / "survivors.json").write_text(json.dumps(survivors_full, indent=2))
 
     # --- Evolution (Step 17-D: up to 2 variants from the finalized parents,
     # emitted and reviewed by the same Reflection machinery in
@@ -389,7 +510,7 @@ def run(baton: Baton) -> Baton:
     # the tournament pool IN MEMORY ONLY: survivors_full and survivors.json
     # are never mutated, and the battery's k stays len(survivors.json). ---
     accepted_variants = evolve_and_review(
-        baton.run_id, domain, survivors_full, memory_block, run_dir
+        run_id, domain, survivors_full, memory_block, round_dir
     )
     tournament_pool = survivors_full + accepted_variants
 
@@ -400,14 +521,37 @@ def run(baton: Baton) -> Baton:
     verdicts: list[dict] = []
 
     if k == 1:
-        _log(baton.run_id, "STAGE1_RANKING ranking trivial (k=1)")
+        _log(run_id, "STAGE1_RANKING ranking trivial (k=1)")
         ranked_survivors = tournament_pool
         ranking_note = "ranking trivial (k=1)"
+        # Step 17-E: the trivial marker. Rounds overwrite the canonical
+        # stage1 files, so a k=1 round must overwrite tournament_state.json
+        # too — otherwise a stale multi-candidate state from an earlier
+        # round would lie beside this round's empty ranking.
+        (round_dir / "tournament_state.json").write_text(
+            json.dumps(
+                {
+                    "trivial": True,
+                    "round": round_index,
+                    "reason": (
+                        "ranking trivial (k=1) — no matches were played this "
+                        "round; this marker replaces any stale multi-candidate "
+                        "state from an earlier round"
+                    ),
+                    "final_ranking": [{"id": tournament_pool[0]["id"]}],
+                },
+                indent=2,
+            )
+        )
+        tournament_resolved = None
+        ranking_resolved = [{"statement": tournament_pool[0]["statement"]}]
     else:
-        rng_seed = baton.run_id
+        # Round 1 keeps the historical seed (byte-comparable with every
+        # pre-17-E run); later rounds get an independent stream.
+        rng_seed = run_id if round_index == 1 else f"{run_id}:round{round_index}"
         rng = random.Random(rng_seed)
         _log(
-            baton.run_id,
+            run_id,
             f"STAGE1_TOURNAMENT rng_seed={rng_seed} "
             f"elo_init={tournament.ELO_INIT} k_factor={tournament.K_FACTOR}",
         )
@@ -418,7 +562,7 @@ def run(baton: Baton) -> Baton:
         flags = tournament.dedup_flags(matrix)
         for fi, fj, sim in flags:
             _log(
-                baton.run_id,
+                run_id,
                 f"STAGE1_TOURNAMENT dedup_flag {ids[fi]}_vs_{ids[fj]} sim={sim:.3f}",
             )
         matches = tournament.order_matches(
@@ -443,15 +587,15 @@ def run(baton: Baton) -> Baton:
 
             if tier == "debate":
                 debate_count += 1
-                v1 = _debate_once(baton.run_id, domain, h_a, h_b)
-                v2 = _debate_once(baton.run_id, domain, h_b, h_a)
+                v1 = _debate_once(run_id, domain, h_a, h_b, rank_block)
+                v2 = _debate_once(run_id, domain, h_b, h_a, rank_block)
                 match_verdicts = [v1, v2]
                 orderings = [[h_a["id"], h_b["id"]], [h_b["id"], h_a["id"]]]
                 score_a = tournament.debate_score(
                     h_a["id"], h_b["id"], v1["winner_id"], v2["winner_id"]
                 )
             else:
-                v1 = _single_turn_judge(baton.run_id, domain, h_a, h_b)
+                v1 = _single_turn_judge(run_id, domain, h_a, h_b, rank_block)
                 match_verdicts = [v1]
                 orderings = [[h_a["id"], h_b["id"]]]
                 score_a = 1.0 if v1["winner_id"] == h_a["id"] else 0.0
@@ -474,40 +618,216 @@ def run(baton: Baton) -> Baton:
                 )
             )
             _log(
-                baton.run_id,
+                run_id,
                 f"STAGE1_TOURNAMENT match {pair_ids[0]}_vs_{pair_ids[1]} tier={tier} "
                 f"orderings={orderings} verdicts={[v['winner_id'] for v in match_verdicts]} "
                 f"elo_before={elo_before} elo_after={elo_after}",
             )
 
         ranked_survivors = tournament.final_ranking(ratings, tournament_pool, flags)
-        (run_dir / "tournament_state.json").write_text(
-            json.dumps(
-                tournament.build_state(
-                    rng_seed, ratings, match_log, ids, matrix, flags, ranked_survivors
-                ),
-                indent=2,
-            )
+        state = tournament.build_state(
+            rng_seed, ratings, match_log, ids, matrix, flags, ranked_survivors
         )
-        _log(baton.run_id, f"STAGE1_TOURNAMENT final_elo: {ratings}")
+        (round_dir / "tournament_state.json").write_text(json.dumps(state, indent=2))
+        _log(run_id, f"STAGE1_TOURNAMENT final_elo: {ratings}")
         ranking_note = (
             f"ranked via Elo tournament: {len(matches)} matches "
             f"({debate_count} debate, {len(matches) - debate_count} single-turn)"
         )
+        statements_by_id = {s["id"]: s["statement"] for s in tournament_pool}
+        tournament_resolved = resolve_tournament_to_statements(state, statements_by_id)
+        ranking_resolved = tournament_resolved["final_ranking"]
 
-    (run_dir / "ranking.json").write_text(json.dumps(verdicts, indent=2))
+    (round_dir / "ranking.json").write_text(json.dumps(verdicts, indent=2))
 
+    return {
+        "hypotheses": hypotheses,
+        "review_summary": review_summary,
+        "survivors_full": survivors_full,
+        "accepted_variants": accepted_variants,
+        "ranked_survivors": ranked_survivors,
+        "ranking_note": ranking_note,
+        "tournament_resolved": tournament_resolved,
+        "ranking_resolved": ranking_resolved,
+    }
+
+
+def run(baton: Baton, rounds: int | None = None) -> Baton:
+    rounds = ROUNDS if rounds is None else rounds
+    domain = baton.payload["domain"]
+    run_dir = Path("runs") / baton.run_id / "stage1"
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    # --- Journal read-side (deterministic, before any model call; ONCE per
+    # run, OUTSIDE the round loop — the battery's memory-comparability md5
+    # pin means exactly this single read) ---
+    memory_entries = journal_recent_by_kind("learned_summary", 3)
+    (run_dir / "retrieved_memory.json").write_text(json.dumps(memory_entries, indent=2))
+    memory_block = build_memory_block(memory_entries)
+    _log(
+        baton.run_id,
+        f"STAGE1_MEMORY retrieved {len(memory_entries)} learned_summary entries",
+    )
+
+    # --- Iteration controller (Step 17-E; see the module docstring) ---
+    prior_critique: dict | None = None
+    prior_overview: dict | None = None
+    prior_tournament_resolved: dict | None = None
+    last_round: dict | None = None
+    rounds_completed = 0
+    termination_reason = None
+
+    for round_index in range(1, rounds + 1):
+        _log(baton.run_id, f"STAGE1_ROUNDS round {round_index} of {rounds} begins")
+        round_dir = run_dir / f"round{round_index}"
+        round_dir.mkdir(parents=True, exist_ok=True)
+
+        gen_block = compose_feedback_block(
+            "generation",
+            prior_critique["feedback_to_generation"] if prior_critique else [],
+            round_index,
+            overview=prior_overview,
+        )
+        refl_block = compose_feedback_block(
+            "reflection",
+            prior_critique["feedback_to_reflection"] if prior_critique else [],
+            round_index,
+        )
+        rank_block = compose_feedback_block(
+            "ranking",
+            prior_critique["feedback_to_ranking"] if prior_critique else [],
+            round_index,
+        )
+
+        try:
+            round_result = _run_round(
+                baton.run_id,
+                domain,
+                memory_block,
+                round_dir,
+                round_index,
+                gen_block,
+                refl_block,
+                rank_block,
+                prior_tournament_resolved,
+            )
+        except RuntimeError as exc:
+            if round_index == 1 or not _is_zero_survivor_error(exc):
+                # Round 1 crashes honestly exactly as the single-pass stage
+                # always did; any non-zero-survivor failure crashes in every
+                # round — the tolerance is ONLY for a later round finding
+                # nothing when an earlier round already stands.
+                raise
+            termination_reason = "zero_survivors_terminated"
+            _log(
+                baton.run_id,
+                f"STAGE1_ROUNDS round {round_index} produced zero survivors — "
+                f"terminating, standing on round {rounds_completed}: "
+                f"{str(exc).splitlines()[0]}",
+            )
+            append_rounds_entry(
+                run_dir,
+                {
+                    "round": round_index,
+                    "pool_statements": [],
+                    "k": 0,
+                    "ranking": [],
+                    "meta_review": None,
+                    "termination_reason": termination_reason,
+                },
+            )
+            break
+
+        # Round succeeded: promote its artifacts to the canonical stage1/
+        # set (canonical files = LAST SUCCESSFUL round, so a later failed
+        # round can never corrupt what downstream and the battery read).
+        for artifact in sorted(round_dir.glob("*.json")):
+            shutil.copy2(artifact, run_dir / artifact.name)
+        rounds_completed = round_index
+        last_round = round_result
+
+        # --- Meta-review, at EVERY round boundary including the final one
+        # (the final round's critique is recorded but unconsumed — the
+        # final overview is the end-of-run synthesis). The whole feedback
+        # path is under the never-crash rule: a composition failure — like
+        # a call failure inside build_meta_review — degrades to the empty
+        # feedback object, logged and recorded, never a dead run. ---
+        try:
+            reviews_path = round_dir / "reflection_reviews.json"
+            variants_path = round_dir / "evolution_variants.json"
+            reflection_evidence = (
+                json.loads(reviews_path.read_text()) if reviews_path.exists() else {}
+            )
+            evolution_records = (
+                json.loads(variants_path.read_text()) if variants_path.exists() else []
+            )
+            round_record = compose_round_record(
+                round_index,
+                domain,
+                round_result["hypotheses"],
+                reflection_evidence,
+                [s["id"] for s in round_result["survivors_full"]],
+                evolution_records,
+                round_result["tournament_resolved"],
+            )
+            critique = build_meta_review(baton.run_id, round_index, round_record)
+        except Exception as exc:
+            reason = str(exc).splitlines()[0] if str(exc) else type(exc).__name__
+            _log(
+                baton.run_id,
+                f"STAGE1_METAREVIEW round {round_index} composition FAILED "
+                f"(recorded, empty feedback, run proceeds): {reason}",
+            )
+            critique = empty_feedback(f"round-record composition failed: {reason}")
+        (run_dir / "research_overview.json").write_text(
+            json.dumps(
+                {"round": round_index, **critique["research_overview"]}, indent=2
+            )
+        )
+
+        if round_index == rounds:
+            termination_reason = "round_budget_exhausted"
+        elif len(round_result["survivors_full"]) >= MAX_SURVIVORS:
+            termination_reason = "survivor_count_cap"
+
+        append_rounds_entry(
+            run_dir,
+            {
+                "round": round_index,
+                "pool_statements": [h["statement"] for h in round_result["hypotheses"]],
+                "k": len(round_result["survivors_full"]),
+                "ranking": round_result["ranking_resolved"],
+                "meta_review": critique,
+                "termination_reason": termination_reason,
+            },
+        )
+
+        if termination_reason:
+            _log(
+                baton.run_id,
+                f"STAGE1_ROUNDS terminated after round {round_index}: {termination_reason}",
+            )
+            break
+
+        prior_critique = critique
+        prior_overview = critique["research_overview"]
+        prior_tournament_resolved = round_result["tournament_resolved"]
+
+    # The delivered object comes from the LAST SUCCESSFUL round — identical
+    # shape to every pre-17-E run.
+    lr = last_round
     baton.payload["hypotheses"] = [
         {"id": s["id"], "statement": s["statement"], "rationale": s["rationale"]}
-        for s in ranked_survivors
+        for s in lr["ranked_survivors"]
     ]
     baton.payload["hypotheses_ranked"] = True
 
     baton.add_history(
         "stage1_ideation",
-        f"generated {len(hypotheses)} across 4 strategies, "
-        f"{review_summary['initial_pass']} passed initial review, "
-        f"{review_summary['reflected']} exited six-review reflection, "
-        f"{len(survivors_full)} survived filter, {ranking_note}",
+        f"{rounds_completed} round(s), termination {termination_reason}; "
+        f"final round: generated {len(lr['hypotheses'])} across 4 strategies, "
+        f"{lr['review_summary']['initial_pass']} passed initial review, "
+        f"{lr['review_summary']['reflected']} exited six-review reflection, "
+        f"{len(lr['survivors_full'])} survived filter, {lr['ranking_note']}",
     )
     return baton

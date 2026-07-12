@@ -467,7 +467,11 @@ class TestStage1PoolAssembly(TmpRunDirTest):
         log = self._log_text()
         self.assertIn("ranking trivial (k=1)", log)
         self.assertIn("zero variants accepted", log)
-        self.assertFalse((self.run_dir / "tournament_state.json").exists())
+        # Step 17-E: k=1 rounds write a trivial-marker state file (so stale
+        # multi-candidate state can never lie beside an empty ranking) —
+        # this replaced the pre-17-E "no state file" behavior.
+        state = json.loads((self.run_dir / "tournament_state.json").read_text())
+        self.assertIs(state["trivial"], True)
         records = self._variants_file()
         self.assertEqual(len(records), 2)
         self.assertFalse(any(r["accepted"] for r in records))

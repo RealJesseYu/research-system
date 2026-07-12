@@ -317,6 +317,13 @@ def main() -> int:
         "(default: the proving size, 2 x 2 domains = 4 runs)",
     )
     parser.add_argument(
+        "--rounds",
+        type=int,
+        default=None,
+        help="killrate mode only: ideation rounds per run threaded to "
+        "stage1_ideation.run (default 1 — baseline-comparable single pass)",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="killrate mode only: print the run plan and expected cost "
@@ -334,8 +341,8 @@ def main() -> int:
         # killrate pattern; deterministic, ZERO model calls.
         from harness import paper_lint
 
-        if args.repeats is not None or args.dry_run:
-            parser.error("--repeats/--dry-run apply only to --mode killrate")
+        if args.repeats is not None or args.dry_run or args.rounds is not None:
+            parser.error("--repeats/--dry-run/--rounds apply only to --mode killrate")
         if args.run_id is None:
             parser.error("--mode paperlint requires --run-id")
         failures = paper_lint.lint_paper(args.run_id)
@@ -361,12 +368,13 @@ def main() -> int:
         from harness import killrate_battery
 
         repeats = args.repeats if args.repeats is not None else killrate_battery.DEFAULT_REPEATS
+        rounds = args.rounds if args.rounds is not None else 1
         if args.dry_run:
-            killrate_battery.print_dry_run(repeats)
+            killrate_battery.print_dry_run(repeats, rounds)
             return 0
-        return killrate_battery.run_battery(repeats)
-    if args.repeats is not None or args.dry_run:
-        parser.error("--repeats/--dry-run apply only to --mode killrate")
+        return killrate_battery.run_battery(repeats, rounds)
+    if args.repeats is not None or args.dry_run or args.rounds is not None:
+        parser.error("--repeats/--dry-run/--rounds apply only to --mode killrate")
     return run_harness(args.mode)
 
 

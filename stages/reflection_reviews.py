@@ -37,20 +37,25 @@ The six review types (faithful to the Co-Scientist Reflection agent):
      explanation for any of them?
   5. simulation_review — mentally simulate the proposed mechanism
      step-wise and surface the scenarios where it fails.
-  6. recurrent_tournament_review — SEAM ONLY this chunk: in Co-Scientist
-     this review adapts to accumulated tournament results, but the Ranking
-     tournament DOES NOT EXIST YET (later chunk). The None-defaulted
-     tournament_state parameter is where its results will attach; when
-     None (always, this chunk) the unit records itself inert and makes NO
-     model call — same pattern as Generation's meta_review_feedback seam.
-     No tournament input is invented.
+  6. recurrent_tournament_review — ACTIVE since Step 17-E: one Haiku call
+     per survivor over the PRIOR ROUND's tournament results, which the
+     iteration controller (stage1_ideation) resolves to plain hypothesis
+     statements before they get here — raw cross-round ids never reach a
+     review context, because canonical ids are reassigned every round.
+     ADVISORY ONLY: its observations and carried concerns are recorded in
+     the reflection evidence and influence NOTHING deterministic — the
+     kill filter never reads them. tournament_state=None (round 1, or a
+     prior round whose ranking was trivial) keeps the unit inert with no
+     model call.
 
 Discipline preserved (same as generation_strategies.py):
   - Every model call goes through call_stage_model — initial / full /
-    observation / simulation reviews on Haiku (Step 18.7 downgrade), deep
-    verification HELD on Sonnet (it feeds a deterministic kill with no
-    judgment net) — same door, same isolation, same bounded re-ask loop,
-    same write-before-call transcripts.
+    observation / simulation reviews on Haiku (Step 18.7 downgrade), the
+    recurrent/tournament review on its own Haiku pin (REVIEW6_MODEL,
+    Step 17-E: advisory, no kill path), deep verification HELD on Sonnet
+    (it feeds a deterministic kill with no judgment net) — same door, same
+    isolation, same bounded re-ask loop, same write-before-call
+    transcripts.
   - Summarize-at-the-wrapper: only the retrieval tools' bounded records
     enter any review input; no raw tool output exists at this layer.
   - Evidence over mechanism: everything each review saw and returned is
@@ -89,6 +94,9 @@ from web_search import web_search  # noqa: E402
 # watched move (see DEEP_VERIFY_MODEL at its sole use site).
 HAIKU_MODEL = "claude-haiku-4-5-20251001"
 DEEP_VERIFY_MODEL = "claude-sonnet-4-6"
+# Step 17-E ruled pin: review 6 is advisory (no kill path), so it runs on
+# the cheap tier, independent of the other pins.
+REVIEW6_MODEL = "claude-haiku-4-5-20251001"
 
 TOP_K_PER_SOURCE = 3
 
@@ -186,6 +194,21 @@ SIMULATION_REVIEW_SYSTEM_PROMPT = (
     '"mental_simulation": ["<one step, one sentence>", ... 3 to 8 steps], '
     '"failure_scenarios": ["<one sentence each>", ... at most 5, possibly empty], '
     '"assessment": "<one sentence>"}.'
+)
+
+RECURRENT_TOURNAMENT_SYSTEM_PROMPT = (
+    "You are the recurrent-tournament-review unit of the Reflection stage in an "
+    "autonomous research pipeline, reviewing ONE candidate hypothesis. You are given "
+    "the hypothesis and the previous round's tournament results, resolved to plain "
+    "hypothesis statements: the final ranking and the matches played, with the "
+    "judges' verdicts and reasons. From those results, note what tended to win or "
+    "lose and why, and derive observations about how THIS hypothesis is likely to "
+    "fare and the concerns it should carry into review and ranking. This review is "
+    "ADVISORY: it informs the record; it does not discard anything. Reply ONLY with "
+    'JSON of the form {"ack_run_id": "<the run_id you were given>", '
+    '"hypothesis_id": "<the hypothesis id you were given>", '
+    '"observations": ["<one sentence each>", ... at most 5, possibly empty], '
+    '"carried_concerns": ["<one sentence each>", ... at most 5, possibly empty]}.'
 )
 
 
@@ -335,11 +358,15 @@ def gather_review_refs(run_id: str, hypothesis: dict) -> tuple[list[dict], dict]
 # --- Review 1: initial review (fast gate, NO external tools) -----------------
 
 
-def initial_review(run_id: str, domain: str, hypotheses: list[dict]) -> list[dict]:
+def initial_review(
+    run_id: str, domain: str, hypotheses: list[dict], feedback_block: str | None = None
+) -> list[dict]:
     """ONE Haiku call over the whole pool, no retrieval: quick pass/discard
     per candidate on correctness / quality / novelty / preliminary safety.
     Returns one {id, verdict, reason} per candidate; the validator enforces
-    exactly one review per pool id, inside the re-ask loop."""
+    exactly one review per pool id, inside the re-ask loop. feedback_block
+    (Step 17-E) is the composed meta-review feedback text, attached as its
+    own input field when present."""
     valid_ids = [h["id"] for h in hypotheses]
 
     def validator(data: dict) -> list[str]:
@@ -372,17 +399,20 @@ def initial_review(run_id: str, domain: str, hypotheses: list[dict]) -> list[dic
             errors.append("reviews must cover every candidate id exactly once.")
         return errors
 
+    stage_input = {
+        "run_id": run_id,
+        "domain": domain,
+        "candidates": [
+            {"id": h["id"], "statement": h["statement"], "rationale": h["rationale"]}
+            for h in hypotheses
+        ],
+    }
+    if feedback_block is not None:
+        stage_input["meta_review_feedback"] = feedback_block
     data, timing = call_stage_model(
         "stage1_reflection_initial",
         INITIAL_REVIEW_SYSTEM_PROMPT,
-        {
-            "run_id": run_id,
-            "domain": domain,
-            "candidates": [
-                {"id": h["id"], "statement": h["statement"], "rationale": h["rationale"]}
-                for h in hypotheses
-            ],
-        },
+        stage_input,
         {"required": ["ack_run_id", "reviews"]},
         model=HAIKU_MODEL,
         extra_validator=validator,
@@ -398,7 +428,13 @@ def initial_review(run_id: str, domain: str, hypotheses: list[dict]) -> list[dic
 # --- Review 2: full review (grounded correctness/quality/novelty) ------------
 
 
-def full_review(run_id: str, domain: str, hypothesis: dict, refs: list[dict]) -> dict:
+def full_review(
+    run_id: str,
+    domain: str,
+    hypothesis: dict,
+    refs: list[dict],
+    feedback_block: str | None = None,
+) -> dict:
     """One Haiku call per survivor WITH the retrieved snippets: the grounded
     novelty verdict (cited refs validated against the refs actually shown —
     a 'known' verdict must cite at least one) plus the correctness/quality
@@ -434,17 +470,20 @@ def full_review(run_id: str, domain: str, hypothesis: dict, refs: list[dict]) ->
             errors.append("quality must be an integer from 1 to 5.")
         return errors
 
+    stage_input = {
+        "run_id": run_id,
+        "domain": domain,
+        "hypothesis_id": hypothesis["id"],
+        "hypothesis_statement": hypothesis["statement"],
+        "hypothesis_rationale": hypothesis["rationale"],
+        "literature_snippets": refs,
+    }
+    if feedback_block is not None:
+        stage_input["meta_review_feedback"] = feedback_block
     data, timing = call_stage_model(
         f"stage1_reflection_full_{hypothesis['id']}",
         FULL_REVIEW_SYSTEM_PROMPT,
-        {
-            "run_id": run_id,
-            "domain": domain,
-            "hypothesis_id": hypothesis["id"],
-            "hypothesis_statement": hypothesis["statement"],
-            "hypothesis_rationale": hypothesis["rationale"],
-            "literature_snippets": refs,
-        },
+        stage_input,
         {
             "required": [
                 "ack_run_id", "hypothesis_id", "novelty", "novelty_rationale",
@@ -470,7 +509,9 @@ def full_review(run_id: str, domain: str, hypothesis: dict, refs: list[dict]) ->
 # --- Review 3: deep verification review ---------------------------------------
 
 
-def deep_verification_review(run_id: str, domain: str, hypothesis: dict) -> dict:
+def deep_verification_review(
+    run_id: str, domain: str, hypothesis: dict, feedback_block: str | None = None
+) -> dict:
     """One Sonnet call per survivor, no retrieval: assumptions decomposed
     into sub-assumptions, each evaluated; invalidating elements named and
     classified fundamental-vs-addressable (Step 17-fix-A) — fundamental
@@ -515,16 +556,19 @@ def deep_verification_review(run_id: str, domain: str, hypothesis: dict) -> dict
             errors.append("summary must be a non-empty string.")
         return errors
 
+    stage_input = {
+        "run_id": run_id,
+        "domain": domain,
+        "hypothesis_id": hypothesis["id"],
+        "hypothesis_statement": hypothesis["statement"],
+        "hypothesis_rationale": hypothesis["rationale"],
+    }
+    if feedback_block is not None:
+        stage_input["meta_review_feedback"] = feedback_block
     data, timing = call_stage_model(
         f"stage1_reflection_deepverify_{hypothesis['id']}",
         DEEP_VERIFICATION_SYSTEM_PROMPT,
-        {
-            "run_id": run_id,
-            "domain": domain,
-            "hypothesis_id": hypothesis["id"],
-            "hypothesis_statement": hypothesis["statement"],
-            "hypothesis_rationale": hypothesis["rationale"],
-        },
+        stage_input,
         {"required": ["ack_run_id", "hypothesis_id", "assumptions",
                       "invalidating_elements", "addressable_notes",
                       "fundamental_flaw", "summary"]},
@@ -547,7 +591,12 @@ def deep_verification_review(run_id: str, domain: str, hypothesis: dict) -> dict
 
 
 def observation_review(
-    run_id: str, domain: str, hypothesis: dict, refs: list[dict], memory_block: str | None
+    run_id: str,
+    domain: str,
+    hypothesis: dict,
+    refs: list[dict],
+    memory_block: str | None,
+    feedback_block: str | None = None,
 ) -> dict:
     """One Haiku call per survivor: can the hypothesis account for existing
     observations? Sees the SAME bounded refs the full review saw (no second
@@ -576,6 +625,8 @@ def observation_review(
     }
     if memory_block is not None:
         stage_input["prior_observations"] = memory_block
+    if feedback_block is not None:
+        stage_input["meta_review_feedback"] = feedback_block
     data, timing = call_stage_model(
         f"stage1_reflection_observation_{hypothesis['id']}",
         OBSERVATION_REVIEW_SYSTEM_PROMPT,
@@ -601,7 +652,9 @@ def observation_review(
 # --- Review 5: simulation review ------------------------------------------------
 
 
-def simulation_review(run_id: str, domain: str, hypothesis: dict) -> dict:
+def simulation_review(
+    run_id: str, domain: str, hypothesis: dict, feedback_block: str | None = None
+) -> dict:
     """One Haiku call per survivor, no retrieval: step-wise mental
     simulation of the proposed mechanism, surfacing failure scenarios."""
 
@@ -621,16 +674,19 @@ def simulation_review(run_id: str, domain: str, hypothesis: dict) -> dict:
             errors.append("assessment must be a non-empty string.")
         return errors
 
+    stage_input = {
+        "run_id": run_id,
+        "domain": domain,
+        "hypothesis_id": hypothesis["id"],
+        "hypothesis_statement": hypothesis["statement"],
+        "hypothesis_rationale": hypothesis["rationale"],
+    }
+    if feedback_block is not None:
+        stage_input["meta_review_feedback"] = feedback_block
     data, timing = call_stage_model(
         f"stage1_reflection_simulation_{hypothesis['id']}",
         SIMULATION_REVIEW_SYSTEM_PROMPT,
-        {
-            "run_id": run_id,
-            "domain": domain,
-            "hypothesis_id": hypothesis["id"],
-            "hypothesis_statement": hypothesis["statement"],
-            "hypothesis_rationale": hypothesis["rationale"],
-        },
+        stage_input,
         {"required": ["ack_run_id", "hypothesis_id", "mental_simulation",
                       "failure_scenarios", "assessment"]},
         model=HAIKU_MODEL,
@@ -646,36 +702,75 @@ def simulation_review(run_id: str, domain: str, hypothesis: dict) -> dict:
     }
 
 
-# --- Review 6: recurrent / tournament review (seam only this chunk) -----------
+# --- Review 6: recurrent / tournament review (ACTIVE since Step 17-E) ---------
 
 
 def recurrent_tournament_review(
     run_id: str, hypothesis: dict, tournament_state: dict | None = None
 ) -> dict:
-    """Review 6 — recurrent/tournament review.
+    """Review 6 — recurrent/tournament review, ACTIVE since Step 17-E.
 
-    SEAM (later chunk): in Co-Scientist this review adapts to results
-    accumulated across the Ranking tournament. The Elo tournament DOES NOT
-    EXIST YET; tournament_state is where its accumulated results will
-    attach once it does. When None (always, this chunk) this unit is
-    inert: it records that fact in evidence and makes NO model call — no
-    tournament input is invented before the producer is built (same
-    pattern as Generation's meta_review_feedback seam). A non-None state
-    raises rather than being silently ignored.
+    tournament_state is the PRIOR ROUND's tournament results, already
+    resolved to plain hypothesis statements by the iteration controller
+    (stage1_ideation.resolve_tournament_to_statements) — raw cross-round
+    ids must never reach this context, because canonical ids are
+    reassigned every round. When present, ONE Haiku call derives advisory
+    observations and carried concerns for this hypothesis from what won
+    and lost last round and why. ADVISORY ONLY: the output is recorded in
+    the reflection evidence and feeds no deterministic consequence — the
+    kill filter never reads it. When tournament_state is None (round 1 of
+    a run, or a prior round whose ranking was trivial so no matches were
+    played) the unit is inert and makes NO model call.
     """
     if tournament_state is None:
         return {
             "status": "inert",
             "reason": (
-                "the Ranking tournament is not built yet (later chunk); "
-                "no accumulated results exist to review against"
+                "no prior-round tournament results exist to review against "
+                "(first round of this run, or the prior round ranked trivially)"
             ),
         }
-    raise NotImplementedError(
-        "recurrent_tournament_review: tournament_state was provided but the "
-        "tournament-adapted review is not implemented yet — build it in the "
-        "tournament chunk, not by accident here."
+
+    def validator(data: dict) -> list[str]:
+        errors: list[str] = []
+        for field in ("observations", "carried_concerns"):
+            value = data.get(field)
+            if not _is_str_list(value) or (isinstance(value, list) and len(value) > 5):
+                errors.append(
+                    f"{field} must be a list of at most 5 non-empty strings "
+                    "(possibly empty)."
+                )
+        return errors
+
+    data, timing = call_stage_model(
+        f"stage1_reflection_tournament_{hypothesis['id']}",
+        RECURRENT_TOURNAMENT_SYSTEM_PROMPT,
+        {
+            "run_id": run_id,
+            "hypothesis_id": hypothesis["id"],
+            "hypothesis_statement": hypothesis["statement"],
+            "hypothesis_rationale": hypothesis["rationale"],
+            "prior_tournament_results": tournament_state,
+        },
+        {"required": ["ack_run_id", "hypothesis_id", "observations", "carried_concerns"]},
+        model=REVIEW6_MODEL,
+        extra_validator=validator,
     )
+    _check_ack(data, run_id, f"tournament_review {hypothesis['id']}")
+    _check_hypothesis_id(
+        data, run_id, hypothesis["id"], f"tournament_review {hypothesis['id']}"
+    )
+    log_stage_call(run_id, f"stage1_reflection_tournament_{hypothesis['id']}", timing)
+    _log(
+        run_id,
+        f"STAGE1_REVIEW6 {hypothesis['id']}: observations={len(data['observations'])} "
+        f"carried_concerns={len(data['carried_concerns'])}",
+    )
+    return {
+        "status": "active",
+        "observations": data["observations"],
+        "carried_concerns": data["carried_concerns"],
+    }
 
 
 # --- Orchestrator ---------------------------------------------------------------
@@ -688,12 +783,18 @@ def reflect_on_pool(
     memory_block: str | None,
     run_dir: Path,
     tournament_state: dict | None = None,
+    feedback_block: str | None = None,
 ) -> tuple[list[dict], dict]:
     """Apply the six review types to the candidate pool, in the paper's
     sequence: the cheap no-tools initial review gates first, then each
     survivor gets per-hypothesis retrieval plus the full / deep-verification
-    / observation / simulation reviews (the tournament review is an inert
-    seam this chunk). Deterministic consequences, no model in them:
+    / observation / simulation reviews and — when the iteration controller
+    supplies the prior round's statement-resolved tournament results — the
+    recurrent/tournament review (advisory only; inert on round 1 or after a
+    trivial prior ranking). feedback_block (Step 17-E) is the composed
+    meta-review feedback text for the reflection family, attached to all
+    five reviewing calls' inputs. Deterministic consequences, no model in
+    them:
       - initial verdict 'discard' → candidate exits before any tool spend;
       - deep verification fundamental_flaw=true → candidate exits;
       - everything else becomes a reflection {hypothesis_id, novelty,
@@ -708,7 +809,12 @@ def reflect_on_pool(
     Returns (reflections, summary counts). Raises RuntimeError when zero
     candidates survive reviewing — an honest halt, never padded.
     """
-    initial = initial_review(run_id, domain, hypotheses)
+    if tournament_state is None:
+        _log(
+            run_id,
+            "STAGE1_REVIEW6 inert — no prior-round tournament results to review against",
+        )
+    initial = initial_review(run_id, domain, hypotheses, feedback_block)
     verdict_by_id = {r["id"]: r for r in initial}
     survivors = [h for h in hypotheses if verdict_by_id[h["id"]]["verdict"] == "pass"]
     discarded_initial = [
@@ -726,10 +832,12 @@ def reflect_on_pool(
     discarded_fundamental: list[dict] = []
     for h in survivors:
         refs, retrieval_evidence = gather_review_refs(run_id, h)
-        full = full_review(run_id, domain, h, refs)
-        deep = deep_verification_review(run_id, domain, h)
-        observation = observation_review(run_id, domain, h, refs, memory_block)
-        simulation = simulation_review(run_id, domain, h)
+        full = full_review(run_id, domain, h, refs, feedback_block)
+        deep = deep_verification_review(run_id, domain, h, feedback_block)
+        observation = observation_review(
+            run_id, domain, h, refs, memory_block, feedback_block
+        )
+        simulation = simulation_review(run_id, domain, h, feedback_block)
         tournament = recurrent_tournament_review(run_id, h, tournament_state)
 
         reviews_evidence.append(
@@ -776,7 +884,8 @@ def reflect_on_pool(
         "reviews": reviews_evidence,
         "discarded_by_deep_verification": discarded_fundamental,
         "tournament_review_status": (
-            "inert — the Ranking tournament is not built yet (later chunk)"
+            "inert — no prior-round tournament results "
+            "(first round, or the prior round ranked trivially)"
             if tournament_state is None
             else "active"
         ),

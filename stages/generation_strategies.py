@@ -15,9 +15,12 @@ The four strategies (faithful to the Co-Scientist Generation agent):
   3. assumptions_identification — name testable intermediate assumptions
      via conditional reasoning, then aggregate them into hypotheses.
   4. research_expansion — review the run's existing candidates and steer
-     toward unexplored directions. Prior feedback = the Meta-review
-     feedback object, which DOES NOT EXIST YET (later chunk); the seam is
-     the None-defaulted meta_review_feedback parameter, unused for now.
+     toward unexplored directions. Prior feedback (Step 17-E: the
+     meta_review_feedback parameter, LIVE since the Meta-review agent
+     exists) is the composed feedback text block from the prior round's
+     meta-review — code-framed for selective use and carrying the prior
+     round's research-overview directions — attached to every strategy
+     call's input; round 1 receives an explicit empty block.
 
 Discipline preserved:
   - Every model call is Haiku through call_stage_model (Step 18.7
@@ -334,7 +337,11 @@ def gather_literature_evidence(run_id: str, domain: str, run_dir: Path) -> list[
 
 
 def strategy_literature_exploration(
-    run_id: str, domain: str, literature_refs: list[dict], memory_block: str | None
+    run_id: str,
+    domain: str,
+    literature_refs: list[dict],
+    memory_block: str | None,
+    meta_review_feedback: str | None = None,
 ) -> tuple[list[dict], list[dict]]:
     """One Haiku call: hypotheses grounded in the combined retrieved
     snippets, each citing the ref ids that ground it (cited refs are
@@ -409,6 +416,8 @@ def strategy_literature_exploration(
     }
     if memory_block is not None:
         stage_input["prior_observations"] = memory_block
+    if meta_review_feedback is not None:
+        stage_input["meta_review_feedback"] = meta_review_feedback
     data, timing = call_stage_model(
         "stage1_generation_literature",
         LITERATURE_SYSTEM_PROMPT,
@@ -436,7 +445,11 @@ def strategy_literature_exploration(
 
 
 def strategy_simulated_debate(
-    run_id: str, domain: str, literature_refs: list[dict], run_dir: Path
+    run_id: str,
+    domain: str,
+    literature_refs: list[dict],
+    run_dir: Path,
+    meta_review_feedback: str | None = None,
 ) -> list[dict]:
     """Bounded multi-turn self-play: one Haiku call per persona (hard cap
     DEBATE_TURNS), each seeing the same bounded literature refs plus the
@@ -470,6 +483,8 @@ def strategy_simulated_debate(
             "literature_snippets": literature_refs,
             "debate_so_far": debate_so_far,
         }
+        if meta_review_feedback is not None:
+            stage_input["meta_review_feedback"] = meta_review_feedback
         data, timing = call_stage_model(
             f"stage1_generation_debate_turn{turn}",
             DEBATE_SYSTEM_PROMPT,
@@ -506,7 +521,7 @@ def strategy_simulated_debate(
 
 
 def strategy_assumptions_identification(
-    run_id: str, domain: str, run_dir: Path
+    run_id: str, domain: str, run_dir: Path, meta_review_feedback: str | None = None
 ) -> list[dict]:
     """Two Haiku calls: (a) identify 3-5 testable intermediate assumptions
     via conditional reasoning, (b) aggregate them into complete hypotheses
@@ -524,10 +539,13 @@ def strategy_assumptions_identification(
             _entry_field_errors(a, n, ("assumption", "testable_because"), errors)
         return errors
 
+    identify_input = {"run_id": run_id, "domain": domain}
+    if meta_review_feedback is not None:
+        identify_input["meta_review_feedback"] = meta_review_feedback
     identify_data, identify_timing = call_stage_model(
         "stage1_generation_assumptions_identify",
         ASSUMPTIONS_IDENTIFY_SYSTEM_PROMPT,
-        {"run_id": run_id, "domain": domain},
+        identify_input,
         {"required": ["ack_run_id", "assumptions"]},
         model=HAIKU_MODEL,
         extra_validator=identify_validator,
@@ -565,10 +583,13 @@ def strategy_assumptions_identification(
                     )
         return errors
 
+    aggregate_input = {"run_id": run_id, "domain": domain, "assumptions": numbered}
+    if meta_review_feedback is not None:
+        aggregate_input["meta_review_feedback"] = meta_review_feedback
     aggregate_data, aggregate_timing = call_stage_model(
         "stage1_generation_assumptions_aggregate",
         ASSUMPTIONS_AGGREGATE_SYSTEM_PROMPT,
-        {"run_id": run_id, "domain": domain, "assumptions": numbered},
+        aggregate_input,
         {"required": ["ack_run_id", "hypotheses"]},
         model=HAIKU_MODEL,
         extra_validator=aggregate_validator,
@@ -602,19 +623,19 @@ def strategy_research_expansion(
     domain: str,
     existing_candidates: list[dict],
     memory_block: str | None,
-    meta_review_feedback: dict | None = None,
+    meta_review_feedback: str | None = None,
 ) -> list[dict]:
     """One Haiku call: review the run's existing candidates and propose
     hypotheses in unexplored directions.
 
-    SEAM (later chunk): meta_review_feedback is where the Meta-review
-    agent's feedback object will attach once it exists. It is accepted here
-    so the call signature is already right, but it is deliberately UNUSED —
-    no feedback channel is invented before the producer is built. Until
-    then this strategy reads only the run's existing hypotheses plus the
+    LIVE since Step 17-E: meta_review_feedback is the composed feedback
+    text block from the prior round's meta-review (built by
+    stages/meta_review.compose_feedback_block — code-framed for selective
+    use, carrying the prior round's research-overview directions; an
+    explicit empty block on round 1), attached to the call input as its
+    own field alongside the run's existing hypotheses and the
     already-framed journal leads (memory_block).
     """
-    _ = meta_review_feedback  # unused until the Meta-review chunk lands
 
     def validator(data: dict) -> list[str]:
         errors: list[str] = []
@@ -639,6 +660,8 @@ def strategy_research_expansion(
     }
     if memory_block is not None:
         stage_input["prior_observations"] = memory_block
+    if meta_review_feedback is not None:
+        stage_input["meta_review_feedback"] = meta_review_feedback
     data, timing = call_stage_model(
         "stage1_generation_expansion",
         EXPANSION_SYSTEM_PROMPT,
@@ -669,7 +692,7 @@ def generate_candidate_pool(
     domain: str,
     memory_block: str | None,
     run_dir: Path,
-    meta_review_feedback: dict | None = None,
+    meta_review_feedback: str | None = None,
 ) -> list[dict]:
     """Run all four strategies in order and return the combined candidate
     pool with canonical ids h1..hN assigned deterministically (strategy
@@ -677,16 +700,23 @@ def generate_candidate_pool(
     strategy provenance is saved to generation.json; Reflection and
     everything downstream see only {id, statement, rationale}.
 
-    meta_review_feedback is threaded straight to strategy 4's seam (see
-    strategy_research_expansion) — None until the Meta-review chunk lands.
+    meta_review_feedback (LIVE since Step 17-E) is the composed feedback
+    text block for the generation family, threaded to ALL FOUR strategies
+    and attached at each call as its own input field — the iteration
+    controller composes it from the prior round's meta-review critique
+    (an explicit empty block on round 1).
     """
     literature_refs = gather_literature_evidence(run_id, domain, run_dir)
 
     lit, lit_number_warnings = strategy_literature_exploration(
-        run_id, domain, literature_refs, memory_block
+        run_id, domain, literature_refs, memory_block, meta_review_feedback
     )
-    debate = strategy_simulated_debate(run_id, domain, literature_refs, run_dir)
-    assumptions = strategy_assumptions_identification(run_id, domain, run_dir)
+    debate = strategy_simulated_debate(
+        run_id, domain, literature_refs, run_dir, meta_review_feedback
+    )
+    assumptions = strategy_assumptions_identification(
+        run_id, domain, run_dir, meta_review_feedback
+    )
     expansion = strategy_research_expansion(
         run_id, domain, lit + debate + assumptions, memory_block, meta_review_feedback
     )

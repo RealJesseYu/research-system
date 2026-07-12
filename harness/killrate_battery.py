@@ -163,11 +163,30 @@ def _stage_reject_delta(after: dict, before: dict) -> dict:
     return out
 
 
-def _launch_one(slot: str, domain: str) -> dict:
+def _rounds_info(run_dir: Path) -> tuple[int | None, str | None]:
+    """(rounds_completed, termination_reason) read from the run's
+    stage1/rounds.json (Step 17-E). A completed round is any entry that was
+    not the zero-survivor termination record; the slot-level
+    termination_reason is the last entry's. (None, None) when the file is
+    absent — a run that crashed before any round finished."""
+    path = run_dir / "stage1" / "rounds.json"
+    if not path.exists():
+        return None, None
+    entries = json.loads(path.read_text())
+    completed = sum(
+        1 for e in entries if e.get("termination_reason") != "zero_survivors_terminated"
+    )
+    reason = entries[-1].get("termination_reason") if entries else None
+    return completed, reason
+
+
+def _launch_one(slot: str, domain: str, rounds: int) -> dict:
     """One ideation attempt: baton built exactly as the diag4a driver builds
-    it (mirroring supervisor.main()), stages.stage1_ideation.run(baton)
-    unchanged, baton_after_stage_1.json written on success. Returns the
-    attempt record; classification comes from the survival counter."""
+    it (mirroring supervisor.main()), stages.stage1_ideation.run(baton,
+    rounds=rounds) — rounds defaults to 1 at the battery front door, so
+    scored runs stay baseline-comparable single passes unless flagged —
+    baton_after_stage_1.json written on success. Returns the attempt
+    record; classification comes from the survival counter."""
     from baton import Baton
     from stages import stage1_ideation
 
@@ -187,7 +206,7 @@ def _launch_one(slot: str, domain: str) -> dict:
     t0 = time.perf_counter()
     exception_text = None
     try:
-        out = stage1_ideation.run(baton)
+        out = stage1_ideation.run(baton, rounds=rounds)
         (run_dir / "baton_after_stage_1.json").write_text(out.to_json())
     except Exception as exc:  # classified from disk below, never re-raised
         exception_text = f"{type(exc).__name__}: {exc}"
@@ -197,6 +216,7 @@ def _launch_one(slot: str, domain: str) -> dict:
     counted = survival_counter.count_run(run_dir)
     memory_md5 = _memory_md5(run_dir)
     comparable = memory_md5 == EXPECTED_MEMORY_MD5
+    rounds_completed, termination_reason = _rounds_info(run_dir)
     meter_after = _meter_totals()
     record = {
         "run_id": run_id,
@@ -217,7 +237,13 @@ def _launch_one(slot: str, domain: str) -> dict:
             "status", "k", "k_reason",
             "initial_survivor_count", "deep_verify_discards",
             "deep_verify_kill_rate", "abort_reason",
+            # Step 17-E, ADDITIVE: Evolution's variant counts (from the
+            # survival counter, on disk) and the controller's round facts.
+            # k derivation stays byte-identical — none of these enter it.
+            "variants_emitted", "variants_accepted",
         )},
+        "rounds_completed": rounds_completed,
+        "termination_reason": termination_reason,
     }
     if exception_text and counted["status"] == survival_counter.STATUS_SCORED and counted["k"]:
         # e.g. a ranking-step raise AFTER survivors.json was written: k is
@@ -226,13 +252,16 @@ def _launch_one(slot: str, domain: str) -> dict:
     return record
 
 
-def print_dry_run(repeats: int) -> None:
+def print_dry_run(repeats: int, rounds: int = 1) -> None:
     """The launchability proof: the full run plan and expected cost, with
     NO ideation fired and nothing written."""
     plan = build_run_plan(repeats)
     print()
     print("=" * 18 + " KILL-RATE BATTERY — DRY RUN (no ideation fired) " + "=" * 18)
     print(f"repeats per domain: {repeats}   total runs: {len(plan)}")
+    print(f"rounds per run: {rounds}"
+          + (" (single-pass, baseline-comparable)" if rounds == 1
+             else " — MULTI-ROUND: per-run cost multiplies accordingly"))
     for domain_key, domain in DOMAINS.items():
         print(f'  domain "{domain_key}": {domain}')
     print("run plan (sequential, one Stage-1 ideation each):")
@@ -257,9 +286,11 @@ def print_dry_run(repeats: int) -> None:
     print("=" * 85)
 
 
-def run_battery(repeats: int) -> int:
+def run_battery(repeats: int, rounds: int = 1) -> int:
     """The live battery. NOT run in chunk 4 — the proving batch is the
-    human's to launch in a plain Terminal later."""
+    human's to launch in a plain Terminal later. rounds defaults to 1
+    (Step 17-E): scored runs stay baseline-comparable single passes unless
+    the --rounds flag says otherwise."""
     plan = build_run_plan(repeats)
     pins = current_model_pins()
 
@@ -276,7 +307,7 @@ def run_battery(repeats: int) -> int:
                 print(f"[battery] sleeping {INTER_RUN_SLEEP_S} s (arXiv courtesy)", flush=True)
                 time.sleep(INTER_RUN_SLEEP_S)
             print(f"[battery] slot {entry['slot']} attempt {attempt_no + 1}", flush=True)
-            record = _launch_one(entry["slot"], entry["domain"])
+            record = _launch_one(entry["slot"], entry["domain"], rounds)
             attempts.append(record)
             print(f"[battery] {record['run_id']}: status={record['status']} "
                   f"k={record['k']} k_reason={record['k_reason']} "
@@ -319,6 +350,7 @@ def run_battery(repeats: int) -> int:
         "mode": "killrate",
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "repeats": repeats,
+        "rounds": rounds,
         "domains": DOMAINS,
         "model_pins": pins,
         "expected_memory_md5": EXPECTED_MEMORY_MD5,
