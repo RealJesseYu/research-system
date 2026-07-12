@@ -19,6 +19,7 @@ any stage does.
 """
 
 import argparse
+import json
 import sys
 import traceback
 from datetime import datetime, timezone
@@ -261,6 +262,50 @@ def build_thought_block(payload: dict) -> str:
     )
 
 
+def build_gate1_neartie_display(stage1_dir: Path) -> str:
+    """Near-tie visibility at gate 1 (17-CLOSE, display-only).
+
+    When stage1/tournament_state.json exists (the canonical file — under the
+    17-E controller that is the LAST SUCCESSFUL round's state), render its
+    final_ranking as a rank/id/Elo table so the human can see how close the
+    ranks actually are (the 17-C witness surfaced a 0.79-Elo near-tie
+    presented as a clean rank order); when stage1/research_overview.json
+    exists, append each direction's summary line. Same contract as the other
+    gate headers: pure read-and-format, no payload or parsing change, and it
+    must never raise — missing or malformed files render as nothing or '?',
+    never an exception.
+    """
+    lines: list[str] = []
+    try:
+        state_path = stage1_dir / "tournament_state.json"
+        if state_path.exists():
+            ranking = json.loads(state_path.read_text()).get("final_ranking")
+            if isinstance(ranking, list) and ranking:
+                lines.append("---- tournament Elo (final round) ----")
+                for rank, entry in enumerate(ranking, start=1):
+                    if not isinstance(entry, dict):
+                        entry = {}
+                    elo = entry.get("elo")
+                    elo_txt = f"{elo:.1f}" if isinstance(elo, (int, float)) else "?"
+                    lines.append(f"  rank {rank}: {entry.get('id') or '?'}  elo {elo_txt}")
+    except Exception:
+        pass  # display helpers must never be able to kill a run
+    try:
+        overview_path = stage1_dir / "research_overview.json"
+        if overview_path.exists():
+            directions = json.loads(overview_path.read_text()).get("directions")
+            if isinstance(directions, list) and directions:
+                lines.append("---- research-overview directions ----")
+                for direction in directions:
+                    summary = (
+                        direction.get("summary") if isinstance(direction, dict) else None
+                    )
+                    lines.append(f"  - {summary or '?'}")
+    except Exception:
+        pass
+    return "\n".join(lines)
+
+
 def run_gate(logger: Logger, baton: Baton, mode: str, gate_name: str) -> bool:
     """Handle one gate. Returns True to continue, False to halt.
 
@@ -449,6 +494,13 @@ def run_gate1(logger: Logger, baton: Baton, mode: str) -> tuple:
     for rank, h in enumerate(hypotheses, start=1):
         logger.log(f"rank {rank}: {h['id']} — {h['statement']}")
     logger.log("--- end ranked hypotheses ---")
+
+    # 17-CLOSE, display-only: near-tie Elo table + research-overview
+    # direction summaries, read from stage1 evidence when present. No
+    # payload change, no parsing change.
+    neartie = build_gate1_neartie_display(Path("runs") / baton.run_id / "stage1")
+    if neartie:
+        logger.log(neartie)
 
     # Step 16.6 chunk 2: observing hooks below — each human resolution of
     # this gate writes one override-ledger entry. The system's own decision

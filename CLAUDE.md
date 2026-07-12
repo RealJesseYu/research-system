@@ -888,3 +888,35 @@ live calls). 17-E OWES the overnight witness: --mode killrate
 slots at k<=1 → forensic session before 17-CLOSE) applies to its read.
 Next: 17-E overnight witness --repeats 2 --rounds 2 + witness read;
 then 17-CLOSE.
+
+17-CLOSE build items LANDED (2026-07-12): item 1 (QoI-name truthfulness)
+verified ALREADY IMPLEMENTED at 17-fix-A close (tools/run_cfd.py
+component-carrying 'cellMax(U)[1]'-style names, commit 6e4796b) — the
+named milestone_17C.md record does not exist; CLAUDE.md's 17-fix-A close
+paragraph is the record (disclosed, no code change); killrate battery
+records launch_git_head via git rev-parse at launch (null +
+launch_git_head_note on git failure, never a crash); survival_counter
+gains ADDITIVE variants_emitted_total / variants_accepted_total (summed
+across stage1/round*/evolution_variants.json when round dirs exist, else
+the canonical file; last-round fields keep their meaning) and the battery
+copies them into slot records; dry-run pin listing now includes
+EVOLUTION_MODEL / META_REVIEW_MODEL / REVIEW6_MODEL (live module
+attributes — battery reports record the richer pin set too, a disclosed
+consequence) and cost lines state the 17-E measured per-round figures
+(≈85 calls / ≈72 min) times requested rounds; judge-prompt id-hygiene
+sentence (ids only, never positional/order words) inserted in
+RANKING_SYSTEM_PROMPT_V2 + DEBATE_JUDGE_SYSTEM_PROMPT; gate-1 near-tie
+display (supervisor build_gate1_neartie_display, display-only,
+never-raise): final-round rank/id/Elo table from stage1/
+tournament_state.json + research-overview direction summaries in human
+mode; model_call single-fence prose tolerance (extract_single_fenced_block
+— on parse failure only, exactly-one-fence replies parse as the block,
+else existing behavior), fixture = the EXACT smoke6-20260711T083510Z
+attempt-1 crash reply frozen at tests/fixtures/smoke6_prose_wrapped_reply
+.txt (source run dir lives in the build-22 worktree's runs/, disclosed);
+tfidf/proximity drift test (tests/test_tfidf_drift.py) captures both
+sites' TfidfVectorizer constructor args and fails on divergence.
+Verified: suite 263/263 offline (250 + 13 new); FAST GREEN hard-gate 3/3,
+zero watch misses, rejects 0/6, ledger 0/0 (the session's only live
+calls); survival_counter --validate ALL MATCH. Next: supervised run +
+demo.

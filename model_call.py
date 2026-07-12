@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import time
 from pathlib import Path
 from typing import Any, Callable, Optional
@@ -166,6 +167,27 @@ def strip_fence(reply: str) -> tuple[str, bool]:
     return text, was_fenced
 
 
+def extract_single_fenced_block(reply: str) -> str | None:
+    """Single-fence prose tolerance (17-CLOSE). Pure function, no I/O.
+
+    When a reply contains EXACTLY one ``` fenced block, return the block's
+    content (a leading language tag like ```json dropped), with leading and
+    trailing prose around the fence tolerated. No fence or multiple fences
+    return None, so the caller keeps its existing failure path untouched.
+    Provenance: the Step-22 smoke crash (runs/smoke6-20260711T083510Z in the
+    build-22 worktree) — reflect replies wrapped their JSON in prose plus one
+    fence and burned the whole re-ask budget; strip_fence only handles a
+    reply that IS a fence, not one that CONTAINS a fence.
+    """
+    if reply.count("```") != 2:
+        return None
+    inner = reply.split("```", 2)[1]
+    first_line, newline, rest = inner.partition("\n")
+    if newline and re.fullmatch(r"[A-Za-z0-9_+-]*", first_line.strip()):
+        inner = rest
+    return inner.strip()
+
+
 def _log_fence_note(stage_name: str, stage_input: dict) -> None:
     """Durably record a fenced reply the moment it is seen, before any parse.
 
@@ -292,7 +314,18 @@ def call_stage_model(
             _log_fence_note(stage_name, stage_input)
 
         try:
-            data = json.loads(text)
+            try:
+                data = json.loads(text)
+            except json.JSONDecodeError:
+                # 17-CLOSE single-fence tolerance: the current parse path
+                # above is unchanged; only on ITS failure, a reply carrying
+                # exactly one fenced block is retried as that block's
+                # content (prose around the fence tolerated). None means no
+                # rescue — re-raise the original error, existing behavior.
+                block = extract_single_fenced_block(reply)
+                if block is None:
+                    raise
+                data = json.loads(block)
             validate_schema(data, schema)
             if extra_validator is not None:
                 extra_errors = extra_validator(data)

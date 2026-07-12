@@ -516,6 +516,57 @@ class TestSurvivalCounter(unittest.TestCase):
         self.assertEqual(result["variants_emitted"], 0)
         self.assertEqual(result["variants_accepted"], 0)
 
+    def test_run_totals_without_round_dirs_equal_canonical(self):
+        # 17-CLOSE: single-pass run (no round dirs) — both semantics coincide.
+        (self.stage1 / "evolution_variants.json").write_text(
+            json.dumps(
+                [
+                    {"id": "ev1", "accepted": True, "reject_reason": None},
+                    {"id": "ev2", "accepted": False, "reject_reason": "judged_known"},
+                ]
+            )
+        )
+        result = survival_counter.count_run(self._tmp.name)
+        self.assertEqual(result["variants_emitted_total"], 2)
+        self.assertEqual(result["variants_accepted_total"], 1)
+
+    def test_run_totals_sum_across_round_dirs(self):
+        # 17-CLOSE: with 17-E round dirs, the canonical file is the LAST
+        # round's (last-round fields keep that meaning) while the *_total
+        # fields sum every round — including a round that halted before
+        # Evolution and so has no variants file (contributes 0).
+        round1 = self.stage1 / "round1"
+        round2 = self.stage1 / "round2"
+        round3 = self.stage1 / "round3"
+        for d in (round1, round2, round3):
+            d.mkdir()
+        (round1 / "evolution_variants.json").write_text(
+            json.dumps(
+                [
+                    {"id": "ev1", "accepted": True, "reject_reason": None},
+                    {"id": "ev2", "accepted": False, "reject_reason": "judged_known"},
+                ]
+            )
+        )
+        # round2 has NO evolution_variants.json (halted pre-Evolution).
+        (round3 / "evolution_variants.json").write_text(
+            json.dumps(
+                [
+                    {"id": "ev1", "accepted": True, "reject_reason": None},
+                    {"id": "ev2", "accepted": True, "reject_reason": None},
+                ]
+            )
+        )
+        # Canonical file = the last successful round's copy (round3).
+        (self.stage1 / "evolution_variants.json").write_text(
+            (round3 / "evolution_variants.json").read_text()
+        )
+        result = survival_counter.count_run(self._tmp.name)
+        self.assertEqual(result["variants_emitted"], 2)   # last round, unchanged
+        self.assertEqual(result["variants_accepted"], 2)  # last round, unchanged
+        self.assertEqual(result["variants_emitted_total"], 4)
+        self.assertEqual(result["variants_accepted_total"], 3)
+
 
 class TestHandfeedFallback(unittest.TestCase):
     def setUp(self):

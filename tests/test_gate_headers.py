@@ -16,7 +16,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from supervisor import build_gate2_header, build_gate5_header, build_thought_block
+from supervisor import (
+    build_gate1_neartie_display,
+    build_gate2_header,
+    build_gate5_header,
+    build_thought_block,
+)
 
 CANNED_SPEC_PAYLOAD = {
     "domain": "fluid dynamics",
@@ -179,6 +184,79 @@ class TestGate5Header(unittest.TestCase):
         self.assertIn("EXECUTION: executed", block)
         block = build_gate5_header({"execution_results": {"status": "halted_synthesis"}})
         self.assertIn("reason: ?", block)
+
+
+class TestGate1NearTieDisplay(unittest.TestCase):
+    """17-CLOSE: the near-tie Elo table + research-overview summaries shown
+    at gate 1 in human mode, driven with canned files (display-only; reads
+    stage1 evidence, never the payload)."""
+
+    CANNED_STATE = {
+        "elo_init": 1200.0,
+        "k_factor": 32,
+        "final_ranking": [
+            {"id": "h1", "elo": 1230.5612},
+            {"id": "h2", "elo": 1229.7698},
+            {"id": "h4", "elo": 1184.0, "deduped_by": "h1"},
+        ],
+    }
+    CANNED_OVERVIEW = {
+        "round": 2,
+        "directions": [
+            {"summary": "Geometry controls vortex-strength scaling.", "justification": "…"},
+            {"summary": "Corner-eddy cascade onset is aspect-ratio-set.", "justification": "…"},
+        ],
+    }
+
+    def setUp(self):
+        import tempfile
+
+        self._tmp = tempfile.TemporaryDirectory()
+        self.stage1 = Path(self._tmp.name) / "stage1"
+        self.stage1.mkdir(parents=True)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _write(self, name, obj):
+        import json
+
+        (self.stage1 / name).write_text(json.dumps(obj))
+
+    def test_both_files_render_table_and_summaries(self):
+        self._write("tournament_state.json", self.CANNED_STATE)
+        self._write("research_overview.json", self.CANNED_OVERVIEW)
+        block = build_gate1_neartie_display(self.stage1)
+        self.assertIn("tournament Elo (final round)", block)
+        # The 17-C near-tie shape: ranks 1 and 2 visibly 0.79 Elo apart.
+        self.assertIn("rank 1: h1  elo 1230.6", block)
+        self.assertIn("rank 2: h2  elo 1229.8", block)
+        self.assertIn("rank 3: h4  elo 1184.0", block)
+        self.assertIn("research-overview directions", block)
+        self.assertIn("- Geometry controls vortex-strength scaling.", block)
+        self.assertIn("- Corner-eddy cascade onset is aspect-ratio-set.", block)
+
+    def test_state_only_renders_table_without_directions(self):
+        self._write("tournament_state.json", self.CANNED_STATE)
+        block = build_gate1_neartie_display(self.stage1)
+        self.assertIn("rank 1: h1", block)
+        self.assertNotIn("research-overview", block)
+
+    def test_neither_file_renders_nothing(self):
+        self.assertEqual(build_gate1_neartie_display(self.stage1), "")
+        # A missing stage1 dir entirely must also render nothing, not raise.
+        self.assertEqual(
+            build_gate1_neartie_display(self.stage1 / "does-not-exist"), ""
+        )
+
+    def test_malformed_files_never_raise(self):
+        (self.stage1 / "tournament_state.json").write_text("{not json")
+        (self.stage1 / "research_overview.json").write_text("[]")
+        self.assertEqual(build_gate1_neartie_display(self.stage1), "")
+        self._write("tournament_state.json", {"final_ranking": [{"id": "h1"}, "junk"]})
+        block = build_gate1_neartie_display(self.stage1)
+        self.assertIn("rank 1: h1  elo ?", block)
+        self.assertIn("rank 2: ?  elo ?", block)
 
 
 if __name__ == "__main__":

@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 import sys
 import time
 import traceback
@@ -74,11 +75,35 @@ DEFAULT_REPEATS = 2          # PROVING size: 2 repeats x 2 domains = 4 runs
 MAX_RELAUNCHES = 2           # extra attempts after an ABORTED run, per slot
 INTER_RUN_SLEEP_S = 180      # the driver's arXiv-courtesy spacing
 
-# Observed single-run cost, for the dry-run estimate only (provenance: the
-# chunk-3 reflect6smoke run counted 40 model_call + 9 web_search calls; the
-# four completed diag4a runs took 3285-4134 s wall each).
-EST_MODEL_CALLS_PER_RUN = "≈40-50 model_call + ≈9 web_search"
-EST_WALL_PER_RUN = "≈55-70 min"
+# Observed per-ROUND cost, for the dry-run estimate only (17-CLOSE refresh;
+# provenance: the 17-E overnight witness measured ≈85 total calls and ≈72 min
+# wall per round). A run costs these figures times its requested rounds.
+EST_CALLS_PER_ROUND = 85
+EST_WALL_MIN_PER_ROUND = 72
+
+
+def launch_git_head() -> tuple[str | None, str | None]:
+    """git rev-parse HEAD at battery launch, recorded in the report header
+    (17-CLOSE: the 17-C witness's launch commit was dictated provenance
+    only — this makes it disk-recorded). Returns (head, note): note is None
+    on success; any git failure returns (None, <note>) and never crashes
+    the battery."""
+    try:
+        proc = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=_PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except Exception as exc:
+        return None, f"git rev-parse failed: {type(exc).__name__}: {exc}"
+    if proc.returncode != 0:
+        return None, (
+            f"git rev-parse failed (exit {proc.returncode}): "
+            f"{proc.stderr.strip() or '(no stderr)'}"
+        )
+    return proc.stdout.strip(), None
 
 
 def current_model_pins() -> dict:
@@ -86,13 +111,22 @@ def current_model_pins() -> dict:
     modules — recorded in every results file for cross-run comparability."""
     import model_call
     from retrieval import web_search
-    from stages import generation_strategies, reflection_reviews, stage1_ideation
+    from stages import (
+        evolution_strategies,
+        generation_strategies,
+        meta_review,
+        reflection_reviews,
+        stage1_ideation,
+    )
 
     return {
         "stage1_ideation.OPUS_MODEL": stage1_ideation.OPUS_MODEL,
         "generation_strategies.HAIKU_MODEL": generation_strategies.HAIKU_MODEL,
         "reflection_reviews.HAIKU_MODEL": reflection_reviews.HAIKU_MODEL,
         "reflection_reviews.DEEP_VERIFY_MODEL": reflection_reviews.DEEP_VERIFY_MODEL,
+        "reflection_reviews.REVIEW6_MODEL": reflection_reviews.REVIEW6_MODEL,
+        "evolution_strategies.EVOLUTION_MODEL": evolution_strategies.EVOLUTION_MODEL,
+        "meta_review.META_REVIEW_MODEL": meta_review.META_REVIEW_MODEL,
         "web_search.HAIKU_MODEL": web_search.HAIKU_MODEL,
         "model_call.HAIKU_MODEL_default": model_call.HAIKU_MODEL,
     }
@@ -241,6 +275,9 @@ def _launch_one(slot: str, domain: str, rounds: int) -> dict:
             # survival counter, on disk) and the controller's round facts.
             # k derivation stays byte-identical — none of these enter it.
             "variants_emitted", "variants_accepted",
+            # 17-CLOSE, ADDITIVE: run-total variant counts (summed across
+            # round dirs when they exist; else the canonical file).
+            "variants_emitted_total", "variants_accepted_total",
         )},
         "rounds_completed": rounds_completed,
         "termination_reason": termination_reason,
@@ -275,11 +312,12 @@ def print_dry_run(repeats: int, rounds: int = 1) -> None:
     print("model pins that would be recorded:")
     for name, pin in current_model_pins().items():
         print(f"  {name} = {pin}")
-    print(f"expected cost (estimate from diag4a/reflect6smoke observations): "
-          f"{EST_MODEL_CALLS_PER_RUN} calls per run, {EST_WALL_PER_RUN} wall per run")
-    print(f"  -> for {len(plan)} runs: ≈{40 * len(plan)}-{50 * len(plan)} model_call + "
-          f"≈{9 * len(plan)} web_search calls, "
-          f"≈{len(plan) * 55 / 60:.1f}-{len(plan) * 70 / 60:.1f} h + sleeps")
+    print(f"expected cost (17-E measured: ≈{EST_CALLS_PER_ROUND} calls / "
+          f"≈{EST_WALL_MIN_PER_ROUND} min per ROUND): "
+          f"≈{EST_CALLS_PER_ROUND * rounds} calls, ≈{EST_WALL_MIN_PER_ROUND * rounds} min "
+          f"per run at rounds={rounds}")
+    print(f"  -> for {len(plan)} runs: ≈{EST_CALLS_PER_ROUND * rounds * len(plan)} calls, "
+          f"≈{EST_WALL_MIN_PER_ROUND * rounds * len(plan) / 60:.1f} h + sleeps")
     print("ledger invariant: ideation never reaches stage 3 or a human gate — "
           "fidelity/override ledgers must show a 0/0 delta")
     print(f"results would be written to {KILLRATE_LAST_RUN_PATH}")
@@ -293,6 +331,7 @@ def run_battery(repeats: int, rounds: int = 1) -> int:
     the --rounds flag says otherwise."""
     plan = build_run_plan(repeats)
     pins = current_model_pins()
+    git_head, git_head_note = launch_git_head()
 
     cost_meter.reset()
     fidelity_before = ledgers.count_entries(ledgers.FIDELITY_LEDGER_PATH)
@@ -349,6 +388,11 @@ def run_battery(repeats: int, rounds: int = 1) -> int:
     report = {
         "mode": "killrate",
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        # 17-CLOSE: the commit the battery was launched from, captured by
+        # git rev-parse at launch; null (plus launch_git_head_note) when
+        # git could not answer — provenance is recorded, never a crash.
+        "launch_git_head": git_head,
+        **({"launch_git_head_note": git_head_note} if git_head_note else {}),
         "repeats": repeats,
         "rounds": rounds,
         "domains": DOMAINS,

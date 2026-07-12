@@ -130,7 +130,9 @@ RANKING_SYSTEM_PROMPT_V2 = (
     "concerns already identified during review that its proposer would need to address "
     "downstream; weigh them as carried concerns, not automatic disqualifiers. The order in "
     "which the two hypotheses are presented to you carries no information about which is "
-    "better. Reply ONLY with JSON of the form "
+    "better. In your reason, refer to hypotheses only by their ids — never by position or "
+    "order words such as 'first', 'second', 'former', or 'latter'. "
+    "Reply ONLY with JSON of the form "
     '{"ack_run_id": "<the run_id you were given>", '
     '"winner_id": "<the id of the hypothesis you judge more promising>", '
     '"reason": "<one decisive sentence>"}.'
@@ -159,7 +161,9 @@ DEBATE_JUDGE_SYSTEM_PROMPT = (
     "hypothesis may carry addressable_notes — concerns already identified during review; "
     "weigh them as carried concerns, not automatic disqualifiers. The order in which the "
     "hypotheses and arguments are presented to you carries no information about which is "
-    "better. Reply ONLY with JSON of the form "
+    "better. In your reason, refer to hypotheses only by their ids — never by position or "
+    "order words such as 'first', 'second', 'former', or 'latter'. "
+    "Reply ONLY with JSON of the form "
     '{"ack_run_id": "<the run_id you were given>", '
     '"winner_id": "<the id of the hypothesis you judge more promising>", '
     '"reason": "<one decisive sentence>"}.'

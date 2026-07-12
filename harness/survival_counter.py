@@ -80,6 +80,17 @@ def count_run(run_dir: Path | str) -> dict:
       variants_accepted       accepted-true records in that file; 0 when
                               absent. Variants NEVER enter k — k stays
                               len(survivors.json), byte-identical to 17-C.
+      variants_emitted_total  17-CLOSE, ADDITIVE: run-total emission count.
+                              Under the 17-E controller the canonical
+                              stage1/evolution_variants.json is the LAST
+                              SUCCESSFUL round's file, so variants_emitted /
+                              variants_accepted above are last-round numbers;
+                              the *_total fields sum across every round dir
+                              (stage1/round*/evolution_variants.json) when
+                              round dirs exist. For a single-pass run with no
+                              round dirs the totals equal the canonical
+                              file's counts — both semantics coincide.
+      variants_accepted_total accepted-true records summed the same way.
     """
     run_dir = Path(run_dir)
     stage1 = run_dir / "stage1"
@@ -99,6 +110,8 @@ def count_run(run_dir: Path | str) -> dict:
         "files_present": files_present,
         "variants_emitted": 0,
         "variants_accepted": 0,
+        "variants_emitted_total": 0,
+        "variants_accepted_total": 0,
     }
 
     # Step 17-D, ADDITIVE ONLY: Evolution's variant counts, read from its
@@ -110,6 +123,33 @@ def count_run(run_dir: Path | str) -> dict:
         result["variants_accepted"] = sum(
             1 for v in variants if isinstance(v, dict) and v.get("accepted") is True
         )
+
+    # 17-CLOSE, ADDITIVE ONLY: run-total variant counts. When 17-E round
+    # dirs exist, sum every round's evolution_variants.json (a round that
+    # halted before Evolution simply has no file and contributes 0);
+    # otherwise the totals are the canonical file's counts, already read
+    # above. Nothing else changed.
+    round_dirs = (
+        sorted(d for d in stage1.glob("round*") if d.is_dir())
+        if stage1.is_dir()
+        else []
+    )
+    if round_dirs:
+        emitted_total = accepted_total = 0
+        for round_dir in round_dirs:
+            round_variants = _load_json(round_dir / EVOLUTION_VARIANTS)
+            if isinstance(round_variants, list):
+                emitted_total += len(round_variants)
+                accepted_total += sum(
+                    1
+                    for v in round_variants
+                    if isinstance(v, dict) and v.get("accepted") is True
+                )
+        result["variants_emitted_total"] = emitted_total
+        result["variants_accepted_total"] = accepted_total
+    else:
+        result["variants_emitted_total"] = result["variants_emitted"]
+        result["variants_accepted_total"] = result["variants_accepted"]
 
     reviews = _load_json(stage1 / REFLECTION_REVIEWS)
 

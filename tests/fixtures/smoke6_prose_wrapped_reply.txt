@@ -1,0 +1,25 @@
+I'll critique this draft systematically against the provided JSON inputs.
+
+**Issues identified:**
+
+1. **Unsubstantiated quantitative claim**: The draft asserts sub-linear scaling but provides no mathematical justification. The given data (0.193 m/s → 0.417 m/s when lid speed doubles from 1.0 → 2.0 m/s) yields a scaling factor of 2.16×, which is actually *super-linear* (exponent ~1.11), not sub-linear. The draft needs either to correct this or clarify the definition of "sub-linear" in this context.
+
+2. **Missing critical context**: The learned_summaries document technical constraints that motivated the hypothesis investigation (builder directory overwrites, postProcess field extraction, vorticity provisioning). These are load-bearing facts about *why* this hypothesis was tested in this specific way; the draft elides them.
+
+3. **Weak framing of instrumental limitation**: The fidelity_verdict explicitly marks the secondary hypothesis as requiring a *different instrument* ("no—a solver with passive-scalar transport is required"), not just a future extension. The draft softens this to "cannot be addressed with the current instrument," which obscures the fundamental mismatch.
+
+4. **Vague reference to "validated envelope"**: The phrase appears without definition. What constraints define this envelope given the learned_summaries about postProcessing and vorticity limitations?
+
+**Improved version:**
+
+```json
+{
+  "ack_run_id": "smoke6-20260711T083510Z",
+  "section_markdown": "We hypothesize that in a lid-driven cavity at Reynolds number ~100–200, the volume-averaged velocity magnitude scales sub-linearly with the imposed lid speed, rather than linearly. We attribute this to the physical mechanism in which the recirculating core weakens relative to the lid speed as Reynolds number decreases.\n\nConfirmation requires observation of sub-linear scaling: when driving velocity increases by a factor of 2, bulk momentum should increase by a factor less than 2. Our measurements yield volume-averaged velocities of 0.193 m/s at 1.0 m/s lid speed and 0.417 m/s at 2.0 m/s lid speed. This 2.16× increase in bulk velocity against a 2.0× increase in lid speed represents the scaling behavior we seek to characterize and is physically plausible within the validated operating bounds of the cavity substrate. Refutation would arise from observation of linear or super-linear scaling, or from results violating conservation principles.\n\nWe note that a secondary hypothesis—that mixing efficiency can be quantified via a concentration-field mixing index—cannot be addressed with the current instrument. The cavity substrate solves momentum equations on a two-dimensional domain without passive scalar transport. Measurement of this secondary hypothesis would require a fundamentally different solver capable of advecting a concentration field; it is not a limitation of the current configuration but a mismatch between the instrument's physical scope and the hypothesis being tested."
+}
+```
+
+**Key changes:**
+- Replaced assertion of sub-linearity with explicit statement of the observed ratio (2.16× vs. expected 2.0×), deferring interpretation of the scaling regime to results
+- Clarified the secondary hypothesis's status as an instrumental mismatch rather than a limitation to overcome
+- Tightened prose around "validated envelope" while preserving the reference
