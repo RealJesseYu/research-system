@@ -791,8 +791,9 @@ commit e599e47 preserved verbatim): four strategies on Sonnet pin
 (EVOLUTION_MODEL claude-sonnet-4-6); 2-variant cap — simplification
 always + seeded rotation; variants reviewed by the full Reflection chain
 and ranked via in-memory tournament pool; evolution_variants.json
-evidence; survivors.json and battery k untouched. Owes tonight's dedup
-witness.
+evidence; survivors.json and battery k untouched. Witness + dedup check
+CLOSED 2026-07-12 — see the 17-D CLOSED paragraph below and
+docs/milestone_17D.md.
 Step 22 (paper agent) MERGED to main (2026-07-11, true merge c957f3b,
 build commit 6bda1fd preserved verbatim): sidecar-first validation
 handoff on Haiku pin (STAGE6_MODEL claude-haiku-4-5-20251001); mandatory
@@ -805,4 +806,41 @@ tree 218/218 tests across 21 files, all green (supersedes the stale
 run logged a warn-only watch miss, case 13 refine→trust — recorded, does
 not affect GREEN). Main HEAD at status write: c957f3b (pasted from
 git rev-parse in-session).
-Next: 17-D dedup witness overnight, then Day 3: 17-E.
+17-D CLOSED (2026-07-12, doc-only close; every number re-derived from
+disk — see docs/milestone_17D.md): mechanism witnessed PASS on the
+overnight battery launched from 14f96e6; competition path
+live-unexercised, carried to 17-E. Facts: 4/4 slots, zero relaunches, md5
+373c886b on 4/4; 6 variants emitted (2 per Evolution-running slot; same2
+halted pre-Evolution at zero parents), 0 accepted; emission schema
+rejects 0/6 on pin claude-sonnet-4-6; zero-accept tolerance fired 3/3
+without crash; combination guard fell back twice, logged; survivors.json
+integrity holds (exactly 7 fields per record, zero ev-ids, k counts
+Generation survivors only); cost 275 calls (228 model + 47 web_search),
+mean 68.75 calls / 61.0 min per slot excluding the 3×180 s designed
+sleeps; reject rate 0.031 (bar 0.04; 17-C 0.028). MANDATORY dedup check
+CLOSED outcome (c), method deviation disclosed (zero variants reached any
+pool, so live flags could not fire; the pre-registered offline salvage
+ran on the identical vectorizer path — parents-only refit reproduced
+same1's live matrix to the last digit): sibling band 0.117–0.227,
+departure band 0.058–0.229, distinct-parent controls 0–0.197 across 17-C
+and tonight — bands interleave (alt2's ev1, the parent minus its
+qualifiers, scores 0.1947, BELOW genuinely distinct pairs); no tf-idf
+threshold separates siblings from distinct. RULING: 0.85 stands as a
+near-verbatim detector; recalibration refused on evidence;
+embedding-class similarity upgrade queued post-deadline; recorded
+pattern — the Reflection chain is the de-facto sibling filter upstream
+of dedup. PARENT-POOL WATCH ARMED: k [3,0] same / [1,1] alt vs 17-C's
+[3,4]/[3,3]; same2 k=0 all_known_at_filter — first zero-survivor run
+since 17-fix-A (filter kills cite R10/R11/R12 and read defensible);
+deep-verify kill rates 0.5/0.778/0.7/0.5, same2 above fix-A's
+same-domain top; frozen-file diff acd7dd0..14f96e6 on
+generation_strategies.py + reflection_reviews.py empty (re-verified
+live at close). TRIGGER (ruled): the 17-E witness read audits
+same-domain kill rationales; any k=0 slot OR ≥2 slots at k≤1 →
+dedicated forensic session before 17-CLOSE, and Step 18 does not launch
+until it resolves. One dictation-vs-disk asterisk recorded in the doc:
+S2 429'd 38 non-zero-hit retrieval rounds on disk (dictated 39; 9
+zero-hit-repaired rounds confirmed; 47 rounds total).
+Next: 17-E build (slate pending) + overnight witness --repeats 2
+--rounds 2. Main HEAD at status write: 14f96e6 (pasted from
+git rev-parse in-session).
