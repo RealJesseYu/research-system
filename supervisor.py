@@ -9,9 +9,10 @@ Usage:
     python3 supervisor.py --mode human   (pauses at each gate: pick-one-of-k
                                           after stage 1, y/n after stage 2,
                                           accept/override/stop at gate 5)
-    python3 supervisor.py --mode auto    (gate 1 selects rank 1; gate 2 logs
-                                          "auto-approved"; gate 5 enacts the
-                                          model decision; never pauses)
+    python3 supervisor.py --mode auto    (gate 1 selects by the Stage-1.5
+                                          chooser, rank-1 fallback; gate 2
+                                          logs "auto-approved"; gate 5 enacts
+                                          the model decision; never pauses)
 (default mode is human)
 
 The mode switch changes ONLY what happens at a gate. It never changes what
@@ -30,6 +31,7 @@ from baton import Baton
 from memory.journal import journal_append
 from memory.ledgers import override_append
 from stages import (
+    gate1_chooser,
     stage1_ideation,
     stage2_experiment_design,
     stage3_fidelity_gate,
@@ -306,6 +308,28 @@ def build_gate1_neartie_display(stage1_dir: Path) -> str:
     return "\n".join(lines)
 
 
+def build_gate1_chooser_advisory(record: dict) -> str:
+    """Chooser advisory at gate 1 (Step 23, display-only). Same contract as
+    the other gate display helpers: pure record -> str, no payload or
+    parsing change, and it must never raise — a malformed record renders as
+    '?', never an exception. The human's integer pick remains the decision.
+    """
+    try:
+        chosen = record.get("chosen_id") or "?"
+        reasoning = record.get("reasoning") or "?"
+        fallback = " (FALLBACK to rank 1)" if record.get("fallback") else ""
+        return "\n".join(
+            [
+                "---- CHOOSER ADVISORY (display-only; your pick decides) ----",
+                f"  chooser chose: {chosen}{fallback}",
+                f"  reasoning: {reasoning}",
+                "---- end chooser advisory ----",
+            ]
+        )
+    except Exception:
+        return "---- CHOOSER ADVISORY unavailable ----"
+
+
 def run_gate(logger: Logger, baton: Baton, mode: str, gate_name: str) -> bool:
     """Handle one gate. Returns True to continue, False to halt.
 
@@ -476,10 +500,16 @@ def parse_gate1_selection(raw: str, k: int) -> tuple:
 def run_gate1(logger: Logger, baton: Baton, mode: str) -> tuple:
     """Gate after stage 1: pick one of the k ranked hypotheses, or halt.
 
-    Auto mode selects rank 1 without pausing. Human mode shows the ranked
-    list and prompts; after MAX_GATE1_INVALID_ANSWERS invalid answers it
-    halts. Returns ("select", rank) or ("halt",). Like run_gate, decisions
-    are recorded in the LOG only, never in the baton's history.
+    Auto mode (Step 23) resolves to the Stage-1.5 chooser's chosen_id — one
+    Opus call in stages/gate1_chooser.py, never invoked in this file's own
+    logic beyond scheduling it, exactly as stages are scheduled; the chooser
+    never raises and falls back to rank 1 (the old placeholder) with the
+    fallback recorded in gate1_chooser.json. Human mode shows the ranked
+    list plus the chooser's reasoning as a display-only advisory and
+    prompts; the human's integer pick remains the decision; after
+    MAX_GATE1_INVALID_ANSWERS invalid answers it halts. Returns
+    ("select", rank) or ("halt",). Like run_gate, decisions are recorded in
+    the LOG only, never in the baton's history.
     """
     gate_name = "after_stage_1"
     logger.log(f"GATE {gate_name}: reached")
@@ -488,7 +518,20 @@ def run_gate1(logger: Logger, baton: Baton, mode: str) -> tuple:
     k = len(hypotheses)
 
     if mode == "auto":
-        return ("select", 1)
+        record = gate1_chooser.choose_hypothesis(
+            baton.run_id, hypotheses, Path("runs") / baton.run_id
+        )
+        # The chooser guarantees a valid id (validator + rank-1 fallback);
+        # the default-1 here is deterministic belt-and-braces only.
+        rank = next(
+            (i for i, h in enumerate(hypotheses, start=1) if h["id"] == record["chosen_id"]),
+            1,
+        )
+        logger.log(
+            f"GATE {gate_name} [auto]: chooser chose {record['chosen_id']} "
+            f"(rank {rank} of {k}, fallback={record['fallback']})"
+        )
+        return ("select", rank)
 
     logger.log(f"--- ranked hypotheses at gate {gate_name} ---")
     for rank, h in enumerate(hypotheses, start=1):
@@ -502,9 +545,21 @@ def run_gate1(logger: Logger, baton: Baton, mode: str) -> tuple:
     if neartie:
         logger.log(neartie)
 
+    # Step 23, display-only: the Stage-1.5 chooser's reasoned pick, shown
+    # as a labeled advisory before the prompt. The human's integer pick
+    # remains the decision — payload, parsing, and gate control flow are
+    # untouched. This spends the chooser's one Opus call in human mode too
+    # (disclosed cost delta); the record lands in gate1_chooser.json.
+    chooser_record = gate1_chooser.choose_hypothesis(
+        baton.run_id, hypotheses, Path("runs") / baton.run_id
+    )
+    logger.log(build_gate1_chooser_advisory(chooser_record))
+
     # Step 16.6 chunk 2: observing hooks below — each human resolution of
-    # this gate writes one override-ledger entry. The system's own decision
-    # at this gate is what auto mode would do: select rank 1. Auto mode
+    # this gate writes one override-ledger entry. The ledger's
+    # system_decision baseline stays "select rank 1" deliberately (Step 23):
+    # human-gate behavior is frozen, and the chooser is advisory here — its
+    # pick is on disk in gate1_chooser.json, not in the ledger. Auto mode
     # returned above and never writes here. Control flow is untouched.
     invalid_count = 0
     while invalid_count < MAX_GATE1_INVALID_ANSWERS:
