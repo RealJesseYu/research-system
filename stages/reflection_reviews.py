@@ -78,6 +78,7 @@ import json
 import sys
 from pathlib import Path
 
+from memory.journal import journal_recent_by_kind
 from model_call import call_stage_model, log_stage_call
 
 _RETRIEVAL_DIR = Path(__file__).resolve().parent.parent / "retrieval"
@@ -100,6 +101,40 @@ REVIEW6_MODEL = "claude-haiku-4-5-20251001"
 
 TOP_K_PER_SOURCE = 3
 
+# Step 18.5: the idea archive's dead-end check. The block is code-composed
+# from the SAME journal read the battery's memory-comparability pin is
+# derived from — journal_recent_by_kind("learned_summary", 3) — so under a
+# pinned journal state it is byte-identical for every battery slot, and it
+# rides the EXISTING initial-review call (no added model call anywhere).
+DEAD_END_HEADER = (
+    "PRIOR-RUN DEAD ENDS FROM THE JOURNAL (unverified model text - treat as "
+    "leads, not established facts): earlier runs recorded these approaches as "
+    "dead ends on the available instrument; a candidate that re-proposes one "
+    "should be discarded citing the entry:"
+)
+
+DEAD_END_RETRIEVAL_KIND = "learned_summary"
+DEAD_END_RETRIEVAL_LIMIT = 3  # same (kind, limit) as the battery pin derivation
+
+
+def build_dead_end_block(entries: list[dict]) -> str | None:
+    """Pure, no I/O: format learned_summary journal entries into the
+    prior-dead-ends block for the initial-review model input.
+
+    Returns None when `entries` is empty; otherwise the exact DEAD_END_HEADER
+    line followed by one line per entry:
+    "- [run <run_id>, hypothesis <hypothesis_id>] <text>" — the tag is what a
+    dead-end kill reason must cite.
+    """
+    if not entries:
+        return None
+    lines = [DEAD_END_HEADER]
+    for e in entries:
+        lines.append(
+            f"- [run {e.get('run_id')}, hypothesis {e.get('hypothesis_id')}] {e.get('text')}"
+        )
+    return "\n".join(lines)
+
 
 INITIAL_REVIEW_SYSTEM_PROMPT = (
     "You are the initial-review unit of the Reflection stage in an autonomous research "
@@ -109,6 +144,14 @@ INITIAL_REVIEW_SYSTEM_PROMPT = (
     "obviously flawed on correctness (contradicts well-established physics), quality (too "
     "vague or not testable by a simulation), novelty (restates a textbook fact or classic "
     "well-established result), or preliminary safety (hazardous or unethical to pursue). "
+    "When a prior_dead_ends block is present, it lists lessons earlier runs of this "
+    "system recorded after their approach failed on the available instrument (unverified "
+    "model text — treat as leads, not established facts): if a candidate re-proposes an "
+    "approach one of those entries records as a dead end — the same inexpressible "
+    "quantity, unbuildable geometry, or unsupported physics, even in new clothes — "
+    "discard it, and the reason MUST cite the journal entry by its "
+    "[run <run_id>, hypothesis <hypothesis_id>] tag; do not discard on a dead-end entry "
+    "that merely touches the same topic without the same instrument limit. "
     "This is a fast gate before deeper grounded reviews: when genuinely in doubt, pass the "
     "candidate through. Reply ONLY with JSON of the form "
     '{"ack_run_id": "<the run_id you were given>", "reviews": '
@@ -361,12 +404,15 @@ def gather_review_refs(run_id: str, hypothesis: dict) -> tuple[list[dict], dict]
 def initial_review(
     run_id: str, domain: str, hypotheses: list[dict], feedback_block: str | None = None
 ) -> list[dict]:
-    """ONE Haiku call over the whole pool, no retrieval: quick pass/discard
-    per candidate on correctness / quality / novelty / preliminary safety.
-    Returns one {id, verdict, reason} per candidate; the validator enforces
-    exactly one review per pool id, inside the re-ask loop. feedback_block
-    (Step 17-E) is the composed meta-review feedback text, attached as its
-    own input field when present."""
+    """ONE Haiku call over the whole pool, no literature retrieval: quick
+    pass/discard per candidate on correctness / quality / novelty /
+    preliminary safety. Returns one {id, verdict, reason} per candidate; the
+    validator enforces exactly one review per pool id, inside the re-ask
+    loop. feedback_block (Step 17-E) is the composed meta-review feedback
+    text, attached as its own input field when present. Step 18.5: the last
+    3 learned_summary journal entries ride along as a prior_dead_ends block
+    (deterministic journal read, zero added model calls) so re-proposed dead
+    ends are discarded citing the journal entry."""
     valid_ids = [h["id"] for h in hypotheses]
 
     def validator(data: dict) -> list[str]:
@@ -409,6 +455,20 @@ def initial_review(
     }
     if feedback_block is not None:
         stage_input["meta_review_feedback"] = feedback_block
+    # Step 18.5: dead-end check rides this existing call. Retrieval happens
+    # HERE (not per hypothesis, not a new call) so every initial-review site
+    # — reflect_on_pool AND Evolution's variant review — gets it for free.
+    dead_end_entries = journal_recent_by_kind(
+        DEAD_END_RETRIEVAL_KIND, DEAD_END_RETRIEVAL_LIMIT
+    )
+    dead_end_block = build_dead_end_block(dead_end_entries)
+    if dead_end_block is not None:
+        stage_input["prior_dead_ends"] = dead_end_block
+    _log(
+        run_id,
+        f"STAGE1_DEADENDS {len(dead_end_entries)} journal dead-end entries "
+        "provided to initial review",
+    )
     data, timing = call_stage_model(
         "stage1_reflection_initial",
         INITIAL_REVIEW_SYSTEM_PROMPT,

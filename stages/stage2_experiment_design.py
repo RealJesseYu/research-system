@@ -2,8 +2,12 @@
 stage2_experiment_design.py — real Experiment-Design stage: ONE isolated
 Sonnet call turns the gate-1 chosen hypothesis into a typed experiment spec.
 
-The stage reads only the baton payload ({domain, chosen_hypothesis}) plus the
-substrate contract (substrates.py — this stage is its first consumer). The
+The stage reads the baton payload ({domain, chosen_hypothesis}) plus the
+substrate contract (substrates.py — this stage is its first consumer) plus,
+since Step 18.5, the last 3 learned_summary journal entries, code-composed
+into a substrate-capability lessons block (evidence at
+runs/<run_id>/stage2/retrieved_memory.json; loop-back re-entry re-reads, so
+a fresh lesson informs the redesigned spec). The
 reply is enforced in Python, not trusted: a shallow envelope schema, then
 validate_spec running as call_stage_model's extra_validator, whose
 plain-language errors go back to the model as guided corrections inside the
@@ -19,11 +23,41 @@ import json
 from pathlib import Path
 
 from baton import Baton
+from memory.journal import journal_recent_by_kind
 from model_call import call_stage_model, log_stage_call
 from stages.stage2_spec import validate_spec
 from substrates import CAVITY_2D_CONTRACT
 
 SONNET_MODEL = "claude-sonnet-4-6"
+
+# Step 18.5: memory reaches Stage 2. The block is code-composed from journal
+# entries — never model-authored — and framed as instrument lessons, keeping
+# the leads-not-facts journal-poison ruling.
+LESSONS_HEADER = (
+    "SUBSTRATE-CAPABILITY LESSONS FROM PRIOR RUNS (unverified model text - "
+    "treat as leads, not established facts): prior runs learned these "
+    "instrument limits - design within them or justify routing elsewhere:"
+)
+
+
+def build_substrate_lessons_block(entries: list[dict]) -> str | None:
+    """Pure, no I/O: format learned_summary journal entries into the
+    substrate-capability lessons block for the Stage-2 model input.
+
+    Returns None when `entries` is empty; otherwise the exact LESSONS_HEADER
+    line followed by one line per entry:
+    "- [run <run_id>, hypothesis <hypothesis_id>] <text>" — the same line
+    shape as stage 1's build_memory_block, so journal entries read the same
+    everywhere they surface.
+    """
+    if not entries:
+        return None
+    lines = [LESSONS_HEADER]
+    for e in entries:
+        lines.append(
+            f"- [run {e.get('run_id')}, hypothesis {e.get('hypothesis_id')}] {e.get('text')}"
+        )
+    return "\n".join(lines)
 
 SYSTEM_PROMPT = (
     "You are the Experiment-Design stage of an autonomous research pipeline: you turn "
@@ -56,6 +90,11 @@ SYSTEM_PROMPT = (
     "When prior_thought is present, the previous design for this hypothesis "
     "failed for the reasons it states — the new spec must directly address that "
     "assessment and justification, and must not resubmit an unchanged design. "
+    "When a substrate_capability_lessons block is present, it lists instrument "
+    "limits that earlier runs of this system learned the hard way (unverified "
+    "model text — treat as leads, not established facts): design within those "
+    "limits, and if the hypothesis genuinely requires exceeding one of them, say "
+    "so explicitly in regime.notes rather than designing around it silently. "
     "Use the substrate contract's canonical parameter name whenever the physical "
     "quantity you are declaring matches one; parameters with no canonical "
     "equivalent keep their natural names — this is a naming convention, not a "
@@ -119,6 +158,23 @@ def run(baton: Baton) -> Baton:
     # pass-2 boundaries and evidence keep the context.
     prior_thought = baton.payload.get("prior_thought")
 
+    # Step 18.5: journal read-side into Stage 2 (deterministic, before the
+    # model call; the SAME recency-only top-3 learned_summary read stage 1
+    # uses — no similarity retrieval exists yet, disclosed limitation). On a
+    # loop-back re-entry this re-read picks up the learned_summary stage 5
+    # just journaled, so the redesigned spec sees the fresh instrument lesson.
+    # Evidence mirrors stage 1's pattern: stage2/retrieved_memory.json
+    # (overwritten on re-entry, same as spec.json).
+    memory_entries = journal_recent_by_kind("learned_summary", 3)
+    stage_dir = Path("runs") / baton.run_id / "stage2"
+    stage_dir.mkdir(parents=True, exist_ok=True)
+    (stage_dir / "retrieved_memory.json").write_text(json.dumps(memory_entries, indent=2))
+    lessons_block = build_substrate_lessons_block(memory_entries)
+    _log_line(
+        baton.run_id,
+        f"STAGE2_MEMORY retrieved {len(memory_entries)} learned_summary entries",
+    )
+
     stage_input = {
         "run_id": baton.run_id,
         "domain": domain,
@@ -126,6 +182,8 @@ def run(baton: Baton) -> Baton:
         "substrate_contract": CAVITY_2D_CONTRACT,
         "prior_thought": prior_thought,
     }
+    if lessons_block is not None:
+        stage_input["substrate_capability_lessons"] = lessons_block
     data, timing = call_stage_model(
         "stage2_experiment_design",
         SYSTEM_PROMPT,
@@ -147,8 +205,6 @@ def run(baton: Baton) -> Baton:
     )
 
     spec = data["spec"]
-    stage_dir = Path("runs") / baton.run_id / "stage2"
-    stage_dir.mkdir(parents=True, exist_ok=True)
     (stage_dir / "spec.json").write_text(json.dumps(spec, indent=2))
 
     n_sweep = sum(1 for p in spec["parameters"] if p["role"] == "sweep")
