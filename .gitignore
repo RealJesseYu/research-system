@@ -6,3 +6,4 @@ __pycache__/
 .env
 harness/last_run.json
 harness/killrate_last_run.json
+harness/positional_last_run.json
