@@ -330,6 +330,13 @@ def main() -> int:
         "without firing ideation",
     )
     parser.add_argument(
+        "--report-path",
+        default=None,
+        help="killrate mode only: file the battery report JSON is written "
+        "to (default harness/killrate_last_run.json; 18-prep — parallel "
+        "batteries must each name their own report file)",
+    )
+    parser.add_argument(
         "--run-id",
         default=None,
         help="paperlint mode only: the run whose stage6 output to lint",
@@ -341,8 +348,11 @@ def main() -> int:
         # killrate pattern; deterministic, ZERO model calls.
         from harness import paper_lint
 
-        if args.repeats is not None or args.dry_run or args.rounds is not None:
-            parser.error("--repeats/--dry-run/--rounds apply only to --mode killrate")
+        if (args.repeats is not None or args.dry_run or args.rounds is not None
+                or args.report_path is not None):
+            parser.error(
+                "--repeats/--dry-run/--rounds/--report-path apply only to --mode killrate"
+            )
         if args.run_id is None:
             parser.error("--mode paperlint requires --run-id")
         failures = paper_lint.lint_paper(args.run_id)
@@ -370,11 +380,14 @@ def main() -> int:
         repeats = args.repeats if args.repeats is not None else killrate_battery.DEFAULT_REPEATS
         rounds = args.rounds if args.rounds is not None else 1
         if args.dry_run:
-            killrate_battery.print_dry_run(repeats, rounds)
+            killrate_battery.print_dry_run(repeats, rounds, report_path=args.report_path)
             return 0
-        return killrate_battery.run_battery(repeats, rounds)
-    if args.repeats is not None or args.dry_run or args.rounds is not None:
-        parser.error("--repeats/--dry-run/--rounds apply only to --mode killrate")
+        return killrate_battery.run_battery(repeats, rounds, report_path=args.report_path)
+    if (args.repeats is not None or args.dry_run or args.rounds is not None
+            or args.report_path is not None):
+        parser.error(
+            "--repeats/--dry-run/--rounds/--report-path apply only to --mode killrate"
+        )
     return run_harness(args.mode)
 
 

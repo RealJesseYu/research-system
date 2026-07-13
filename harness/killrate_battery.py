@@ -19,11 +19,15 @@ calls scored (including the two zero-survivor raises) is a real data point,
 recorded k=0-with-reason. The driver's ~180 s inter-run sleep (arXiv
 courtesy) is kept between attempts.
 
-Comparability: every run must retrieve the SAME memory block the diag4a
-runs saw. Each run's stage1/retrieved_memory.json md5 is checked against
-EXPECTED_MEMORY_MD5 (373c886b, verified identical across all nine diag4a
-dirs); a differing run is flagged non_comparable and EXCLUDED from the
-per-domain distributions — reported separately, never silently averaged in.
+Comparability: every run in one battery must retrieve the SAME memory
+block. Each run's stage1/retrieved_memory.json md5 is checked against
+EXPECTED_MEMORY_MD5; a differing run is flagged non_comparable and EXCLUDED
+from the per-domain distributions — reported separately, never silently
+averaged in. Pin history: 373c886b (diag4a era, verified identical across
+all nine diag4a dirs; held through 17-fix-A/B, 17-C/D/E) ended by design
+when the Step-17 supervised Runs A/B/C journaled learned summaries; the
+Step-18 pin below was re-derived at 18-prep (R-18P-4: over the memory
+state as it stood post-Run-C, no excision).
 
 Model pins: the battery uses whatever the current stage pins are, and
 RECORDS them in the results file, so a post-18.7 run can never be silently
@@ -34,7 +38,9 @@ reach stage 3 or a human gate, so NO production ledger entry is written —
 the report's ledger-activity delta is the in-band proof, and must read 0/0.
 
 Results overwrite harness/killrate_last_run.json (the filename means "the
-latest run"); the per-run evidence stays in runs/<id>/ as always.
+latest run") unless --report-path names another file (18-prep: parallel
+batteries must not collide on the report); the per-run evidence stays in
+runs/<id>/ as always.
 """
 
 from __future__ import annotations
@@ -58,6 +64,13 @@ from harness import survival_counter  # noqa: E402
 
 KILLRATE_LAST_RUN_PATH = Path(__file__).resolve().parent / "killrate_last_run.json"
 
+
+def resolve_report_path(report_path: str | Path | None) -> Path:
+    """Where this battery's machine report goes: the fixed default file, or
+    the caller's --report-path (18-prep: parallel batteries each get their
+    own report file so simultaneous launches never clobber each other)."""
+    return Path(report_path) if report_path is not None else KILLRATE_LAST_RUN_PATH
+
 # The EXACT diag4a inputs, verbatim from the rescued driver
 # (harness/diag4a_reference/diag4a_driver.py).
 SAME_DOMAIN = "mean-flow structure and vortex strength in laminar lid-driven cavity flows"
@@ -67,9 +80,13 @@ ALT_DOMAIN = (
 )
 DOMAINS = {"same": SAME_DOMAIN, "alt": ALT_DOMAIN}
 
-# md5 (first 8 hex chars) of stage1/retrieved_memory.json in every diag4a
-# run dir — the comparability pin for the memory block.
-EXPECTED_MEMORY_MD5 = "373c886b"
+# md5 (first 8 hex chars) of stage1/retrieved_memory.json — the
+# comparability pin for the memory block. Step-18 value, re-derived at
+# 18-prep (2026-07-13) over the post-Run-C journal via the battery's own
+# derivation (json.dumps(journal_recent_by_kind("learned_summary", 3),
+# indent=2) -> md5[:8]); covers Run C's two learned summaries + Run B's
+# 00:06Z summary. Both Step-18 arms lock to it. Prior era: 373c886b.
+EXPECTED_MEMORY_MD5 = "073ff57e"
 
 DEFAULT_REPEATS = 2          # PROVING size: 2 repeats x 2 domains = 4 runs
 MAX_RELAUNCHES = 2           # extra attempts after an ABORTED run, per slot
@@ -289,10 +306,16 @@ def _launch_one(slot: str, domain: str, rounds: int) -> dict:
     return record
 
 
-def print_dry_run(repeats: int, rounds: int = 1) -> None:
+def print_dry_run(repeats: int, rounds: int = 1,
+                  report_path: str | Path | None = None) -> None:
     """The launchability proof: the full run plan and expected cost, with
-    NO ideation fired and nothing written."""
+    NO ideation fired. Default behavior writes nothing; when --report-path
+    is EXPLICITLY given, a small dry_run-stamped plan stub is written there
+    (18-prep: the parallel launch smoke needs on-disk proof that N
+    simultaneous invocations land on N distinct report files) — the
+    default report file is never touched by a dry run."""
     plan = build_run_plan(repeats)
+    resolved = resolve_report_path(report_path)
     print()
     print("=" * 18 + " KILL-RATE BATTERY — DRY RUN (no ideation fired) " + "=" * 18)
     print(f"repeats per domain: {repeats}   total runs: {len(plan)}")
@@ -320,16 +343,33 @@ def print_dry_run(repeats: int, rounds: int = 1) -> None:
           f"≈{EST_WALL_MIN_PER_ROUND * rounds * len(plan) / 60:.1f} h + sleeps")
     print("ledger invariant: ideation never reaches stage 3 or a human gate — "
           "fidelity/override ledgers must show a 0/0 delta")
-    print(f"results would be written to {KILLRATE_LAST_RUN_PATH}")
+    print(f"results would be written to {resolved}")
+    if report_path is not None:
+        stub = {
+            "mode": "killrate",
+            "dry_run": True,
+            "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "repeats": repeats,
+            "rounds": rounds,
+            "report_path": str(resolved),
+            "planned_slots": [entry["slot"] for entry in plan],
+        }
+        with open(resolved, "w") as f:
+            json.dump(stub, f, indent=2)
+            f.write("\n")
+        print(f"dry-run plan stub written to {resolved}")
     print("=" * 85)
 
 
-def run_battery(repeats: int, rounds: int = 1) -> int:
+def run_battery(repeats: int, rounds: int = 1,
+                report_path: str | Path | None = None) -> int:
     """The live battery. NOT run in chunk 4 — the proving batch is the
     human's to launch in a plain Terminal later. rounds defaults to 1
     (Step 17-E): scored runs stay baseline-comparable single passes unless
-    the --rounds flag says otherwise."""
+    the --rounds flag says otherwise. report_path (18-prep): where the
+    machine report is written; default unchanged."""
     plan = build_run_plan(repeats)
+    resolved = resolve_report_path(report_path)
     pins = current_model_pins()
     git_head, git_head_note = launch_git_head()
 
@@ -395,6 +435,9 @@ def run_battery(repeats: int, rounds: int = 1) -> int:
         **({"launch_git_head_note": git_head_note} if git_head_note else {}),
         "repeats": repeats,
         "rounds": rounds,
+        # 18-prep: the file this report was written to, recorded in-band so
+        # a parallel launch's three reports are self-attributing.
+        "report_path": str(resolved),
         "domains": DOMAINS,
         "model_pins": pins,
         "expected_memory_md5": EXPECTED_MEMORY_MD5,
@@ -439,8 +482,8 @@ def run_battery(repeats: int, rounds: int = 1) -> int:
              else "   *** CRITICAL: the battery wrote a production ledger ***"))
     print("=" * 70)
 
-    with open(KILLRATE_LAST_RUN_PATH, "w") as f:
+    with open(resolved, "w") as f:
         json.dump(report, f, indent=2)
         f.write("\n")
-    print(f"report written to {KILLRATE_LAST_RUN_PATH}")
+    print(f"report written to {resolved}")
     return 0
