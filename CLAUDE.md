@@ -920,3 +920,34 @@ Verified: suite 263/263 offline (250 + 13 new); FAST GREEN hard-gate 3/3,
 zero watch misses, rejects 0/6, ledger 0/0 (the session's only live
 calls); survival_counter --validate ALL MATCH. Next: supervised run +
 demo.
+
+Step 17 CLOSED (2026-07-12/13, doc-only close on Run A + Run B evidence —
+docs/milestone_17E.md + docs/milestone_17CLOSE.md + docs/journal_day3-4.md
+are the record; every number re-derived from disk). 17-E witness PASSED
+(4/4 slots, zero relaunches, md5 373c886b x4, forensic trigger NOT fired;
+loop live in same1/alt2, count cap in same2/alt1; feedback blocks proven
+in round-2 transcripts across all three families; Evolution 12 emitted /
+6 accepted with the first variant debate win and first rank-1 variant
+delivery; dedup zero flags with live customers, parent-child 0.3409
+unflagged; position-2 watch 6/6 across 3 split matches; mean 124 calls /
+101.7 min per slot, rejects 0.019). Rulings R-C1..R-C6 recorded.
+Supervised obligation split-witnessed: Run A 20260712T194452Z (human) —
+rank-2 pick, live loop-back, the project's FIRST refine verdict, honest
+halt on colima-down, honest more_data ending (90 calls, 1h35m); Run B
+20260712T212952Z (auto) — all gates self-resolved through 2 passes,
+Evolution variant ev2 won gate 1 at Elo 1258.3, memory loop witnessed
+(Run A's learned summaries verbatim in Run B's generation context),
+KILLED EXTERNALLY ~00:06Z mid-pass-3 (144+23 calls, 2h36m) — root cause
+= launch venue (Claude Code background task), a strategist process
+error; first live instance of the watched external-kill scenario (no
+run_record; the sentinel's build condition is now met). THE RUN-VENUE
+RULE IS ABSOLUTE: every run, supervised included, launches from a plain
+Terminal under caffeinate — never from a builder-session background
+task. The 373c886b memory-md5 pin era ENDED BY DESIGN when Runs A/B
+journaled learned summaries (journal md5 now d708f701); by AMENDED
+RULING the checksum snapshot moves from this close's final write to
+18-prep after Run C. CARRIED DEBTS to Run C (2026-07-13 ~9 AM, plain
+Terminal, human mode): executed solver path under the post-17 pipeline;
+Stage-6 real-pipeline paper + paperlint. Next action: Run C, then
+18-prep (snapshot + parallel-arms ruling; Step-18 sizing already ruled
+at 4 runs/arm on the measured 17-E cost).
