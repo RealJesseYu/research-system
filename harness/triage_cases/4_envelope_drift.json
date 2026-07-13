@@ -1,0 +1,154 @@
+{
+  "case_id": "envelope_drift",
+  "plan_case": "out-of-envelope drift",
+  "provenance": {
+    "description": "PLANTED: the spec DECLARES a Re=200 2D-laminar envelope, but the parameters give U*L/nu = 25*1/0.01 = 2500 - above the Re_c approximately 1914 Hopf bifurcation and far outside the substrate's validated 2D-laminar envelope (Re_max ~200). The solver reports a 'converged steady' result, but max_Courant = 6.2 (>>1) marks it as a spurious steady state of an inherently unsteady, 3D-tending flow. The outcome reflects instrument limits, not the hypothesis.",
+    "authorship": "hand-authored for the Step-20.7 triage battery; NOT a real run",
+    "expected_diagnosis": "out_of_envelope - the run drifted outside the declared/validated envelope; the instrument cannot faithfully model this regime"
+  },
+  "prompt_inputs": {
+    "run_id": "triage-envelope-drift",
+    "chosen_hypothesis": {
+      "id": "h-highspeed",
+      "statement": "At a lid speed of 25 m/s the cavity reaches a steady recirculating state with a well-defined mean flow speed.",
+      "rationale": "Extends the low-Re characterization to a much faster lid, assuming the same steady laminar structure persists."
+    },
+    "experiment_spec": {
+      "hypothesis_id": "h-highspeed",
+      "title": "High-lid-speed cavity mean flow speed",
+      "objective": "Measure the steady-state volume-averaged flow speed of the cavity at a 25 m/s lid.",
+      "parameters": [
+        {
+          "name": "lid_velocity",
+          "role": "fixed",
+          "units": "m/s",
+          "value": 25.0
+        },
+        {
+          "name": "kinematic_viscosity",
+          "role": "fixed",
+          "units": "m^2/s",
+          "value": 0.01
+        },
+        {
+          "name": "cavity_length",
+          "role": "fixed",
+          "units": "m",
+          "value": 1.0
+        },
+        {
+          "name": "mesh_resolution",
+          "role": "fixed",
+          "units": "cells per side",
+          "value": 64
+        },
+        {
+          "name": "end_time",
+          "role": "fixed",
+          "units": "s",
+          "value": 20.0
+        },
+        {
+          "name": "time_step",
+          "role": "fixed",
+          "units": "s",
+          "value": 0.005
+        }
+      ],
+      "qoi": {
+        "name": "mean_flow_speed",
+        "units": "m/s",
+        "definition": "Volume-averaged velocity magnitude at the final time.",
+        "how_extracted": "volAverage of mag(U) at the latest written time.",
+        "field": "U",
+        "operation": "volAverage",
+        "component": "mag"
+      },
+      "success_criterion": {
+        "statement": "The cavity reaches a steady state with mean flow speed above 3 m/s.",
+        "threshold": 3.0,
+        "direction": "above"
+      },
+      "regime": {
+        "reynolds_min": 200,
+        "reynolds_max": 200,
+        "notes": "Declared as Re approximately 200, 2D steady laminar, inside the validated envelope (Re_max 200). NOTE the parameters: Re = U*L/nu = 25*1/0.01 = 2500."
+      },
+      "mini_experiment": {
+        "runs": [
+          {
+            "lid_velocity": 25.0,
+            "kinematic_viscosity": 0.01,
+            "cavity_length": 1.0,
+            "mesh_resolution": 64,
+            "end_time": 20.0,
+            "time_step": 0.005
+          }
+        ],
+        "expected_observation": "The flow reaches a steady recirculating state and the mean speed settles to a well-defined value."
+      },
+      "full_experiment": {
+        "design": "Single high-lid-speed run.",
+        "estimated_run_count": 1
+      }
+    },
+    "fidelity_verdict": {
+      "label": "trust",
+      "rationale": "declared as a Re~200 laminar cavity (see the disclosed parameter note)",
+      "right_instrument": "cavity_2d run_cfd"
+    },
+    "execution_results": {
+      "status": "executed",
+      "runs": [
+        {
+          "converged": true,
+          "wall_clock_s": 14.2,
+          "qoi_value": 6.35
+        }
+      ]
+    },
+    "stage4_summaries": [
+      {
+        "status": "ok",
+        "case": "triage-envelope-drift_run1",
+        "solver": "foamRun",
+        "converged": true,
+        "reason": "reached endTime=20.0 with all final residuals < 0.001",
+        "final_time": 20.0,
+        "end_time": 20.0,
+        "mesh_resolution": 64,
+        "residuals": {
+          "Ux": 8.1e-05,
+          "Uy": 9.4e-05,
+          "p": 0.00066
+        },
+        "key_result": {
+          "max_Courant": 6.2,
+          "continuity_global": 4e-12
+        },
+        "runtime": {
+          "solver_execution_time_s": 12.4,
+          "wall_clock_s": 14.2
+        },
+        "qoi": {
+          "name": "volAverage(mag(U))",
+          "field": "U",
+          "operation": "volAverage",
+          "value": 6.35,
+          "time": 20.0
+        }
+      }
+    ]
+  },
+  "expectation": {
+    "triage_allowed": [
+      "out_of_envelope"
+    ],
+    "decision_allowed": [
+      "back_to_design",
+      "back_to_ideation",
+      "exit"
+    ],
+    "note": "U*L/nu = 25*1/0.01 = 2500, above the Re_c approximately 1914 Hopf bifurcation and far outside the substrate's 2D-laminar envelope (Re_max ~200). A 'converged steady' result with max_Courant 6.2 (>>1) is a numerical artifact of an instrument used out of envelope: out_of_envelope. more_data is the one wrong decision - finer runs of an out-of-envelope instrument do not help."
+  }
+}

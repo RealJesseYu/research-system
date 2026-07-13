@@ -1,0 +1,148 @@
+{
+  "case_id": "broken_bc",
+  "plan_case": "broken boundary condition",
+  "provenance": {
+    "description": "PLANTED known-diagnosis case: a lid-driven cavity whose moving-lid velocity boundary condition is malformed, so the solver FATAL-errors on field U. The experiment as executed is broken and says nothing about the hypothesis.",
+    "authorship": "hand-authored for the Step-20.7 triage battery; NOT a real run",
+    "expected_diagnosis": "setup_error - a broken/unbuildable boundary condition; the run failed"
+  },
+  "prompt_inputs": {
+    "run_id": "triage-broken-bc",
+    "chosen_hypothesis": {
+      "id": "h-lidspeed",
+      "statement": "Raising the lid velocity from 1.0 to 2.0 m/s increases the volume-averaged cavity flow speed roughly linearly.",
+      "rationale": "In the low-Re laminar regime the interior speed scales with the driving lid speed; a two-point sweep tests the linearity."
+    },
+    "experiment_spec": {
+      "hypothesis_id": "h-lidspeed",
+      "title": "Lid-speed sweep of mean cavity flow speed",
+      "objective": "Measure volume-averaged flow speed at lid 1.0 and 2.0 m/s in the baseline 2D cavity.",
+      "parameters": [
+        {
+          "name": "lid_velocity",
+          "role": "sweep",
+          "units": "m/s",
+          "min": 1.0,
+          "max": 2.0
+        },
+        {
+          "name": "kinematic_viscosity",
+          "role": "fixed",
+          "units": "m^2/s",
+          "value": 0.01
+        },
+        {
+          "name": "cavity_length",
+          "role": "fixed",
+          "units": "m",
+          "value": 1.0
+        },
+        {
+          "name": "mesh_resolution",
+          "role": "fixed",
+          "units": "cells per side",
+          "value": 64
+        },
+        {
+          "name": "end_time",
+          "role": "fixed",
+          "units": "s",
+          "value": 20.0
+        },
+        {
+          "name": "time_step",
+          "role": "fixed",
+          "units": "s",
+          "value": 0.005
+        }
+      ],
+      "qoi": {
+        "name": "mean_flow_speed",
+        "units": "m/s",
+        "definition": "Volume-averaged velocity magnitude at the final time.",
+        "how_extracted": "volAverage of mag(U) at the latest written time.",
+        "field": "U",
+        "operation": "volAverage",
+        "component": "mag"
+      },
+      "success_criterion": {
+        "statement": "Mean flow speed at lid 2.0 m/s exceeds 0.3 m/s.",
+        "threshold": 0.3,
+        "direction": "above"
+      },
+      "regime": {
+        "reynolds_min": 100,
+        "reynolds_max": 200,
+        "notes": "Steady laminar recirculating cavity; Re = U*L/nu spans 100 to 200, inside the 2D-laminar validated envelope."
+      },
+      "mini_experiment": {
+        "runs": [
+          {
+            "lid_velocity": 2.0,
+            "kinematic_viscosity": 0.01,
+            "cavity_length": 1.0,
+            "mesh_resolution": 64,
+            "end_time": 20.0,
+            "time_step": 0.005
+          },
+          {
+            "lid_velocity": 1.0,
+            "kinematic_viscosity": 0.01,
+            "cavity_length": 1.0,
+            "mesh_resolution": 64,
+            "end_time": 20.0,
+            "time_step": 0.005
+          }
+        ],
+        "expected_observation": "Both runs converge; mean speed at lid 2.0 is roughly twice that at lid 1.0, near 0.42 vs near 0.21 m/s."
+      },
+      "full_experiment": {
+        "design": "Two-point lid-speed characterization.",
+        "estimated_run_count": 2
+      }
+    },
+    "fidelity_verdict": {
+      "label": "trust",
+      "rationale": "baseline cavity inside the validated laminar envelope",
+      "right_instrument": "cavity_2d run_cfd"
+    },
+    "execution_results": {
+      "status": "executed",
+      "runs": [
+        {
+          "converged": false,
+          "wall_clock_s": 3.4
+        }
+      ]
+    },
+    "stage4_summaries": [
+      {
+        "status": "failed",
+        "case": "triage-broken-bc_run1",
+        "solver": "foamRun",
+        "converged": false,
+        "error_lines": [
+          "--> FOAM FATAL IO ERROR:",
+          "Essential entry 'value' missing for the movingWall patch of field U",
+          "the moving-lid velocity boundary condition is malformed and the case is unbuildable",
+          "file: 0/U at line 26."
+        ],
+        "runtime": {
+          "wall_clock_s": 3.4
+        },
+        "qoi_error": "run failed - QoI not extracted"
+      }
+    ]
+  },
+  "expectation": {
+    "triage_allowed": [
+      "setup_error"
+    ],
+    "decision_allowed": [
+      "back_to_design",
+      "back_to_ideation",
+      "more_data"
+    ],
+    "note": "The moving-lid U boundary condition is malformed, the solver FATAL-errored, nothing executed - the outcome says nothing about the hypothesis: setup_error. The fix is a setup/design correction, so exit is the one wrong decision."
+  }
+}

@@ -307,7 +307,7 @@ def run_harness(mode: str) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Measurement-rails harness (Step 16.6).")
     parser.add_argument(
-        "--mode", choices=["fast", "heavy", "killrate", "paperlint"], required=True
+        "--mode", choices=["fast", "heavy", "killrate", "paperlint", "triage"], required=True
     )
     parser.add_argument(
         "--repeats",
@@ -371,6 +371,19 @@ def main() -> int:
         return 0
     if args.run_id is not None:
         parser.error("--run-id applies only to --mode paperlint")
+    if args.mode == "triage":
+        # Step 20.7: the Stage-5 triage battery — four planted known-diagnosis
+        # cases run through the real stage-5 path. Separate mode, NOT the FAST
+        # hard gate; becomes Step-24 gate-3 evidence. Lazy import per the
+        # killrate/paperlint pattern.
+        from harness import triage_battery
+
+        if (args.repeats is not None or args.dry_run or args.rounds is not None
+                or args.report_path is not None):
+            parser.error(
+                "--repeats/--dry-run/--rounds/--report-path apply only to --mode killrate"
+            )
+        return triage_battery.run_battery()
     if args.mode == "killrate":
         # The HEAVY kill-rate battery (chunk 4): Stage-1 ideation runs
         # scored by harness/survival_counter.py — a different instrument

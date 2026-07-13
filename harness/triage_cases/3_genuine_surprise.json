@@ -1,0 +1,153 @@
+{
+  "case_id": "genuine_surprise",
+  "plan_case": "genuine surprise",
+  "provenance": {
+    "description": "PLANTED: a well-resolved, converged, in-envelope 2D cavity with a central square obstacle. The hypothesis predicts the obstacle BLOCKS recirculation and LOWERS mean speed to ~0.30 m/s; the run instead returns 0.79 m/s, ~2x the open-cavity baseline and OPPOSITE the predicted direction - the gap between obstacle and walls jets the flow. A trustworthy instrument strongly contradicting the prediction: a discovery signal.",
+    "authorship": "hand-authored for the Step-20.7 triage battery; NOT a real run",
+    "expected_diagnosis": "genuine_surprise - instrument trustworthy here, result strongly contradicts the prediction"
+  },
+  "prompt_inputs": {
+    "run_id": "triage-genuine-surprise",
+    "chosen_hypothesis": {
+      "id": "h-obstacle",
+      "statement": "Placing a square obstacle at the cavity center lowers the volume-averaged flow speed by blocking the primary recirculation.",
+      "rationale": "A central blockage should obstruct the dominant recirculating vortex and reduce interior kinetic energy."
+    },
+    "experiment_spec": {
+      "hypothesis_id": "h-obstacle",
+      "title": "Central-obstacle effect on mean cavity flow speed",
+      "objective": "Compare volume-averaged flow speed of a cavity with a central square obstacle against the ~0.42 m/s open-cavity baseline at Re=200.",
+      "parameters": [
+        {
+          "name": "lid_velocity",
+          "role": "fixed",
+          "units": "m/s",
+          "value": 2.0
+        },
+        {
+          "name": "kinematic_viscosity",
+          "role": "fixed",
+          "units": "m^2/s",
+          "value": 0.01
+        },
+        {
+          "name": "cavity_length",
+          "role": "fixed",
+          "units": "m",
+          "value": 1.0
+        },
+        {
+          "name": "mesh_resolution",
+          "role": "fixed",
+          "units": "cells per side",
+          "value": 64
+        },
+        {
+          "name": "end_time",
+          "role": "fixed",
+          "units": "s",
+          "value": 20.0
+        },
+        {
+          "name": "time_step",
+          "role": "fixed",
+          "units": "s",
+          "value": 0.005
+        }
+      ],
+      "qoi": {
+        "name": "mean_flow_speed",
+        "units": "m/s",
+        "definition": "Volume-averaged velocity magnitude at the final time.",
+        "how_extracted": "volAverage of mag(U) at the latest written time.",
+        "field": "U",
+        "operation": "volAverage",
+        "component": "mag"
+      },
+      "success_criterion": {
+        "statement": "Mean flow speed with the obstacle is below the 0.42 m/s open-cavity baseline.",
+        "threshold": 0.42,
+        "direction": "below"
+      },
+      "regime": {
+        "reynolds_min": 200,
+        "reynolds_max": 200,
+        "notes": "Re = U*L/nu = 200, 2D laminar, inside the validated envelope. Open-cavity baseline volAverage(mag(U)) approximately 0.42 m/s at this Re. The central obstacle is a 2D square blockage, fully representable by the 2D mesh."
+      },
+      "mini_experiment": {
+        "runs": [
+          {
+            "lid_velocity": 2.0,
+            "kinematic_viscosity": 0.01,
+            "cavity_length": 1.0,
+            "mesh_resolution": 64,
+            "end_time": 20.0,
+            "time_step": 0.005
+          }
+        ],
+        "expected_observation": "The obstacle blocks the primary recirculation and the mean flow speed drops well below the 0.42 baseline, to roughly 0.30 m/s."
+      },
+      "full_experiment": {
+        "design": "Single obstacle case compared to the open-cavity baseline.",
+        "estimated_run_count": 1
+      }
+    },
+    "fidelity_verdict": {
+      "label": "trust",
+      "rationale": "2D square obstacle at Re=200 is inside the validated 2D-laminar envelope and fully mesh-representable",
+      "right_instrument": "cavity_2d run_cfd"
+    },
+    "execution_results": {
+      "status": "executed",
+      "runs": [
+        {
+          "converged": true,
+          "wall_clock_s": 12.7,
+          "qoi_value": 0.79
+        }
+      ]
+    },
+    "stage4_summaries": [
+      {
+        "status": "ok",
+        "case": "triage-genuine-surprise_run1",
+        "solver": "foamRun",
+        "converged": true,
+        "reason": "reached endTime=20.0 with all final residuals < 0.001",
+        "final_time": 20.0,
+        "end_time": 20.0,
+        "mesh_resolution": 64,
+        "residuals": {
+          "Ux": 1.8e-08,
+          "Uy": 2.1e-08,
+          "p": 5.9e-07
+        },
+        "key_result": {
+          "max_Courant": 0.44,
+          "continuity_global": 3e-20
+        },
+        "runtime": {
+          "solver_execution_time_s": 10.9,
+          "wall_clock_s": 12.7
+        },
+        "qoi": {
+          "name": "volAverage(mag(U))",
+          "field": "U",
+          "operation": "volAverage",
+          "value": 0.79,
+          "time": 20.0
+        }
+      }
+    ]
+  },
+  "expectation": {
+    "triage_allowed": [
+      "genuine_surprise"
+    ],
+    "decision_allowed": [
+      "more_data",
+      "back_to_ideation"
+    ],
+    "note": "Well-resolved (64x64), converged, residuals ~1e-8, max_Courant 0.44, Re=200 in-envelope - the instrument is trustworthy here. Yet mean speed 0.79 is ~2x the 0.42 baseline and OPPOSITE the predicted drop: a genuine, physically interesting contradiction (gap-jetting), a discovery signal. Decision: gather more_data to confirm, or back_to_ideation to revise the blockage hypothesis."
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "case_id": "coarse_mesh",
+  "plan_case": "coarse-mesh converged-but-wrong",
+  "provenance": {
+    "description": "PLANTED: an 8x8 lid-driven cavity at Re=200 that CONVERGES but returns volAverage(mag(U)) = 0.71 m/s, ~1.7x the ~0.42 benchmark the regime notes name. The mesh under-resolves the vortices and biases the volume-averaged speed high - a numerical artifact, not a discovery.",
+    "authorship": "hand-authored for the Step-20.7 triage battery; NOT a real run",
+    "expected_diagnosis": "caught - recognized as untrustworthy (out_of_envelope preferred; setup_error defensible), decision more_data/back_to_design; must NOT read as none or genuine_surprise"
+  },
+  "prompt_inputs": {
+    "run_id": "triage-coarse-mesh",
+    "chosen_hypothesis": {
+      "id": "h-meanspeed",
+      "statement": "The volume-averaged flow speed of the baseline Re=200 lid-driven cavity is approximately 0.42 m/s.",
+      "rationale": "A well-resolved benchmark value against which mesh adequacy can be judged."
+    },
+    "experiment_spec": {
+      "hypothesis_id": "h-meanspeed",
+      "title": "Mean cavity flow speed at Re=200",
+      "objective": "Measure volume-averaged flow speed of the baseline cavity at Re=200.",
+      "parameters": [
+        {
+          "name": "lid_velocity",
+          "role": "fixed",
+          "units": "m/s",
+          "value": 2.0
+        },
+        {
+          "name": "kinematic_viscosity",
+          "role": "fixed",
+          "units": "m^2/s",
+          "value": 0.01
+        },
+        {
+          "name": "cavity_length",
+          "role": "fixed",
+          "units": "m",
+          "value": 1.0
+        },
+        {
+          "name": "mesh_resolution",
+          "role": "fixed",
+          "units": "cells per side",
+          "value": 8
+        },
+        {
+          "name": "end_time",
+          "role": "fixed",
+          "units": "s",
+          "value": 20.0
+        },
+        {
+          "name": "time_step",
+          "role": "fixed",
+          "units": "s",
+          "value": 0.005
+        }
+      ],
+      "qoi": {
+        "name": "mean_flow_speed",
+        "units": "m/s",
+        "definition": "Volume-averaged velocity magnitude at the final time.",
+        "how_extracted": "volAverage of mag(U) at the latest written time.",
+        "field": "U",
+        "operation": "volAverage",
+        "component": "mag"
+      },
+      "success_criterion": {
+        "statement": "Mean flow speed exceeds 0.3 m/s.",
+        "threshold": 0.3,
+        "direction": "above"
+      },
+      "regime": {
+        "reynolds_min": 200,
+        "reynolds_max": 200,
+        "notes": "Re = U*L/nu = 200, inside the 2D-laminar envelope. Benchmark: the project's converged 64x64 baseline and Ghia et al. (1982) give volAverage(mag(U)) approximately 0.42 m/s at Re=200. A mesh below about 32x32 under-resolves the primary-vortex core and corner vortices and biases the volume-averaged speed high; 8x8 is far below this and is not a trustworthy measurement of the true mean speed."
+      },
+      "mini_experiment": {
+        "runs": [
+          {
+            "lid_velocity": 2.0,
+            "kinematic_viscosity": 0.01,
+            "cavity_length": 1.0,
+            "mesh_resolution": 8,
+            "end_time": 20.0,
+            "time_step": 0.005
+          }
+        ],
+        "expected_observation": "The run converges and mean speed lands near the 0.42 m/s benchmark; a value well above ~0.5 m/s would indicate the 8x8 mesh is too coarse to resolve the vortices."
+      },
+      "full_experiment": {
+        "design": "Single-point mean-speed measurement.",
+        "estimated_run_count": 1
+      }
+    },
+    "fidelity_verdict": {
+      "label": "trust",
+      "rationale": "Re=200 cavity inside the validated laminar envelope",
+      "right_instrument": "cavity_2d run_cfd"
+    },
+    "execution_results": {
+      "status": "executed",
+      "runs": [
+        {
+          "converged": true,
+          "wall_clock_s": 2.1,
+          "qoi_value": 0.71
+        }
+      ]
+    },
+    "stage4_summaries": [
+      {
+        "status": "ok",
+        "case": "triage-coarse-mesh_run1",
+        "solver": "foamRun",
+        "converged": true,
+        "reason": "reached endTime=20.0 with all final residuals < 0.001",
+        "final_time": 20.0,
+        "end_time": 20.0,
+        "mesh_resolution": 8,
+        "residuals": {
+          "Ux": 4.1e-08,
+          "Uy": 3.9e-08,
+          "p": 7.2e-07
+        },
+        "key_result": {
+          "max_Courant": 0.21,
+          "continuity_global": -2e-19
+        },
+        "runtime": {
+          "solver_execution_time_s": 1.6,
+          "wall_clock_s": 2.1
+        },
+        "qoi": {
+          "name": "volAverage(mag(U))",
+          "field": "U",
+          "operation": "volAverage",
+          "value": 0.71,
+          "time": 20.0
+        }
+      }
+    ]
+  },
+  "expectation": {
+    "triage_allowed": [
+      "out_of_envelope",
+      "setup_error"
+    ],
+    "decision_allowed": [
+      "more_data",
+      "back_to_design"
+    ],
+    "note": "Converged but 0.71 vs the regime notes' ~0.42 benchmark at Re=200; the 8x8 mesh under-resolves, so the deviation is a numerical/resolution artifact, not physics. CAUGHT = triage out_of_envelope (preferred) or setup_error AND decision more_data (finer runs) or back_to_design (refine mesh). It must NOT read as none (accepting the wrong number) or genuine_surprise (mistaking the artifact for a discovery)."
+  }
+}
