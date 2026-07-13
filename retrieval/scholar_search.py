@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import ssl
 import time
 import urllib.error
@@ -70,6 +71,12 @@ _last_arxiv_request_monotonic = 0.0
 MAX_RETRIES = 5
 
 
+def _redact_key(url: str) -> str:
+    """Redact the api_key query parameter's value so a request URL can appear
+    in an error message without leaking the key."""
+    return re.sub(r"(api_key=)[^&]*", r"\1REDACTED", url)
+
+
 def _http_get(url: str, headers: dict[str, str], what: str, retries: int = MAX_RETRIES) -> bytes:
     """GET `url` with bounded retry; `what` names the service in errors.
 
@@ -91,7 +98,8 @@ def _http_get(url: str, headers: dict[str, str], what: str, retries: int = MAX_R
                 time.sleep(wait)
                 continue
             raise RuntimeError(
-                f"{what} request failed with HTTP {e.code} and was not retried further. "
+                f"{what} request failed with HTTP {e.code} and was not retried further "
+                f"(request URL, key redacted: {_redact_key(url)}). "
                 "No results were returned — nothing was fabricated."
             ) from e
         except (TimeoutError, urllib.error.URLError) as e:
@@ -272,6 +280,21 @@ def _reconstruct_abstract(inverted_index: dict) -> str:
     return " ".join(word for _, word in placed)
 
 
+def _sanitize_openalex_search(query: str) -> str:
+    """OpenAlex rejects a literal "|" in search= with HTTP 400 — the server
+    parses it as malformed OR syntax (confirmed live 2026-07-13; the root
+    cause of the two Step-18 alt-domain aborts). Replace each pipe with a
+    single space, then collapse the doubled spaces that creates. Only "|" is
+    touched; pipe-free queries pass through byte-identical."""
+    text = query.strip()
+    if "|" not in text:
+        return text
+    text = text.replace("|", " ")
+    while "  " in text:
+        text = text.replace("  ", " ")
+    return text.strip()
+
+
 def search_openalex(query: str, top_k: int = 3) -> list[dict]:
     """Search OpenAlex works by relevance and return at most top_k bounded records.
 
@@ -292,7 +315,7 @@ def search_openalex(query: str, top_k: int = 3) -> list[dict]:
 
     api_key = _load_openalex_api_key()
     params = {
-        "search": query.strip(),
+        "search": _sanitize_openalex_search(query),
         "per-page": top_k,
         "select": OPENALEX_SELECT,
         "mailto": OPENALEX_MAILTO,
