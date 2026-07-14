@@ -215,6 +215,21 @@ configuration applied beyond its supported regime (e.g., 64×64 at Re=2500).
 The §4C coarse-mesh fixture is setup_error primary, out_of_envelope defensible
 secondary; the triage battery continues to accept both.
 
+### 4G. QoI contaminated by boundary singularity — global min(p) (measured 2026-07-14, run 20260714T152314Z)
+> Numbered 4G, not 4F: §4F (the D6 labeling convention) is already occupied and
+> is cross-referenced from §8; this is the next §4 failure mode.
+
+Global `min(p)` on the 64×64 cavity is owned by the **lid-corner pressure
+singularity**, not by the physical core pressure. Measured values −1.38048 /
+−0.305376 / −0.106485 at Re 100 / 400 / 1600 — the trend **REVERSES** the
+physical core-pressure expectation, because the corner well scales with viscous
+stress and is therefore **deepest at low Re**. Consequently, `min(p)` trends on
+this substrate are **instrument artifacts, not physics**. Velocity extrema are
+unaffected (Run C: monotone, singularity-free). A `min(p)` (or any interior-
+pressure-extremum) QoI passes the extraction contract's mechanical fit yet
+reports the singularity, not the flow — a converged-but-misleading result that
+no internal diagnostic flags.
+
 ---
 
 ## 5. What the diagnostics CAN and CANNOT see
@@ -282,6 +297,10 @@ capability:
 - Velocity/pressure-field statistics YES; concentration/tracer fields NO (no
   scalar-transport physics; no field the case didn't write).
 
+**QoI screening (ruling 2026-07-15):** every extremum QoI must be screened for
+boundary-singularity contamination at design vet, not merely for contract fit.
+(See §4G: `min(p)` passes contract fit yet reports the lid-corner singularity.)
+
 ---
 
 ## 7. Cost model (measured rates)
@@ -331,3 +350,8 @@ Each Step-20.5-START open question, with its ruling:
 7. **Provisional → signed transition → D1.** Owner provisionally signs
    2026-07-15; external review dispatched 2026-07-17; the provisional signature
    grants interim authority per the amended reviewer rubric.
+
+**Watch (2026-07-14, run 20260714T152314Z):** stage 2 labeled a same-run
+measured lesson as "unverified model text" — lesson-provenance tagging (letting
+a stage distinguish a measured-this-run fact from unverified model prose) is
+**Step 34's scope**, tracked here, not patched now.
