@@ -32,6 +32,17 @@ REQUIRED_SPEC_FIELDS = (
     "full_experiment",
 )
 
+# Phase-1 Lane-2: OPTIONAL additive fields. Absent (the current state of every
+# on-disk spec) leaves validation byte-identical — the unknown-field check below
+# tolerates these names but nothing requires them, and NO stage-2 prompt asks a
+# model to emit them (the prompt is frozen). `control_block` carries a null-twin
+# control experiment: {description, params, expected_null_outcome} — the design
+# under which the hypothesized effect should VANISH, so a downstream comparison
+# (tools/null_twin.py) can catch an artifact that reproduces the effect anyway.
+OPTIONAL_SPEC_FIELDS = (
+    "control_block",
+)
+
 QOI_REQUIRED_FIELDS = ("name", "units", "definition", "how_extracted")
 
 MIN_MINI_RUNS = 1
@@ -304,6 +315,29 @@ def _validate_full_experiment(full: Any, errors: list[str]) -> None:
         )
 
 
+def _validate_control_block(cb: Any, errors: list[str]) -> None:
+    """Optional null-twin control block (Phase-1 Lane-2). Only checked when
+    present; absent is valid. Shape: {description (str), params (dict),
+    expected_null_outcome (str)} — the control experiment under which the
+    hypothesized effect should disappear.
+    """
+    if not isinstance(cb, dict):
+        errors.append(
+            "control_block, when present, must be an object with description, "
+            "params, and expected_null_outcome."
+        )
+        return
+    if not isinstance(cb.get("description"), str) or not cb.get("description"):
+        errors.append("control_block is missing a non-empty string 'description'.")
+    if not isinstance(cb.get("params"), dict):
+        errors.append("control_block 'params' must be an object of parameter values.")
+    if not isinstance(cb.get("expected_null_outcome"), str) or not cb.get("expected_null_outcome"):
+        errors.append(
+            "control_block is missing a non-empty string 'expected_null_outcome' "
+            "(what the QoI should show when the hypothesized effect is absent)."
+        )
+
+
 def validate_spec(spec: Any, chosen_id: str) -> list[str]:
     """Deep-check one stage-2 spec against the schema rules. Returns a list of
     plain-language error strings — empty means valid. Each string is phrased
@@ -318,7 +352,7 @@ def validate_spec(spec: Any, chosen_id: str) -> list[str]:
         if field not in spec:
             errors.append(f"required field '{field}' is missing — add it.")
     for field in spec:
-        if field not in REQUIRED_SPEC_FIELDS:
+        if field not in REQUIRED_SPEC_FIELDS and field not in OPTIONAL_SPEC_FIELDS:
             errors.append(f"field '{field}' is not part of the spec schema — remove it.")
 
     if "hypothesis_id" in spec and spec["hypothesis_id"] != chosen_id:
@@ -346,5 +380,7 @@ def validate_spec(spec: Any, chosen_id: str) -> list[str]:
         )
     if "full_experiment" in spec:
         _validate_full_experiment(spec["full_experiment"], errors)
+    if "control_block" in spec:
+        _validate_control_block(spec["control_block"], errors)
 
     return errors

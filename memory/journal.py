@@ -16,11 +16,23 @@ mid-run can never corrupt earlier entries — each line stands alone.
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 JOURNAL_PATH = Path(__file__).parent / "journal.jsonl"
+
+
+def blank_memory_active() -> bool:
+    """True when the run is in blank-memory mode (env BLANK_MEMORY=1, default
+    off). Phase-1 Lane-2 seam: an ablation that starves every stage's retrieved
+    memory. Read live each call so a test can set/unset it. This is the single
+    retrieval source (all stages read memory through journal_recent_by_kind),
+    so intercepting here — rather than in any stages/* composition code, which
+    stays frozen — makes ALL retrieved memory blocks come back empty.
+    """
+    return os.environ.get("BLANK_MEMORY") == "1"
 
 REQUIRED_FIELDS = ("run_id", "kind", "text")
 
@@ -50,7 +62,13 @@ def journal_recent_by_kind(kind: str, limit: int = 3) -> list[dict[str, Any]]:
     on `kind`, capped at `limit`. No model involvement, no embeddings — stage
     code calls this to surface the last few observations of one kind (e.g.
     learned_summary) without any search machinery.
+
+    Blank-memory ablation (BLANK_MEMORY=1): returns [] before any read, so
+    every downstream memory block composes empty. Flag off (default): byte-
+    identical to the plain scan below.
     """
+    if blank_memory_active():
+        return []
     if not JOURNAL_PATH.exists():
         return []
 

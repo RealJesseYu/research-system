@@ -21,6 +21,7 @@ any stage does.
 
 import argparse
 import json
+import os
 import sys
 import traceback
 from datetime import datetime, timezone
@@ -28,7 +29,7 @@ from pathlib import Path
 
 import schemas
 from baton import Baton
-from memory.journal import journal_append
+from memory.journal import blank_memory_active, journal_append
 from memory.ledgers import override_append
 from stages import (
     gate1_chooser,
@@ -120,6 +121,14 @@ def record_run_outcome(baton: Baton, how_far: str) -> None:
     if iterate_decision is not None:
         text += f", iterate_decision={iterate_decision}"
         extras["iterate_decision"] = iterate_decision
+    # Phase-1 Lane-2: blank-memory disclosure. When the ablation is active
+    # (env BLANK_MEMORY=1, default off) the run_record carries blank_memory=true
+    # prominently — both in extras and in the human-readable text — so the
+    # record is never silently ambiguous about whether memory was starved.
+    # Flag off (default): the key is not added and the record is byte-identical.
+    if blank_memory_active():
+        extras["blank_memory"] = True
+        text = f"[BLANK_MEMORY] {text}"
     journal_append({"run_id": baton.run_id, "kind": "run_record", "text": text, "extras": extras})
 
 
@@ -198,6 +207,30 @@ def build_gate2_header(payload: dict) -> str:
         f"SPEC: {title} | QoI: {qoi_name} | "
         f"estimated full-experiment runs: {run_count if run_count is not None else '?'}"
     )
+
+
+def build_pi_gate_display(payload: dict) -> list[str]:
+    """Display-only π-gate advisory lines for the human at gate after_stage_2.
+
+    Phase-1 Lane-2 seam. Returns [] unless env PI_GATE == 'warn' (modes:
+    off|warn, default off). In 'warn' mode it attaches the Buckingham-π report
+    (Reynolds per point, duplicate-Re, dimensional coherence, Courant estimate)
+    to the HUMAN gate-2 display only — exactly like the Elo table: informational,
+    never gating, and auto mode never reaches here (run_gate returns early).
+    v1 never kills: this is advisory text, and the module's enforce function is
+    wired nowhere. Never raises — a display helper cannot kill a run; any error
+    degrades to a single honest line.
+    """
+    if os.environ.get("PI_GATE") != "warn":
+        return []
+    try:
+        from tools.pi_gate import pi_report, format_report_lines
+
+        spec = payload.get("experiment_spec")
+        report = pi_report(spec if isinstance(spec, dict) else {})
+        return ["--- π-gate (warn, advisory only) ---", *format_report_lines(report)]
+    except Exception as exc:  # never let the advisory kill the gate
+        return [f"--- π-gate (warn): unavailable ({exc}) ---"]
 
 
 def build_gate5_header(payload: dict) -> str:
@@ -356,6 +389,11 @@ def run_gate(logger: Logger, baton: Baton, mode: str, gate_name: str) -> bool:
     # is actually deciding, BEFORE the full baton dump. No logic change.
     if gate_name == "after_stage_2":
         logger.log(build_gate2_header(baton.payload))
+        # Phase-1 Lane-2: π-gate warn display (env PI_GATE=warn, human only,
+        # advisory; [] and thus no output when off). Auto mode never reaches
+        # here. Enforce is unwired — this only prints.
+        for line in build_pi_gate_display(baton.payload):
+            logger.log(line)
     elif gate_name == "after_stage_5":
         logger.log(build_gate5_header(baton.payload))
 
