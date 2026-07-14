@@ -8,3 +8,10 @@
 {"run_id": "20260713T020121Z", "gate": 5, "system_decision": "back_to_design", "human_decision": "back_to_design", "did_override": false, "timestamp": "2026-07-13T04:56:44.230721+00:00"}
 {"run_id": "20260713T020121Z", "gate": 2, "system_decision": "approve", "human_decision": "approve", "did_override": false, "timestamp": "2026-07-13T05:10:06.779500+00:00"}
 {"run_id": "20260713T020121Z", "gate": 5, "system_decision": "more_data", "human_decision": "more_data", "did_override": false, "timestamp": "2026-07-13T05:16:37.251487+00:00"}
+{"run_id": "20260714T152314Z", "gate": 1, "system_decision": "select rank 1", "human_decision": "select rank 3", "did_override": true, "timestamp": "2026-07-14T17:06:29.266797+00:00"}
+{"run_id": "20260714T152314Z", "gate": 2, "system_decision": "approve", "human_decision": "approve", "did_override": false, "timestamp": "2026-07-14T17:13:20.338303+00:00"}
+{"run_id": "20260714T152314Z", "gate": 5, "system_decision": "back_to_design", "human_decision": "back_to_design", "did_override": false, "timestamp": "2026-07-14T17:27:50.492946+00:00"}
+{"run_id": "20260714T152314Z", "gate": 2, "system_decision": "approve", "human_decision": "approve", "did_override": false, "timestamp": "2026-07-14T17:35:29.722587+00:00"}
+{"run_id": "20260714T152314Z", "gate": 5, "system_decision": "back_to_design", "human_decision": "back_to_design", "did_override": false, "timestamp": "2026-07-14T17:42:05.544386+00:00"}
+{"run_id": "20260714T152314Z", "gate": 2, "system_decision": "approve", "human_decision": "approve", "did_override": false, "timestamp": "2026-07-14T17:48:35.946994+00:00"}
+{"run_id": "20260714T152314Z", "gate": 5, "system_decision": "back_to_design", "human_decision": "back_to_design", "did_override": false, "timestamp": "2026-07-14T17:58:59.466711+00:00"}
