@@ -72,6 +72,15 @@ GATE5_OVERRIDES = {
     "e": "exit",
 }
 
+# R-14-G1: the paste-first protocol banner. Printed at gate after_stage_2
+# (always, human mode) and at gate after_stage_5 whenever the model's iterate
+# decision is NOT 'exit'. A non-exit decision at gate 5 additionally requires
+# the two-step typed CONFIRM form to enact ANY option (see run_gate5).
+NON_EXIT_BANNER = (
+    "!! NON-EXIT DECISION — PROTOCOL: paste this full gate text to the "
+    "strategist and WAIT for the ruling before answering. !!"
+)
+
 # Step 15: the locked baton-payload schema enforced at each boundary — the
 # validator that must pass right after the stage at this number returns
 # (stage 1 has no entry: its ranked-list payload is reshaped by gate 1, and
@@ -353,6 +362,10 @@ def run_gate(logger: Logger, baton: Baton, mode: str, gate_name: str) -> bool:
     logger.log(f"--- baton at gate {gate_name} ---")
     logger.log(baton.to_json())
     logger.log("--- end baton ---")
+    # R-14-G1: the paste-first banner also fronts gate 2 (y/n mechanics
+    # below are unchanged — the banner is display only).
+    if gate_name == "after_stage_2":
+        logger.log(NON_EXIT_BANNER)
     answer = input(f"GATE {gate_name}: approve to continue [y] / stop [n]: ").strip().lower()
     logger.log(f"GATE {gate_name}: human answered {answer!r}")
 
@@ -403,6 +416,15 @@ def run_gate5(logger: Logger, baton: Baton, mode: str) -> tuple:
     the VERDICT/EXECUTION/THOUGHT header and baton (as before), prints the
     model decision prominently, and prompts; after
     MAX_GATE1_INVALID_ANSWERS invalid answers it halts (gate-1 pattern).
+
+    R-14-G1 (human mode): when the model's iterate decision is NOT 'exit',
+    the gate prints the paste-first NON_EXIT_BANNER and the single-key accept
+    path is removed — enacting ANY option (accept, override, or halt) requires
+    the two-step typed form: first the choice letter, then literally typing
+    "CONFIRM <enacted-decision>". A model 'exit' decision keeps the old
+    single-key fast path unchanged. A mismatched confirmation re-prompts the
+    choice and counts toward the invalid bound.
+
     Like every gate, decisions are recorded in the LOG only, never in the
     baton's history.
     """
@@ -419,11 +441,45 @@ def run_gate5(logger: Logger, baton: Baton, mode: str) -> tuple:
     logger.log("--- end baton ---")
     logger.log(f"MODEL DECISION: {model_decision}")
 
+    # R-14-G1: a non-exit model decision fronts the gate with the paste-first
+    # banner and switches enactment into the typed-CONFIRM regime below.
+    require_confirm = model_decision != "exit"
+    if require_confirm:
+        logger.log(NON_EXIT_BANNER)
+
     prompt = (
         f"GATE {gate_name}: accept model decision '{model_decision}' [a] / "
         "override [b=back_to_design, i=back_to_ideation, m=more_data, "
         "e=exit] / stop [n]: "
     )
+
+    def _enacted_decision_word(parsed_choice: tuple) -> str:
+        """The decision the human's choice enacts — the token typed after
+        CONFIRM. accept enacts the model decision; override enacts its
+        target; halt enacts 'halt'."""
+        if parsed_choice[0] == "accept":
+            return model_decision
+        if parsed_choice[0] == "override":
+            return parsed_choice[1]
+        return "halt"
+
+    def _confirmed(decision_word: str) -> bool:
+        """Exit keeps the single-key fast path; a non-exit decision demands
+        the exact typed 'CONFIRM <decision_word>' as a deliberate second step."""
+        if not require_confirm:
+            return True
+        confirm_prompt = (
+            f"GATE {gate_name}: type 'CONFIRM {decision_word}' to enact "
+            "(anything else re-prompts): "
+        )
+        logger.log(f"GATE {gate_name}: prompting {confirm_prompt!r}")
+        confirmation = input(confirm_prompt)
+        logger.log(f"GATE {gate_name}: human confirmation {confirmation!r}")
+        ok = confirmation.strip() == f"CONFIRM {decision_word}"
+        if not ok:
+            logger.log(f"GATE {gate_name}: confirmation mismatch — re-prompting")
+        return ok
+
     # Step 16.6 chunk 2: observing hooks below — each human resolution of
     # this gate writes one override-ledger entry (system's recommendation =
     # the model's iterate decision). Auto mode returned above and never
@@ -434,6 +490,15 @@ def run_gate5(logger: Logger, baton: Baton, mode: str) -> tuple:
         answer = input(prompt)
         logger.log(f"GATE {gate_name}: human answered {answer!r}")
         parsed = parse_gate5_decision(answer)
+        if parsed[0] != "invalid":
+            decision_word = _enacted_decision_word(parsed)
+            if not _confirmed(decision_word):
+                invalid_count += 1
+                logger.log(
+                    f"GATE {gate_name}: unconfirmed choice "
+                    f"({invalid_count} of {MAX_GATE1_INVALID_ANSWERS} allowed)"
+                )
+                continue
         if parsed[0] == "accept":
             override_append(
                 run_id=baton.run_id,
@@ -689,6 +754,7 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
     stages = STAGES if stages is None else stages
     execution_counts: dict[int, int] = {}
     loopbacks_used = 0
+    forced_exit_reason = None  # R-14-G2: set to "loop_bound" on a cap exit
     i = 0
     while i < len(stages):
         name, stage_fn = stages[i]
@@ -766,32 +832,57 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
                     return
                 if enacted in ("back_to_design", "back_to_ideation"):
                     if loopbacks_used >= MAX_LOOPBACKS:
+                        # R-14-G2: a cap exit no longer ends on a bare
+                        # recommendation. The final baton is routed through
+                        # stage 6 + paperlint exactly as a human 'e' (exit)
+                        # would — the loop falls through to stage 6 below, and
+                        # the end-of-relay block prints the paper path + lint
+                        # verdict. The validation sidecar reflects the last
+                        # fidelity verdict class (stage 6 reads verdict.json).
+                        forced_exit_reason = "loop_bound"
+                        fidelity_class = (
+                            baton.payload.get("fidelity_verdict") or {}
+                        ).get("label")
                         logger.log(
-                            f"LOOP BOUND reached ({MAX_LOOPBACKS}) — forced exit "
-                            "with recommendation"
+                            f"LOOP BOUND reached ({MAX_LOOPBACKS}) — forced exit: "
+                            f"routing final baton through stage 6 "
+                            f"(validation sidecar class={fidelity_class})"
                         )
-                        logger.log(
-                            f"=== supervisor run {baton.run_id} ended (loop bound): "
-                            f"{len(baton.history)} history entries ==="
-                        )
-                        record_run_outcome(baton, "completed_loop_bound_forced_exit")
-                        return
-                    loopbacks_used += 1
-                    i = apply_loopback_surgery(logger, baton, enacted)
-                    if enacted == "back_to_design":
-                        # The reduced payload is the post-gate-1 shape plus
-                        # the ruled prior_thought — validate it before the
-                        # re-entered pass consumes it.
-                        enforce_boundary_schema(
-                            logger,
-                            baton,
-                            f"gate 1 (pass {execution_counts.get(2, 0) + 1})",
-                            schemas.validate_payload_post_gate1,
-                        )
-                    continue
-                # enacted == "exit": fall through to stage 6 exactly as before.
+                        # Fall through to stage 6 exactly as 'exit' does.
+                    else:
+                        loopbacks_used += 1
+                        i = apply_loopback_surgery(logger, baton, enacted)
+                        if enacted == "back_to_design":
+                            # The reduced payload is the post-gate-1 shape plus
+                            # the ruled prior_thought — validate it before the
+                            # re-entered pass consumes it.
+                            enforce_boundary_schema(
+                                logger,
+                                baton,
+                                f"gate 1 (pass {execution_counts.get(2, 0) + 1})",
+                                schemas.validate_payload_post_gate1,
+                            )
+                        continue
+                # enacted == "exit" (or a loop-bound forced exit): fall through
+                # to stage 6 exactly as before.
 
         i += 1
+
+    # R-14-G2: a loop-bound forced exit routes through stage 6 like a human
+    # 'exit', then surfaces the paper path + lint verdict before the run-end
+    # line. Stage 6 returning without raising means the paper passed lint.
+    if forced_exit_reason == "loop_bound":
+        paper_path = run_dir / "stage6" / "paper.md"
+        logger.log(
+            f"FORCED-EXIT (loop_bound): paper -> {paper_path} ; "
+            "lint verdict=clean (stage 6 completed lint-clean)"
+        )
+        logger.log(
+            f"=== supervisor run {baton.run_id} ended (loop bound, forced exit "
+            f"through stage 6): {len(baton.history)} history entries ==="
+        )
+        record_run_outcome(baton, "completed_loop_bound_forced_exit")
+        return
 
     logger.log(
         f"=== supervisor run {baton.run_id} complete: {len(baton.history)} history entries ==="

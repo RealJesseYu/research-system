@@ -35,7 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from baton import Baton
-from supervisor import Logger, run_relay
+from supervisor import NON_EXIT_BANNER, Logger, run_gate, run_gate5, run_relay
 from test_stage2_spec import CHOSEN_ID, make_valid_spec
 
 DOMAIN = "stub loop-controller domain"
@@ -74,6 +74,7 @@ class StubRelay:
         self.decisions = list(decisions)  # consumed by stage-5 executions
         self.stage2_inputs: list[dict] = []
         self.stage6_calls = 0
+        self.stage6_batons: list[dict] = []  # payload snapshots stage 6 received
 
     def stages(self):
         return [
@@ -134,6 +135,7 @@ class StubRelay:
 
     def stage6(self, baton: Baton) -> Baton:
         self.stage6_calls += 1
+        self.stage6_batons.append(copy.deepcopy(baton.payload))
         baton.add_history("stage6_paper", "stub ack")
         return baton
 
@@ -152,9 +154,18 @@ class LoopControllerCase(unittest.TestCase):
             payload={"domain": DOMAIN},
         )
         outcomes: list[str] = []
+        # Keep the relay call-free: auto-mode gate 1 (Step 23) makes a live
+        # Opus chooser call; mock it to a deterministic rank-1 selection so
+        # these tests exercise loop control only, with zero model spend.
         with patch(
             "supervisor.record_run_outcome",
             side_effect=lambda b, how_far: outcomes.append(how_far),
+        ), patch(
+            "supervisor.gate1_chooser.choose_hypothesis",
+            side_effect=lambda run_id, hyps, run_dir: {
+                "chosen_id": hyps[0]["id"],
+                "fallback": False,
+            },
         ):
             run_relay(logger, baton, run_dir, "auto", stages=stubs.stages())
         log = (run_dir / "log.txt").read_text()
@@ -239,13 +250,39 @@ class TestMoreDataStops(LoopControllerCase):
 
 
 class TestLoopBound(LoopControllerCase):
-    def test_third_non_exit_decision_forces_stop(self):
+    def test_third_non_exit_decision_routes_through_stage_6(self):
+        # R-14-G2: a loop-bound cap exit no longer ends on a bare
+        # recommendation — the final baton is routed through stage 6 (here a
+        # stub, effectively mocked), then the paper path + lint verdict are
+        # surfaced before the run-end line.
         stubs, run_dir, outcomes, log = self.drive(
             ["back_to_design", "back_to_design", "back_to_design"]
         )
-        self.assertEqual(stubs.stage6_calls, 0)
+        # Stage 6 was invoked exactly once with the final baton.
+        self.assertEqual(stubs.stage6_calls, 1)
+        self.assertEqual(len(stubs.stage6_batons), 1)
+        final_payload = stubs.stage6_batons[0]
+        # The final baton carries the executed run's fields (thought +
+        # iterate decision + fidelity verdict) — a genuine terminal baton.
+        self.assertIn("thought", final_payload)
+        self.assertIn("iterate_decision", final_payload)
+        self.assertIn("fidelity_verdict", final_payload)
+        # Sidecar class correct: it reflects the last fidelity verdict class.
+        self.assertEqual(final_payload["fidelity_verdict"]["label"], "trust")
+        self.assertIn("validation sidecar class=trust", log)
+        # Paper path surfaced before the run-end line.
+        self.assertIn("stage6/paper.md", log)
+        self.assertIn("lint verdict=clean", log)
+        self.assertTrue((run_dir / "baton_after_stage_6.json").is_file())
         self.assertEqual(outcomes, ["completed_loop_bound_forced_exit"])
-        self.assertIn("LOOP BOUND reached (2) — forced exit with recommendation", log)
+        self.assertIn(
+            "LOOP BOUND reached (2) — forced exit: routing final baton "
+            "through stage 6",
+            log,
+        )
+        self.assertIn(
+            "ended (loop bound, forced exit through stage 6)", log
+        )
         # Stage 2 ran three times: pass-2 and pass-3 snapshots exist.
         self.assertTrue((run_dir / "baton_after_stage_2_pass2.json").is_file())
         self.assertTrue((run_dir / "baton_after_stage_2_pass3.json").is_file())
@@ -290,6 +327,135 @@ class TestFullLoopEndToEnd(LoopControllerCase):
         # Final run_record status.
         self.assertEqual(outcomes, ["completed"])
         self.assertIn("model=exit enacted=exit (accepted)", log)
+
+
+class Gate5MechanicsCase(unittest.TestCase):
+    """R-14-G1: human-mode gate-5 banner + typed-CONFIRM mechanics.
+
+    override_append is patched (the ledger is append-only evidence); input is
+    scripted. The logger writes to a temp file we read back.
+    """
+
+    def make_baton(self, decision: str) -> Baton:
+        return Baton(
+            run_id="gate5-mech",
+            created_at="2026-07-06T00:00:00+00:00",
+            mode="human",
+            payload={
+                "domain": DOMAIN,
+                "chosen_hypothesis": copy.deepcopy(HYPOTHESES[0]),
+                "experiment_spec": make_valid_spec(),
+                "fidelity_verdict": dict(VALID_VERDICT),
+                "execution_results": copy.deepcopy(VALID_EXECUTION),
+                "thought": make_thought(decision, "gate5"),
+                "iterate_decision": decision,
+            },
+        )
+
+    def run5(self, decision: str, inputs: list[str]):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        logger = Logger(Path(self._tmp.name) / "log.txt")
+        baton = self.make_baton(decision)
+        with patch("supervisor.override_append"), patch(
+            "builtins.input", side_effect=inputs
+        ):
+            outcome = run_gate5(logger, baton, "human")
+        log = (Path(self._tmp.name) / "log.txt").read_text()
+        return outcome, log
+
+
+class TestGate5ExitFastPath(Gate5MechanicsCase):
+    def test_exit_keeps_single_key_accept(self):
+        outcome, log = self.run5("exit", ["a"])
+        self.assertEqual(outcome, ("enact", "exit", "accepted"))
+        # No banner, no CONFIRM step for a model 'exit' decision.
+        self.assertNotIn(NON_EXIT_BANNER, log)
+        self.assertNotIn("CONFIRM", log)
+
+
+class TestGate5NonExitBanner(Gate5MechanicsCase):
+    def test_non_exit_prints_banner(self):
+        outcome, log = self.run5("back_to_design", ["a", "CONFIRM back_to_design"])
+        self.assertIn(NON_EXIT_BANNER, log)
+        self.assertIn(
+            "!! NON-EXIT DECISION — PROTOCOL: paste this full gate text to the "
+            "strategist and WAIT for the ruling before answering. !!",
+            log,
+        )
+        self.assertEqual(outcome, ("enact", "back_to_design", "accepted"))
+
+
+class TestGate5NonExitRequiresConfirm(Gate5MechanicsCase):
+    def test_accept_requires_typed_confirm(self):
+        outcome, log = self.run5("back_to_design", ["a", "CONFIRM back_to_design"])
+        self.assertEqual(outcome, ("enact", "back_to_design", "accepted"))
+        self.assertIn("type 'CONFIRM back_to_design' to enact", log)
+
+    def test_override_requires_typed_confirm(self):
+        # Model said more_data; human overrides to back_to_ideation, then
+        # confirms the ENACTED decision word.
+        outcome, log = self.run5(
+            "more_data", ["i", "CONFIRM back_to_ideation"]
+        )
+        self.assertEqual(outcome, ("enact", "back_to_ideation", "overridden"))
+        self.assertIn("type 'CONFIRM back_to_ideation' to enact", log)
+
+    def test_halt_requires_typed_confirm(self):
+        outcome, log = self.run5("back_to_design", ["n", "CONFIRM halt"])
+        self.assertEqual(outcome, ("halt",))
+        self.assertIn("type 'CONFIRM halt' to enact", log)
+
+    def test_wrong_confirmation_reprompts_and_counts_toward_bound(self):
+        # Three unconfirmed choices (bad CONFIRM each time) exhaust the bound.
+        outcome, log = self.run5(
+            "back_to_design",
+            ["a", "nope", "a", "CONFIRM wrong", "a", ""],
+        )
+        self.assertEqual(outcome, ("halt",))
+        self.assertIn("confirmation mismatch — re-prompting", log)
+        self.assertIn("unconfirmed choice", log)
+
+    def test_confirm_then_enact_after_one_miss(self):
+        outcome, log = self.run5(
+            "back_to_design",
+            ["a", "bad", "a", "CONFIRM back_to_design"],
+        )
+        self.assertEqual(outcome, ("enact", "back_to_design", "accepted"))
+
+
+class TestGate2Banner(unittest.TestCase):
+    """R-14-G1: gate after_stage_2 gains the banner; y/n mechanics unchanged."""
+
+    def run2(self, answer: str):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        logger = Logger(Path(tmp.name) / "log.txt")
+        baton = Baton(
+            run_id="gate2-mech",
+            created_at="2026-07-06T00:00:00+00:00",
+            mode="human",
+            payload={
+                "domain": DOMAIN,
+                "chosen_hypothesis": copy.deepcopy(HYPOTHESES[0]),
+                "experiment_spec": make_valid_spec(),
+            },
+        )
+        with patch("supervisor.override_append"), patch(
+            "builtins.input", return_value=answer
+        ):
+            cont = run_gate(logger, baton, "human", "after_stage_2")
+        return cont, (Path(tmp.name) / "log.txt").read_text()
+
+    def test_yes_continues_and_shows_banner(self):
+        cont, log = self.run2("y")
+        self.assertTrue(cont)
+        self.assertIn(NON_EXIT_BANNER, log)
+
+    def test_no_halts_and_shows_banner(self):
+        cont, log = self.run2("n")
+        self.assertFalse(cont)
+        self.assertIn(NON_EXIT_BANNER, log)
 
 
 if __name__ == "__main__":
