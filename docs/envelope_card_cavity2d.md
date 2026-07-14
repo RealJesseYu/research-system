@@ -1,11 +1,9 @@
 # Envelope Card — (cavity_2d, laminar incompressible 2D)
 
-> **STATUS: SKELETON / PROVISIONAL — Step 20.5 START (2026-07-13).**
-> Drafted by agent from on-disk evidence. Every judgment-requiring field is
-> marked **TODO-HUMAN** and must be filled by the human pass before this card
-> carries any authority. Literature-derived numbers are marked
-> `[CITATION NEEDED - V&V pass Wednesday]` and are NOT to be treated as
-> established. Finalization: Wednesday's V&V pass.
+> **STATUS: FINALIZED — human pass 2026-07-15 (Step 20.5 CLOSE).**
+> Judgment fields ruled by owner (rulings D1–D7, strategy session 2026-07-15).
+> Provenance: provisionally signed; external expert review pending
+> (dispatch scheduled 2026-07-17 together with docs/reviewer_rubric.md).
 
 ---
 
@@ -31,16 +29,17 @@
 | Drafted by | agent (Claude Code, doc-only session) |
 | Drafted date | 2026-07-13 |
 | Sources | repo run evidence (richest), substrate contract in code, solver V&V literature (placeholder-cited only — no web calls this session) |
-| Signature | **TODO-HUMAN — provisional signature required before use** |
-| Reviewer sign-off | **TODO-HUMAN — see `docs/reviewer_rubric.md`** |
-| Provenance state | `drafted-by-agent / awaiting-human` — updated per the reviewer rubric's provenance rule |
+| Signature | `provisionally-signed / owner / 2026-07-15` |
+| Reviewer sign-off | `pending — dispatch to external reviewers 2026-07-17` |
+| Provenance state | `provisionally-signed / awaiting-external-review` |
 
 ---
 
 ## 3. Validated envelope
 
-Two tables, deliberately separate. **Nothing enters Table 3A without an on-disk
-citation.** Table 3B (believed-but-not-exercised) is entirely TODO-HUMAN.
+Two sections, deliberately separate. **Nothing enters Table 3A without an
+on-disk citation.** §3B (the believed-but-not-exercised region) is ruled by the
+human pass 2026-07-15 (rulings D2–D4).
 
 ### 3A. Ranges actually exercised (disk-cited)
 
@@ -78,16 +77,54 @@ validity or mesh-independence (see §4 and §5).
 > determinism-checked). It is the number the coarse-mesh failure case (§4) is
 > measured against.
 
-### 3B. Ranges BELIEVED valid but NOT exercised — **all TODO-HUMAN**
+### 3B. Ruled envelope (human pass 2026-07-15)
 
-| Question | Draft answer | Status |
-|---|---|---|
-| True validated Reynolds ceiling for the *laminar 2D* regime | Spike names Re≈200 as *validated*; convergence seen to Re=1000–1600, but convergence ≠ validation | **TODO-HUMAN** — needs V&V decision; Re_c literature `[CITATION NEEDED - V&V pass Wednesday]` |
-| Mesh resolution range certified mesh-independent | 64×64 is the only exercised resolution at scale; mesh-independence unestablished at any Re | **TODO-HUMAN** |
-| `cavity_length` range beyond 1.0 m | untested | **TODO-HUMAN** |
-| `lid_velocity` upper bound within laminar regime | untested above 2.0 m/s | **TODO-HUMAN** |
-| Aspect ratios other than 1:1 (square) | untested; builder scales uniformly only | **TODO-HUMAN** |
-| Multi-moving-wall / non-standard BC configurations | contract allows "one or more moving walls"; only single-lid exercised | **TODO-HUMAN** |
+**Reynolds ruling (D2), four tiers:**
+
+- **Re ≤ 200 — VALIDATED CORE (trust class).** Anchored by the
+  determinism-checked Re=200 calibration point (§3A).
+- **200 < Re ≤ 1000 — EXERCISED, CONVERGED;** calibration points at Re=100 and
+  Re=1000. Known caveat: the 64×64 grid marginally under-resolves near
+  Re=1000 vs the Ghia et al. (1982) 129×129 benchmark (two refine verdicts
+  on record). Verdict guidance: trust for qualitative claims; refine for
+  threshold-sensitive quantitative claims near the top of this band.
+- **1000 < Re ≤ 1600 — CONVERGED-NOT-VALIDATED** (journal handfeed4: converges
+  reliably; zero calibration points). Verdict ceiling: refine.
+- **Re > 1600 — OUT OF ENVELOPE.** Verdict: defer (out_of_envelope).
+
+**Physical-realizability scope:**
+
+Real cavity flow develops three-dimensional instabilities near Re ≈ 786
+(Albensoeder, Kuhlmann & Rath 2001, Physics of Fluids); the 2D steady solution
+remains mathematically well-defined far beyond (first 2D Hopf bifurcation
+≈ Re 8000 — Bruneau & Saad 2006, Computers & Fluids; other published
+localizations fall between ≈7,300 and 10,000). Above Re ≈ 800, results from
+this substrate are claims about the idealized 2D system, not predictions of a
+physical cavity; papers must scope such claims explicitly as 2D-system
+results. [Citations verified by live search 2026-07-15.]
+
+**Mesh policy (D3):**
+
+64×64 is the standard operating grid. Mesh-independence is certified at NO
+resolution. Standing rule: the first use of any new resolution must reproduce
+one Ghia et al. (1982) benchmark point before its numbers are treated as
+validated. A mesh-independence sweep is a queued calibration item, not a
+blocker.
+
+**Geometry ruling (D4):**
+
+Validated configuration = square cavity, side 1.0 m, single moving lid,
+uniform mesh — exactly as exercised. Aspect ratios ≠ 1:1, multiple moving
+walls, cavity_length ≠ 1.0 m: unvalidated configuration → defer/refine with
+the configuration named.
+
+**Re-similarity (D4):**
+
+Re = lid_velocity × cavity_length / kinematic_viscosity is the governing
+parameter; parameter decompositions yielding the same Re are physically
+equivalent experiments and acceptable at in-envelope Re, PROVIDED time_step is
+scaled to hold max Courant < ~0.5. [JUDGMENT 2026-07-15 — dimensional-similarity
+grounds, not disk-exercised.]
 
 ---
 
@@ -138,8 +175,12 @@ their own (§5).
   refine verdicts — Run A `20260712T194452Z` and Run C `20260713T020121Z`:
   "64×64 mesh at Re=1000 is marginally under-resolved versus the Ghia et al.
   129×129 benchmark… the trust-critical −0.35 threshold sits exactly where that
-  error bites." (Ghia et al. 129×129 is a literature benchmark:
-  `[CITATION NEEDED - V&V pass Wednesday]`.)
+  error bites." (Ghia et al. 129×129 is a literature benchmark: Ghia, U.,
+  Ghia, K.N. & Shin, C.T. (1982), 'High-Re Solutions for Incompressible Flow
+  Using the Navier-Stokes Equations and a Multigrid Method,' Journal of
+  Computational Physics 48, 387–411 (Re=1000 solution on the 129×129 grid;
+  solutions to Re=10,000 on grids up to 257×257). [Verified by live search
+  2026-07-15.])
 - **Coarse-mesh high bias, converged.** Evidence: triage fixture
   `harness/triage_cases/2_coarse_mesh.json` (**hand-authored, NOT a real run**):
   an 8×8 cavity at Re=200 that *converges* but returns volAverage(mag(U)) =
@@ -150,19 +191,29 @@ Running the instrument outside its validated laminar 2D envelope can produce a
 "converged steady" result that is a numerical artifact.
 
 - **Signature: max Courant ≫ 1.** Evidence: triage fixture
-  `harness/triage_cases/4_envelope_drift.json` (**hand-authored, NOT a real
-  run**): lid 25 m/s, ν=0.01, L=1 → Re=2500, above the Re_c≈1914 Hopf
-  bifurcation `[CITATION NEEDED - V&V pass Wednesday]` and far outside the
-  substrate's validated Re≈200 laminar envelope. The solver reports "converged
-  steady" but max Courant = 6.2 — the out-of-envelope tell. `more_data` is the
-  one *wrong* response (finer runs of an out-of-envelope instrument do not
-  help).
+  `harness/triage_cases/4_envelope_drift.json` (hand-authored, NOT a real run):
+  lid 25 m/s, ν=0.01, L=1 → Re=2500 — far above this card's validated ceiling
+  (Re=1600), with a time step violating numerical stability (max Courant = 6.2,
+  the out-of-envelope tell). The solver reports 'converged steady'; the result
+  is a numerical artifact. `more_data` remains the one wrong response.
+  NOTE (human pass 2026-07-15): an earlier draft justified this fixture via a
+  claimed Hopf bifurcation at Re_c≈1914; a live literature check found no such
+  value (2D onset ≈7,300–8,000). The claim is struck; the fixture's planted
+  correct answer (out_of_envelope) stands on the ceiling-and-Courant grounds
+  above; the fixture file itself is unchanged.
 
 ### 4E. Turbulent physics silently mis-simulated
 No turbulence models exist. A case whose physics is actually turbulent will not
 be simulated correctly **and the wrapper cannot detect that.** Evidence:
 contract §4 (declared limit; no run exercises it — this is a declared, not
 observed, mode).
+
+### 4F. Labeling convention (ruling D6, 2026-07-15)
+`setup_error` = the case deviates from card-standard configuration (e.g., an
+8×8 mesh where the standard is 64×64). `out_of_envelope` = card-standard
+configuration applied beyond its supported regime (e.g., 64×64 at Re=2500).
+The §4C coarse-mesh fixture is setup_error primary, out_of_envelope defensible
+secondary; the triage battery continues to accept both.
 
 ---
 
@@ -245,32 +296,38 @@ capability:
 solver-time/step (9.25 s / 4000). Run C gives ≈3.6–4.1 ms/step (71–81 s /
 20000). The higher-endTime / higher-Re runs cost more per step — the ~2.3
 ms/step figure is the low-Re short-run rate, not a universal constant.
-**TODO-HUMAN:** decide which rate the cost model should quote, and whether to
-characterize the Re-dependence.
+
+**Ruling (D5, 2026-07-15):** Both measured operating points stay quoted as
+tabulated above. Per-step rate is published as a RANGE — 2.3–4.1 ms
+solver-time/step — NOT a constant; it rises with Re and run length. No
+single-number per-step rate may be quoted from this card.
 
 ---
 
-## 8. Open questions for the human pass
+## 8. Resolved questions (human pass 2026-07-15)
 
-Explicit list — to be resolved Wednesday (V&V pass) or by human ruling:
+Each Step-20.5-START open question, with its ruling:
 
-1. **True validated Reynolds ceiling.** Convergence is observed to Re=1000
-   (Run C) and claimed reliable to Re≈1600 (journal); the spike validated only
-   Re≈200. Where is the *validated* (not merely converged) ceiling? Requires
-   the Re_c≈1914 Hopf-bifurcation literature `[CITATION NEEDED]`.
-2. **Mesh-independence policy.** 64×64 is the only exercised resolution; two
-   refine verdicts flag it as under-resolved at Re=1000 vs Ghia et al. 129×129.
-   What is the policy — a required mesh-independence sweep above some Re? A
-   fixed certified (Re, mesh) grid?
-3. **Do finer-mesh claims (e.g. 128×128) need a Ghia et al. cross-check** before
-   the card certifies them? `[CITATION NEEDED - Ghia et al.]`.
-4. **Cost-model rate to quote** (2.3 ms/step low-Re vs 3.6–4.1 ms/step at higher
-   endTime/Re) and whether to publish the Re-dependence (§7).
-5. **out_of_envelope vs setup_error labeling** at the coarse-mesh boundary — the
-   triage battery treats both as defensible for the same case; does the card
-   take a position?
-6. **Aspect-ratio and multi-wall envelope** — the contract allows "one or more
-   moving walls" and the builder scales uniformly; neither is exercised. In or
-   out of the validated envelope?
-7. **Provisional → signed transition** — who signs, and does sign-off require
-   the Wednesday V&V numbers to be filled first? (See reviewer rubric.)
+1. **True validated Reynolds ceiling → D2.** Resolved by the four-tier ruling
+   (§3B): validated core Re ≤ 200; exercised-converged to Re ≤ 1000;
+   converged-not-validated to Re ≤ 1600; out of envelope above.
+2. **Mesh-independence policy → D3.** Resolved by the mesh policy (§3B): 64×64
+   standard grid, mesh-independence certified at no resolution, new-resolution
+   Ghia-benchmark reproduction rule, sweep queued not blocking.
+3. **Finer-mesh Ghia cross-check → D3.** Same mesh policy: the first use of any
+   new resolution must reproduce one Ghia et al. (1982) point before its
+   numbers are treated as validated.
+4. **Cost-model rate to quote → D5.** Resolved (§7): both measured operating
+   points stay tabulated; per-step rate published as the 2.3–4.1 ms/step range,
+   never a single number.
+5. **out_of_envelope vs setup_error labeling → D6.** Resolved by the labeling
+   convention (§4F): configuration deviation = setup_error; card-standard
+   configuration beyond regime = out_of_envelope; coarse-mesh fixture is
+   setup_error primary, out_of_envelope defensible secondary.
+6. **Aspect-ratio and multi-wall envelope → D4.** Resolved by the geometry
+   ruling (§3B): validated configuration is the square, single-lid,
+   uniform-mesh, L=1.0 m case exactly as exercised; all others → defer/refine
+   with the configuration named.
+7. **Provisional → signed transition → D1.** Owner provisionally signs
+   2026-07-15; external review dispatched 2026-07-17; the provisional signature
+   grants interim authority per the amended reviewer rubric.

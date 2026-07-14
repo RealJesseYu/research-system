@@ -1,9 +1,9 @@
 # Reviewer Rubric — Envelope Cards (one page)
 
-> **STATUS: SKELETON / PROVISIONAL — Step 20.5 START (2026-07-13).**
-> Drafted by agent. Finalization: Wednesday. This rubric is the checklist an
-> external domain expert uses to review any envelope card (Step 26's expert-
-> review lane). Card unit = (substrate, physics-regime) pair.
+> **STATUS: FINALIZED — human pass 2026-07-15 (Step 20.5 CLOSE).**
+> This rubric is the checklist an external domain expert uses to review any
+> envelope card (Step 26's expert-review lane). Card unit = (substrate,
+> physics-regime) pair.
 
 ---
 
@@ -87,5 +87,8 @@ The reviewer updates the card's Provenance block (§2) on completing a review:
 | sign-off-with-amendments | `provisional / amendments-pending / <reviewer> / <date>` — stays provisional until the author applies amendments, then re-attests |
 | reject-with-reasons | `rejected / <reviewer> / <date>` — card returns to drafting; provisional signature (if any) is void |
 
-A card carries **no authority for fidelity-gate grounding** until its Provenance
-state reads `signed`. Until then it is advisory only.
+A provisionally-signed card grants INTERIM fidelity-gate grounding authority
+while its substrate is below mature maturity — a human sits at its trust calls
+regardless (the Step-28 hook), which is the covering control. FULL standalone
+grounding authority requires Provenance state `signed`. (Aligned with the plan
+of record, Step 26 — human pass 2026-07-15.)
