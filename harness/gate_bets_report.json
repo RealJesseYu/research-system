@@ -1,0 +1,102 @@
+{
+  "binary_event": "y=1 iff the run as designed yielded a faithful, usable answer; p = the gate's bet on y==1",
+  "n_total": 18,
+  "n_resolved": 0,
+  "n_excluded": 18,
+  "n_unpredictable": 0,
+  "cumulative_brier": null,
+  "per_entry": [],
+  "excluded": [
+    {
+      "run_id": "handfeed3-20260707T183101Z",
+      "verdict": "defer",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "20260712T194452Z",
+      "verdict": "defer",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "20260712T194452Z",
+      "verdict": "refine",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "20260712T212952Z",
+      "verdict": "defer",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "20260712T212952Z",
+      "verdict": "defer",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "20260713T020121Z",
+      "verdict": "defer",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "20260713T020121Z",
+      "verdict": "refine",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "validate18-T1-same1-ev1",
+      "verdict": "defer",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "validate18-T1-same2-ev2",
+      "verdict": "refine",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "validate18-T1-alt1-ev2",
+      "verdict": "defer",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "validate18-T1-alt2-ev2",
+      "verdict": "defer",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "validate18-T2-same1-h5",
+      "verdict": "refine",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "validate18-T2-alt1-h10",
+      "verdict": "defer",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "validate18-T3-same1-ev1",
+      "verdict": "defer",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "validate18-T3-alt1-ev1",
+      "verdict": "defer",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "20260714T152314Z",
+      "verdict": "refine",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "20260714T152314Z",
+      "verdict": "defer",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    },
+    {
+      "run_id": "20260714T152314Z",
+      "verdict": "defer",
+      "reason": "unresolved outcome (null/missing/unrecognized)"
+    }
+  ],
+  "calibration": []
+}
