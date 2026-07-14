@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -33,6 +34,33 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from harness import killrate_battery
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+class _IsolatedCwd:
+    """18-hygiene mixin: chdir into an isolated tmp dir for the duration of the
+    test and restore afterwards. Several suite modules (test_evolution,
+    test_memory_reach, test_transport_retry, test_triage_battery) chdir into a
+    TemporaryDirectory; if one of them errors AFTER os.chdir but before its
+    tearDown restores cwd, the process's cwd is left pointing at a dir that is
+    then cleaned up. A later test that does NOT chdir inherits that dead cwd —
+    the shared-state/ordering cause of the flaky report-path failures observed
+    in full-discovery mode (n=3). Capturing cwd defensively (getcwd itself
+    raises FileNotFoundError on a deleted cwd) and pinning a fresh valid cwd
+    makes these tests order-independent."""
+
+    def _enter_isolated_cwd(self, tmpdir: Path) -> None:
+        try:
+            self._saved_cwd = os.getcwd()
+        except (FileNotFoundError, OSError):
+            # A prior test already left cwd on a deleted dir; restore to the
+            # repo root rather than propagate the corruption.
+            self._saved_cwd = str(_PROJECT_ROOT)
+        os.chdir(tmpdir)
+
+    def _leave_isolated_cwd(self) -> None:
+        os.chdir(self._saved_cwd)
 
 
 def _fake_record(slot: str, domain: str, rounds: int) -> dict:
@@ -63,14 +91,16 @@ def _fake_record(slot: str, domain: str, rounds: int) -> dict:
     }
 
 
-class StubbedBattery(unittest.TestCase):
+class StubbedBattery(_IsolatedCwd, unittest.TestCase):
     """run_battery with _launch_one stubbed: the real report path logic
     runs, nothing model-shaped fires, no runs/ dirs are created."""
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.tmpdir = Path(self.tmp.name)
+        self._enter_isolated_cwd(self.tmpdir)
         self.addCleanup(self.tmp.cleanup)
+        self.addCleanup(self._leave_isolated_cwd)
         # The default report file is redirected into the temp dir so no
         # test can ever touch the repo's real killrate_last_run.json.
         self.default_path = self.tmpdir / "killrate_last_run.json"
@@ -125,11 +155,13 @@ class StubbedBattery(unittest.TestCase):
         self.assertFalse(self.default_path.exists())
 
 
-class DryRunStub(unittest.TestCase):
+class DryRunStub(_IsolatedCwd, unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.tmpdir = Path(self.tmp.name)
+        self._enter_isolated_cwd(self.tmpdir)
         self.addCleanup(self.tmp.cleanup)
+        self.addCleanup(self._leave_isolated_cwd)
         self.default_path = self.tmpdir / "killrate_last_run.json"
         p1 = patch.object(killrate_battery, "KILLRATE_LAST_RUN_PATH", self.default_path)
         p2 = patch.object(killrate_battery, "current_model_pins", return_value={})

@@ -151,7 +151,24 @@ def count_run(run_dir: Path | str) -> dict:
         result["variants_emitted_total"] = result["variants_emitted"]
         result["variants_accepted_total"] = result["variants_accepted"]
 
-    reviews = _load_json(stage1 / REFLECTION_REVIEWS)
+    # 18-hygiene (n=1 live, killrate-20260714T001356Z-same1): under the 17-E
+    # iteration controller the canonical stage1/*.json are the LAST SUCCESSFUL
+    # round's files. When round 1 ITSELF has zero survivors the run crashes
+    # honestly with no successful round, so its reflection evidence lives ONLY
+    # in stage1/round1/ — canonical stage1/reflection_reviews.json is never
+    # written. Reading only stage1/ then misclassifies that legitimate
+    # zero-survivor scientific outcome as an infra abort and charges a
+    # relaunch. Fix: when the canonical file is absent, fall back to the LAST
+    # round dir that completed reflection and count the outcome from there.
+    reviews_source = stage1
+    if not (stage1 / REFLECTION_REVIEWS).exists() and round_dirs:
+        for round_dir in reversed(round_dirs):
+            if (round_dir / REFLECTION_REVIEWS).exists():
+                reviews_source = round_dir
+                result["counted_from_round_dir"] = round_dir.name
+                break
+
+    reviews = _load_json(reviews_source / REFLECTION_REVIEWS)
 
     # Kill rate: computable whenever reflection_reviews.json exists, even if
     # the run then raised and survivors.json never appeared.
@@ -167,16 +184,17 @@ def count_run(run_dir: Path | str) -> dict:
 
     if reviews is None:
         # The run died before reflection completed (retrieval/transport
-        # failure or killed from outside). NOT a valid k=0.
+        # failure or killed from outside), in EVERY round it started. NOT a
+        # valid k=0 — this is the genuine infra-death path.
         result["status"] = STATUS_ABORTED
         result["abort_reason"] = (
-            f"no stage1/{REFLECTION_REVIEWS} — the run died before "
-            "reflection completed (e.g. retrieval failure or killed); "
-            "not a valid k=0"
+            f"no {REFLECTION_REVIEWS} in stage1/ or any round dir — the run "
+            "died before reflection completed (e.g. retrieval failure or "
+            "killed); not a valid k=0"
         )
         return result
 
-    survivors = _load_json(stage1 / SURVIVORS)
+    survivors = _load_json(reviews_source / SURVIVORS)
     if survivors is not None:
         result["status"] = STATUS_SCORED
         result["k"] = len(survivors)
@@ -188,10 +206,12 @@ def count_run(run_dir: Path | str) -> dict:
         return result
 
     # reflection_reviews.json exists but survivors.json does not: one of the
-    # two zero-survivor raises fired. Distinguish by file presence.
+    # two zero-survivor raises fired. Distinguish by file presence. This is a
+    # legitimate zero-survivor scientific outcome (SCORED k=0), NOT an abort —
+    # including the round-1-crash case reached via reviews_source above.
     result["status"] = STATUS_SCORED
     result["k"] = 0
-    if (stage1 / REFLECTIONS).exists():
+    if (reviews_source / REFLECTIONS).exists():
         # reflections.json written, then filter_survivors raised.
         result["k_reason"] = ALL_KNOWN_AT_FILTER
     else:

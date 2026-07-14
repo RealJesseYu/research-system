@@ -1,0 +1,3 @@
+{"run_id": "runA", "kind": "learned_summary", "hypothesis_id": "h2", "text": "substrate cannot extract stream-function QoIs"}
+{"run_id": "runB", "kind": "run_record", "text": "run runB completed"}
+{"run_id": "runB", "kind": "learned_summary", "hypothesis_id": "ev1", "text": "obstacle geometry is unbuildable on this case template"}

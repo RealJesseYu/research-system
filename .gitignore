@@ -7,3 +7,9 @@ __pycache__/
 harness/last_run.json
 harness/killrate_last_run.json
 harness/positional_last_run.json
+harness/triage_last_run.json
+# 18-hygiene: witness logs and per-launch report stubs are evidence-class
+# (like runs/), regenerated each battery — never committed.
+harness/witness_*.log
+harness/killrate_18_*.json
+harness/validation_batch_18.json

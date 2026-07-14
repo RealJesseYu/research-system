@@ -138,6 +138,14 @@ convenient it seems in the moment:
   truth (the Step-16 demo survived its session and completed under human gates).
 - **External-kill sentinel is on the watch list.** A run killed from outside leaves
   no run_record; zero live instances so far — build it only when one actually occurs.
+- **Semantic Scholar is keyed-optional and best-effort (clarified 2026-07-14).**
+  `search_semantic_scholar` sends an `x-api-key` header only when an `S2_API_KEY`
+  env var is set (non-empty), and otherwise queries the keyless shared pool; either
+  way, in Generation and Reflection an S2 failure (429, zero-hit, transport) is caught,
+  recorded in the retrieval evidence, and the run proceeds. S2 can never kill a run —
+  it is a best-effort enrichment source, not a required one. Earlier status notes that
+  framed a key as "the fix" describe a rate-limit convenience, not a correctness
+  dependency; this paragraph is the current record.
 
 ## Pointers to the spike
 - `~/research-spike` is **read-only reference**. Never modify it from this project.

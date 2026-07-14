@@ -153,20 +153,74 @@ def gather_selections(reports=REPORTS, runs_root=RUNS_ROOT) -> list[dict]:
 
 # --- guards ----------------------------------------------------------------
 
-def docker_guard() -> None:
-    """Fail loud if the shared solver container is unreachable."""
-    hint = f"Is colima up and container {CONTAINER!r} running?"
-    try:
-        proc = subprocess.run(
-            ["docker", "--context", DOCKER_CONTEXT, "exec", CONTAINER, "true"],
-            capture_output=True, text=True, timeout=30,
-        )
-    except Exception as exc:  # noqa: BLE001 — any transport error is a hard stop
-        raise SystemExit(f"DOCKER GUARD FAILED: cannot reach {CONTAINER!r} ({exc}). {hint}")
+def _running_containers() -> list[str]:
+    """Names of currently-running containers on the production Docker context,
+    via `docker ps`. Raises CalledProcessError-shaped SystemExit if the daemon
+    itself did not answer (colima down)."""
+    proc = subprocess.run(
+        ["docker", "--context", DOCKER_CONTEXT, "ps", "--format", "{{.Names}}"],
+        capture_output=True, text=True, timeout=30,
+    )
     if proc.returncode != 0:
         raise SystemExit(
-            f"DOCKER GUARD FAILED: `docker --context {DOCKER_CONTEXT} exec "
-            f"{CONTAINER} true` -> {proc.returncode}: {proc.stderr.strip()}. {hint}"
+            f"DOCKER GUARD FAILED: the Docker daemon on context "
+            f"{DOCKER_CONTEXT!r} did not answer `docker ps` "
+            f"(exit {proc.returncode}): {proc.stderr.strip() or '(no stderr)'}. "
+            "Is colima up? Start it with `colima start`."
+        )
+    return [ln.strip() for ln in proc.stdout.splitlines() if ln.strip()]
+
+
+def docker_guard() -> None:
+    """Fail loud unless the shared solver container is actually Up.
+
+    18-hygiene (caught live at the ledger-#3 preflight, milestone step18_close):
+    a running Colima daemon does NOT imply of12-prod is Up — daemon-up is not
+    container-up. The old guard ran `docker exec CONTAINER true`, which
+    conflated the two failure modes. This guard checks BOTH, in order:
+      (1) the daemon answers `docker ps` at all (else: colima is down), and
+      (2) that listing shows CONTAINER running.
+    If CONTAINER is not Up, it attempts `docker start CONTAINER` exactly once,
+    re-checks `docker ps`, and only then fails loud with a plain-language
+    message telling the human what to do."""
+    daemon_hint = "Is colima up? Start it with `colima start`."
+
+    # (1) daemon reachable, and (2) is CONTAINER already Up?
+    try:
+        running = _running_containers()
+    except SystemExit:
+        raise  # already a plain-language daemon-down message
+    except Exception as exc:  # noqa: BLE001 — timeout/transport: colima down
+        raise SystemExit(
+            f"DOCKER GUARD FAILED: cannot reach the Docker daemon on context "
+            f"{DOCKER_CONTEXT!r} ({exc}). {daemon_hint}"
+        )
+    if CONTAINER in running:
+        return
+
+    # Container is not Up though the daemon is. Attempt to start it ONCE.
+    start = subprocess.run(
+        ["docker", "--context", DOCKER_CONTEXT, "start", CONTAINER],
+        capture_output=True, text=True, timeout=30,
+    )
+    if start.returncode != 0:
+        raise SystemExit(
+            f"DOCKER GUARD FAILED: the Colima daemon is up but container "
+            f"{CONTAINER!r} is not running, and `docker start {CONTAINER}` "
+            f"failed (exit {start.returncode}): "
+            f"{start.stderr.strip() or '(no stderr)'}. The solver container is "
+            "absent or broken — recreate it from the Step-11 image before "
+            f"running the battery (CLAUDE.md: `docker --context {DOCKER_CONTEXT} "
+            f"run -d --name {CONTAINER} -v .../cases:/work/cases of12-img:latest "
+            "sleep infinity`)."
+        )
+
+    # Re-check that the start actually brought it Up.
+    if CONTAINER not in _running_containers():
+        raise SystemExit(
+            f"DOCKER GUARD FAILED: `docker start {CONTAINER}` reported success "
+            f"but {CONTAINER!r} is still not listed by `docker ps`. Inspect it "
+            f"with `docker --context {DOCKER_CONTEXT} logs {CONTAINER}`."
         )
 
 

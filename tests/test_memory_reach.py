@@ -39,23 +39,21 @@ from stages.stage2_experiment_design import (
 
 FAKE_TIMING = {"model": "fake-model", "duration_seconds": 0.0, "attempts": 1}
 
-LESSON_A = {
-    "run_id": "runA",
-    "kind": "learned_summary",
-    "hypothesis_id": "h2",
-    "text": "substrate cannot extract stream-function QoIs",
-}
-LESSON_B = {
-    "run_id": "runB",
-    "kind": "learned_summary",
-    "hypothesis_id": "ev1",
-    "text": "obstacle geometry is unbuildable on this case template",
-}
-RUN_RECORD = {
-    "run_id": "runB",
-    "kind": "run_record",
-    "text": "run runB completed",
-}
+# 18-hygiene: the journal state these tests exercise is a COMMITTED frozen
+# snapshot (tests/fixtures/journal_18_5_snapshot.jsonl), not inline constants
+# nor the live memory/journal.jsonl — so journal growth can never flake them.
+# The snapshot is oldest-first on disk (LESSON_A, RUN_RECORD, LESSON_B); each
+# test composes the subset/order it needs from these named entries and writes
+# them to a swapped tmp JOURNAL_PATH.
+_SNAPSHOT_PATH = Path(__file__).resolve().parent / "fixtures" / "journal_18_5_snapshot.jsonl"
+with open(_SNAPSHOT_PATH) as _f:
+    _SNAPSHOT = [json.loads(line) for line in _f if line.strip()]
+LESSON_A, RUN_RECORD, LESSON_B = _SNAPSHOT[0], _SNAPSHOT[1], _SNAPSHOT[2]
+# The snapshot content the assertions below are pinned to (guards a fixture
+# edit from silently changing what these tests mean).
+assert (LESSON_A["run_id"], LESSON_A["hypothesis_id"]) == ("runA", "h2")
+assert RUN_RECORD["kind"] == "run_record"
+assert (LESSON_B["run_id"], LESSON_B["hypothesis_id"]) == ("runB", "ev1")
 
 
 def minimal_spec(hypothesis_id: str = "h1") -> dict:

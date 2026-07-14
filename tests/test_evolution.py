@@ -568,6 +568,69 @@ class TestSurvivalCounter(unittest.TestCase):
         self.assertEqual(result["variants_accepted_total"], 3)
 
 
+class TestRoundOneZeroSurvivorClassification(unittest.TestCase):
+    """18-hygiene: a round-1 zero-survivor crash under the 17-E iteration
+    controller leaves its reflection evidence ONLY in stage1/round1/ (no
+    successful round -> no canonical stage1 files). The battery abort
+    classifier read only stage1/ and logged this legitimate zero-survivor
+    scientific outcome as an infra death (n=1 live,
+    killrate-20260714T001356Z-same1), charging a wasteful relaunch. These
+    tests reproduce the exact on-disk signature a zero-survivor raise leaves
+    and assert it now scores k=0, distinct from a true infra abort."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.run_dir = Path(self._tmp.name)
+        self.round1 = self.run_dir / "stage1" / "round1"
+        self.round1.mkdir(parents=True)
+        # Every zero-survivor round writes reflection_reviews.json first.
+        (self.round1 / "reflection_reviews.json").write_text(
+            json.dumps(
+                {
+                    "initial_survivor_count": 5,
+                    "discarded_by_deep_verification": [{"id": f"h{i}"} for i in range(1, 5)],
+                }
+            )
+        )
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_round1_all_known_at_filter_scores_zero(self):
+        # filter_survivors raised AFTER reflections.json was written but
+        # before survivors.json — the all_known_at_filter zero-survivor shape.
+        (self.round1 / "reflections.json").write_text(json.dumps([{"id": "h5"}]))
+        result = survival_counter.count_run(self.run_dir)
+        self.assertEqual(result["status"], survival_counter.STATUS_SCORED)
+        self.assertEqual(result["k"], 0)
+        self.assertEqual(result["k_reason"], survival_counter.ALL_KNOWN_AT_FILTER)
+        self.assertIsNone(result["abort_reason"])
+        self.assertEqual(result["counted_from_round_dir"], "round1")
+        self.assertAlmostEqual(result["deep_verify_kill_rate"], 0.8)
+
+    def test_round1_deep_verify_discarded_all_scores_zero(self):
+        # reflect_on_pool wrote reflection_reviews.json and raised immediately
+        # (no reflections.json) — the deep_verify_discarded_all shape.
+        result = survival_counter.count_run(self.run_dir)
+        self.assertEqual(result["status"], survival_counter.STATUS_SCORED)
+        self.assertEqual(result["k"], 0)
+        self.assertEqual(result["k_reason"], survival_counter.DEEP_VERIFY_DISCARDED_ALL)
+        self.assertIsNone(result["abort_reason"])
+        self.assertEqual(result["counted_from_round_dir"], "round1")
+
+    def test_true_infra_abort_still_aborts(self):
+        # A round dir with NO reflection_reviews.json anywhere is genuine
+        # infra death (retrieval/transport failure or external kill) — it must
+        # still classify ABORTED so the relaunch machinery still fires.
+        (self.round1 / "reflection_reviews.json").unlink()
+        (self.round1 / "generation.json").write_text(json.dumps({"pool": []}))
+        result = survival_counter.count_run(self.run_dir)
+        self.assertEqual(result["status"], survival_counter.STATUS_ABORTED)
+        self.assertIsNone(result["k"])
+        self.assertIsNotNone(result["abort_reason"])
+        self.assertNotIn("counted_from_round_dir", result)
+
+
 class TestHandfeedFallback(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()

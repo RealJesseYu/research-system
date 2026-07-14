@@ -15,10 +15,12 @@ Run directly: venv/bin/python3 tests/test_validation_batch.py
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -225,6 +227,97 @@ class ChainTests(unittest.TestCase):
             # crash evidence written, batch could proceed
             self.assertTrue((runs / crashed["run_id"] / "crash.txt").is_file())
             self.assertTrue((runs / crashed["run_id"] / "result.json").is_file())
+
+
+class _Proc:
+    """Minimal subprocess.CompletedProcess stand-in."""
+
+    def __init__(self, returncode=0, stdout="", stderr=""):
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+
+class DockerGuardTests(unittest.TestCase):
+    """18-hygiene: the container-level solver preflight, subprocess mocked
+    (zero real docker calls). Proves daemon-up != container-up, the
+    start-once fallback, and every fail-loud path."""
+
+    def _patch_run(self, handler):
+        p = patch.object(vb.subprocess, "run", side_effect=handler)
+        self.mock_run = p.start()
+        self.addCleanup(p.stop)
+
+    def test_container_up_passes_without_start(self):
+        def handler(cmd, **kw):
+            self.assertIn("ps", cmd)  # only ps should ever be called here
+            return _Proc(stdout=f"other\n{vb.CONTAINER}\n")
+        self._patch_run(handler)
+        vb.docker_guard()  # returns cleanly
+        self.assertEqual(self.mock_run.call_count, 1)
+
+    def test_daemon_down_fails_loud(self):
+        def handler(cmd, **kw):
+            return _Proc(returncode=1, stderr="Cannot connect to the Docker daemon")
+        self._patch_run(handler)
+        with self.assertRaises(SystemExit) as ctx:
+            vb.docker_guard()
+        msg = str(ctx.exception)
+        self.assertIn("DOCKER GUARD FAILED", msg)
+        self.assertIn("colima start", msg)
+
+    def test_daemon_unreachable_exception_fails_loud(self):
+        def handler(cmd, **kw):
+            raise subprocess.TimeoutExpired(cmd, 30)
+        self._patch_run(handler)
+        with self.assertRaises(SystemExit) as ctx:
+            vb.docker_guard()
+        self.assertIn("cannot reach the Docker daemon", str(ctx.exception))
+
+    def test_container_absent_starts_once_then_ok(self):
+        calls = {"ps": 0, "start": 0}
+
+        def handler(cmd, **kw):
+            if "ps" in cmd:
+                calls["ps"] += 1
+                # absent on first ps, Up after the start on the recheck
+                return _Proc(stdout=(f"{vb.CONTAINER}\n" if calls["ps"] >= 2 else "other\n"))
+            if "start" in cmd:
+                calls["start"] += 1
+                self.assertIn(vb.CONTAINER, cmd)
+                return _Proc(returncode=0)
+            raise AssertionError(f"unexpected docker command: {cmd}")
+
+        self._patch_run(handler)
+        vb.docker_guard()  # returns cleanly after the single start
+        self.assertEqual(calls["start"], 1)  # started EXACTLY once
+        self.assertEqual(calls["ps"], 2)     # ps before + recheck after start
+
+    def test_container_absent_start_fails_loud(self):
+        def handler(cmd, **kw):
+            if "ps" in cmd:
+                return _Proc(stdout="other\n")  # never Up
+            if "start" in cmd:
+                return _Proc(returncode=1, stderr="No such container: of12-prod")
+            raise AssertionError(cmd)
+        self._patch_run(handler)
+        with self.assertRaises(SystemExit) as ctx:
+            vb.docker_guard()
+        msg = str(ctx.exception)
+        self.assertIn("is not running", msg)
+        self.assertIn("recreate it", msg)
+
+    def test_start_succeeds_but_container_still_not_up(self):
+        def handler(cmd, **kw):
+            if "ps" in cmd:
+                return _Proc(stdout="other\n")  # absent on both ps calls
+            if "start" in cmd:
+                return _Proc(returncode=0)  # start "succeeds"
+            raise AssertionError(cmd)
+        self._patch_run(handler)
+        with self.assertRaises(SystemExit) as ctx:
+            vb.docker_guard()
+        self.assertIn("still not listed by `docker ps`", str(ctx.exception))
 
 
 class ReportShapeTests(unittest.TestCase):
