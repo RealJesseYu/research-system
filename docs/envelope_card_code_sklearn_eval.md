@@ -1,9 +1,10 @@
 # Envelope Card — (code-img sandbox, sklearn_eval v1)
 
-> **STATUS: DRAFT — not yet reviewed.**
-> Provenance: `drafted-by-agent` (see §2). The §3B envelope bounds (C1–C4) are
-> agent-SUGGESTED TODO-HUMAN judgment slots — **none decided.** No external
-> reviewer is currently scheduled for this card — **flag for the owner.**
+> **STATUS: PROVISIONALLY SIGNED 2026-07-15.**
+> Provenance: `provisionally-signed` (owner; see §2). The §3B envelope bounds
+> (C1–C4) are **owner-RULED 2026-07-15** — all four decided. No external
+> reviewer is scheduled — owner ruled ship on provisional signature; external
+> review joins the **post-8/2 queue**.
 > This card is **HUMAN-FACING ONLY** (R-20.5-1 doctrine): no code reads it, no
 > model sees it. The substrate is **UNREGISTERED** — nothing in `stages/`, the
 > supervisor, `substrates.py`, or any schema imports `tools/run_code.py`.
@@ -26,7 +27,7 @@
 | Wrapper commit (last touch) | `90b4696` (STEP28.5-DRY) |
 | Contract text | **none** — substrate is UNREGISTERED; the typed v1 spec lives only in `run_code.py` (`validate_spec` + the allowlists), not in `substrates.py` |
 | Card drafted against repo HEAD | `90b4696` |
-| Maturity | **calibrating** (pre-registration; judgment slots open) |
+| Maturity | **calibrating** (pre-registration; C1–C4 owner-RULED 2026-07-15; provisionally signed) |
 
 ---
 
@@ -37,14 +38,14 @@
 | Drafted by | agent (Claude Code, doc-only measurement-capture session) |
 | Drafted date | 2026-07-15 |
 | Sources | wrapper self-check runs captured this session (3 live sandbox executions: logreg, random_forest, a version-print probe); the four jail proofs + refusal behavior in `tests/test_run_code.py`; the pinned manifest `tools/code_env/requirements.txt`; the valid fixture `tests/fixtures/code_result_valid.json` |
-| Signature | `unsigned` — provisionally-signed slot **empty** (awaits owner ruling on C1–C4) |
-| Reviewer sign-off | `pending — no external reviewer scheduled` (**owner: this card has no dispatch date; the FEA/CFD cards do — flag**) |
-| **Provenance state** | `drafted-by-agent` |
+| Signature | `provisionally signed — owner, 2026-07-15`. A provisional signature grants **interim authority**: the card's C1–C4 bounds may be leaned on operationally. A human still sits at **every** trust call on this substrate regardless — it is **UNREGISTERED** and, were it registered, would enter at **calibrating** maturity. (History: `unsigned` while C1–C4 awaited ruling.) |
+| Reviewer sign-off | owner ruled 2026-07-15: **ship on provisional signature without external review; external review joins the post-8/2 queue.** *(was: `pending — no external reviewer scheduled` — owner: this card has no dispatch date; the FEA/CFD cards do — flag.)* |
+| **Provenance state** | `provisionally-signed` (owner, 2026-07-15). History: `drafted-by-agent`. |
 
 *Provenance state is the load-bearing field: it sets how much grounding authority
-the card carries. It is `drafted-by-agent` — the §3B slots (C1–C4) are suggestions,
-not decided bounds, and a human sits at every trust call on this UNREGISTERED
-substrate regardless.*
+the card carries. It is now `provisionally-signed` (owner, 2026-07-15) — the §3B
+slots (C1–C4) are decided owner-RULED bounds, not suggestions — and a human still
+sits at every trust call on this UNREGISTERED substrate regardless.*
 
 ---
 
@@ -78,8 +79,7 @@ truth is never read as the broad one.
 ## 3. Validated envelope
 
 Two sections, deliberately separate. §3A is disk-cited evidence actually exercised
-this session; §3B is the set of envelope bounds left as TODO-HUMAN judgment slots —
-**none pre-filled as decided.**
+this session; §3B is the set of envelope bounds — **all four owner-RULED 2026-07-15.**
 
 ### 3A. Self-check runs (live this session — 3 sandbox executions)
 
@@ -104,28 +104,30 @@ this session; §3B is the set of envelope bounds left as TODO-HUMAN judgment slo
   `CodeSpecError` and return `valid=False` with a bounded, human-safe message and
   **no QoI** (`tests/test_run_code.py::TestValidation`, `::TestRefusalsAndBounds`).
 
-### 3B. Envelope bounds — TODO-HUMAN judgment slots
+### 3B. Envelope bounds — owner-RULED 2026-07-15
 
-Each carries an agent-SUGGESTED value and a one-line reason. **None is a decided
-bound** — each awaits an owner ruling (mirrors the CFD/FEA cards).
+Each carries its ruled value and a one-line reason. **All four are decided
+bounds** — owner-RULED 2026-07-15 (mirrors the CFD/FEA cards). The values below
+preserve the agent-suggested text as ratified.
 
 - **(C1) Dataset-provenance classes trusted for the benchmark claim.**
-  `TODO-HUMAN` — **suggested: builtin sklearn loaders + user-supplied CSV files,
-  with user files flagged "metric conditional on dataset honesty — see §4B."**
+  `RULED (owner, 2026-07-15)` — **builtin sklearn loaders + user-supplied CSV files,
+  with user files permanently flagged "metric conditional on dataset honesty — see §4B."**
   *Reason:* builtin loaders are fixed, versioned, and leakage-audited upstream, so
   their benchmark number is trustworthy as-is; a user CSV's number is only as
   honest as the CSV — the substrate computes the metric it was given, it cannot
   certify the dataset is clean.
 
 - **(C2) Minimum `n_test` below which the metric is too noisy to headline.**
-  `TODO-HUMAN` — **suggested: report `n_test` on every run; flag `n_test < 30`.**
+  `RULED (owner, 2026-07-15)` — **report `n_test` on every run; flag `n_test < 30` as
+  too noisy to headline.**
   *Reason:* a metric on a tiny held-out split has wide confidence bounds (a handful
   of misclassifications swings accuracy by whole points); below ~30 test rows the
   number is real but not headline-grade, and the gate should say so rather than
   suppress it.
 
 - **(C3) Allowlist-drift rule.**
-  `TODO-HUMAN` — **suggested: any new model/metric/dataset family requires a card
+  `RULED (owner, 2026-07-15)` — **any new model/metric/dataset family requires a card
   amendment + a determinism re-proof before its numbers count.**
   *Reason:* the trust story rests on the pinned stack + single-thread determinism
   (§4D); a new family (especially a threaded/GPU one) can silently break
@@ -133,7 +135,7 @@ bound** — each awaits an owner ruling (mirrors the CFD/FEA cards).
   enter the trusted class.
 
 - **(C4) The deployment-claim rule.**
-  `TODO-HUMAN` — **suggested: ANY spec whose success criterion references
+  `RULED (owner, 2026-07-15)` — **ANY spec whose success criterion references
   real-world / production / clinical / deployment utility → the gate MAY trust the
   benchmark number AND MUST defer the utility claim — both stated explicitly.**
   *Reason:* this is THE CENTRAL SPLIT made operational; it is the single rule that
@@ -265,8 +267,9 @@ figure is a warm-path estimate; this session's cold logreg measured 2.515 s.)
 
 **Open watches:**
 
-1. **Judgment slots C1–C4 (§3B) are undecided.** Each needs an owner ruling before
-   the card advances past `drafted-by-agent`.
+1. **Judgment slots C1–C4 (§3B) — RESOLVED.** All four owner-RULED 2026-07-15; the
+   card now carries provenance state `provisionally-signed` (§2). *(was: undecided —
+   each needing an owner ruling before the card advanced past `drafted-by-agent`.)*
 2. **rf value discrepancy (disclosed).** A strategist-noted "~0.965" self-check
    for random_forest; this session's live n_estimators=50 run measured
    **0.972027972027972**. Recorded as the measured truth; the ~0.965 likely
@@ -276,8 +279,10 @@ figure is a warm-path estimate; this session's cold logreg measured 2.515 s.)
 4. **Leakage detection (§4B).** The wrapper cannot see a dishonest dataset; whether
    a lightweight leakage screen (e.g. a perfect-predictor / duplicate-row check)
    should be added is a later, evidence-gated decision.
-5. **No reviewer scheduled.** Unlike the FEA card (Sunday 2026-07-19 dispatch) and
-   the CFD card, this card has **no external-review date** — flag for the owner.
+5. **External review — RESOLVED (owner ruled 2026-07-15).** Ship on provisional
+   signature without external review; external review joins the **post-8/2 queue**.
+   *(was: no reviewer scheduled — unlike the FEA card (Sunday 2026-07-19 dispatch)
+   and the CFD card, this card had no external-review date — flag for the owner.)*
 6. **Registration.** Substrate stays UNREGISTERED; no code reads this card and no
    model sees it (R-20.5-1). Registration is a later, separate decision after
    calibration.
