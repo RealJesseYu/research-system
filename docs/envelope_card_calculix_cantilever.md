@@ -1,8 +1,9 @@
 # Envelope Card — (calculix_cantilever, linear-elastic small-deflection static)
 
-> **STATUS: DRAFT — not yet reviewed. CALIBRATING.**
-> Provenance: `drafted-by-agent` (see §2). Judgment fields (§3B, F1–F4) are
-> TODO-HUMAN slots carrying an agent-SUGGESTED value only — none is decided.
+> **STATUS: PROVISIONALLY SIGNED 2026-07-15 (owner). External review pending.**
+> Provenance: `provisionally-signed (owner)` (see §2). Judgment fields (§3B,
+> F1–F4) are owner-RULED and filled; external reviewer dispatch is pending
+> Sunday 2026-07-19.
 > This card is **HUMAN-FACING ONLY** (R-20.5-1 doctrine): no code reads it, no
 > model sees it. The substrate is **UNREGISTERED** — nothing in `stages/`, the
 > supervisor, `substrates.py`, or any schema imports `tools/run_fea.py`.

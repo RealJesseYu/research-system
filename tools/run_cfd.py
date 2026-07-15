@@ -280,7 +280,333 @@ def _extract_qoi(case: str, qoi_request: dict) -> dict:
                     "value": value, "time": row_time}}
 
 
-def run_cfd(case: str, qoi_request: dict | None = None) -> dict:
+# ----------------------------------------------------------------------------
+# Multi-QoI extraction, field export, and deterministic masked reductions
+# (MULTIQOI-A). This is a CAPABILITY-ONLY layer, strictly ADDITIVE to the
+# single-QoI postProcess path above:
+#
+#   * the single-QoI run_cfd(case, qoi_request=...) path is UNCHANGED and its
+#     return stays byte-identical on the same inputs (nothing above this line
+#     was touched);
+#   * instead of asking OpenFOAM to reduce a field, this layer reads the fields
+#     the solved case ALREADY WROTE (U, p) plus cell centres/volumes it asks
+#     OpenFOAM's stock utilities to write (C, V), and computes reductions in
+#     deterministic Python. No LLM anywhere, no new physics — nothing is
+#     re-solved, only read;
+#   * the full arrays NEVER leave the wrapper. Field export returns a file PATH
+#     plus summary statistics; masked reductions return a value plus the
+#     masked/total cell counts. Raw solver output still never escapes.
+#
+# numpy is imported lazily inside these functions so the untouched single-QoI /
+# run path never depends on it.
+# ----------------------------------------------------------------------------
+
+REDUCTIONS = ("min", "max", "volAverage")
+MASK_TYPES = ("corner_exclusion", "boundary_exclusion", "box")
+
+
+def _latest_time_dir(case_host: Path) -> Path:
+    """Return the case's latest (numerically largest) time directory."""
+    times = []
+    for d in case_host.iterdir():
+        if d.is_dir():
+            try:
+                times.append((float(d.name), d))
+            except ValueError:
+                continue
+    if not times:
+        raise FileNotFoundError(f"no time directories in case '{case_host.name}'")
+    times.sort(key=lambda t: t[0])
+    return times[-1][1]
+
+
+def parse_internal_field(text: str):
+    """Parse an OpenFOAM field file's nonuniform internalField into a numpy
+    array. Pure function. Scalars -> shape (n,); vectors -> shape (n, 3).
+    Raises ValueError on a uniform or unrecognized internalField.
+    """
+    import numpy as np
+
+    m = re.search(
+        r"internalField\s+nonuniform\s+List<(scalar|vector)>\s*\n?\s*(\d+)\s*\(",
+        text,
+    )
+    if not m:
+        raise ValueError("internalField is not a nonuniform List (uniform or unrecognized)")
+    kind = m.group(1)
+    n = int(m.group(2))
+
+    # Depth-count from the '(' the regex consumed to find the matching close.
+    open_idx = m.end() - 1
+    depth = 0
+    close_idx = None
+    for j in range(open_idx, len(text)):
+        c = text[j]
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            depth -= 1
+            if depth == 0:
+                close_idx = j
+                break
+    if close_idx is None:
+        raise ValueError("unterminated internalField list")
+    inner = text[open_idx + 1:close_idx]
+
+    if kind == "scalar":
+        vals = np.array([float(t) for t in inner.split()], dtype=float)
+        if vals.shape[0] != n:
+            raise ValueError(f"expected {n} scalars, parsed {vals.shape[0]}")
+        return vals
+    tuples = re.findall(r"\(([^()]*)\)", inner)
+    arr = np.array([[float(x) for x in t.split()] for t in tuples], dtype=float)
+    if arr.shape[0] != n:
+        raise ValueError(f"expected {n} vectors, parsed {arr.shape[0]}")
+    return arr
+
+
+def _write_geometry_fields(case: str) -> None:
+    """Ask OpenFOAM's stock utilities to write cell centres (C) and cell
+    volumes (V) at the latest time. Deterministic geometry, no solve."""
+    case_container = f"{SHARED_CONTAINER}/{case}"
+    remote = (
+        f"source {OF_BASHRC} && cd {case_container} && "
+        f"postProcess -funcs '(writeCellCentres writeCellVolumes)' -latestTime "
+        f"> log.writeGeometry 2>&1"
+    )
+    cmd = ["docker", "--context", DOCKER_CONTEXT, "exec", CONTAINER, "bash", "-c", remote]
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS)
+    if proc.returncode != 0:
+        raise RuntimeError(
+            f"failed to write cell centres/volumes for case '{case}' (exit {proc.returncode})"
+        )
+
+
+def _load_case_fields(case: str) -> dict:
+    """Load C, V and available solved fields (U, p) at the case's latest time
+    into numpy arrays. Writes C/V via stock utilities if they are absent."""
+    import numpy as np
+
+    def _vol_file(td: Path):
+        # OpenFOAM v12's writeCellVolumes writes 'Vc'; older/other builds 'V'.
+        for name in ("Vc", "V"):
+            if (td / name).is_file():
+                return td / name
+        return None
+
+    case_host = SHARED_HOST / case
+    tdir = _latest_time_dir(case_host)
+    if not (tdir / "C").is_file() or _vol_file(tdir) is None:
+        _write_geometry_fields(case)
+        tdir = _latest_time_dir(case_host)
+
+    vfile = _vol_file(tdir)
+    if not (tdir / "C").is_file() or vfile is None:
+        raise FileNotFoundError(
+            f"cell centre/volume fields missing in {tdir} after writing geometry"
+        )
+    fields = {
+        "C": parse_internal_field((tdir / "C").read_text(errors="replace")),
+        "V": parse_internal_field(vfile.read_text(errors="replace")),
+    }
+    for f in ("U", "p"):
+        fp = tdir / f
+        if fp.is_file():
+            try:
+                fields[f] = parse_internal_field(fp.read_text(errors="replace"))
+            except ValueError:
+                pass  # a uniform/absent field is simply not offered
+    fields["time"] = float(tdir.name)
+    fields["n_cells"] = int(fields["C"].shape[0])
+    return fields
+
+
+def _domain_bbox(C):
+    """Domain bounding box (xmin, xmax, ymin, ymax) inferred from cell centres,
+    extended by half the (minimum) cell spacing so a structured cavity mesh
+    recovers its true extent. Exact for a uniform mesh; deterministic."""
+    import numpy as np
+
+    xs = np.unique(C[:, 0])
+    ys = np.unique(C[:, 1])
+    dx = float(np.min(np.diff(xs))) if xs.size > 1 else 0.0
+    dy = float(np.min(np.diff(ys))) if ys.size > 1 else 0.0
+    return (float(xs[0] - dx / 2), float(xs[-1] + dx / 2),
+            float(ys[0] - dy / 2), float(ys[-1] + dy / 2))
+
+
+def mask_keep(mask: dict, C, bbox):
+    """Return a boolean keep-array (True = cell retained in the reduction) for
+    one mask spec. Deterministic geometry in code; no solver involved.
+
+    Mask types (fractions are of the cavity length):
+      corner_exclusion  {radius_frac r}  -> drop cells within r*L of any of the
+                                            four cavity corners
+      boundary_exclusion{distance_frac d}-> keep only cells at least d*L from
+                                            every wall
+      box               {x_min,x_max,y_min,y_max} -> keep cells inside the
+                                            fractional box, drop the rest
+    """
+    import numpy as np
+
+    xmin, xmax, ymin, ymax = bbox
+    Lx = xmax - xmin
+    Ly = ymax - ymin
+    L = Lx  # square-cavity length reference
+    x = C[:, 0]
+    y = C[:, 1]
+    kind = mask.get("type")
+
+    if kind == "corner_exclusion":
+        r = float(mask["radius_frac"]) * L
+        excluded = np.zeros(C.shape[0], dtype=bool)
+        for cx, cy in ((xmin, ymin), (xmax, ymin), (xmin, ymax), (xmax, ymax)):
+            excluded |= np.hypot(x - cx, y - cy) < r
+        return ~excluded
+    if kind == "boundary_exclusion":
+        d = float(mask["distance_frac"])
+        return ((x >= xmin + d * Lx) & (x <= xmax - d * Lx) &
+                (y >= ymin + d * Ly) & (y <= ymax - d * Ly))
+    if kind == "box":
+        xf0 = float(mask["x_min"]); xf1 = float(mask["x_max"])
+        yf0 = float(mask["y_min"]); yf1 = float(mask["y_max"])
+        return ((x >= xmin + xf0 * Lx) & (x <= xmin + xf1 * Lx) &
+                (y >= ymin + yf0 * Ly) & (y <= ymin + yf1 * Ly))
+    raise ValueError(f"unknown mask type {kind!r} — must be one of {list(MASK_TYPES)}")
+
+
+def _field_values(fields: dict, field: str, component):
+    """Reduce a field to a per-cell scalar array per the requested component."""
+    import numpy as np
+
+    if field not in fields or not isinstance(fields.get(field), np.ndarray):
+        have = [k for k in ("U", "p") if isinstance(fields.get(k), np.ndarray)]
+        raise ValueError(f"field {field!r} not available in case (have {have})")
+    arr = fields[field]
+    if arr.ndim == 1:
+        if component is not None:
+            raise ValueError(f"field {field!r} is scalar; component {component!r} not applicable")
+        return arr
+    if component == "mag":
+        return np.linalg.norm(arr, axis=1)
+    if component in (0, 1, 2):
+        return arr[:, component]
+    raise ValueError(f"vector field {field!r} needs component 'mag' or 0|1|2")
+
+
+def _reduce(values, reduction: str, keep, volumes):
+    """Apply a reduction over the kept cells (volume-weighted for volAverage)."""
+    import numpy as np
+
+    v = values[keep]
+    if v.size == 0:
+        raise ValueError("mask excluded every cell — nothing to reduce over")
+    if reduction == "min":
+        return float(v.min())
+    if reduction == "max":
+        return float(v.max())
+    if reduction == "volAverage":
+        w = volumes[keep] if volumes is not None else np.ones_like(v)
+        return float(np.sum(w * v) / np.sum(w))
+    raise ValueError(f"unknown reduction {reduction!r} — must be one of {list(REDUCTIONS)}")
+
+
+def _auto_name(field: str, component, reduction: str, mask) -> str:
+    """A deterministic, human-legible name for an unnamed QoI request."""
+    if component == "mag":
+        fexpr = f"mag({field})"
+    elif component in (0, 1, 2):
+        fexpr = f"{field}[{component}]"
+    else:
+        fexpr = field
+    name = f"{reduction}({fexpr})"
+    if mask is not None:
+        name += f"|{mask.get('type')}"
+    return name
+
+
+def _export_fields(case: str, fields: dict, out_dir: Path | None = None) -> dict:
+    """Write a compact on-disk artifact (npz) of C/V and available solved
+    fields, and return ONLY {path, fields, n_cells, summary_stats} — never the
+    arrays themselves."""
+    import numpy as np
+
+    dest = (out_dir or (SHARED_HOST / case))
+    path = dest / "fields_export.npz"
+    arrays = {"C": fields["C"], "V": fields["V"]}
+    exported = ["C", "V"]
+    for f in ("U", "p"):
+        if isinstance(fields.get(f), np.ndarray):
+            arrays[f] = fields[f]
+            exported.append(f)
+    np.savez(path, **arrays)
+
+    stats: dict = {}
+    if "p" in arrays:
+        p = arrays["p"]
+        stats["p"] = {"min": float(p.min()), "max": float(p.max()), "mean": float(p.mean())}
+    if "U" in arrays:
+        magU = np.linalg.norm(arrays["U"], axis=1)
+        stats["magU"] = {"min": float(magU.min()), "max": float(magU.max()),
+                         "mean": float(magU.mean())}
+    return {"path": str(path), "fields": exported, "n_cells": int(fields["n_cells"]),
+            "summary_stats": stats}
+
+
+def extract_qois(case: str, requests: list, export: bool = True) -> dict:
+    """Extract a LIST of QoIs from ONE solved case in a single pass.
+
+    Each request is a dict: {field, reduction, component?, mask?, name?}.
+    Returns {"case", "time", "n_cells", "qois": {name: entry}, "values":
+    {name: value}} and, when export=True, "field_export": {path, fields,
+    n_cells, summary_stats}. Every entry is small — a value plus counts, never
+    an array. A bad request yields a per-QoI {"qoi_error": ...}, mirroring the
+    single-QoI path; it never fabricates a number.
+    """
+    import numpy as np
+
+    fields = _load_case_fields(case)
+    C = fields["C"]
+    V = fields["V"]
+    bbox = _domain_bbox(C)
+    n_total = int(fields["n_cells"])
+
+    results: dict = {}
+    values: dict = {}
+    for req in requests:
+        field = req.get("field")
+        component = req.get("component")
+        reduction = req.get("reduction")
+        mask = req.get("mask")
+        name = req.get("name") or _auto_name(str(field), component, str(reduction), mask)
+        try:
+            if not isinstance(field, str) or not _QOI_FIELD_RE.match(field):
+                raise ValueError(f"invalid field name {field!r}")
+            if reduction not in REDUCTIONS:
+                raise ValueError(f"unknown reduction {reduction!r} — must be one of {list(REDUCTIONS)}")
+            vals = _field_values(fields, field, component)
+            keep = mask_keep(mask, C, bbox) if mask is not None else np.ones(n_total, dtype=bool)
+            value = _reduce(vals, reduction, keep, V)
+            n_masked = int((~keep).sum())
+            results[name] = {
+                "value": value, "field": field, "component": component,
+                "reduction": reduction, "mask": mask,
+                "n_cells_masked": n_masked, "n_cells_total": n_total,
+            }
+            values[name] = value
+        except (ValueError, KeyError) as e:
+            results[name] = {"qoi_error": str(e)}
+            values[name] = None
+
+    out = {"case": case, "time": fields["time"], "n_cells": n_total,
+           "qois": results, "values": values}
+    if export:
+        out["field_export"] = _export_fields(case, fields)
+    return out
+
+
+def run_cfd(case: str, qoi_request: dict | None = None,
+            qois: list | None = None) -> dict:
     """
     Run an OpenFOAM case and return a SMALL summary dict.
 
@@ -288,6 +614,10 @@ def run_cfd(case: str, qoi_request: dict | None = None) -> dict:
     Failure -> {status:"failed", converged:False, error_lines:[...], ...}
     With qoi_request: the success summary additionally carries either
     qoi:{name, field, operation, value, time} or qoi_error:"<reason>".
+    With qois=[...]: after a run that reached its end time, the summary also
+    carries qois:{name: entry} and field_export:{path, ...} from extract_qois
+    (values + cell counts only — never raw arrays), or qois_error:"<reason>".
+    The qoi_request path is unchanged; passing neither leaves both off.
     """
     case_host = SHARED_HOST / case
     case_container = f"{SHARED_CONTAINER}/{case}"
@@ -375,6 +705,18 @@ def run_cfd(case: str, qoi_request: dict | None = None) -> dict:
             summary.update(_extract_qoi(case, qoi_request))
         else:
             summary["qoi_error"] = "run did not reach its end time — QoI not extracted"
+
+    # --- optional multi-QoI vector + field export (additive; never arrays) ---
+    if qois is not None:
+        if reached_end:
+            try:
+                multi = extract_qois(case, qois)
+                summary["qois"] = multi["qois"]
+                summary["field_export"] = multi["field_export"]
+            except Exception as e:  # extraction must never mask a good solve
+                summary["qois_error"] = f"multi-QoI extraction failed: {e}"
+        else:
+            summary["qois_error"] = "run did not reach its end time — multi-QoI not extracted"
     return summary
 
 

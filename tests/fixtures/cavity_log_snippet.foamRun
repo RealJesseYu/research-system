@@ -1,0 +1,27 @@
+/*---------------------------------------------------------------------------*\
+  A minimal, representative foamRun log snippet frozen for byte-identity
+  testing of the run_cfd log parser (_parse_log). Two time steps, ending
+  cleanly with "End". Values are illustrative but format-exact for OpenFOAM v12.
+\*---------------------------------------------------------------------------*/
+
+Starting time loop
+
+Time = 1s
+
+smoothSolver:  Solving for Ux, Initial residual = 1.2e-02, Final residual = 4.1e-07, No Iterations 12
+smoothSolver:  Solving for Uy, Initial residual = 9.8e-03, Final residual = 3.7e-07, No Iterations 11
+GAMG:  Solving for p, Initial residual = 5.4e-02, Final residual = 8.9e-07, No Iterations 8
+Courant Number mean: 0.08 max: 0.31
+time step continuity errors : sum local = 2.3e-09, global = 4.5e-19, cumulative = 4.5e-19
+ExecutionTime = 0.34 s  ClockTime = 1 s
+
+Time = 2s
+
+smoothSolver:  Solving for Ux, Initial residual = 8.1e-05, Final residual = 2.2e-08, No Iterations 6
+smoothSolver:  Solving for Uy, Initial residual = 7.3e-05, Final residual = 1.9e-08, No Iterations 6
+GAMG:  Solving for p, Initial residual = 6.4e-04, Final residual = 5.5e-08, No Iterations 4
+Courant Number mean: 0.09 max: 0.26
+time step continuity errors : sum local = 1.1e-10, global = 1.2e-19, cumulative = 5.7e-19
+ExecutionTime = 0.71 s  ClockTime = 1 s
+
+End
