@@ -34,13 +34,17 @@
 | Drafted by | agent (Claude Code, doc-only measurement-capture session) |
 | Drafted date | 2026-07-15 |
 | Sources | wrapper run evidence captured this session (mesh 8/16/32 self-checks); the wrapper's built-in analytic self-check; `tools/fea_env/vv_sources.md` (V&V references, located not yet applied) |
-| Signature | `unsigned` — provisionally-signed slot: `<empty — awaiting owner>` |
+| Signature | `provisionally signed — owner, 2026-07-15` (was `unsigned`). **A provisional signature grants interim authority; a human sits at every trust call on this substrate regardless — it is UNREGISTERED and would enter at calibrating maturity.** (mirrors the CFD card) |
 | Reviewer sign-off | `pending — external expert-review dispatch planned Sunday 2026-07-19` |
-| **Provenance state** | `drafted-by-agent` |
+| **Provenance state** | `provisionally-signed` (2026-07-15) — history: `drafted-by-agent` → `provisionally-signed` |
 
-*Provenance state is the load-bearing field: at `drafted-by-agent` this card
-carries NO grounding authority — it is a calibration draft, and every §3B
-judgment slot is a suggestion awaiting an owner ruling.*
+*Provenance state is the load-bearing field. It has advanced from
+`drafted-by-agent` to `provisionally-signed` (owner, 2026-07-15): the four §3B
+judgment slots (F1–F4) are now owner-RULED bounds, not suggestions. The
+provisional signature grants interim authority only — a human sits at every
+trust call on this UNREGISTERED substrate, which would enter at `calibrating`
+maturity; final grounding authority still awaits the Sunday 2026-07-19 reviewer
+sign-off.*
 
 ---
 
@@ -80,21 +84,21 @@ Each slot carries an agent-SUGGESTED value and a one-line reason. **None is a
 decided bound** — each awaits an owner ruling (mirrors the CFD card's D-rulings).
 
 - **(F1) Slenderness bound `L/h` for trusting the Euler-Bernoulli reference.**
-  `TODO-HUMAN` — *suggested:* **L/h ≥ 10.**
+  `RULED (owner, 2026-07-15)` — **L/h ≥ 10.**
   *Reason:* Euler-Bernoulli neglects shear deformation; the shear correction is
   ≲1–2% for L/h ≥ 10 and grows rapidly below it (a stubby beam needs the
   Timoshenko/elasticity solution, not this reference). The exercised beam is
   L/h = 20, comfortably inside.
 
 - **(F2) Linearity bound (max tip-deflection/length ratio counted as in-envelope).**
-  `TODO-HUMAN` — *suggested:* **δ_tip / L ≤ 0.10.**
+  `RULED (owner, 2026-07-15)` — **δ_tip / L ≤ 0.10.**
   *Reason:* the small-deflection static solve assumes deflections small vs
   length; past ~10% geometric nonlinearity (stiffening / follower effects)
   invalidates the linear result. The exercised case is δ/L ≈ 0.003 (0.3%), deep
   in the linear regime.
 
 - **(F3) Mesh-reproduction tolerance any new mesh must hit on the analytic point.**
-  `TODO-HUMAN` — *suggested:* **within 2.0% of Euler-Bernoulli δ** (equivalently,
+  `RULED (owner, 2026-07-15)` — **within 2.0% of Euler-Bernoulli δ** (equivalently,
   no worse than the mesh-8 gap of 1.466%).
   *Reason:* mirrors the CFD card's standing rule that a new resolution must
   reproduce a benchmark point before its numbers are trusted; the exercised
@@ -102,7 +106,7 @@ decided bound** — each awaits an owner ruling (mirrors the CFD card's D-ruling
   still flags a broken one.
 
 - **(F4) `max_von_mises` status pending screening.**
-  `TODO-HUMAN` — *suggested:* **reported-only (NOT validated).**
+  `RULED (owner, 2026-07-15)` — **reported-only (NOT validated).**
   *Reason:* the pointwise maximum sits at the clamped-corner stress
   concentration/singularity and rises with refinement (mesh-suspect); it cannot
   be validated until a benchmark or a masked/sampled alternative clears it
