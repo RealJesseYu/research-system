@@ -44,12 +44,14 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
 import sys
 from pathlib import Path
 
 import cost_meter
 from model_call import call_stage_model, log_stage_call
+from substrates import CAVITY_2D_CONTRACT
 
 _RETRIEVAL_DIR = Path(__file__).resolve().parent.parent / "retrieval"
 if str(_RETRIEVAL_DIR) not in sys.path:
@@ -65,6 +67,58 @@ from web_search import web_search  # noqa: E402
 HAIKU_MODEL = "claude-haiku-4-5-20251001"
 
 TOP_K_PER_SOURCE = 3
+
+# --- R-WIN-1 (R-14-N1): feasibility-nudge seam, PLUMBING ONLY (default off).
+# When FEASIBILITY_NUDGE=on, a FEASIBILITY NUDGE block is attached to the two
+# steering Generation strategies' inputs (literature_exploration and
+# research_expansion — the same channel memory_block rides, per the standing
+# "steering lives in strategies 1 and 4" doctrine). Body = the imported
+# CAVITY_2D_CONTRACT (single source of truth) + the most recent failure memo
+# for this run when one exists + one instruction sentence. AUTO enabling is
+# NOT wired this session — the supervisor is frozen today; it rides the
+# retry-toggle build. With the switch off no feasibility_nudge field is added,
+# so composed inputs are byte-identical to today's.
+FEASIBILITY_NUDGE_ENV = "FEASIBILITY_NUDGE"
+FEASIBILITY_NUDGE_HEADER = "FEASIBILITY NUDGE"
+FEASIBILITY_NUDGE_INSTRUCTION = "Prefer hypotheses this instrument can test as-is."
+FEASIBILITY_MEMO_CAP = 2000
+
+
+def _feasibility_nudge_on() -> bool:
+    """R-WIN-1 switch: env FEASIBILITY_NUDGE == 'on' turns the nudge on;
+    anything else (unset, 'off') leaves it off. Read at call time."""
+    return os.environ.get(FEASIBILITY_NUDGE_ENV, "off") == "on"
+
+
+def read_recent_failure_memo(run_id: str) -> str | None:
+    """Best-effort read of the most recent failure memo for this run, if one
+    exists (runs/<run_id>/*failure_memo*.txt, newest by mtime, length-capped).
+    No producer writes this file this session — the AUTO wiring rides the
+    frozen supervisor's retry-toggle build — so on a live run today this
+    returns None; the seam is here so a future producer only drops a file."""
+    try:
+        memos = sorted(
+            (Path("runs") / run_id).glob("*failure_memo*.txt"),
+            key=lambda p: p.stat().st_mtime,
+        )
+        if not memos:
+            return None
+        text = memos[-1].read_text().strip()
+        return text[:FEASIBILITY_MEMO_CAP] if text else None
+    except Exception:
+        return None
+
+
+def build_feasibility_nudge(run_id: str) -> str:
+    """The FEASIBILITY NUDGE block: header + the imported CAVITY_2D_CONTRACT
+    (single source of truth) + the most recent failure memo for this run when
+    one exists + one instruction sentence to prefer as-is-testable hypotheses."""
+    parts = [FEASIBILITY_NUDGE_HEADER + ":", CAVITY_2D_CONTRACT]
+    memo = read_recent_failure_memo(run_id)
+    if memo:
+        parts.append("MOST RECENT FAILURE MEMO FOR THIS RUN:\n" + memo)
+    parts.append(FEASIBILITY_NUDGE_INSTRUCTION)
+    return "\n\n".join(parts)
 
 # Per-strategy candidate counts. Pool = 4 + 1 + 3 + 2 = 10 candidates.
 LITERATURE_HYPOTHESIS_COUNT = 4
@@ -418,6 +472,8 @@ def strategy_literature_exploration(
         stage_input["prior_observations"] = memory_block
     if meta_review_feedback is not None:
         stage_input["meta_review_feedback"] = meta_review_feedback
+    if _feasibility_nudge_on():
+        stage_input["feasibility_nudge"] = build_feasibility_nudge(run_id)
     data, timing = call_stage_model(
         "stage1_generation_literature",
         LITERATURE_SYSTEM_PROMPT,
@@ -662,6 +718,8 @@ def strategy_research_expansion(
         stage_input["prior_observations"] = memory_block
     if meta_review_feedback is not None:
         stage_input["meta_review_feedback"] = meta_review_feedback
+    if _feasibility_nudge_on():
+        stage_input["feasibility_nudge"] = build_feasibility_nudge(run_id)
     data, timing = call_stage_model(
         "stage1_generation_expansion",
         EXPANSION_SYSTEM_PROMPT,

@@ -81,12 +81,13 @@ ALT_DOMAIN = (
 DOMAINS = {"same": SAME_DOMAIN, "alt": ALT_DOMAIN}
 
 # md5 (first 8 hex chars) of stage1/retrieved_memory.json — the
-# comparability pin for the memory block. Step-18 value, re-derived at
-# 18-prep (2026-07-13) over the post-Run-C journal via the battery's own
+# comparability pin for the memory block. R-WIN-1 value, re-taken at the
+# 2026-07-14 prompt-touch window over the live journal via the battery's own
 # derivation (json.dumps(journal_recent_by_kind("learned_summary", 3),
-# indent=2) -> md5[:8]); covers Run C's two learned summaries + Run B's
-# 00:06Z summary. Both Step-18 arms lock to it. Prior era: 373c886b.
-EXPECTED_MEMORY_MD5 = "073ff57e"
+# indent=2) -> md5[:8]); covers the three most recent learned summaries
+# (run 20260714T152314Z, hypothesis ev1). This begins the R-WIN-1
+# comparability era. Prior eras: 073ff57e (18-prep), 373c886b (diag4a).
+EXPECTED_MEMORY_MD5 = "cf9bb3a2"
 
 DEFAULT_REPEATS = 2          # PROVING size: 2 repeats x 2 domains = 4 runs
 MAX_RELAUNCHES = 2           # extra attempts after an ABORTED run, per slot

@@ -75,11 +75,13 @@ Discipline preserved (same as generation_strategies.py):
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
 from memory.journal import journal_recent_by_kind
 from model_call import call_stage_model, log_stage_call
+from substrates import CAVITY_2D_CONTRACT
 
 _RETRIEVAL_DIR = Path(__file__).resolve().parent.parent / "retrieval"
 if str(_RETRIEVAL_DIR) not in sys.path:
@@ -179,6 +181,57 @@ FULL_REVIEW_SYSTEM_PROMPT = (
     '"critique": "<one sentence on correctness and quality>", '
     '"quality": <integer 1-5>}.'
 )
+
+# --- R-WIN-1: instrument-contract grounding (the h6 fix) + impact lens -------
+# UNCONDITIONAL contract block (new-era baseline, not switched) and a
+# switched IMPACT lens, both grounding the full review — the merit review
+# that feeds the deterministic filter's novelty/quality/critique. Single
+# source of truth: the block body IS the imported CAVITY_2D_CONTRACT
+# (never a pasted copy — hard rule (a)). No new kill path: the lens and the
+# contract steer the quality/critique judgment, they add no discard branch.
+INSTRUMENT_CONTRACT_HEADER = (
+    "INSTRUMENT CONTRACT (what the available instrument can actually measure)"
+)
+INSTRUMENT_CONTRACT_INSTRUCTION = (
+    "Candidates whose test requires measurements outside this contract must be "
+    "treated as weaker bets, stated in the reasoning."
+)
+
+
+def instrument_contract_block() -> str:
+    """The delimited instrument-contract block appended to grounded reviews.
+    Body = the imported CAVITY_2D_CONTRACT verbatim (single source of truth)."""
+    return (
+        "\n\n" + INSTRUMENT_CONTRACT_HEADER + ":\n"
+        + CAVITY_2D_CONTRACT + "\n"
+        + INSTRUMENT_CONTRACT_INSTRUCTION
+    )
+
+
+CRITERIA_IMPACT_ENV = "CRITERIA_IMPACT"
+
+IMPACT_LENS = (
+    "Also apply an IMPACT lens: if this hypothesis were true, who would change "
+    "what they do — whose decision or practice would shift? Let a hypothesis "
+    "whose truth would concretely change what someone does weigh up in your "
+    "quality judgment, and name this in your critique. "
+)
+
+_FULL_REVIEW_REPLY_MARKER = "Reply ONLY with JSON"
+
+
+def compose_full_review_prompt() -> str:
+    """R-WIN-1: the full-review system prompt grounded in the instrument
+    contract (UNCONDITIONAL, appended) and — when CRITERIA_IMPACT=1 — carrying
+    the IMPACT lens (inserted into the judging section before the reply spec).
+    With the impact switch off the only difference from today's prompt is the
+    appended contract block (asserted separately in the byte-identity test)."""
+    prompt = FULL_REVIEW_SYSTEM_PROMPT
+    if os.environ.get(CRITERIA_IMPACT_ENV, "0") == "1":
+        idx = prompt.index(_FULL_REVIEW_REPLY_MARKER)
+        prompt = prompt[:idx] + IMPACT_LENS + prompt[idx:]
+    return prompt + instrument_contract_block()
+
 
 DEEP_VERIFICATION_SYSTEM_PROMPT = (
     "You are the deep-verification unit of the Reflection stage in an autonomous research "
@@ -542,7 +595,7 @@ def full_review(
         stage_input["meta_review_feedback"] = feedback_block
     data, timing = call_stage_model(
         f"stage1_reflection_full_{hypothesis['id']}",
-        FULL_REVIEW_SYSTEM_PROMPT,
+        compose_full_review_prompt(),
         stage_input,
         {
             "required": [

@@ -99,6 +99,7 @@ from __future__ import annotations
 
 import itertools
 import json
+import os
 import random
 import shutil
 from pathlib import Path
@@ -168,6 +169,55 @@ DEBATE_JUDGE_SYSTEM_PROMPT = (
     '"winner_id": "<the id of the hypothesis you judge more promising>", '
     '"reason": "<one decisive sentence>"}.'
 )
+
+# --- R-WIN-1 (R-18-2): toggleable rubric 18.6 criteria for tournament judges.
+# IMPACT and ALIGNMENT are each a separately switched axis added to the judge
+# rubric (the RANKING and DEBATE-JUDGE prompts). Both default OFF; with both
+# off, compose_judge_prompt returns the base prompt BYTE-IDENTICAL (proven by
+# tests/test_rwin1_prompts.py). When on, the criterion sentence is inserted
+# into the judging section (before the "Reply ONLY with JSON" reply spec), so
+# the judge weighs it in the verdict reason, id-referenced per the standing
+# id-hygiene rule. NO new kill path: these steer comparative verdicts only.
+CRITERIA_IMPACT_ENV = "CRITERIA_IMPACT"
+CRITERIA_ALIGNMENT_ENV = "CRITERIA_ALIGNMENT"
+
+IMPACT_CRITERION = (
+    "Also weigh IMPACT: if this hypothesis were true, who would change what they "
+    "do — whose decision or practice would shift? Prefer the hypothesis whose "
+    "truth would more concretely change what someone does, and reference this "
+    "axis by hypothesis id in your reason when it bears on the verdict. "
+)
+
+ALIGNMENT_CRITERION = (
+    "Also weigh ALIGNMENT: does the hypothesis answer what the research domain "
+    "actually asked, rather than an easier or adjacent question? Prefer the "
+    "better-aligned hypothesis, and reference this axis by hypothesis id in your "
+    "reason when it bears on the verdict. "
+)
+
+_JUDGE_REPLY_MARKER = "Reply ONLY with JSON"
+
+
+def _env_on(name: str) -> bool:
+    """R-WIN-1 switch read: env var == '1' turns the criterion on; anything
+    else (unset, '0') leaves it off. Read at call time, not import time."""
+    return os.environ.get(name, "0") == "1"
+
+
+def compose_judge_prompt(base: str) -> str:
+    """R-WIN-1: return the judge system prompt with the enabled rubric-18.6
+    criteria (IMPACT / ALIGNMENT) inserted before the reply-format spec.
+    With both switches off, returns `base` unchanged and byte-identical."""
+    additions = ""
+    if _env_on(CRITERIA_IMPACT_ENV):
+        additions += IMPACT_CRITERION
+    if _env_on(CRITERIA_ALIGNMENT_ENV):
+        additions += ALIGNMENT_CRITERION
+    if not additions:
+        return base
+    idx = base.index(_JUDGE_REPLY_MARKER)
+    return base[:idx] + additions + base[idx:]
+
 
 MAX_SURVIVORS = 4
 
@@ -302,7 +352,7 @@ def _single_turn_judge(
     }
     rank_data, rank_timing = call_stage_model(
         "stage1_tournament_judge",
-        RANKING_SYSTEM_PROMPT_V2,
+        compose_judge_prompt(RANKING_SYSTEM_PROMPT_V2),
         rank_input,
         rank_schema,
         model=OPUS_MODEL,
@@ -385,7 +435,7 @@ def _debate_once(
     }
     judge_data, judge_timing = call_stage_model(
         "stage1_tournament_debate_turn3",
-        DEBATE_JUDGE_SYSTEM_PROMPT,
+        compose_judge_prompt(DEBATE_JUDGE_SYSTEM_PROMPT),
         judge_input,
         judge_schema,
         model=OPUS_MODEL,

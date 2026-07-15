@@ -71,10 +71,12 @@ On a run that completes, a small fixed summary — never the full solver log:
 On a failed run: converged is false and only a bounded set of error lines
 (at most 40) explaining the failure is returned. A run is killed after 600
 seconds of wall-clock time and reported as a failure.
-Indicative cost, measured in Step 12 from two production mini-runs on this
-substrate (64x64 mesh, deltaT 0.005 s, endTime 20 s, transient): solver
-ExecutionTime 9.2-9.3 s per run, run_cfd wall-clock 11.4-11.6 s per run —
-the wall-clock includes container exec, meshing, and log-parsing overhead.
+Indicative cost, measured on this substrate (64x64 mesh, transient): the
+per-step solver rate is a RANGE of 2.3-4.1 ms/step, not a single fixed rate,
+and wall-clock time scales with Reynolds number — measured points are ~9.2-9.3 s
+for baseline short runs and 161-175 s for Re 100-1600 sweep runs (the latter
+versus the ~95 s a stale single-rate estimate once predicted). Wall-clock
+includes container exec, meshing, and log-parsing overhead.
 
 4. HONEST LIMITS
   - 2D laminar flow only. There are no turbulence models; a case whose

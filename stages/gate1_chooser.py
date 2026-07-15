@@ -37,9 +37,41 @@ import json
 from pathlib import Path
 
 from model_call import call_stage_model, log_stage_call
+from substrates import CAVITY_2D_CONTRACT
 
 # Step-23 ruled pin: the chooser is a hard judgment, so it rides Opus.
 CHOOSER_MODEL = "claude-opus-4-8"
+
+# --- R-WIN-1: instrument-contract grounding (the h6 fix), UNCONDITIONAL ------
+# The chooser is grounded in what the instrument can actually measure so it
+# does not advance a hypothesis whose test is out of contract. Single source
+# of truth: the body IS the imported CAVITY_2D_CONTRACT (never a pasted copy).
+# New-era baseline, not switched. No new failure path — the fallback-to-rank-1
+# contract is untouched.
+INSTRUMENT_CONTRACT_HEADER = (
+    "INSTRUMENT CONTRACT (what the available instrument can actually measure)"
+)
+INSTRUMENT_CONTRACT_INSTRUCTION = (
+    "Candidates whose test requires measurements outside this contract must be "
+    "treated as weaker bets, stated in the reasoning."
+)
+
+
+def instrument_contract_block() -> str:
+    """The delimited instrument-contract block appended to the chooser prompt.
+    Body = the imported CAVITY_2D_CONTRACT verbatim (single source of truth)."""
+    return (
+        "\n\n" + INSTRUMENT_CONTRACT_HEADER + ":\n"
+        + CAVITY_2D_CONTRACT + "\n"
+        + INSTRUMENT_CONTRACT_INSTRUCTION
+    )
+
+
+def compose_chooser_prompt() -> str:
+    """R-WIN-1: the chooser system prompt grounded in the instrument contract.
+    Differs from today's SYSTEM_PROMPT only by the appended contract block
+    (asserted in the byte-identity test)."""
+    return SYSTEM_PROMPT + instrument_contract_block()
 
 SYSTEM_PROMPT = """You are the gate-1 chooser for an autonomous research system. Stage 1 produced a ranked list of surviving hypotheses; the rank order came from a pairwise Elo tournament. Your job is one hard judgment: choose the single hypothesis this run should advance into experiment design.
 
@@ -158,7 +190,7 @@ def choose_hypothesis(run_id: str, hypotheses: list, run_dir: Path) -> dict:
         valid_ids = {h["id"] for h in hypotheses}
         data, timing = call_stage_model(
             "gate1_chooser",
-            SYSTEM_PROMPT,
+            compose_chooser_prompt(),
             stage_input,
             SCHEMA,
             model=CHOOSER_MODEL,
