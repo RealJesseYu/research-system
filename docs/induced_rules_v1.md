@@ -69,3 +69,31 @@ One Opus pass (`META_INDUCE_MODEL = claude-opus-4-8`, R-MI-1) over a determinist
 - provenance basis: `measured`
 - suggested scope: Numerical-stability pre-check on time_step/mesh_resolution before solver dispatch
 - supporting artifacts: PI-GATE SWEEP SUMMARY, ANOMALY-SCANNER FINDINGS, handfeed4-20260704T083221Z, handfeed4-20260706T045314Z
+
+---
+
+## Strategist review (2026-07-14)
+
+These eight rules are **proposals, not adopted policy.** They are advisory
+sidecar output from one Opus meta-induction pass; nothing any pipeline model
+sees was changed by them, and **adoption of any rule as a real gate, prompt
+edit, or retrieval block requires a recorded ruling** — same discipline as a
+frozen prompt or a locked schema. Until then they are hypotheses about the
+system's behavior, held for review.
+
+**R6 is flagged partially confounded.** R6 reads the fidelity ledger's 18
+unresolved outcomes (Brier uncomputable, `n_resolved=0`) as evidence that
+"designs on this substrate systematically fail to reach an executed, scored
+outcome." That inference over-reaches. The `outcome: null` field is null because
+there is **no real-world scoring channel wired yet** — resolving a gate bet
+against a faithful/usable ground-truth label is a **Step-21 schema slot awaiting
+real-world results**, not a record that runs did not execute. In fact six run
+directories did execute the solver (see `docs/step25_failure_bins.md`
+composition note). "All 18 unresolved" is a missing-label artifact, not
+non-execution.
+
+**R6's real support is the verdict mix, not the unresolved count:** 13 defer /
+5 refine / **0 trust** across the ledger. Zero designs earned a clean trust
+verdict on this substrate — *that* is legitimate evidence about throughput and
+instrument-fit, and it stands independently of the scoring gap. Read R6 as "no
+design has cleared to trust on cavity_2d," not as "designs don't execute."
