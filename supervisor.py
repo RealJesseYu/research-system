@@ -141,6 +141,19 @@ def record_run_outcome(baton: Baton, how_far: str, retry_on_total_defer: int = 0
     if retry_on_total_defer:
         text += f", retry_on_total_defer={retry_on_total_defer}"
         extras["retry_on_total_defer"] = retry_on_total_defer
+    # STEP 28: the substrate-maturity hook (apply_substrate_maturity_hook)
+    # stashes its signoff decision on the baton as a NON-payload attribute
+    # (the payload schema is locked; this fact never travels the baton). When
+    # a trust decision touched a non-mature substrate, every terminal
+    # run_record carries needs_human_signoff prominently — in extras and in
+    # the human-readable text. No hook / mature-only route => key absent =>
+    # record byte-identical to the pre-Step-28 shape.
+    signoff = getattr(baton, "_maturity_signoff", None)
+    if isinstance(signoff, dict) and signoff.get("required"):
+        rungs = signoff.get("substrates") or []
+        extras["needs_human_signoff"] = True
+        extras["needs_human_signoff_substrates"] = rungs
+        text += f", needs_human_signoff=[{', '.join(rungs)}]"
     # Phase-1 Lane-2: blank-memory disclosure. When the ablation is active
     # (env BLANK_MEMORY=1, default off) the run_record carries blank_memory=true
     # prominently — both in extras and in the human-readable text — so the
@@ -185,6 +198,70 @@ def is_total_defer(baton: Baton) -> bool:
     runs = exec_res.get("runs")
     zero_executed = not runs  # None / missing / empty list -> nothing ran
     return verdict == "defer" and zero_executed
+
+
+def apply_substrate_maturity_hook(logger: Logger, baton: Baton, mode: str) -> None:
+    """STEP 28: the substrate-maturity routing hook. CODE — not prompt text —
+    intercepting the trust decision the moment the stage-3 fidelity verdict is
+    produced and validated, BEFORE stage 4 consumes it.
+
+    A trust decision is a trust/refine verdict (a defer verdict routes to no
+    substrate, so there is nothing to gate). The substrates a run may route to
+    are read STRUCTURALLY from the registry's routable set — never parsed from
+    the payload's substrate names, which would violate the substrate-agnostic
+    invariant. Today the routable set is exactly ('cavity_2d_cfd',), which is
+    'provisional' == non-mature.
+
+    If ANY routable substrate is non-mature the trust decision is human-
+    required: a NEEDS_HUMAN_SIGNOFF line is logged (a display) and the fact is
+    stashed on the baton (a NON-payload attribute — the payload schema is
+    locked) so every terminal run_record and the human gate carry it.
+
+    Mode behavior:
+      * human — the verdict is UNTOUCHED. A human sits at every gate; the
+        hook's only effect is the explicit needs_human_signoff line in
+        records/displays, so existing human-mode routing is byte-identical.
+      * auto  — the trust/refine verdict is DOWNGRADED to 'defer' in place, so
+        stage 4 runs its existing defer-class handling (skipped_defer, nothing
+        executed). The substrate is NEVER silently trusted; the downgrade is
+        logged. (rationale/right_instrument are left as the model wrote them —
+        the override is documented by the log line and the run record, not by
+        rewriting model-authored text.)
+
+    All-mature route (no substrate today, but the future path): returns having
+    touched nothing — verdict, baton, and logs unchanged.
+    """
+    from tools import substrate_registry as registry
+
+    verdict = baton.payload.get("fidelity_verdict")
+    if not isinstance(verdict, dict):
+        return
+    label = verdict.get("label")
+    if label not in ("trust", "refine"):
+        return  # not a trust decision — a defer verdict routes to no substrate
+
+    non_mature = [sid for sid in registry.routable_ids() if not registry.is_mature(sid)]
+    if not non_mature:
+        return  # every routable substrate is mature: byte-identical, nothing to do
+
+    rungs = [f"{sid}@{registry.maturity_of(sid)}" for sid in non_mature]
+    baton._maturity_signoff = {  # NON-payload attribute; asdict() ignores it
+        "required": True,
+        "substrates": rungs,
+        "verdict_label_at_hook": label,
+        "mode": mode,
+    }
+    logger.log(
+        "NEEDS_HUMAN_SIGNOFF: stage-3 trust decision "
+        f"(verdict={label}) touches non-mature substrate(s): {', '.join(rungs)}"
+    )
+    if mode == "auto":
+        verdict["label"] = "defer"
+        logger.log(
+            f"MATURITY_DOWNGRADE [auto]: verdict {label} -> defer — non-mature "
+            f"{', '.join(rungs)}; routed to existing defer-class handling, "
+            "never silently trusted"
+        )
 
 
 def enforce_boundary_schema(logger: Logger, baton: Baton, boundary: str, validator) -> None:
@@ -429,6 +506,30 @@ def build_gate1_chooser_advisory(record: dict) -> str:
         return "---- CHOOSER ADVISORY unavailable ----"
 
 
+def build_maturity_signoff_display(baton: Baton) -> str:
+    """STEP 28 gate display: surface the substrate-maturity signoff requirement
+    at the human gate. Reads the NON-payload attribute the hook stashed (the
+    payload schema is locked, so the fact does not travel the payload); returns
+    "" when no signoff was required, so gates render exactly as before Step 28.
+    Same never-raise contract as the other gate display helpers.
+    """
+    signoff = getattr(baton, "_maturity_signoff", None)
+    if not (isinstance(signoff, dict) and signoff.get("required")):
+        return ""
+    rungs = ", ".join(signoff.get("substrates") or [])
+    return "\n".join(
+        [
+            "==================================",
+            "!! NEEDS HUMAN SIGN-OFF: trust decision touched a non-mature "
+            "substrate !!",
+            f"  non-mature: {rungs}",
+            "  a trust/refine verdict here may only proceed on your explicit "
+            "sign-off",
+            "==================================",
+        ]
+    )
+
+
 def run_gate(logger: Logger, baton: Baton, mode: str, gate_name: str) -> bool:
     """Handle one gate. Returns True to continue, False to halt.
 
@@ -531,6 +632,9 @@ def run_gate5(logger: Logger, baton: Baton, mode: str) -> tuple:
         return ("enact", model_decision, "accepted")
 
     logger.log(build_gate5_header(baton.payload))
+    signoff_display = build_maturity_signoff_display(baton)
+    if signoff_display:
+        logger.log(signoff_display)
     logger.log(f"--- baton at gate {gate_name} ---")
     logger.log(baton.to_json())
     logger.log("--- end baton ---")
@@ -894,6 +998,14 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
                 f"stage {stage_number}{pass_label}",
                 STAGE_BOUNDARY_VALIDATORS[stage_number],
             )
+
+        # STEP 28: the substrate-maturity routing hook fires the moment the
+        # stage-3 verdict is validated, BEFORE stage 4 consumes it. There is
+        # no human gate between stage 3 and stage 4, so this is a pure code
+        # seam; it may downgrade the verdict (auto mode) and always records
+        # the signoff requirement for the run record + the gate-5 display.
+        if stage_number == 3:
+            apply_substrate_maturity_hook(logger, baton, mode)
 
         if i in GATE_AFTER_STAGE_INDEX:
             gate_name = f"after_stage_{stage_number}"

@@ -268,8 +268,15 @@ class TestLoopBound(LoopControllerCase):
         self.assertIn("iterate_decision", final_payload)
         self.assertIn("fidelity_verdict", final_payload)
         # Sidecar class correct: it reflects the last fidelity verdict class.
-        self.assertEqual(final_payload["fidelity_verdict"]["label"], "trust")
-        self.assertIn("validation sidecar class=trust", log)
+        # STEP 28: this drive runs in AUTO mode, and the stub verdict is
+        # 'trust'. cavity_2d_cfd (the sole routable substrate) is 'provisional'
+        # == non-mature, so the substrate-maturity hook DOWNGRADES the trust
+        # verdict to defer-class handling (never silently trusted) before
+        # stage 4 — the deliberate Step-28 auto-mode behavior. The sidecar
+        # therefore reflects the downgraded class.
+        self.assertEqual(final_payload["fidelity_verdict"]["label"], "defer")
+        self.assertIn("validation sidecar class=defer", log)
+        self.assertIn("MATURITY_DOWNGRADE [auto]", log)
         # Paper path surfaced before the run-end line.
         self.assertIn("stage6/paper.md", log)
         self.assertIn("lint verdict=clean", log)
