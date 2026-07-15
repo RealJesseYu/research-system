@@ -159,7 +159,7 @@ class LoopControllerCase(unittest.TestCase):
         # these tests exercise loop control only, with zero model spend.
         with patch(
             "supervisor.record_run_outcome",
-            side_effect=lambda b, how_far: outcomes.append(how_far),
+            side_effect=lambda b, how_far, retry=0: outcomes.append(how_far),
         ), patch(
             "supervisor.gate1_chooser.choose_hypothesis",
             side_effect=lambda run_id, hyps, run_dir: {

@@ -65,6 +65,20 @@ MAX_GATE1_INVALID_ANSWERS = 3
 # per run; a further non-exit decision forces a stop with a recommendation.
 MAX_LOOPBACKS = 2
 
+# 19-lite / retry build: retry-on-total-defer. Auto mode ONLY, env-gated,
+# DEFAULT OFF. A "total defer" is a run terminating with ZERO executed solver
+# runs and a final fidelity verdict class of "defer" — the pipeline produced
+# no experiment at all. When RETRY_ON_TOTAL_DEFER=1 (auto mode), such a run
+# loops back to Stage 1 exactly ONCE (its own counter, NOT the loop-bound
+# counter), with the feasibility nudge forced on for that one retried ideation
+# pass. A second total-defer terminates normally. Human mode ignores the flag.
+RETRY_ON_TOTAL_DEFER_ENV = "RETRY_ON_TOTAL_DEFER"
+MAX_TOTAL_DEFER_RETRIES = 1
+# The Generation feasibility-nudge switch (stages/generation_strategies.py reads
+# this env at call time); the retry forces it on for the retried pass only.
+FEASIBILITY_NUDGE_ENV = "FEASIBILITY_NUDGE"
+_UNSET = object()  # sentinel: no pending nudge-env restore
+
 # Gate-5 override letters -> iterate decisions (Step 16).
 GATE5_OVERRIDES = {
     "b": "back_to_design",
@@ -110,10 +124,13 @@ def make_run_id() -> str:
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
 
-def record_run_outcome(baton: Baton, how_far: str) -> None:
+def record_run_outcome(baton: Baton, how_far: str, retry_on_total_defer: int = 0) -> None:
     """Append one run_record to the journal: deterministic bookkeeping, no AI involved.
 
     `how_far` is e.g. "completed" or "halted at gate after_stage_2".
+    `retry_on_total_defer` (19-lite/retry build): number of total-defer retries
+    this run consumed; when >0 it is stamped into the record's extras and text.
+    Default 0 keeps the record byte-identical to the pre-build shape.
     """
     iterate_decision = baton.payload.get("iterate_decision")
     text = f"run {baton.run_id} ({baton.mode} mode): {how_far}"
@@ -121,6 +138,9 @@ def record_run_outcome(baton: Baton, how_far: str) -> None:
     if iterate_decision is not None:
         text += f", iterate_decision={iterate_decision}"
         extras["iterate_decision"] = iterate_decision
+    if retry_on_total_defer:
+        text += f", retry_on_total_defer={retry_on_total_defer}"
+        extras["retry_on_total_defer"] = retry_on_total_defer
     # Phase-1 Lane-2: blank-memory disclosure. When the ablation is active
     # (env BLANK_MEMORY=1, default off) the run_record carries blank_memory=true
     # prominently — both in extras and in the human-readable text — so the
@@ -130,6 +150,41 @@ def record_run_outcome(baton: Baton, how_far: str) -> None:
         extras["blank_memory"] = True
         text = f"[BLANK_MEMORY] {text}"
     journal_append({"run_id": baton.run_id, "kind": "run_record", "text": text, "extras": extras})
+
+
+def _run_dir_for(baton: Baton) -> Path:
+    """The canonical run directory for a baton — the same path main() creates."""
+    return Path("runs") / str(baton.run_id)
+
+
+def write_failure_memo_safe(logger: Logger, run_dir: Path) -> None:
+    """Write a code-authored failure memo, defensively. Step 4 (19-lite/retry
+    build): a memo is record-keeping, written at every terminal outcome that is
+    NOT a clean exit — but its write must never mask or replace the original
+    failure path, so any error is logged and swallowed (nothing new is raised).
+    The producer itself never raises; this is belt-and-suspenders."""
+    try:
+        from tools.failure_memo import write_failure_memo
+
+        path = write_failure_memo(run_dir)
+        if path is not None:
+            logger.log(f"FAILURE-MEMO written -> {path.name}")
+        else:
+            logger.log("FAILURE-MEMO: nothing written (no run artifacts on disk)")
+    except Exception as exc:  # never let record-keeping break the failure path
+        logger.log(f"FAILURE-MEMO write skipped ({type(exc).__name__}: {exc})")
+
+
+def is_total_defer(baton: Baton) -> bool:
+    """True iff the run is terminating with ZERO executed solver runs AND a
+    final fidelity verdict class of 'defer' (19-lite/retry build). Zero executed
+    = the execution_results carries no non-empty runs list (a defer verdict
+    produces skipped_defer with no runs)."""
+    verdict = (baton.payload.get("fidelity_verdict") or {}).get("label")
+    exec_res = baton.payload.get("execution_results") or {}
+    runs = exec_res.get("runs")
+    zero_executed = not runs  # None / missing / empty list -> nothing ran
+    return verdict == "defer" and zero_executed
 
 
 def enforce_boundary_schema(logger: Logger, baton: Baton, boundary: str, validator) -> None:
@@ -145,6 +200,7 @@ def enforce_boundary_schema(logger: Logger, baton: Baton, boundary: str, validat
     errors = validator(baton.payload)
     if errors:
         logger.log(f"SCHEMA VIOLATION after {boundary}: {errors}")
+        write_failure_memo_safe(logger, _run_dir_for(baton))
         record_run_outcome(baton, f"halted: schema violation after {boundary}")
         logger.log(
             f"=== supervisor run {baton.run_id} HALTED: schema violation "
@@ -178,6 +234,7 @@ def run_single_stage(logger: Logger, baton: Baton, name: str, stage_fn) -> Baton
         )
         for tb_line in traceback.format_exc().splitlines()[-5:]:
             logger.log(f"STAGE-CRASH | {tb_line}")
+        write_failure_memo_safe(logger, _run_dir_for(baton))
         record_run_outcome(
             baton, f"crashed at {name}: {type(exc).__name__}: {first_line}"
         )
@@ -793,6 +850,12 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
     execution_counts: dict[int, int] = {}
     loopbacks_used = 0
     forced_exit_reason = None  # R-14-G2: set to "loop_bound" on a cap exit
+    # 19-lite/retry build: total-defer retry counter (SEPARATE from
+    # loopbacks_used — hard rule c) and the env flag. Flag off (or human mode)
+    # => the retry branch is never entered and control flow is byte-identical.
+    retry_used = 0
+    retry_enabled = mode == "auto" and os.environ.get(RETRY_ON_TOTAL_DEFER_ENV) == "1"
+    pending_nudge_restore = _UNSET  # env value to restore after the retried pass
     i = 0
     while i < len(stages):
         name, stage_fn = stages[i]
@@ -800,6 +863,17 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
 
         baton = run_single_stage(logger, baton, name, stage_fn)
         baton.validate()
+
+        # 19-lite/retry build: the retried ideation pass ran with the nudge
+        # forced on; restore the FEASIBILITY_NUDGE env the moment Stage 1
+        # (stage_number 1) returns, so the force never leaks past this one pass.
+        if pending_nudge_restore is not _UNSET and stage_number == 1:
+            if pending_nudge_restore is None:
+                os.environ.pop(FEASIBILITY_NUDGE_ENV, None)
+            else:
+                os.environ[FEASIBILITY_NUDGE_ENV] = pending_nudge_restore
+            logger.log("RETRY_ON_TOTAL_DEFER: feasibility nudge env restored after retried Stage 1")
+            pending_nudge_restore = _UNSET
 
         execution_counts[stage_number] = execution_counts.get(stage_number, 0) + 1
         pass_number = execution_counts[stage_number]
@@ -827,6 +901,7 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
                 outcome = run_gate1(logger, baton, mode)
                 if outcome[0] == "halt":
                     logger.log(f"=== supervisor run {baton.run_id} HALTED at gate {gate_name} ===")
+                    write_failure_memo_safe(logger, run_dir)
                     record_run_outcome(baton, f"halted at gate {gate_name}")
                     sys.exit(0)
                 apply_gate1_selection(logger, baton, mode, outcome[1], run_dir, pass_number)
@@ -843,6 +918,7 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
                 should_continue = run_gate(logger, baton, mode, gate_name)
                 if not should_continue:
                     logger.log(f"=== supervisor run {baton.run_id} HALTED at gate {gate_name} ===")
+                    write_failure_memo_safe(logger, run_dir)
                     record_run_outcome(baton, f"halted at gate {gate_name}")
                     sys.exit(0)
             else:  # after_stage_5: the iterate decision (Step 16)
@@ -850,6 +926,7 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
                 outcome = run_gate5(logger, baton, mode)
                 if outcome[0] == "halt":
                     logger.log(f"=== supervisor run {baton.run_id} HALTED at gate {gate_name} ===")
+                    write_failure_memo_safe(logger, run_dir)
                     record_run_outcome(baton, f"halted at gate {gate_name}")
                     sys.exit(0)
                 _, enacted, how = outcome
@@ -857,6 +934,39 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
                     f"GATE after_stage_5 [{mode}]: model={model_decision} "
                     f"enacted={enacted} ({how})"
                 )
+                # 19-lite/retry build (Step 5): retry-on-total-defer. This gate-5
+                # resolution TERMINATES the run when it enacts exit/more_data, or
+                # when a loop-back is enacted but the loop bound is already spent
+                # (forced exit). If such a terminating resolution is a total
+                # defer (0 executed runs, defer verdict) and the flag is on in
+                # auto mode with the retry budget unspent, write the memo and
+                # loop back to Stage 1 ONCE — feasibility nudge forced on for the
+                # retried pass, its env restored the moment that pass's Stage 1
+                # returns. loopbacks_used is deliberately untouched (hard rule c).
+                terminating = enacted in ("exit", "more_data") or (
+                    enacted in ("back_to_design", "back_to_ideation")
+                    and loopbacks_used >= MAX_LOOPBACKS
+                )
+                if (
+                    retry_enabled
+                    and retry_used < MAX_TOTAL_DEFER_RETRIES
+                    and terminating
+                    and is_total_defer(baton)
+                ):
+                    write_failure_memo_safe(logger, run_dir)
+                    retry_used += 1
+                    pending_nudge_restore = os.environ.get(FEASIBILITY_NUDGE_ENV)
+                    os.environ[FEASIBILITY_NUDGE_ENV] = "on"
+                    baton.payload = {"domain": baton.payload["domain"]}
+                    baton.validate()
+                    logger.log(
+                        "RETRY_ON_TOTAL_DEFER: total defer (0 executed runs, defer "
+                        f"verdict) — retry {retry_used}/{MAX_TOTAL_DEFER_RETRIES}, "
+                        "feasibility nudge forced on for the retried Stage 1; "
+                        "looping back to stage 1"
+                    )
+                    i = 0
+                    continue
                 if enacted == "more_data":
                     logger.log(
                         "MORE_DATA requires Phase-C experimentation intelligence "
@@ -866,7 +976,8 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
                         f"=== supervisor run {baton.run_id} ended (more_data, "
                         f"unwired): {len(baton.history)} history entries ==="
                     )
-                    record_run_outcome(baton, "completed_more_data_unwired")
+                    write_failure_memo_safe(logger, run_dir)
+                    record_run_outcome(baton, "completed_more_data_unwired", retry_used)
                     return
                 if enacted in ("back_to_design", "back_to_ideation"):
                     if loopbacks_used >= MAX_LOOPBACKS:
@@ -919,13 +1030,19 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
             f"=== supervisor run {baton.run_id} ended (loop bound, forced exit "
             f"through stage 6): {len(baton.history)} history entries ==="
         )
-        record_run_outcome(baton, "completed_loop_bound_forced_exit")
+        write_failure_memo_safe(logger, run_dir)
+        record_run_outcome(baton, "completed_loop_bound_forced_exit", retry_used)
         return
 
     logger.log(
         f"=== supervisor run {baton.run_id} complete: {len(baton.history)} history entries ==="
     )
-    record_run_outcome(baton, "completed")
+    # 19-lite/retry build: a "completed" run that is nonetheless a total defer
+    # (defer verdict, nothing executed) is NOT a clean exit — leave a memo. A
+    # genuinely clean completion (real execution) gets none.
+    if is_total_defer(baton):
+        write_failure_memo_safe(logger, run_dir)
+    record_run_outcome(baton, "completed", retry_used)
 
 
 def main() -> None:

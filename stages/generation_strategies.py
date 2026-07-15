@@ -68,16 +68,20 @@ HAIKU_MODEL = "claude-haiku-4-5-20251001"
 
 TOP_K_PER_SOURCE = 3
 
-# --- R-WIN-1 (R-14-N1): feasibility-nudge seam, PLUMBING ONLY (default off).
-# When FEASIBILITY_NUDGE=on, a FEASIBILITY NUDGE block is attached to the two
-# steering Generation strategies' inputs (literature_exploration and
-# research_expansion — the same channel memory_block rides, per the standing
-# "steering lives in strategies 1 and 4" doctrine). Body = the imported
+# --- R-WIN-1 (R-14-N1): feasibility-nudge seam, PLUMBING (default off).
+# When FEASIBILITY_NUDGE=on, a FEASIBILITY NUDGE block is attached to EVERY
+# Generation strategy that composes a generation prompt: literature_exploration
+# and research_expansion (the two steering strategies, where memory_block also
+# rides) AND simulated_debate + assumptions_identification (extended in the
+# 19-lite/retry build per the R-WIN-1 nudge-seam audit — the nudge is about
+# instrument feasibility, not journal memory, so unlike memory_block it is not
+# scoped to strategies 1 and 4; a nudge that skipped half the pool would leave
+# those hypotheses free to keep drifting infeasible). Body = the imported
 # CAVITY_2D_CONTRACT (single source of truth) + the most recent failure memo
-# for this run when one exists + one instruction sentence. AUTO enabling is
-# NOT wired this session — the supervisor is frozen today; it rides the
-# retry-toggle build. With the switch off no feasibility_nudge field is added,
-# so composed inputs are byte-identical to today's.
+# for this run when one exists + one instruction sentence. With the switch off
+# no feasibility_nudge field is added, so composed inputs are byte-identical to
+# today's. The retry-on-total-defer path (supervisor.py) forces the switch on
+# for a single retried ideation pass; env is restored after.
 FEASIBILITY_NUDGE_ENV = "FEASIBILITY_NUDGE"
 FEASIBILITY_NUDGE_HEADER = "FEASIBILITY NUDGE"
 FEASIBILITY_NUDGE_INSTRUCTION = "Prefer hypotheses this instrument can test as-is."
@@ -541,6 +545,8 @@ def strategy_simulated_debate(
         }
         if meta_review_feedback is not None:
             stage_input["meta_review_feedback"] = meta_review_feedback
+        if _feasibility_nudge_on():
+            stage_input["feasibility_nudge"] = build_feasibility_nudge(run_id)
         data, timing = call_stage_model(
             f"stage1_generation_debate_turn{turn}",
             DEBATE_SYSTEM_PROMPT,
@@ -598,6 +604,8 @@ def strategy_assumptions_identification(
     identify_input = {"run_id": run_id, "domain": domain}
     if meta_review_feedback is not None:
         identify_input["meta_review_feedback"] = meta_review_feedback
+    if _feasibility_nudge_on():
+        identify_input["feasibility_nudge"] = build_feasibility_nudge(run_id)
     identify_data, identify_timing = call_stage_model(
         "stage1_generation_assumptions_identify",
         ASSUMPTIONS_IDENTIFY_SYSTEM_PROMPT,
@@ -642,6 +650,8 @@ def strategy_assumptions_identification(
     aggregate_input = {"run_id": run_id, "domain": domain, "assumptions": numbered}
     if meta_review_feedback is not None:
         aggregate_input["meta_review_feedback"] = meta_review_feedback
+    if _feasibility_nudge_on():
+        aggregate_input["feasibility_nudge"] = build_feasibility_nudge(run_id)
     aggregate_data, aggregate_timing = call_stage_model(
         "stage1_generation_assumptions_aggregate",
         ASSUMPTIONS_AGGREGATE_SYSTEM_PROMPT,

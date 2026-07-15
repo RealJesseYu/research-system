@@ -44,3 +44,15 @@ Model-visible changes made in this window:
 Era id: the single commit that lands this window (its hash is recorded in the
 git log for this session; not embedded here, since a commit cannot contain its
 own hash). All contract blocks IMPORT CAVITY_2D_CONTRACT — no pasted copy.
+
+## 19-lite / retry follow-on (rides era f9dd2ca — no new era)
+
+- FEASIBILITY_NUDGE seam coverage EXTENDED from the two steering strategies
+  (literature_exploration, research_expansion) to ALL four prompt-composing
+  Generation strategies — simulated_debate and assumptions_identification now
+  carry the same switch and the same nudge block. This changes only the seam's
+  COVERAGE, not the block text (still the imported CAVITY_2D_CONTRACT + recent
+  failure memo + one instruction sentence), so it rides era f9dd2ca's existing
+  FEASIBILITY_NUDGE disclosure and opens no new comparability era. With the
+  switch off (default) all composed inputs remain byte-identical to era
+  f9dd2ca's.
