@@ -1,0 +1,30 @@
+# Code-execution sandbox image for the sklearn_eval wrapper (Step 28.5 DRY).
+#
+# Mirrors the of12-img / ccx-img pattern (a pinned base + one deterministic build
+# step), but the RUNTIME model is deliberately different from of12-prod/ccx-prod:
+# there is NO long-lived container. Each job runs in its own EPHEMERAL container
+# (docker run --rm) so the wrapper can set --network=none, --memory, --read-only,
+# and a read-only task mount PER JOB — properties fixed at container-creation time
+# that a shared long-lived exec target could not vary. See tools/run_code.py.
+#
+# Build (colima context, from repo root):
+#   docker --context colima build -t code-img:latest tools/code_env
+#
+# Naming note: the image is code-img (matching of12-img / ccx-img, the real
+# image-naming convention); the "-prod" suffix is reserved for long-lived
+# containers, of which this substrate deliberately has none.
+FROM python:3.11-slim
+
+# No .pyc writes (the container rootfs is mounted read-only at runtime), no pip
+# cache in the image layer.
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PYTHONUNBUFFERED=1
+
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt \
+    && rm -f /tmp/requirements.txt
+
+# Jobs are launched with --workdir /run against a bind-mounted, writable run dir;
+# everything else in the image is read-only at runtime.
+WORKDIR /run

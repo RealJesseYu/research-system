@@ -1,0 +1,11 @@
+# Pinned Python-ML manifest for the code-execution sandbox image (Step 28.5 DRY).
+#
+# These are the ONLY packages the sandbox image carries. Every version is pinned
+# so the image is byte-reproducible and so a job's result is a function of the
+# spec alone, never of a drifting dependency. All four ship prebuilt cp311
+# manylinux wheels, so the build needs network but no compiler; jobs at runtime
+# get NO network (see tools/run_code.py: docker run --network=none).
+numpy==1.26.4
+scipy==1.13.1
+pandas==2.2.2
+scikit-learn==1.5.1

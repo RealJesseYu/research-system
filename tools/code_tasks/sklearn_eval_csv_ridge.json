@@ -1,0 +1,8 @@
+{
+  "task_type": "sklearn_eval",
+  "dataset": {"path": "tiny_regression.csv", "target": "y"},
+  "model": {"name": "ridge", "params": {"alpha": 1.0}},
+  "split": {"test_fraction": 0.25, "seed": 7},
+  "metric": {"name": "rmse"},
+  "budget": {"timeout_s": 60, "mem_mb": 512}
+}

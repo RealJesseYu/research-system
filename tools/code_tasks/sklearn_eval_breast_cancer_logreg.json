@@ -1,0 +1,8 @@
+{
+  "task_type": "sklearn_eval",
+  "dataset": {"builtin": "breast_cancer"},
+  "model": {"name": "logreg", "params": {"C": 1.0}},
+  "split": {"test_fraction": 0.25, "seed": 42},
+  "metric": {"name": "accuracy"},
+  "budget": {"timeout_s": 60, "mem_mb": 512}
+}
