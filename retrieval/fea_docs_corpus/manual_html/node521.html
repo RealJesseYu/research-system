@@ -1,0 +1,130 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Boundary conditions and loading</TITLE>
+<META NAME="description" CONTENT="Boundary conditions and loading">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="previous" HREF="node489.html">
+<LINK REL="up" HREF="node484.html">
+<LINK REL="next" HREF="node522.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html8035"
+  HREF="node522.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html8031"
+  HREF="node484.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html8027"
+  HREF="node520.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html8033"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html8036"
+  HREF="node522.html">Crack propagation</A>
+<B> Up:</B> <A NAME="tex2html8032"
+  HREF="node484.html">Mesh refinement</A>
+<B> Previous:</B> <A NAME="tex2html8028"
+  HREF="node520.html">smoothbadmid.f</A>
+ &nbsp; <B>  <A NAME="tex2html8034"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001113600000000000000">
+Boundary conditions and loading</A>
+</H3>
+
+<P>
+After refining the mesh the boundary conditions and the loading have to be moved from the old
+(= unrefined) mesh to the new (= refined) mesh. This includes SPC's, MPC's,
+point loads, distributed facial load, distributed volumentric load and
+temperature loading.
+
+<P>
+In the past SPC's, MPC's and point loads were taken care of by creating MPC's
+connecting the old node in which the SPC, MPC or point load was applied with
+the nodes of the element in the new mesh within which the old node was
+located. This, however, let to high concentrated stresses in the new
+mesh. Therefore, it was decided these old nodes are not to be moved during
+mesh refinement. Furthermore, their node number is kept. Therefore, the
+*BOUNDARY, *EQUATION and *CLOAD cards in the unrefined mesh remain valid.
+
+<P>
+The same applies to the faces loading by facial distributed loading: the nodes
+of such faces are not moved during mesh refinement, their numbers are kept as
+well as the element number of the adjacent element. Therefore, the *DLOAD card
+in the unrefined mesh remains valid.
+
+<P>
+The volumetric distributed loading (centrifugal loading, gravity) in an
+element of the refined mesh is inherited from its parent element. The same
+applies to the material properties. Therefore, mesh refinement should not be
+performed across a material border.
+
+<P>
+Temperatures in the refined mesh are interpolated within each step from the
+temperature for that step in the unrefined mesh.
+
+<P>
+If an input deck contains several steps, in one of which refinement is
+performed, the decision in which nodes are not to be moved is based on the
+boundary conditions and loading in that step. If in another step other nodes
+are loaded, the latter will not be loading leading to wrong
+results. Therefore, the user should take care to include any node loaded or
+constrained in any step of the input deck in the mesh refinement step, e.g. by
+applying a zero point load.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html8035"
+  HREF="node522.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html8031"
+  HREF="node484.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html8027"
+  HREF="node520.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html8033"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html8036"
+  HREF="node522.html">Crack propagation</A>
+<B> Up:</B> <A NAME="tex2html8032"
+  HREF="node484.html">Mesh refinement</A>
+<B> Previous:</B> <A NAME="tex2html8028"
+  HREF="node520.html">smoothbadmid.f</A>
+ &nbsp; <B>  <A NAME="tex2html8034"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

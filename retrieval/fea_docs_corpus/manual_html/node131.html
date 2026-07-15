@@ -1,0 +1,176 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Channel joint</TITLE>
+<META NAME="description" CONTENT="Channel joint">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node132.html">
+<LINK REL="previous" HREF="node130.html">
+<LINK REL="up" HREF="node122.html">
+<LINK REL="next" HREF="node132.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2862"
+  HREF="node132.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2858"
+  HREF="node122.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2852"
+  HREF="node130.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2860"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2863"
+  HREF="node132.html">In/Out</A>
+<B> Up:</B> <A NAME="tex2html2859"
+  HREF="node122.html">Fluid Section Types: Open</A>
+<B> Previous:</B> <A NAME="tex2html2853"
+  HREF="node130.html">Discontinuous slope</A>
+ &nbsp; <B>  <A NAME="tex2html2861"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00076900000000000000">
+Channel joint</A>
+</H3>
+
+<P>
+This is not a channel element. Rather, the channel joint is modeled by using
+three standard straight channel elements, in two of which the mass flow is entering the
+joint (the &ldquo;joining&rdquo; elements) and in the remaining it is leaving the joint. Within each of the joining elements
+the fluid depth is not assumed to change. Therefore it is important that the
+length of all three elements is chosen sufficiently small. No other elements
+are allowed in a joint (so also no In/Out elements).
+
+<P>
+If a frontwater curve prevails in both the joining elements the frontwater
+curve with the highest depth is pursued downstream (also a frontwater curve) and the other curve either
+simply connected or connected through a jump. No energy loss is taken into account.
+
+<P>
+If a frontwater curve prevails in only one of the joining elements this curve
+is continued downstream (also a frontwater curve) and a backwater curve is calculated for the other
+joining element. No energy loss is taken into account.
+
+<P>
+If a backwater curve prevails in  both the joining elements also the
+downstream element is characterized by a backwater curve. Here, the Bernoulli
+equation is assumed to contain a head loss in the following form [<A
+ HREF="node530.html#Berlamont2">12</A>]:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+h_i + \frac{U_i^2}{2g} = h_0 + \frac{U_0^2}{2g} + \alpha_i \left |
+  \frac{U_i^2}{2g} - \frac{U_0^2}{2g} \right |,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="264" HEIGHT="56" ALIGN="MIDDLE" BORDER="0"
+ SRC="img891.png"
+ ALT="$\displaystyle h_i + \frac{U_i^2}{2g} = h_0 + \frac{U_0^2}{2g} + \alpha_i \left \vert \frac{U_i^2}{2g} - \frac{U_0^2}{2g} \right \vert,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">209</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+where <SPAN CLASS="MATH"><IMG
+ WIDTH="53" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img892.png"
+ ALT="$ i=1,2$"></SPAN> denotes one of the joining channels, and <SPAN CLASS="MATH"><IMG
+ WIDTH="19" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img893.png"
+ ALT="$ \alpha_i$"></SPAN> is the angle
+between channel <SPAN CLASS="MATH"><IMG
+ WIDTH="9" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img894.png"
+ ALT="$ i$"></SPAN> and the downstream channel, normalized by
+<SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img895.png"
+ ALT="$ \pi$"></SPAN>. Consequently, it takes the value 0 for <!-- MATH
+ $\alpha_i=0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="48" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img896.png"
+ ALT="$ \alpha_i=0$"></SPAN> and 1 for
+<!-- MATH
+ $\alpha_i=\pi$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="50" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img897.png"
+ ALT="$ \alpha_i=\pi$"></SPAN>. It is assumed that the mass flow in the upstream channels is
+known. In the downstream channel also the velocity is known (the depth is
+known since it is a backwater curve). The velocities and depths in the
+upstream channels, however, are unknown. Starting with a split up of the
+downstream velocity proportional to the mass flow, the dept <SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img898.png"
+ ALT="$ h_i$"></SPAN> can be
+calculated in each of the upstream channels. This allows for an update of
+<SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img770.png"
+ ALT="$ U_i$"></SPAN>. This procedure is continued until convergence is reached. 
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html2862"
+  HREF="node132.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2858"
+  HREF="node122.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2852"
+  HREF="node130.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2860"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2863"
+  HREF="node132.html">In/Out</A>
+<B> Up:</B> <A NAME="tex2html2859"
+  HREF="node122.html">Fluid Section Types: Open</A>
+<B> Previous:</B> <A NAME="tex2html2853"
+  HREF="node130.html">Discontinuous slope</A>
+ &nbsp; <B>  <A NAME="tex2html2861"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

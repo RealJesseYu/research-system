@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Two-node 3-dimensional spring (SPRING2) </TITLE>
+<META NAME="description" CONTENT="Two-node 3-dimensional spring (SPRING2) ">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node69.html">
+<LINK REL="previous" HREF="node67.html">
+<LINK REL="up" HREF="node27.html">
+<LINK REL="next" HREF="node69.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2063"
+  HREF="node69.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2059"
+  HREF="node27.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2053"
+  HREF="node67.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2061"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2064"
+  HREF="node69.html">Two-node 3-dimensional spring (SPRINGA)</A>
+<B> Up:</B> <A NAME="tex2html2060"
+  HREF="node27.html">Element Types</A>
+<B> Previous:</B> <A NAME="tex2html2054"
+  HREF="node67.html">One-node 3-dimensional spring (SPRING1)</A>
+ &nbsp; <B>  <A NAME="tex2html2062"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000724100000000000000"></A><A NAME="spring2"></A>
+<BR>
+Two-node 3-dimensional spring (SPRING2) 
+</H3>
+
+<P>
+This is a spring element which is attached to two nodes (Figure <A HREF="node69.html#springf">79</A>). The directions
+<!-- MATH
+ $\boldsymbol{n_1}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="23" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img349.png"
+ ALT="$ \boldsymbol{n_1}$"></SPAN> and <!-- MATH
+ $\boldsymbol{n_2}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="23" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img350.png"
+ ALT="$ \boldsymbol{n_2}$"></SPAN> determining the action of the spring
+have to be defined by the user
+underneath the <A HREF="node349.html#spring">*SPRING</A> keyword card by specifying the
+appropriate degrees of freedom. These degrees of freedom can be local if the
+ORIENTATION parameter is used on the *SPRING card. Usually, it does not make
+sense to take a different degree of freedom in node 1 and node2. If <!-- MATH
+ $\boldsymbol{u_1}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="23" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img336.png"
+ ALT="$ \boldsymbol{u_1}$"></SPAN> is the
+displacement in node 1 (and similar for node 2) and <SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img347.png"
+ ALT="$ K$"></SPAN> is the spring
+constant, the force in node 1 is obtained by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{F_1}=K [(\boldsymbol{u_1} \cdot \boldsymbol{n_1}) \boldsymbol{n_1}
+- (\boldsymbol{u_2} \cdot \boldsymbol{n_2}) \boldsymbol{n_1}],
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="254" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img351.png"
+ ALT="$\displaystyle \boldsymbol{F_1}=K [(\boldsymbol{u_1} \cdot \boldsymbol{n_1}) \boldsymbol{n_1} - (\boldsymbol{u_2} \cdot \boldsymbol{n_2}) \boldsymbol{n_1}],$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">25</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and the force in node 2 by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{F_2}=- K [(\boldsymbol{u_1} \cdot \boldsymbol{n_1}) \boldsymbol{n_2}
+- (\boldsymbol{u_2} \cdot \boldsymbol{n_2}) \boldsymbol{n_2}].
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="266" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img352.png"
+ ALT="$\displaystyle \boldsymbol{F_2}=- K [(\boldsymbol{u_1} \cdot \boldsymbol{n_1}) \boldsymbol{n_2} - (\boldsymbol{u_2} \cdot \boldsymbol{n_2}) \boldsymbol{n_2}].$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">26</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+A nonlinear spring can be defined by specifying a piecewise linear force
+versus elongation relationship (underneath the *SPRING card).
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

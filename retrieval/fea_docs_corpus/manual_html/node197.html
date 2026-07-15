@@ -1,0 +1,392 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Feasible Direction </TITLE>
+<META NAME="description" CONTENT="Feasible Direction ">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node198.html">
+<LINK REL="previous" HREF="node196.html">
+<LINK REL="up" HREF="node173.html">
+<LINK REL="next" HREF="node198.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html3717"
+  HREF="node198.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3713"
+  HREF="node173.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3707"
+  HREF="node196.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3715"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3718"
+  HREF="node198.html">Robust Design</A>
+<B> Up:</B> <A NAME="tex2html3714"
+  HREF="node173.html">Types of analysis</A>
+<B> Previous:</B> <A NAME="tex2html3708"
+  HREF="node196.html">Sensitivity</A>
+ &nbsp; <B>  <A NAME="tex2html3716"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000792400000000000000"></A><A NAME="sectionfeasibledirection"></A>
+<BR>
+Feasible Direction 
+</H3>
+
+<P>
+An optimization calculation usually consists of the minimization (or
+maximization) of one objective subject to one or more constraints. To that end
+the sensitivity of the objective is modified to take the constraint
+sensitivities into account leading to one combined sensitivity. This process
+takes place in a <A HREF="node285.html#feasibledirection">*FEASIBLE DIRECTION</A>
+procedure. The ensuing sensitivity determines where the structure has to be
+thickened or thinned in order to reach a minimum of the objective function
+while not violating any constraint. Constraints can be taken into account by
+using the Gradient Projection Method or the Gradient Descent Method.
+
+<P>
+In the Gradient Projection Method the constraints are taken into account by projecting the unconstrained
+  sensitivities on the complement of the subspace consisting of the normals on
+  the active constraint hyperplanes. Suppose
+  the domain is n-dimensional (n design variables) and the subspace has the
+  dimension m (m constraints). Then the sensitivities of the constraints can
+  be arranged as basis vectors (the normal directions on the hyperplanes) in a <!-- MATH
+ $n \times m$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="47" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2466.png"
+ ALT="$ n \times m$"></B></SPAN> matrix. The projection p of a vector b
+  on the subspace satisfies the orthogonality condition:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+N^T (b-p)=0.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="109" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2467.png"
+ ALT="$\displaystyle N^T (b-p)=0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">838</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Since p belongs to the subspace it can be written as a linear combination of
+the basis vectors <SPAN CLASS="MATH"><B><IMG
+ WIDTH="57" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2468.png"
+ ALT="$ p=Nx$"></B></SPAN>, where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img833.png"
+ ALT="$ x$"></B></SPAN> is a <!-- MATH
+ $m \times 1$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="45" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2469.png"
+ ALT="$ m \times 1$"></B></SPAN> vector of
+coefficients. Consequently:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+N^T N x = N^T b,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="109" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2470.png"
+ ALT="$\displaystyle N^T N x = N^T b,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">839</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+from which <SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img833.png"
+ ALT="$ x$"></B></SPAN> can be solved yielding:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+p=N(N^T N)^{-1} N^T b.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="152" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2471.png"
+ ALT="$\displaystyle p=N(N^T N)^{-1} N^T b.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">840</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The complement of the projection vector is <!-- MATH
+ $I-N(N^T N)^{-1} N^T$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="139" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2472.png"
+ ALT="$ I-N(N^T N)^{-1} N^T$"></B></SPAN>. Denoting
+<!-- MATH
+ $A=(N^T N)^{-1}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="105" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2473.png"
+ ALT="$ A=(N^T N)^{-1}$"></B></SPAN>, the constrained sensitivies <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1262.png"
+ ALT="$ c$"></B></SPAN> are obtained from the
+unconstrained sensitivities <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img436.png"
+ ALT="$ b$"></B></SPAN> by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+c=(I-NAN^T) b,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="134" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2474.png"
+ ALT="$\displaystyle c=(I-NAN^T) b,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">841</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+or, in component notation:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+c_i=b_i-\sum_k w_{ik},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="123" HEIGHT="49" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2475.png"
+ ALT="$\displaystyle c_i=b_i-\sum_k w_{ik},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">842</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+w_{ik}=\left( \sum_j N_{ij} A_{j \underline{k}} \right) \left( \sum_l (N^T)_{\underline{k}l} b_l
+\right)
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="263" HEIGHT="73" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2476.png"
+ ALT="$\displaystyle w_{ik}=\left( \sum_j N_{ij} A_{j \underline{k}} \right) \left( \sum_l (N^T)_{\underline{k}l} b_l \right)$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">843</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+(no summation over k in the last equation).
+
+<P>
+Active constraints are constraints which
+
+<UL>
+<LI>are fulfilled AND
+</LI>
+<LI>for which the Lagrange multiplier points to the non-feasible part of the
+  space
+</LI>
+</UL>
+
+<P>
+To this end the algorithm starts with all constraints which are fulfilled and
+removes the constraints one-by-one for which the Lagrange multiplier,
+satisfying
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{\lambda } = -(\boldsymbol{N}^T \boldsymbol{N})^{-1}
+  \boldsymbol{N}^T \nabla g_i.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="179" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2477.png"
+ ALT="$\displaystyle \boldsymbol{\lambda } = -(\boldsymbol{N}^T \boldsymbol{N})^{-1} \boldsymbol{N}^T \nabla g_i.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">844</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+points
+to the feasible part of the space.
+
+<P>
+The Gradient Descent Method is an interior point method which
+means that the starting point for an optimization has to lie in the feasible
+domain. The influence of the constraints on the feasible direction is always
+taken into account independent of the distance to the constraint bound. This
+methods aims to stay away from the constraint boundaries as long as possible
+on the way to the local optimum. The feasible direction is calculated with the
+following formulas (the detailed derivation can be found in [<A
+ HREF="node530.html#Chen">18</A>]):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{s}_{\xi}= - \frac{\nabla f}{|| \nabla f ||} - \xi   \frac{\nabla g}{|| \nabla g ||}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="171" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2478.png"
+ ALT="$\displaystyle \boldsymbol{s}_{\xi}= - \frac{\nabla f}{\vert\vert \nabla f \vert\vert} - \xi \frac{\nabla g}{\vert\vert \nabla g \vert\vert}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">845</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Here, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="27" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2479.png"
+ ALT="$ \nabla f$"></B></SPAN> is the gradient of the objective function, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2480.png"
+ ALT="$ \nabla g$"></B></SPAN> is the
+gradient of the constraint and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img441.png"
+ ALT="$ \xi$"></B></SPAN> is a value between 0 and 1 defining
+the weight of the constraint gradient on the descent direction. Choosing a
+value for <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img441.png"
+ ALT="$ \xi$"></B></SPAN> between 0.9 and 1.0 leads to meaningful results. By subtracting a
+portion of the gradient of the constraint one tends to stay away from
+the constraint boundary (the constraint becomes more negative). In case more
+than one constraint is defined, the assembly of the gradient vector of all
+constraint functions <SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img765.png"
+ ALT="$ n$"></B></SPAN> is done using the logarithmic Barrier function:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\nabla g = \sum_{i=1}^{n} \frac{1}{-g_i(x)} \nabla g_i.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="153" HEIGHT="61" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2481.png"
+ ALT="$\displaystyle \nabla g = \sum_{i=1}^{n} \frac{1}{-g_i(x)} \nabla g_i.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">846</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html3717"
+  HREF="node198.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3713"
+  HREF="node173.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3707"
+  HREF="node196.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3715"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3718"
+  HREF="node198.html">Robust Design</A>
+<B> Up:</B> <A NAME="tex2html3714"
+  HREF="node173.html">Types of analysis</A>
+<B> Previous:</B> <A NAME="tex2html3708"
+  HREF="node196.html">Sensitivity</A>
+ &nbsp; <B>  <A NAME="tex2html3716"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*MATRIX ASSEMBLE</TITLE>
+<META NAME="description" CONTENT="*MATRIX ASSEMBLE">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node313.html">
+<LINK REL="previous" HREF="node311.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node313.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html5254"
+  HREF="node313.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html5250"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html5244"
+  HREF="node311.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html5252"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html5255"
+  HREF="node313.html">*MEMBRANE SECTION</A>
+<B> Up:</B> <A NAME="tex2html5251"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html5245"
+  HREF="node311.html">*MATERIAL</A>
+ &nbsp; <B>  <A NAME="tex2html5253"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000885000000000000000"></A><A NAME="matrixassemble"></A>
+<BR>
+*MATRIX ASSEMBLE
+</H2>
+
+<P>
+Keyword type: model definition
+
+<P>
+This keyword card is used to define a substructure (sometimes called a
+superelement in other codes), cf. Section <A HREF="node80.html#substructurelem">6.2.48</A>. There are two required parameters NAME and
+STIFFNESS FILE and one optional parameter MASS FILE.
+
+<P>
+The name of a substructure consists of at most 4 characters. Internally, a
+&ldquo;U&rdquo; is appended in front of them and the substructure is considered as a
+special kind of user element. Therefore, the name of a substructure should not
+coincide with the characters following &ldquo;U&rdquo; of any coded user elements (such
+as S3 for the US3 element).
+
+<P>
+The STIFFNESS FILE refers to the file containing the entries in the stiffness
+matrix. It is assumed to be symmetric and only the upper triangular values or
+the lower triangular values should be contained (including the diagonal) in the form
+
+<P>
+<PRE>
+  row node,row dof,column node,column dof,value
+</PRE>
+
+<P>
+one entry per line. The order is irrelevant. The same applies to the mass
+matrix. The latter is only needed in frequency
+(<A HREF="node290.html#frequency">*FREQUENCY</A>) or dynamic (<A HREF="node273.html#dynamic">*DYNAMIC</A>)
+calculations. The name of the stiffness and the mass matrix can be at most 80
+characters long.
+
+<P>
+
+<P><P>
+<BR>
+
+<P>
+First line:
+
+<UL>
+<LI>*MATRIX ASSEMBLE
+</LI>
+<LI>Enter any parameters and their value
+</LI>
+</UL>
+
+<P>
+<PRE>
+Example:
+
+*MATRIX ASSEMBLE,NAME=TEST,STIFFNESSFILE=beampsuper.stiff
+</PRE>
+
+<P>
+defines a substructure with name TEST. The stiffness matrix is stored in file
+&ldquo;beampsuper.stiff&rdquo;. 
+
+<P>
+
+<P><P>
+<BR>
+Example files: beamfsuper,beampsuper, segmentsuper.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html5254"
+  HREF="node313.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html5250"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html5244"
+  HREF="node311.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html5252"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html5255"
+  HREF="node313.html">*MEMBRANE SECTION</A>
+<B> Up:</B> <A NAME="tex2html5251"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html5245"
+  HREF="node311.html">*MATERIAL</A>
+ &nbsp; <B>  <A NAME="tex2html5253"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,2098 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Mohr-Coulomb plasticity.</TITLE>
+<META NAME="description" CONTENT="Mohr-Coulomb plasticity.">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node165.html">
+<LINK REL="previous" HREF="node163.html">
+<LINK REL="up" HREF="node153.html">
+<LINK REL="next" HREF="node165.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html3296"
+  HREF="node165.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3292"
+  HREF="node153.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3286"
+  HREF="node163.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3294"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3297"
+  HREF="node165.html">Tension-only and compression-only materials.</A>
+<B> Up:</B> <A NAME="tex2html3293"
+  HREF="node153.html">Materials</A>
+<B> Previous:</B> <A NAME="tex2html3287"
+  HREF="node163.html">Plasticity with Johnson-Cook hardening.</A>
+ &nbsp; <B>  <A NAME="tex2html3295"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000781100000000000000"></A><A NAME="mohrcoulombplasticity"></A>
+<BR>
+Mohr-Coulomb plasticity.
+</H3>
+
+<P>
+The theory and algorithms used to code the classical Mohr-Coulomb plasticity
+model are primarily taken from [<A
+ HREF="node530.html#Sorensen">100</A>] and [<A
+ HREF="node530.html#Clausen">21</A>] and the
+references therein.
+
+<P>
+The Mohr-Coulomb plasticity is non-associative with a piecewise linear yield
+surface <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img612.png"
+ ALT="$ f$"></SPAN> an a piecewise linear plastic potential <SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img840.png"
+ ALT="$ g$"></SPAN>. The basic idea is
+that the shear stress at which plastic flow occurs increases with increasing
+pressure, similar to contact sliding. This is illustrated in Figure
+<A HREF="#mcoulomb">141</A> showing the shear stress <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img175.png"
+ ALT="$ \tau$"></SPAN> versus normal stress
+<SPAN CLASS="MATH"><IMG
+ WIDTH="22" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1445.png"
+ ALT="$ \sigma_n$"></SPAN>. <!-- MATH
+ $\sigma_1 \ge \sigma_2 \ge \sigma_3$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="95" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1446.png"
+ ALT="$ \sigma_1 \ge \sigma_2 \ge \sigma_3$"></SPAN> are the principal
+stresses. 
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="mcoulomb"></A><A NAME="18467"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 141:</STRONG>
+Mohr-Coulomb yield surface</CAPTION>
+<TR><TD><IMG
+ WIDTH="406" HEIGHT="260" BORDER="0"
+ SRC="img1447.png"
+ ALT="\begin{figure}\begin{center}
+\epsfig{file=mcoulomb.eps,width=9cm}\end{center}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+The yield surface satisfies:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\tau=c-\sigma_n \tan \varphi,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="121" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1448.png"
+ ALT="$\displaystyle \tau=c-\sigma_n \tan \varphi,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">407</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1262.png"
+ ALT="$ c$"></SPAN> is the cohesion. This is equivalent to (cf. Figure <A HREF="#mcoulomb">141</A>)
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\sigma_1 \left( \frac{1+\sin \varphi }{1 - \sin \varphi } \right) -\sigma_3
+  -2 c \frac{\cos \varphi }{1 - \sin \varphi }=0,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="277" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1449.png"
+ ALT="$\displaystyle \sigma_1 \left( \frac{1+\sin \varphi }{1 - \sin \varphi } \right) -\sigma_3 -2 c \frac{\cos \varphi }{1 - \sin \varphi }=0,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">408</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+or
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="yieldmc"></A><!-- MATH
+ \begin{equation}
+k \sigma_1 - \sigma_3 - 2 c \sqrt{k} =0,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="154" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1450.png"
+ ALT="$\displaystyle k \sigma_1 - \sigma_3 - 2 c \sqrt{k} =0,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">409</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+k=\frac{1+\sin \varphi }{1 - \sin \varphi }.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="102" HEIGHT="50" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1451.png"
+ ALT="$\displaystyle k=\frac{1+\sin \varphi }{1 - \sin \varphi }.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">410</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+<SPAN CLASS="MATH"><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img580.png"
+ ALT="$ \varphi$"></SPAN> is called the friction angle. Similarly, the plastic potential is
+defined by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+g = m \sigma_1 - \sigma_3,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="103" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1452.png"
+ ALT="$\displaystyle g = m \sigma_1 - \sigma_3,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">411</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+m=\frac{1+\sin \psi }{1 - \sin \psi }.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="108" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1453.png"
+ ALT="$\displaystyle m=\frac{1+\sin \psi }{1 - \sin \psi }.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">412</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+<SPAN CLASS="MATH"><IMG
+ WIDTH="15" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1238.png"
+ ALT="$ \psi$"></SPAN> is called the dilation angle. It describes to what extent the volume of
+the material changes due to shear motion. For a positive value of <SPAN CLASS="MATH"><IMG
+ WIDTH="15" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1238.png"
+ ALT="$ \psi$"></SPAN> the
+volume increases, as for dense sand. For a negative value the volume
+decreases, as for loose sand. In the latter case the grains fit better due to
+the motion. You can easily illustrate this by pouring suger in a bowl. Shaking
+the bowl the volume will decrease and more sugar will fit.
+
+<P>
+As mentioned, the yield surface is piecewise linear, so the gradient of the
+surface is not continuous. This complicates matters. Now, looking at the yield
+surface and plastic potential it can be observed that it contains only
+principal stresses. Assuming the material to be elastically isotropic, this
+allows us to perform all operations in principal stress space, thereby
+reducing the tensors to vectors. This was first proposed in [<A
+ HREF="node530.html#Clausen2">20</A>].
+
+<P>
+Replacing <!-- MATH
+ $\sigma_1, \sigma_2, \sigma_3$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="67" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1454.png"
+ ALT="$ \sigma_1, \sigma_2, \sigma_3$"></SPAN> by <SPAN CLASS="MATH"><IMG
+ WIDTH="43" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1455.png"
+ ALT="$ x,y,z$"></SPAN> for simplicity, the yield
+surface as defined in Equation (<A HREF="#yieldmc">409</A>) defines in three-dimensional
+space one of six faces of a irregular pyramid with central axis in <SPAN CLASS="MATH"><IMG
+ WIDTH="54" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1456.png"
+ ALT="$ (1,1,1)$"></SPAN>
+direction. The other faces correspond to sectors in which the order of <!-- MATH
+ $\sigma_1,
+\sigma_2, \sigma_3$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="67" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1454.png"
+ ALT="$ \sigma_1, \sigma_2, \sigma_3$"></SPAN> is different.
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="sectionplane111"></A><A NAME="18468"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 142:</STRONG>
+Section plane <SPAN CLASS="MATH"><IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.png"
+ ALT="$ \perp $"></SPAN> (1,1,1) through (0,0,0)</CAPTION>
+<TR><TD><IMG
+ WIDTH="359" HEIGHT="383" BORDER="0"
+ SRC="img1457.png"
+ ALT="\begin{figure}\begin{center}
+\epsfig{file=sectionplane111.eps,width=8cm}\end{center}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+Figure <A HREF="#sectionplane111">142</A> shown a view
+on a plane orthogonal to the <SPAN CLASS="MATH"><IMG
+ WIDTH="54" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1456.png"
+ ALT="$ (1,1,1)$"></SPAN> axis and through the origin. The six
+sectors are bordered by planes going through the x-, y- and z- axes and
+containing the <SPAN CLASS="MATH"><IMG
+ WIDTH="54" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1456.png"
+ ALT="$ (1,1,1)$"></SPAN>-axis. The cross section of this plane with the yield
+surface is an irregular hexagon (dashed line). Since the principal stresses
+can always be rearranged such that <!-- MATH
+ $x \ge y \ge z$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="72" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1458.png"
+ ALT="$ x \ge y \ge z$"></SPAN> it is sufficient to look at
+that sector (labeled 1) and the neighboring ones (labeled 6 and 2).
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="yieldalong111"></A><A NAME="18469"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 143:</STRONG>
+Pressure distribution in the lid-driven cavity</CAPTION>
+<TR><TD><IMG
+ WIDTH="361" HEIGHT="346" BORDER="0"
+ SRC="img1459.png"
+ ALT="\begin{figure}\begin{center}
+\epsfig{file=yieldalong111.eps,width=8cm}\end{center}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+Figure <A HREF="#yieldalong111">143</A> shows the yield surface viewed from the apex and
+looking in the direction of <!-- MATH
+ $(-1,-1,-1)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="91" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1460.png"
+ ALT="$ (-1,-1,-1)$"></SPAN>. In the sectors of interest the
+normal to the surface <!-- MATH
+ $\boldsymbol{a}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="14" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img408.png"
+ ALT="$ \boldsymbol{a}$"></SPAN> is shown. For sector 1 this is
+immediately clear from Equation (<A HREF="#yieldmc">409</A>) which can be written as
+<!-- MATH
+ $(k,0,-1) \cdot (\sigma_1,\sigma_2,\sigma_3) -2c \sqrt{k} =0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="240" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1461.png"
+ ALT="$ (k,0,-1) \cdot (\sigma_1,\sigma_2,\sigma_3) -2c \sqrt{k} =0$"></SPAN>. A vector along
+the interection lines of the pyramid faces is obtained by taking the cross
+product of the normal of the neighboring faces,e.g. <!-- MATH
+ $\boldsymbol{r_6} =
+\boldsymbol{a_6} \times \boldsymbol{a_1}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="97" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1462.png"
+ ALT="$ \boldsymbol{r_6} =
+\boldsymbol{a_6} \times \boldsymbol{a_1}$"></SPAN>. The apex of the pyramid is obtained
+by substituting <!-- MATH
+ $\sigma_1=\sigma_3$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="57" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1463.png"
+ ALT="$ \sigma_1=\sigma_3$"></SPAN> in  Equation (<A HREF="#yieldmc">409</A>): it yields
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+s_a := \sigma_1=\sigma_2=\sigma_3=\frac{2c \sqrt{k} }{k-1} = \frac{c}{\tan
+    \varphi }.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="263" HEIGHT="59" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1464.png"
+ ALT="$\displaystyle s_a := \sigma_1=\sigma_2=\sigma_3=\frac{2c \sqrt{k} }{k-1} = \frac{c}{\tan \varphi }.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">413</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Therefore, the equation of the intersection line between section 6 and 1
+satisfied <!-- MATH
+ $(s_a,s_a,s_a)+\lambda (1,k,k)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="157" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1465.png"
+ ALT="$ (s_a,s_a,s_a)+\lambda (1,k,k)$"></SPAN>. Its intersection with the plane
+<SPAN CLASS="MATH"><IMG
+ WIDTH="97" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1466.png"
+ ALT="$ x+y+z=0$"></SPAN> leads to
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\lambda=\frac{3 s_a}{1+2k},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="87" HEIGHT="52" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1467.png"
+ ALT="$\displaystyle \lambda=\frac{3 s_a}{1+2k},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">414</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+yielding the location of point A in Figure  <A HREF="#sectionplane111">142</A>. For point B
+one gets
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\lambda=\frac{3 s_a}{2+k},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="79" HEIGHT="52" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1468.png"
+ ALT="$\displaystyle \lambda=\frac{3 s_a}{2+k},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">415</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+which is farther away from the origin since <SPAN CLASS="MATH"><IMG
+ WIDTH="42" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1469.png"
+ ALT="$ k \ge 1$"></SPAN>. The normal to the
+plastic potential surface is labeled <!-- MATH
+ $\boldsymbol{b}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1155.png"
+ ALT="$ \boldsymbol{b}$"></SPAN> and amounts for sector 1
+to <SPAN CLASS="MATH"><IMG
+ WIDTH="72" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1470.png"
+ ALT="$ (m,0,-1)$"></SPAN>. Similar expressions apply to the other sectors. 
+
+<P>
+The governing equations of an elastic material with Mohr-Coulomb plasticity
+read:
+
+<P>
+<DL COMPACT>
+<DT>(i)</DT>
+<DD><P>
+Elastic stress-strain relations
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{ \sigma} = \boldsymbol{D} \cdot  \boldsymbol{\epsilon}^e
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="78" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1471.png"
+ ALT="$\displaystyle \boldsymbol{ \sigma} = \boldsymbol{D} \cdot \boldsymbol{\epsilon}^e$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">416</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+</DD>
+<DT>(ii)</DT>
+<DD><P>
+Internal variable relationship
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+c(\epsilon^{\text{peq}})
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="50" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1472.png"
+ ALT="$\displaystyle c(\epsilon^{\text{peq}})$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">417</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+</DD>
+<DT>(iii)</DT>
+<DD><P>
+Yield surface
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+f(\boldsymbol{ \sigma},c)=0 \Leftrightarrow \boldsymbol{a} \cdot
+\boldsymbol{\sigma }- 2 c \sqrt{k}=0
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="224" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1473.png"
+ ALT="$\displaystyle f(\boldsymbol{ \sigma},c)=0 \Leftrightarrow \boldsymbol{a} \cdot \boldsymbol{\sigma }- 2 c \sqrt{k}=0$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">418</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+</DD>
+<DT>(iv)</DT>
+<DD><P>
+Evolution equations
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\dot{ \boldsymbol{ \epsilon}}^p= \dot{ \gamma} \frac{ \partial g
+(\boldsymbol{ \sigma},c)}{\partial \boldsymbol{ \sigma}} = \dot{ \gamma}
+\boldsymbol{b}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="147" HEIGHT="53" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1474.png"
+ ALT="$\displaystyle \dot{ \boldsymbol{ \epsilon}}^p= \dot{ \gamma} \frac{ \partial g ...
+...mbol{ \sigma},c)}{\partial \boldsymbol{ \sigma}} = \dot{ \gamma} \boldsymbol{b}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">419</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+</DD>
+<DT>(v)</DT>
+<DD><P>
+Kuhn-Tucker equations
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\dot{ \gamma} \ge 0, \quad f(\boldsymbol{ \sigma},c) \le
+0, \quad \dot{ \gamma} f(\boldsymbol{ \sigma},c) =0
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="250" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1475.png"
+ ALT="$\displaystyle \dot{ \gamma} \ge 0, \quad f(\boldsymbol{ \sigma},c) \le 0, \quad \dot{ \gamma} f(\boldsymbol{ \sigma},c) =0$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">420</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+</DD>
+<DT>(vi)</DT>
+<DD><P>
+Consistency condition
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\dot{ \gamma} \dot{ f}(\boldsymbol{ \sigma},c)=0.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="94" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1476.png"
+ ALT="$\displaystyle \dot{ \gamma} \dot{ f}(\boldsymbol{ \sigma},c)=0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">421</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+</DD>
+</DL>
+
+<P>
+Notice that in the above equatons <!-- MATH
+ $\boldsymbol{\sigma }$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="15" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img260.png"
+ ALT="$ \boldsymbol{\sigma } $"></SPAN> and
+<!-- MATH
+ $\boldsymbol{\epsilon }$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="11" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1395.png"
+ ALT="$ \boldsymbol{\epsilon}$"></SPAN> are vectors in principal space.
+
+<P>
+In order to explain the numerical procedure it is assumed that all variables
+are known at the end of increment <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img765.png"
+ ALT="$ n$"></SPAN> (corresponding to time <SPAN CLASS="MATH"><IMG
+ WIDTH="9" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img560.png"
+ ALT="$ t$"></SPAN>) and that
+their values are sought at the end of increment <SPAN CLASS="MATH"><IMG
+ WIDTH="41" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1477.png"
+ ALT="$ n+1$"></SPAN> (corresponding to time
+<!-- MATH
+ $t + \Delta t$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="48" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1478.png"
+ ALT="$ t + \Delta t$"></SPAN>). The input to the algorithm is a change on total strain
+<!-- MATH
+ $\boldsymbol{\Delta \epsilon }$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="27" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1479.png"
+ ALT="$ \boldsymbol{\Delta \epsilon }$"></SPAN>.
+
+<P>
+At first it is assumed that now plasticity occurs in the new increment, i.e.:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{ \epsilon} _{n+1} ^p = \boldsymbol{ \epsilon}_n^p
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="74" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1480.png"
+ ALT="$\displaystyle \boldsymbol{ \epsilon} _{n+1} ^p = \boldsymbol{ \epsilon}_n^p$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">422</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+c_{n+1} = c_{n}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="72" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1481.png"
+ ALT="$\displaystyle c_{n+1} = c_{n}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">423</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\gamma _{n+1} = \gamma_n
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="75" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1482.png"
+ ALT="$\displaystyle \gamma _{n+1} = \gamma_n$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">424</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{ \sigma}_{n+1} = \boldsymbol{D} \cdot  (\boldsymbol{\epsilon}^e_n +
+\boldsymbol{\Delta \epsilon })
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="159" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1483.png"
+ ALT="$\displaystyle \boldsymbol{ \sigma}_{n+1} = \boldsymbol{D} \cdot (\boldsymbol{\epsilon}^e_n + \boldsymbol{\Delta \epsilon })$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">425</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+If
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{a} \cdot \boldsymbol{\sigma }_{n+1} - 2 c_{n+1} \sqrt{k} \le
+  0,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="176" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1484.png"
+ ALT="$\displaystyle \boldsymbol{a} \cdot \boldsymbol{\sigma }_{n+1} - 2 c_{n+1} \sqrt{k} \le 0,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">426</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+the solution is found. If not, <!-- MATH
+ $\Delta \gamma_{n+1} := \gamma_{n+1}-\gamma_n >
+0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="174" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1485.png"
+ ALT="$ \Delta \gamma_{n+1} := \gamma_{n+1}-\gamma_n &gt;
+0$"></SPAN> and due to the Kuhn-Tucker equations <!-- MATH
+ $f(\boldsymbol{\sigma },c)=0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="80" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1486.png"
+ ALT="$ f(\boldsymbol{\sigma },c)=0$"></SPAN> is
+required. The stress at <SPAN CLASS="MATH"><IMG
+ WIDTH="41" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1477.png"
+ ALT="$ n+1$"></SPAN> can be written as:
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+\boldsymbol{\sigma }_{n+1} &=& \boldsymbol{D} \cdot \boldsymbol{\epsilon
+ }^e_{n+1} \\
+ &=& \boldsymbol{D} \cdot (\boldsymbol{\epsilon }_{n+1} - \boldsymbol{\epsilon
+ }_{n+1}^p) \\
+ &=& \boldsymbol{D} \cdot (\boldsymbol{\epsilon }_{n+1}   - \boldsymbol{\epsilon
+ }_{n}^p+ \boldsymbol{\epsilon
+ }_{n}^p- \boldsymbol{\epsilon
+ }_{n+1}^p) \\
+ &=& \boldsymbol{\sigma }_{n+1}^  {\text{trial}} - \boldsymbol{D} \cdot
+ \boldsymbol{\Delta \epsilon }_{n+1}^p \\
+ &=& \boldsymbol{\sigma }_{n+1}^  {\text{trial}} - \Delta \gamma
+ \boldsymbol{D} \cdot \boldsymbol{b}.
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="40" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1487.png"
+ ALT="$\displaystyle \boldsymbol{\sigma }_{n+1}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="63" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1488.png"
+ ALT="$\displaystyle \boldsymbol{D} \cdot \boldsymbol{\epsilon
+}^e_{n+1}$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">427</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="127" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1489.png"
+ ALT="$\displaystyle \boldsymbol{D} \cdot (\boldsymbol{\epsilon }_{n+1} - \boldsymbol{\epsilon
+}_{n+1}^p)$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">428</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="199" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1490.png"
+ ALT="$\displaystyle \boldsymbol{D} \cdot (\boldsymbol{\epsilon }_{n+1} - \boldsymbol{\epsilon
+}_{n}^p+ \boldsymbol{\epsilon
+}_{n}^p- \boldsymbol{\epsilon
+}_{n+1}^p)$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">429</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="134" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1491.png"
+ ALT="$\displaystyle \boldsymbol{\sigma }_{n+1}^ {\text{trial}} - \boldsymbol{D} \cdot
+\boldsymbol{\Delta \epsilon }_{n+1}^p$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">430</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="121" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1492.png"
+ ALT="$\displaystyle \boldsymbol{\sigma }_{n+1}^ {\text{trial}} - \Delta \gamma
+\boldsymbol{D} \cdot \boldsymbol{b}.$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">431</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+In the last equation the evolution equation was used (flow rule). Defining
+<!-- MATH
+ $\boldsymbol{s}:= \boldsymbol{D} \cdot \boldsymbol{b}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="73" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1493.png"
+ ALT="$ \boldsymbol{s}:= \boldsymbol{D} \cdot \boldsymbol{b}$"></SPAN>, satisfying
+the yield surface now requires:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{a} \cdot (  \boldsymbol{\sigma }_{n+1}^  {\text{trial}}- \Delta \gamma_{n+1}
+ \; \boldsymbol{s}) -2 c(\epsilon _{n+1}^{\text{peq}}) \sqrt{k} =0.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="286" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1494.png"
+ ALT="$\displaystyle \boldsymbol{a} \cdot ( \boldsymbol{\sigma }_{n+1}^ {\text{trial}}...
+...\gamma_{n+1} \; \boldsymbol{s}) -2 c(\epsilon _{n+1}^{\text{peq}}) \sqrt{k} =0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">432</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Notice that <!-- MATH
+ $\boldsymbol{s}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1101.png"
+ ALT="$ \boldsymbol{s}$"></SPAN> points in the direction of the stress correction
+w.r.t. the trial stress. In order to solve this equation a relationship between <!-- MATH
+ $\epsilon
+_{n+1}^{\text{peq}}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="35" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1495.png"
+ ALT="$ \epsilon
+_{n+1}^{\text{peq}}$"></SPAN> and <!-- MATH
+ $\Delta \gamma$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="26" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1496.png"
+ ALT="$ \Delta \gamma$"></SPAN> is needed. Now, <!-- MATH
+ $\dot{\epsilon}
+_{n+1}^{\text{peq}}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="35" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1497.png"
+ ALT="$ \dot{\epsilon}
+_{n+1}^{\text{peq}}$"></SPAN> is defined as:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\dot{\epsilon}_{n+1}^{\text{peq}} = \sqrt{\frac{2}{3} } \| \dot
+      {\boldsymbol{\epsilon } }_{n+1}^p \|,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="137" HEIGHT="61" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1498.png"
+ ALT="$\displaystyle \dot{\epsilon}_{n+1}^{\text{peq}} = \sqrt{\frac{2}{3} } \Vert \dot {\boldsymbol{\epsilon } }_{n+1}^p \Vert,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">433</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+from which:
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+\epsilon_{n+1}^{\text{peq}} &=& \int_{0}^{t+\Delta t} \sqrt{\frac{2}{3} } \| \dot
+          {\boldsymbol{\epsilon } }^p \| dt \\
+          &=& \int_{0}^{t} \sqrt{\frac{2}{3} } \| \dot
+          {\boldsymbol{\epsilon } }^p \| dt + \int_{t}^{t+\Delta t} \sqrt{\frac{2}{3} } \| \dot
+          {\boldsymbol{\epsilon } }^p \| dt \\
+          &=& \epsilon_n^{\text{peq}} + \sqrt{\frac{2}{3} } \|
+      {\boldsymbol{\Delta \epsilon } }_{n+1}^p \| \\
+          &=& \epsilon_n^{\text{peq}} + \sqrt{\frac{2}{3} } \Delta
+      \gamma_{n+1} \; \| \boldsymbol{b}  \| \\
+      &=& \epsilon_n^{\text{peq}} + \sqrt{\frac{2}{3} } \Delta
+      \gamma_{n+1} \; \sqrt{1+m^2} 
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="35" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1499.png"
+ ALT="$\displaystyle \epsilon_{n+1}^{\text{peq}}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="126" HEIGHT="61" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1500.png"
+ ALT="$\displaystyle \int_{0}^{t+\Delta t} \sqrt{\frac{2}{3} } \Vert \dot
+{\boldsymbol{\epsilon } }^p \Vert dt$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">434</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="242" HEIGHT="61" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1501.png"
+ ALT="$\displaystyle \int_{0}^{t} \sqrt{\frac{2}{3} } \Vert \dot
+{\boldsymbol{\epsilon...
+...t+\Delta t} \sqrt{\frac{2}{3} } \Vert \dot
+{\boldsymbol{\epsilon } }^p \Vert dt$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">435</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="141" HEIGHT="61" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1502.png"
+ ALT="$\displaystyle \epsilon_n^{\text{peq}} + \sqrt{\frac{2}{3} } \Vert
+{\boldsymbol{\Delta \epsilon } }_{n+1}^p \Vert$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">436</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="153" HEIGHT="61" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1503.png"
+ ALT="$\displaystyle \epsilon_n^{\text{peq}} + \sqrt{\frac{2}{3} } \Delta
+\gamma_{n+1} \; \Vert \boldsymbol{b} \Vert$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">437</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="193" HEIGHT="61" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1504.png"
+ ALT="$\displaystyle \epsilon_n^{\text{peq}} + \sqrt{\frac{2}{3} } \Delta
+\gamma_{n+1} \; \sqrt{1+m^2}$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">438</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+Defining <!-- MATH
+ $k^*:=2 \sqrt{k}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="76" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1505.png"
+ ALT="$ k^*:=2 \sqrt{k}$"></SPAN> and <!-- MATH
+ $m^*:= \sqrt{2(1+m^2)/3}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="151" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1506.png"
+ ALT="$ m^*:= \sqrt{2(1+m^2)/3}$"></SPAN> the yield equation
+now amounts to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+f=\boldsymbol{a} \cdot (  \boldsymbol{\sigma }_{n+1}^  {\text{trial}}- \Delta \gamma_{n+1}
+ \; \boldsymbol{s}) - k^* c(\epsilon_n^{\text{peq}}+ \Delta \gamma_{n+1} m^* )=0.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="386" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1507.png"
+ ALT="$\displaystyle f=\boldsymbol{a} \cdot ( \boldsymbol{\sigma }_{n+1}^ {\text{trial...
+...; \boldsymbol{s}) - k^* c(\epsilon_n^{\text{peq}}+ \Delta \gamma_{n+1} m^* )=0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">439</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+This is a nonlinear equation in <!-- MATH
+ $\Delta \gamma_{n+1}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="50" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1508.png"
+ ALT="$ \Delta \gamma_{n+1}$"></SPAN>. Using the
+Newton-Raphson procedure the first derivative is needed, which yields:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{\partial f}{ \partial  \Delta \gamma_{n+1}} = -\boldsymbol{a} \cdot \boldsymbol{s}
+  - k^*m^* \frac{\partial c}{\partial  \epsilon_{n+1}^{\text{peq}}} .
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="232" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1509.png"
+ ALT="$\displaystyle \frac{\partial f}{ \partial \Delta \gamma_{n+1}} = -\boldsymbol{a...
+...oldsymbol{s} - k^*m^* \frac{\partial c}{\partial \epsilon_{n+1}^{\text{peq}}} .$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">440</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+Starting with an initial guess <!-- MATH
+ $\Delta \gamma_{n+1}^0=0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="79" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1510.png"
+ ALT="$ \Delta \gamma_{n+1}^0=0$"></SPAN>, one arrives at
+<!-- MATH
+ $\Delta \gamma_{n+1}^{(k+1)} = \Delta \gamma_{n+1}^{(k)} + \Delta\Delta
+\gamma_{n+1}^{(k)}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="207" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1511.png"
+ ALT="$ \Delta \gamma_{n+1}^{(k+1)} = \Delta \gamma_{n+1}^{(k)} + \Delta\Delta
+\gamma_{n+1}^{(k)} $"></SPAN> by solving the equation:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+f(\Delta \gamma_{n+1}^{(k)} + \Delta\Delta
+\gamma_{n+1}^{(k)}) \approx f(\Delta \gamma_{n+1}^{(k)}) + f'(\Delta
+  \gamma_{n+1}^{(k)}) \Delta\Delta
+  \gamma_{n+1}^{(k)}=0,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="425" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1512.png"
+ ALT="$\displaystyle f(\Delta \gamma_{n+1}^{(k)} + \Delta\Delta \gamma_{n+1}^{(k)}) \a...
+...{n+1}^{(k)}) + f'(\Delta \gamma_{n+1}^{(k)}) \Delta\Delta \gamma_{n+1}^{(k)}=0,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">441</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+or
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\left [  - \boldsymbol{a} \cdot \boldsymbol{s} - k^*m^* \left . \frac{\partial
+      c}{\partial \epsilon^{\text{peq}} }  \right
+    | _{\epsilon_{n+1}^{\text{peq},(k)}}  \right ] \Delta\Delta
+  \gamma_{n+1}^{(k)} = \boldsymbol{a} \cdot \left [ \boldsymbol{\sigma
+    }_{n+1}^ {\text{trial}} - \Delta \gamma_{n+1}^{(k)} \boldsymbol{s} \right
+  ] - k^* c(\epsilon_{n+1}^{\text{peq},(k)}),
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="551" HEIGHT="63" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1513.png"
+ ALT="$\displaystyle \left [ - \boldsymbol{a} \cdot \boldsymbol{s} - k^*m^* \left . \f...
+...a_{n+1}^{(k)} \boldsymbol{s} \right ] - k^* c(\epsilon_{n+1}^{\text{peq},(k)}),$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">442</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\epsilon_{n+1}^{\text{peq},(k)}=\epsilon_{n}^{\text{peq}}+m^* \Delta \gamma
+  _{n+1}^{(k)}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="191" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1514.png"
+ ALT="$\displaystyle \epsilon_{n+1}^{\text{peq},(k)}=\epsilon_{n}^{\text{peq}}+m^* \Delta \gamma _{n+1}^{(k)}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">443</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="regionsmc"></A><A NAME="18508"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 144:</STRONG>
+Limits of the return regions for Mohr-Coulomb</CAPTION>
+<TR><TD><IMG
+ WIDTH="314" HEIGHT="402" BORDER="0"
+ SRC="img1515.png"
+ ALT="\begin{figure}\begin{center}
+\epsfig{file=regionsmc.eps,width=7cm}\end{center}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+This works as long a the return is to a face of the yield surface. Since the
+return vector for sector 1 is <!-- MATH
+ $\boldsymbol{s_1}=\boldsymbol{D} \cdot \boldsymbol{b_1}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="85" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1516.png"
+ ALT="$ \boldsymbol{s_1}=\boldsymbol{D} \cdot \boldsymbol{b_1} $"></SPAN> one
+can graphically plot the region in three-dimensional principal stress space
+which is returned to the yield face in sector 1 (Figure <A HREF="#regionsmc">144</A>). It
+is the space for which
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+(\boldsymbol{\sigma }_{n+1}^  {\text{trial}}-\boldsymbol{s_a} ) \cdot
+  (\boldsymbol{s_1} \times \boldsymbol{r_1}) \ge 0 \;\;\; \text{AND} \;\;\; (\boldsymbol{\sigma }_{n+1}^  {\text{trial}}-\boldsymbol{s_a} ) \cdot
+  (\boldsymbol{s_1} \times \boldsymbol{r_6}) \le 0.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="452" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1517.png"
+ ALT="$\displaystyle (\boldsymbol{\sigma }_{n+1}^ {\text{trial}}-\boldsymbol{s_a} ) \c...
+...al}}-\boldsymbol{s_a} ) \cdot (\boldsymbol{s_1} \times \boldsymbol{r_6}) \le 0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">444</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+This is called region I. The space within sector 1 in between region I and
+sector 2 and underneath the apex is mapped onto the intersection line of face 1 and face 2 of the
+yield surface (characterized by the equation <!-- MATH
+ $\boldsymbol{s_a} +\lambda
+\boldsymbol{r_1}, \lambda \in \mathbb{R}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="113" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1518.png"
+ ALT="$ \boldsymbol{s_a} +\lambda
+\boldsymbol{r_1}, \lambda \in \mathbb{R} $"></SPAN>). It is characterized by the equations
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+(\boldsymbol{\sigma }_{n+1}^  {\text{trial}}-\boldsymbol{s_a} ) \cdot
+  (\boldsymbol{s_1} \times \boldsymbol{r_1}) \le 0 \;\;\; \text{AND} \;\;\; (\boldsymbol{\sigma }_{n+1}^  {\text{trial}}-\boldsymbol{s_a} ) \cdot
+  (\boldsymbol{s_1} \times \boldsymbol{s_2}) \le 0.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="452" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1519.png"
+ ALT="$\displaystyle (\boldsymbol{\sigma }_{n+1}^ {\text{trial}}-\boldsymbol{s_a} ) \c...
+...al}}-\boldsymbol{s_a} ) \cdot (\boldsymbol{s_1} \times \boldsymbol{s_2}) \le 0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">445</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and is called region II of sector 1. Similary for the space in between region
+I and sector 6 and underneath the apex satisfying
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+(\boldsymbol{\sigma }_{n+1}^  {\text{trial}}-\boldsymbol{s_a} ) \cdot
+  (\boldsymbol{s_1} \times \boldsymbol{r_6}) \ge 0 \;\;\; \text{AND} \;\;\; (\boldsymbol{\sigma }_{n+1}^  {\text{trial}}-\boldsymbol{s_a} ) \cdot
+  (\boldsymbol{s_6} \times \boldsymbol{s_1}) \le 0.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="452" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1520.png"
+ ALT="$\displaystyle (\boldsymbol{\sigma }_{n+1}^ {\text{trial}}-\boldsymbol{s_a} ) \c...
+...al}}-\boldsymbol{s_a} ) \cdot (\boldsymbol{s_6} \times \boldsymbol{s_1}) \le 0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">446</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+This is region III. Finally, the region above the apex corresponding to
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+(\boldsymbol{\sigma }_{n+1}^  {\text{trial}}-\boldsymbol{s_a} ) \cdot
+  (\boldsymbol{s_1} \times \boldsymbol{s_2}) \ge 0 \;\;\; \text{AND} \;\;\; (\boldsymbol{\sigma }_{n+1}^  {\text{trial}}-\boldsymbol{s_a} ) \cdot
+  (\boldsymbol{s_6} \times \boldsymbol{s_1}) \ge 0
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="448" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1521.png"
+ ALT="$\displaystyle (\boldsymbol{\sigma }_{n+1}^ {\text{trial}}-\boldsymbol{s_a} ) \c...
+...ial}}-\boldsymbol{s_a} ) \cdot (\boldsymbol{s_6} \times \boldsymbol{s_1}) \ge 0$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">447</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+is returned to the apex and is called region IV.
+
+<P>
+Returning the trial stress to the intersection line of two yield faces implies
+that the final state has to satisfy both face equations. The equivalent
+plastic strain now satisfies:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\epsilon_{n+1}^{\text{peq}} = \epsilon_n^{\text{peq}} + m^*( \Delta
+      \gamma_{1,{n+1}} + \Delta
+      \gamma_{2,{n+1}})
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="268" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1522.png"
+ ALT="$\displaystyle \epsilon_{n+1}^{\text{peq}} = \epsilon_n^{\text{peq}} + m^*( \Delta \gamma_{1,{n+1}} + \Delta \gamma_{2,{n+1}})$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">448</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and the yield surface equations amount to:
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+\boldsymbol{a_1} \cdot (  \boldsymbol{\sigma }_{n+1}^  {\text{trial}}- \Delta \gamma_{1,n+1}
+ \; \boldsymbol{s_1}- \Delta \gamma_{2,n+1}
+ \; \boldsymbol{s_2}) -  k^* c(\epsilon_{n+1}^{\text{peq}}) &=&0 \\
+\boldsymbol{a_2} \cdot (  \boldsymbol{\sigma }_{n+1}^  {\text{trial}}- \Delta \gamma_{1,n+1}
+ \; \boldsymbol{s_1}- \Delta \gamma_{2,n+1}
+ \; \boldsymbol{s_2}) -  k^* c(\epsilon_{n+1}^{\text{peq}}) &=&0 .
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="361" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1523.png"
+ ALT="$\displaystyle \boldsymbol{a_1} \cdot ( \boldsymbol{\sigma }_{n+1}^ {\text{trial...
+...\Delta \gamma_{2,n+1}
+\; \boldsymbol{s_2}) - k^* c(\epsilon_{n+1}^{\text{peq}})$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%">0</TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">449</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="361" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1524.png"
+ ALT="$\displaystyle \boldsymbol{a_2} \cdot ( \boldsymbol{\sigma }_{n+1}^ {\text{trial...
+...\Delta \gamma_{2,n+1}
+\; \boldsymbol{s_2}) - k^* c(\epsilon_{n+1}^{\text{peq}})$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1525.png"
+ ALT="$\displaystyle 0 .$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">450</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+Applying Newton-Raphson now leads to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+[A] \cdot \begin{Bmatrix} \Delta \Delta \gamma_1 \\\Delta \Delta
+    \gamma_2 \end{Bmatrix} _{n+1}^{(k)} = \{B\},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="181" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1526.png"
+ ALT="$\displaystyle [A] \cdot \begin{Bmatrix}\Delta \Delta \gamma_1 \\ \Delta \Delta \gamma_2 \end{Bmatrix} _{n+1}^{(k)} = \{B\},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">451</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+[A]= \begin{bmatrix} - \boldsymbol{a_1} \cdot \boldsymbol{s_1} - k^*m^* \left . \frac{\partial
+      c}{\partial \epsilon^{\text{peq}} }  \right
+    | _{\epsilon_{n+1}^{\text{peq},(k)}} & - \boldsymbol{a_1} \cdot \boldsymbol{s_2} - k^*m^* \left . \frac{\partial
+      c}{\partial \epsilon^{\text{peq}} }  \right
+    | _{\epsilon_{n+1}^{\text{peq},(k)}} \\- \boldsymbol{a_2} \cdot \boldsymbol{s_1} - k^*m^* \left . \frac{\partial
+      c}{\partial \epsilon^{\text{peq}} }  \right
+    | _{\epsilon_{n+1}^{\text{peq},(k)}} & - \boldsymbol{a_2} \cdot \boldsymbol{s_2} - k^*m^* \left . \frac{\partial
+      c}{\partial \epsilon^{\text{peq}} }  \right
+    | _{\epsilon_{n+1}^{\text{peq},(k)}} \end{bmatrix}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="483" HEIGHT="67" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1527.png"
+ ALT="$\displaystyle [A]= \begin{bmatrix}- \boldsymbol{a_1} \cdot \boldsymbol{s_1} - k...
+...on^{\text{peq}} } \right \vert _{\epsilon_{n+1}^{\text{peq},(k)}} \end{bmatrix}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">452</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\{B\}= \begin{Bmatrix} \boldsymbol{a_1} \cdot \left [ \boldsymbol{\sigma
+    }_{n+1}^ {\text{trial}} - \Delta \gamma_{1,n+1}^{(k)} \boldsymbol{s_1}- \Delta \gamma_{2,n+1}^{(k)} \boldsymbol{s_2} \right
+  ] - k^* c(\epsilon_{n+1}^{\text{peq},(k)}) \\\boldsymbol{a_2} \cdot \left [ \boldsymbol{\sigma
+    }_{n+1}^ {\text{trial}} - \Delta \gamma_{1,n+1}^{(k)} \boldsymbol{s_1}- \Delta \gamma_{2,n+1}^{(k)} \boldsymbol{s_2} \right
+  ] - k^* c(\epsilon_{n+1}^{\text{peq},(k)}) \end{Bmatrix}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="457" HEIGHT="73" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1528.png"
+ ALT="$\displaystyle \{B\}= \begin{Bmatrix}\boldsymbol{a_1} \cdot \left [ \boldsymbol{...
+...oldsymbol{s_2} \right ] - k^* c(\epsilon_{n+1}^{\text{peq},(k)}) \end{Bmatrix}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">453</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+For a return to the apex the yield equations of sector 1, 2 and 6 have to be
+satisfied yielding 3 equations in 3 unknowns.
+
+<P>
+To calculate the consistent tangent the change of stress due to a change in
+total strain is needed. The change of stress in the present increment amounts
+to:
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+d(\boldsymbol{\Delta \sigma }) &=& d(\boldsymbol{D} \cdot \boldsymbol{\Delta
+    \epsilon}^e) \\
+  &=& d(\boldsymbol{\boldsymbol{D} \cdot \Delta \epsilon}-\boldsymbol{D} \cdot \boldsymbol{\Delta \epsilon}^p) \\
+  &=& d(\boldsymbol{D} \cdot \boldsymbol{\Delta \epsilon}-\boldsymbol{D} \cdot
+  \frac{\partial g}{\partial \boldsymbol{\sigma } }  \Delta \gamma ) \\
+  &=& \boldsymbol{D} \cdot d \boldsymbol{\Delta \epsilon }  - \boldsymbol{D}
+  \cdot \frac{\partial ^2 g}{\partial \boldsymbol{\sigma }^2 } \cdot d
+  \boldsymbol{\Delta \sigma } \Delta \gamma - \boldsymbol{D} \cdot
+  \frac{\partial g}{\partial \boldsymbol{\sigma } }  d \Delta \gamma \\
+  &=& \boldsymbol{D} \cdot d \boldsymbol{\Delta \epsilon }  - \boldsymbol{s} d \Delta \gamma
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="51" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1529.png"
+ ALT="$\displaystyle d(\boldsymbol{\Delta \sigma })$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="81" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1530.png"
+ ALT="$\displaystyle d(\boldsymbol{D} \cdot \boldsymbol{\Delta
+\epsilon}^e)$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">454</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="153" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1531.png"
+ ALT="$\displaystyle d(\boldsymbol{\boldsymbol{D} \cdot \Delta \epsilon}-\boldsymbol{D} \cdot \boldsymbol{\Delta \epsilon}^p)$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">455</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="168" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1532.png"
+ ALT="$\displaystyle d(\boldsymbol{D} \cdot \boldsymbol{\Delta \epsilon}-\boldsymbol{D} \cdot
+\frac{\partial g}{\partial \boldsymbol{\sigma } } \Delta \gamma )$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">456</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="311" HEIGHT="56" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1533.png"
+ ALT="$\displaystyle \boldsymbol{D} \cdot d \boldsymbol{\Delta \epsilon } - \boldsymbo...
+...mbol{D} \cdot
+\frac{\partial g}{\partial \boldsymbol{\sigma } } d \Delta \gamma$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">457</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="120" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1534.png"
+ ALT="$\displaystyle \boldsymbol{D} \cdot d \boldsymbol{\Delta \epsilon } - \boldsymbol{s} d \Delta \gamma$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">458</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+Now, a relationship between <!-- MATH
+ $d \Delta \gamma$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="34" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1535.png"
+ ALT="$ d \Delta \gamma$"></SPAN> and <!-- MATH
+ $d \boldsymbol{\Delta
+  \epsilon }$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="35" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1536.png"
+ ALT="$ d \boldsymbol{\Delta
+\epsilon }$"></SPAN> is needed. This is obtained from the yield equation:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+f(\boldsymbol{\sigma }_n + \boldsymbol{\Delta \sigma } ,c(\gamma + \Delta
+  \gamma))=0,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="203" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1537.png"
+ ALT="$\displaystyle f(\boldsymbol{\sigma }_n + \boldsymbol{\Delta \sigma } ,c(\gamma + \Delta \gamma))=0,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">459</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+from which
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\left . \frac{\partial f}{\partial \boldsymbol{\sigma } } \right |
+  _{\boldsymbol{\sigma }_n + \boldsymbol{\Delta \sigma }} \cdot d
+  \boldsymbol{\Delta \sigma } + \left . \frac{\partial f}{\partial c} \frac{\partial
+    c}{\partial \gamma} \right | _ {\gamma + \Delta \gamma} d \Delta \gamma =0.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="305" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1538.png"
+ ALT="$\displaystyle \left . \frac{\partial f}{\partial \boldsymbol{\sigma } } \right ...
+...c}{\partial \gamma} \right \vert _ {\gamma + \Delta \gamma} d \Delta \gamma =0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">460</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Substituting the previously obtained expression for <!-- MATH
+ $d(\boldsymbol{\Delta
+  \sigma })$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="51" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1539.png"
+ ALT="$ d(\boldsymbol{\Delta
+\sigma })$"></SPAN> yields (dropping the bound of the derivatives to simplify the
+notation; the derivatives are to be taken at the end of the present increment):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{\partial f}{\partial \boldsymbol{\sigma } } \cdot \boldsymbol{D} \cdot
+  d \boldsymbol{\Delta \epsilon } - \frac{\partial f}{\partial
+    \boldsymbol{\sigma } } \cdot \boldsymbol{s} d \Delta \gamma + \frac{\partial f}{\partial c} \frac{\partial
+    c}{\partial \gamma} d \Delta \gamma =0
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="317" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1540.png"
+ ALT="$\displaystyle \frac{\partial f}{\partial \boldsymbol{\sigma } } \cdot \boldsymb...
+...c{\partial f}{\partial c} \frac{\partial c}{\partial \gamma} d \Delta \gamma =0$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">461</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+from which
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+d \Delta \gamma = \frac{\boldsymbol{a} \cdot \boldsymbol{D} \cdot d
+    \boldsymbol{\Delta \epsilon }   }{\boldsymbol{a} \cdot \boldsymbol{s} +
+    k^*m^* \frac{\partial c}{\partial \epsilon ^{\text{peq}}}    } .
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="185" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1541.png"
+ ALT="$\displaystyle d \Delta \gamma = \frac{\boldsymbol{a} \cdot \boldsymbol{D} \cdot...
+... \boldsymbol{s} + k^*m^* \frac{\partial c}{\partial \epsilon ^{\text{peq}}} } .$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">462</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Finally one obtains for the elastoplastic consistent tangent
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{D}^{ep} = \boldsymbol{D}  - \frac{\boldsymbol{s} \otimes
+    \boldsymbol{a} \cdot \boldsymbol{D}  }{\boldsymbol{a} \cdot \boldsymbol{s}
+    + k^*m^* \frac{\partial c}{\partial \epsilon ^{\text{peq}}}}   .
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="218" HEIGHT="52" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1542.png"
+ ALT="$\displaystyle \boldsymbol{D}^{ep} = \boldsymbol{D} - \frac{\boldsymbol{s} \otim...
+...t \boldsymbol{s} + k^*m^* \frac{\partial c}{\partial \epsilon ^{\text{peq}}}} .$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">463</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+The derivation of the elastoplastic consistent tangent for a return to the
+intersection between face 1 and face 2 is similar. Now, a change in stress
+increment amounts to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+d \boldsymbol{\Delta \sigma } = \boldsymbol{D} \cdot d \boldsymbol{\Delta
+    \epsilon } - \boldsymbol{D} \cdot \boldsymbol{b_1} d \Delta \gamma_1 -
+  \boldsymbol{D} \cdot \boldsymbol{b_2} d \Delta \gamma_2.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="322" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1543.png"
+ ALT="$\displaystyle d \boldsymbol{\Delta \sigma } = \boldsymbol{D} \cdot d \boldsymbo...
+...1} d \Delta \gamma_1 - \boldsymbol{D} \cdot \boldsymbol{b_2} d \Delta \gamma_2.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">464</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+A relationship between the change in <!-- MATH
+ $\Delta \gamma$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="26" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1496.png"
+ ALT="$ \Delta \gamma$"></SPAN> and the change in
+<!-- MATH
+ $\boldsymbol{\Delta \epsilon }$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="27" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1479.png"
+ ALT="$ \boldsymbol{\Delta \epsilon }$"></SPAN> can again be obtained by considering the
+adjacent yield
+faces (i=1,2):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+f_i(\boldsymbol{\sigma}_n + \boldsymbol{\Delta \sigma }, c(\gamma + \Delta
+  \gamma_1 + \Delta \gamma_2))=0,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="261" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1544.png"
+ ALT="$\displaystyle f_i(\boldsymbol{\sigma}_n + \boldsymbol{\Delta \sigma }, c(\gamma + \Delta \gamma_1 + \Delta \gamma_2))=0,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">465</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+from which
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\left . \frac{\partial f_i}{\partial \boldsymbol{\sigma } } \right |
+  _{\boldsymbol{\sigma }_n + \boldsymbol{\Delta \sigma }} \cdot d
+  \boldsymbol{\Delta \sigma } + \left . \frac{\partial f_i}{\partial c} \frac{\partial
+    c}{\partial \gamma} \right | _ {\gamma + \Delta \gamma_1+\Delta \gamma_2}
+  d \Delta \gamma_1 + \left . \frac{\partial f_i}{\partial c} \frac{\partial
+    c}{\partial \gamma} \right | _ {\gamma + \Delta \gamma_1+\Delta \gamma_2}
+  d \Delta \gamma_1  =0
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="540" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1545.png"
+ ALT="$\displaystyle \left . \frac{\partial f_i}{\partial \boldsymbol{\sigma } } \righ...
+... \right \vert _ {\gamma + \Delta \gamma_1+\Delta \gamma_2} d \Delta \gamma_1 =0$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">466</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+or
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\begin{bmatrix} \boldsymbol{a_1} \cdot \boldsymbol{s_1}
+    + k^*m^* \frac{\partial c}{\partial \epsilon ^{\text{peq}}} & \boldsymbol{a_1} \cdot \boldsymbol{s_2}
+    + k^*m^* \frac{\partial c}{\partial \epsilon ^{\text{peq}}} \\\boldsymbol{a_2} \cdot \boldsymbol{s_1}
+    + k^*m^* \frac{\partial c}{\partial \epsilon ^{\text{peq}}} & \boldsymbol{a_2} \cdot \boldsymbol{s_2}
+    + k^*m^* \frac{\partial c}{\partial \epsilon
+      ^{\text{peq}}} \end{bmatrix} \cdot \begin{Bmatrix} d \Delta \gamma_1 \\d
+    \Delta \gamma_2 \end{Bmatrix} = \begin{Bmatrix} \boldsymbol{a_1} \cdot
+    \boldsymbol{D} \cdot d\boldsymbol{\Delta \epsilon } \\\boldsymbol{a_2} \cdot
+    \boldsymbol{D} \cdot d\boldsymbol{\Delta \epsilon }  \end{Bmatrix} .
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="523" HEIGHT="55" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1546.png"
+ ALT="$\displaystyle \begin{bmatrix}\boldsymbol{a_1} \cdot \boldsymbol{s_1} + k^*m^* \...
+...{a_2} \cdot \boldsymbol{D} \cdot d\boldsymbol{\Delta \epsilon } \end{Bmatrix} .$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">467</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Denoting the inverse of the left hand matrix by <SPAN CLASS="MATH"><IMG
+ WIDTH="25" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1547.png"
+ ALT="$ [B]$"></SPAN> the solution of the
+above system can be written as:
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+d \Delta \gamma_1 &=& B_{11} \boldsymbol{a_1} \cdot
+    \boldsymbol{D} \cdot d\boldsymbol{\Delta \epsilon } + B_{12} \boldsymbol{a_2} \cdot
+    \boldsymbol{D} \cdot d\boldsymbol{\Delta \epsilon } \\d \Delta
+    \gamma_2 &=& B_{12} \boldsymbol{a_1} \cdot
+    \boldsymbol{D} \cdot d\boldsymbol{\Delta \epsilon } + B_{22} \boldsymbol{a_2} \cdot
+    \boldsymbol{D} \cdot d\boldsymbol{\Delta \epsilon },
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="41" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1548.png"
+ ALT="$\displaystyle d \Delta \gamma_1$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="250" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1549.png"
+ ALT="$\displaystyle B_{11} \boldsymbol{a_1} \cdot
+\boldsymbol{D} \cdot d\boldsymbol{\...
+...{12} \boldsymbol{a_2} \cdot
+\boldsymbol{D} \cdot d\boldsymbol{\Delta \epsilon }$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">468</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="41" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1550.png"
+ ALT="$\displaystyle d \Delta
+\gamma_2$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="254" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1551.png"
+ ALT="$\displaystyle B_{12} \boldsymbol{a_1} \cdot
+\boldsymbol{D} \cdot d\boldsymbol{\...
+...22} \boldsymbol{a_2} \cdot
+\boldsymbol{D} \cdot d\boldsymbol{\Delta \epsilon },$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">469</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+leading to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{D}^{ep} = \boldsymbol{D} - B_{11}
+\boldsymbol{s_1} \otimes \boldsymbol{a_1} \cdot \boldsymbol{D}- B_{11} 
+\boldsymbol{s_1} \otimes \boldsymbol{a_2} \cdot \boldsymbol{D}- B_{11} 
+\boldsymbol{s_2} \otimes \boldsymbol{a_1} \cdot \boldsymbol{D} - B_{11} 
+\boldsymbol{s_2} \otimes \boldsymbol{a_2} \cdot \boldsymbol{D}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="574" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1552.png"
+ ALT="$\displaystyle \boldsymbol{D}^{ep} = \boldsymbol{D} - B_{11} \boldsymbol{s_1} \o...
+...bol{D} - B_{11} \boldsymbol{s_2} \otimes \boldsymbol{a_2} \cdot \boldsymbol{D}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">470</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+The derivation for the return to the apex is similar (now three equations have
+to be satisfied).
+
+<P>
+The tangent derived here only applies to the normal directions. It has to be
+complemented by a shear part <SPAN CLASS="MATH"><IMG
+ WIDTH="15" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1553.png"
+ ALT="$ \hat{T}$"></SPAN> in the form [<A
+ HREF="node530.html#Clausen2">20</A>]:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{C}= \begin{bmatrix} \boldsymbol{D}^{ep} & 0 \\0 & \boldsymbol{\hat{T}}
+  \end{bmatrix}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="113" HEIGHT="55" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1554.png"
+ ALT="$\displaystyle \boldsymbol{C}= \begin{bmatrix}\boldsymbol{D}^{ep} &amp; 0 \\ 0 &amp; \boldsymbol{\hat{T}} \end{bmatrix}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">471</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{\hat{T}} = \begin{bmatrix}
+    \frac{\sigma_{1,n+1}-\sigma_{2,n+1}}{\sigma_{1,n+1}^{\text{trial}}-\sigma_{2,n+1}
+      ^{\text{trial}}} & 0 & 0 \\0 & \frac{\sigma_{1,n+1}-\sigma_{3,n+1}}{\sigma_{1,n+1}^{\text{trial}}-\sigma_{3,n+1}
+      ^{\text{trial}}} & 0 \\0 & 0 & \frac{\sigma_{2,n+1}-\sigma_{3,n+1}}{\sigma_{2,n+1}^{\text{trial}}-\sigma_{3,n+1}
+      ^{\text{trial}}} \end{bmatrix}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="359" HEIGHT="95" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1555.png"
+ ALT="$\displaystyle \boldsymbol{\hat{T}} = \begin{bmatrix}\frac{\sigma_{1,n+1}-\sigma...
+...1}}{\sigma_{2,n+1}^{\text{trial}}-\sigma_{3,n+1} ^{\text{trial}}} \end{bmatrix}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">472</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Finally, the tangent matrix <!-- MATH
+ $\boldsymbol{C}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img252.png"
+ ALT="$ \boldsymbol{C}$"></SPAN> has to be transformed back into
+the global system yielding <!-- MATH
+ $\boldsymbol{C'}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="23" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1556.png"
+ ALT="$ \boldsymbol{C'}$"></SPAN>:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{C'} = \boldsymbol{A}^T \cdot \boldsymbol{C} \cdot
+  \boldsymbol{A},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="123" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1557.png"
+ ALT="$\displaystyle \boldsymbol{C'} = \boldsymbol{A}^T \cdot \boldsymbol{C} \cdot \boldsymbol{A},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">473</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <!-- MATH
+ $\boldsymbol{A}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1558.png"
+ ALT="$ \boldsymbol{A}$"></SPAN> is the transformation matrix in equation (A5) in
+[<A
+ HREF="node530.html#Clausen2">20</A>]. Notice that equation (A6) in  [<A
+ HREF="node530.html#Clausen2">20</A>] is wrong and
+has to be replaced by the equation above. Similarly the stress is to be
+transformed into the global system by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{\sigma '} = \boldsymbol{A}^T \cdot \boldsymbol{\sigma }.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="93" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1559.png"
+ ALT="$\displaystyle \boldsymbol{\sigma '} = \boldsymbol{A}^T \cdot \boldsymbol{\sigma }.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">474</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+In CalculiX, the routine has been implemented for linear strains. As soon as
+NLGEOM is activated, however, the material law is applied to the corotational Cauchy stress
+vs. the corotational logarithmic strain (in routine umat_abaqusnl_total.f) yielding good
+results for large deformations too.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html3296"
+  HREF="node165.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3292"
+  HREF="node153.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3286"
+  HREF="node163.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3294"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3297"
+  HREF="node165.html">Tension-only and compression-only materials.</A>
+<B> Up:</B> <A NAME="tex2html3293"
+  HREF="node153.html">Materials</A>
+<B> Previous:</B> <A NAME="tex2html3287"
+  HREF="node163.html">Plasticity with Johnson-Cook hardening.</A>
+ &nbsp; <B>  <A NAME="tex2html3295"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,218 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Distributing coupling loads</TITLE>
+<META NAME="description" CONTENT="Distributing coupling loads">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node418.html">
+<LINK REL="previous" HREF="node416.html">
+<LINK REL="up" HREF="node411.html">
+<LINK REL="next" HREF="node418.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html6689"
+  HREF="node418.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html6685"
+  HREF="node411.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html6679"
+  HREF="node416.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html6687"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html6690"
+  HREF="node418.html">Sets</A>
+<B> Up:</B> <A NAME="tex2html6686"
+  HREF="node411.html">Reading the step input</A>
+<B> Previous:</B> <A NAME="tex2html6680"
+  HREF="node416.html">Mechanical body loads</A>
+ &nbsp; <B>  <A NAME="tex2html6688"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000112600000000000000">
+Distributing coupling loads</A>
+</H3>
+
+<P>
+Distributing coupling loads are used if one wants to distribute a concentrated
+force and moment in a reference node across a complete surface. A typical
+application is the definition of a torque at the end of a (nearly) axisymmetric
+structure. You do not really know the force in each node, you just know the
+global value of the torque and the facial surface on which you would like to
+apply it. CalculiX calculates the corresponding forces in each node of the
+surface. For the theory the reader is referred to Section <A HREF="node137.html#distcoupload">6.7.4</A>.
+
+<P>
+A distributed coupling is only active if a force was defined in the reference
+node (using a <A HREF="node242.html#cload">*CLOAD</A> card) on a <A HREF="node254.html#coupling">*COUPLING</A> card in a direction defined underneath
+a <A HREF="node268.html#distributing">*DISTRIBUTING</A> card (which has to follow immediately
+underneath the *COUPLING card). The possible directions are 1 to 3 for forces
+ (1 corresponds to a force along the x-axis etc.; this
+axis is local if the ORIENTATION parameter was used on the *COUPLING card,
+else it is global) and 4 to 6 for moments (4 corresponds to a moment about the x-axis etc.; this
+axis is local if the ORIENTATION parameter was used on the *COUPLING card,
+else it is global).
+
+<P>
+As soon as a *COUPLING card is detected followed by a *DISTRIBUTING card, the
+coupling surface is analyzed, its center of gravity is determined using
+area-defined weights and the constraints expressing the force in a given
+global direction in a concrete node of the coupling surface are stored in
+field coeffc(0..6,*). For force constraint i the information is stored as
+follows:
+
+<P>
+
+<UL>
+<LI>coeffc(0,i): node and global degree of freedom (dof) to which this
+    constraint applies in the form 10*(node-1)+dof
+</LI>
+<LI>coeffc(1,i): force in that node and direction for a unit force in
+    local x-direction in the reference node
+</LI>
+<LI>coeffc(2,i): force in that node and direction for a unit force in
+    local y-direction in the reference node
+</LI>
+<LI>coeffc(3,i): force in that node and direction for a unit force in
+    local z-direction in the reference node
+</LI>
+<LI>coeffc(4,i): force in that node and direction for a unit moment about the
+    local x-direction in the reference node
+</LI>
+<LI>coeffc(5,i): force in that node and direction for a unit moment about the
+    local y-direction in the reference node
+</LI>
+<LI>coeffc(6,i): force in that node and direction for a unit moment about the
+    local z-direction in the reference node
+</LI>
+</UL>
+
+<P>
+The number of such constraints (which may correspond to several distributing
+coupling definitions, indeed, the user may define more than one *COUPLING card
+followed by a *DISTRIBUTING card) is nfc. They are stored at the beginning of
+the calculation and may be addressed in any step.
+
+<P>
+In addition, for each degree of freedom defined underneath the *DISTRIBUTING
+card an entry in fields ikdc(*) and edc(12,*) is generated. Notice that the
+translational degrees of freedom are always active, irrespective whether the
+user has selected them underneath the *DISTRIBUTING card or not. The total
+number of distributing couplings is ndc. Each distributed coupling i corresponds
+to a (local or global depending on the presence of parameter ORIENTATION on
+the *COUPLING card) reference direction in the reference node and is stored in ikdc(i) in the
+form 8*(refnode-1)+refdir. This field is sorted in ascending order. The
+corresponding entries edc(1..12,i) correspond to:
+
+<P>
+
+<UL>
+<LI>1: the first force constraint in
+  field coeffc for this distributing coupling +0.5
+</LI>
+<LI>2: the last force constraint + 0.5
+</LI>
+<LI>3: the number of the orientation on the *COUPLING card, if any (default
+  0) +0.5
+</LI>
+<LI>4-6: local unit vector <!-- MATH
+ $\boldsymbol{e_1}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="21" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img941.png"
+ ALT="$ \boldsymbol{e_1}$"></B></SPAN> of the coupling surface (in-surface)
+</LI>
+<LI>7-9: local unit vector <!-- MATH
+ $\boldsymbol{e_2}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="21" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img931.png"
+ ALT="$ \boldsymbol{e_2}$"></B></SPAN> of the coupling surface (in-surface)
+</LI>
+<LI>10-12: local unit vector <!-- MATH
+ $\boldsymbol{e_3}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="21" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img932.png"
+ ALT="$ \boldsymbol{e_3}$"></B></SPAN> of the coupling surface
+  (orthogonal to the surface)
+</LI>
+</UL>
+
+<P>
+Also
+this information is stored at the beginning of the calculation.
+
+<P>
+Now, for each definition of a concentrated load in a node and direction, a
+check is performed by
+using field ikdc whether this node and direction correspond to a reference
+node an direction of a distributing coupling. If so, field edc indicates which
+force constraints are to be used and whether the force has to be projected because an orientation was defined. So at the time of reading
+the concentrated loads (in cloads.f) all point loads are calculated in the
+nodes of the coupling surface. Notice that the same rules apply as for *CLOAD:
+at the first occurrence in a step any previous load in that node and direction
+is replaced, at all
+further occurrences within the same step the value are added. It is not
+recommended to apply concentrated loads in any node belonging to a
+coupling surface apart from the ones by applying forces in the reference node.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html6689"
+  HREF="node418.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html6685"
+  HREF="node411.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html6679"
+  HREF="node416.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html6687"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html6690"
+  HREF="node418.html">Sets</A>
+<B> Up:</B> <A NAME="tex2html6686"
+  HREF="node411.html">Reading the step input</A>
+<B> Previous:</B> <A NAME="tex2html6680"
+  HREF="node416.html">Mechanical body loads</A>
+ &nbsp; <B>  <A NAME="tex2html6688"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

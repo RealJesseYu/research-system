@@ -1,0 +1,265 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Three-Dimensional Navier-Stokes Calculations</TITLE>
+<META NAME="description" CONTENT="Three-Dimensional Navier-Stokes Calculations">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node480.html">
+<LINK REL="previous" HREF="node454.html">
+<LINK REL="up" HREF="node405.html">
+<LINK REL="next" HREF="node461.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7221"
+  HREF="node461.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7217"
+  HREF="node405.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7211"
+  HREF="node459.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7219"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7222"
+  HREF="node461.html">Renumbering</A>
+<B> Up:</B> <A NAME="tex2html7218"
+  HREF="node405.html">Program structure.</A>
+<B> Previous:</B> <A NAME="tex2html7212"
+  HREF="node459.html">Contraction, Enlargement, Step and</A>
+ &nbsp; <B>  <A NAME="tex2html7220"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION0001111000000000000000">
+Three-Dimensional Navier-Stokes Calculations</A>
+</H2>
+
+<P>
+The major routine for three-dimensional Navier-Stokes Calculations
+(compressible and incompressible fluids) is compfluidfem.c. The flow diagram for
+incompressible and compressible fluids is shown in Figure <A HREF="node462.html#flowdialiq">186</A> and
+<A HREF="node462.html#flowdiagas">187</A>, respectively. Right now, compfluidfem.c is
+called once in routine nonlingeo.c. Later on, combined fluid-structure
+calculations are planned.
+
+<P>
+The theory behind the fluid calculations is explained in Section
+<A HREF="node192.html#navierstokesfem">6.9.19</A>. Incompressible fluids (liquids) are calculated using a
+semi-implicit scheme (the variables compressible and explicit take the value
+0), for compressible fluids (gases) an explicit scheme is used (<!-- MATH
+ $\theta_2 =0$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="47" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2140.png"
+ ALT="$ \theta_2=0$"></B></SPAN>,
+the variables compressible and explicit take the value 1).
+
+<P>
+Depending on the application different systems of equations have to be solved,
+corresponding to the transport equations of mass, momentum, total internal energy,
+turbulent kinetic energy <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img464.png"
+ ALT="$ k$"></B></SPAN> and turbulence frequency <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img101.png"
+ ALT="$ \omega$"></B></SPAN>. According to
+the Characteristic Based Split Method (CBS) [<A
+ HREF="node530.html#Zienkiewicz2">113</A>], a complete
+increment in time consists of the following
+steps :
+
+<P>
+
+<OL>
+<LI>First part of the momentum equation: determination of the first
+  time change of the momentum <!-- MATH
+ $\Delta (\rho \boldsymbol{v^*})$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="55" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3100.png"
+ ALT="$ \Delta (\rho \boldsymbol{v^*})$"></B></SPAN>
+</LI>
+<LI>Conservation of mass: determination of the pressure time change <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2161.png"
+ ALT="$ \Delta p$"></B></SPAN> for
+  incompressible fluids and the density time change <!-- MATH
+ $\Delta \rho$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2162.png"
+ ALT="$ \Delta\rho$"></B></SPAN> for compressible fluids
+</LI>
+<LI>Second part of the momentum equation: determination of the second
+  time change of the momentum  <!-- MATH
+ $\Delta (\rho \boldsymbol{v^{**}})$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="63" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3101.png"
+ ALT="$ \Delta (\rho \boldsymbol{v^{**}})$"></B></SPAN>
+</LI>
+<LI>Conservation of energy: determination of the time change of the total
+  internal energy per unit of volume <!-- MATH
+ $\Delta (\rho \epsilon_t)$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="50" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3102.png"
+ ALT="$ \Delta (\rho \epsilon_t) $"></B></SPAN>
+</LI>
+<LI>Turbulence equations: calculation of the time change of the total kinetic
+  energy <!-- MATH
+ $\Delta (\rho k)$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="46" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3103.png"
+ ALT="$ \Delta (\rho k) $"></B></SPAN> and the turbulence frequency <!-- MATH
+ $\Delta (\rho \omega)$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="48" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3104.png"
+ ALT="$ \Delta (\rho \omega) $"></B></SPAN>
+</LI>
+</OL>
+
+<P>
+The total time change of the momentum is <!-- MATH
+ $\Delta (\rho \boldsymbol{v}) = \Delta (\rho
+\boldsymbol{v^{*}}) + \Delta (\rho \boldsymbol{v^{**}})$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="198" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3105.png"
+ ALT="$ \Delta (\rho \boldsymbol{v}) = \Delta (\rho
+\boldsymbol{v^{*}}) + \Delta (\rho \boldsymbol{v^{**}})$"></B></SPAN>. Notice that all
+variables are written in their conservative form. Indeed, it is not
+<!-- MATH
+ $\boldsymbol{v}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img341.png"
+ ALT="$ \boldsymbol{v}$"></B></SPAN> which is conserved, but <!-- MATH
+ $\rho \boldsymbol{v}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="22" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3106.png"
+ ALT="$ \rho \boldsymbol{v}$"></B></SPAN> and so on. 
+
+<P>
+Each of the above sets leads to a linear equation system to be solved for that increment.
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html7223"
+  HREF="node461.html">Renumbering</A>
+<LI><A NAME="tex2html7224"
+  HREF="node462.html">Topological information</A>
+<LI><A NAME="tex2html7225"
+  HREF="node463.html">Determining the structure of the system matrices</A>
+<LI><A NAME="tex2html7226"
+  HREF="node464.html">Initial calculations</A>
+<LI><A NAME="tex2html7227"
+  HREF="node465.html">The left hand sides of the equation systems</A>
+<LI><A NAME="tex2html7228"
+  HREF="node466.html">Determining the time increment</A>
+<LI><A NAME="tex2html7229"
+  HREF="node467.html">Determining the loading</A>
+<LI><A NAME="tex2html7230"
+  HREF="node468.html">Step 1: determining <!-- MATH
+ $\Delta \boldsymbol{V}^*$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="39" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="$ \Delta \boldsymbol {V}^*$"></B></SPAN></A>
+<LI><A NAME="tex2html7231"
+  HREF="node469.html">Step 2: determining the pressure/density correction</A>
+<LI><A NAME="tex2html7232"
+  HREF="node470.html">Step 3: determining the second momentum correction</A>
+<LI><A NAME="tex2html7233"
+  HREF="node471.html">Step 4: determining the energy correction</A>
+<LI><A NAME="tex2html7234"
+  HREF="node472.html">Step 5: determining the turbulence corrections</A>
+<LI><A NAME="tex2html7235"
+  HREF="node473.html">Updating the conservative variables</A>
+<LI><A NAME="tex2html7236"
+  HREF="node474.html">Smoothing the conservative variables for gases</A>
+<LI><A NAME="tex2html7237"
+  HREF="node475.html">Determining the physical variables</A>
+<LI><A NAME="tex2html7238"
+  HREF="node476.html">Application of BC's</A>
+<LI><A NAME="tex2html7239"
+  HREF="node477.html">Calculation of the smoothing field</A>
+<LI><A NAME="tex2html7240"
+  HREF="node478.html">Convergence check</A>
+<LI><A NAME="tex2html7241"
+  HREF="node479.html">Result output</A>
+</UL>
+<!--End of Table of Child-Links-->
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html7221"
+  HREF="node461.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7217"
+  HREF="node405.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7211"
+  HREF="node459.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7219"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7222"
+  HREF="node461.html">Renumbering</A>
+<B> Up:</B> <A NAME="tex2html7218"
+  HREF="node405.html">Program structure.</A>
+<B> Previous:</B> <A NAME="tex2html7212"
+  HREF="node459.html">Contraction, Enlargement, Step and</A>
+ &nbsp; <B>  <A NAME="tex2html7220"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

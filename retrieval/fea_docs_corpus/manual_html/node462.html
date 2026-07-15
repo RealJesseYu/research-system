@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Topological information</TITLE>
+<META NAME="description" CONTENT="Topological information">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node463.html">
+<LINK REL="previous" HREF="node461.html">
+<LINK REL="up" HREF="node460.html">
+<LINK REL="next" HREF="node463.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7264"
+  HREF="node463.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7260"
+  HREF="node460.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7254"
+  HREF="node461.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7262"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7265"
+  HREF="node463.html">Determining the structure of</A>
+<B> Up:</B> <A NAME="tex2html7261"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<B> Previous:</B> <A NAME="tex2html7255"
+  HREF="node461.html">Renumbering</A>
+ &nbsp; <B>  <A NAME="tex2html7263"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001111200000000000000">
+Topological information</A>
+</H3>
+
+<P>
+Although the major calculations take place in compfluidfem.c there is one routine
+placed at the start of nonlingeo.c to collect topological information, which
+is not changed due to the deformation of the structural components (in
+fluid-structure interaction calculations). This information includes:
+
+<P>
+
+<UL>
+<LI>Storage of all external faces of the mesh (i.e. faces which belong to
+  only one element) in fields nelemface (element number) and sideface (face
+  number). The field nelemface is sorted in ascending order. The face number
+  corresponds to the load face numbering in Section <A HREF="node209.html#fdloading">6.11.2</A>.
+</LI>
+<LI>Storage of all solid surface nodes in field isolidsurf in ascending
+  order. A solid surface node is a node for which all velocity components are
+  prescribed to be zero. Solid surface nodes belong to external faces of the
+  mesh. The in-stream neighbor of a solid surface node is stored in field
+neighsolidsurf, the distance between both is stored in field xsolidsurf. The
+distance is a geometrical entity and is determined in routine initialcfdfem.f.
+</LI>
+<LI>Storing all freestream nodes in field ifreestream in ascending order. A
+  freestream node is a node belonging to an external face which is not a solid
+  surface node and which does not belong to a cyclic MPC.
+</LI>
+<LI>Determining the fluid elements to which a given node belongs and storing
+  them in field iponoel and inoel. For a given node i one fluid element to
+  which it belongs is stored in
+  inoel(1,iponoel(i)). inoel(3,iponoel(i)) is a pointer into field inoel
+  pointing to another fluid element to which the node belongs. This is
+  continued until inoel(3,inoel(3,inoel(3.....inoel(3,iponoel(i)))))) is zero.
+</LI>
+</UL>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="flowdialiq"></A><A NAME="19289"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 186:</STRONG>
+Flow diagram for liquids</CAPTION>
+<TR><TD><IMG
+ WIDTH="230" HEIGHT="58" BORDER="0"
+ SRC="img3107.png"
+ ALT="\begin{figure}\begin{pspicture}(12cm,18cm)
+\psset{fillstyle=solid}
+\psset{arrows...
+...line{-&gt;}(0.,8.)(3.,8.)
+\rput(1,8){\psframebox{i++}}
+\end{pspicture}
+\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="flowdiagas"></A><A NAME="19312"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 187:</STRONG>
+Flow diagram for compressible fluids</CAPTION>
+<TR><TD><IMG
+ WIDTH="272" HEIGHT="58" BORDER="0"
+ SRC="img3108.png"
+ ALT="\begin{figure}\begin{pspicture}(12cm,18cm)
+\psset{fillstyle=solid}
+\psset{arrows...
+...line{-&gt;}(0.,9.)(3.,9.)
+\rput(1,9){\psframebox{i++}}
+\end{pspicture}
+\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html7264"
+  HREF="node463.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7260"
+  HREF="node460.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7254"
+  HREF="node461.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7262"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7265"
+  HREF="node463.html">Determining the structure of</A>
+<B> Up:</B> <A NAME="tex2html7261"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<B> Previous:</B> <A NAME="tex2html7255"
+  HREF="node461.html">Renumbering</A>
+ &nbsp; <B>  <A NAME="tex2html7263"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

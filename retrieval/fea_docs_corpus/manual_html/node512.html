@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>removesliver.f</TITLE>
+<META NAME="description" CONTENT="removesliver.f">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node513.html">
+<LINK REL="previous" HREF="node511.html">
+<LINK REL="up" HREF="node489.html">
+<LINK REL="next" HREF="node513.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7931"
+  HREF="node513.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7927"
+  HREF="node489.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7921"
+  HREF="node511.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7929"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7932"
+  HREF="node513.html">CREATING QUADRATIC TETRAHEDRAL ELEMENTS.</A>
+<B> Up:</B> <A NAME="tex2html7928"
+  HREF="node489.html">Mesh refining procedure</A>
+<B> Previous:</B> <A NAME="tex2html7922"
+  HREF="node511.html">smoothbadvertex.f</A>
+ &nbsp; <B>  <A NAME="tex2html7930"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H4><A NAME="SECTION00011135230000000000000">
+removesliver.f</A>
+</H4>
+
+<P>
+After projection so called sliver elements may exist, i.e. elements with
+nearly zero volume although the area of all their faces is finite
+[<A
+ HREF="node530.html#George">31</A>]. These elements are removed. A sliver satisfies the following
+conditions:
+
+<P>
+
+<UL>
+<LI>all its nodes are external AND
+</LI>
+<LI>the quality exceeds the value of 10 AND
+</LI>
+<LI>the element does not contain a sharp edge AND
+</LI>
+<LI>and it has at least 4 external edges.
+</LI>
+</UL>
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

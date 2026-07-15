@@ -1,0 +1,113 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>User Element: 3D Timoshenko beam element (U1)</TITLE>
+<META NAME="description" CONTENT="User Element: 3D Timoshenko beam element (U1)">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node79.html">
+<LINK REL="previous" HREF="node72.html">
+<LINK REL="up" HREF="node27.html">
+<LINK REL="next" HREF="node74.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2123"
+  HREF="node74.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2119"
+  HREF="node27.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2113"
+  HREF="node72.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2121"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2124"
+  HREF="node74.html">Differential inertia terms in</A>
+<B> Up:</B> <A NAME="tex2html2120"
+  HREF="node27.html">Element Types</A>
+<B> Previous:</B> <A NAME="tex2html2114"
+  HREF="node72.html">User Element (Uxxxx)</A>
+ &nbsp; <B>  <A NAME="tex2html2122"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000724600000000000000">
+User Element: 3D Timoshenko beam element (U1)</A>
+</H3>
+
+<P>
+An example for a 3D Timoshenko beam element (for static linear elastic
+calculations and small deformations) according to [<A
+ HREF="node530.html#Yunhua">109</A>] is
+implemented as element &ldquo;U1&rdquo; in CalculiX. It is used in example userbeam.inp
+in the test suite. The reader is referred to files resultsmech_u1.f,
+e_c3d_u1.f and extrapolate_u1.f for details on how a user elements is coded. 
+It has to be stated here, that the 2nd order moment <SPAN CLASS="MATH"><IMG
+ WIDTH="21" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img358.png"
+ ALT="$ I_T$"></SPAN>, which is  
+used in the torsional stiffness, is such that it is assumed to be identical to
+the polar 2nd order moment <SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img359.png"
+ ALT="$ I_p$"></SPAN>. This, however, restricts the application 
+of this element to beams with circular cross-sections.
+
+<P>
+In addition to [<A
+ HREF="node530.html#Yunhua">109</A>] the current implementation also 
+contains a mass matrix for dynamic analyses, which has been 
+derived based on the assumptions, that 
+
+<UL>
+<LI>the cross-section does not change over the length of the beam element
+</LI>
+<LI>the deformations are small, such that geometrically linear theory can be used, 
+    where all inertia terms are uncoupled (e.g. pure torsion does not activate shear inertia
+    forces).
+</LI>
+</UL>
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html2125"
+  HREF="node74.html">Differential inertia terms in  a local main axis coordinate frame</A>
+<LI><A NAME="tex2html2126"
+  HREF="node75.html">Discretization of inertia terms (principal axis coordinate frame)</A>
+<LI><A NAME="tex2html2127"
+  HREF="node76.html">Mass matrix in (local) main axis coordinate frame</A>
+<LI><A NAME="tex2html2128"
+  HREF="node77.html">Mass matrix in global coordinate frame</A>
+<LI><A NAME="tex2html2129"
+  HREF="node78.html">Input deck syntax</A>
+</UL>
+<!--End of Table of Child-Links-->
+<BR><HR>
+
+</BODY>
+</HTML>

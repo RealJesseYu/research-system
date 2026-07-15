@@ -1,0 +1,227 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*PLASTIC</TITLE>
+<META NAME="description" CONTENT="*PLASTIC">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node334.html">
+<LINK REL="previous" HREF="node332.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node334.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html5506"
+  HREF="node334.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html5502"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html5496"
+  HREF="node332.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html5504"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html5507"
+  HREF="node334.html">*PRE-TENSION SECTION</A>
+<B> Up:</B> <A NAME="tex2html5503"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html5497"
+  HREF="node332.html">*PHYSICAL CONSTANTS</A>
+ &nbsp; <B>  <A NAME="tex2html5505"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION0008106000000000000000"></A><A NAME="plastic"></A>
+<BR>
+*PLASTIC
+</H2>
+
+<P>
+Keyword type: model definition, material
+
+<P>
+This option is used to define the plastic properties of an
+incrementally plastic material. There is one optional parameter
+HARDENING. Default is HARDENING=ISOTROPIC, other values are
+HARDENING=KINEMATIC for kinematic hardening, HARDENING=COMBINED for
+combined isotropic and kinematic hardening HARDENING=USER for user
+defined hardening curves and HARDENING=JOHNSON COOK for Johnson-Cook hardening
+[<A
+ HREF="node530.html#Johnson">43</A>], cf. Section <A HREF="node163.html#johnsoncook">6.8.10</A>. All constants may be temperature
+dependent. The card should be preceded by a
+<A HREF="node274.html#elastic">*ELASTIC</A> card within the same material definition,
+defining the elastic properties of the material. User
+defined hardening curves should be defined in the user subroutine
+uhardening.f
+
+<P>
+For Johnson-Cook hardening the temperature dependence is included in the model
+equations. However, it may be deactivated by setting the transition
+temperature equal to the melt temperature. For
+Johnson-Cook hardening the material must be isotropic and a <A HREF="node336.html#ratedependent">*RATE
+  DEPENDENT</A> card must be used to define the rate dependence of
+the hardening curve.
+
+<P>
+For all other hardening types different rules apply. If the elastic data is isotropic, the large strain viscoplastic theory
+treated in [<A
+ HREF="node530.html#Simo3">92</A>] and [<A
+ HREF="node530.html#Simo4">93</A>] is applied if the NLGEOM parameter is
+active on the <A HREF="node352.html#step">*STEP</A> card, else the linear theory from Section
+<A HREF="node162.html#incplasa">6.8.9</A> is used. If the elastic
+data is orthotropic, the infinitesimal strain model discussed in
+Section <A HREF="node169.html#s533">6.8.16</A> is used. Accordingly, for an elastically
+orthotropic material 
+the hardening can be at most linear. Furthermore, if the temperature
+data points for the hardening curves do not correspond to the *ELASTIC
+temperature data points, they are interpolated at the latter
+points. Accordingly, for an elastically orthotropic material, it is
+advisable to define the hardening curves at the same temperatures as
+the elastic data.
+
+<P>
+For the selection of plastic output variables the reader is referred to
+Section <A HREF="node161.html#incplas">6.8.8</A>.
+
+<P>
+
+<P><P>
+<BR>
+
+<P>
+First line:
+
+<UL>
+<LI>*PLASTIC
+</LI>
+<LI>Enter the HARDENING parameter and its value, if needed
+</LI>
+</UL>
+
+<P>
+Following sets of lines define the isotropic hardening curve for HARDENING=ISOTROPIC and the kinematic hardening curve for HARDENING=KINEMATIC or HARDENING=COMBINED:
+First line in the first set:
+
+<UL>
+<LI>Von Mises stress.
+</LI>
+<LI>Equivalent plastic strain.
+</LI>
+<LI>Temperature.
+</LI>
+</UL>
+Use as many lines in the first set as needed to define the complete hardening curve for this temperature.
+
+<P>
+Use as many sets as needed to define complete temperature dependence.
+
+<P>
+For the definition of the isotropic hardening curve for HARDENING=COMBINED the keyword <A HREF="node257.html#cyclichardening">*CYCLIC HARDENING</A> is used. 
+
+<P>
+For Johnson-Cook hardening the model constants are to be entered in the
+following order:
+
+<UL>
+<LI>A.
+</LI>
+<LI>B.
+</LI>
+<LI>n (<SPAN CLASS="MATH"><B><IMG
+ WIDTH="29" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img799.png"
+ ALT="$ &gt;0$"></B></SPAN>).
+</LI>
+<LI>m (<SPAN CLASS="MATH"><B><IMG
+ WIDTH="29" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img799.png"
+ ALT="$ &gt;0$"></B></SPAN>).
+</LI>
+<LI><SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1432.png"
+ ALT="$ T_m$"></B></SPAN> (melt temperature).
+</LI>
+<LI><SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img287.png"
+ ALT="$ T_0$"></B></SPAN> (transition temperature).
+</LI>
+</UL>
+
+<P>
+<PRE>
+Example:
+
+*PLASTIC
+800.,0.,273.
+900.,0.05,273.
+1000.,0.15,273.
+700.,0.,873.
+750.,0.04,873.
+800.,0.13,873.
+</PRE>
+
+<P>
+defines two stress-strain curves: one for temperature T=273. and one for T=873. The curve at T=273 connects the points (800.,0.), (900.,0.05) and (1000.,0.15), the curve at T=873 connects (700.,0.), (750.,0.04) and (800.,0.13). Notice that the first point on the curves represents first yielding and must give the Von Mises stress for a zero equivalent plastic strain.
+
+<P>
+
+<P><P>
+<BR>
+Example files: beampd, beampiso, beampkin, beampt.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html5506"
+  HREF="node334.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html5502"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html5496"
+  HREF="node332.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html5504"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html5507"
+  HREF="node334.html">*PRE-TENSION SECTION</A>
+<B> Up:</B> <A NAME="tex2html5503"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html5497"
+  HREF="node332.html">*PHYSICAL CONSTANTS</A>
+ &nbsp; <B>  <A NAME="tex2html5505"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

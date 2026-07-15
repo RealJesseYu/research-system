@@ -1,0 +1,303 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*DAMPING</TITLE>
+<META NAME="description" CONTENT="*DAMPING">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node261.html">
+<LINK REL="previous" HREF="node259.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node261.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html4630"
+  HREF="node261.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4626"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4620"
+  HREF="node259.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4628"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4631"
+  HREF="node261.html">*DASHPOT</A>
+<B> Up:</B> <A NAME="tex2html4627"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html4621"
+  HREF="node259.html">*DAMAGE INITIATION</A>
+ &nbsp; <B>  <A NAME="tex2html4629"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000833000000000000000"></A><A NAME="damping"></A>
+<BR>
+*DAMPING
+</H2>
+
+<P>
+Keyword type: model definition, if structural damping: material
+
+<P>
+This card is used to define Rayleigh damping for implicit and explicit dynamic calculations
+(<A HREF="node273.html#dynamic">*DYNAMIC</A>) and structural damping for steady state dynamics
+calculations (<A HREF="node351.html#steadystatedynamics">*STEADY STATE DYNAMICS</A>). 
+
+<P>
+For Rayleigh damping there are two required parameters: ALPHA and
+BETA.
+
+<P>
+Rayleigh damping is applied in a
+global way, i.e. the damping matrix <!-- MATH
+ $\left [ C \right ]$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2741.png"
+ ALT="$ \left [ C \right ]$"></B></SPAN> is taken to be a linear combination of the
+stiffness matrix <!-- MATH
+ $\left [ K \right ]$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="27" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2742.png"
+ ALT="$ \left [ K \right ]$"></B></SPAN> and the mass matrix <!-- MATH
+ $\left [ M \right ]$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="30" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2743.png"
+ ALT="$ \left [ M \right ]$"></B></SPAN>:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\left [ C \right ] = \alpha \left [ M \right ]
++ \beta \left [ K \right ].
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="148" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2744.png"
+ ALT="$\displaystyle \left [ C \right ] = \alpha \left [ M \right ] + \beta \left [ K \right ].$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">887</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The damping force satisfies:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\lbrace F \rbrace = \left [ C \right ] \lbrace v \rbrace,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="106" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2745.png"
+ ALT="$\displaystyle \lbrace F \rbrace = \left [ C \right ] \lbrace v \rbrace,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">888</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <!-- MATH
+ $\lbrace v \rbrace$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="28" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2746.png"
+ ALT="$ \lbrace v \rbrace$"></B></SPAN> is the velocity vector. For Rayleigh damping only one *DAMPING card can be used in the input deck. It
+applies to the whole model.
+
+<P>
+For explicit dynamic calculations without massless contact (i.e. there is no
+card of the type *CONTACT PAIR,TYPE=MASSLESS in the input deck) only mass proportional damping is allowed,
+i.e. <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img656.png"
+ ALT="$ \beta$"></B></SPAN> must be zero. For explicit dynamic calculations with massless
+contact both parameters <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img141.png"
+ ALT="$ \alpha$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img656.png"
+ ALT="$ \beta$"></B></SPAN> can be used.
+
+<P>
+For structural damping the damping is a material characteristic. Each material
+can have its own damping value. There is one required parameter STRUCTURAL,
+defining the value <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img446.png"
+ ALT="$ \zeta$"></B></SPAN> of the damping. For structural damping the element
+damping force is displacement dependent and satisfies: 
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\lbrace F \rbrace_e = i \zeta_e \left [ K \right ]_e \lbrace x \rbrace_e,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="151" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2747.png"
+ ALT="$\displaystyle \lbrace F \rbrace_e = i \zeta_e \left [ K \right ]_e \lbrace x \rbrace_e,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">889</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <!-- MATH
+ $i=\sqrt{-1}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="64" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2748.png"
+ ALT="$ i=\sqrt{-1}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="34" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2749.png"
+ ALT="$ [K]_e$"></B></SPAN> is the element stiffness matrix, and <!-- MATH
+ $\lbrace x
+\rbrace_e$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="36" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2750.png"
+ ALT="$ \lbrace x
+\rbrace_e$"></B></SPAN> is the element displacement vector. <SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2751.png"
+ ALT="$ \zeta_e$"></B></SPAN> is the structural
+damping value for the material of element <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2544.png"
+ ALT="$ e$"></B></SPAN> (default is zero). The global
+damping force is assembled from the element damping forces. 
+
+<P>
+
+<P><P>
+<BR>
+
+<P>
+First line:
+
+<UL>
+<LI>*DAMPING
+</LI>
+<LI>Enter ALPHA and BETA and their values for Rayleigh damping or STRUCTURAL
+  and its value for structural damping.
+</LI>
+</UL>
+
+<P>
+<PRE>
+Example:
+
+*DAMPING,ALPHA=5000.,BETA=2.e-3
+</PRE>
+
+<P>
+indicates that a damping matrix is created by multiplying the mass matrix with
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="40" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2752.png"
+ ALT="$ 5000.$"></B></SPAN> and adding it to the stiffness matrix multiplied by <!-- MATH
+ $2 \cdot 10^{-4}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="56" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2753.png"
+ ALT="$ 2 \cdot 10^{-4}$"></B></SPAN>
+
+<P>
+<PRE>
+Example:
+
+*DAMPING,STRUCTURAL=0.03
+</PRE>
+
+<P>
+defines a structural damping value of 0.03 (3 <SPAN CLASS="MATH"><B><IMG
+ WIDTH="17" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1863.png"
+ ALT="$ \%$"></B></SPAN>). This card must be part of
+a material description.
+
+<P>
+
+<P><P>
+<BR>
+Example files: beamimpdy1, beamimpdy2.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html4630"
+  HREF="node261.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4626"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4620"
+  HREF="node259.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4628"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4631"
+  HREF="node261.html">*DASHPOT</A>
+<B> Up:</B> <A NAME="tex2html4627"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html4621"
+  HREF="node259.html">*DAMAGE INITIATION</A>
+ &nbsp; <B>  <A NAME="tex2html4629"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

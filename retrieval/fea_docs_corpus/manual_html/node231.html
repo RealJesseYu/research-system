@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Linear temperature function</TITLE>
+<META NAME="description" CONTENT="Linear temperature function">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="previous" HREF="node230.html">
+<LINK REL="up" HREF="node227.html">
+<LINK REL="next" HREF="node232.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html4282"
+  HREF="node232.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4278"
+  HREF="node227.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4274"
+  HREF="node230.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4280"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4283"
+  HREF="node232.html">*BUCKLE</A>
+<B> Up:</B> <A NAME="tex2html4279"
+  HREF="node227.html">*BOUNDARY</A>
+<B> Previous:</B> <A NAME="tex2html4275"
+  HREF="node230.html">Submodel</A>
+ &nbsp; <B>  <A NAME="tex2html4281"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00084400000000000000">
+Linear temperature function</A>
+</H3>
+
+<P>
+Linear temperature function conditions can be defined between a *STEP card and an *END STEP card only. 
+
+<P><P>
+<BR>
+
+<P>
+First line:
+
+<UL>
+<LI>*BOUNDARY,LINTEMP
+</LI>
+</UL>
+
+<P>
+Following line:
+
+<UL>
+<LI><SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img435.png"
+ ALT="$ a$"></B></SPAN> (global x-coefficient of normal; normal should be normalized)
+</LI>
+<LI><SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img436.png"
+ ALT="$ b$"></B></SPAN> (global y-coefficient of normal; normal should be normalized)
+</LI>
+<LI><SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1262.png"
+ ALT="$ c$"></B></SPAN> (global z-coefficient of normal; normal should be normalized)
+</LI>
+<LI><SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2657.png"
+ ALT="$ d_1$"></B></SPAN>
+</LI>
+<LI><SPAN CLASS="MATH"><B><IMG
+ WIDTH="17" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img437.png"
+ ALT="$ t_1$"></B></SPAN>
+</LI>
+<LI><SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2658.png"
+ ALT="$ d_2$"></B></SPAN>
+</LI>
+<LI><SPAN CLASS="MATH"><B><IMG
+ WIDTH="17" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img438.png"
+ ALT="$ t_2$"></B></SPAN>
+</LI>
+</UL>
+Repeat this line if needed.
+
+<P>
+<PRE>
+Example:
+
+*BOUNDARY,LINTEMP
+1.,0.,0.,.1,300.,.55,650.
+</PRE>
+
+<P>
+specifies a linear temperature function between a plane with equation <SPAN CLASS="MATH"><B><IMG
+ WIDTH="54" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2661.png"
+ ALT="$ x=0.1$"></B></SPAN>
+(at temperature 300.) and a plane with equation <SPAN CLASS="MATH"><B><IMG
+ WIDTH="62" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2662.png"
+ ALT="$ x=0.55$"></B></SPAN> (at temperature 650.). 
+
+<P>
+
+<P><P>
+<BR>
+Example files: .
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

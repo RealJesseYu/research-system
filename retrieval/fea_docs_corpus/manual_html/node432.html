@@ -1,0 +1,387 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Massless contact</TITLE>
+<META NAME="description" CONTENT="Massless contact">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="previous" HREF="node431.html">
+<LINK REL="up" HREF="node430.html">
+<LINK REL="next" HREF="node433.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html6874"
+  HREF="node433.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html6870"
+  HREF="node430.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html6866"
+  HREF="node431.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html6872"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html6875"
+  HREF="node433.html">Storing distributions for local</A>
+<B> Up:</B> <A NAME="tex2html6871"
+  HREF="node430.html">Contact</A>
+<B> Previous:</B> <A NAME="tex2html6867"
+  HREF="node431.html">Penalty contact</A>
+ &nbsp; <B>  <A NAME="tex2html6873"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000114200000000000000">
+Massless contact</A>
+</H3>
+
+<P>
+Massless contact is coded uniquely for explicit dynamics. The underlying
+contact definition uses a node-to-surface approach and fields such as
+islavnode and imastnode are common with the penalty contact formulation.
+
+<P>
+Within a new step some of the fields for massless contact have to be set up
+only once in the step. Therefore, they are calculated at the beginning of
+nonlingeo.c in the section in which the initial acceleration for the
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img141.png"
+ ALT="$ \alpha$"></B></SPAN>-method is calculated (just after setting up the matrices in
+mafillsmmain.c).
+
+<P>
+At first the degrees of freedom needed to set up the <SPAN CLASS="MATH"><B><IMG
+ WIDTH="34" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1304.png"
+ ALT="$ [W_b]$"></B></SPAN> matrix
+(cf. Section <A HREF="node152.html#masslesscontact">6.7.9</A>) are collected in create_contactdofs.f. These are:
+
+<P>
+
+<UL>
+<LI>the slave node degrees of freedom. Each of them is characterized by a
+  node number &ldquo;node&rdquo; and a global direction &ldquo;j&rdquo;. The value of
+  nactdof(j,node) is stored in field kslav, the value 10*node+j in
+  lslav. Subsequently kslav is sorted in ascending order taking lslav
+  along. The size of these fields is 3*nslavs, since no SPC's or MPC's are
+  allowed in the contact area for massless contact.
+</LI>
+<LI>the slave and master nodes degrees of freedom. They are stored in a
+  similar way in fields ktot and ltot. The size of these fields is
+  neqtot:=3*nslavs+3*nmasts.
+</LI>
+</UL>
+
+<P>
+Furthermore, in the same routine the friction coefficient in each slave node is
+stored in field fric(1...nslavs).
+
+<P>
+Then, the matrices in between the big brackets in Equation (<A HREF="node152.html#eqg6">381</A>) are
+calculated. They consist of a linear combination of the mass and damping
+matrix, or, since Rayleigh damping is assumed, a linear combination of the
+mass and stiffness matrix. Subsequently, these matrices are reduced to the
+internal degrees of freedom only (recall that <SPAN CLASS="MATH"><B><IMG
+ WIDTH="38" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3048.png"
+ ALT="$ [M_{ii}]$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="36" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3049.png"
+ ALT="$ [D_{ii}]$"></B></SPAN> is
+used in  Equation (<A HREF="node152.html#eqg6">381</A>)) in subroutine reducematrix.f. Finally, the
+matrix corresponding to the left hand side is factorized. It will be
+repeatedly used for solving the system in each increment.
+
+<P>
+Now, the increment loop can start. The following actions are performed:
+
+<P>
+
+<UL>
+<LI>At the beginning of each increment the
+  <SPAN CLASS="MATH"><B><IMG
+ WIDTH="34" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1304.png"
+ ALT="$ [W_b]$"></B></SPAN> matrix is formed. This is performed in subroutine
+  gencontelem_n2f.f. Each set of three columns in the matrix corresponds to the
+  dependence of the degrees of freedom of a slave node in a local coordinate
+  system (splitting the normal direction from the tangential directions) on the
+  degrees of freedom of the nodes of the opposite master face in global
+  coordinates. The matrix is stored using fields auw, jqw, iroww and
+  nzsw. Vector auw contains the nonzero values column by column, the
+  corresponding row number is stored in iroww, in total there are nzsw
+  entries. The first entry in each column is stored in jqw(i),
+  i=1,..3*nslavs+1. [for linear calculations (i.e. without geometric and
+    material nonlinearities; characterized by masslesslinear <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2537.png"
+ ALT="$ &gt;$"></B></SPAN> 0) <SPAN CLASS="MATH"><B><IMG
+ WIDTH="34" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1304.png"
+ ALT="$ [W_b]$"></B></SPAN> is calculated only once at the start of
+    the step.]
+</LI>
+<LI>contrary to penalty dynamic calculations, no extrapolation from the
+  previous result is done, i.e. prediction.c is skipped.
+</LI>
+<LI>contrary to penalty dynamic calculations, the stiffness matrix is
+  assembled in mafillsmmain.c. [For linear calculations the stiffness matrix
+    is calculated only once at the start of the step.]
+</LI>
+<LI>contrary to penalty dynamic calculations, no residual is calculated in
+  calcresidual.c. Instead, routine massless.c is called with the following actions:
+  
+<UL>
+<LI>The rows in <SPAN CLASS="MATH"><B><IMG
+ WIDTH="34" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1304.png"
+ ALT="$ [W_b]$"></B></SPAN> are rearranged; in gencontelem_n2f.f the order
+      is such that first the slave nodes are treated, followed by the master
+      nodes. In routine expand_auw the new row order is the one dictated by
+      field nactdof. [For linear calculations this is done only once at the
+        start of the step.]
+</LI>
+<LI>In routine extract_matrices <SPAN CLASS="MATH"><B><IMG
+ WIDTH="38" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3050.png"
+ ALT="$ [K_{bb}]$"></B></SPAN>,  <SPAN CLASS="MATH"><B><IMG
+ WIDTH="37" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3051.png"
+ ALT="$ [K_{bi}]$"></B></SPAN>,<SPAN CLASS="MATH"><B><IMG
+ WIDTH="37" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3052.png"
+ ALT="$ [K_{ib}]$"></B></SPAN> and
+  <SPAN CLASS="MATH"><B><IMG
+ WIDTH="36" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3053.png"
+ ALT="$ [K_{ii}]$"></B></SPAN> are extracted from the global stiffness matrix. Matrix
+  <SPAN CLASS="MATH"><B><IMG
+ WIDTH="38" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3050.png"
+ ALT="$ [K_{bb}]$"></B></SPAN> is stored using fields jqbb, aubb, adbb, irowbb and icolbb (the
+  latter contains the number of nonzero entries in each column), because of
+  symmetry only half the matrix is stored. The subdiagional terms of matrix <SPAN CLASS="MATH"><B><IMG
+ WIDTH="37" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3051.png"
+ ALT="$ [K_{bi}]$"></B></SPAN> are stored using
+  fields jqbi, aubi, irowbi and nzsbi. The subdiagonal terms of matrix <SPAN CLASS="MATH"><B><IMG
+ WIDTH="37" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3052.png"
+ ALT="$ [K_{ib}]$"></B></SPAN> are stored using
+  fields jqib, auib, irowib and nzsib. To obtain matrix <SPAN CLASS="MATH"><B><IMG
+ WIDTH="37" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3051.png"
+ ALT="$ [K_{bi}]$"></B></SPAN> it has to
+  be complemented by the transpose of the  <SPAN CLASS="MATH"><B><IMG
+ WIDTH="37" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3052.png"
+ ALT="$ [K_{ib}]$"></B></SPAN> matrix. Notice that
+  matrix  <SPAN CLASS="MATH"><B><IMG
+ WIDTH="37" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3052.png"
+ ALT="$ [K_{ib}]$"></B></SPAN> is assumed to have as many rows as <SPAN CLASS="MATH"><B><IMG
+ WIDTH="27" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1761.png"
+ ALT="$ [K]$"></B></SPAN> and three times
+  nslavs columns (any entries not belonging to the contact nodes are set to
+  zero; this does not blow up the storage, since only non-zeros are stored). Mutatis mutandis this also applies to  <SPAN CLASS="MATH"><B><IMG
+ WIDTH="37" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3051.png"
+ ALT="$ [K_{bi}]$"></B></SPAN>. Matrix
+  <SPAN CLASS="MATH"><B><IMG
+ WIDTH="36" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3053.png"
+ ALT="$ [K_{ii}]$"></B></SPAN> is actually not extracted, the entries of matrices  <SPAN CLASS="MATH"><B><IMG
+ WIDTH="37" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3051.png"
+ ALT="$ [K_{bi}]$"></B></SPAN>,
+  <SPAN CLASS="MATH"><B><IMG
+ WIDTH="37" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3052.png"
+ ALT="$ [K_{ib}]$"></B></SPAN> and  <SPAN CLASS="MATH"><B><IMG
+ WIDTH="38" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3050.png"
+ ALT="$ [K_{bb}]$"></B></SPAN> are set to zero (off-diagonal) or one
+  (diagonal). [For linear calculations this is done only once at the start of
+    the step.]
+</LI>
+<LI>Calculation of <!-- MATH
+ $\{F_b(t^k)\} - [K_{bi}]\{U_i\}^k$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="155" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3054.png"
+ ALT="$ \{F_b(t^k)\} - [K_{bi}]\{U_i\}^k$"></B></SPAN> in resforccont.f. This
+  is the residual force due to external forces and forces from the internal
+  nodes in the absence of contact forces <!-- MATH
+ $\{\lambda\}^k$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="37" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1344.png"
+ ALT="$ \{ \lambda \}^k$"></B></SPAN>. For linear
+  calculations the external force due to distributed loads (e.g. centrifugal
+  forces) is calculated only once at the start of the step (only if the
+  distributed load does not change in the step). Concentrated loads are added
+  on an increment basis.
+</LI>
+<LI>factorizing <SPAN CLASS="MATH"><B><IMG
+ WIDTH="38" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3050.png"
+ ALT="$ [K_{bb}]$"></B></SPAN> (for linear calculations this is done only once
+  at the start of the step) and premultiplying the residual force with
+  <!-- MATH
+ $[K_{bb}]^{-1}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="55" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3055.png"
+ ALT="$ [K_{bb}]^{-1}$"></B></SPAN> by solving a linear equation system. The result is stored
+  in field gapdisp and is the displacement field at the boundary nodes in
+  global coordinates assuming zero contact force.
+</LI>
+<LI>calculating the gap by premultiplying gapdisp by <SPAN CLASS="MATH"><B><IMG
+ WIDTH="44" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3056.png"
+ ALT="$ [W_b]^T$"></B></SPAN> and
+  adding <SPAN CLASS="MATH"><B><IMG
+ WIDTH="34" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3057.png"
+ ALT="$ \{g_0\}$"></B></SPAN> in detectactivecont.f; determining the active contact degrees of freedom by
+  identifying negative gap values. The number of active degrees of freedom
+  is nacti, the corresponding entries in iacti(j),j=1...3*nlavs are
+  numbered in ascending order, the nonactive degrees in iacti are set to zero.
+</LI>
+<LI>calculate <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1324.png"
+ ALT="$ [G]$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="27" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1325.png"
+ ALT="$ \{c\}$"></B></SPAN> (using gapdisp) and storing them in
+  gmatrix(1..nacti,1..nacti) and cvec(1..nacti). For linear calculations a
+  maximal <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1324.png"
+ ALT="$ [G]$"></B></SPAN> matrix (stored in fullgmatrix) is calculated once at the start of the
+  step assuming all contact degrees of freedom do be active. it is
+  appropriately condensed to the right size in each increment based on the
+  truly active degrees of freedom. In the same way a maximal relaxation vector
+  fullr is calculated.
+</LI>
+<LI>solving the inclusion problem in auglag_inclusion.f. Field
+  alglob(1..neqtot) contains <!-- MATH
+ $[W_b]\{\lambda\}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="59" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1311.png"
+ ALT="$ [W_b] \{ \lambda \}$"></B></SPAN>, i.e. the contact forces in
+  slave and master nodes in global coordinates, field al(1..3*nslavs)
+  contains  <!-- MATH
+ $\{\lambda\}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="29" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1310.png"
+ ALT="$ \{\lambda \}$"></B></SPAN>, i.e. the contact forces in the slave nodes in a
+  local coordinate system.
+</LI>
+<LI>calculate <SPAN CLASS="MATH"><B><IMG
+ WIDTH="45" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1319.png"
+ ALT="$ \{U_b\}^k$"></B></SPAN> using Equation (<A HREF="node152.html#eqg4">371</A>).
+</LI>
+<LI>calculate the right hand side of Equation (<A HREF="node152.html#eqg6">381</A>).
+  
+</LI>
+</UL>
+
+<P>
+</LI>
+<LI>Solve the equation system corresponding to Equation
+  (<A HREF="node152.html#eqg6">381</A>). Since the left hand side is stored in fields adb and aub this
+  is covered by the regular penalty dynamic calculations and does not require
+  special treatment.
+</LI>
+<LI>Calculate a pseudo velocity in the contact boundary nodes by
+  calculating <!-- MATH
+ $(\{U_b\}^k-\{U_b\}^{k-1})/\Delta t$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="161" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3058.png"
+ ALT="$ (\{U_b\}^k-\{U_b\}^{k-1})/\Delta t$"></B></SPAN>; this is needed for the
+  next step.
+</LI>
+<LI>Use routines resultsini.c and iniparll.c to calculate
+  <!-- MATH
+ $\{U_i\}^{k+1}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="60" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1359.png"
+ ALT="$ \{U_i\}^{k+1}$"></B></SPAN> and <!-- MATH
+ $\{U_b\}^{k}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="45" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3059.png"
+ ALT="$ \{U_b\}^{k}$"></B></SPAN>.
+</LI>
+</UL>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html6874"
+  HREF="node433.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html6870"
+  HREF="node430.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html6866"
+  HREF="node431.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html6872"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html6875"
+  HREF="node433.html">Storing distributions for local</A>
+<B> Up:</B> <A NAME="tex2html6871"
+  HREF="node430.html">Contact</A>
+<B> Previous:</B> <A NAME="tex2html6867"
+  HREF="node431.html">Penalty contact</A>
+ &nbsp; <B>  <A NAME="tex2html6873"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,277 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Turbulent Flow in Open Channels</TITLE>
+<META NAME="description" CONTENT="Turbulent Flow in Open Channels">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node460.html">
+<LINK REL="previous" HREF="node448.html">
+<LINK REL="up" HREF="node405.html">
+<LINK REL="next" HREF="node455.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7146"
+  HREF="node455.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7142"
+  HREF="node405.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7136"
+  HREF="node453.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7144"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7147"
+  HREF="node455.html">Sluice Gate</A>
+<B> Up:</B> <A NAME="tex2html7143"
+  HREF="node405.html">Program structure.</A>
+<B> Previous:</B> <A NAME="tex2html7137"
+  HREF="node453.html">Convergence criteria</A>
+ &nbsp; <B>  <A NAME="tex2html7145"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION0001110000000000000000">
+Turbulent Flow in Open Channels</A>
+</H2>
+
+<P>
+Although the turbulent flow in open channels is also modeled using 3-node
+network elements, the solution procedure is quite different. This is because
+the flow direction is usually known and hydraulic jumps (Froude number equal
+to 1; this is the equivalent of sonic conditions in aerodynamic flow) can
+occur within an element, also when the cross section is constant. This makes
+the approach of setting up a nonlinear system of equations which is to be
+solved by repeatedly linearizing the system very difficult. The usual approach
+to the steady state equations of turbulent flow in open channels is as
+follows (focussing at first on one channel consisting of one line of elements):
+
+<P>
+
+<UL>
+<LI>Determine the upstream element of the channel (usually a sluice gate or weir)
+</LI>
+<LI>Assume supercritical flow, i.e. the flow is controled by upstream
+  conditions
+</LI>
+<LI>Proceeding from upstream to downstream, calculate the fluid depth.
+</LI>
+<LI>If for some reason supercritical flow is not feasible (e.g. the critical
+  depth is reached somewhere along the channel), proceed
+  downstream to the next element and so on until there is again a
+  supercritical solution, e.g. starting at node A. Before going on with this supercritical solution
+  start from node A upstream calculating a subcritical flow until a jump
+  occurs or the upstream element in the channel is reached. Then, continue downstream
+  calculating a supercritical flow starting at node A.
+</LI>
+<LI>if the downstream element in the channel is reached (usually a reservoir) check
+  for a fall or jump in the reservoir. Else start a subcritical
+  calculation starting at the entry of the reservoir (raccordation) and
+  proceed upstream until a jump is detected or the upstream element is
+  reached.
+</LI>
+</UL>
+
+<P>
+Starting this iterative procedure at the upstream element is logical, since it
+usually allows for the determination of the mass flow (a reservoir doesn't)
+and if there is some section in which the flow is supercritical it is governed
+by the upstream conditions. The unknowns are the temperature, the fluid depth
+(measured in the direction of the gravity vector; the specification of the
+gravity vector with the <A HREF="node271.html#dload">*DLOAD</A> card is mandatory for channel
+calculations) and the mass flow. They correspond with the degrees of freedom
+shown in Table <A HREF="#t12">24</A>. The critical depth is actually not an independent
+unknown, it is calculated as soon as the mass flow is known.
+
+<P>
+<BR><P></P>
+<DIV ALIGN="CENTER">
+
+<DIV ALIGN="CENTER">
+<A NAME="19263"></A>
+<TABLE CELLPADDING=3 BORDER="1">
+<CAPTION><STRONG>Table 24:</STRONG>
+Degrees of freedom in open channel nodes.</CAPTION>
+<TR><TD ALIGN="CENTER">DOF</TD>
+<TD ALIGN="CENTER">corner node</TD>
+<TD ALIGN="CENTER">midside node</TD>
+</TR>
+<TR><TD ALIGN="CENTER">0</TD>
+<TD ALIGN="CENTER">temperature</TD>
+<TD ALIGN="CENTER">-</TD>
+</TR>
+<TR><TD ALIGN="CENTER">1</TD>
+<TD ALIGN="CENTER">-</TD>
+<TD ALIGN="CENTER">mass flow</TD>
+</TR>
+<TR><TD ALIGN="CENTER">2</TD>
+<TD ALIGN="CENTER">depth</TD>
+<TD ALIGN="CENTER">-</TD>
+</TR>
+<TR><TD ALIGN="CENTER">3</TD>
+<TD ALIGN="CENTER">critical depth</TD>
+<TD ALIGN="CENTER">-</TD>
+</TR>
+</TABLE>
+</DIV>
+</DIV>
+<BR>
+
+<P>
+Right now, the fluid element routines are the sluicegate (includes the
+weir), the straightchannel, the reservoir and the contraction (includes the
+enlargement and the step) routines. The IO elements (input/output) do not need
+a routine and are not considered to be &ldquo;true&rdquo; elements. Field ineighe(i)
+gives the number of true elements in end node i. Fields iponoel and inoel
+allow for the determination of ALL elements (true and IO)  belonging to node
+i. Entry iponoel(i) points to a first element in inoel(1,iponoel(i)),
+inoel(2,iponoel(i)) points to the next element etc. up to the point where
+inoel(2,...)=0. The upstream, middle and downstream node of an element nelem are
+called nup, nmid and ndo, respectively, the upstream and downstream neighbor
+(assuming there is only one) nelup and neldo. The upstream and downstream
+depth is hup and hdo.
+
+<P>
+There are extra routines for the calculation of:
+
+<P>
+
+<UL>
+<LI>the critical depth hk (&ldquo;kritische hoogte&rdquo; in Dutch) (hcrit.f)
+</LI>
+<LI>the normal depth he (&ldquo;hoogte van eenparige beweging&rdquo; in Dutch) (hnorm.f)  
+</LI>
+<LI>the depth h2 after a jump corresponding to the depth h1 before (hns.f;
+  &ldquo;hoogte na sprong&rdquo; in Dutch)
+</LI>
+</UL>
+
+<P>
+The friction can be of type White-Coolebrook (xks <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2537.png"
+ ALT="$ &gt;$"></B></SPAN> 0) or Manning (Manning
+coefficient = -xks, xks <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2978.png"
+ ALT="$ &lt;$"></B></SPAN> 0). For White-Coolebrook the friction coefficient
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img612.png"
+ ALT="$ f$"></B></SPAN> is calculated from the grain size xks in friction_coefficient.f.
+
+<P>
+The mode of calculation (from upstream to downstream, i.e. supercritical, or
+from downstream to upstream, i.e. subcritical) is denoded by the variable mode
+(character*1) taking 'F' for forward or 'B' for backward, respectively. If the
+forward mode (frontwater curve) is temporarily interrupted to calculate a
+backwater curve the switching point (point A above) is stored on a stack: the
+number of stored switching points is nstack, for switching point i the element
+upstream of A is stored in istack(1,i), and the node corresponding to A in
+istack(2,i).
+
+<P>
+The above iterative procedure leads to the following algorithm:
+
+<P>
+
+<UL>
+<LI>Look for a sluice gate or wear element one of the end nodes of which
+  is connected to only one &ldquo;true&rdquo; element (i.e. the element itself). This
+  is the starting point of a frontwater curve calculation
+</LI>
+<LI>Proceed downstream calculating a supercritical flow. Determine the
+  next downstream element using the actual element and its downstream node
+  (nelup and nup for the downstream element) and fields iponoel and inoel.
+</LI>
+<LI>If no supercritical flow is possible, set hup = -1 and  move downstream until
+  supercritical flow is feasible again, e.g. at node A. Store the
+  appropriate information of this switching node in fields nstack and
+  istack. Important here is that a negative depth points to the unfeasibility
+  of a frontwater curve starting at that node.
+</LI>
+<LI>proceed from node A upstream with subcritical flow. For each
+  element use its number and its upstream node to determine the next
+  upstream element. Continue this until a jump is detected or the
+  originating sluice gate or weir is reached. Then, proceed downstream
+  with the most recently stored information on stack
+</LI>
+<LI>when arriving at a reservoir, check for a fall or jump in the
+  reservoir. Else start an upstream calculation as detailed before.
+</LI>
+</UL>
+
+<P>
+Now, some more detailed information on the true elements is given.
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html7148"
+  HREF="node455.html">Sluice Gate</A>
+<LI><A NAME="tex2html7149"
+  HREF="node456.html">Wear</A>
+<LI><A NAME="tex2html7150"
+  HREF="node457.html">Straight Channel</A>
+<LI><A NAME="tex2html7151"
+  HREF="node458.html">Reservoir</A>
+<LI><A NAME="tex2html7152"
+  HREF="node459.html">Contraction, Enlargement, Step and Fall</A>
+</UL>
+<!--End of Table of Child-Links-->
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html7146"
+  HREF="node455.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7142"
+  HREF="node405.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7136"
+  HREF="node453.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7144"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7147"
+  HREF="node455.html">Sluice Gate</A>
+<B> Up:</B> <A NAME="tex2html7143"
+  HREF="node405.html">Program structure.</A>
+<B> Previous:</B> <A NAME="tex2html7137"
+  HREF="node453.html">Convergence criteria</A>
+ &nbsp; <B>  <A NAME="tex2html7145"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Transient laminar incompressible Couette problem</TITLE>
+<META NAME="description" CONTENT="Transient laminar incompressible Couette problem">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node16.html">
+<LINK REL="previous" HREF="node14.html">
+<LINK REL="up" HREF="node6.html">
+<LINK REL="next" HREF="node16.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1179"
+  HREF="node16.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html1175"
+  HREF="node6.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html1169"
+  HREF="node14.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html1177"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1180"
+  HREF="node16.html">Stationary laminar inviscid compressible</A>
+<B> Up:</B> <A NAME="tex2html1176"
+  HREF="node6.html">Simple example problems</A>
+<B> Previous:</B> <A NAME="tex2html1170"
+  HREF="node14.html">Lid-driven cavity</A>
+ &nbsp; <B>  <A NAME="tex2html1178"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00069000000000000000">
+Transient laminar incompressible Couette problem</A>
+</H2>
+
+<P>
+Another well-known problem is the incompressible laminar flow between two
+parallel plates. At time zero both plates are at rest, whereas at positive
+times one of the plates is moved parallel to the other plate with a velocity
+of 1. The analytical solution can be found in [<A
+ HREF="node530.html#Schlichting">86</A>] in the form
+of a series expansion containing the complementary error function erfc. In the
+steady state regime the velocity profile is linear across the space in between
+the plates. The velocity profiles at different times are shown in Figure
+<A HREF="#couette1">28</A> and compared with the analytical solution for a unity distance
+between the plates and a kinematic viscosity <SPAN CLASS="MATH"><IMG
+ WIDTH="42" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img148.png"
+ ALT="$ \nu=1$"></SPAN>. The input deck for the
+CalculiX results can be found in the test suite (couette1.inp). The figure
+shows a good agreement between the numerical and analytical values, indicating
+that the time integration in the CFD-implementation in CalculiX is
+correct. The small deviations at small times are due to the rather course mesh.
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="couette1"></A><A NAME="17692"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 28:</STRONG>
+Velocity across the space in between the plates for different times</CAPTION>
+<TR><TD><IMG
+ WIDTH="363" HEIGHT="258" BORDER="0"
+ SRC="img149.png"
+ ALT="\begin{figure}\epsfig{file=couette_transient.eps,width=8cm}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

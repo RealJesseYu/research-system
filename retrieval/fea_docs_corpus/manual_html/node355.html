@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*SUBSTRUCTURE MATRIX OUTPUT</TITLE>
+<META NAME="description" CONTENT="*SUBSTRUCTURE MATRIX OUTPUT">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node356.html">
+<LINK REL="previous" HREF="node354.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node356.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html5770"
+  HREF="node356.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html5766"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html5760"
+  HREF="node354.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html5768"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html5771"
+  HREF="node356.html">*SURFACE</A>
+<B> Up:</B> <A NAME="tex2html5767"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html5761"
+  HREF="node354.html">*SUBSTRUCTURE GENERATE</A>
+ &nbsp; <B>  <A NAME="tex2html5769"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION0008128000000000000000"></A><A NAME="substructurematrixoutput"></A>
+<BR>
+*SUBSTRUCTURE MATRIX OUTPUT
+</H2>
+
+<P>
+Keyword type: step
+
+<P>
+This option is used to define the name of the file in which the stiffness
+matrix of the substructure is to be stored which is generated within a
+<A HREF="node354.html#substructuregenerate">*SUBSTRUCTURE GENERATE</A> step. This is the only
+procedure in which this keyword card makes sense.
+
+<P>
+There is one optional parameter STIFFNESS, and two required
+parameters FILE NAME and OUTPUT FILE.
+
+<P>
+The optional parameter STIFFNESS can only take a fixed value:
+STIFFNESS=YES. The parameter OUTPUT
+FILE can take the value USER DEFINED or MATRIX. If the value is USER DEFINED
+the output format resembles a user element definition. For the value MATRIX the resulting
+stiffness file can be used in a <A HREF="node312.html#matrixassemble">*MATRIX ASSEMBLE</A>
+keyword. In this way it is defined as superelement and the output format
+consists of lines listing the row node number, row degree of freedom, column
+node number, column degree of freedom and matrix entry value.
+
+<P>
+The required parameter FILE NAME is used to define the name of the file
+ in
+which the stiffness is to be stored. The extension .mtx is default and cannot
+be changed. It is automatically appended to the name given by the user.
+
+<P>
+
+<P><P>
+<BR>
+
+<P>
+First line:
+
+<UL>
+<LI>*SUBSTRUCTURE MATRIX OUTPUT
+</LI>
+<LI>Enter the parameter FILE NAME and OUTPUT FILE and their values, and optionally, the
+  parameter STIFFNESS with its fixed value.
+</LI>
+</UL>
+
+<P>
+<PRE>
+Example:
+
+*SUBSTRUCTURE MATRIX OUTPUT,FILE NAME=substruc,OUTPUT FILE=MATRIX
+</PRE>
+
+<P>
+defines file substruc.mtx for the storage of the substructure stiffness matrix
+in MATRIX format.
+
+<P>
+
+<P><P>
+<BR>
+Example files: substructure, substructure2.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html5770"
+  HREF="node356.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html5766"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html5760"
+  HREF="node354.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html5768"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html5771"
+  HREF="node356.html">*SURFACE</A>
+<B> Up:</B> <A NAME="tex2html5767"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html5761"
+  HREF="node354.html">*SUBSTRUCTURE GENERATE</A>
+ &nbsp; <B>  <A NAME="tex2html5769"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

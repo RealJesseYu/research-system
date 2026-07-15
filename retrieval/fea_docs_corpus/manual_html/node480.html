@@ -1,0 +1,194 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Sensitivity Analysis</TITLE>
+<META NAME="description" CONTENT="Sensitivity Analysis">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node484.html">
+<LINK REL="previous" HREF="node460.html">
+<LINK REL="up" HREF="node405.html">
+<LINK REL="next" HREF="node481.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7478"
+  HREF="node481.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7474"
+  HREF="node405.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7468"
+  HREF="node479.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7476"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7479"
+  HREF="node481.html">Preprocessing the sensitivity</A>
+<B> Up:</B> <A NAME="tex2html7475"
+  HREF="node405.html">Program structure.</A>
+<B> Previous:</B> <A NAME="tex2html7469"
+  HREF="node479.html">Result output</A>
+ &nbsp; <B>  <A NAME="tex2html7477"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION0001112000000000000000">
+Sensitivity Analysis</A>
+</H2>
+
+<P>
+The coding for sensitivity analysis is concentrated within the
+sensi_coor.c (coordinates as design variables) and sensi_orien.c
+(orientation as design variables) subroutines. The design responses and the parameters
+describing them are stored in a character*81 field objectset(5,nobject), where
+nobject is the number of design responses.
+
+<P>
+The structure of the field objectset is as follows:
+
+<UL>
+<LI>objectset(1,*)
+
+<UL>
+<LI>1-18: design response (e.g. ALL-DISP)
+</LI>
+<LI>19-20: LE or GE (for constraints)
+</LI>
+<LI>21-40: boundary weighting distance
+</LI>
+<LI>41-60: relative constraint value
+</LI>
+<LI>61-80: absolute constraint value
+</LI>
+<LI>81-81: R for reading the sensitivities from file jobname.sen, W for
+  writing the sensitivities to file jobname.sen (only stored in objectset(1,1))
+</LI>
+</UL>
+</LI>
+<LI>objectset(2,*)
+
+<UL>
+<LI>6-8: BOU if boundary weighting is active, else empty
+</LI>
+<LI>10-12: EDG if edge conservation is active, else empty
+</LI>
+<LI>14-16: DIR if direction weighting is active, else empty
+</LI>
+<LI>17-19: MIN for minimization, MAX for maximization
+</LI>
+<LI>21-40: filter radius
+</LI>
+<LI>41-60: <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img36.png"
+ ALT="$ \rho$"></B></SPAN> of the Kreisselmeier-Steinhauser function
+</LI>
+<LI>61-80: <!-- MATH
+ $\bar{\sigma}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2677.png"
+ ALT="$ \bar{\sigma}$"></B></SPAN> of the Kreisselmeier-Steinhauser function
+</LI>
+</UL>
+</LI>
+<LI>objectset(3,*)
+
+<UL>
+<LI>1-81: node or element set to which the design response applies
+</LI>
+</UL>
+</LI>
+<LI>objectset(4,*)
+
+<UL>
+<LI>set of opposite nodes (only for MAXMEMBERSIZE AND MINMEMBERSIZE
+  geometric constraints)
+</LI>
+</UL>
+</LI>
+<LI>objectset(5,*)
+
+<UL>
+<LI>1-80: name of the design response
+</LI>
+<LI>81-81: C for Constraint, G for Geometric constraint and O for Objective
+</LI>
+</UL>
+</LI>
+</UL>
+
+<P>
+The structure of subroutines sensi_coor.c and sensi_orien.c is made up of a preprocessing part,
+a processing part and a postprocessing part. The preprocessing part is
+executed only once, for frequency sensitivities the processing and
+postprocessing part is executed as many times as there are eigenvalues, else
+they are executed only once.
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html7480"
+  HREF="node481.html">Preprocessing the sensitivity</A>
+<LI><A NAME="tex2html7481"
+  HREF="node482.html">Processing the sensitivity</A>
+<LI><A NAME="tex2html7482"
+  HREF="node483.html">Postprocessing the sensitivity</A>
+</UL>
+<!--End of Table of Child-Links-->
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html7478"
+  HREF="node481.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7474"
+  HREF="node405.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7468"
+  HREF="node479.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7476"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7479"
+  HREF="node481.html">Preprocessing the sensitivity</A>
+<B> Up:</B> <A NAME="tex2html7475"
+  HREF="node405.html">Program structure.</A>
+<B> Previous:</B> <A NAME="tex2html7469"
+  HREF="node479.html">Result output</A>
+ &nbsp; <B>  <A NAME="tex2html7477"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

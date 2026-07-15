@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Application of BC's</TITLE>
+<META NAME="description" CONTENT="Application of BC's">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node477.html">
+<LINK REL="previous" HREF="node475.html">
+<LINK REL="up" HREF="node460.html">
+<LINK REL="next" HREF="node477.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7432"
+  HREF="node477.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7428"
+  HREF="node460.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7422"
+  HREF="node475.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7430"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7433"
+  HREF="node477.html">Calculation of the smoothing</A>
+<B> Up:</B> <A NAME="tex2html7429"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<B> Previous:</B> <A NAME="tex2html7423"
+  HREF="node475.html">Determining the physical variables</A>
+ &nbsp; <B>  <A NAME="tex2html7431"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00011111600000000000000">
+Application of BC's</A>
+</H3>
+
+<P>
+The boundary conditions (Single Point Constraints and Multiple Point
+Constraints) are applied to the physical variables <SPAN CLASS="MATH"><B><IMG
+ WIDTH="15" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img465.png"
+ ALT="$ T$"></B></SPAN>, 
+<!-- MATH
+ $\boldsymbol{V}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3118.png"
+ ALT="$ \boldsymbol{V}$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img443.png"
+ ALT="$ p$"></B></SPAN> in routine applybounfem.f. The same applies to the
+turbulence parameters <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img464.png"
+ ALT="$ k$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img101.png"
+ ALT="$ \omega$"></B></SPAN>, however, in that case the boundary
+conditions are not defined by the user in the input deck. Rather, they are
+automatically calculated based on the recommendations in [<A
+ HREF="node530.html#Menter">60</A>] by
+CalculiX. Any change in the physical variables (in vold) is immediately transferred to
+the conservative variables (in vcon) too.
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

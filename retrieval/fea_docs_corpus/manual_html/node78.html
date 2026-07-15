@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Input deck syntax</TITLE>
+<META NAME="description" CONTENT="Input deck syntax">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="previous" HREF="node77.html">
+<LINK REL="up" HREF="node73.html">
+<LINK REL="next" HREF="node79.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2186"
+  HREF="node79.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2182"
+  HREF="node73.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2178"
+  HREF="node77.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2184"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2187"
+  HREF="node79.html">User Element: 3-node shell</A>
+<B> Up:</B> <A NAME="tex2html2183"
+  HREF="node73.html">User Element: 3D Timoshenko</A>
+<B> Previous:</B> <A NAME="tex2html2179"
+  HREF="node77.html">Mass matrix in global</A>
+ &nbsp; <B>  <A NAME="tex2html2185"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H4><A NAME="SECTION000724650000000000000">
+Input deck syntax</A>
+</H4> 
+<BR>
+<P>
+Declare the usage of a user element:
+<PRE>
+*USER ELEMENT,TYPE=U1,NODES=2,INTEGRATION POINTS=2,MAXDOF=6
+</PRE>
+Specify its properties
+<PRE>
+*BEAM SECTION, SECTION=GENERAL, ELSET=&lt;elset_label&gt;, MATERIAL=&lt;Material&gt;
+</PRE>
+
+<B>First line</B>
+<BR>
+cross-section area <SPAN CLASS="MATH"><IMG
+ WIDTH="16" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img381.png"
+ ALT="$ A$"></SPAN>, 
+<BR>
+2nd order moment <SPAN CLASS="MATH"><IMG
+ WIDTH="24" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img421.png"
+ ALT="$ I_{22}$"></SPAN>, 
+<BR>
+2nd order deviation moment <SPAN CLASS="MATH"><IMG
+ WIDTH="24" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img422.png"
+ ALT="$ I_{12}$"></SPAN> (must be zero!), 
+<BR>
+2nd order moment <SPAN CLASS="MATH"><IMG
+ WIDTH="24" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img423.png"
+ ALT="$ I_{33}$"></SPAN>, 
+<BR>
+shear correction factor <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img424.png"
+ ALT="$ \kappa$"></SPAN>.
+<BR><B>Second line</B>
+<BR>
+Global <SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img425.png"
+ ALT="$ \hat X$"></SPAN>-coordinate of local cross-section main axis <SPAN CLASS="MATH"><IMG
+ WIDTH="24" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1.png"
+ ALT="$ X_2$"></SPAN>, 
+<BR>
+Global <SPAN CLASS="MATH"><IMG
+ WIDTH="16" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img426.png"
+ ALT="$ \hat Y$"></SPAN>-coordinate of local cross-section main axis <SPAN CLASS="MATH"><IMG
+ WIDTH="24" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1.png"
+ ALT="$ X_2$"></SPAN>,
+<BR>
+Global <SPAN CLASS="MATH"><IMG
+ WIDTH="16" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img427.png"
+ ALT="$ \hat Z$"></SPAN>-coordinate of local cross-section main axis <SPAN CLASS="MATH"><IMG
+ WIDTH="24" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1.png"
+ ALT="$ X_2$"></SPAN>.
+<BR>
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,1269 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Theory </TITLE>
+<META NAME="description" CONTENT="Theory ">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node223.html">
+<LINK REL="previous" HREF="node6.html">
+<LINK REL="up" HREF="ccx.html">
+<LINK REL="next" HREF="node26.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1297"
+  HREF="node26.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html1293"
+  HREF="ccx.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html1287"
+  HREF="node24.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html1295"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1298"
+  HREF="node26.html">Node Types</A>
+<B> Up:</B> <A NAME="tex2html1294"
+  HREF="ccx.html">CalculiX CrunchiX USER'S MANUAL</A>
+<B> Previous:</B> <A NAME="tex2html1288"
+  HREF="node24.html">Mesh refinement of a</A>
+ &nbsp; <B>  <A NAME="tex2html1296"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00070000000000000000"></A><A NAME="strains"></A>
+<BR>
+Theory 
+</H1>
+The finite element method is basically concerned with the determination of
+field variables. The most important ones are the stress and strain fields. As
+basic measure of strain in CalculiX the Lagrangian strain tensor E is used for
+elastic media, the deviatoric elastic left Cauchy-Green tensor for incremental
+plasticity, the logarithmic (or Hencky) strain [<A
+ HREF="node530.html#Belytschko">10</A>] for some
+other plasticity models as deformation plasticity and Johnson-Cook hardening
+and linear strains where appropriate, i.e. for small deformations combined
+with small rotations. The Lagrangian strain satisfies ([<A
+ HREF="node530.html#Eringen">27</A>]):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+E_{KL}=(U_{K,L}+U_{L,K}+U_{M,K} U_{M,L})/2,\;\;\;K,L,M=1,2,3
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="407" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img241.png"
+ ALT="$\displaystyle E_{KL}=(U_{K,L}+U_{L,K}+U_{M,K} U_{M,L})/2,\;\;\;K,L,M=1,2,3$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">2</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+where <SPAN CLASS="MATH"><IMG
+ WIDTH="27" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img242.png"
+ ALT="$ U_K$"></SPAN> are the displacement components in the material frame of reference and repeated indices imply summation over the appropriate range. In a linear analysis, this reduces to the familiar form:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\tilde{E}_{KL}=(U_{K,L}+U_{L,K})/2,\;\;\;K,L=1,2,3.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="292" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img243.png"
+ ALT="$\displaystyle \tilde{E}_{KL}=(U_{K,L}+U_{L,K})/2,\;\;\;K,L=1,2,3.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">3</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The deviatoric elastic left Cauchy-Green tensor is defined by ([<A
+ HREF="node530.html#Simo1">90</A>]):
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\bar{b}^e_{kl}=J^{e-2/3}x^e_{k,K}x^e_{l,K}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="151" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img244.png"
+ ALT="$\displaystyle \bar{b}^e_{kl}=J^{e-2/3}x^e_{k,K}x^e_{l,K}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">4</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><IMG
+ WIDTH="21" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img245.png"
+ ALT="$ J^e$"></SPAN> is the elastic Jacobian and <SPAN CLASS="MATH"><IMG
+ WIDTH="36" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img246.png"
+ ALT="$ x^e_{k,K}$"></SPAN> is the elastic deformation
+gradient. Finally, the logarithmic strain satisfies:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+e_{\text{ln}}:= \sum_{i} \ln \lambda_i \boldsymbol{n}_i \otimes
+  \boldsymbol{n}_i,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="162" HEIGHT="48" ALIGN="MIDDLE" BORDER="0"
+ SRC="img247.png"
+ ALT="$\displaystyle e_{\text{ln}}:= \sum_{i} \ln \lambda_i \boldsymbol{n}_i \otimes \boldsymbol{n}_i,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">5</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <!-- MATH
+ $\lambda_i^2$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img248.png"
+ ALT="$ \lambda_i^2$"></SPAN> are the eigenvalues of the Cauchy-Green tensor
+<!-- MATH
+ $\boldsymbol{C}:= \boldsymbol{F}^T \cdot \boldsymbol{F}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="92" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="img249.png"
+ ALT="$ \boldsymbol{C}:= \boldsymbol{F}^T \cdot \boldsymbol{F}$"></SPAN> and <!-- MATH
+ $\boldsymbol{n}_i$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img250.png"
+ ALT="$ \boldsymbol{n}_i$"></SPAN> are
+obtained from the eigenvectors <!-- MATH
+ $\boldsymbol{N}_i$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="26" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img251.png"
+ ALT="$ \boldsymbol{N}_i$"></SPAN> of <!-- MATH
+ $\boldsymbol{C}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img252.png"
+ ALT="$ \boldsymbol{C}$"></SPAN> through
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{n}_i = \boldsymbol{R}  \cdot \boldsymbol{N}_i,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="94" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img253.png"
+ ALT="$\displaystyle \boldsymbol{n}_i = \boldsymbol{R} \cdot \boldsymbol{N}_i,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">6</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <!-- MATH
+ $\boldsymbol{R}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img254.png"
+ ALT="$ \boldsymbol{R}$"></SPAN> is the rotation tensor obtained from the well known
+decomposition of the deformation gradient <!-- MATH
+ $\boldsymbol{F}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="17" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img255.png"
+ ALT="$ \boldsymbol{F}$"></SPAN> into a product of an orthogonal
+matrix <!-- MATH
+ $\boldsymbol{R}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img254.png"
+ ALT="$ \boldsymbol{R}$"></SPAN> and a symmetric matrix <!-- MATH
+ $\boldsymbol{U}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img256.png"
+ ALT="$ \boldsymbol{U}$"></SPAN> in the form 
+<!-- MATH
+ $\boldsymbol{F}= \boldsymbol{R} \cdot \boldsymbol{U}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="78" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img257.png"
+ ALT="$ \boldsymbol{F}= \boldsymbol{R} \cdot \boldsymbol{U}$"></SPAN>. The above formulas apply to Cartesian coordinate systems.
+
+<P>
+The stress measure consistent with the Lagrangian strain is the second
+Piola-Kirchhoff stress <!-- MATH
+ $\boldsymbol{S}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="16" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img258.png"
+ ALT="$ \boldsymbol{S}$"></SPAN>. This stress, which is internally used in CalculiX
+for all applications (the so-called total Lagrangian approach, see
+[<A
+ HREF="node530.html#Belytschko">10</A>]), can be transformed into the first Piola-Kirchhoff stress
+<!-- MATH
+ $\boldsymbol{P}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img259.png"
+ ALT="$ \boldsymbol{P}$"></SPAN> 
+(the so-called engineering stress, a non-symmetric tensor) and into the Cauchy
+stress <!-- MATH
+ $\boldsymbol{\sigma }$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="15" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img260.png"
+ ALT="$ \boldsymbol{\sigma } $"></SPAN> (true stress). All CalculiX input (e.g. distributed loading) and
+output is in terms of true stress. The stress measures are related by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{P} = J \boldsymbol{F}^{-1} \cdot \boldsymbol{\sigma }
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="103" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img261.png"
+ ALT="$\displaystyle \boldsymbol{P} = J \boldsymbol{F}^{-1} \cdot \boldsymbol{\sigma }$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">7</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{S} = J \boldsymbol{F}^{-1} \cdot \boldsymbol{\sigma } \cdot
+  \boldsymbol{F}^{-T},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="150" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img262.png"
+ ALT="$\displaystyle \boldsymbol{S} = J \boldsymbol{F}^{-1} \cdot \boldsymbol{\sigma } \cdot \boldsymbol{F}^{-T},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">8</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <!-- MATH
+ $J=\det(\boldsymbol{F})$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="83" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img263.png"
+ ALT="$ J=\det(\boldsymbol{F})$"></SPAN>. 
+
+<P>
+The treatment of the thermal strain depends on whether the analysis is
+geometrically linear or nonlinear. For isotropic material the thermal strain
+tensor amounts to <!-- MATH
+ $\overline{\alpha} \Delta T \boldsymbol{I}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="48" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img264.png"
+ ALT="$ \overline{\alpha} \Delta T \boldsymbol{I}$"></SPAN>, where
+<!-- MATH
+ $\overline{ \alpha}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img265.png"
+ ALT="$ \overline{ \alpha}$"></SPAN> is the (secant)
+expansion coefficient, <SPAN CLASS="MATH"><IMG
+ WIDTH="28" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img266.png"
+ ALT="$ \Delta T$"></SPAN> is the temperature change since the initial
+state and <!-- MATH
+ $\boldsymbol{I}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img267.png"
+ ALT="$ \boldsymbol{I}$"></SPAN> is the second order identity tensor. For
+geometrically linear calculations the thermal strain is subtracted from the
+total strain to obtain the mechanical strain:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\tilde{E}_{KL}^{\text{mech}} = \tilde{E}_{KL} - \overline{\alpha} \Delta T \delta_{KL}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="187" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img268.png"
+ ALT="$\displaystyle \tilde{E}_{KL}^{\text{mech}} = \tilde{E}_{KL} - \overline{\alpha} \Delta T \delta_{KL}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">9</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+In a nonlinear analysis the thermal strain is subtracted from the deformation
+gradient in order to obtain the mechanical deformation gradient. Indeed,
+assuming a multiplicative decomposition of the deformation gradient one can
+write:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+d \boldsymbol{x} = \boldsymbol{F} \cdot d \boldsymbol{X} = \boldsymbol{F}_{\text{mech}} \cdot \boldsymbol{F}_{\text{th}} \cdot
+  d \boldsymbol{X},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="236" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img269.png"
+ ALT="$\displaystyle d \boldsymbol{x} = \boldsymbol{F} \cdot d \boldsymbol{X} = \boldsymbol{F}_{\text{mech}} \cdot \boldsymbol{F}_{\text{th}} \cdot d \boldsymbol{X},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">10</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where the total deformation gradient <!-- MATH
+ $\boldsymbol{F}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="17" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img255.png"
+ ALT="$ \boldsymbol{F}$"></SPAN> is written as the
+product of the mechanical deformation gradient and the thermal deformation
+gradient. For isotropic materials the thermal deformation gradient can be
+written as <!-- MATH
+ $\boldsymbol{F}_{\text{th}}=(1+\overline{\alpha} \Delta T) \boldsymbol{I}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="135" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img270.png"
+ ALT="$ \boldsymbol{F}_{\text{th}}=(1+\overline{\alpha} \Delta T) \boldsymbol{I}$"></SPAN> and
+consequently:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{F}_{\text{th}}^{-1} \approx (1-\overline{\alpha} \Delta T) \boldsymbol{I}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="144" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img271.png"
+ ALT="$\displaystyle \boldsymbol{F}_{\text{th}}^{-1} \approx (1-\overline{\alpha} \Delta T) \boldsymbol{I}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">11</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Therefore one obtains:
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+(F_{\text{mech}})_{kK}  &\approx  & F_{kK}(1-\overline{\alpha} \Delta T) =
+  (1+u_{k,K})(1-\overline{\alpha} \Delta T) \nonumber \\
+   &\approx & 1+u_{k,K}-\overline{\alpha} \Delta T.
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="75" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img272.png"
+ ALT="$\displaystyle (F_{\text{mech}})_{kK}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img273.png"
+ ALT="$\displaystyle \approx$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="276" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img274.png"
+ ALT="$\displaystyle F_{kK}(1-\overline{\alpha} \Delta T) =
+(1+u_{k,K})(1-\overline{\alpha} \Delta T)$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img273.png"
+ ALT="$\displaystyle \approx$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="121" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img275.png"
+ ALT="$\displaystyle 1+u_{k,K}-\overline{\alpha} \Delta T.$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">12</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+Based on the mechanical deformation gradient the mechanical Lagrange strain is
+calculated and subsequently used in the material laws:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+2 \boldsymbol{E}_{\text{mech}} = \boldsymbol{F}_{\text{mech}}^T \cdot
+\boldsymbol{F}_{\text{mech}} - \boldsymbol{I}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="206" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img276.png"
+ ALT="$\displaystyle 2 \boldsymbol{E}_{\text{mech}} = \boldsymbol{F}_{\text{mech}}^T \cdot \boldsymbol{F}_{\text{mech}} - \boldsymbol{I}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">13</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Since the stretches <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img47.png"
+ ALT="$ \lambda$"></SPAN> are the eigenvalues of the deformation
+gradient, subtracting <!-- MATH
+ $\overline{\alpha} \Delta T \boldsymbol{I}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="48" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img264.png"
+ ALT="$ \overline{\alpha} \Delta T \boldsymbol{I}$"></SPAN> from <!-- MATH
+ $\boldsymbol{F}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="17" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img255.png"
+ ALT="$ \boldsymbol{F}$"></SPAN>
+amounts to subtracting <!-- MATH
+ $\overline{\alpha} \Delta T$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="39" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img277.png"
+ ALT="$ \overline{\alpha} \Delta T$"></SPAN> from <!-- MATH
+ $\lambda = L/L_0 = 1 + \Delta
+L/L_0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="170" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img278.png"
+ ALT="$ \lambda = L/L_0 = 1 + \Delta
+L/L_0$"></SPAN>. Therefore, the thermal strain get the meaning of a length change
+divided by an initial length. Infinitesimally one obtains:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{dL}{L_0} = \alpha d T,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="81" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img279.png"
+ ALT="$\displaystyle \frac{dL}{L_0} = \alpha d T,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">14</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+leading to
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+\frac{L-L_0}{L_0} &=& \int_{T_0}^{T} \alpha (\xi) d \xi \nonumber \\
+  &=:& \overline{\alpha }(T) (T-T_0)   \nonumber \\
+  &=& \overline{\alpha } (T) \Delta T,
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="56" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img280.png"
+ ALT="$\displaystyle \frac{L-L_0}{L_0}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="79" HEIGHT="59" ALIGN="MIDDLE" BORDER="0"
+ SRC="img282.png"
+ ALT="$\displaystyle \int_{T_0}^{T} \alpha (\xi) d \xi$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="21" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img283.png"
+ ALT="$\displaystyle =:$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="98" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img284.png"
+ ALT="$\displaystyle \overline{\alpha }(T) (T-T_0)$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="66" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img285.png"
+ ALT="$\displaystyle \overline{\alpha } (T) \Delta T,$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">15</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+from which
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+L = L_0 ( 1 + \overline{\alpha }(T) \Delta T.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="150" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img286.png"
+ ALT="$\displaystyle L = L_0 ( 1 + \overline{\alpha }(T) \Delta T.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">16</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Here, <SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img287.png"
+ ALT="$ T_0$"></SPAN> is the temperature for which the specimen length is <SPAN CLASS="MATH"><IMG
+ WIDTH="22" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img288.png"
+ ALT="$ L_0$"></SPAN>,
+<SPAN CLASS="MATH"><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img141.png"
+ ALT="$ \alpha$"></SPAN> is the instantaneous or tangent expansion coefficient and
+<!-- MATH
+ $\overline{\alpha }$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img265.png"
+ ALT="$ \overline{ \alpha}$"></SPAN> is the secant expansion coefficient. We
+observe that the extension is linear in the temperature. This is also the way
+in which the expansion coefficients are usually measured, i.e. with respect to
+the initial specimen length.
+
+<P>
+Notice that the same approach is taken in CalculiX for the calculation of the
+corotational logarithmic strain needed for an Abaqus User Material
+Routine. First, the thermal strain is subtracted from the total stretch to
+obtain the mechanical stretch and then the corational logarithmic mechanical strain is
+built:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\hat{E}_{\text{ln,mech}} = \sum_{i} \ln \lambda_{\text{mech},i}
+  \boldsymbol{N}_i \otimes \boldsymbol{N}_i,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="237" HEIGHT="48" ALIGN="MIDDLE" BORDER="0"
+ SRC="img289.png"
+ ALT="$\displaystyle \hat{E}_{\text{ln,mech}} = \sum_{i} \ln \lambda_{\text{mech},i} \boldsymbol{N}_i \otimes \boldsymbol{N}_i,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">17</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+In Abaqus, however, it is obtained according to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\hat{E}_{\text{ln,mech}} = \sum_{i} (\ln \lambda_i - \overline{\alpha} \Delta T)
+  \boldsymbol{N}_i \otimes \boldsymbol{N}_i,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="269" HEIGHT="48" ALIGN="MIDDLE" BORDER="0"
+ SRC="img290.png"
+ ALT="$\displaystyle \hat{E}_{\text{ln,mech}} = \sum_{i} (\ln \lambda_i - \overline{\alpha} \Delta T) \boldsymbol{N}_i \otimes \boldsymbol{N}_i,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">18</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+which implies
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="eexp"></A><!-- MATH
+ \begin{equation}
+\frac{dL}{L} = \alpha d T,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="81" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img291.png"
+ ALT="$\displaystyle \frac{dL}{L} = \alpha d T,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">19</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+leading to
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+\ln \frac{L}{L_0} &=& \int_{T_0}^{T} \alpha (\xi) d \xi \nonumber \\
+  &=& \overline{\alpha } (T) \Delta T,
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="41" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img292.png"
+ ALT="$\displaystyle \ln \frac{L}{L_0}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="79" HEIGHT="59" ALIGN="MIDDLE" BORDER="0"
+ SRC="img282.png"
+ ALT="$\displaystyle \int_{T_0}^{T} \alpha (\xi) d \xi$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="66" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img285.png"
+ ALT="$\displaystyle \overline{\alpha } (T) \Delta T,$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">20</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+or
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+L = L_0 \exp[\overline{\alpha }(T) \Delta T].
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="153" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img293.png"
+ ALT="$\displaystyle L = L_0 \exp[\overline{\alpha }(T) \Delta T].$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">21</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+This establishes an exponential expansion relationship. This is fine, as long as the
+thermal strain was also measured according to Equation(<A HREF="#eexp">19</A>), i.e. with
+reference to the actual length. The latter approach, used by a lot of Finite
+Element codes requires linear expansion coefficients for linear calculations
+(using linear strain) and exponential ones for nonlinear geometric
+calculations (using logarithmic strain). The approach in CalculiX avoids this.
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html1299"
+  HREF="node26.html">Node Types</A>
+<LI><A NAME="tex2html1300"
+  HREF="node27.html">Element Types</A>
+<UL>
+<LI><A NAME="tex2html1301"
+  HREF="node28.html">Eight-node brick element (C3D8 and F3D8)</A>
+<LI><A NAME="tex2html1302"
+  HREF="node29.html">C3D8R</A>
+<LI><A NAME="tex2html1303"
+  HREF="node30.html">Incompatible mode eight-node brick element (C3D8I)</A>
+<LI><A NAME="tex2html1304"
+  HREF="node31.html">Twenty-node brick element (C3D20)</A>
+<LI><A NAME="tex2html1305"
+  HREF="node32.html">C3D20R</A>
+<LI><A NAME="tex2html1306"
+  HREF="node33.html">Four-node tetrahedral element (C3D4 and F3D4)</A>
+<LI><A NAME="tex2html1307"
+  HREF="node34.html">Ten-node tetrahedral element (C3D10)</A>
+<LI><A NAME="tex2html1308"
+  HREF="node35.html">Modified ten-node tetrahedral element (C3D10T)</A>
+<LI><A NAME="tex2html1309"
+  HREF="node36.html">Six-node wedge element (C3D6 and F3D6)</A>
+<LI><A NAME="tex2html1310"
+  HREF="node37.html">Fifteen-node wedge element (C3D15)</A>
+<LI><A NAME="tex2html1311"
+  HREF="node38.html">Three-node shell element (S3)</A>
+<LI><A NAME="tex2html1312"
+  HREF="node39.html">Four-node shell element (S4 and S4R)</A>
+<LI><A NAME="tex2html1313"
+  HREF="node40.html">Six-node shell element (S6)</A>
+<LI><A NAME="tex2html1314"
+  HREF="node41.html">Eight-node shell element (S8 and S8R)</A>
+<LI><A NAME="tex2html1315"
+  HREF="node42.html">Three-node membrane element (M3D3)</A>
+<LI><A NAME="tex2html1316"
+  HREF="node43.html">Four-node membrane element (M3D4 and M3D4R)</A>
+<LI><A NAME="tex2html1317"
+  HREF="node44.html">Six-node membrane element (M3D6)</A>
+<LI><A NAME="tex2html1318"
+  HREF="node45.html">Eight-node membrane element (M3D8 and M3D8R)</A>
+<LI><A NAME="tex2html1319"
+  HREF="node46.html">Three-node plane stress element (CPS3)</A>
+<LI><A NAME="tex2html1320"
+  HREF="node47.html">Four-node plane stress element (CPS4 and CPS4R)</A>
+<LI><A NAME="tex2html1321"
+  HREF="node48.html">Six-node plane stress element (CPS6)</A>
+<LI><A NAME="tex2html1322"
+  HREF="node49.html">Eight-node plane stress element (CPS8 and CPS8R) </A>
+<LI><A NAME="tex2html1323"
+  HREF="node50.html">Three-node plane strain element (CPE3)</A>
+<LI><A NAME="tex2html1324"
+  HREF="node51.html">Four-node plane strain element (CPE4 and CPE4R)</A>
+<LI><A NAME="tex2html1325"
+  HREF="node52.html">Six-node plane strain element (CPE6)</A>
+<LI><A NAME="tex2html1326"
+  HREF="node53.html">Eight-node plane strain element (CPE8 and CPE8R)</A>
+<LI><A NAME="tex2html1327"
+  HREF="node54.html">Three-node axisymmetric element (CAX3)</A>
+<LI><A NAME="tex2html1328"
+  HREF="node55.html">Four-node axisymmetric element (CAX4 and CAX4R)</A>
+<LI><A NAME="tex2html1329"
+  HREF="node56.html">Six-node axisymmetric element (CAX6)</A>
+<LI><A NAME="tex2html1330"
+  HREF="node57.html">Eight-node axisymmetric element (CAX8 and CAX8R)</A>
+<LI><A NAME="tex2html1331"
+  HREF="node58.html">Two-node 2D beam element (B21)</A>
+<LI><A NAME="tex2html1332"
+  HREF="node59.html">Two-node 3D beam element (B31 and B31R)</A>
+<LI><A NAME="tex2html1333"
+  HREF="node60.html">Three-node 3D beam element (B32 and B32R)</A>
+<LI><A NAME="tex2html1334"
+  HREF="node61.html">Two-node 2D truss element (T2D2)</A>
+<LI><A NAME="tex2html1335"
+  HREF="node62.html">Two-node 3D truss element (T3D2)</A>
+<LI><A NAME="tex2html1336"
+  HREF="node63.html">Three-node 3D truss element (T3D3)</A>
+<LI><A NAME="tex2html1337"
+  HREF="node64.html">Three-node network element (D)</A>
+<LI><A NAME="tex2html1338"
+  HREF="node65.html">Two-node unidirectional gap element (GAPUNI)</A>
+<LI><A NAME="tex2html1339"
+  HREF="node66.html">Two-node 3-dimensional dashpot (DASHPOTA)</A>
+<LI><A NAME="tex2html1340"
+  HREF="node67.html">One-node 3-dimensional spring (SPRING1) </A>
+<LI><A NAME="tex2html1341"
+  HREF="node68.html">Two-node 3-dimensional spring (SPRING2) </A>
+<LI><A NAME="tex2html1342"
+  HREF="node69.html">Two-node 3-dimensional spring (SPRINGA) </A>
+<LI><A NAME="tex2html1343"
+  HREF="node70.html">One-node coupling element (DCOUP3D)</A>
+<LI><A NAME="tex2html1344"
+  HREF="node71.html">One-node mass element (MASS)</A>
+<LI><A NAME="tex2html1345"
+  HREF="node72.html">User Element (Uxxxx)</A>
+<LI><A NAME="tex2html1346"
+  HREF="node73.html">User Element: 3D Timoshenko beam element (U1)</A>
+<UL>
+<LI><A NAME="tex2html1347"
+  HREF="node74.html">Differential inertia terms in  a local main axis coordinate frame</A>
+<LI><A NAME="tex2html1348"
+  HREF="node75.html">Discretization of inertia terms (principal axis coordinate frame)</A>
+<LI><A NAME="tex2html1349"
+  HREF="node76.html">Mass matrix in (local) main axis coordinate frame</A>
+<LI><A NAME="tex2html1350"
+  HREF="node77.html">Mass matrix in global coordinate frame</A>
+<LI><A NAME="tex2html1351"
+  HREF="node78.html">Input deck syntax</A>
+</UL>
+<LI><A NAME="tex2html1352"
+  HREF="node79.html">User Element: 3-node shell element (US3)</A>
+<LI><A NAME="tex2html1353"
+  HREF="node80.html">Substructure (Superelement)</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1354"
+  HREF="node81.html">Beam Section Types</A>
+<UL>
+<LI><A NAME="tex2html1355"
+  HREF="node82.html">Pipe</A>
+<LI><A NAME="tex2html1356"
+  HREF="node83.html">Box</A>
+<LI><A NAME="tex2html1357"
+  HREF="node84.html">General</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1358"
+  HREF="node85.html">Fluid Section Types: Gases</A>
+<UL>
+<LI><A NAME="tex2html1359"
+  HREF="node86.html">Orifice</A>
+<LI><A NAME="tex2html1360"
+  HREF="node87.html">Bleed Tapping</A>
+<LI><A NAME="tex2html1361"
+  HREF="node88.html">Preswirl Nozzle</A>
+<LI><A NAME="tex2html1362"
+  HREF="node89.html">Straight and Stepped Labyrinth</A>
+<LI><A NAME="tex2html1363"
+  HREF="node90.html">Characteristic</A>
+<LI><A NAME="tex2html1364"
+  HREF="node91.html">Carbon Seal</A>
+<LI><A NAME="tex2html1365"
+  HREF="node92.html">Gas Pipe (Fanno)</A>
+<LI><A NAME="tex2html1366"
+  HREF="node93.html">Rotating Gas Pipe (subsonic applications)</A>
+<LI><A NAME="tex2html1367"
+  HREF="node94.html">Restrictor, Long Orifice</A>
+<LI><A NAME="tex2html1368"
+  HREF="node95.html">Restrictor, Enlargement</A>
+<LI><A NAME="tex2html1369"
+  HREF="node96.html">Restrictor, Contraction</A>
+<LI><A NAME="tex2html1370"
+  HREF="node97.html">Restrictor, Bend</A>
+<LI><A NAME="tex2html1371"
+  HREF="node98.html">Restrictor, Wall Orifice</A>
+<LI><A NAME="tex2html1372"
+  HREF="node99.html">Restrictor, Entrance</A>
+<LI><A NAME="tex2html1373"
+  HREF="node100.html">Restrictor, Exit</A>
+<LI><A NAME="tex2html1374"
+  HREF="node101.html">Restrictor, User</A>
+<LI><A NAME="tex2html1375"
+  HREF="node102.html">Branch, Joint</A>
+<LI><A NAME="tex2html1376"
+  HREF="node103.html">Branch, Split</A>
+<LI><A NAME="tex2html1377"
+  HREF="node104.html">Cross, Split</A>
+<LI><A NAME="tex2html1378"
+  HREF="node105.html">Vortex</A>
+<LI><A NAME="tex2html1379"
+  HREF="node106.html">M&#246;hring</A>
+<LI><A NAME="tex2html1380"
+  HREF="node107.html">Change absolute/relative system</A>
+<LI><A NAME="tex2html1381"
+  HREF="node108.html">In/Out</A>
+<LI><A NAME="tex2html1382"
+  HREF="node109.html">Mass Flow Percent</A>
+<LI><A NAME="tex2html1383"
+  HREF="node110.html">Network User Element</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1384"
+  HREF="node111.html">Fluid Section Types: Liquids</A>
+<UL>
+<LI><A NAME="tex2html1385"
+  HREF="node112.html">Pipe, Manning</A>
+<LI><A NAME="tex2html1386"
+  HREF="node113.html">Pipe, White-Colebrook</A>
+<LI><A NAME="tex2html1387"
+  HREF="node114.html">Pipe, Sudden Enlargement</A>
+<LI><A NAME="tex2html1388"
+  HREF="node115.html">Pipe, Sudden Contraction</A>
+<LI><A NAME="tex2html1389"
+  HREF="node116.html">Pipe, Entrance</A>
+<LI><A NAME="tex2html1390"
+  HREF="node117.html">Pipe, Diaphragm</A>
+<LI><A NAME="tex2html1391"
+  HREF="node118.html">Pipe, Bend</A>
+<LI><A NAME="tex2html1392"
+  HREF="node119.html">Pipe, Gate Valve</A>
+<LI><A NAME="tex2html1393"
+  HREF="node120.html">Pump</A>
+<LI><A NAME="tex2html1394"
+  HREF="node121.html">In/Out</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1395"
+  HREF="node122.html">Fluid Section Types: Open
+  Channels</A>
+<UL>
+<LI><A NAME="tex2html1396"
+  HREF="node123.html">Straight Channel</A>
+<LI><A NAME="tex2html1397"
+  HREF="node124.html">Sluice Gate</A>
+<LI><A NAME="tex2html1398"
+  HREF="node125.html">Weir</A>
+<LI><A NAME="tex2html1399"
+  HREF="node126.html">Reservoir</A>
+<LI><A NAME="tex2html1400"
+  HREF="node127.html">Contraction</A>
+<LI><A NAME="tex2html1401"
+  HREF="node128.html">Enlargement</A>
+<LI><A NAME="tex2html1402"
+  HREF="node129.html">Step</A>
+<LI><A NAME="tex2html1403"
+  HREF="node130.html">Discontinuous slope</A>
+<LI><A NAME="tex2html1404"
+  HREF="node131.html">Channel joint</A>
+<LI><A NAME="tex2html1405"
+  HREF="node132.html">In/Out</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1406"
+  HREF="node133.html">Boundary conditions</A>
+<UL>
+<LI><A NAME="tex2html1407"
+  HREF="node134.html">Single point constraints (SPC)</A>
+<LI><A NAME="tex2html1408"
+  HREF="node135.html">Multiple point constraints (MPC)</A>
+<LI><A NAME="tex2html1409"
+  HREF="node136.html">Cyclic symmetry constraints</A>
+<LI><A NAME="tex2html1410"
+  HREF="node137.html">Kinematic and Distributing Coupling </A>
+<LI><A NAME="tex2html1411"
+  HREF="node138.html">Mathematical description of a knot</A>
+<UL>
+<LI><A NAME="tex2html1412"
+  HREF="node139.html">Beam knot</A>
+<LI><A NAME="tex2html1413"
+  HREF="node140.html">Shell knot</A>
+<LI><A NAME="tex2html1414"
+  HREF="node141.html">Arbitrary knot</A>
+</UL>
+<LI><A NAME="tex2html1415"
+  HREF="node142.html">Node-to-Face Penalty Contact </A>
+<UL>
+<LI><A NAME="tex2html1416"
+  HREF="node143.html">General considerations</A>
+<LI><A NAME="tex2html1417"
+  HREF="node144.html">Normal contact stiffness </A>
+<LI><A NAME="tex2html1418"
+  HREF="node145.html">Tangent contact stiffness</A>
+</UL>
+<LI><A NAME="tex2html1419"
+  HREF="node146.html">Face-to-Face Penalty Contact</A>
+<UL>
+<LI><A NAME="tex2html1420"
+  HREF="node147.html">General considerations</A>
+<LI><A NAME="tex2html1421"
+  HREF="node148.html">Weak formulation</A>
+<LI><A NAME="tex2html1422"
+  HREF="node149.html">Normal contact stiffness</A>
+<LI><A NAME="tex2html1423"
+  HREF="node150.html">Tangent contact stiffness</A>
+</UL>
+<LI><A NAME="tex2html1424"
+  HREF="node151.html">Face-to-Face Mortar Contact</A>
+<LI><A NAME="tex2html1425"
+  HREF="node152.html">Massless Node-to-Face Contact</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1426"
+  HREF="node153.html">Materials</A>
+<UL>
+<LI><A NAME="tex2html1427"
+  HREF="node154.html">Linear elasticity</A>
+<LI><A NAME="tex2html1428"
+  HREF="node155.html">Linear elasticity for large strains (Ciarlet model)</A>
+<LI><A NAME="tex2html1429"
+  HREF="node156.html">Linear elasticity for rotation-insensitive small
+  strains</A>
+<LI><A NAME="tex2html1430"
+  HREF="node157.html">Ideal gas for small pressure deviations</A>
+<LI><A NAME="tex2html1431"
+  HREF="node158.html">Ideal gas for large deformations</A>
+<LI><A NAME="tex2html1432"
+  HREF="node159.html">Hyperelastic and hyperfoam materials</A>
+<LI><A NAME="tex2html1433"
+  HREF="node160.html">Deformation plasticity</A>
+<LI><A NAME="tex2html1434"
+  HREF="node161.html">Incremental (visco)plasticity: multiplicative decomposition</A>
+<LI><A NAME="tex2html1435"
+  HREF="node162.html">Incremental (visco)plasticity: additive decomposition</A>
+<LI><A NAME="tex2html1436"
+  HREF="node163.html">Plasticity with Johnson-Cook hardening.</A>
+<LI><A NAME="tex2html1437"
+  HREF="node164.html">Mohr-Coulomb plasticity.</A>
+<LI><A NAME="tex2html1438"
+  HREF="node165.html">Tension-only and compression-only materials.</A>
+<LI><A NAME="tex2html1439"
+  HREF="node166.html">Fiber reinforced materials.</A>
+<LI><A NAME="tex2html1440"
+  HREF="node167.html">The Cailletaud single crystal model.</A>
+<LI><A NAME="tex2html1441"
+  HREF="node168.html">The Cailletaud single crystal creep model.</A>
+<LI><A NAME="tex2html1442"
+  HREF="node169.html">Elastic anisotropy with isotropic
+viscoplasticity.</A>
+<LI><A NAME="tex2html1443"
+  HREF="node170.html">Elastic anisotropy with user defined isotropic creep.</A>
+<LI><A NAME="tex2html1444"
+  HREF="node171.html">User materials</A>
+<LI><A NAME="tex2html1445"
+  HREF="node172.html">Damage initiation models </A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1446"
+  HREF="node173.html">Types of analysis</A>
+<UL>
+<LI><A NAME="tex2html1447"
+  HREF="node174.html">Static analysis</A>
+<LI><A NAME="tex2html1448"
+  HREF="node175.html">Frequency analysis</A>
+<LI><A NAME="tex2html1449"
+  HREF="node176.html">Complex frequency analysis</A>
+<LI><A NAME="tex2html1450"
+  HREF="node177.html">Buckling analysis</A>
+<LI><A NAME="tex2html1451"
+  HREF="node178.html">Modal dynamic analysis</A>
+<LI><A NAME="tex2html1452"
+  HREF="node179.html">Steady state dynamics</A>
+<LI><A NAME="tex2html1453"
+  HREF="node180.html">Direct integration dynamic analysis</A>
+<LI><A NAME="tex2html1454"
+  HREF="node181.html">Heat transfer</A>
+<LI><A NAME="tex2html1455"
+  HREF="node182.html">Acoustics</A>
+<LI><A NAME="tex2html1456"
+  HREF="node183.html">Shallow water motion </A>
+<LI><A NAME="tex2html1457"
+  HREF="node184.html">Hydrodynamic lubrication</A>
+<LI><A NAME="tex2html1458"
+  HREF="node185.html">Irrotational incompressible inviscid flow</A>
+<LI><A NAME="tex2html1459"
+  HREF="node186.html">Electrostatics</A>
+<LI><A NAME="tex2html1460"
+  HREF="node187.html">Stationary groundwater flow</A>
+<LI><A NAME="tex2html1461"
+  HREF="node188.html">Diffusion mass transfer in a stationary medium</A>
+<LI><A NAME="tex2html1462"
+  HREF="node189.html">Aerodynamic Networks</A>
+<LI><A NAME="tex2html1463"
+  HREF="node190.html">Hydraulic Networks </A>
+<LI><A NAME="tex2html1464"
+  HREF="node191.html">Turbulent Flow in Open Channels </A>
+<LI><A NAME="tex2html1465"
+  HREF="node192.html">Three-dimensional Navier-Stokes Calculations </A>
+<LI><A NAME="tex2html1466"
+  HREF="node193.html">Shallow water calculations </A>
+<LI><A NAME="tex2html1467"
+  HREF="node194.html">Substructure Generation </A>
+<LI><A NAME="tex2html1468"
+  HREF="node195.html">Electromagnetism </A>
+<LI><A NAME="tex2html1469"
+  HREF="node196.html">Sensitivity </A>
+<LI><A NAME="tex2html1470"
+  HREF="node197.html">Feasible Direction </A>
+<LI><A NAME="tex2html1471"
+  HREF="node198.html">Robust Design </A>
+<LI><A NAME="tex2html1472"
+  HREF="node199.html">Green functions</A>
+<LI><A NAME="tex2html1473"
+  HREF="node200.html">Crack propagation</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1474"
+  HREF="node201.html">Convergence criteria </A>
+<UL>
+<LI><A NAME="tex2html1475"
+  HREF="node202.html">Thermomechanical iterations</A>
+<LI><A NAME="tex2html1476"
+  HREF="node203.html">Contact</A>
+<LI><A NAME="tex2html1477"
+  HREF="node204.html">Line search</A>
+<LI><A NAME="tex2html1478"
+  HREF="node205.html">Network iterations</A>
+<LI><A NAME="tex2html1479"
+  HREF="node206.html">Implicit dynamics</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1480"
+  HREF="node207.html">Loading</A>
+<UL>
+<LI><A NAME="tex2html1481"
+  HREF="node208.html">Point loads</A>
+<LI><A NAME="tex2html1482"
+  HREF="node209.html">Facial distributed loading</A>
+<LI><A NAME="tex2html1483"
+  HREF="node210.html">Centrifugal distributed loading</A>
+<LI><A NAME="tex2html1484"
+  HREF="node211.html">Gravity distributed loading</A>
+<LI><A NAME="tex2html1485"
+  HREF="node212.html">Forces obtained by selecting RF</A>
+<LI><A NAME="tex2html1486"
+  HREF="node213.html">Temperature loading in a mechanical analysis</A>
+<LI><A NAME="tex2html1487"
+  HREF="node214.html">Initial(residual) stresses</A>
+<LI><A NAME="tex2html1488"
+  HREF="node215.html">Concentrated heat flux</A>
+<LI><A NAME="tex2html1489"
+  HREF="node216.html">Distributed heat flux</A>
+<LI><A NAME="tex2html1490"
+  HREF="node217.html">Convective heat flux</A>
+<LI><A NAME="tex2html1491"
+  HREF="node218.html">Radiative heat flux</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1492"
+  HREF="node219.html">Error estimators </A>
+<UL>
+<LI><A NAME="tex2html1493"
+  HREF="node220.html">Zienkiewicz-Zhu error estimator</A>
+<LI><A NAME="tex2html1494"
+  HREF="node221.html">Gradient error estimator</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1495"
+  HREF="node222.html">Output variables</A>
+</UL>
+<!--End of Table of Child-Links-->
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1297"
+  HREF="node26.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html1293"
+  HREF="ccx.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html1287"
+  HREF="node24.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html1295"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1298"
+  HREF="node26.html">Node Types</A>
+<B> Up:</B> <A NAME="tex2html1294"
+  HREF="ccx.html">CalculiX CrunchiX USER'S MANUAL</A>
+<B> Previous:</B> <A NAME="tex2html1288"
+  HREF="node24.html">Mesh refinement of a</A>
+ &nbsp; <B>  <A NAME="tex2html1296"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

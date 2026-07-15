@@ -1,0 +1,983 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Crack propagation</TITLE>
+<META NAME="description" CONTENT="Crack propagation">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="previous" HREF="node199.html">
+<LINK REL="up" HREF="node173.html">
+<LINK REL="next" HREF="node201.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html3751"
+  HREF="node201.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3747"
+  HREF="node173.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3743"
+  HREF="node199.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3749"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3752"
+  HREF="node201.html">Convergence criteria</A>
+<B> Up:</B> <A NAME="tex2html3748"
+  HREF="node173.html">Types of analysis</A>
+<B> Previous:</B> <A NAME="tex2html3744"
+  HREF="node199.html">Green functions</A>
+ &nbsp; <B>  <A NAME="tex2html3750"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000792700000000000000"></A><A NAME="crackprop"></A>
+<BR>
+Crack propagation
+</H3>
+
+<P>
+In CalculiX a rather simple model to calculate cyclic crack propagation is
+implemented. In order to perform a crack propagation calculation the following
+procedure is to be followed:
+
+<P>
+
+<UL>
+<LI>A static calculation (usually called a Low Cycle Fatigue = LCF calculation) for the uncracked structure (using volumetric elements) for one or more steps must have been performed
+    and the results (at least stresses; if applicable, also the temperatures)
+    must have been stored in a frd-file.
+</LI>
+<LI>Optionally a frequency calculation (usually called a High Cycle
+      Fatigue = HCF calculation) for the uncracked structure has been
+      performed and the results (usually stresses) have been stored in a frd-file.
+</LI>
+<LI>For the crack propagation itself a model consisting of at
+    least all cracks to be considered meshed using S3-shell
+    elements must be created. The orientation of all shell elements used to
+    model one and the same crack should consistent, i.e. when viewing the crack
+    from one side of the crack shape all nodes should be numbered clockwise or all nodes
+    should be numbered counterclockwise. Preferably, also the mesh of the uncracked
+    structure should be contained (the crack propagation can be easier
+    interpreted if the structure in which the crack propagates is also
+    visualized) .
+</LI>
+<LI>The material parameters for the crack propagation law implemented in
+    CalculiX must have been determined. Alternatively, the user may code
+    his/her own crack propagation law in routine crackrate.f.
+</LI>
+<LI>The procedure <A HREF="node255.html#crackpropagation">*CRACK PROPAGATION</A> must have
+    been selected with appropriate parameters. Within the *CRACK PROPAGATION
+    step the optional keyword card <A HREF="node298.html#hcf">*HCF</A> may have been selected.
+</LI>
+</UL>
+
+<P>
+In CalculiX, the following crack propagation law has been implemented:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{da}{dN} = \left ( \frac{da}{dN} \right ) _{ref} \left ( \frac{\Delta
+     K}{\Delta K_{ref}} \right )^m \frac{f_{th}f_R}{f_c},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="261" HEIGHT="55" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2487.png"
+ ALT="$\displaystyle \frac{da}{dN} = \left ( \frac{da}{dN} \right ) _{ref} \left ( \frac{\Delta K}{\Delta K_{ref}} \right )^m \frac{f_{th}f_R}{f_c},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">848</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="RIGHT"><SPAN CLASS="MATH"><IMG
+ WIDTH="25" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2488.png"
+ ALT="$\displaystyle f_{th}$"></SPAN></TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="294" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2489.png"
+ ALT="$\displaystyle = 1-\exp \left[ \epsilon (1 - \frac{\Delta K}{\Delta K_{th}} ) \right], \;\;\; \Delta K &gt; \Delta K_{th}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="RIGHT"><SPAN CLASS="MATH"><IMG
+ WIDTH="25" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2488.png"
+ ALT="$\displaystyle f_{th}$"></SPAN></TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="138" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2490.png"
+ ALT="$\displaystyle = 0, \;\;\; \Delta K \le \Delta K_{th}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">849</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+accounts for the threshold range, 
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="RIGHT"><SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2491.png"
+ ALT="$\displaystyle f_c$"></SPAN></TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="300" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2492.png"
+ ALT="$\displaystyle =1-\exp \left[ \delta \left( \frac{K_{max}}{K_c} -1 \right) \right], \;\;\; K_{max} &lt; K_c$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="RIGHT"><SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2491.png"
+ ALT="$\displaystyle f_c$"></SPAN></TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="123" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2493.png"
+ ALT="$\displaystyle =0 \;\;\; K_{max} \ge K_c$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">850</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+for the critical cut-off and
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+f_R = \left[ \frac{1}{(1-R)^{1-w}} \right]^m
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="154" HEIGHT="55" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2494.png"
+ ALT="$\displaystyle f_R = \left[ \frac{1}{(1-R)^{1-w}} \right]^m$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">851</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+for the <!-- MATH
+ $R:=K_{min}/K_{max}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="127" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2495.png"
+ ALT="$ R:=K_{min}/K_{max}$"></B></SPAN> influence. The material constants have to be entered by using
+ a <A HREF="node366.html#usermaterial">*USER MATERIAL</A> card with the following 8 constants
+ per temperature data point
+ (in that order): <!-- MATH
+ $\left ( \frac{da}{dN} \right ) _{ref} [L/cycle]$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="125" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2496.png"
+ ALT="$ \left ( \frac{da}{dN} \right ) _{ref} [L/cycle]$"></B></SPAN>, <!-- MATH
+ $\Delta
+ K_{ref}[F/L^{3/2}]$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="110" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2497.png"
+ ALT="$ \Delta
+K_{ref}[F/L^{3/2}] $"></B></SPAN>,
+ <SPAN CLASS="MATH"><B><IMG
+ WIDTH="39" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2498.png"
+ ALT="$ m [-]$"></B></SPAN>, <!-- MATH
+ $\epsilon [-]$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="31" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2499.png"
+ ALT="$ \epsilon [-]$"></B></SPAN>, <!-- MATH
+ $\Delta K_{th} [F/L^{3/2}]$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="103" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2500.png"
+ ALT="$ \Delta K_{th} [F/L^{3/2}]$"></B></SPAN>, <!-- MATH
+ $\delta [-]$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="33" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2501.png"
+ ALT="$ \delta [-]$"></B></SPAN>, <!-- MATH
+ $K_c
+ [F/L^{3/2}]$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="83" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2502.png"
+ ALT="$ K_c
+[F/L^{3/2}]$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2503.png"
+ ALT="$ w$"></B></SPAN>[-], were <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2504.png"
+ ALT="$ [F]$"></B></SPAN> is the unit of force and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="23" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2505.png"
+ ALT="$ [L]$"></B></SPAN> of
+ length. Notice
+ that the first part of the law corresponds to the Paris law. Indeed the classical Paris constant C can be obtained
+ from:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\left ( \frac{da}{dN} \right ) _{ref} \left ( \frac{1}{\Delta K_{ref}} \right )^m  = C.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="201" HEIGHT="55" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2506.png"
+ ALT="$\displaystyle \left ( \frac{da}{dN} \right ) _{ref} \left ( \frac{1}{\Delta K_{ref}} \right )^m = C.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">852</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Vice versa, <!-- MATH
+ $\Delta K_{ref}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="51" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2507.png"
+ ALT="$ \Delta K_{ref}$"></B></SPAN> can be obtained from <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img865.png"
+ ALT="$ C$"></B></SPAN> using the above
+ equation once <!-- MATH
+ $(da/dN)_{ref}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="84" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2508.png"
+ ALT="$ (da/dN)_{ref}$"></B></SPAN> has been chosen. Notice that  <!-- MATH
+ $(da/dN)_{ref}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="84" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2508.png"
+ ALT="$ (da/dN)_{ref}$"></B></SPAN>
+ is the rate for which <!-- MATH
+ $\Delta K=\Delta K_{ref}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="100" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2509.png"
+ ALT="$ \Delta K=\Delta K_{ref}$"></B></SPAN> (just considering the Paris
+ range). For a user material, a maximum of 8 constants can be defined per line
+ (cf. <A HREF="node366.html#usermaterial">*USER MATERIAL</A>). Therefore, after entering the 8
+ crack propagation constants, the corresponding temperature has to be entered
+ on a new line.
+
+<P>
+The crack propagation calculation consists of a number of increments during
+ which the crack propagates a certain amount. For each increment in a LCF
+ calculation the following
+ steps are performed:
+
+<P>
+
+<UL>
+<LI>The actual shape of the cracks is analyzed, the crack fronts are
+     determined and the stresses and temperatures (if applicable, else zero)
+     at the crack front nodes are interpolated from the stress and temperature
+     field in the uncracked structure.
+</LI>
+<LI>The stress tensor at the front nodes is projected on the local
+     tangent plane yielding a normal component (local y-direction), a shear component orthogonal
+     to the crack front (local x-direction) and one parallel to the crack
+     front (local z-direction), leading to the
+     K-factors <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2510.png"
+ ALT="$ K_I$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="31" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2511.png"
+ ALT="$ K_{II}$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="38" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2512.png"
+ ALT="$ K_{III}$"></B></SPAN> using the formulas:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+K_I = F_I \sigma_{yy} \sqrt{\pi a}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="118" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2513.png"
+ ALT="$\displaystyle K_I = F_I \sigma_{yy} \sqrt{\pi a}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">853</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+K_{II} = F_{II} \sigma_{xy} \sqrt{\pi a}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="132" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2514.png"
+ ALT="$\displaystyle K_{II} = F_{II} \sigma_{xy} \sqrt{\pi a}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">854</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+K_{III} = F_{III} \sigma_{zy} \sqrt{\pi a}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="144" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2515.png"
+ ALT="$\displaystyle K_{III} = F_{III} \sigma_{zy} \sqrt{\pi a}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">855</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="21" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2516.png"
+ ALT="$ F_I$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="28" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2517.png"
+ ALT="$ F_{II}$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="34" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2518.png"
+ ALT="$ F_{III}$"></B></SPAN> are shape factors taking the form
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+F_I=F_{II}=F_{III}=2/\pi
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="165" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2519.png"
+ ALT="$\displaystyle F_I=F_{II}=F_{III}=2/\pi$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">856</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+for subsurface cracks,
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+F_I=F_{II}=F_{III}=2/\pi (1.04+1.1 s^2), \;\;\;\; -1 \le s \le 1
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="363" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2520.png"
+ ALT="$\displaystyle F_I=F_{II}=F_{III}=2/\pi (1.04+1.1 s^2), \;\;\;\; -1 \le s \le 1$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">857</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+for surface cracks spanning an angle <SPAN CLASS="MATH"><B><IMG
+ WIDTH="30" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2521.png"
+ ALT="$ \ge \pi$"></B></SPAN> and
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+F_I=F_{II}=F_{III}=1.12 (1.-0.02 s^2), \;\;\;\; -1 \le s \le 1
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="358" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2522.png"
+ ALT="$\displaystyle F_I=F_{II}=F_{III}=1.12 (1.-0.02 s^2), \;\;\;\; -1 \le s \le 1$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">858</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+for surface cracks spanning an angle of 0 (i.e. a one-sided crack in a
+     two-dimensional plate). For an angle in between 0 and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img895.png"
+ ALT="$ \pi$"></B></SPAN> the shape
+     factors are linearly interpolated in between the latter two formulas. In
+     the above formulas <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1192.png"
+ ALT="$ s$"></B></SPAN> is a local coordinate along the crack front,
+     taking the values <SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2523.png"
+ ALT="$ -1$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1885.png"
+ ALT="$ 1$"></B></SPAN> at the free surface and <SPAN CLASS="MATH"><B>0</B></SPAN> in the middle
+     of the front. If the user prefers to use more detailed shape factors,
+     user routine crackshape.f can be recoded.
+
+<P>
+</LI>
+<LI>The crack length <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img435.png"
+ ALT="$ a$"></B></SPAN> in the above formulas is determined in two
+       different ways, depending on the value of the parameter LENGTH on the
+       <A HREF="node255.html#crackpropagation">*CRACK PROPAGATION</A> card:
+
+<P>
+
+<UL>
+<LI>for LENGTH=CUMULATIVE the crack length is obtained by
+         incrementally adding the crack propagation increments to the
+         initial crack length. The initial length is determined using the
+         LENGTH=INTERSECTION method.
+</LI>
+<LI>for LENGTH=INTERSECTION a plane locally orthogonal to the
+         crack front e.g. at location <SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2524.png"
+ ALT="$ p_1$"></B></SPAN> of the crack front is constructed and subsequently a
+         second intersection <SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2525.png"
+ ALT="$ p_2$"></B></SPAN>
+         of this plane with the crack boundary is sought. The crack boundary
+         is the outer line of that part of the shell mesh which is inside the
+         structure. It consists of one or more crack front(s) and for surface
+         cracks of intersection(s) of the shell mesh with the outer surface of
+         the structure. Then, a point <SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2526.png"
+ ALT="$ p_3$"></B></SPAN> on the
+         straight line between <SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2524.png"
+ ALT="$ p_1$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2525.png"
+ ALT="$ p_2$"></B></SPAN> is determined, which maximizes
+         the minimum distance between <SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2526.png"
+ ALT="$ p_3$"></B></SPAN> and any node along the crack
+         front(s) belonging to the crack at stake. The distance between <SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2524.png"
+ ALT="$ p_1$"></B></SPAN>
+         and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2526.png"
+ ALT="$ p_3$"></B></SPAN> is the crack length
+       
+</LI>
+</UL>
+
+<P>
+Subsequently, the crack length is smoothed along the crack front
+       according to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+a_j=\frac{\sum_{i=1}^{N} \left( 1-\frac{d_{ij}}{R}\right) a_i
+         }{\sum_{i=1}^{N} \left(   1-\frac{d_{ij}}{R}\right)},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="173" HEIGHT="77" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2527.png"
+ ALT="$\displaystyle a_j=\frac{\sum_{i=1}^{N} \left( 1-\frac{d_{ij}}{R}\right) a_i }{\sum_{i=1}^{N} \left( 1-\frac{d_{ij}}{R}\right)},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">859</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where the sum is over the <SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img764.png"
+ ALT="$ N$"></B></SPAN> closest nodes, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="23" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2528.png"
+ ALT="$ d_{ij}$"></B></SPAN> is the Euclidean
+       incremental distance between node <SPAN CLASS="MATH"><B><IMG
+ WIDTH="9" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img894.png"
+ ALT="$ i$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1753.png"
+ ALT="$ j$"></B></SPAN>, and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img432.png"
+ ALT="$ R$"></B></SPAN> is the distance
+       between node <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1753.png"
+ ALT="$ j$"></B></SPAN> and the
+       farthest of these nodes. <SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img764.png"
+ ALT="$ N$"></B></SPAN> is a fixed fraction of the total number of
+       nodes along the front, e.g. 90 %.
+
+<P>
+</LI>
+<LI>From the stress factors an equivalent K-factor and deflection angle
+       <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img580.png"
+ ALT="$ \varphi$"></B></SPAN> is calculated using a light modification of the formulas by
+       Richard [<A
+ HREF="node530.html#Richard">83</A>] in order to cope with negative <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2510.png"
+ ALT="$ K_I$"></B></SPAN> values as well:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+K_{eq}=sgn(K_I) (|K_I| + \sqrt{K_I^2 + 5.3361 K_{II}^2 + 4 K_{III}^2})/2
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="377" HEIGHT="48" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2529.png"
+ ALT="$\displaystyle K_{eq}=sgn(K_I) (\vert K_I\vert + \sqrt{K_I^2 + 5.3361 K_{II}^2 + 4 K_{III}^2})/2$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">860</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\varphi = - \frac{70 \pi }{180}
+         \left ( \frac{|K_{II}|}{K_I+|K_{II}|+|K_{III}|}\right ) \left(
+         2-\frac{|K_{II}|}{K_I+|K_{II}|+|K_{III}|} \right)  \frac{K_{II}}{|K_{II}|}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="484" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2530.png"
+ ALT="$\displaystyle \varphi = - \frac{70 \pi }{180} \left ( \frac{\vert K_{II}\vert}{...
+...+\vert K_{II}\vert+\vert K_{III}\vert} \right) \frac{K_{II}}{\vert K_{II}\vert}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">861</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+for <SPAN CLASS="MATH"><B><IMG
+ WIDTH="54" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2531.png"
+ ALT="$ K_I \ge 0$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="43" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2532.png"
+ ALT="$ \varphi=0$"></B></SPAN> else. Subsequenty, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="30" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2533.png"
+ ALT="$ K_{eq}$"></B></SPAN> and
+       <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img580.png"
+ ALT="$ \varphi$"></B></SPAN> are smoothed in the same way as the crack length. Finally,
+       if any of the deflection angles exceeds the maximum defined by the user
+       (second entry underneath the <A HREF="node255.html#crackpropagation">*CRACK
+         PROPAGATION</A> card) all values along the front are
+       scaled appropriately.
+
+<P>
+Notice that at each crack front location as many <SPAN CLASS="MATH"><B><IMG
+ WIDTH="30" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2533.png"
+ ALT="$ K_{eq}$"></B></SPAN> and
+       <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img580.png"
+ ALT="$ \varphi$"></B></SPAN> values are calculated as there are steps in the static
+       calculation of the uncracked structure.
+
+<P>
+</LI>
+<LI>The crack propagation increment for this increment is
+       determined. It is the minimum of:
+
+<P>
+
+<UL>
+<LI>The user defined value (first entry underneath the <A HREF="node255.html#crackpropagation">*CRACK
+         PROPAGATION</A> card)
+</LI>
+<LI>one fifth of the minimum crack front curvature
+</LI>
+<LI>one fifth of the smallest crack length
+       
+</LI>
+</UL>
+
+<P>
+</LI>
+<LI>The crack propagation rate at every crack front location is
+       determined. If there is only one step it results from the direct
+       application of the crack propagation law with <!-- MATH
+ $\Delta K = K_{eq}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="79" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2534.png"
+ ALT="$ \Delta K = K_{eq}$"></B></SPAN>. For
+       several steps the maximum minus the minimum of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="30" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2533.png"
+ ALT="$ K_{eq}$"></B></SPAN> is taken. Notice that the crack
+       rate routine is documented as a user subroutine: for missions
+       consisting of several steps the user can define his/her own procedure
+       for more complex procedures such as cycle extraction. The maximum value
+       of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="51" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2535.png"
+ ALT="$ da/dN$"></B></SPAN> across all crack front locations determines the number of
+       cycles in this increment.
+
+<P>
+</LI>
+<LI>For each crack front node the location of the propagated node is
+       determined. This node lies in a plane locally orthogonal to the
+       tangent vector along the front. To this end a local coordinate system
+       is created (the same as for the calculation of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2510.png"
+ ALT="$ K_I$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="31" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2511.png"
+ ALT="$ K_{II}$"></B></SPAN> and
+       <SPAN CLASS="MATH"><B><IMG
+ WIDTH="38" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2512.png"
+ ALT="$ K_{III}$"></B></SPAN>) consisting of:
+
+<P>
+
+<UL>
+<LI>The local tangent vector <!-- MATH
+ $\boldsymbol{t}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="10" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1394.png"
+ ALT="$ \boldsymbol{t}$"></B></SPAN>.
+</LI>
+<LI>The local normal vector obtained by the mean of the normal
+         vectors on the shell elements to which the nodal front position
+         belongs. This vector is subsequently projected into the plane
+         normal to  <!-- MATH
+ $\boldsymbol{t}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="10" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1394.png"
+ ALT="$ \boldsymbol{t}$"></B></SPAN> and normalized to obtain a vector
+         <!-- MATH
+ $\boldsymbol{n}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="15" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img335.png"
+ ALT="$ \boldsymbol{n}$"></B></SPAN>.
+</LI>
+<LI>a vector in the propagation direction  <!-- MATH
+ $\boldsymbol{a}=
+         \boldsymbol{t} \times \boldsymbol{n}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="72" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2536.png"
+ ALT="$ \boldsymbol{a}=
+\boldsymbol{t} \times \boldsymbol{n}$"></B></SPAN>. This assumes that the
+         tangent vector was such that the corkscrew rule points into
+         direction  <!-- MATH
+ $\boldsymbol{n}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="15" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img335.png"
+ ALT="$ \boldsymbol{n}$"></B></SPAN> when running along the crack front in
+         direction   <!-- MATH
+ $\boldsymbol{t}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="10" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1394.png"
+ ALT="$ \boldsymbol{t}$"></B></SPAN>.
+       
+</LI>
+</UL>
+
+<P>
+</LI>
+<LI>Then, new nodes are created in between the propagated nodes such
+       that they are equidistant. The target distance in between these nodes
+       is the mean distance in between the nodes along the initial crack front.
+
+<P>
+</LI>
+<LI>Finally, new shell elements are generated covering the crack
+       propagation increment and the results (K-values, crack length etc.)
+       are stored in frd-format for visualization. Then, a new increment can
+       start. The number of increments is governed by the INC parameter on the
+       <A HREF="node352.html#step">*STEP</A> card. 
+
+<P>
+</LI>
+</UL>
+
+<P>
+For a combined LCF-HCF calculation, triggered by the <A HREF="node298.html#hcf">*HCF</A> keyword in the
+ *CRACK PROPAGATION procedure the picture is slightly more complicated. On the
+ *HCF card the user defines a scaling factor and a step from the static
+ calculation on which the HCF loading is to be applied. This is usually the
+ static loading at which the modal excitation occurs. At this step a HCF cycle
+ is considered consisting of the LCF+HCF and the LCF-HCF loading. The effect is as follows:
+
+<P>
+
+<UL>
+<LI>If this cycle leads to propagaton and HCF propagation is not allowed
+   (MAX CYCLE= 0 on the *HCF card; this is default) the program stops with
+   an appropriate error message.
+</LI>
+<LI>If it leads to propagation and HCF propagation is allowed (MAX
+   CYCLE <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2537.png"
+ ALT="$ &gt;$"></B></SPAN> 0 on the *HCF card) the number of cycles is determined to
+   reach the desired crack propagation in this increment and
+   the next increment is started. No LCF propagation is considered in this
+   increment.
+</LI>
+<LI>If it does not lead to HCF propagation, LCF propagation is
+   considered for the static loading in which the LCF loading of the
+   step to which HCF applies is repaced by LCF+HCF loading. The
+   propagation is calculated as usual.
+ 
+</LI>
+</UL>
+
+<P>
+The output of a *CRACK PROPAGATION step is selected by using the
+ parameter KEQ on the <A HREF="node324.html#nodefile">*NODE FILE</A> card. Then, a data set is created in the frd-file consisting of the
+ following information (most of this information can be changed in user
+ subroutine crackrate.f):
+
+<P>
+
+<UL>
+<LI>The dominant step. This is the step
+     with the largest <SPAN CLASS="MATH"><B><IMG
+ WIDTH="30" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2533.png"
+ ALT="$ K_{eq}$"></B></SPAN> (over all steps). If the dominant step is a HCF
+     induced step, step numbers -1 and -2 are used to denominate the LCF-HCF
+     step and the LCF+HCF step,respectively.
+</LI>
+<LI>DeltaKEQ: the value of <!-- MATH
+ $\Delta K_{eq}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="44" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2538.png"
+ ALT="$ \Delta K_{eq}$"></B></SPAN> for the main cycle. In the
+     present implementation this corresponds to the largest value of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="30" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2533.png"
+ ALT="$ K_{eq}$"></B></SPAN> (over all steps).
+</LI>
+<LI>KEQMIN: the minimal value of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="30" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2533.png"
+ ALT="$ K_{eq}$"></B></SPAN> (over all steps).
+</LI>
+<LI>KEQMAX: the largest value of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="30" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2533.png"
+ ALT="$ K_{eq}$"></B></SPAN> (over all steps).
+</LI>
+<LI>K1WORST: the largest value of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="33" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2539.png"
+ ALT="$ \vert K_{I}\vert$"></B></SPAN> multiplied by its sign (over all steps).
+</LI>
+<LI>K2WORST: the largest value of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="40" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2540.png"
+ ALT="$ \vert K_{II}\vert$"></B></SPAN> multiplied by its sign (over all steps).
+</LI>
+<LI>K3WORST: the largest value of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="46" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2541.png"
+ ALT="$ \vert K_{III}\vert$"></B></SPAN> multiplied by its sign (over all steps).
+</LI>
+<LI>PHI: the deflection angle <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img580.png"
+ ALT="$ \varphi$"></B></SPAN>.
+</LI>
+<LI>R: the R-value of the main cycle. In the present implementation
+     this is zero.
+</LI>
+<LI>DADN: the crack propagation rate.
+</LI>
+<LI>KTH: not used.
+</LI>
+<LI>INC: the increment number. This is the same for all nodes along one
+     and the same crack front.
+</LI>
+<LI>CYCLES: the number of cycles since the start of the calculation. This
+     number is common to all crack front nodes.
+</LI>
+<LI>CRLENGTH: crack length.
+</LI>
+<LI>DOM_SLIP: not used
+ 
+</LI>
+</UL>
+
+<P>
+Since the jobname.frd file is created from scratch in every <A HREF="node255.html#crackpropagation">*CRACK
+  PROPAGATION</A> step (this is because every *CRACK
+PROPAGATION step changes the number of nodes and elements in the model due to
+the growing crack) it does not make sense to have more than
+one such step in an input deck. In fact, any other step is senseless and
+ideally the *CRACK PROPAGATION step should be the only step in the deck. If
+the user defines more than one *CRACK PROPAGATION step in his/her input deck,
+the jobname.frd file will only contain the output requested, if any, from the last *CRACK
+PROPAGATION step. This rule also applies to restart calculations.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html3751"
+  HREF="node201.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3747"
+  HREF="node173.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3743"
+  HREF="node199.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3749"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3752"
+  HREF="node201.html">Convergence criteria</A>
+<B> Up:</B> <A NAME="tex2html3748"
+  HREF="node173.html">Types of analysis</A>
+<B> Previous:</B> <A NAME="tex2html3744"
+  HREF="node199.html">Green functions</A>
+ &nbsp; <B>  <A NAME="tex2html3750"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

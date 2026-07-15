@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>User Element: 3-node shell element (US3)</TITLE>
+<META NAME="description" CONTENT="User Element: 3-node shell element (US3)">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node80.html">
+<LINK REL="previous" HREF="node73.html">
+<LINK REL="up" HREF="node27.html">
+<LINK REL="next" HREF="node80.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2198"
+  HREF="node80.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2194"
+  HREF="node27.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2188"
+  HREF="node78.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2196"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2199"
+  HREF="node80.html">Substructure (Superelement)</A>
+<B> Up:</B> <A NAME="tex2html2195"
+  HREF="node27.html">Element Types</A>
+<B> Previous:</B> <A NAME="tex2html2189"
+  HREF="node78.html">Input deck syntax</A>
+ &nbsp; <B>  <A NAME="tex2html2197"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000724700000000000000">
+User Element: 3-node shell element (US3)</A>
+</H3>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="us3"></A><A NAME="17805"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 81:</STRONG>
+Definition of the US3 element</CAPTION>
+<TR><TD><IMG
+ WIDTH="227" HEIGHT="179" BORDER="0"
+ SRC="img428.png"
+ ALT="\begin{figure}\centering
+\epsfig{file=rama.eps,width=5cm}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+The US3 shell element has six degrees of freedom per node - three translations
+and three rotations (Figure <A HREF="#us3">81</A>). The discrete shear gap approach together with the cell
+smoothing technique is implemented for the treatment of shear locking. The
+membrane behavior is resolved by means of the assumed natural deviatoric
+strains formulation with certain adjustments implemented to accommodate for
+shell behavior. A detailed description of the formulation is given in
+[<A
+ HREF="node530.html#Rama">81</A>]. In that reference the accuracy and convergence rate were tested on a chosen set of well-known challenging benchmark problems, and the results were compared with those yielded by the Abaqus<!-- MATH
+ $\copyright$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img429.png"
+ ALT="$ \copyright$"></SPAN> S3 element. The element shows a very good performance in the static linear elastic analysis compared to the Abaqus<!-- MATH
+ $\copyright$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img429.png"
+ ALT="$ \copyright$"></SPAN> S3 element.
+
+<P>
+The shell formulation is implemented as element “US3” in CalculiX and can be
+used for static and dynamic linear elastic (small deformations) calculations
+under the consideration of isotropic material properties. Simpson's rule
+(three points) is provided to calculate the cross-sectional behavior of the
+shell. For a homogeneous section this integration scheme is exact for linear problems and should be sufficient for routine thermal-stress calculations.
+Following loadings are implemented:
+
+<P>
+
+<UL>
+<LI>Concentrated forces and moments.
+</LI>
+<LI>Nodal temperatures with temperature gradients through shell thickness.
+</LI>
+<LI>Element face pressure loads.
+</LI>
+</UL>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html2198"
+  HREF="node80.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2194"
+  HREF="node27.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2188"
+  HREF="node78.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2196"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2199"
+  HREF="node80.html">Substructure (Superelement)</A>
+<B> Up:</B> <A NAME="tex2html2195"
+  HREF="node27.html">Element Types</A>
+<B> Previous:</B> <A NAME="tex2html2189"
+  HREF="node78.html">Input deck syntax</A>
+ &nbsp; <B>  <A NAME="tex2html2197"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*CHANGE CONTACT TYPE</TITLE>
+<META NAME="description" CONTENT="*CHANGE CONTACT TYPE">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node236.html">
+<LINK REL="previous" HREF="node234.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node236.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html4330"
+  HREF="node236.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4326"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4320"
+  HREF="node234.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4328"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4331"
+  HREF="node236.html">*CHANGE FRICTION</A>
+<B> Up:</B> <A NAME="tex2html4327"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html4321"
+  HREF="node234.html">*CFLUX</A>
+ &nbsp; <B>  <A NAME="tex2html4329"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00088000000000000000"></A><A NAME="changecontacttype"></A>
+<BR>
+*CHANGE CONTACT TYPE
+</H2>
+
+<P>
+Keyword type: step
+
+<P>
+With this option one can change the contact type at the start of a
+<A HREF="node273.html#dynamic">*DYNAMIC</A> step from &ldquo;SURFACE TO SURFACE'&ldquo; to &ldquo;NODE TO SURFACE&rdquo; or
+&ldquo;MASSLESS&rdquo; (the latter only in a <A HREF="node273.html#dynamic">*DYNAMIC,EXPLICIT</A>
+step). This is usually done when a dynamic calculation is performed starting
+from steady state obtained from a previous <A HREF="node350.html#static">*STATIC</A> step.
+
+<P>
+Indeed, in a static calculation the &ldquo;SURFACE TO SURFACE&rdquo; contact type or
+&ldquo;MORTAR&rdquo; contact types usually perform much better (better convergence and
+better results) than &ldquo;NODE TO SURFACE&rdquo; (&ldquo;MASSLESS&rdquo; is not available in a
+static step). In a dynamic calculation performed by integration in time the
+&ldquo;SURFACE TO SURFACE&rdquo; contact, however, is too slow and too detailed in
+resolution of the contact area. Here, &ldquo;NODE TO SURFACE&rdquo; and &ldquo;MASSLESS&rdquo;
+perform better. Therefore, the present keyword was introduced in order to
+change the contact formulation at the start of a dynamic step.
+
+<P>
+The option *CHANGE CONTACT TYPE can also be used if a previous static step was
+calculated with &ldquo;NODE TO SURFACE&rdquo; contact (for whatever reason) and the subsequent
+dynamic step is to be performed with &ldquo;MASSLESS&rdquo; contact.
+
+<P>
+Either the parameter TO NODE TO SURFACE or TO MASSLESS is required.
+
+<P>
+
+<P><P>
+<BR>
+
+<P>
+First and only line:
+
+<UL>
+<LI>*CHANGE CONTACT TYPE
+</LI>
+<LI>Enter TO NODE TO SURFACE or TO MASSLESS (actually, blanks in the input
+  deck are immaterial, one might also write TONODETOSURFACE and TOMASSLESS).
+</LI>
+</UL>
+
+<P>
+<PRE>
+Example:
+
+*CHANGE CONTACT TYPE,TO MASSLESS
+</PRE>
+
+<P>
+
+<P><P>
+<BR>
+Example files: changecontacttype1, changecontacttype2.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html4330"
+  HREF="node236.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4326"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4320"
+  HREF="node234.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4328"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4331"
+  HREF="node236.html">*CHANGE FRICTION</A>
+<B> Up:</B> <A NAME="tex2html4327"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html4321"
+  HREF="node234.html">*CFLUX</A>
+ &nbsp; <B>  <A NAME="tex2html4329"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

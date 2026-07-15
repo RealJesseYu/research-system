@@ -1,0 +1,371 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Plasticity with Johnson-Cook hardening.</TITLE>
+<META NAME="description" CONTENT="Plasticity with Johnson-Cook hardening.">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node164.html">
+<LINK REL="previous" HREF="node162.html">
+<LINK REL="up" HREF="node153.html">
+<LINK REL="next" HREF="node164.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html3284"
+  HREF="node164.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3280"
+  HREF="node153.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3274"
+  HREF="node162.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3282"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3285"
+  HREF="node164.html">Mohr-Coulomb plasticity.</A>
+<B> Up:</B> <A NAME="tex2html3281"
+  HREF="node153.html">Materials</A>
+<B> Previous:</B> <A NAME="tex2html3275"
+  HREF="node162.html">Incremental (visco)plasticity: additive decomposition</A>
+ &nbsp; <B>  <A NAME="tex2html3283"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000781000000000000000"></A><A NAME="johnsoncook"></A>
+<BR>
+Plasticity with Johnson-Cook hardening.
+</H3>
+
+<P>
+In some sense this is a special case of the previous section, however, since
+it has been implemented as a Abaqus Material User Subroutine in CalculiX
+(in routine umat_abaqusnl_total),
+establishing a relationship between the corotational Cauchy stress and the
+corotational logarithmic strain it can also be used for large deformations.
+
+<P>
+In principal, the Johnson-Cook model [<A
+ HREF="node530.html#Johnson">43</A>] proposes a yield curve for a conventional
+plasticity model with isotropic hardening in the form:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\sigma_{\text{vm}} = \left [A+B \epsilon_p^n \right ] \left [1+C \ln \left(
+    \frac{\dot{\epsilon}_p}{\dot{\epsilon}_0} \right ) \right ] \left
+        [1-(T^*)^m \right ],
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="333" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1423.png"
+ ALT="$\displaystyle \sigma_{\text{vm}} = \left [A+B \epsilon_p^n \right ] \left [1+C ...
+...dot{\epsilon}_p}{\dot{\epsilon}_0} \right ) \right ] \left [1-(T^*)^m \right ],$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">404</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+T^* &=& 0  \;\;\;  \text{for} \; T<T_0 \nonumber \\
+  T^* &=& \left(\frac{T-T_0}{T_m-T_0}\right) \;\;\; \text{for}\; T_0 \le T \le T_m
+  \nonumber \\
+  T^* &=& 1  \;\;\; \text{for}\; T>T_m
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="23" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1424.png"
+ ALT="$\displaystyle T^*$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="25" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1425.png"
+ ALT="$\displaystyle 0 \;\;\;$">&nbsp; &nbsp;for<IMG
+ WIDTH="57" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1426.png"
+ ALT="$\displaystyle \; T&lt;T_0$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="23" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1424.png"
+ ALT="$\displaystyle T^*$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="102" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1427.png"
+ ALT="$\displaystyle \left(\frac{T-T_0}{T_m-T_0}\right) \;\;\;$">&nbsp; &nbsp;for<IMG
+ WIDTH="100" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1428.png"
+ ALT="$\displaystyle \; T_0 \le T \le T_m$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="23" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1424.png"
+ ALT="$\displaystyle T^*$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="25" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1429.png"
+ ALT="$\displaystyle 1 \;\;\;$">&nbsp; &nbsp;for<IMG
+ WIDTH="62" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1430.png"
+ ALT="$\displaystyle \; T&gt;T_m$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">405</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+Here, <!-- MATH
+ $A,B,C,n,m,\dot{\epsilon_0},T_0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="136" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1431.png"
+ ALT="$ A,B,C,n,m,\dot{\epsilon_0},T_0$"></SPAN> and <SPAN CLASS="MATH"><IMG
+ WIDTH="25" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1432.png"
+ ALT="$ T_m$"></SPAN> are material constants. The
+constant <SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img287.png"
+ ALT="$ T_0$"></SPAN> has the physical meaning of transition temperature, i.e. the
+temperature above which the yield surface starts to shrink and <SPAN CLASS="MATH"><IMG
+ WIDTH="25" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1432.png"
+ ALT="$ T_m$"></SPAN> has the
+physical meaning of melt temperature, i.e. the temperature above which the
+yield surface is reduced to zero. The model is meant to describe highly
+dynamical phenomena such as explosions, bird strike in a jet engine etc.
+
+<P>
+For <!-- MATH
+ $\dot{\epsilon}_p < \dot{\epsilon}_0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="52" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1433.png"
+ ALT="$ \dot{\epsilon}_p &lt; \dot{\epsilon}_0$"></SPAN> the logarithm becomes negative and
+also for small <!-- MATH
+ $\epsilon_p$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1434.png"
+ ALT="$ \epsilon_p$"></SPAN> convergence seems more difficult. Therefore,
+  Bernhardi and co-workers [<A
+ HREF="node530.html#Mazza">57</A>] have modified the above law for the
+  following special ranges of <!-- MATH
+ $\epsilon_p$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1434.png"
+ ALT="$ \epsilon_p$"></SPAN> and <!-- MATH
+ $\dot{\epsilon}_p$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1435.png"
+ ALT="$ \dot{\epsilon}_p$"></SPAN> to:
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+\sigma_{\text{vm}} &=& \left [A+B \epsilon_p \delta ^{n-1} \right ] \left [1+C \ln \left(
+    \frac{\dot{\epsilon}_p}{\dot{\epsilon}_0} \right ) \right ]f(T^*) \;\;\; \dot{\epsilon}_p \ge \dot{\epsilon}_0,
+        \epsilon_p \le \delta  \nonumber \\
+  \sigma_{\text{vm}} &=& \left [A+B \epsilon_p^n \right ] \left [1+C  \left(
+    \frac{\dot{\epsilon}_p}{\dot{\epsilon}_0}-1 \right ) \right ]f(T^*) \;\;\;  \dot{\epsilon}_p < \dot{\epsilon}_0,
+        \epsilon_p > \delta \nonumber \\
+  \sigma_{\text{vm}} &=& \left [A+B \epsilon_p \delta ^{n-1} \right ] \left [1+C  \left(
+    \frac{\dot{\epsilon}_p}{\dot{\epsilon}_0}-1 \right ) \right ]f(T^*) \;\;\;  \dot{\epsilon}_p < \dot{\epsilon}_0,
+        \epsilon_p \le \delta
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="31" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1436.png"
+ ALT="$\displaystyle \sigma_{\text{vm}}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="382" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1437.png"
+ ALT="$\displaystyle \left [A+B \epsilon_p \delta ^{n-1} \right ] \left [1+C \ln \left...
+...ght ]f(T^*) \;\;\; \dot{\epsilon}_p \ge \dot{\epsilon}_0,
+\epsilon_p \le \delta$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="31" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1436.png"
+ ALT="$\displaystyle \sigma_{\text{vm}}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="362" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1438.png"
+ ALT="$\displaystyle \left [A+B \epsilon_p^n \right ] \left [1+C \left(
+\frac{\dot{\ep...
+... \right ]f(T^*) \;\;\; \dot{\epsilon}_p &lt; \dot{\epsilon}_0,
+\epsilon_p &gt; \delta$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="31" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1436.png"
+ ALT="$\displaystyle \sigma_{\text{vm}}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="393" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1439.png"
+ ALT="$\displaystyle \left [A+B \epsilon_p \delta ^{n-1} \right ] \left [1+C \left(
+\f...
+...right ]f(T^*) \;\;\; \dot{\epsilon}_p &lt; \dot{\epsilon}_0,
+\epsilon_p \le \delta$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">406</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+where <!-- MATH
+ $f(T^*):=1-(T^*)^m$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="141" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1440.png"
+ ALT="$ f(T^*):=1-(T^*)^m$"></SPAN> and <SPAN CLASS="MATH"><IMG
+ WIDTH="11" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1033.png"
+ ALT="$ \delta$"></SPAN> is some small number. In CalculiX
+<!-- MATH
+ $\delta=10^{-4}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="66" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1441.png"
+ ALT="$ \delta=10^{-4}$"></SPAN> was taken.
+
+<P>
+In the input deck the Johnson-Cook model is activated by the HARDENING=JOHNSON
+COOK parameter on the <A HREF="node333.html#plastic">*PLASTIC</A> card. Underneath this card
+the rate-independent terms are defined, i.e. the parameters <!-- MATH
+ $A,B,n,m,T_m$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="102" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1442.png"
+ ALT="$ A,B,n,m,T_m$"></SPAN> and
+<SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img287.png"
+ ALT="$ T_0$"></SPAN>. If <SPAN CLASS="MATH"><IMG
+ WIDTH="63" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1443.png"
+ ALT="$ T_m=T_0$"></SPAN> no temperature dependence is taken into account. The rate
+dependence has to be defined using a <A HREF="node336.html#ratedependent">*RATE DEPENDENT</A>
+card with the parameter TYPE=JOHNSON COOK, listing underneath the parameters
+<SPAN CLASS="MATH"><IMG
+ WIDTH="16" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img865.png"
+ ALT="$ C$"></SPAN> and <!-- MATH
+ $\dot{\epsilon}_0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="17" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1444.png"
+ ALT="$ \dot{\epsilon}_0$"></SPAN>.
+
+<P>
+The name of a material with Johnson-Cook hardening is not allowed to contain
+more than 69 characters.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html3284"
+  HREF="node164.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3280"
+  HREF="node153.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3274"
+  HREF="node162.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3282"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3285"
+  HREF="node164.html">Mohr-Coulomb plasticity.</A>
+<B> Up:</B> <A NAME="tex2html3281"
+  HREF="node153.html">Materials</A>
+<B> Previous:</B> <A NAME="tex2html3275"
+  HREF="node162.html">Incremental (visco)plasticity: additive decomposition</A>
+ &nbsp; <B>  <A NAME="tex2html3283"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

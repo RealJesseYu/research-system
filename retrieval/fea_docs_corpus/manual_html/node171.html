@@ -1,0 +1,758 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>User materials</TITLE>
+<META NAME="description" CONTENT="User materials">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node172.html">
+<LINK REL="previous" HREF="node170.html">
+<LINK REL="up" HREF="node153.html">
+<LINK REL="next" HREF="node172.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html3380"
+  HREF="node172.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3376"
+  HREF="node153.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3370"
+  HREF="node170.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3378"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3381"
+  HREF="node172.html">Damage initiation models</A>
+<B> Up:</B> <A NAME="tex2html3377"
+  HREF="node153.html">Materials</A>
+<B> Previous:</B> <A NAME="tex2html3371"
+  HREF="node170.html">Elastic anisotropy with user</A>
+ &nbsp; <B>  <A NAME="tex2html3379"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000781800000000000000">
+User materials</A>
+</H3>
+
+<P>
+Other material laws can be defined by the user by means of the
+<A HREF="node366.html#usermaterial">*USER MATERIAL</A> keyword card. More information
+and examples can be found in section <A HREF="node390.html#user"><A HREF="node390.html#user"><tex2html_cr_mark></A></A>.
+
+<P>
+A user material card requires the coding of a user material subroutine, either
+of the CalculiX type or the Abaqus type.
+
+<P>
+For a user material routine of the CalculiX type the routine
+umat_user.f can be taken as example. The input primarily exists of the
+mechanical Lagrange strain tensor at the beginning and end of the increment, requested
+output is the Piola-Kirchhoff stress tensor of the second kind and the derivative of the
+Piola-Kirchhoff stress of the second kind with respect to the mechanical Lagrange strain tensor, both at the
+end of the increment. Details of other input fields is given in the section
+referenced above.
+
+<P>
+For a user material routine of the Abaqus type there are two possibilities:
+either the user wants to apply the routine to linear geometric calculations
+only. Then, the kind of strain and stress going in or out of the routine is
+not important and the previous paragraph applies. However, if the user would
+like to apply the routine to geometrically nonlinear calculations, the strain
+entering the routine is the corotational mechanical logarithmic strain and the required
+stress is the corotational Cauchy stress. So CalculiX has to perform some
+conversions before and after calling the Abaqus user material routine. For a
+prototype example of a Abaqus user material routine the user is referred to
+umat.f, for limitations on the use of the Abaqus interface fields section
+<A HREF="node390.html#user"><A HREF="node390.html#user"><tex2html_cr_mark></A></A> should be consulted.
+
+<P>
+Here, some information is given on how the fields used in CalculiX (mechanical
+Lagrange strain and Piola-Kirchhoff stress of the second kind) are converted
+into the fields required by Abaqus (corotational mechanical logarithmic strain and
+corotational Cauchy stress) and vice versa. The conversions are coded in
+umat_abaqusnl.f. The fields <!-- MATH
+ $\boldsymbol{F}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="17" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img255.png"
+ ALT="$ \boldsymbol{F}$"></B></SPAN>, <!-- MATH
+ $\boldsymbol{E} ^{\mathcal{M}}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="33" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1669.png"
+ ALT="$ \boldsymbol{E} ^{\mathcal{M}}$"></B></SPAN>
+and <!-- MATH
+ $\boldsymbol{S}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img258.png"
+ ALT="$ \boldsymbol{S}$"></B></SPAN> are available at the start of the routine (the meaning of
+these variables is explained in the following paragraphs). 
+
+<P>
+The mechanical logarithmic strain satisfies
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+e_{\ln}^{\mathcal{M}} = \sum_{i} \ln{\lambda_i^{\mathcal{M}}}
+  \boldsymbol{n}_i \otimes \boldsymbol{n}_i,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="172" HEIGHT="48" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1670.png"
+ ALT="$\displaystyle e_{\ln}^{\mathcal{M}} = \sum_{i} \ln{\lambda_i^{\mathcal{M}}} \boldsymbol{n}_i \otimes \boldsymbol{n}_i,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">506</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <!-- MATH
+ $\lambda_i^{\mathcal{M}}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="29" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1671.png"
+ ALT="$ \lambda_i^{\mathcal{M}}$"></B></SPAN> are the eigenvalues of the mechanical
+deformation gradient <!-- MATH
+ $\boldsymbol{F} ^{\mathcal{M}}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="33" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1672.png"
+ ALT="$ \boldsymbol{F} ^{\mathcal{M}}$"></B></SPAN>. In CalculiX, the
+mechanical deformation gradient is obtained by subtracting the thermal
+expansion from the total deformation gradient, i.e.
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{F} ^{\mathcal{M}}= \boldsymbol{F} - \alpha \Delta T
+  \boldsymbol{I}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="132" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1673.png"
+ ALT="$\displaystyle \boldsymbol{F} ^{\mathcal{M}}= \boldsymbol{F} - \alpha \Delta T \boldsymbol{I}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">507</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+for isotropic expansion. This is a first order approximation of a
+multiplicative decomposition of the total deformation gradient into a
+mechanical and thermal component in the form <!-- MATH
+ $\boldsymbol{F}=
+\boldsymbol{F}^{\mathcal{M}}  (1 + \alpha \Delta T)$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="142" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1674.png"
+ ALT="$ \boldsymbol{F}=
+\boldsymbol{F}^{\mathcal{M}} (1 + \alpha \Delta T)$"></B></SPAN>, recall also
+<!-- MATH
+ $\boldsymbol{F}=\boldsymbol{I} + (\nabla_0 \boldsymbol{u})^T$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="121" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1675.png"
+ ALT="$ \boldsymbol{F}=\boldsymbol{I} + (\nabla_0 \boldsymbol{u})^T$"></B></SPAN>.  The rotation tensor <!-- MATH
+ $\boldsymbol{R}= \boldsymbol{n}_{\underline{i}}
+\otimes \boldsymbol{N}_{\underline{i}}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="97" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1676.png"
+ ALT="$ \boldsymbol{R}= \boldsymbol{n}_{\underline{i}}
+\otimes \boldsymbol{N}_{\underline{i}}$"></B></SPAN> rotates the principal vectors
+<!-- MATH
+ $\boldsymbol{N}_i$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img251.png"
+ ALT="$ \boldsymbol{N}_i$"></B></SPAN> of the motion in material coordinates into spatial
+coordinates <!-- MATH
+ $\boldsymbol{n}_i$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img250.png"
+ ALT="$ \boldsymbol{n}_i$"></B></SPAN>:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{n}_i = \boldsymbol{R} \cdot \boldsymbol{N}_i.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="94" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1677.png"
+ ALT="$\displaystyle \boldsymbol{n}_i = \boldsymbol{R} \cdot \boldsymbol{N}_i.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">508</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+It is a two-point tensor with one leg in the material frame of reference and
+one leg in the spatial frame of reference. The corotational mechanical
+logarithmic strain then amounts to (recall that <!-- MATH
+ $\boldsymbol{R}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img254.png"
+ ALT="$ \boldsymbol{R}$"></B></SPAN> is
+orthogonal, i.e. <!-- MATH
+ $\boldsymbol{R}^{-1} = \boldsymbol{R}^T$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="80" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1678.png"
+ ALT="$ \boldsymbol{R}^{-1} = \boldsymbol{R}^T$"></B></SPAN>)   :
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\hat{\boldsymbol{e}}_{\ln}^ {\mathcal{M}} = \boldsymbol{R}^T \cdot
+  e_{\ln}^{\mathcal{M}} \cdot \boldsymbol{R} = \sum_{i} \ln{\lambda_i^{\mathcal{M}}}
+  \boldsymbol{N}_i \otimes \boldsymbol{N}_i.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="290" HEIGHT="48" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1679.png"
+ ALT="$\displaystyle \hat{\boldsymbol{e}}_{\ln}^ {\mathcal{M}} = \boldsymbol{R}^T \cdo...
+...sum_{i} \ln{\lambda_i^{\mathcal{M}}} \boldsymbol{N}_i \otimes \boldsymbol{N}_i.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">509</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+<!-- MATH
+ $\lambda_i^{\mathcal{M}}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="29" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1671.png"
+ ALT="$ \lambda_i^{\mathcal{M}}$"></B></SPAN> can be obtained from the eigenvalues of the
+mechanical Lagrange
+tensor <!-- MATH
+ $\boldsymbol{E}^ {\mathcal{M}}= (\boldsymbol{F}^ {\mathcal{M},T} \cdot
+\boldsymbol{F}^ {\mathcal{M}} - \boldsymbol{I})/2$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="195" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1680.png"
+ ALT="$ \boldsymbol{E}^ {\mathcal{M}}= (\boldsymbol{F}^ {\mathcal{M},T} \cdot
+\boldsymbol{F}^ {\mathcal{M}} - \boldsymbol{I})/2 $"></B></SPAN> and its eigenvectors are <!-- MATH
+ $\boldsymbol{N}_i$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img251.png"
+ ALT="$ \boldsymbol{N}_i$"></B></SPAN>.
+
+<P>
+The Cauchy tensor satisfies
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{\sigma } = J^{-1} \boldsymbol{R} \cdot \boldsymbol{U}  \cdot
+  \boldsymbol{S}  \cdot \boldsymbol{U}^T \cdot \boldsymbol{R}^T,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="203" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1681.png"
+ ALT="$\displaystyle \boldsymbol{\sigma } = J^{-1} \boldsymbol{R} \cdot \boldsymbol{U} \cdot \boldsymbol{S} \cdot \boldsymbol{U}^T \cdot \boldsymbol{R}^T,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">510</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and consequently the corotational Cauchy tensor amounts to
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\hat{\boldsymbol{\sigma }} = \boldsymbol{R}^T \cdot \boldsymbol{\sigma }
+  \cdot \boldsymbol{R} = J^{-1} \boldsymbol{U} \cdot \boldsymbol{S} \cdot
+  \boldsymbol{U}^T.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="236" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1682.png"
+ ALT="$\displaystyle \hat{\boldsymbol{\sigma }} = \boldsymbol{R}^T \cdot \boldsymbol{\...
+...dsymbol{R} = J^{-1} \boldsymbol{U} \cdot \boldsymbol{S} \cdot \boldsymbol{U}^T.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">511</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+Here, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1683.png"
+ ALT="$ J$"></B></SPAN> is the Jacobian determinant, <!-- MATH
+ $\boldsymbol{S}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img258.png"
+ ALT="$ \boldsymbol{S}$"></B></SPAN> is the Piola-Kirchhoff
+stress of the second kind and <!-- MATH
+ $\boldsymbol{U}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img256.png"
+ ALT="$ \boldsymbol{U}$"></B></SPAN> is the right-stretch
+tensor. The latter is the square root of the Cauchy-Green tensor
+<!-- MATH
+ $\boldsymbol{C}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img252.png"
+ ALT="$ \boldsymbol{C}$"></B></SPAN> and therefore it can also be derived from the Lagrange
+tensor. However, in routine umat_abaqusnl.f the mechanical Lagrange tensor is
+available and not the total one. So a relationship is needed between the
+total right-stretch tensor and the mechanical right-stretch tensor. Since
+<!-- MATH
+ $\boldsymbol{U}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img256.png"
+ ALT="$ \boldsymbol{U}$"></B></SPAN> has the same eigenvalues as <!-- MATH
+ $\boldsymbol{F}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="17" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img255.png"
+ ALT="$ \boldsymbol{F}$"></B></SPAN> and the
+multiplicative decomposition of the deformation gradient in a mechanical and
+thermal deformation gradient leads to <!-- MATH
+ $\lambda = \lambda ^ {\mathcal{M}} (1 +
+\alpha \Delta T)$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="134" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1684.png"
+ ALT="$ \lambda = \lambda ^ {\mathcal{M}} (1 +
+\alpha \Delta T)$"></B></SPAN> one obtains:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\hat{\boldsymbol{\sigma }} = J^{-1} \boldsymbol{U}^ {\mathcal{M}} \cdot \boldsymbol{S} \cdot
+  (\boldsymbol{U}^ {\mathcal{M}})^T (1 +
+\alpha \Delta T)^2.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="268" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1685.png"
+ ALT="$\displaystyle \hat{\boldsymbol{\sigma }} = J^{-1} \boldsymbol{U}^ {\mathcal{M}}...
+...\boldsymbol{S} \cdot (\boldsymbol{U}^ {\mathcal{M}})^T (1 + \alpha \Delta T)^2.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">512</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The latter equation assumes that the thermal expansion is isotropic. In
+routine umat_abaqusnl.f <!-- MATH
+ $\boldsymbol{S}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img258.png"
+ ALT="$ \boldsymbol{S}$"></B></SPAN> is known, <!-- MATH
+ $\boldsymbol{U}^
+{\mathcal{M}}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="34" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1686.png"
+ ALT="$ \boldsymbol{U}^
+{\mathcal{M}}$"></B></SPAN> can be obtained from <!-- MATH
+ $\boldsymbol{E}^ {\mathcal{M}}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="33" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1669.png"
+ ALT="$ \boldsymbol{E} ^{\mathcal{M}}$"></B></SPAN> and <!-- MATH
+ $(1 +
+\alpha \Delta T)$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="79" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1687.png"
+ ALT="$ (1 +
+\alpha \Delta T)$"></B></SPAN> results from
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+(1 +\alpha \Delta T) = \sqrt{\frac{(\boldsymbol{F}^T \cdot \boldsymbol{F})_{11}
+    }{2 \boldsymbol{E}^ {\mathcal{M}}_{11}+1 }},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="198" HEIGHT="68" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1688.png"
+ ALT="$\displaystyle (1 +\alpha \Delta T) = \sqrt{\frac{(\boldsymbol{F}^T \cdot \boldsymbol{F})_{11} }{2 \boldsymbol{E}^ {\mathcal{M}}_{11}+1 }},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">513</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where the index <SPAN CLASS="MATH"><B><IMG
+ WIDTH="17" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1689.png"
+ ALT="$ _{11}$"></B></SPAN> refers to element (1,1) of the corresponding
+matrix. In this way the corotational Cauchy stress is obtained from the
+Piola-Kirchhoff stress of the second kind. The inverse relationship is used
+after returning from the Abaqus material user subroutine:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{S} = J \boldsymbol{U}^{-1} \cdot  \hat{\boldsymbol{\sigma }}
+  \cdot \boldsymbol{U }^{-T}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="152" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1690.png"
+ ALT="$\displaystyle \boldsymbol{S} = J \boldsymbol{U}^{-1} \cdot \hat{\boldsymbol{\sigma }} \cdot \boldsymbol{U }^{-T}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">514</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+Now, <!-- MATH
+ $\partial \boldsymbol{S}/\partial \boldsymbol{E}^{\mathcal{M}}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="72" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1691.png"
+ ALT="$ \partial \boldsymbol{S}/\partial \boldsymbol{E}^{\mathcal{M}}$"></B></SPAN> is needed
+in CalculiX (i.e. total Lagrangian approach), however, the Abaqus routine returns
+<!-- MATH
+ $\partial \hat{\boldsymbol{\sigma}} /\partial
+\hat{\boldsymbol{e}}_{\ln}^{\mathcal{M}}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="66" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1692.png"
+ ALT="$ \partial \hat{\boldsymbol{\sigma}} /\partial
+\hat{\boldsymbol{e}}_{\ln}^{\mathcal{M}}$"></B></SPAN>. Now, taking into account the
+following considerations:
+
+<P>
+
+<UL>
+<LI><!-- MATH
+ $\boldsymbol{U} = \boldsymbol{U} ^ {\mathcal{M}} (1+\alpha \Delta T)$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="145" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1693.png"
+ ALT="$ \boldsymbol{U} = \boldsymbol{U} ^ {\mathcal{M}} (1+\alpha \Delta T)
+$"></B></SPAN> from which <!-- MATH
+ $\boldsymbol{U}^{-1} = {\boldsymbol{U}^{ \mathcal{M}}}^{-1}
+  (1+\alpha \Delta T)^{-1}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="196" HEIGHT="44" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1694.png"
+ ALT="$ \boldsymbol{U}^{-1} = {\boldsymbol{U}^{ \mathcal{M}}}^{-1}
+(1+\alpha \Delta T)^{-1}$"></B></SPAN>.
+</LI>
+<LI><!-- MATH
+ ${\boldsymbol{U}^{ \mathcal{M}}}^{-1} = 1/{\sqrt{\boldsymbol{C}^{
+      \mathcal{M}}} }$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="134" HEIGHT="45" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1695.png"
+ ALT="$ {\boldsymbol{U}^{ \mathcal{M}}}^{-1} = 1/{\sqrt{\boldsymbol{C}^{
+\mathcal{M}}} }$"></B></SPAN>.
+</LI>
+<LI><!-- MATH
+ $\hat{\boldsymbol{e}}_{\ln}^{ \mathcal{M}} = \ln \sqrt{\boldsymbol{C}^{
+    \mathcal{M}}}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="111" HEIGHT="45" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1696.png"
+ ALT="$ \hat{\boldsymbol{e}}_{\ln}^{ \mathcal{M}} = \ln \sqrt{\boldsymbol{C}^{
+\mathcal{M}}} $"></B></SPAN>
+</LI>
+<LI><!-- MATH
+ $\frac{\partial I_3}{\partial \boldsymbol{C} } = I_3
+  \boldsymbol{C}^{-1}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="93" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1697.png"
+ ALT="$ \frac{\partial I_3}{\partial \boldsymbol{C} } = I_3
+\boldsymbol{C}^{-1}$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="57" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1407.png"
+ ALT="$ I_3=J^2$"></B></SPAN>, from which
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{\partial J^{
+        \mathcal{M}}}{\partial \boldsymbol{C}^{ \mathcal{M} }} = \frac{J^{
+        \mathcal{M}}}{2}  {\boldsymbol{C}^{ \mathcal{M} }}^{-1}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="145" HEIGHT="56" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1698.png"
+ ALT="$\displaystyle \frac{\partial J^{ \mathcal{M}}}{\partial \boldsymbol{C}^{ \mathcal{M} }} = \frac{J^{ \mathcal{M}}}{2} {\boldsymbol{C}^{ \mathcal{M} }}^{-1}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">515</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+</LI>
+<LI><!-- MATH
+ $J=J^{\mathcal{M}} (1+\alpha \Delta T)^3$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="143" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1699.png"
+ ALT="$ J=J^{\mathcal{M}} (1+\alpha \Delta T)^3$"></B></SPAN>.
+</LI>
+</UL>
+
+<P>
+and writing the expression for the Piola-Kirchhoff stress of the second kind in a rectangular
+coordinate system:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{S}_{KL}=J \boldsymbol{U}^{-1}_{KM} \hat{\boldsymbol{\sigma
+  }}_{MN}  \boldsymbol{U}^{-1}_{NL}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="181" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1700.png"
+ ALT="$\displaystyle \boldsymbol{S}_{KL}=J \boldsymbol{U}^{-1}_{KM} \hat{\boldsymbol{\sigma }}_{MN} \boldsymbol{U}^{-1}_{NL}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">516</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+straightforward differentation yields:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="RIGHT"><SPAN CLASS="MATH"><IMG
+ WIDTH="77" HEIGHT="63" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1701.png"
+ ALT="$\displaystyle \left ( \frac{\partial \boldsymbol{S}_{KL}}{\partial \boldsymbol{E}_{PQ}^{\mathcal{M}}} \right )$"></SPAN></TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="386" HEIGHT="45" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1702.png"
+ ALT="$\displaystyle = J^{\mathcal{M}} \left( {\boldsymbol{C}^{\mathcal{M}}}^{-1}_{PQ}...
+...MN} \left( {\boldsymbol{U}^{\mathcal{M}}}^{-1}_{NL} \right) (1+\alpha \Delta T)$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="337" HEIGHT="66" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1703.png"
+ ALT="$\displaystyle + 2 J^{\mathcal{M}} \left( \frac{\partial{\boldsymbol{U}^{\mathca...
+...MN} \left( {\boldsymbol{U}^{\mathcal{M}}}^{-1}_{NL} \right) (1+\alpha \Delta T)$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="443" HEIGHT="68" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1704.png"
+ ALT="$\displaystyle +2 J^{\mathcal{M}}\left( {\boldsymbol{U}^{\mathcal{M}}}^{-1}_{KM}...
+...ht) \left( {\boldsymbol{U}^{\mathcal{M}}}^{-1}_{NL} \right) (1+\alpha \Delta T)$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="337" HEIGHT="66" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1705.png"
+ ALT="$\displaystyle +2 J^{\mathcal{M}}\left( {\boldsymbol{U}^{\mathcal{M}}}^{-1}_{KM}...
+..._{NL} }{\partial \boldsymbol{C}_{PQ}^{\mathcal{M}}} \right) (1+\alpha \Delta T)$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">517</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The first term in brackets on the second line, the third term in brackets on the third
+line and the second term in brackets on the fourth line are special cases of
+the derivative of a function of <!-- MATH
+ $\boldsymbol{C}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img252.png"
+ ALT="$ \boldsymbol{C}$"></B></SPAN> w.r.t <!-- MATH
+ $\boldsymbol{C}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img252.png"
+ ALT="$ \boldsymbol{C}$"></B></SPAN>. Expressions for such a differentation based on the eigenvalues and
+structural tensors of <!-- MATH
+ $\boldsymbol{C}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img252.png"
+ ALT="$ \boldsymbol{C}$"></B></SPAN> were derived by Itskov [<A
+ HREF="node530.html#Itskov">42</A>]
+and are summarized in the Appendix of [<A
+ HREF="node530.html#DhondtHackenberg">25</A>]. The second term
+in brackets on the third line is the tangent returned by the Abaqus UMAT routine. 
+
+<P>
+Notice that the above equation is symmetric in (KL) and (PQ), i.e. switching K
+and L and/or P and Q. In particular,
+switching K and L in the second term leads to the fourth term. This symmetry
+is to be expected, since <!-- MATH
+ $\boldsymbol{S}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img258.png"
+ ALT="$ \boldsymbol{S}$"></B></SPAN> and <!-- MATH
+ $\boldsymbol{E} ^{\mathcal{M}}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="33" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1669.png"
+ ALT="$ \boldsymbol{E} ^{\mathcal{M}}$"></B></SPAN>
+are symmetric tensors. However, it is not clear whether the symmetry obtained
+by replacing KL by PQ is preserved. Therefore, in CalculiX a symmetrization of
+the resulting tangent matrix is performed, leading to 21 constants instead of
+36 constants. The above procedure was implemented in umat_abaqusnl.f and
+umat_abaqusnl_total.f. It is used for those material models, which were only
+formulated for small strains, such as isotropic plasticity for an elastically
+orthotropic material, Johnson-Cook plasticity and Mohr-Coulomb plasticity.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html3380"
+  HREF="node172.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3376"
+  HREF="node153.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3370"
+  HREF="node170.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3378"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3381"
+  HREF="node172.html">Damage initiation models</A>
+<B> Up:</B> <A NAME="tex2html3377"
+  HREF="node153.html">Materials</A>
+<B> Previous:</B> <A NAME="tex2html3371"
+  HREF="node170.html">Elastic anisotropy with user</A>
+ &nbsp; <B>  <A NAME="tex2html3379"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

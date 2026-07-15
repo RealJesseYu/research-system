@@ -1,0 +1,489 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Postprocessing the sensitivity</TITLE>
+<META NAME="description" CONTENT="Postprocessing the sensitivity">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="previous" HREF="node482.html">
+<LINK REL="up" HREF="node480.html">
+<LINK REL="next" HREF="node484.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7515"
+  HREF="node484.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7511"
+  HREF="node480.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7507"
+  HREF="node482.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7513"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7516"
+  HREF="node484.html">Mesh refinement</A>
+<B> Up:</B> <A NAME="tex2html7512"
+  HREF="node480.html">Sensitivity Analysis</A>
+<B> Previous:</B> <A NAME="tex2html7508"
+  HREF="node482.html">Processing the sensitivity</A>
+ &nbsp; <B>  <A NAME="tex2html7514"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001112300000000000000">
+Postprocessing the sensitivity</A>
+</H3>
+
+<P>
+Postprocessing is only done for geometrical design variables. The
+postprocessing procedure is coded in sensi_coor.c and feasibledirection.c and consists of the
+following steps:
+
+<P>
+
+<UL>
+<LI>Changing from a discrete gradient field to a continuous gradient field (sensi_coor.c).
+</LI>
+<LI>Backward filtering the sensitivities (sensi_coor.c).
+</LI>
+<LI>Calculating the geometrical constraints defined for the design
+    variables (feasibledirection.c).
+</LI>
+<LI>Modifying the sensitivities due to constraint conditions
+  (feasibledirection.c).
+</LI>
+<LI>Forward filtering of the sensitivities (feasibledirection.c).
+</LI>
+<LI>Creating a transition region from the design node region to its
+  complement (feasibledirection.c).
+</LI>
+</UL>
+
+<P>
+Now the steps are treated in more detail:
+
+<P>
+
+<UL>
+<LI>The sensitivity for geometric design variables is calculated by moving each
+design variable an infinitesimal distance in a direction normal to the
+external surface. Through the shape functions this motion extends across an
+area consisting of all external faces to which the design node belongs. Now,
+the resulting discrete or continuous gradient field <!-- MATH
+ $d G/d \boldsymbol{s}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="49" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3177.png"
+ ALT="$ d G/d \boldsymbol{s}$"></B></SPAN>
+is transformed into a continuous gradient field <!-- MATH
+ $d g/d \boldsymbol{s}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="45" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3178.png"
+ ALT="$ d g/d \boldsymbol{s}$"></B></SPAN> by
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\left( \frac{d G}{d s_k } \right)= \sum_{f:k \in f}
+  \int_{A_f} \varphi_k \varphi_l d A \left ( \frac{d g}{d s_l }
+  \right) .
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="253" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3179.png"
+ ALT="$\displaystyle \left( \frac{d G}{d s_k } \right)= \sum_{f:k \in f} \int_{A_f} \varphi_k \varphi_l d A \left ( \frac{d g}{d s_l } \right) .$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">978</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The continuous gradient field is the sensitivity with respect to a Dirac delta
+function perturbation of the design surface at the node at stake. Both fields are coupled by the surface mesh mass matrix <SPAN CLASS="MATH"><B><IMG
+ WIDTH="30" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3180.png"
+ ALT="$ M_A$"></B></SPAN>. Therefore, to
+get the continuous gradient field the calculated sensitivities are multiplied
+with the inverse of the surface mesh mass matrix:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="discretecontinuous"></A><!-- MATH
+ \begin{equation}
+\frac{dg}{d \boldsymbol{s} } = M_A^{-1} \frac{dG}{ds}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="109" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3181.png"
+ ALT="$\displaystyle \frac{dg}{d \boldsymbol{s} } = M_A^{-1} \frac{dG}{ds}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">979</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+</LI>
+<LI>The filtering which is done after the sensitivity analysis and after the
+calculation of the feasible direction follows the idea of vertex
+morphing. This means that conceptually an additional control field
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img839.png"
+ ALT="$ z$"></B></SPAN>, apart from the design variables <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1192.png"
+ ALT="$ s$"></B></SPAN>, is introduced with the size of the
+number of design variables on which the mathematical optimization problem is
+solved. This control field is connected with the design variables by the
+following formula
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{DG(z,s(z))}{Dz} = \frac{\partial G}{\partial z} + \frac{\partial
+    G}{\partial s} \frac{\partial s}{\partial z} =\frac{\partial G}{\partial
+    s} \frac{\partial s}{\partial z}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="275" HEIGHT="53" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3182.png"
+ ALT="$\displaystyle \frac{DG(z,s(z))}{Dz} = \frac{\partial G}{\partial z} + \frac{\pa...
+...al s}{\partial z} =\frac{\partial G}{\partial s} \frac{\partial s}{\partial z}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">980</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+Since a change in control field does not alter the geometry and hence the
+design response G, the partial derivative <!-- MATH
+ $\partial G/\partial z =0$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="80" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3183.png"
+ ALT="$ \partial G/\partial z =0$"></B></SPAN>. The
+expression <!-- MATH
+ $\partial s/\partial z$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="46" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3184.png"
+ ALT="$ \partial s/\partial z$"></B></SPAN> can be regarded as a smoothing operator
+(filter) between the design variables and the control field. In vertex
+morphing this filtering operation has to be done twice. First, after the
+sensitivity analysis (sensi_coor.c), called backward filtering, in order to
+transform the sensitivities calculated at the design variables to the control
+field. The output in the frd file is the unfiltered sensitivity at the design
+variables as well as the filtered one, which can be interpreted as the
+sensitivity on the control field. And a second time to map the final feasible
+direction back to the nodal design variables, called forward filtering, which
+is done in feasibledirection.c. Again, two output fields are written in the frd
+file: the feasible direction calculated on the control field and the forward
+filtered feasible direction on the nodal design variables.
+
+<P>
+For the filtering itself two different filters are available, an explicit and
+an implicit one. Ragarding the explicit filter, independent if
+backward or forward filtering is done, the sensitivity
+values at a given node are thereby replaced by a weighted sum of the
+sensitivities of the nodes within a sphere with a user-defined radius. The
+weighting function is 1 at the node at stake and decreases radially in a
+user-defined way to zero at the edge of the sphere:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="exp_backward"></A><!-- MATH
+ \begin{equation}
+\frac{dG}{dz} = \frac{dG}{ds} \frac{ds}{dz} = \frac{dG}{ds} A = A^T
+  \frac{dG}{ds},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="224" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3185.png"
+ ALT="$\displaystyle \frac{dG}{dz} = \frac{dG}{ds} \frac{ds}{dz} = \frac{dG}{ds} A = A^T \frac{dG}{ds},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">981</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img381.png"
+ ALT="$ A$"></B></SPAN> is the resulting smoothing matrix mapping field <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img839.png"
+ ALT="$ z$"></B></SPAN> into a
+smoother field <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1192.png"
+ ALT="$ s$"></B></SPAN>.
+The filtering can also be performed implicitly by elliptic partial
+differential equations whose inverse operator is a local smoother:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="imp_forward"></A><!-- MATH
+ \begin{equation}
+(\boldsymbol{I} - \epsilon \nabla^2) s = z,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="113" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3186.png"
+ ALT="$\displaystyle (\boldsymbol{I} - \epsilon \nabla^2) s = z,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">982</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+leading to (through the chain rule):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="imp_backward"></A><!-- MATH
+ \begin{equation}
+(\boldsymbol{I} - \epsilon \nabla^2) \frac{dG}{dz} = \frac{dG}{ds}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="147" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3187.png"
+ ALT="$\displaystyle (\boldsymbol{I} - \epsilon \nabla^2) \frac{dG}{dz} = \frac{dG}{ds}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">983</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Notice that field <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1192.png"
+ ALT="$ s$"></B></SPAN> is smoother than field <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img839.png"
+ ALT="$ z$"></B></SPAN> and, consequently, field
+<!-- MATH
+ $\frac{dG}{dz}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3188.png"
+ ALT="$ \frac{dG}{dz}$"></B></SPAN> is smoother than field <!-- MATH
+ $\frac{dG}{ds}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3189.png"
+ ALT="$ \frac{dG}{ds}$"></B></SPAN>. <SPAN CLASS="MATH"><B><IMG
+ WIDTH="10" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1016.png"
+ ALT="$ \epsilon$"></B></SPAN> is a scalar
+penalizing high spatial variations and is also called the filter radius. Applying a standard finite element
+discretization scheme leads to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{dG}{dz} = M_A ( K_A+M_A)^{-1} \frac{dG}{ds},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="203" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3190.png"
+ ALT="$\displaystyle \frac{dG}{dz} = M_A ( K_A+M_A)^{-1} \frac{dG}{ds},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">984</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+(M_A)_{kl} =  \sum_{f:k \in f}
+  \int_{A_f} \varphi_k \varphi_l d A
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="195" HEIGHT="53" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3191.png"
+ ALT="$\displaystyle (M_A)_{kl} = \sum_{f:k \in f} \int_{A_f} \varphi_k \varphi_l d A$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">985</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+(K_A)_{kl} =  \epsilon^2 \sum_{f:k \in f}
+  \int_{A_f} (\nabla \varphi_k)^T \cdot (\nabla \varphi_l) d A.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="283" HEIGHT="53" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3192.png"
+ ALT="$\displaystyle (K_A)_{kl} = \epsilon^2 \sum_{f:k \in f} \int_{A_f} (\nabla \varphi_k)^T \cdot (\nabla \varphi_l) d A.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">986</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The gradient is to be projected into the design faces. As in the explicit
+filter method, the filter radius is a user-defined parameter controlling the
+smoothness of the filtered sensitivities. A complete filtering cycle than
+consists of:
+
+<P>
+
+<OL>
+<LI>applying an explicit or implicit filter, respectively Equation
+  (<A HREF="#exp_backward">981</A>) and Equation (<A HREF="#imp_backward">983</A>), to obtain <SPAN CLASS="MATH"><B><IMG
+ WIDTH="49" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3193.png"
+ ALT="$ dG/dz$"></B></SPAN>
+  from <SPAN CLASS="MATH"><B><IMG
+ WIDTH="48" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3194.png"
+ ALT="$ dG/ds$"></B></SPAN>. This is called backward filtering.
+</LI>
+<LI>convert the discrete field <SPAN CLASS="MATH"><B><IMG
+ WIDTH="49" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3193.png"
+ ALT="$ dG/dz$"></B></SPAN> into a continuous field <SPAN CLASS="MATH"><B><IMG
+ WIDTH="45" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3195.png"
+ ALT="$ dg/dz$"></B></SPAN>
+  by equation (<A HREF="#discretecontinuous">979</A>).
+</LI>
+<LI>apply a scalar multiple of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="45" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3195.png"
+ ALT="$ dg/dz$"></B></SPAN> as mesh modification and revert
+  to the <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1192.png"
+ ALT="$ s$"></B></SPAN>-field using <SPAN CLASS="MATH"><B><IMG
+ WIDTH="52" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3196.png"
+ ALT="$ s=A z$"></B></SPAN> in the explicit case or Equation
+  (<A HREF="#imp_forward">982</A>) for the implicit case. This is called forward
+  filtering.
+</LI>
+</OL> 
+
+<P>
+For the complete derivation of the
+explicit and implicit filtering methods the interested user is referred to [<A
+ HREF="node530.html#Asl">7</A>]. If the parameter DIRECTION
+WEIGHTING is active on the <A HREF="node287.html#filter">*FILTER</A> card the sensitivity
+values at a node i are replaced by a weighted sum of the sensitivities at the nodes j within
+the sphere multiplied by the scalar product of the normal vector at j and the
+normal vector at i. 
+</LI>
+<LI>If the parameter BOUNDARY WEIGHTING=YES is selected on the *FILTER card
+  the sensitities are linearly decreased to zero at the edge of the design
+  domain. This edge is defined by all nodes which are not design variables but
+  belong to external faces which contain at least one design variable. If a
+  design node lies within a user-defined boundary weighting distance from this
+  edge a linear reduction proportional to the actual distance is applied. This
+  assures a smooth transition of the sensitivities to zero at the edge of the
+  design domain.
+
+<P>
+</LI>
+</UL>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html7515"
+  HREF="node484.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7511"
+  HREF="node480.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7507"
+  HREF="node482.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7513"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7516"
+  HREF="node484.html">Mesh refinement</A>
+<B> Up:</B> <A NAME="tex2html7512"
+  HREF="node480.html">Sensitivity Analysis</A>
+<B> Previous:</B> <A NAME="tex2html7508"
+  HREF="node482.html">Processing the sensitivity</A>
+ &nbsp; <B>  <A NAME="tex2html7514"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

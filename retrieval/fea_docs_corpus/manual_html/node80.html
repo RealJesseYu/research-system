@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Substructure (Superelement)</TITLE>
+<META NAME="description" CONTENT="Substructure (Superelement)">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="previous" HREF="node79.html">
+<LINK REL="up" HREF="node27.html">
+<LINK REL="next" HREF="node81.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2208"
+  HREF="node81.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2204"
+  HREF="node27.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2200"
+  HREF="node79.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2206"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2209"
+  HREF="node81.html">Beam Section Types</A>
+<B> Up:</B> <A NAME="tex2html2205"
+  HREF="node27.html">Element Types</A>
+<B> Previous:</B> <A NAME="tex2html2201"
+  HREF="node79.html">User Element: 3-node shell</A>
+ &nbsp; <B>  <A NAME="tex2html2207"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000724800000000000000"></A><A NAME="substructurelem"></A>
+<BR>
+Substructure (Superelement)
+</H3>
+
+<P>
+A substructure (also called superelement in some coded) is an element
+characterized by a number of nodes and a stiffness (and optionally a mass matrix) describing the relationship between forces and displacements in these
+nodes. The matrices may have been obtained by another code. The element
+definition is triggered by a <A HREF="node312.html#matrixassemble">*MATRIX ASSEMBLE</A> card
+(instead of an *ELEMENT card), the name of the file containing the
+stiffness matrix and, optionally, the name of the file containing the mass
+matrix. Right now, both have to be symmetric and only the upper triangle
+(including the diagonal) or the lower triangle (including the diagonal) should
+be given in the form
+
+<P>
+<PRE>
+row node, row dof, column node, column dof, value
+</PRE>
+
+<P>
+for each entry of the matrix, one per line (the order is irrelevant). A substructure can right now
+contain at most 256 nodes and only translational degrees of freedom (=dof) are
+allowed (dof 1 for the global x-axis, dof 2 for the global y-axis and dof 3
+for the global z-axis). In addition, the matrix should
+ receive a name containing at most 4 characters. Names of existing user
+ elements exluding the &ldquo;U&rdquo; in front should not be used, such as &ldquo;S3&rdquo;. The nodes belonging to the element may be subject to Single Point Constraints, Multiple Point
+ Constraints or point loads, but not to distributed loading (neither facial
+ nor volumetric). Since the location of any integration points is not known,
+ no element values such as stresses or strains are calculated. Only nodal
+ information can be stored to file using <A HREF="node326.html#nodeprint">*NODE PRINT</A> and
+ similar keyword cards.
+
+<P>
+A substructure is basically a linear construct. Right now, it can be used in
+a *STATIC, *DYNAMIC or *FREQUENCY procedure, including cyclic symmetry conditions.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html2208"
+  HREF="node81.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2204"
+  HREF="node27.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2200"
+  HREF="node79.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2206"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2209"
+  HREF="node81.html">Beam Section Types</A>
+<B> Up:</B> <A NAME="tex2html2205"
+  HREF="node27.html">Element Types</A>
+<B> Previous:</B> <A NAME="tex2html2201"
+  HREF="node79.html">User Element: 3-node shell</A>
+ &nbsp; <B>  <A NAME="tex2html2207"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

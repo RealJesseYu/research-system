@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Tetrahedron containment</TITLE>
+<META NAME="description" CONTENT="Tetrahedron containment">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node527.html">
+<LINK REL="previous" HREF="node525.html">
+<LINK REL="up" HREF="node523.html">
+<LINK REL="next" HREF="node527.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html8099"
+  HREF="node527.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html8095"
+  HREF="node523.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html8089"
+  HREF="node525.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html8097"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html8100"
+  HREF="node527.html">Finite element containment</A>
+<B> Up:</B> <A NAME="tex2html8096"
+  HREF="node523.html">Interpolation procedure</A>
+<B> Previous:</B> <A NAME="tex2html8090"
+  HREF="node525.html">Nearest point algorithm</A>
+ &nbsp; <B>  <A NAME="tex2html8098"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001115300000000000000">
+Tetrahedron containment</A>
+</H3>
+
+<P>
+The next important algorithm is the check whether the interpolation location
+belongs to a given tetrahedron or not. A tetrahedron has 4 faces. These faces
+are catalogued according to the lowest node number in the face in fields such
+as ipofa(*) and ifac(1..4,*), cf. the section <A HREF="node487.html#facefields">10.13.3</A> on face fields
+in mesh refinement. Each face has a unique number and is also described by a
+plane equation, the 4 coefficients of which are stored in planfa(4,*). Now, a
+face belongs to at most 2 elements, and is listed in the face list
+ifatet(1..4,*) of these elements. In order to be able to distinguish between
+inside and outside of a tetrahedron i related to one of its faces, the face in
+ifatet(1..4,i) gets the sign of the plane equation of the face after
+substitution of the remaining node of element i opposite the face.
+
+<P>
+For instance, suppose face A (consisting of nodes 10, 20 and 30) belongs to
+element i (consisting of nodes 10, 20, 30 and 40). Let us assume that
+ifatet(2,i)=A and that the equation of face A is <!-- MATH
+ $ax+by+cz+d=0$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="147" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3278.png"
+ ALT="$ ax+by+cz+d=0$"></B></SPAN>. Now,
+ifatet(2,i) is replaced by <!-- MATH
+ $A \cdot \text{sign} (a x_{40}+b y_{40}+c
+z_{40}+d)$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3279.png"
+ ALT="$ A \cdot$">&nbsp; &nbsp;sign<IMG
+ WIDTH="170" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3280.png"
+ ALT="$ (a x_{40}+b y_{40}+c
+z_{40}+d)$"></B></SPAN>. Therefore, an interpolation location p will be on the same side of
+face A w.r.t. element i if <!-- MATH
+ $\text{sign} (a x_{p}+b y_{p}+c
+z_{p}+d)=\text{sign} \text{(ifatet(2,i))}$
+ -->
+<SPAN CLASS="MATH"><B>&nbsp; &nbsp;sign<IMG
+ WIDTH="168" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3281.png"
+ ALT="$ (a x_{p}+b y_{p}+c
+z_{p}+d)=$">sign&nbsp; &nbsp;(ifatet(2,i))</B></SPAN>. The same applies to the other faces of
+element i.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html8099"
+  HREF="node527.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html8095"
+  HREF="node523.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html8089"
+  HREF="node525.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html8097"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html8100"
+  HREF="node527.html">Finite element containment</A>
+<B> Up:</B> <A NAME="tex2html8096"
+  HREF="node523.html">Interpolation procedure</A>
+<B> Previous:</B> <A NAME="tex2html8090"
+  HREF="node525.html">Nearest point algorithm</A>
+ &nbsp; <B>  <A NAME="tex2html8098"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

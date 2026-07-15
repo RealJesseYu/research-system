@@ -1,0 +1,458 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Input deck format</TITLE>
+<META NAME="description" CONTENT="Input deck format">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node371.html">
+<LINK REL="previous" HREF="node25.html">
+<LINK REL="up" HREF="ccx.html">
+<LINK REL="next" HREF="node224.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html4037"
+  HREF="node224.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4033"
+  HREF="ccx.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4027"
+  HREF="node222.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4035"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4038"
+  HREF="node224.html">*AMPLITUDE</A>
+<B> Up:</B> <A NAME="tex2html4034"
+  HREF="ccx.html">CalculiX CrunchiX USER'S MANUAL</A>
+<B> Previous:</B> <A NAME="tex2html4028"
+  HREF="node222.html">Output variables</A>
+ &nbsp; <B>  <A NAME="tex2html4036"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00080000000000000000">
+Input deck format</A>
+</H1>
+
+<P>
+This section describes the input of CalculiX. 
+
+<P>
+The jobname is defined by the argument after the -i flag on the
+command line. When starting CalculiX, it will look for an input file
+with the name jobname.inp. Thus, if you called the executable
+&ldquo;CalculiX&rdquo; and the input deck is &ldquo;beam.inp&rdquo; then the program
+call looks like
+
+<P>
+<PRE>
+  
+CalculiX -i beam
+</PRE>
+
+<P>
+The -i flag can be dropped provided the jobname follows immediately
+after the CalculiX call.
+
+<P>
+CalculiX will generate an output file with the name jobname.dat and an output
+file with the name jobname.frd. The latter can be viewed with cgx.
+
+<P>
+If the step is a *FREQUENCY step or a *HEAT TRANSFER,FREQUENCY step and the
+parameter STORAGE=YES is activated, CalculiX will generate a binary file
+containing the eigenfrequencies, the eigenmodes, the stiffness and the mass
+matrix with the name jobname.eig. If the step is a *MODAL DYNAMIC or *STEADY
+STATE DYNAMICS step, CalculiX will look for a file with that name. If any of the files it needs does not exist, an error message is generated and CalculiX will stop.
+
+<P>
+The input deck basically consists of a set of keywords, followed by
+data required by the keyword on lines underneath the keyword. The
+keywords can be accompanied by parameters on the same line, separated
+by a comma. If the parameters require a value, an equality sign must
+connect parameter and value. Blanks in the input have no significance
+and can be inserted as you like. The keywords and any other
+alphanumeric information can be written in upper
+case, lower case, or any mixture. The input deck is case insensitive:
+internally, all alphanumeric characters are changed into upper
+case. The data do not follow a fixed format and are to be separated by
+a comma. A line can only contain as many data as dictated by the keyword definition. The maximum length for user-defined names, e.g. for materials or sets, is 80 characters, unless specified otherwise.The structure of an input deck consists of geometric, topological and material data before the first step definition, and loading data (mechanical, thermal, or prescribed displacements) in one or more subsequent steps. The user must make sure that all data are given in consistent units (the units do not appear in the calculation).
+
+<P>
+A keyword can be of type step or model definition. Model Definition
+cards must be used before the first *STEP card. Step keywords can only
+be used within a step. Among the model definition keywords, the
+material ones occupy a special place: they define the properties of a
+material and should be grouped together following a *MATERIAL
+card. 
+
+<P>
+Node and element sets can share the same name. Internally, the names
+are switched to upper case and a 'N' is
+appended after the name of a node set and a 'E' after the name of an
+element set. Therefore, set names printed in error or warning messages
+will be discovered to be written in upper case and to have a 'N' or
+'E' appended.
+
+<P>
+Keyword cards in alphabetical order:
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html4039"
+  HREF="node224.html">*AMPLITUDE</A>
+<LI><A NAME="tex2html4040"
+  HREF="node225.html">*BASE MOTION</A>
+<LI><A NAME="tex2html4041"
+  HREF="node226.html">*BEAM SECTION</A>
+<LI><A NAME="tex2html4042"
+  HREF="node227.html">*BOUNDARY</A>
+<UL>
+<LI><A NAME="tex2html4043"
+  HREF="node228.html">Homogeneous Conditions</A>
+<LI><A NAME="tex2html4044"
+  HREF="node229.html">Inhomogeneous Conditions</A>
+<LI><A NAME="tex2html4045"
+  HREF="node230.html">Submodel</A>
+<LI><A NAME="tex2html4046"
+  HREF="node231.html">Linear temperature function</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html4047"
+  HREF="node232.html">*BUCKLE</A>
+<LI><A NAME="tex2html4048"
+  HREF="node233.html">*CFD</A>
+<LI><A NAME="tex2html4049"
+  HREF="node234.html">*CFLUX</A>
+<LI><A NAME="tex2html4050"
+  HREF="node235.html">*CHANGE CONTACT TYPE</A>
+<LI><A NAME="tex2html4051"
+  HREF="node236.html">*CHANGE FRICTION</A>
+<LI><A NAME="tex2html4052"
+  HREF="node237.html">*CHANGE MATERIAL</A>
+<LI><A NAME="tex2html4053"
+  HREF="node238.html">*CHANGE PLASTIC</A>
+<LI><A NAME="tex2html4054"
+  HREF="node239.html">*CHANGE SOLID SECTION</A>
+<LI><A NAME="tex2html4055"
+  HREF="node240.html">*CHANGE SURFACE BEHAVIOR</A>
+<LI><A NAME="tex2html4056"
+  HREF="node241.html">*CLEARANCE</A>
+<LI><A NAME="tex2html4057"
+  HREF="node242.html">*CLOAD</A>
+<LI><A NAME="tex2html4058"
+  HREF="node243.html">*COMPLEX FREQUENCY</A>
+<LI><A NAME="tex2html4059"
+  HREF="node244.html">*CONDUCTIVITY</A>
+<LI><A NAME="tex2html4060"
+  HREF="node245.html">*CONSTRAINT</A>
+<LI><A NAME="tex2html4061"
+  HREF="node246.html">*CONTACT DAMPING</A>
+<LI><A NAME="tex2html4062"
+  HREF="node247.html">*CONTACT FILE</A>
+<LI><A NAME="tex2html4063"
+  HREF="node248.html">*CONTACT OUTPUT</A>
+<LI><A NAME="tex2html4064"
+  HREF="node249.html">*CONTACT PAIR</A>
+<LI><A NAME="tex2html4065"
+  HREF="node250.html">*CONTACT PRINT</A>
+<LI><A NAME="tex2html4066"
+  HREF="node251.html">*CONTROLS</A>
+<LI><A NAME="tex2html4067"
+  HREF="node252.html">*CORRELATION LENGTH</A>
+<LI><A NAME="tex2html4068"
+  HREF="node253.html">*COUPLED TEMPERATURE-DISPLACEMENT</A>
+<LI><A NAME="tex2html4069"
+  HREF="node254.html">*COUPLING</A>
+<LI><A NAME="tex2html4070"
+  HREF="node255.html">*CRACK PROPAGATION</A>
+<LI><A NAME="tex2html4071"
+  HREF="node256.html">*CREEP</A>
+<LI><A NAME="tex2html4072"
+  HREF="node257.html">*CYCLIC HARDENING</A>
+<LI><A NAME="tex2html4073"
+  HREF="node258.html">*CYCLIC SYMMETRY MODEL</A>
+<LI><A NAME="tex2html4074"
+  HREF="node259.html">*DAMAGE INITIATION</A>
+<LI><A NAME="tex2html4075"
+  HREF="node260.html">*DAMPING</A>
+<LI><A NAME="tex2html4076"
+  HREF="node261.html">*DASHPOT</A>
+<LI><A NAME="tex2html4077"
+  HREF="node262.html">*DEFORMATION PLASTICITY</A>
+<LI><A NAME="tex2html4078"
+  HREF="node263.html">*DENSITY</A>
+<LI><A NAME="tex2html4079"
+  HREF="node264.html">*DEPVAR</A>
+<LI><A NAME="tex2html4080"
+  HREF="node265.html">*DESIGN RESPONSE</A>
+<LI><A NAME="tex2html4081"
+  HREF="node266.html">*DESIGN VARIABLES</A>
+<LI><A NAME="tex2html4082"
+  HREF="node267.html">*DFLUX</A>
+<LI><A NAME="tex2html4083"
+  HREF="node268.html">*DISTRIBUTING</A>
+<LI><A NAME="tex2html4084"
+  HREF="node269.html">*DISTRIBUTING COUPLING</A>
+<LI><A NAME="tex2html4085"
+  HREF="node270.html">*DISTRIBUTION</A>
+<LI><A NAME="tex2html4086"
+  HREF="node271.html">*DLOAD</A>
+<LI><A NAME="tex2html4087"
+  HREF="node272.html">*DSLOAD</A>
+<LI><A NAME="tex2html4088"
+  HREF="node273.html">*DYNAMIC</A>
+<LI><A NAME="tex2html4089"
+  HREF="node274.html">*ELASTIC</A>
+<LI><A NAME="tex2html4090"
+  HREF="node275.html">*ELECTRICAL CONDUCTIVITY</A>
+<LI><A NAME="tex2html4091"
+  HREF="node276.html">*ELECTROMAGNETICS</A>
+<LI><A NAME="tex2html4092"
+  HREF="node277.html">*ELEMENT</A>
+<LI><A NAME="tex2html4093"
+  HREF="node278.html">*ELEMENT OUTPUT</A>
+<LI><A NAME="tex2html4094"
+  HREF="node279.html">*EL FILE</A>
+<LI><A NAME="tex2html4095"
+  HREF="node280.html">*EL PRINT</A>
+<LI><A NAME="tex2html4096"
+  HREF="node281.html">*ELSET</A>
+<LI><A NAME="tex2html4097"
+  HREF="node282.html">*END STEP</A>
+<LI><A NAME="tex2html4098"
+  HREF="node283.html">*EQUATION</A>
+<LI><A NAME="tex2html4099"
+  HREF="node284.html">*EXPANSION</A>
+<LI><A NAME="tex2html4100"
+  HREF="node285.html">*FEASIBLE DIRECTION</A>
+<LI><A NAME="tex2html4101"
+  HREF="node286.html">*FILM</A>
+<LI><A NAME="tex2html4102"
+  HREF="node287.html">*FILTER</A>
+<LI><A NAME="tex2html4103"
+  HREF="node288.html">*FLUID CONSTANTS</A>
+<LI><A NAME="tex2html4104"
+  HREF="node289.html">*FLUID SECTION</A>
+<LI><A NAME="tex2html4105"
+  HREF="node290.html">*FREQUENCY</A>
+<LI><A NAME="tex2html4106"
+  HREF="node291.html">*FRICTION</A>
+<LI><A NAME="tex2html4107"
+  HREF="node292.html">*GAP</A>
+<LI><A NAME="tex2html4108"
+  HREF="node293.html">*GAP CONDUCTANCE</A>
+<LI><A NAME="tex2html4109"
+  HREF="node294.html">*GAP HEAT GENERATION</A>
+<LI><A NAME="tex2html4110"
+  HREF="node295.html">*GEOMETRIC CONSTRAINT</A>
+<LI><A NAME="tex2html4111"
+  HREF="node296.html">*GEOMETRIC TOLERANCES</A>
+<LI><A NAME="tex2html4112"
+  HREF="node297.html">*GREEN</A>
+<LI><A NAME="tex2html4113"
+  HREF="node298.html">*HCF</A>
+<LI><A NAME="tex2html4114"
+  HREF="node299.html">*HEADING</A>
+<LI><A NAME="tex2html4115"
+  HREF="node300.html">*HEAT TRANSFER</A>
+<LI><A NAME="tex2html4116"
+  HREF="node301.html">*HYPERELASTIC</A>
+<LI><A NAME="tex2html4117"
+  HREF="node302.html">*HYPERFOAM</A>
+<LI><A NAME="tex2html4118"
+  HREF="node303.html">*INCLUDE</A>
+<LI><A NAME="tex2html4119"
+  HREF="node304.html">*INITIAL CONDITIONS</A>
+<LI><A NAME="tex2html4120"
+  HREF="node305.html">*INITIAL MESH</A>
+<LI><A NAME="tex2html4121"
+  HREF="node306.html">*INITIAL STRAIN INCREASE</A>
+<LI><A NAME="tex2html4122"
+  HREF="node307.html">*KINEMATIC</A>
+<LI><A NAME="tex2html4123"
+  HREF="node308.html">*MAGNETIC PERMEABILITY</A>
+<LI><A NAME="tex2html4124"
+  HREF="node309.html">*MASS</A>
+<LI><A NAME="tex2html4125"
+  HREF="node310.html">*MASS FLOW</A>
+<LI><A NAME="tex2html4126"
+  HREF="node311.html">*MATERIAL</A>
+<LI><A NAME="tex2html4127"
+  HREF="node312.html">*MATRIX ASSEMBLE</A>
+<LI><A NAME="tex2html4128"
+  HREF="node313.html">*MEMBRANE SECTION</A>
+<LI><A NAME="tex2html4129"
+  HREF="node314.html">*MODAL DAMPING</A>
+<LI><A NAME="tex2html4130"
+  HREF="node315.html">*MODAL DYNAMIC</A>
+<LI><A NAME="tex2html4131"
+  HREF="node316.html">*MODEL CHANGE</A>
+<LI><A NAME="tex2html4132"
+  HREF="node317.html">*MOHR COULOMB</A>
+<LI><A NAME="tex2html4133"
+  HREF="node318.html">*MOHR COULOMB HARDENING</A>
+<LI><A NAME="tex2html4134"
+  HREF="node319.html">*MPC</A>
+<LI><A NAME="tex2html4135"
+  HREF="node320.html">*NETWORK MPC</A>
+<LI><A NAME="tex2html4136"
+  HREF="node321.html">*NO ANALYSIS</A>
+<LI><A NAME="tex2html4137"
+  HREF="node322.html">*NODAL THICKNESS</A>
+<LI><A NAME="tex2html4138"
+  HREF="node323.html">*NODE</A>
+<LI><A NAME="tex2html4139"
+  HREF="node324.html">*NODE FILE</A>
+<LI><A NAME="tex2html4140"
+  HREF="node325.html">*NODE OUTPUT</A>
+<LI><A NAME="tex2html4141"
+  HREF="node326.html">*NODE PRINT</A>
+<LI><A NAME="tex2html4142"
+  HREF="node327.html">*NORMAL</A>
+<LI><A NAME="tex2html4143"
+  HREF="node328.html">*NSET</A>
+<LI><A NAME="tex2html4144"
+  HREF="node329.html">*OBJECTIVE</A>
+<LI><A NAME="tex2html4145"
+  HREF="node330.html">*ORIENTATION</A>
+<LI><A NAME="tex2html4146"
+  HREF="node331.html">*OUTPUT</A>
+<LI><A NAME="tex2html4147"
+  HREF="node332.html">*PHYSICAL CONSTANTS</A>
+<LI><A NAME="tex2html4148"
+  HREF="node333.html">*PLASTIC</A>
+<LI><A NAME="tex2html4149"
+  HREF="node334.html">*PRE-TENSION SECTION</A>
+<LI><A NAME="tex2html4150"
+  HREF="node335.html">*RADIATE</A>
+<LI><A NAME="tex2html4151"
+  HREF="node336.html">*RATE DEPENDENT</A>
+<LI><A NAME="tex2html4152"
+  HREF="node337.html">*REFINE MESH</A>
+<LI><A NAME="tex2html4153"
+  HREF="node338.html">*RESTART</A>
+<LI><A NAME="tex2html4154"
+  HREF="node339.html">*RETAINED NODAL DOFS</A>
+<LI><A NAME="tex2html4155"
+  HREF="node340.html">*RIGID BODY</A>
+<LI><A NAME="tex2html4156"
+  HREF="node341.html">*ROBUST DESIGN</A>
+<LI><A NAME="tex2html4157"
+  HREF="node342.html">*SECTION PRINT</A>
+<LI><A NAME="tex2html4158"
+  HREF="node343.html">*SELECT CYCLIC SYMMETRY MODES</A>
+<LI><A NAME="tex2html4159"
+  HREF="node344.html">*SENSITIVITY</A>
+<LI><A NAME="tex2html4160"
+  HREF="node345.html">*SHELL SECTION</A>
+<LI><A NAME="tex2html4161"
+  HREF="node346.html">*SOLID SECTION</A>
+<LI><A NAME="tex2html4162"
+  HREF="node347.html">*SPECIFIC GAS CONSTANT</A>
+<LI><A NAME="tex2html4163"
+  HREF="node348.html">*SPECIFIC HEAT</A>
+<LI><A NAME="tex2html4164"
+  HREF="node349.html">*SPRING</A>
+<LI><A NAME="tex2html4165"
+  HREF="node350.html">*STATIC</A>
+<LI><A NAME="tex2html4166"
+  HREF="node351.html">*STEADY STATE DYNAMICS</A>
+<LI><A NAME="tex2html4167"
+  HREF="node352.html">*STEP</A>
+<LI><A NAME="tex2html4168"
+  HREF="node353.html">*SUBMODEL</A>
+<LI><A NAME="tex2html4169"
+  HREF="node354.html">*SUBSTRUCTURE GENERATE</A>
+<LI><A NAME="tex2html4170"
+  HREF="node355.html">*SUBSTRUCTURE MATRIX OUTPUT</A>
+<LI><A NAME="tex2html4171"
+  HREF="node356.html">*SURFACE</A>
+<LI><A NAME="tex2html4172"
+  HREF="node357.html">*SURFACE BEHAVIOR</A>
+<LI><A NAME="tex2html4173"
+  HREF="node358.html">*SURFACE INTERACTION</A>
+<LI><A NAME="tex2html4174"
+  HREF="node359.html">*TEMPERATURE</A>
+<LI><A NAME="tex2html4175"
+  HREF="node360.html">*TIE</A>
+<LI><A NAME="tex2html4176"
+  HREF="node361.html">*TIME POINTS</A>
+<LI><A NAME="tex2html4177"
+  HREF="node362.html">*TRANSFORM</A>
+<LI><A NAME="tex2html4178"
+  HREF="node363.html">*UNCOUPLED TEMPERATURE-DISPLACEMENT</A>
+<LI><A NAME="tex2html4179"
+  HREF="node364.html">*USE REFINED MESH</A>
+<LI><A NAME="tex2html4180"
+  HREF="node365.html">*USER ELEMENT</A>
+<LI><A NAME="tex2html4181"
+  HREF="node366.html">*USER MATERIAL</A>
+<LI><A NAME="tex2html4182"
+  HREF="node367.html">*USER SECTION</A>
+<LI><A NAME="tex2html4183"
+  HREF="node368.html">*VALUES AT INFINITY</A>
+<LI><A NAME="tex2html4184"
+  HREF="node369.html">*VIEWFACTOR</A>
+<LI><A NAME="tex2html4185"
+  HREF="node370.html">*VISCO</A>
+</UL>
+<!--End of Table of Child-Links-->
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html4037"
+  HREF="node224.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4033"
+  HREF="ccx.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4027"
+  HREF="node222.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4035"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4038"
+  HREF="node224.html">*AMPLITUDE</A>
+<B> Up:</B> <A NAME="tex2html4034"
+  HREF="ccx.html">CalculiX CrunchiX USER'S MANUAL</A>
+<B> Previous:</B> <A NAME="tex2html4028"
+  HREF="node222.html">Output variables</A>
+ &nbsp; <B>  <A NAME="tex2html4036"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

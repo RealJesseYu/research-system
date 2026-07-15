@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Convective heat flux</TITLE>
+<META NAME="description" CONTENT="Convective heat flux">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node218.html">
+<LINK REL="previous" HREF="node216.html">
+<LINK REL="up" HREF="node207.html">
+<LINK REL="next" HREF="node218.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html3969"
+  HREF="node218.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3965"
+  HREF="node207.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3959"
+  HREF="node216.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3967"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3970"
+  HREF="node218.html">Radiative heat flux</A>
+<B> Up:</B> <A NAME="tex2html3966"
+  HREF="node207.html">Loading</A>
+<B> Previous:</B> <A NAME="tex2html3960"
+  HREF="node216.html">Distributed heat flux</A>
+ &nbsp; <B>  <A NAME="tex2html3968"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0007111000000000000000">
+Convective heat flux</A>
+</H3>
+
+<P>
+Convective heat flux is a flux depending on the temperature difference between the
+body and the adjacent fluid (liquid or gas) and is triggered by the
+<A HREF="node286.html#film">*FILM</A>  card. It takes the form 
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+q = h(T-T_0)
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="102" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1860.png"
+ ALT="$\displaystyle q = h(T-T_0)$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">883</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img444.png"
+ ALT="$ q$"></B></SPAN> is the a flux normal to the surface, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img837.png"
+ ALT="$ h$"></B></SPAN> is the film coefficient, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="15" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img465.png"
+ ALT="$ T$"></B></SPAN> is
+the body temperature and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img287.png"
+ ALT="$ T_0$"></B></SPAN> is the environment fluid temperature (also called
+sink temperature). Generally, the sink temperature is known. If it is not, it
+is an unknown in the system. Physically, the convection along the surface can
+be forced or free. Forced convection means that the mass flow rate of the
+adjacent fluid (gas or liquid) is known and its temperature is the result of
+heat exchange between body and fluid. This case can be simulated by CalculiX
+by defining network elements and using the <A HREF="node227.html#boundary">*BOUNDARY</A> card
+for the first degree of freedom in the midside node of the element. Free convection, for which the mass flow rate is a
+n unknown too and a result of temperature differences, cannot be simulated.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html3969"
+  HREF="node218.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3965"
+  HREF="node207.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3959"
+  HREF="node216.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3967"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3970"
+  HREF="node218.html">Radiative heat flux</A>
+<B> Up:</B> <A NAME="tex2html3966"
+  HREF="node207.html">Loading</A>
+<B> Previous:</B> <A NAME="tex2html3960"
+  HREF="node216.html">Distributed heat flux</A>
+ &nbsp; <B>  <A NAME="tex2html3968"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,230 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Laminar viscous compressible compression corner flow</TITLE>
+<META NAME="description" CONTENT="Laminar viscous compressible compression corner flow">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node18.html">
+<LINK REL="previous" HREF="node16.html">
+<LINK REL="up" HREF="node6.html">
+<LINK REL="next" HREF="node18.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1203"
+  HREF="node18.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html1199"
+  HREF="node6.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html1193"
+  HREF="node16.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html1201"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1204"
+  HREF="node18.html">Laminar viscous compressible airfoil</A>
+<B> Up:</B> <A NAME="tex2html1200"
+  HREF="node6.html">Simple example problems</A>
+<B> Previous:</B> <A NAME="tex2html1194"
+  HREF="node16.html">Stationary laminar inviscid compressible</A>
+ &nbsp; <B>  <A NAME="tex2html1202"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000611000000000000000">
+Laminar viscous compressible compression corner flow</A>
+</H2>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="carterm"></A><A NAME="17696"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 32:</STRONG>
+Mach number for the Carter problem</CAPTION>
+<TR><TD><IMG
+ WIDTH="543" HEIGHT="466" BORDER="0"
+ SRC="img159.png"
+ ALT="\begin{figure}\begin{center}
+\epsfig{file=carter_m.eps,width=12cm}\end{center}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="carteru"></A><A NAME="17697"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 33:</STRONG>
+velocity profile across the flow for the Carter problem</CAPTION>
+<TR><TD><IMG
+ WIDTH="363" HEIGHT="256" BORDER="0"
+ SRC="img160.png"
+ ALT="\begin{figure}\begin{center}
+\epsfig{file=carter_u.eps,width=8cm}\end{center}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="carterp"></A><A NAME="17698"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 34:</STRONG>
+Static pressure at the wall for the Carter problem</CAPTION>
+<TR><TD><IMG
+ WIDTH="362" HEIGHT="258" BORDER="0"
+ SRC="img161.png"
+ ALT="\begin{figure}\begin{center}
+\epsfig{file=carter_p.eps,width=8cm}\end{center}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+This benchmark example is described in [<A
+ HREF="node530.html#Carter">16</A>]. The input deck for the
+CalculiX computation is called carter_10deg_mach3.inp and can be found in the
+fluid test example suite. The flow is entering at Mach 3 parallel to a plate
+of length 16.8 after which a corner of <!-- MATH
+ $10^{\circ}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="27" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img162.png"
+ ALT="$ 10^{\circ}$"></SPAN> arises. The Reynolds
+number based on a unit length is 1000., which yields for a unit velocity a
+dynamic viscosity coefficient <!-- MATH
+ $\mu=10^{-3}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="68" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img163.png"
+ ALT="$ \mu=10^{-3}$"></SPAN>. No units are specified: the user
+can choose appropriate consistent units. Choosing <SPAN CLASS="MATH"><IMG
+ WIDTH="47" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img164.png"
+ ALT="$ c_p=1$"></SPAN> and <!-- MATH
+ $\kappa=1.4$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="54" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img165.png"
+ ALT="$ \kappa=1.4$"></SPAN>
+leads to a specific gas constant <SPAN CLASS="MATH"><IMG
+ WIDTH="69" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img166.png"
+ ALT="$ r=0.286$"></SPAN>. The selected Mach number leads to
+an inlet temperature of <SPAN CLASS="MATH"><IMG
+ WIDTH="73" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img167.png"
+ ALT="$ T=0.278$"></SPAN>. The ideal gas law yields a static inlet
+pressure of <SPAN CLASS="MATH"><IMG
+ WIDTH="77" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img168.png"
+ ALT="$ p=0.0794$"></SPAN> (assuming an unit inlet density). The wall is assumed to be isothermal at a total
+temperature of <SPAN CLASS="MATH"><IMG
+ WIDTH="76" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img169.png"
+ ALT="$ T_t=0.778$"></SPAN>. Finally, the assumed Prandl number (Pr=<!-- MATH
+ $\mu c_p/\lambda$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="45" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img170.png"
+ ALT="$ \mu c_p/\lambda$"></SPAN>) of 0.72 leads to
+a conduction coefficient of 0.00139.
+
+<P>
+A very fine mesh with about 425,000 nodes was generated, gradually finer towards
+the wall (<SPAN CLASS="MATH"><IMG
+ WIDTH="80" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img171.png"
+ ALT="$ y^+=0.885$"></SPAN> for the
+closest node near the wall at L=1 from
+the inlet, where <!-- MATH
+ $y^+=u_{\tau}y/\nu$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="86" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img172.png"
+ ALT="$ y^+=u_{\tau}y/\nu$"></SPAN> and <!-- MATH
+ $u_{\tau}=\sqrt{\tau/\rho}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="83" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img173.png"
+ ALT="$ u_{\tau}=\sqrt{\tau/\rho}$"></SPAN>; <SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img174.png"
+ ALT="$ y$"></SPAN> is
+the distance from the wall and <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img175.png"
+ ALT="$ \tau$"></SPAN> is the shear stress parallel to the wall ). The Mach number is shown in Figure <A HREF="#carterm">32</A>. The shock wave
+emanating from the front of the plate and the separation and reattachment
+compression fan at the kink in the plate are cleary visible. One also observes
+the thickening of the boundary layer near the kink leading to a recirculation
+zone. Figure <A HREF="#carteru">33</A> shows the velocity component parallel to the inlet
+plate orientation across a line perpendicular to a plate at unit length from
+the entrance. One notices that the boundary layer in the CalculiX calculation
+is smaller than in the Carter solution. This is caused by the
+temperature-independent viscosity. Applying the Sutherland viscosity law leads
+to the same boundary layer thickness as in the reference. In CalculiX, no additional shock smoothing was necessary. Figure
+<A HREF="#carterp">34</A> plots the static pressure at the wall relative to the inlet
+pressure versus a normalized plate length. The reference length for the
+normalization was the length of the plate between inlet and kink (16.8 unit
+lengths). So the normalized length of 1 corresponds to the kink. There is a
+good agreement between the CalculiX and the Carter results, apart from the
+outlet zone, where the outlet boundary conditions influence the CalculiX results.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1203"
+  HREF="node18.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html1199"
+  HREF="node6.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html1193"
+  HREF="node16.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html1201"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1204"
+  HREF="node18.html">Laminar viscous compressible airfoil</A>
+<B> Up:</B> <A NAME="tex2html1200"
+  HREF="node6.html">Simple example problems</A>
+<B> Previous:</B> <A NAME="tex2html1194"
+  HREF="node16.html">Stationary laminar inviscid compressible</A>
+ &nbsp; <B>  <A NAME="tex2html1202"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

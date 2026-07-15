@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Finite element containment</TITLE>
+<META NAME="description" CONTENT="Finite element containment">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="previous" HREF="node526.html">
+<LINK REL="up" HREF="node523.html">
+<LINK REL="next" HREF="node528.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html8109"
+  HREF="node528.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html8105"
+  HREF="node523.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html8101"
+  HREF="node526.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html8107"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html8110"
+  HREF="node528.html">List of variables and</A>
+<B> Up:</B> <A NAME="tex2html8106"
+  HREF="node523.html">Interpolation procedure</A>
+<B> Previous:</B> <A NAME="tex2html8102"
+  HREF="node526.html">Tetrahedron containment</A>
+ &nbsp; <B>  <A NAME="tex2html8108"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001115400000000000000">
+Finite element containment</A>
+</H3>
+
+<P>
+Another vital routine is the check whether the interpolation routine belongs
+to an element. Contrary to linear tetrahedrons elementy may have curved
+borders, therefore this check is more elaborate. The principal in two
+dimensions is shown in Figure <A HREF="#attach2d">208</A>.
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="attach2d"></A><A NAME="19378"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 208:</STRONG>
+Closest location in an element</CAPTION>
+<TR><TD><IMG
+ WIDTH="541" HEIGHT="526" BORDER="0"
+ SRC="img3282.png"
+ ALT="\begin{figure}\centering
+\epsfig{file=attach2d.eps,width=12cm}
+\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+The figure shows a quadratic quadrilateral plane face in global space (left)
+and local space (upper right). In local space the element is a square with
+side length 2. Now, the routine at stake looks for the location within the
+element which minimizes the distance from the interpolation location. If this
+distance is zero or small enough, the interpolation location belongs to the
+element. In order to do so a regular grid, e.g. with side length 0.1, is
+drawn about the origin in the local coordinate system. The distance from the
+interpolation location to the 8 locations on the
+grid around the origin (black filled circles in the figure) and the origin
+itself is calculated and evaluated (using the shape functions of the element): if the distance is smallest in the origin,
+a local minimum is found and the next finer level grid is used. If not,
+e.g. if the minimum is the upper right corner, a new grid of 9 locations is
+drawn about this minimum location (consisting partially of existing black
+filled circles and new black unfilled circles) and the procedure is repeated,
+until a local minimum is found, i.e. the distance is smallest at the center of
+the square grid of 9 locations. The path may for instance look is in the lower
+right part of the figure.
+
+<P>
+At the local minimum a new grid is created with a grid size of one tenth of
+the previous grid (e.g. 0.01) and the procedure is repeated till a refined
+position of the minimum is found. Then again the grid size is refined and so
+on, usually up to a grid size of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="37" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2709.png"
+ ALT="$ 10^{-8}$"></B></SPAN> in local coordinates. The resulting
+minimum is calculated and the distance from the interpolation position. The
+relevant routines are attach_2d.f and attach_3d.f.
+
+<P>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html8109"
+  HREF="node528.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html8105"
+  HREF="node523.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html8101"
+  HREF="node526.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html8107"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html8110"
+  HREF="node528.html">List of variables and</A>
+<B> Up:</B> <A NAME="tex2html8106"
+  HREF="node523.html">Interpolation procedure</A>
+<B> Previous:</B> <A NAME="tex2html8102"
+  HREF="node526.html">Tetrahedron containment</A>
+ &nbsp; <B>  <A NAME="tex2html8108"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

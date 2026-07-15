@@ -1,0 +1,212 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*REFINE MESH</TITLE>
+<META NAME="description" CONTENT="*REFINE MESH">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node338.html">
+<LINK REL="previous" HREF="node336.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node338.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html5554"
+  HREF="node338.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html5550"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html5544"
+  HREF="node336.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html5552"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html5555"
+  HREF="node338.html">*RESTART</A>
+<B> Up:</B> <A NAME="tex2html5551"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html5545"
+  HREF="node336.html">*RATE DEPENDENT</A>
+ &nbsp; <B>  <A NAME="tex2html5553"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION0008110000000000000000"></A><A NAME="refinemesh"></A>
+<BR>
+*REFINE MESH
+</H2>
+
+<P>
+Keyword type: step
+
+<P>
+With this keyword a user-defined part of the input mesh consisting of C3D4 and
+C3D10 elements is refined according to certain criteria and the
+calculation is automatically restarted with the refined mesh. Temperatures, and
+volumetric distributed loading (e.g. centrifugal forces) are automatically
+modified. If the temperatures or volumetric distributed loading in the
+domain to be refined are applied using an amplitude (*AMPLITUDE), this
+amplitude should not vary within this domain. To determine the
+temperatures, initial displacements and initial velocities
+in the new mesh interpolation based on the unrefined mesh is done. Nodes
+belonging to single point or multiple point constraints, or in which a
+concentrated load is applied (using <A HREF="node242.html#cload">*CLOAD</A>) are not moved during
+refinement and the nodes numbers are kept. Faces on which pressure
+(<A HREF="node271.html#dload">*DLOAD</A>) is applied are allowed but are not refined. Their nodes or not moved
+ant their numbers are kept. This also applies to the element number to which
+the face belongs. Therefore, the *DLOAD card in the unrefined mesh remains valid.
+
+<P>
+The refinement is done in the step in which *REFINE MESH is used and is based
+on the results calculated in that step. In particular, the user should take
+care that any node subject to a SPC, MPC, concentrated load or distributed
+facial load is subject to this constraint or loading in the mesh refinement
+step. If not, a fake loading of zero can be applied. The keyword *REFINE MESH should occur at most once
+in the complete input deck. It is not allowed in a restart calculation
+(characterized by *RESTART,READ).
+
+<P>
+For the refinement the available criteria are the size of the displacements
+(label U), the velocity (label V), the stress (label S), the total strain
+(label E), the mechanical strain (label ME), the equivalent plastic strain
+(label PEEQ), the energy density (label ENER), the heat flux (label HFL), the
+gradient based error estimator (label ERR) or a user-defined function (user
+subroutine ucalculateh.f). The size is defined as the absolute value if it
+concerns a scalar quantity and the norm if it concerns a vector or tensor.
+
+<P>
+There is one required parameter LIMIT and three optional parameters ELSET,
+USER and SMOOTHING ONLY.
+
+<P>
+With the parameter LIMIT the user defines a positive value above which
+refinement is requested. For instance, if the limit is 50. and the value of
+the selected criterion is 200. a refinement by a factor of 4 is aimed at. The
+refinement is done iteratively (5 times), and each iteration induces a
+maximum refinement by a factor of 2.
+
+<P>
+The parameter ELSET allows the user to define an element set (which should
+consist of C3D4 and/or C3D10 elements only) to be refined. All other elements
+(no matter whether tetrahedral or not)
+are not changed. Notice that the interface between the part of the mesh to be
+refined and its complement is not changed, so multiple point constraints
+describing this interface still work after refinement. The element set name
+should not be longer than 60 characters.
+
+<P>
+With the parameter USER a new criterion for the refinement can be coded in
+user subroutine ucalculateh.f.
+
+<P>
+Finally, the parameter SMOOTHING ONLY the user can perform a smoothing of the
+existing mesh without refining the mesh, i.e. the existing nodes and elements
+and their numbering is kept. This option does not need any results, therefore,
+the parameter LIMIT does not make sense and no line specifying the criterion is needed either.
+
+<P>
+If the tetrahedral mesh in the input deck contains at least one quadratic
+element, the refined mesh contains C3D10 elements only, else it is a pure C3D4
+mesh.
+
+<P>
+Finally, *REFINE MESH is only available in a
+<A HREF="node350.html#static">*STATIC</A> or <A HREF="node273.html#dynamic">*DYNAMIC</A> step. If the job name
+is &ldquo;test&rdquo; the refined mesh is stored in input format in &ldquo;test.rfn.inp&rdquo;
+(can be visualized with CalculiX GraphiX using &ldquo;cgx -c test.rfn.inp&rdquo;) and
+the unrefined mesh in &ldquo;test.urf.frd&rdquo;. 
+
+<P>
+
+<P><P>
+<BR>
+
+<P>
+First line:
+
+<UL>
+<LI>*REFINE MESH.
+</LI>
+<LI>enter the required parameter LIMIT and its value and any other optional parameter.
+</LI>
+</UL>
+
+<P>
+Second line:
+
+<UL>
+<LI>the label of the selected criterion.
+</LI>
+</UL>
+
+<P>
+<PRE>
+Example:
+
+*REFINE MESH,LIMIT=50.
+S
+</PRE>
+
+<P>
+requests a refinement based on the size of the stress and a limit of 50.
+
+<P>
+
+<P><P>
+<BR>
+Example files: circ10p.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html5554"
+  HREF="node338.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html5550"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html5544"
+  HREF="node336.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html5552"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html5555"
+  HREF="node338.html">*RESTART</A>
+<B> Up:</B> <A NAME="tex2html5551"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html5545"
+  HREF="node336.html">*RATE DEPENDENT</A>
+ &nbsp; <B>  <A NAME="tex2html5553"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

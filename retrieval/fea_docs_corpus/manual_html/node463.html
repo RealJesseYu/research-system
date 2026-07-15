@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Determining the structure of the system matrices</TITLE>
+<META NAME="description" CONTENT="Determining the structure of the system matrices">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node464.html">
+<LINK REL="previous" HREF="node462.html">
+<LINK REL="up" HREF="node460.html">
+<LINK REL="next" HREF="node464.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7276"
+  HREF="node464.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7272"
+  HREF="node460.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7266"
+  HREF="node462.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7274"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7277"
+  HREF="node464.html">Initial calculations</A>
+<B> Up:</B> <A NAME="tex2html7273"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<B> Previous:</B> <A NAME="tex2html7267"
+  HREF="node462.html">Topological information</A>
+ &nbsp; <B>  <A NAME="tex2html7275"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001111300000000000000">
+Determining the structure of the system matrices</A>
+</H3>
+
+<P>
+In mastructf.c the structure of the matrices of the linear equation systems is
+determined. Indeed, the structure is usually sparse and therefore it is
+important to know which elements are nonzero. Only these elements are
+stored. This is the equivalent routine to mastruct.c for solid mechanics
+applications. However, contrary to solid mechanics the single point
+constraints and multiple point constraints are not taken into account while
+calculating the structure of the matrix, i.e. boundary conditions do not
+reduce the system of equations. So the equations are built and solved in the
+assumption that no SPC's or MPC's are applied. They are taken into account at
+a later stage of the calculation. This, however, does not apply to the
+matrix of the pressure equations for incompressible fluids. In the latter
+equations the SPC's are taken into account, but not the MPC's. The reason for
+this is that the pressure equation system is the only system for which a
+regular linear equation solver such as SPOOLES is used. All other systems are
+diagonalized (lumped). In the absence of SPC's the solution to the pressure
+equations is not unique and the corresponding matrix is singular. This cannot
+be handled by a standard solver.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html7276"
+  HREF="node464.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7272"
+  HREF="node460.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7266"
+  HREF="node462.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7274"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7277"
+  HREF="node464.html">Initial calculations</A>
+<B> Up:</B> <A NAME="tex2html7273"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<B> Previous:</B> <A NAME="tex2html7267"
+  HREF="node462.html">Topological information</A>
+ &nbsp; <B>  <A NAME="tex2html7275"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

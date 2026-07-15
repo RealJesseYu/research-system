@@ -1,0 +1,360 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Network iterations</TITLE>
+<META NAME="description" CONTENT="Network iterations">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node206.html">
+<LINK REL="previous" HREF="node204.html">
+<LINK REL="up" HREF="node201.html">
+<LINK REL="next" HREF="node206.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html3816"
+  HREF="node206.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3812"
+  HREF="node201.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3806"
+  HREF="node204.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3814"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3817"
+  HREF="node206.html">Implicit dynamics</A>
+<B> Up:</B> <A NAME="tex2html3813"
+  HREF="node201.html">Convergence criteria</A>
+<B> Previous:</B> <A NAME="tex2html3807"
+  HREF="node204.html">Line search</A>
+ &nbsp; <B>  <A NAME="tex2html3815"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000710400000000000000">
+Network iterations</A>
+</H3>
+
+<P>
+For network iterations two kinds of convergence criteria are applied: the
+residuals and the change in the solution must be both small enough.
+
+<P>
+For the mass and energy flow residuals <!-- MATH
+ $\tilde{q}^{\alpha}_i$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2548.png"
+ ALT="$ \tilde{q}^{\alpha}_i$"></B></SPAN> and
+<!-- MATH
+ $r^{\alpha}_{i,max}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="45" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2549.png"
+ ALT="$ r^{\alpha}_{i,max}$"></B></SPAN> are calculated as specified in Equations (<A HREF="node202.html#Eq323">862</A>) and
+(<A HREF="node202.html#Eq324">863</A>) with <SPAN CLASS="MATH"><B><IMG
+ WIDTH="50" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2601.png"
+ ALT="$ k_n=1$"></B></SPAN> and <!-- MATH
+ $q_i^{\alpha}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2602.png"
+ ALT="$ q_i^{\alpha}$"></B></SPAN> equal to the mass flow (unit of
+mass/unit of time) and the energy flow (unit of energy/unit of time). For the
+element equation  <!-- MATH
+ $\tilde{q}^{\alpha}_i$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2548.png"
+ ALT="$ \tilde{q}^{\alpha}_i$"></B></SPAN> is taken to be 1 (the element
+equation is dimensionless) and <!-- MATH
+ $r^{\alpha}_{i,max}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="45" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2549.png"
+ ALT="$ r^{\alpha}_{i,max}$"></B></SPAN> is calculated based on the
+element equation residuals. The residual check amounts to 
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+r^{\alpha}_{i,max} \le c_{1*} \tilde{q}^{\alpha}_i
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="104" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2603.png"
+ ALT="$\displaystyle r^{\alpha}_{i,max} \le c_{1*} \tilde{q}^{\alpha}_i$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">872</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2604.png"
+ ALT="$ c_{1*}$"></B></SPAN> takes the value <SPAN CLASS="MATH"><B><IMG
+ WIDTH="23" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2605.png"
+ ALT="$ c_{1t}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2606.png"
+ ALT="$ c_{1f}$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2607.png"
+ ALT="$ c_{1p}$"></B></SPAN> for the energy
+balance, mass balance and element equation, respectively. In addition, an
+absolute check can be performed in the form 
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+r^{\alpha}_{i,max} \le a_{1*}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="89" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2608.png"
+ ALT="$\displaystyle r^{\alpha}_{i,max} \le a_{1*}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">873</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2609.png"
+ ALT="$ a_{1*}$"></B></SPAN> takes the value <SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2610.png"
+ ALT="$ a_{1t}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="27" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2611.png"
+ ALT="$ a_{1f}$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2612.png"
+ ALT="$ a_{1p}$"></B></SPAN> for the energy
+balance, mass balance and element equation, respectively. Default is to
+deactivate the absolute check (the coefficients  <SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2609.png"
+ ALT="$ a_{1*}$"></B></SPAN> are set to
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="33" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2613.png"
+ ALT="$ 10^{20}$"></B></SPAN>). 
+
+<P>
+In the same way the maximum change in solution in network iteration i
+<!-- MATH
+ ${c}^{\alpha}_{i,max}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="45" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2554.png"
+ ALT="$ {c}^{\alpha}_{i,max}$"></B></SPAN> is compared with the maximum change in the solution
+since the start of the network iterations, i.e. the solution at the end of
+iteration i minus the solution at the beginning of the increment(before
+network iteration 1). This is done separately for the temperature, the mass
+flow, the pressure and the geometry. It amounts to the equation:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+{c}^{\alpha}_{i,max} \le c_{2*} {\Delta u}^{\alpha}_{i,max},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="148" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2614.png"
+ ALT="$\displaystyle {c}^{\alpha}_{i,max} \le c_{2*} {\Delta u}^{\alpha}_{i,max},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">874</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2615.png"
+ ALT="$ c_{2*}$"></B></SPAN> takes the value <SPAN CLASS="MATH"><B><IMG
+ WIDTH="23" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2616.png"
+ ALT="$ c_{2t}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2617.png"
+ ALT="$ c_{2f}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2618.png"
+ ALT="$ c_{2p}$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2619.png"
+ ALT="$ c_{2a}$"></B></SPAN> for
+the temperature, the mass flow, the pressure and the geometry,
+respectively. In addition, an absolute check can be performed in the form
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+{c}^{\alpha}_{i,max} \le a_{2*},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="93" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2620.png"
+ ALT="$\displaystyle {c}^{\alpha}_{i,max} \le a_{2*},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">875</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2621.png"
+ ALT="$ a_{2*}$"></B></SPAN> takes the value <SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2622.png"
+ ALT="$ a_{2t}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="27" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2623.png"
+ ALT="$ a_{2f}$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2624.png"
+ ALT="$ a_{2p}$"></B></SPAN> for
+the temperature, the mass flow, the pressure and the geometry. Default is to
+deactivate the absolute check (the coefficients  <SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2621.png"
+ ALT="$ a_{2*}$"></B></SPAN> are set to
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="33" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2613.png"
+ ALT="$ 10^{20}$"></B></SPAN>). 
+
+<P>
+The parameters <SPAN CLASS="MATH"><B><IMG
+ WIDTH="23" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2605.png"
+ ALT="$ c_{1t}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2606.png"
+ ALT="$ c_{1f}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2607.png"
+ ALT="$ c_{1p}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2625.png"
+ ALT="$ c_{2}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2617.png"
+ ALT="$ c_{2f}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2618.png"
+ ALT="$ c_{2p}$"></B></SPAN>,
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2619.png"
+ ALT="$ c_{2a}$"></B></SPAN> and  <SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2610.png"
+ ALT="$ a_{1t}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="27" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2611.png"
+ ALT="$ a_{1f}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2612.png"
+ ALT="$ a_{1p}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2626.png"
+ ALT="$ a_{2}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="27" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2623.png"
+ ALT="$ a_{2f}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2624.png"
+ ALT="$ a_{2p}$"></B></SPAN>,
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2627.png"
+ ALT="$ a_{2a}$"></B></SPAN> can be changed using the <A HREF="node251.html#controls">*CONTROLS</A>,PARAMETERS=NETWORK card.
+
+<P>
+Both criteria are important. A convergent solution with divergent residuals
+points to a local minimum, convergent residuals with a divergent solution
+point to a singular equation system (i.e. infinitely many solutions).
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html3816"
+  HREF="node206.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3812"
+  HREF="node201.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3806"
+  HREF="node204.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3814"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3817"
+  HREF="node206.html">Implicit dynamics</A>
+<B> Up:</B> <A NAME="tex2html3813"
+  HREF="node201.html">Convergence criteria</A>
+<B> Previous:</B> <A NAME="tex2html3807"
+  HREF="node204.html">Line search</A>
+ &nbsp; <B>  <A NAME="tex2html3815"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

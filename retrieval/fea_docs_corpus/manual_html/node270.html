@@ -1,0 +1,211 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*DISTRIBUTION</TITLE>
+<META NAME="description" CONTENT="*DISTRIBUTION">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node271.html">
+<LINK REL="previous" HREF="node269.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node271.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html4750"
+  HREF="node271.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4746"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4740"
+  HREF="node269.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4748"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4751"
+  HREF="node271.html">*DLOAD</A>
+<B> Up:</B> <A NAME="tex2html4747"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html4741"
+  HREF="node269.html">*DISTRIBUTING COUPLING</A>
+ &nbsp; <B>  <A NAME="tex2html4749"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000843000000000000000"></A><A NAME="distribution"></A>
+<BR>
+*DISTRIBUTION
+</H2>
+
+<P>
+Keyword type: model definition
+
+<P>
+The *DISTRIBUTION keyword can be used to define elementwise local coordinate
+systems. In each line underneath the keyword the user lists an element number
+or element set and the coordinates of the points &ldquo;a&rdquo; and &ldquo;b&rdquo; describing
+the local system according to Figure <A HREF="node330.html#rectsystem1">164</A> or <A HREF="node330.html#cylsystem1">165</A>
+depending on whether the local system is rectangular or cylindrical. However,
+the first line underneath the *DISTRIBUTION keyword is reserved for the
+default local system and the element or element set entry should be left
+empty. There is one required parameter NAME specifying the name (maximum 80
+characters) of the
+distribution.
+
+<P>
+Whether the local system is rectangular or cylindrical is determined by the
+<A HREF="node330.html#orientation">*ORIENTATION</A> card using the distribution. The local
+orientations defined underneath the *DISTRIBUTION card do not become active
+unless:
+
+<P>
+
+<UL>
+<LI>the distribution is referred to by an *ORIENTATION card
+</LI>
+<LI>this *ORIENTATION card is used on a *SOLID SECTION card.
+</LI>
+</UL>
+
+<P>
+So far, a distribution can only be used in connection with a <A HREF="node346.html#solidsection">*SOLID
+  SECTION</A> card and not by any other SECTION cards (such as
+*SHELL SECTION, *BEAM SECTION etc.).
+
+<P>
+Two restrictions apply to the use of a distribution:
+
+<P>
+
+<UL>
+<LI>an element should not be listed underneath more than one *DISTRIBUTION
+  card
+</LI>
+<LI>a distribution cannot be used by more than one *ORIENTATION card.
+</LI>
+</UL>
+
+<P>
+
+<P><P>
+<BR>
+
+<P>
+First line:
+
+<UL>
+<LI>*DISTRIBUTION
+</LI>
+<LI>Enter the required parameter NAME.
+</LI>
+</UL>
+Second line:
+
+<UL>
+<LI>empty
+</LI>
+<LI>X-coordinate of point a.
+</LI>
+<LI>Y-coordinate of point a.
+</LI>
+<LI>Z-coordinate of point a.
+</LI>
+<LI>X-coordinate of point b.
+</LI>
+<LI>Y-coordinate of point b.
+</LI>
+<LI>Z-coordinate of point b.
+</LI>
+</UL>
+Following lines
+
+<UL>
+<LI>element label or element set label
+</LI>
+<LI>X-coordinate of point a.
+</LI>
+<LI>Y-coordinate of point a.
+</LI>
+<LI>Z-coordinate of point a.
+</LI>
+<LI>X-coordinate of point b.
+</LI>
+<LI>Y-coordinate of point b.
+</LI>
+<LI>Z-coordinate of point b.
+</LI>
+</UL>
+
+<P>
+<PRE>
+Example:
+
+*DISTRIBUTION,NAME=DI
+,1.,0.,0.,0.,1.,0.
+E1,0.,0.,1.,0.,1.,0.
+</PRE>
+
+<P>
+defines a distribution with name DI. The default local orientation is defined
+by a=(1,0,0) and b=(0,1,0). The local orientation for the elements in set E1
+is described by a=(0,0,1) and b(0,1,0). 
+
+<P>
+
+<P><P>
+<BR>
+Example files: beampo4.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html4750"
+  HREF="node271.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4746"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4740"
+  HREF="node269.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4748"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4751"
+  HREF="node271.html">*DLOAD</A>
+<B> Up:</B> <A NAME="tex2html4747"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html4741"
+  HREF="node269.html">*DISTRIBUTING COUPLING</A>
+ &nbsp; <B>  <A NAME="tex2html4749"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,153 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Cyclic symmetry constraints</TITLE>
+<META NAME="description" CONTENT="Cyclic symmetry constraints">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node137.html">
+<LINK REL="previous" HREF="node135.html">
+<LINK REL="up" HREF="node133.html">
+<LINK REL="next" HREF="node137.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2939"
+  HREF="node137.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2935"
+  HREF="node133.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2929"
+  HREF="node135.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2937"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2940"
+  HREF="node137.html">Kinematic and Distributing Coupling</A>
+<B> Up:</B> <A NAME="tex2html2936"
+  HREF="node133.html">Boundary conditions</A>
+<B> Previous:</B> <A NAME="tex2html2930"
+  HREF="node135.html">Multiple point constraints (MPC)</A>
+ &nbsp; <B>  <A NAME="tex2html2938"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00077300000000000000">
+Cyclic symmetry constraints</A>
+</H3>
+
+<P>
+These are special kinds of multiple point constraints triggered by the
+presence of at least one
+<A HREF="node258.html#cyclicsymmetrymodel">*CYCLIC SYMMETRY MODEL</A> card and possibly in
+addition by a
+<A HREF="node360.html#tie">*TIE</A>, MULTISTAGE card. An example of a cyclic symmetric model
+is given in Figure <A HREF="node175.html#cycsym">145</A>. It consists of a sector repeating itself
+several times along the circumference. For being truly cyclic symmetric also
+the loading and boundary conditions have to satisfy the same cyclic symmetry. For static calculations the surfaces
+delimiting the cyclic symmetry sector exhibit the same displacements in
+cylindrical coordinates:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\{U\}_{\text{cyl,left}} = \{U\}_{\text{cyl,right}}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="167" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img899.png"
+ ALT="$\displaystyle \{U\}_{\text{cyl,left}} = \{U\}_{\text{cyl,right}}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">210</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+These multiple point equations are generated automatically within
+CalculiX. For frequency calculations these equations have to be modified
+depending on the nodal diameter N which is requested, i.e. the number of waves
+along the circumference one is interested in. For a structure with M
+identical sectors the resulting equations are:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\{U\}_{\text{cyl,left}} = \{U\}_{\text{cyl,right}} \; e^{i \frac{2 \pi N}{M}}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="214" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img900.png"
+ ALT="$\displaystyle \{U\}_{\text{cyl,left}} = \{U\}_{\text{cyl,right}} \; e^{i \frac{2 \pi N}{M}}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">211</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+These are still linear multiple point constraints, however, the coefficients
+are now complex. Therefore, the stiffness and mass matrices are also complex,
+but the ensuing eigenvalue problem can be reduced to a real one double its size. For details the reader is
+referred to  [<A
+ HREF="node530.html#Dhondt">24</A>], Section 2.10.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html2939"
+  HREF="node137.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2935"
+  HREF="node133.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2929"
+  HREF="node135.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2937"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2940"
+  HREF="node137.html">Kinematic and Distributing Coupling</A>
+<B> Up:</B> <A NAME="tex2html2936"
+  HREF="node133.html">Boundary conditions</A>
+<B> Previous:</B> <A NAME="tex2html2930"
+  HREF="node135.html">Multiple point constraints (MPC)</A>
+ &nbsp; <B>  <A NAME="tex2html2938"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

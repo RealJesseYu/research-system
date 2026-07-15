@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Discontinuous slope</TITLE>
+<META NAME="description" CONTENT="Discontinuous slope">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node131.html">
+<LINK REL="previous" HREF="node129.html">
+<LINK REL="up" HREF="node122.html">
+<LINK REL="next" HREF="node131.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2850"
+  HREF="node131.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2846"
+  HREF="node122.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2840"
+  HREF="node129.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2848"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2851"
+  HREF="node131.html">Channel joint</A>
+<B> Up:</B> <A NAME="tex2html2847"
+  HREF="node122.html">Fluid Section Types: Open</A>
+<B> Previous:</B> <A NAME="tex2html2841"
+  HREF="node129.html">Step</A>
+ &nbsp; <B>  <A NAME="tex2html2849"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00076800000000000000"></A><A NAME="discontinuousslope"></A>
+<BR>
+Discontinuous slope
+</H3>
+
+<P>
+Due to a change in slope the fluid depth changes. For small slope changes this
+effect is usually neglegible. For variations in <SPAN CLASS="MATH"><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img580.png"
+ ALT="$ \varphi$"></SPAN> such that
+<!-- MATH
+ $\cos(\varphi)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="48" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img890.png"
+ ALT="$ \cos(\varphi)$"></SPAN> changes significantly, the fluid depth will change according
+to  
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+Q=b h \sqrt{2 g (E-h \cos \varphi)},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="181" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img869.png"
+ ALT="$\displaystyle Q=b h \sqrt{2 g (E-h \cos \varphi)},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">208</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+assuming the mass flow and specific energy remain constant (no loss). For
+instance, a significant decrease of slope will lead to a fluid depth increase
+if the flow is supercritical and a decrease if it is subcritical.
+
+<P>
+The following constants have to be specified on the
+line beneath the *FLUID SECTION,TYPE=DISCONTINUOUS SLOPE card:
+
+<P>
+
+<UL>
+<LI>width of the channel.
+</LI>
+<LI>trapezoidal angle of the channel.
+</LI>
+<LI>not used.
+</LI>
+<LI>the slope <!-- MATH
+ $S_0 = \sin \phi, -1<S_0<1$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="168" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img856.png"
+ ALT="$ S_0 = \sin \phi, -1&lt;S_0&lt;1 $"></SPAN> at node 1 (first node in the
+  topology of the element; for this element the slope must be given
+  explicitly and is not calculated from the
+  coordinates of the end nodes belonging to the element).
+</LI>
+<LI>the slope <!-- MATH
+ $S_0 = \sin \phi, -1<S_0<1$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="168" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img856.png"
+ ALT="$ S_0 = \sin \phi, -1&lt;S_0&lt;1 $"></SPAN> at node 2 (thrid node in the
+  topology of the element; for this element the slope must be given
+  explicitly and is not calculated from the
+  coordinates of the end nodes belonging to the element).
+</LI>
+</UL>
+
+<P>
+
+<P><P>
+<BR>
+Example files: channel7.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html2850"
+  HREF="node131.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2846"
+  HREF="node122.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2840"
+  HREF="node129.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2848"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2851"
+  HREF="node131.html">Channel joint</A>
+<B> Up:</B> <A NAME="tex2html2847"
+  HREF="node122.html">Fluid Section Types: Open</A>
+<B> Previous:</B> <A NAME="tex2html2841"
+  HREF="node129.html">Step</A>
+ &nbsp; <B>  <A NAME="tex2html2849"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>quadmeshquality.f</TITLE>
+<META NAME="description" CONTENT="quadmeshquality.f">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node518.html">
+<LINK REL="previous" HREF="node516.html">
+<LINK REL="up" HREF="node489.html">
+<LINK REL="next" HREF="node518.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7991"
+  HREF="node518.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7987"
+  HREF="node489.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7981"
+  HREF="node516.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7989"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7992"
+  HREF="node518.html">smoothingmidnodes.f</A>
+<B> Up:</B> <A NAME="tex2html7988"
+  HREF="node489.html">Mesh refining procedure</A>
+<B> Previous:</B> <A NAME="tex2html7982"
+  HREF="node516.html">searchmidneigh.f</A>
+ &nbsp; <B>  <A NAME="tex2html7990"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H4><A NAME="SECTION00011135280000000000000">
+quadmeshquality.f</A>
+</H4>
+
+<P>
+Recall that the smoothed position of a vertex node is only accepted if the
+quality of its ball did not get worse. In analogy, the smoothed position of a
+midnode will only be accepted if the quality of its shell does not get
+worse. For the quality measure of a quadratic element the largest difference of the
+Jacobian determinant at the integration points will be taken as
+measure. Recall that the 10-node tetrahedral element has 4 integration
+points. The quality of quadratic element <SPAN CLASS="MATH"><B><IMG
+ WIDTH="9" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img894.png"
+ ALT="$ i$"></B></SPAN> is now defined as:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+Q_i^*=\left (
+  \frac{J_{\text{max}}-J_{\text{min}}}{J_{\text{max}}+J_{\text{min}}} \right)
+  \frac{<J_{\text{min}}>}{\left | J_{\text{min}} \right |}+ 10^{30}
+  (1-J_{\text{min}}) \frac{<-J_{\text{min}}>}{\left | J_{\text{min}} \right |},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="430" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3223.png"
+ ALT="$\displaystyle Q_i^*=\left ( \frac{J_{\text{max}}-J_{\text{min}}}{J_{\text{max}}...
+...\text{min}}) \frac{&lt;-J_{\text{min}}&gt;}{\left \vert J_{\text{min}} \right \vert},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">991</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="72" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3224.png"
+ ALT="$ &lt;x&gt;=x$"></B></SPAN> if <SPAN CLASS="MATH"><B><IMG
+ WIDTH="42" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3225.png"
+ ALT="$ x&gt;0$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="71" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3226.png"
+ ALT="$ &lt;x&gt;=0$"></B></SPAN> if <SPAN CLASS="MATH"><B><IMG
+ WIDTH="42" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3227.png"
+ ALT="$ x \le 0$"></B></SPAN>. The second term in the above
+equation takes precedence as soon as any Jacobian determinant in the element
+is negative. 
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Fluid Section Types: Liquids</TITLE>
+<META NAME="description" CONTENT="Fluid Section Types: Liquids">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node122.html">
+<LINK REL="previous" HREF="node85.html">
+<LINK REL="up" HREF="node25.html">
+<LINK REL="next" HREF="node112.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2604"
+  HREF="node112.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2600"
+  HREF="node25.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2594"
+  HREF="node110.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2602"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2605"
+  HREF="node112.html">Pipe, Manning</A>
+<B> Up:</B> <A NAME="tex2html2601"
+  HREF="node25.html">Theory</A>
+<B> Previous:</B> <A NAME="tex2html2595"
+  HREF="node110.html">Network User Element</A>
+ &nbsp; <B>  <A NAME="tex2html2603"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00075000000000000000"></A><A NAME="fluidsectiontypesliquids"></A>
+<BR>
+Fluid Section Types: Liquids
+</H2>
+
+<P>
+A network element is characterized by a type of fluid section. It has to be
+specified on the <A HREF="node289.html#fluidsection">*FLUID SECTION</A> card unless the
+analysis is a pure thermomechanical calculation.
+
+<P>
+Typical material properties needed for a liquid network are the density <SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img36.png"
+ ALT="$ \rho$"></SPAN>
+(temperature dependent, cf. the <A HREF="node263.html#density">*DENSITY</A> card), the
+heat capacity  <SPAN CLASS="MATH"><IMG
+ WIDTH="82" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img794.png"
+ ALT="$ c=c_p=c_v$"></SPAN> and the dynamic viscosity <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img54.png"
+ ALT="$ \mu$"></SPAN> (both
+temperature dependent and to be specified with the <A HREF="node288.html#fluidconstants">FLUID
+  CONSTANTS</A> card). 
+
+<P>
+A special case is the purely thermal liquid network. This applies if:
+
+<UL>
+<LI>no TYPE is specified on any *FLUID SECTION card or
+</LI>
+<LI>the parameter THERMAL NETWORK is used on the *STEP card or
+</LI>
+<LI>all mass flow is given and either all pressures or given or none.
+</LI>
+</UL>
+In that case only <SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img43.png"
+ ALT="$ c_p$"></SPAN> is needed.
+
+<P>
+For liquids the orifice (only
+for <SPAN CLASS="MATH"><IMG
+ WIDTH="52" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img535.png"
+ ALT="$ C_d=1$"></SPAN>), restrictor, 
+branch, and vortex fluid section types of gases can be used by specifying the
+parameter LIQUID on the *FLUID SECTION card. In addition, the following
+types are available as well (the coefficients for the head
+losses are taken from [<A
+ HREF="node530.html#Berlamont1">11</A>], unless specified otherwise):
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html2606"
+  HREF="node112.html">Pipe, Manning</A>
+<LI><A NAME="tex2html2607"
+  HREF="node113.html">Pipe, White-Colebrook</A>
+<LI><A NAME="tex2html2608"
+  HREF="node114.html">Pipe, Sudden Enlargement</A>
+<LI><A NAME="tex2html2609"
+  HREF="node115.html">Pipe, Sudden Contraction</A>
+<LI><A NAME="tex2html2610"
+  HREF="node116.html">Pipe, Entrance</A>
+<LI><A NAME="tex2html2611"
+  HREF="node117.html">Pipe, Diaphragm</A>
+<LI><A NAME="tex2html2612"
+  HREF="node118.html">Pipe, Bend</A>
+<LI><A NAME="tex2html2613"
+  HREF="node119.html">Pipe, Gate Valve</A>
+<LI><A NAME="tex2html2614"
+  HREF="node120.html">Pump</A>
+<LI><A NAME="tex2html2615"
+  HREF="node121.html">In/Out</A>
+</UL>
+<!--End of Table of Child-Links-->
+<BR><HR>
+
+</BODY>
+</HTML>

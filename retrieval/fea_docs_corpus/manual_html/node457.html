@@ -1,0 +1,209 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Straight Channel</TITLE>
+<META NAME="description" CONTENT="Straight Channel">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node458.html">
+<LINK REL="previous" HREF="node456.html">
+<LINK REL="up" HREF="node454.html">
+<LINK REL="next" HREF="node458.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7187"
+  HREF="node458.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7183"
+  HREF="node454.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7177"
+  HREF="node456.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7185"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7188"
+  HREF="node458.html">Reservoir</A>
+<B> Up:</B> <A NAME="tex2html7184"
+  HREF="node454.html">Turbulent Flow in Open</A>
+<B> Previous:</B> <A NAME="tex2html7178"
+  HREF="node456.html">Wear</A>
+ &nbsp; <B>  <A NAME="tex2html7186"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001110300000000000000">
+Straight Channel</A>
+</H3>
+
+<P>
+For mode='F', the possibility of a frontwater curve is examined. This is
+feasible in all conditions except for hup <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3089.png"
+ ALT="$ \ge$"></B></SPAN> hk <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2978.png"
+ ALT="$ &lt;$"></B></SPAN> he (mild slope). For
+the calculation of the frontwater curve the equation of Bresse is integrated
+using a trapezoid rule. To that end the interval of hup to the target height
+is divided into (ndata-1) intervals with length <SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3090.png"
+ ALT="$ \Delta h$"></B></SPAN>. For a mild slope
+the target height is hk (i.e. the frontwater curve approaches hk for
+increasing values of the channel length coordinate s; this corresponds to a A3
+curve), for a strong slope it is he; this corresponds to a B2 or B3
+curve). Right now, ndata is set to 100 in radflowload.c. Knowing the value
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img898.png"
+ ALT="$ h_i$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="17" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3091.png"
+ ALT="$ s_i$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="34" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3092.png"
+ ALT="$ h_{i+1}$"></B></SPAN> is obtained from <!-- MATH
+ $h_{i+1}=h_i+\Delta h$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="112" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3093.png"
+ ALT="$ h_{i+1}=h_i+\Delta h$"></B></SPAN>. Then the
+equation of Bresse is evaluated to obtain <!-- MATH
+ $dh/ds(s_i)$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="70" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3094.png"
+ ALT="$ dh/ds(s_i)$"></B></SPAN> and <!-- MATH
+ $dh/ds(s_{i+1})$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="86" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3095.png"
+ ALT="$ dh/ds(s_{i+1})$"></B></SPAN>
+from which a fictitious <!-- MATH
+ $dh/ds^*=[dh/ds(s_i)+dh/ds(s_{i+1}]/2$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="260" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3096.png"
+ ALT="$ dh/ds^*=[dh/ds(s_i)+dh/ds(s_{i+1}]/2$"></B></SPAN> is
+determined. Then <!-- MATH
+ $s_{i+1}=s_i+\Delta h/(dh/ds^*)$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="177" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3097.png"
+ ALT="$ s_{i+1}=s_i+\Delta h/(dh/ds^*)$"></B></SPAN>. For a strong slope the end
+of the straight channel element will be reached for <SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3098.png"
+ ALT="$ i&lt;$"></B></SPAN>ndata. Then, the
+height at the end of the element is obtained by interpolation. For a mild
+slope this may also occur. Alternatively, for a mild slope hk may be reached
+before the end of the channel element. In that case the height in nup is set
+to -1 and at least part of the element will be governed by a backwater
+curve. The intermediate points of the integration are stored in fields
+sfr(1..ndata,j) and hfr(1..ndata,j) for element j, 1 <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3099.png"
+ ALT="$ \le$"></B></SPAN> j <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3099.png"
+ ALT="$ \le$"></B></SPAN> nflow. So j
+is the relative element number in field ieg. The jumpup(j) indicates the
+number of actual integration points,  0 <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3099.png"
+ ALT="$ \le$"></B></SPAN> jumpup(j) <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3099.png"
+ ALT="$ \le$"></B></SPAN> ndata. A value
+of 0 indicates that the curve in this channel element is a complete backwater curve.
+
+<P>
+For mode='B' the backwater curve starts at ndo. A backwater curve is feasible
+in all conditions except for hdo <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3099.png"
+ ALT="$ \le$"></B></SPAN> hk <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2537.png"
+ ALT="$ &gt;$"></B></SPAN> he (strong slope). The approach
+is similar to the calculation of a frontwater curve. The target height is now
+hk for a strong slope (B1 curve) and he for a mild slope (A1 or A2 curve). The
+values of s and h are now stored in fields sba(1..ndata,j) and
+hba(1..ndata,j). Notice that the integration now starts at ndo and moves in
+upstream direction, the integration point numbers, however, are increasing in
+downstream direction. Consequently integration starts at integration point ndata. The value jumpdo(j) indicates the lowest number of the
+actual
+integration points,  1 <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3099.png"
+ ALT="$ \le$"></B></SPAN> jumpup(j) <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3099.png"
+ ALT="$ \le$"></B></SPAN> ndata+1. A value of ndata+1
+indicates that the curve in the channel element is a complete frontwater
+curve. For mode='B' it is constantly checked whether a jump occurs. To this
+end the routine hns.f is used. In case a jump occurs, the value jumpup(j)
+corresponds the last integration point in fields sfr and hfr for the
+frontwater curve upstream of the jump and jumpdo(j) corresponds to the first integration point in
+fields sba and hba for the backwater curve downstream of the jump.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html7187"
+  HREF="node458.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7183"
+  HREF="node454.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7177"
+  HREF="node456.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7185"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7188"
+  HREF="node458.html">Reservoir</A>
+<B> Up:</B> <A NAME="tex2html7184"
+  HREF="node454.html">Turbulent Flow in Open</A>
+<B> Previous:</B> <A NAME="tex2html7178"
+  HREF="node456.html">Wear</A>
+ &nbsp; <B>  <A NAME="tex2html7186"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

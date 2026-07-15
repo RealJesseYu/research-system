@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Renumbering</TITLE>
+<META NAME="description" CONTENT="Renumbering">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node462.html">
+<LINK REL="previous" HREF="node460.html">
+<LINK REL="up" HREF="node460.html">
+<LINK REL="next" HREF="node462.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7252"
+  HREF="node462.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7248"
+  HREF="node460.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7242"
+  HREF="node460.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7250"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7253"
+  HREF="node462.html">Topological information</A>
+<B> Up:</B> <A NAME="tex2html7249"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<B> Previous:</B> <A NAME="tex2html7243"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+ &nbsp; <B>  <A NAME="tex2html7251"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001111100000000000000">
+Renumbering</A>
+</H3>
+
+<P>
+In CFD-calculations computational speed is very important. In order to avoid
+having to check whether nodes and/or elements are really part of the fluid
+(e.g. because there are gaps in the numbering, or part of the nodes belongs to
+the structure in fluid-structure calculations), the fluid nodes and fluid
+elements are renumbered in ascending order without any gaps. This is done in
+subroutine rearrangecfd.f. This also includes the renumbering of the boundary
+conditions (SPC's and MPC's) and the loading. In the CBS method the size of
+the equation system for the conservation laws is the number of nodes, except
+for the pressure equation for incompressible fluids, in which the SPC boundary
+condition degrees of freedom are subtracted. 
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

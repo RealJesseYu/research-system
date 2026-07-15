@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Beam Section Types</TITLE>
+<META NAME="description" CONTENT="Beam Section Types">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node85.html">
+<LINK REL="previous" HREF="node27.html">
+<LINK REL="up" HREF="node25.html">
+<LINK REL="next" HREF="node82.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2220"
+  HREF="node82.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2216"
+  HREF="node25.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2210"
+  HREF="node80.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2218"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2221"
+  HREF="node82.html">Pipe</A>
+<B> Up:</B> <A NAME="tex2html2217"
+  HREF="node25.html">Theory</A>
+<B> Previous:</B> <A NAME="tex2html2211"
+  HREF="node80.html">Substructure (Superelement)</A>
+ &nbsp; <B>  <A NAME="tex2html2219"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00073000000000000000"></A><A NAME="beamsectiontypes"></A>
+<BR>
+Beam Section Types
+</H2>
+
+<P>
+A beam element is characterized by its cross section. This cross section is
+defined by a <A HREF="node226.html#beamsection">*BEAM SECTION</A> card. All beam sections
+which are not rectangular (including square) or elliptical (including
+circular) are considered as &ldquo;beam general sections&rdquo; and are internally expanded into a rectangular
+cross section (C3D20R-type element) and the actual section of the beam is simulated by an
+appropriate integration point scheme. A section type is characterized by a
+finite number of parameters, which must be entered immediately underneath the
+*BEAM SECTION card. A new section type can be added by
+changing the following routines:
+
+<P>
+
+<UL>
+<LI>allocation.f (define the new section underneath the *BEAMSECTION
+  if-statement)
+</LI>
+<LI>calinput.f (define the new section underneath the *BEAMSECTION if-statement)
+</LI>
+<LI>beamgeneralsections.f (here, the one-letter abbreviation for the section
+  has to be added. For instance, the pipe section is characterized by
+  'P'. Furthermore, the programmer must define the number of parameters needed
+  to characterize the section).
+</LI>
+<LI>beamintscheme.f (here, the integration point scheme has to be defined)
+</LI>
+<LI>beamextscheme.f (here, the extrapolation of the integration point
+  variables such as stresses or strains to the nodes of the expanded C3D20R
+  element).
+</LI>
+</UL>
+
+<P>
+Right now, the following section types are available:
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html2222"
+  HREF="node82.html">Pipe</A>
+<LI><A NAME="tex2html2223"
+  HREF="node83.html">Box</A>
+<LI><A NAME="tex2html2224"
+  HREF="node84.html">General</A>
+</UL>
+<!--End of Table of Child-Links-->
+<BR><HR>
+
+</BODY>
+</HTML>

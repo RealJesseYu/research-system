@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Reservoir</TITLE>
+<META NAME="description" CONTENT="Reservoir">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node459.html">
+<LINK REL="previous" HREF="node457.html">
+<LINK REL="up" HREF="node454.html">
+<LINK REL="next" HREF="node459.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7199"
+  HREF="node459.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7195"
+  HREF="node454.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7189"
+  HREF="node457.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7197"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7200"
+  HREF="node459.html">Contraction, Enlargement, Step and</A>
+<B> Up:</B> <A NAME="tex2html7196"
+  HREF="node454.html">Turbulent Flow in Open</A>
+<B> Previous:</B> <A NAME="tex2html7190"
+  HREF="node457.html">Straight Channel</A>
+ &nbsp; <B>  <A NAME="tex2html7198"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001110400000000000000">
+Reservoir</A>
+</H3>
+
+<P>
+This element is treated in subroutine reservoir.f. In forward mode the value of hup can be negative or positive. If it is
+negative no frontwater curve was calculated and a backwater curve has to be
+determined (hdo is set to -1). If it is positive a backwater curve was calculated and hdo is
+calculated as the height after a jump using subroutine hns.f.
+
+<P>
+The further calculation depends on the value of hdo:
+
+<P>
+
+<UL>
+<LI>If 
+  hdo exceeds the depth of the reservoir hr the backwater curve leads to a fall
+  in the reservoir or a jump in the reservoir and the downstream depth is set to
+  hr. 
+</LI>
+<LI>If hdo is less than or equal to hr the critical hk and normal depth he are
+  calculated. If hk <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2978.png"
+ ALT="$ &lt;$"></B></SPAN> he a backwater curve is calculated starting at hk in
+  ndo (nstack is incremented and istack(1,nstack) is set to nelem and
+  istack(2,istack) is set to ndo). If hk <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3089.png"
+ ALT="$ \ge$"></B></SPAN> he a backwater curve is not plausible and no solution is
+  found. 
+</LI>
+</UL>
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

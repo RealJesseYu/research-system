@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*INITIAL MESH</TITLE>
+<META NAME="description" CONTENT="*INITIAL MESH">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node306.html">
+<LINK REL="previous" HREF="node304.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node306.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html5170"
+  HREF="node306.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html5166"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html5160"
+  HREF="node304.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html5168"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html5171"
+  HREF="node306.html">*INITIAL STRAIN INCREASE</A>
+<B> Up:</B> <A NAME="tex2html5167"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html5161"
+  HREF="node304.html">*INITIAL CONDITIONS</A>
+ &nbsp; <B>  <A NAME="tex2html5169"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000878000000000000000"></A><A NAME="initialmesh"></A>
+<BR>
+*INITIAL MESH
+</H2>
+
+<P>
+Keyword type: step definition
+
+<P>
+In terms of an optimization process, in which the mesh is changed in several
+iterations, one can define the original nodal coordinates at the beginning of
+the optimization with *INITIAL MESH. It is needed for the status of the
+<A HREF="node295.html#geometricconstraint">*GEOMETRIC CONSTRAINT</A>, e.g. FIXGROWTH or
+FIXSHRINKAGE. It can only be used for design variables of type COORDINATE and
+only makes sense in a htmlref*FEASIBLE DIRECTIONfeasibledirection step.
+
+<P><P>
+<BR>
+
+<P>
+First line:
+
+<UL>
+<LI>*INITIAL MESH
+</LI>
+</UL>
+
+<P>
+
+<P><P>
+<BR>
+Following lines:
+
+<UL>
+<LI>Node number.
+</LI>
+<LI>Value of the first global rectangular coordinate.
+</LI>
+<LI>Value of the second global rectangular coordinate.
+</LI>
+<LI>Value of the third global rectangular coordinate.
+</LI>
+</UL>
+
+<P>
+<PRE>
+Examples:
+
+*INITIAL MESH
+     1,      0.000000,      0.000000,      0.000000
+     2,      1.000000,      0.000000,      0.000000
+     3,      1.000000,      1.000000,      0.000000
+     4,      0.000000,      1.000000,      0.000000
+...
+</PRE>
+
+<P>
+
+<P><P>
+<BR>
+Example files: .
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

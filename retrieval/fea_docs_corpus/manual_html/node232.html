@@ -1,0 +1,228 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*BUCKLE</TITLE>
+<META NAME="description" CONTENT="*BUCKLE">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node233.html">
+<LINK REL="previous" HREF="node227.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node233.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html4294"
+  HREF="node233.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4290"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4284"
+  HREF="node231.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4292"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4295"
+  HREF="node233.html">*CFD</A>
+<B> Up:</B> <A NAME="tex2html4291"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html4285"
+  HREF="node231.html">Linear temperature function</A>
+ &nbsp; <B>  <A NAME="tex2html4293"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00085000000000000000"></A><A NAME="buckle"></A>
+<BR>
+*BUCKLE
+</H2>
+
+<P>
+Keyword type: step
+
+<P>
+This procedure is used to determine the buckling load of a structure. The load active in the last non-perturbative *STATIC step, if any, will be taken as preload if the perturbation parameter is specified on the *STEP card. All loads previous to a perturbation step are removed at the start of the step; only the load specified within the buckling step is scaled till buckling occurs. Right now, only the stress stiffness due to the buckling load is taken into account and not the large deformation stiffness it may cause.
+
+<P>
+Buckling leads to an eigenvalue problem whose lowest eigenvalue is the scalar
+the load in the buckling step has to be multiplied with to get the buckling
+load. Thus, generally only the lowest eigenvalue is needed. This value is also
+called the buckling factor and it is always stored in the .dat file.
+
+<P>
+SOLVER is the only parameter. It specifies which solver is used to determine
+the stress stiffness due to the buckling load and to perform a
+decomposition of the linear equation system. This decomposition is done only
+once. It is repeatedly used in the iterative procedure determining the
+eigenvalues (the buckling factor). The following solvers
+can be selected:
+
+<P>
+
+<UL>
+<LI>the SGI solver
+</LI>
+<LI>PaStiX 
+</LI>
+<LI>PARDISO 
+</LI>
+<LI>SPOOLES [<A
+ HREF="node530.html#Ashcraft1">3</A>,<A
+ HREF="node530.html#Ashcraft2">4</A>]. 
+</LI>
+<LI>TAUCS
+</LI>
+<LI>MATRIXSTORAGE. This is not really a solver. Rather, it is an option
+  allowing the user to store the stiffness matrix of the base loading and
+  stress stiffness matrix of the buckling load.
+</LI>
+</UL>
+
+<P>
+Default is the first solver which has been installed of the following list:
+SGI, PaStiX, PARDISO, SPOOLES and TAUCS. If none is installed, no eigenvalue
+analysis can be performed.
+
+<P>
+The SGI solver should by now be considered as outdated.SPOOLES is very fast, but has no
+out-of-core capability: the size of systems you can solve is limited by your
+RAM memory. With 32GB of RAM you can solve up to 1,000,000 equations.  TAUCS is
+also good, but my experience is limited to the <SPAN CLASS="MATH"><B><IMG
+ WIDTH="35" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2663.png"
+ ALT="$ LL^T$"></B></SPAN> decomposition, which
+only applies to positive definite systems. It has an out-of-core capability
+and also offers a <SPAN CLASS="MATH"><B><IMG
+ WIDTH="27" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2664.png"
+ ALT="$ LU$"></B></SPAN> decomposition, however, I was not able to run either of
+them so far. PARDISO is the Intel proprietary solver and is about a factor of
+two faster than SPOOLES. The most recent solver we tried is the freeware
+solver PaStiX from INRIA. It is
+really fast and can use the GPU. For large problems and a high end Nvidea graphical
+ card (32 GB of RAM) we got an acceleration of a factor between 3 and 8
+ compared to PARDISO. We modified PaStiX for this, therefore you have to
+ download PaStiX from our website and compile it for your system. This can be
+ slightly tricky, however, it is worth it!
+
+<P>
+If the MATRIXSTORAGE option is used, the stiffness matrix of the base loading and the stress
+stiffness matrix of the buckling load are
+stored in files jobname.sti and jobname.str, respectively. These are ASCII
+files containing the nonzero entries (occasionally, they can be zero;
+however, none of the entries which are not listed are nonzero). Each line
+consists of two integers and one real: the row number, the column number and
+the corresponding value. The entries are listed column per
+column. In addition, a file jobname.dof is created. It has as many entries as
+there are rows and columns in the stiffness and mass matrix. Each line
+contains a real number of the form &ldquo;a.b&rdquo;. Part a is the node number and
+b is the global degree of freedom corresponding to selected row. Notice that
+the program stops after creating these files. No further steps are
+treated. Consequently, *BUCKLE, SOLVER=MATRIXSTORAGE only makes sense as the last
+step in a calculation. Notice that for the stress stiffness matrix of the
+buckling load the stresses due to this load must have been determined by
+performing a regular static calculation. This is done automatically in
+CalculiX. In case the user has specified SOLVER=MATRIXSTORAGE the default
+solver is used to solve this static calculation. If the user specifies another
+solver (e.g. PARDISO), this solver is used for both the static calculation and
+the iterative procedure for the eigenvalue problem leading to the buckling load.
+
+<P>
+
+<P><P>
+<BR>
+
+<P>
+First line:
+
+<UL>
+<LI>*BUCKLE
+</LI>
+</UL>
+Second line:
+
+<UL>
+<LI>Number of buckling factors desired (usually 1).
+</LI>
+<LI>Accuracy desired (default: 0.01).
+</LI>
+<LI># Lanczos vectors calculated in each iteration (default: 4 * #eigenvalues).
+</LI>
+<LI>Maximum # of iterations (default: 1000).
+</LI>
+</UL>
+It is rarely needed to change the defaults. 
+
+<P>
+The eigenvalues are automatically stored in file jobname.dat.
+
+<P>
+<PRE>
+Example:
+
+*BUCKLE
+2
+</PRE>
+
+<P>
+calculates the lowest two buckling modes and the corresponding buckling factors. For the accuracy, the number of Lanczos vectors and the number of iterations the defaults are taken. 
+
+<P>
+
+<P><P>
+<BR>
+Example files: beam8b,beamb.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html4294"
+  HREF="node233.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4290"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4284"
+  HREF="node231.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4292"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4295"
+  HREF="node233.html">*CFD</A>
+<B> Up:</B> <A NAME="tex2html4291"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html4285"
+  HREF="node231.html">Linear temperature function</A>
+ &nbsp; <B>  <A NAME="tex2html4293"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

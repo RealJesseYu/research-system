@@ -1,0 +1,266 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*CONSTRAINT</TITLE>
+<META NAME="description" CONTENT="*CONSTRAINT">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node246.html">
+<LINK REL="previous" HREF="node244.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node246.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html4450"
+  HREF="node246.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4446"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4440"
+  HREF="node244.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4448"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4451"
+  HREF="node246.html">*CONTACT DAMPING</A>
+<B> Up:</B> <A NAME="tex2html4447"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html4441"
+  HREF="node244.html">*CONDUCTIVITY</A>
+ &nbsp; <B>  <A NAME="tex2html4449"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000818000000000000000"></A><A NAME="constraint"></A>
+<BR>
+*CONSTRAINT
+</H2>
+
+<P>
+Keyword type: step
+
+<P>
+With *CONSTRAINT one can define constraints on design responses in a feasible direction step. It can only
+be used for design variables of type COORDINATE. Furthermore, exactly one
+objective function has to be defined within the same feasible direction step (using
+the <A HREF="node329.html#objective">*OBJECTIVE</A> keyword).
+
+<P>
+A constraint is an inequality expressing a condition on a design response
+function. The inequality can be of type &ldquo;smaller than or equal&rdquo; (LE) or
+&ldquo;larger than or equal&rdquo; (GE). The reference value for the inequality is to
+be specified by a relative portion of an absolute value (the latter in the
+units used by the user). For instance, suppose the user introduces an absolute
+value of 20 and a relative value of 0.9 for a LE constraint on the mass. Than
+the mass is not allowed to exceed 0.9 <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img19.png"
+ ALT="$ \times$"></B></SPAN> 20 = 18 mass units. If the
+absolute value is zero, the initial value is taken, e.g. for the mass this
+corresponds to the mass at the start of the calculation. If no relative value
+is given 1. is taken.
+
+<P>
+Right now, the following design responses are allowed:
+
+<P>
+
+<UL>
+<LI>ALL-DISP: the square root of the sum of the square of the displacements in all nodes of
+  the structure or of a subset if a node set is defined
+</LI>
+<LI>X-DISP: the square root of the sum of the square of the x-displacements in all nodes of
+  the structure or of a subset if a node set is defined
+</LI>
+<LI>Y-DISP: the square root of the sum of the square of the y-displacements in all nodes of
+  the structure or of a subset if a node set is defined
+</LI>
+<LI>Z-DISP: the square root of the sum of the square of the z-displacements in all nodes of
+  the structure or of a subset if a node set is defined
+</LI>
+<LI>EIGENFREQUENCY: all eigenfrequencies calculated in a previous (actually,
+  the eigenvalues, which are the square of the eigenfrequencies).
+<A HREF="node290.html#frequency">*FREQUENCY</A> step
+</LI>
+<LI>MASS: mass of the total structure or of a subset if
+  an element set is defined
+</LI>
+<LI>STRAIN ENERGY: internal energy of the total structure or of a subset if
+  an element set is defined
+</LI>
+<LI>MISESSTRESS: the maximum von Mises stress of the total structure or of a
+  subset if a node set is defined. The maximum is approximated by the
+  Kreisselmeier-Steinhauser function 
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+f=\frac{1}{\rho} \ln \sum_i e^{\rho \frac{\sigma_{i}}{\bar{\sigma}}},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="125" HEIGHT="52" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2675.png"
+ ALT="$\displaystyle f=\frac{1}{\rho} \ln \sum_i e^{\rho \frac{\sigma_{i}}{\bar{\sigma}}},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">885</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2676.png"
+ ALT="$ \sigma_i$"></B></SPAN> is the von Mises stress in node i, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img36.png"
+ ALT="$ \rho$"></B></SPAN> and  <!-- MATH
+ $\bar{\sigma}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2677.png"
+ ALT="$ \bar{\sigma}$"></B></SPAN>
+are user-defined parameters. The higher <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img36.png"
+ ALT="$ \rho$"></B></SPAN> the closer <SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img612.png"
+ ALT="$ f$"></B></SPAN> is to the actual
+maximum (a value of 10 is recommended; the higher this value, the sharper the
+turns in the function). <!-- MATH
+ $\bar{\sigma}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2677.png"
+ ALT="$ \bar{\sigma}$"></B></SPAN> is the target stress, it
+should not be too far
+away from the actual maximum. The target stress must be positive.
+</LI>
+<LI>PS1STRESS: the maximum of the highest principal stress of the total structure or of a
+  subset if a node set is defined. The maximum is approximated by the
+  Kreisselmeier-Steinhauser function (cf. MISESSTRESS above, also here the
+  target stress must be positive).
+</LI>
+<LI>PS3STRESS: the minimum of the lowest principal stress of the total structure or of a
+  subset if a node set is defined. The minimum is approximated by the
+  Kreisselmeier-Steinhauser function. The target stress for PS3STRESS must be negative. 
+</LI>
+<LI>EQUIVALENT PLASTIC STRAIN: the maximum equivalent plastic strain of the total structure or of a
+  subset if a node set is defined. The maximum is approximated by the
+  Kreisselmeier-Steinhauser function. The target equivalent plastic strain
+  must be postive.
+</LI>
+</UL>
+
+<P>
+
+<P><P>
+<BR>
+
+<P>
+First line:
+
+<UL>
+<LI>*CONSTRAINT.
+</LI>
+</UL>
+
+<P>
+Second line:
+
+<UL>
+<LI>the name of the design response
+</LI>
+<LI>LE for &ldquo;smaller than or equal&rdquo;, GE for &ldquo;larger than or equal&rdquo;
+</LI>
+<LI>a relative value for the constraint
+</LI>
+<LI>an absolute value for the constraint
+</LI>
+</UL>
+Repeat this line if needed.
+
+<P>
+<PRE>
+Example:
+
+*SENSITIVITY
+*DESIGN RESPONSE,NAME=DESRESP1
+MASS,E1
+.
+.
+.
+*FEASIBLE DIRECTION
+*CONSTRAINT
+DESRESP1,LE,,3.
+</PRE>
+
+<P>
+specifies that the mass of element set E1 should not exceed 3 in the user's units.
+
+<P>
+
+<P><P>
+<BR>
+Example files: opt1.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html4450"
+  HREF="node246.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4446"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4440"
+  HREF="node244.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4448"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4451"
+  HREF="node246.html">*CONTACT DAMPING</A>
+<B> Up:</B> <A NAME="tex2html4447"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html4441"
+  HREF="node244.html">*CONDUCTIVITY</A>
+ &nbsp; <B>  <A NAME="tex2html4449"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

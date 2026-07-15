@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*USE REFINED MESH</TITLE>
+<META NAME="description" CONTENT="*USE REFINED MESH">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node365.html">
+<LINK REL="previous" HREF="node363.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node365.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html5878"
+  HREF="node365.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html5874"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html5868"
+  HREF="node363.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html5876"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html5879"
+  HREF="node365.html">*USER ELEMENT</A>
+<B> Up:</B> <A NAME="tex2html5875"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html5869"
+  HREF="node363.html">*UNCOUPLED TEMPERATURE-DISPLACEMENT</A>
+ &nbsp; <B>  <A NAME="tex2html5877"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION0008137000000000000000"></A><A NAME="userefinedmesh"></A>
+<BR>
+*USE REFINED MESH
+</H2>
+
+<P>
+Keyword type: model definition
+
+<P>
+With this option one can use a refined version of the mesh actually provided
+in the input deck. This refined mesh must have been generated using <A HREF="node337.html#refinemesh">*REFINE MESH</A> in another
+calculation with exactly the same unrefined mesh and applying boundary
+conditions and loads at exactly the same locations as in the present input
+deck. If the other calculation had as job name &ldquo;test1&rdquo; then the refined mesh
+has been stored in a file &ldquo;test1.rfn.inp&rdquo; and the unrefined mesh in a file
+&ldquo;test1.urf.frd&rdquo;. If the new job has has job name &ldquo;test2&rdquo;,
+&ldquo;test1.rfn.inp&rdquo; and &ldquo;test1.urf.frd&rdquo; have to be copied into
+&ldquo;test2.rfn.inp&rdquo; and &ldquo;test2.urf.frd&rdquo; before starting test2. In the new job
+the user can e.g. change the material properties are the values of the
+boundary conditions and/or loadings.
+
+<P>
+
+<P><P>
+<BR>
+
+<P>
+First and only line:
+
+<UL>
+<LI>*USE REFINED MESH
+</LI>
+</UL>
+
+<P>
+<PRE>
+Example:
+
+*USE REFINED MESH
+</PRE>
+
+<P>
+
+<P><P>
+<BR>
+Example files: circ11p.
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

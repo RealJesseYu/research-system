@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>ABAQUS umat routines</TITLE>
+<META NAME="description" CONTENT="ABAQUS umat routines">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="previous" HREF="node391.html">
+<LINK REL="up" HREF="node390.html">
+<LINK REL="next" HREF="node395.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html6282"
+  HREF="node395.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html6278"
+  HREF="node390.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html6274"
+  HREF="node393.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html6280"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html6283"
+  HREF="node395.html">Limitations.</A>
+<B> Up:</B> <A NAME="tex2html6279"
+  HREF="node390.html">User-defined mechanical material laws.</A>
+<B> Previous:</B> <A NAME="tex2html6275"
+  HREF="node393.html">Calling mechanical behaviour defining</A>
+ &nbsp; <B>  <A NAME="tex2html6281"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00095200000000000000">
+ABAQUS umat routines</A>
+</H3>
+
+<P>
+There are two interfaces to include ABAQUS umat routines: umat_abaqus is meant
+to include linear materials, umat_abaqusnl for nonlinear materials. For
+nonlinear materials the logarithmic strain and infinitesimal rotation are
+calculated, which slows down the calculation. Consequently, the nonlinear
+routine should only be used if necessary.
+
+<P>
+The linear routine is triggered by putting ABAQUS in front of the material
+name. The total length of the material name should not exceed 80 characters,
+consequently, 74 characters are left for the proper material name. For
+instance, if the material name in the ABAQUS routine is supposed to be
+&ldquo;WOOD&rdquo;, you must specify &ldquo;ABAQUSWOOD&rdquo; in the CalculiX input file. The part
+&ldquo;ABAQUS&rdquo; is removed from the name before entering the umat routine.
+
+<P>
+The nonlinear routine is triggered by putting ABAQUSNL in front of the
+material name. 
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html6284"
+  HREF="node395.html">Limitations.</A>
+<LI><A NAME="tex2html6285"
+  HREF="node396.html">Calling shared libraries.</A>
+</UL>
+<!--End of Table of Child-Links-->
+<BR><HR>
+
+</BODY>
+</HTML>

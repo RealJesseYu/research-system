@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Step 3: determining the second momentum correction</TITLE>
+<META NAME="description" CONTENT="Step 3: determining the second momentum correction">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node471.html">
+<LINK REL="previous" HREF="node469.html">
+<LINK REL="up" HREF="node460.html">
+<LINK REL="next" HREF="node471.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7360"
+  HREF="node471.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7356"
+  HREF="node460.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7350"
+  HREF="node469.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7358"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7361"
+  HREF="node471.html">Step 4: determining the</A>
+<B> Up:</B> <A NAME="tex2html7357"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<B> Previous:</B> <A NAME="tex2html7351"
+  HREF="node469.html">Step 2: determining the</A>
+ &nbsp; <B>  <A NAME="tex2html7359"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00011111000000000000000">
+Step 3: determining the second momentum correction</A>
+</H3>
+
+<P>
+In step 3 the second correction to the momentum is determined. For gases the
+RHS has already been determined in mafillsmv1rhs.f, for liquids a term containing
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2161.png"
+ ALT="$ \Delta p$"></B></SPAN> has to be added to the value calculated in mafillv1rhs.f (this is done in
+mafillv2rhs.f and e_c3d_v2rhs.f). The lumped
+equations are solved and the solution is added to <!-- MATH
+ $\Delta \boldsymbol{V}^{*}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="39" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3123.png"
+ ALT="$ \Delta \boldsymbol{V}^{*}$"></B></SPAN>
+ (again in fields v(1..nk,1), v(1..nk,2) and v(1..nk,3)).
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

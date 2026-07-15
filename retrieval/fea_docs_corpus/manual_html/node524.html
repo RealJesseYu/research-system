@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Tetrangulation of the master mesh</TITLE>
+<META NAME="description" CONTENT="Tetrangulation of the master mesh">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node525.html">
+<LINK REL="previous" HREF="node523.html">
+<LINK REL="up" HREF="node523.html">
+<LINK REL="next" HREF="node525.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html8075"
+  HREF="node525.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html8071"
+  HREF="node523.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html8065"
+  HREF="node523.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html8073"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html8076"
+  HREF="node525.html">Nearest point algorithm</A>
+<B> Up:</B> <A NAME="tex2html8072"
+  HREF="node523.html">Interpolation procedure</A>
+<B> Previous:</B> <A NAME="tex2html8066"
+  HREF="node523.html">Interpolation procedure</A>
+ &nbsp; <B>  <A NAME="tex2html8074"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001115100000000000000">
+Tetrangulation of the master mesh</A>
+</H3>
+
+<P>
+The master mesh must consist of volumetric elements, i.e. linear or quadratic
+hexahedra, wedges or tetrahedra. For each element type a remeshing into linear
+tetrahedral elements was devised: a C3D8, C3D6, C3D20(R), C3D15 and C3D10
+element is mesh with 6 (field i1 in getuncrackedresults.c), 3 (field i2), 22
+(field i4), 14 (field i5) and 8 (field i6) linear tetrahedra,
+respectively. Subsequently, the centers of gravity of the resulting tetrahedra
+are calculated and sorted according to the global x-values, the global
+y-values and global z-values. Furthermore, the element numbers of the original
+parent elements of these tetrahedra (several tetrahedra share one parent
+element) are stored in fields elemnr (original
+element numbers; may exhibit gaps) and iparent (continuous increasing numbers
+starting at 1). All values are frequently stored in fields
+integerglob and doubleglob for further use at the time of interpolation.
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

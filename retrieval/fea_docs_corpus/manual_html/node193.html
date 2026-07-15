@@ -1,0 +1,1053 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Shallow water calculations </TITLE>
+<META NAME="description" CONTENT="Shallow water calculations ">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node194.html">
+<LINK REL="previous" HREF="node192.html">
+<LINK REL="up" HREF="node173.html">
+<LINK REL="next" HREF="node194.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html3669"
+  HREF="node194.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3665"
+  HREF="node173.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3659"
+  HREF="node192.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3667"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3670"
+  HREF="node194.html">Substructure Generation</A>
+<B> Up:</B> <A NAME="tex2html3666"
+  HREF="node173.html">Types of analysis</A>
+<B> Previous:</B> <A NAME="tex2html3660"
+  HREF="node192.html">Three-dimensional Navier-Stokes Calculations</A>
+ &nbsp; <B>  <A NAME="tex2html3668"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000792000000000000000"></A><A NAME="shallowwater"></A>
+<BR>
+Shallow water calculations 
+</H3>
+
+<P>
+Calculations for incompressible fluids with a free surface are quite important
+in marine and oceanographic applications. The challenging part here is to
+predict the location of the free surface. A special subcategory are the
+problems in which the depth of the fluid is small compared to the other
+dimensions. In that case the general equations can be reduced to the so-called
+shallow water equations. These equations have a very similar behavior as the
+Navier-Stokes equations for compressible fluids, treated in the previous
+section. Linearization of these equations leads to the linear shallow water
+equations treated in Section <A HREF="node183.html#linshallowwater">6.9.10</A>.
+
+<P>
+Starting point for the derivation of the shallow water equations are the
+conservation of mass and momentum for incompressible fluids:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+v_{i,i}=0
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="54" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2231.png"
+ ALT="$\displaystyle v_{i,i}=0$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">729</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="conmom"></A><!-- MATH
+ \begin{equation}
+\frac{\partial v_j}{\partial t} + \frac{\partial }{\partial x_i} (v_i v_j) +
+  \frac{1}{\rho } \frac{\partial p}{\partial x_j} - \frac{1}{\rho }
+  \frac{\partial t_{ij}}{\partial x_i} - f_j = 0.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="308" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2232.png"
+ ALT="$\displaystyle \frac{\partial v_j}{\partial t} + \frac{\partial }{\partial x_i} ...
+...\partial x_j} - \frac{1}{\rho } \frac{\partial t_{ij}}{\partial x_i} - f_j = 0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">730</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Now, the depth-direction of the fluid is assumed to coincide with the
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2233.png"
+ ALT="$ x_3$"></B></SPAN>-direction. The momentum equation in the <SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2233.png"
+ ALT="$ x_3$"></B></SPAN>-direction now reads:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{D v_3}{D t} +  \frac{1}{\rho } \frac{\partial p}{\partial x_3} - \frac{1}{\rho }
+  \frac{\partial t_{i3}}{\partial x_i} - f_3 = 0.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="227" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2234.png"
+ ALT="$\displaystyle \frac{D v_3}{D t} + \frac{1}{\rho } \frac{\partial p}{\partial x_3} - \frac{1}{\rho } \frac{\partial t_{i3}}{\partial x_i} - f_3 = 0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">731</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The velocity in depth direction (first term) is assumed to be neglegible as well as the
+viscous stress components <SPAN CLASS="MATH"><B><IMG
+ WIDTH="21" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2235.png"
+ ALT="$ t_{i3}$"></B></SPAN>. Furthermore, the volumetric force density
+is assumed to reduce to the gravity <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img840.png"
+ ALT="$ g$"></B></SPAN>. Consequently, one obtains:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{1}{\rho } \frac{\partial p}{\partial x_3} + g =0.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="106" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2236.png"
+ ALT="$\displaystyle \frac{1}{\rho } \frac{\partial p}{\partial x_3} + g =0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">732</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Now, the depth is supposed to be composed of two contributions: a portion <SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2237.png"
+ ALT="$ H$"></B></SPAN>
+extending from <SPAN CLASS="MATH"><B><IMG
+ WIDTH="68" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2238.png"
+ ALT="$ x_3=-H$"></B></SPAN> (<SPAN CLASS="MATH"><B><IMG
+ WIDTH="47" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2239.png"
+ ALT="$ H&gt;0$"></B></SPAN>) up to <SPAN CLASS="MATH"><B><IMG
+ WIDTH="49" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2240.png"
+ ALT="$ x_3=0$"></B></SPAN>, and a portion <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img445.png"
+ ALT="$ \eta$"></B></SPAN> extending
+from <SPAN CLASS="MATH"><B><IMG
+ WIDTH="49" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2240.png"
+ ALT="$ x_3=0$"></B></SPAN> up to <SPAN CLASS="MATH"><B><IMG
+ WIDTH="50" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2241.png"
+ ALT="$ x_3=\eta$"></B></SPAN> (<!-- MATH
+ $-\infty < \eta < \infty$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="99" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2242.png"
+ ALT="$ -\infty &lt; \eta &lt; \infty$"></B></SPAN>), so that the depth h
+amounts to <SPAN CLASS="MATH"><B><IMG
+ WIDTH="77" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2243.png"
+ ALT="$ h=H+\eta$"></B></SPAN> (Figure ...). Integrating the above equation and
+applying the boundary condition <SPAN CLASS="MATH"><B><IMG
+ WIDTH="49" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2244.png"
+ ALT="$ p=p_a$"></B></SPAN> for <SPAN CLASS="MATH"><B><IMG
+ WIDTH="50" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2241.png"
+ ALT="$ x_3=\eta$"></B></SPAN>, where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2245.png"
+ ALT="$ p_a$"></B></SPAN> is the
+atmospheric pressure, one obtains:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="atpressure"></A><!-- MATH
+ \begin{equation}
+p=\rho g (\eta -x_3) + p_a,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="145" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2246.png"
+ ALT="$\displaystyle p=\rho g (\eta -x_3) + p_a,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">733</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+expressing the the pressure increases linearly from the surface into the depth
+direction.
+
+<P>
+The conservation of mass equation can be integrated in z-direction as follows:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\int_{-H}^{\eta } \frac{\partial v_1}{\partial x_1} dx_3 +  \int_{-H}^{\eta }
+  \frac{\partial v_2}{\partial x_2} dx_3 +   \int_{-H}^{\eta } \frac{\partial
+    v_3}{\partial x_3}
+  dx_3 = 0.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="338" HEIGHT="55" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2247.png"
+ ALT="$\displaystyle \int_{-H}^{\eta } \frac{\partial v_1}{\partial x_1} dx_3 + \int_{...
+...rtial x_2} dx_3 + \int_{-H}^{\eta } \frac{\partial v_3}{\partial x_3} dx_3 = 0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">734</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Applying the Leibniz rule to the first two equations and direct integration to
+the last term leads to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="320" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2248.png"
+ ALT="$\displaystyle \frac{\partial }{\partial x_1} \left( \int_{-H}^{\eta } v_1 dx_3 ...
+...) \frac{\partial \eta }{\partial x_1} - v_1(-H) \frac{\partial H}{\partial x_1}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="332" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2249.png"
+ ALT="$\displaystyle +\frac{\partial }{\partial x_2} \left( \int_{-H}^{\eta } v_2 dx_3...
+...) \frac{\partial \eta }{\partial x_2} - v_2(-H) \frac{\partial H}{\partial x_2}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="159" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2250.png"
+ ALT="$\displaystyle + v_3(\eta) - v_3(-H) =0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">735</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The velocity at the bottom is zero,
+i.e. <!-- MATH
+ $v_1(-H)=v_2(-H)=v_3(-H)=0$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="238" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2251.png"
+ ALT="$ v_1(-H)=v_2(-H)=v_3(-H)=0$"></B></SPAN>. Furthermore, a mean velocity is now defined by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\overline{v}_i := \frac{1}{h} \int_{-H}^{\eta } v_i dx_3, \;\;\;\; i=1,2.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="208" HEIGHT="55" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2252.png"
+ ALT="$\displaystyle \overline{v}_i := \frac{1}{h} \int_{-H}^{\eta } v_i dx_3, \;\;\;\; i=1,2.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">736</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+This leads to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="157" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2253.png"
+ ALT="$\displaystyle \frac{\partial }{\partial x_1} \left( \overline{v}_1 h \right) - v_1(\eta) \frac{\partial \eta }{\partial x_1}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="170" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2254.png"
+ ALT="$\displaystyle +\frac{\partial }{\partial x_2} \left(\overline{v}_2 h \right) - v_2(\eta) \frac{\partial \eta }{\partial x_2}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="85" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2255.png"
+ ALT="$\displaystyle + v_3(\eta) =0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">737</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Now, the vertical velocity at the free surface can be written as:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="vertvelocity"></A><!-- MATH
+ \begin{equation}
+v_3(\eta ) := \frac{D \eta }{dt } = \frac{\partial \eta }{\partial t} +
+  \frac{\partial \eta }{\partial x_1} v_1(\eta ) + \frac{\partial \eta
+  }{\partial x_2} v_2(\eta ),
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="307" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2256.png"
+ ALT="$\displaystyle v_3(\eta ) := \frac{D \eta }{dt } = \frac{\partial \eta }{\partia...
+...ta }{\partial x_1} v_1(\eta ) + \frac{\partial \eta }{\partial x_2} v_2(\eta ),$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">738</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+leading to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{\partial }{\partial x_1} \left( \overline{v}_1 h \right)  +\frac{\partial
+  }{\partial x_2} \left(\overline{v}_2 h \right)  + \frac{\partial h}{\partial t}  =0,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="237" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2257.png"
+ ALT="$\displaystyle \frac{\partial }{\partial x_1} \left( \overline{v}_1 h \right) +\...
+...partial x_2} \left(\overline{v}_2 h \right) + \frac{\partial h}{\partial t} =0,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">739</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+since <!-- MATH
+ $\partial H/\partial t=0$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="79" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2258.png"
+ ALT="$ \partial H/\partial t=0$"></B></SPAN>. With <!-- MATH
+ $\overline{v_3}=0$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="48" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2259.png"
+ ALT="$ \overline{v_3}=0$"></B></SPAN> one can also write:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{\partial }{\partial x_i} \left( \overline{v}_i h \right) + \frac{\partial h}{\partial t}  =0.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="144" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2260.png"
+ ALT="$\displaystyle \frac{\partial }{\partial x_i} \left( \overline{v}_i h \right) + \frac{\partial h}{\partial t} =0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">740</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+This is identical to Equation <A HREF="node192.html#conmass">699</A>
+(conservation of mass for a compressible fluid)
+in which <SPAN CLASS="MATH"><B><IMG
+ WIDTH="17" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2207.png"
+ ALT="$ v_i$"></B></SPAN> is replaced by <!-- MATH
+ $\overline{v_i}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="17" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2261.png"
+ ALT="$ \overline{v_i}$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img36.png"
+ ALT="$ \rho$"></B></SPAN> by <SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img837.png"
+ ALT="$ h$"></B></SPAN>.
+
+<P>
+Integrating the momentum equation, i.e. Equation (<A HREF="#conmom">730</A>) in <SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2262.png"
+ ALT="$ x_1$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2263.png"
+ ALT="$ x_2$"></B></SPAN>
+direction across the depth leads to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="395" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2264.png"
+ ALT="$\displaystyle \frac{\partial }{\partial t} ( \overline{u_i} h) - v_i (\eta)\fra...
+... + \sum_{j=1}^{2} \frac{\partial }{\partial x_j} \int_{-H}^{\eta } v_i v_j dx_3$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="412" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2265.png"
+ ALT="$\displaystyle - \sum_{j=1}^{2} v_i (\eta) v_j (\eta ) \frac{\partial \eta }{\pa...
+..._{j=1}^{2} v_i(-H) v_j(-H) \frac{\partial H}{\partial x_j} + v_i(\eta)v_3(\eta)$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="411" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2266.png"
+ ALT="$\displaystyle - v_i(-H)v_3(-H) + \frac{1}{\rho } \int_{-H}^{\eta } \frac{\parti...
+...H}^{\eta } \frac{\partial t_{ij}}{\partial x_j} - \frac{1}{\rho } t_{i3} (\eta)$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="235" HEIGHT="52" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2267.png"
+ ALT="$\displaystyle + \frac{1}{\rho } t_{i3} (-H) - h \overline{f_i} =0 , \;\;\;\;\; i=1,2$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">741</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Since the velocity at the bottom is zero, the third, sixth and eight term
+vanish. Due to the definition of the vertical velocity at the free surface,
+Equation (<A HREF="#vertvelocity">738</A>) the second, fifth and seventh term also disappear.
+Due to Equation (<A HREF="#atpressure">733</A>) the ninth term amounts to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{1}{\rho
+  } \int_{-H}^{\eta } \frac{\partial p}{\partial x_i} = g h \frac{\partial \eta
+  }{\partial x_i} + \frac{h}{\rho }  \frac{\partial p_a}{\partial x_i}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="211" HEIGHT="55" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2268.png"
+ ALT="$\displaystyle \frac{1}{\rho } \int_{-H}^{\eta } \frac{\partial p}{\partial x_i}...
+...rtial \eta }{\partial x_i} + \frac{h}{\rho } \frac{\partial p_a}{\partial x_i}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">742</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The fourth term is approximated by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="RIGHT"><SPAN CLASS="MATH"><IMG
+ WIDTH="146" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2269.png"
+ ALT="$\displaystyle \sum_{j=1}^{2} \frac{\partial }{\partial x_j} \int_{-H}^{\eta } v_i v_j dx_3$"></SPAN></TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="270" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2270.png"
+ ALT="$\displaystyle = \sum_{j=1}^{2} \frac{\partial }{\partial x_j} \left ( h \overli...
+...v}_j + \int_{-H}^{\eta } \langle v \rangle_i \langle v \rangle _j \right ) dx_3$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="160" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2271.png"
+ ALT="$\displaystyle \approx \sum_{j=1}^{2} \frac{\partial }{\partial x_j} \left ( h \overline{v}_i \overline{v}_j \right ) dx_3,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">743</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and the tenth term is neglected. This leads to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="RIGHT"><SPAN CLASS="MATH"><IMG
+ WIDTH="170" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2272.png"
+ ALT="$\displaystyle \frac{\partial }{\partial t} (h \overline{u}_i ) + \sum_{j=1}^{2} \frac{\partial }{\partial x_j} h \overline{v}_i \overline{v}_j$"></SPAN></TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="188" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2273.png"
+ ALT="$\displaystyle = - g h \frac{\partial \eta }{\partial x_i} - \frac{h}{\rho } \frac{\partial p_a}{\partial x_i} + \frac{1}{\rho } t_{i3}^s$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="166" HEIGHT="52" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2274.png"
+ ALT="$\displaystyle - \frac{1}{\rho } t_{i3}^b + h \overline{f_i} , \;\;\;\;\; i=1,2$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">744</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Now, <!-- MATH
+ $h \partial \eta / \partial x_i$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="62" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2275.png"
+ ALT="$ h \partial \eta / \partial x_i$"></B></SPAN> can also be written as:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+h \frac{\partial \eta }{\partial x_i} = \frac{\partial }{\partial x_i}
+  \left( \frac{h^2 -H^2}{2} \right)  - (h-H) \frac{\partial H}{\partial x_i},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="284" HEIGHT="56" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2276.png"
+ ALT="$\displaystyle h \frac{\partial \eta }{\partial x_i} = \frac{\partial }{\partial x_i} \left( \frac{h^2 -H^2}{2} \right) - (h-H) \frac{\partial H}{\partial x_i},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">745</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+leading to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="RIGHT"><SPAN CLASS="MATH"><IMG
+ WIDTH="170" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2272.png"
+ ALT="$\displaystyle \frac{\partial }{\partial t} (h \overline{u}_i ) + \sum_{j=1}^{2} \frac{\partial }{\partial x_j} h \overline{v}_i \overline{v}_j$"></SPAN></TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="233" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2277.png"
+ ALT="$\displaystyle = - \frac{\partial \overline{p} }{\partial x_i} + g(h-H) \frac{\partial H}{\partial x_i} - \frac{h}{\rho } \frac{\partial p_a}{\partial x_i}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="215" HEIGHT="52" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2278.png"
+ ALT="$\displaystyle + \frac{1}{\rho } t_{i3}^s - \frac{1}{\rho } t_{i3}^b + h \overline{f_i} , \;\;\;\;\; i=1,2$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">746</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+were an artifical pressure <!-- MATH
+ $\overline{p}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2279.png"
+ ALT="$ \overline{p}$"></B></SPAN> has been defined by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\overline{p} :=  \frac{g(h^2 -H^2)}{2}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="124" HEIGHT="56" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2280.png"
+ ALT="$\displaystyle \overline{p} := \frac{g(h^2 -H^2)}{2}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">747</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+Since there is no variation in depth direction  and setting
+<!-- MATH
+ $t_{33}^s=t_{33}^b=f_3=0$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="129" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2281.png"
+ ALT="$ t_{33}^s=t_{33}^b=f_3=0 $"></B></SPAN> this also amounts to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="RIGHT"><SPAN CLASS="MATH"><IMG
+ WIDTH="145" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2282.png"
+ ALT="$\displaystyle \frac{\partial }{\partial t} (h \overline{u}_i ) + \frac{\partial }{\partial x_j} h \overline{v}_i \overline{v}_j$"></SPAN></TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="233" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2277.png"
+ ALT="$\displaystyle = - \frac{\partial \overline{p} }{\partial x_i} + g(h-H) \frac{\partial H}{\partial x_i} - \frac{h}{\rho } \frac{\partial p_a}{\partial x_i}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="219" HEIGHT="52" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2283.png"
+ ALT="$\displaystyle + \frac{1}{\rho } t_{i3}^s - \frac{1}{\rho } t_{i3}^b + h \overline{f_i} , \;\;\;\;\; i=1,3.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">748</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+This amounts to the conservation of momentum equation (<A HREF="node192.html#conmomgas">695</A>) for a
+compressible fluid with the density <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img36.png"
+ ALT="$ \rho$"></B></SPAN> replaced by <SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img837.png"
+ ALT="$ h$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="17" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2207.png"
+ ALT="$ v_i$"></B></SPAN> replaced by
+<!-- MATH
+ $\overline{v}_i$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="17" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2284.png"
+ ALT="$ \overline{v}_i$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img443.png"
+ ALT="$ p$"></B></SPAN> replaced by <!-- MATH
+ $\overline{p}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2279.png"
+ ALT="$ \overline{p}$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="22" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2124.png"
+ ALT="$ t_{ik}$"></B></SPAN> neglected and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2285.png"
+ ALT="$ \rho
+g_i$"></B></SPAN>
+replaced by
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+g(h-H) \frac{\partial H}{\partial x_i}  - \frac{h}{\rho }  \frac{\partial p_a}{\partial x_i} +
+  \frac{1}{\rho } t_{i3}^s  -   \frac{1}{\rho } t_{i3}^b +
+  h \overline{f_i}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="300" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2286.png"
+ ALT="$\displaystyle g(h-H) \frac{\partial H}{\partial x_i} - \frac{h}{\rho } \frac{\p...
+... x_i} + \frac{1}{\rho } t_{i3}^s - \frac{1}{\rho } t_{i3}^b + h \overline{f_i}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">749</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The friction stress at the bottom is frequently modeled by a hydraulic
+resistance type formula such as
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+t_{i3}^b = \frac{f}{8} \rho \| \boldsymbol{\overline{v} } \| \overline{v}_i.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="107" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2287.png"
+ ALT="$\displaystyle t_{i3}^b = \frac{f}{8} \rho \Vert \boldsymbol{\overline{v} } \Vert \overline{v}_i.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">750</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+The energy equation can be integrated in a similar way. I can be used of some
+fluid at a higher temperature is released into the flow and one would like to
+study the spread of the heat. The equation for incompressible flow runs:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{\partial \varepsilon_t}{\partial t} + \frac{\partial }{\partial x_i}
+  (v_i \varepsilon _t) = \frac{1}{\rho } \frac{\partial }{\partial x_i} \left
+  ( k \frac{\partial T}{\partial x_i} \right) - \frac{1}{\rho } \frac{\partial
+    v_i p}{\partial x_i}  + \frac{1}{\rho } \frac{\partial }{\partial x_i}  ( t_{ij} v_j) + f_i v_i + h^{\theta }
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="488" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2288.png"
+ ALT="$\displaystyle \frac{\partial \varepsilon_t}{\partial t} + \frac{\partial }{\par...
+...{1}{\rho } \frac{\partial }{\partial x_i} ( t_{ij} v_j) + f_i v_i + h^{\theta }$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">751</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Integrating from -H to <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img445.png"
+ ALT="$ \eta$"></B></SPAN> yields:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="271" HEIGHT="55" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2289.png"
+ ALT="$\displaystyle \frac{\partial }{\partial t} \int_{-H}^{\eta } \varepsilon_t dx_3...
+...artial t} \varepsilon_t(\eta) - \frac{\partial H}{\partial t} \varepsilon_t(-H)$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="429" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2290.png"
+ ALT="$\displaystyle + \sum_{i=1}^{2} \frac{\partial }{\partial x_i} \int_{-H}^{\eta }...
+...} \frac{\partial H}{\partial x_i} \left . (v_i \varepsilon_t) \right\vert _{-H}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="373" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2291.png"
+ ALT="$\displaystyle + \left . (v_3 \varepsilon_t) \right\vert _{\eta } - \left . (v_3...
+...\partial }{\partial x_i} \left ( k \frac{\partial T}{\partial x_i} \right) dx_3$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="436" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2292.png"
+ ALT="$\displaystyle - \frac{1}{\rho } (q^s + q^b) - \sum_{i=1}^{3} \frac{1}{\rho } \i...
+...ac{1}{\rho } \int_{-H}^{\eta} \frac{\partial }{\partial x_i} ( t_{ij} v_j) dx_3$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="309" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2293.png"
+ ALT="$\displaystyle + \left . \frac{t_{3j}v_j}{\rho } \right\vert _{\eta} - \left . \...
+... \right\vert _{-H} + \int_{-H}^{\eta} f_i v_i dx_3 + h \overline{h^{\theta }} .$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">752</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Terms 3, 6 and 8 on the left hand side and term 6 on the right hand side are
+zero (no velocity at the bottom and no change in time of the bottom
+level). Terms 2, 5 and 7 on the left hand side disappear due to Equation
+(<A HREF="#vertvelocity">738</A>). The integral in the first term on left hand side is
+replaced by definition by <!-- MATH
+ $\overline{\varepsilon_t} h$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2294.png"
+ ALT="$ \overline{\varepsilon_t} h$"></B></SPAN> and the integral in the
+fourth term is approximated by <!-- MATH
+ $\overline{v}_i \overline{\varepsilon_t} h$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="40" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2295.png"
+ ALT="$ \overline{v}_i \overline{\varepsilon_t} h$"></B></SPAN>.  The variables <SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2296.png"
+ ALT="$ q^s$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2297.png"
+ ALT="$ q^b$"></B></SPAN> in the second term on the
+right hand side are the heat flux flowing out of the fluid at the surface and
+the bottom, respecitively.
+
+<P>
+Substituting the expression for the pressure,
+i.e. Equation (<A HREF="#atpressure">733</A>) into the third term on the right hand side
+yields (the summation in that term really only extends from 1 to 2 since <SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2298.png"
+ ALT="$ v_3$"></B></SPAN>
+is neglegible):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\sum_{i=1}^{3} \frac{1}{\rho }
+  \int_{-H}^{\eta} v_i \frac{\partial p}{\partial x_i} dx_3 = \sum_{i=1}^{2}
+  \overline{v}_i \frac{\partial \overline{p}}{\partial x_i} -  \sum_{i=1}^{2}
+  \overline{v}_i g (h-H) \frac{\partial H}{\partial x_i} + \frac{h}{\rho }
+  \sum_{i=1}^{2} \overline{v}_i \frac{\partial p_a}{\partial x_i}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="488" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2299.png"
+ ALT="$\displaystyle \sum_{i=1}^{3} \frac{1}{\rho } \int_{-H}^{\eta} v_i \frac{\partia...
+...frac{h}{\rho } \sum_{i=1}^{2} \overline{v}_i \frac{\partial p_a}{\partial x_i}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">753</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The first and the fourth term on the right hand side is neglected and the eighth term is
+approximated by <!-- MATH
+ $\overline{f}_i \overline{v}_i h$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="41" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2300.png"
+ ALT="$ \overline{f}_i \overline{v}_i h$"></B></SPAN>. This finally yields:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="RIGHT"><SPAN CLASS="MATH"><IMG
+ WIDTH="208" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2301.png"
+ ALT="$\displaystyle \frac{\partial }{\partial t} (h \overline{\varepsilon_t}) + \frac...
+...t [ (h \overline{\varepsilon_t} + \overline{p}) \overline{v}_i \right ] \approx$"></SPAN></TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="288" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2302.png"
+ ALT="$\displaystyle - \frac{1}{\rho } (q^s + q^b) + \overline{v}_i g(h-H) \frac{\part...
+...partial x_i} - \frac{h}{\rho } \frac{\partial p_a}{\partial x_i} \overline{v}_i$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+&nbsp;&nbsp;&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE">
+<TD>&nbsp;</TD>
+<TD NOWRAP ALIGN="LEFT"><SPAN CLASS="MATH"><IMG
+ WIDTH="177" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2303.png"
+ ALT="$\displaystyle + \left . \frac{t_{3j}v_j}{\rho } \right\vert _{\eta} + h \overline{f}_i \overline{v}_i + h \overline{h^{\theta }}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">754</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+This is equivalent to the energy equation for compressible fluids with <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img36.png"
+ ALT="$ \rho$"></B></SPAN>
+replaced by <SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img837.png"
+ ALT="$ h$"></B></SPAN> and appropriate source terms. The neglection of the stress and
+conduction terms (except in <SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2233.png"
+ ALT="$ x_3$"></B></SPAN>-direction) can be obtained by setting
+<!-- MATH
+ $\mu=\lambda=0$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="73" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2304.png"
+ ALT="$ \mu=\lambda=0$"></B></SPAN>. No specific gas constant has to be defined. The parameter
+COMPRESSIBLE on the <A HREF="node233.html#cfd">*CFD</A> card has to be replaced by the SHALLOW
+WATER parameter. The pressure initial and boundary conditions have to be
+replaced by conditions for <!-- MATH
+ $\overline{p}=g(h^2-H^2)/2$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="127" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2305.png"
+ ALT="$ \overline{p}=g(h^2-H^2)/2$"></B></SPAN>. If <SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2237.png"
+ ALT="$ H$"></B></SPAN> corresponds to
+the fluid surface in rest, the initial conditions ususally reduce to
+<!-- MATH
+ $\overline{p}=0$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="41" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2306.png"
+ ALT="$ \overline{p}=0$"></B></SPAN>. 
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html3669"
+  HREF="node194.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3665"
+  HREF="node173.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3659"
+  HREF="node192.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3667"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3670"
+  HREF="node194.html">Substructure Generation</A>
+<B> Up:</B> <A NAME="tex2html3666"
+  HREF="node173.html">Types of analysis</A>
+<B> Previous:</B> <A NAME="tex2html3660"
+  HREF="node192.html">Three-dimensional Navier-Stokes Calculations</A>
+ &nbsp; <B>  <A NAME="tex2html3668"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

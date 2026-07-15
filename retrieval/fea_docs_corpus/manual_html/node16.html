@@ -1,0 +1,336 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Stationary laminar inviscid compressible airfoil flow</TITLE>
+<META NAME="description" CONTENT="Stationary laminar inviscid compressible airfoil flow">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node17.html">
+<LINK REL="previous" HREF="node15.html">
+<LINK REL="up" HREF="node6.html">
+<LINK REL="next" HREF="node17.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1191"
+  HREF="node17.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html1187"
+  HREF="node6.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html1181"
+  HREF="node15.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html1189"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1192"
+  HREF="node17.html">Laminar viscous compressible compression</A>
+<B> Up:</B> <A NAME="tex2html1188"
+  HREF="node6.html">Simple example problems</A>
+<B> Previous:</B> <A NAME="tex2html1182"
+  HREF="node15.html">Transient laminar incompressible Couette</A>
+ &nbsp; <B>  <A NAME="tex2html1190"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000610000000000000000">
+Stationary laminar inviscid compressible airfoil flow</A>
+</H2>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="naca012"></A><A NAME="17693"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 29:</STRONG>
+Mesh for the naca012 airfoil flow</CAPTION>
+<TR><TD><IMG
+ WIDTH="407" HEIGHT="349" BORDER="0"
+ SRC="img150.png"
+ ALT="\begin{figure}\begin{center}
+\epsfig{file=agard05.eps,width=9cm}\end{center}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="naca012m"></A><A NAME="17694"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 30:</STRONG>
+Mach number in the naca012 airfoil flow</CAPTION>
+<TR><TD><IMG
+ WIDTH="407" HEIGHT="349" BORDER="0"
+ SRC="img151.png"
+ ALT="\begin{figure}\begin{center}
+\epsfig{file=agard05_m.eps,width=9cm}\end{center}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="naca012cp"></A><A NAME="17695"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 31:</STRONG>
+Pressure coefficient in the naca012 airfoil flow</CAPTION>
+<TR><TD><IMG
+ WIDTH="407" HEIGHT="349" BORDER="0"
+ SRC="img152.png"
+ ALT="\begin{figure}\begin{center}
+\epsfig{file=agard05_cp.eps,width=9cm}\end{center}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+In [<A
+ HREF="node530.html#Pulliam">80</A>] the results of CFD-calculations for several airfoils are
+reported. Here, the computations for <!-- MATH
+ $M_\infty = 1.2$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="74" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img153.png"
+ ALT="$ M_\infty = 1.2$"></SPAN> (Mach number at infinity)
+and <SPAN CLASS="MATH"><IMG
+ WIDTH="48" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img154.png"
+ ALT="$ \alpha=7.$"></SPAN> (angle of attack) are reported. The input deck for this
+calculation can be found in the fluid examples test suite for the Finite
+Element Method (agard05.inp).
+
+<P>
+To explain the differences in the input deck between incompressible and
+compressible flow the crucial section from the compressible input deck is
+reproduced below.
+
+<P>
+<PRE>
+*EQUATION
+2
+3,2,-0.99030509E+00,3,1,-0.13890940E+00
+2
+3756,2,-0.99030509E+00,3756,1,-0.13890940E+00
+...
+*MATERIAL,NAME=AIR
+*CONDUCTIVITY
+0.
+*FLUID CONSTANTS
+1.,0.,293.
+*SPECIFIC GAS CONSTANT
+0.285714286d0
+*SOLID SECTION,ELSET=Eall,MATERIAL=AIR
+*PHYSICAL CONSTANTS,ABSOLUTE ZERO=0.
+*INITIAL CONDITIONS,TYPE=FLUID VELOCITY
+Nall,1,0.99254615
+Nall,2,0.12186934
+Nall,3,0.d0
+*INITIAL CONDITIONS,TYPE=PRESSURE
+Nall,0.49603175
+*INITIAL CONDITIONS,TYPE=TEMPERATURE
+Nall,1.73611111
+*VALUES AT INFINITY
+1.73611111,1.,0.49603175,1.,1.
+**
+*STEP,INCF=200000,SHOCK SMOOTHING=0.01
+*CFD,STEADY STATE,COMPRESSIBLE
+1.,1.
+*BOUNDARY
+BOU1,11,11,1.73611111
+BOU1,1,1,0.99254615
+BOU1,2,2,0.12186934
+BOU1,8,8,0.49603175
+Nall,3,3,0.
+*NODE FILE,FREQUENCYF=40000
+VF,PSF,CP,TSF,TTF,MACH
+*END STEP
+</PRE>
+
+<P>
+Since for compressible flow the temperature, velocity and pressure are linked
+through the ideal gas equation, the energy conservation equation is always
+used and the definition of the thermal conductivity and
+specific heat is mandatory. Inviscid flow is triggered by the definition of a
+zero viscosity and a zero thermal conductivity (therefore, the viscous terms
+in the conservation of momentum and conservation of energy equation disappear). Slip boundary conditions at the airfoil surface are
+realized through
+equations. The specific gas constant is defined with the appopriate keyword. It
+only depends on the kind of gas and not on the temperature. The physical
+constants card is used to define absolute zero for the temperature scale. This
+information is needed since the temperature in the gas equation must be specified in
+Kelvin. Initial conditions must be specified for the velocity, pressure and
+temperature. Careful selection of these values can shorten the computational
+time. The values at infinity (defined with the <A HREF="node368.html#valuesatinfinity">*VALUES AT
+  INFINITY</A> card) are used to calculate the pressure
+coefficient <!-- MATH
+ $C_p = (p -p_{\inf})/(\frac{1}{2} \rho_{\inf} V_{\inf}^2)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="188" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img155.png"
+ ALT="$ C_p = (p -p_{\inf})/(\frac{1}{2} \rho_{\inf} V_{\inf}^2)$"></SPAN>. In
+viscous calculations they can be used for the computation of the
+friction coefficient too. The smoothing parameter on the *STEP card is used to
+define shock smoothing and will be discussed further down.
+
+<P>
+The COMPRESSIBLE parameter on the *CFD card indicates that this is a
+compressible CFD calculation. The consequence of this is that the ideal gas
+equation is used to link the density, pressure and temperature. Therefore, no
+*DENSITY card should be present in the input deck, and the *SPECIFIC GAS
+CONSTANT card is required.
+The use of the STEADY STATE parameter
+tells CalculiX that the calculation is stationary. Instationary
+calculations are triggered by dropping this parameter. In reality, all
+CFD-calculations in CalculiX are instationary. The STEADY STATE parameter, however,
+forces the calculations to be pursued until steady state is reached (so the
+time used is virtual) or until the maximum number of subincrements (parameter
+INCF on the *STEP card)  is reached. Transient
+calculations stop as soon as the final time is reached (the time is real).
+
+<P>
+In compressible calculations shock smoothing is frequently needed in order to
+avoid divergence. Shock smoothing, however, can change the
+solution. Therefore, the shock smoothing coefficient, which can take values
+between 0. and 2., should be chosen as small as possible. For the agard05
+example a value of 0.01 was needed. In general, additional viscosity will
+reduce the shock smoothing needed to avoid divergence. There is a second
+effect of the shock smoothing coefficient: there is no clear steady state
+convergence any more. In order to understand this some additional information
+about the way CFD-calculations in CalculiX are performed is needed. The initial increment size
+which is specified by the user underneath the *CFD card is a
+mechanical increment size. For each mechanical increment an instationary CFD-calculation is
+performed subject to the actual loads (up to steady state for a STEADY STATE
+calculation). For this CFD-calculation subincrements are used, the size of
+which depends on the physical characteristics of the flow (viscosity, heat
+conductivity etc.). They are determined such that stability is assured (or at
+least very likely). In CalculiX, steady state convergence is detected as
+soon as the change in the conservative variables (<!-- MATH
+ $\rho, \rho u, \rho v$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="60" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img156.png"
+ ALT="$ \rho, \rho u, \rho v$"></SPAN> etc.)
+from subincrement to subincrement does not exceed <SPAN CLASS="MATH"><IMG
+ WIDTH="41" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img157.png"
+ ALT="$ 10.^{-8}$"></SPAN> times the actual values of these variables. In
+calculations with a nonzero shock smoothing coefficient the change in
+variables at first decreases down to a certain level about which it oscillates
+erraticaly.  Therefore, it is likely that convergence will never be detected. The change in the conservative variables is
+stored in a file with the name jobname.fcv (assuming the input deck to be jobname.inp). The user may force convergence by
+limiting the number of subincrements with the INCF parameter on the *STEP
+card. As soon as INCF subincrements are calculated the CFD-calculation is
+assumed to be finished and the next mechanical increment is started.
+
+<P>
+The smoothing coefficient may be further reduced by choosing smaller CFD
+subincrements. The fifth entry underneath the *CFD-card is the factor by which
+the CFD increment size calculated based on physical parameters such as
+viscosity and local velocity is divided. Default is 1.25 for compressible
+calculatons and 1. for incompressible calculations. The factor cannot be
+less than the default. For instance, a factor of 5. implies that the time
+increment is chosen as 20 % of the physically based time increment. Larger
+factors will decrease the need for shock smoothing but also linearly increase
+the computational time.
+
+<P>
+If the calculation diverges, the shock smoothing coefficient is set to 0.001
+if it was zero before, and to twice its value else, and the calculation is
+repeated. If the value exceeds 2 the calculation is stops with an error
+message. Shock smoothing is only used for compressible calculations.
+
+<P>
+Figure <A HREF="#naca012">29</A> shows the mesh used for the agard05 calculation. It
+consists of linear wedge elements. In CalculiX, only linear elements
+(tetrahedra, hexahedra or wedges) are allowed for CFD-calculations. It is
+finer along the airfoil (but not as fine as needed to capture the boundary
+layer in viscous calculations). Figures <A HREF="#naca012m">30</A> and  <A HREF="#naca012cp">31</A>
+show the Mach number and the pressure coefficient, respectively. The maximum
+Mach number in [<A
+ HREF="node530.html#Pulliam">80</A>] is about 1.78, the maximum pressure coefficient
+is about -0.55. This agrees well with the present results. Increasing the
+shock smoothing coefficient leads to smoothing fringe plots, however, the
+actual values become worse.
+
+<P>
+The total temperature for this calculation (not shown here) was nearly constant. Recall that the
+total change of the total temperature along a stream line is given by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{D \rho c_p T_t}{D t} = (t^{lm} v_m)_{,l} - \boldsymbol{\nabla} \cdot
+\boldsymbol{q} + \rho h_{ \theta} + \frac{\partial p}{\partial t} + \rho f^m v^k
+\delta_{mk}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="379" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img158.png"
+ ALT="$\displaystyle \frac{D \rho c_p T_t}{D t} = (t^{lm} v_m)_{,l} - \boldsymbol{\nab...
+... + \rho h_{ \theta} + \frac{\partial p}{\partial t} + \rho f^m v^k \delta_{mk}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">1</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The terms on the right hand side correspond to the viscous work (zero), the
+heat flow (zero, since the heat conduction coefficient is zero), the
+heat introduced per unit mass (zero), the change in pressure (zero in the
+steady state regime) and the work by external body forces (zero).
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1191"
+  HREF="node17.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html1187"
+  HREF="node6.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html1181"
+  HREF="node15.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html1189"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1192"
+  HREF="node17.html">Laminar viscous compressible compression</A>
+<B> Up:</B> <A NAME="tex2html1188"
+  HREF="node6.html">Simple example problems</A>
+<B> Previous:</B> <A NAME="tex2html1182"
+  HREF="node15.html">Transient laminar incompressible Couette</A>
+ &nbsp; <B>  <A NAME="tex2html1190"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

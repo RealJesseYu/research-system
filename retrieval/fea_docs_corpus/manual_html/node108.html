@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>In/Out</TITLE>
+<META NAME="description" CONTENT="In/Out">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node109.html">
+<LINK REL="previous" HREF="node107.html">
+<LINK REL="up" HREF="node85.html">
+<LINK REL="next" HREF="node109.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2570"
+  HREF="node109.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2566"
+  HREF="node85.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2560"
+  HREF="node107.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2568"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2571"
+  HREF="node109.html">Mass Flow Percent</A>
+<B> Up:</B> <A NAME="tex2html2567"
+  HREF="node85.html">Fluid Section Types: Gases</A>
+<B> Previous:</B> <A NAME="tex2html2561"
+  HREF="node107.html">Change absolute/relative system</A>
+ &nbsp; <B>  <A NAME="tex2html2569"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000742300000000000000">
+In/Out</A>
+</H3>
+
+<P>
+At locations where mass flow can enter or leave the network an element with
+node label 0 at the entry and exit, respectively, has to be specified.
+
+<P>
+Its
+fluid section type for gas networks can be any of the available types. The
+only effect the type has is whether the nonzero node is considered to be a
+chamber (zero velocity and hence the total temperature equals the static
+temperature) or a potential pipe connection (for a pipe connection node the total temperature does not equal the static
+temperature). The pipe connection types are GASPIPE, RESTRICTOR except for
+RESTRICTOR WALL ORIFICE and USER types starting with UP, all other types are
+chamber-like. A node is a pipe connection node if exactly two gas network
+elements are connected to this node and all of them are pipe connection types.
+
+<P>
+For chamber-like entries and exits it is strongly recommended to use the type INOUT, to be specified on the
+<A HREF="node289.html#fluidsection">*FLUID SECTION</A> card. For this type there are no extra
+parameters. 
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

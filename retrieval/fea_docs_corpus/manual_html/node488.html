@@ -1,0 +1,153 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Element fields</TITLE>
+<META NAME="description" CONTENT="Element fields">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node489.html">
+<LINK REL="previous" HREF="node487.html">
+<LINK REL="up" HREF="node484.html">
+<LINK REL="next" HREF="node489.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7612"
+  HREF="node489.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7608"
+  HREF="node484.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7602"
+  HREF="node487.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7610"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7613"
+  HREF="node489.html">Mesh refining procedure</A>
+<B> Up:</B> <A NAME="tex2html7609"
+  HREF="node484.html">Mesh refinement</A>
+<B> Previous:</B> <A NAME="tex2html7603"
+  HREF="node487.html">Face fields</A>
+ &nbsp; <B>  <A NAME="tex2html7611"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001113400000000000000">
+Element fields</A>
+</H3>
+
+<P>
+The topology of the tetrahedral elements is stored in field
+kontet(1..4,*). This field is dynamically updated during mesh refinement. The
+next free entry in kontet is pointed to by ifreetet, the entries kontet(4,*)
+of entries in the field which have not been used yet point to a next free
+entry. The field kontet is used for the new refined mesh. Entries belonging to
+element numbers of the part of the mesh which is not refined are not available
+for the new tetrahedral elements since they are still part of the mesh after
+refinement. Also the element numbers of elements which are refined are kept
+(and are not available for the new, refined mesh)
+and considered as &ldquo;parent&rdquo; elements of the newly created elements. Therefore,
+at
+the start of the mesh refinement the tetrahedral elements in the part of the
+mesh to be refined are copied (and
+considered as the initial mesh in the refinement procedure) such
+that they occupy the lowest possible free element numbers, i.e. any numbers not
+used by any element of the unrefined mesh. The corresponding middle
+nodes of these elements, if any, are stored in field kontetor(1..6,*). The
+field kontetor is static, i.e. it only contains the middles nodes of the
+quadratic tetrahedral elements of the unrefined mesh. This field is used to
+calculate field ifacext and is discarded immediately afterwards.
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="tet"></A><A NAME="19342"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 198:</STRONG>
+Node, edge and face numbering within a tetrahedral element</CAPTION>
+<TR><TD><IMG
+ WIDTH="445" HEIGHT="453" BORDER="0"
+ SRC="img3206.png"
+ ALT="\begin{figure}\epsfig{file=tet.eps,width=10cm}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+Fields with the same number of lines as kontet are ifatet(1..4,*), bc(1..4,*),
+cg(1..3,*) and iedtet(1..6,*). They contain:
+
+<P>
+
+<UL>
+<LI>ifatet(1..4,*): the numbers of the faces belonging to the tetrahedral
+  element. The order corresponds to Figure <A HREF="#tet">198</A>. The sign of the face
+  number is the sign of the expression for the face equation in which the
+  coordinates of the node opposite to the face (within the same element) were
+  substituted.
+</LI>
+<LI>bc(1..4,*): bc(1..3,*) contains the coordinates of the center of the
+  circumscribed sphere of the element, bc(4,*) contains its radius.
+</LI>
+<LI>cg(1..3,*): contains the coordinates of the center of gravity of the
+  element.
+</LI>
+<LI>iedtet(1..6,*): contains the number of the edges belonging to the
+  element corresponding to the order in Figure <A HREF="#tet">198</A>.
+</LI>
+</UL>
+
+<P>
+All these fields are dynamic. The actual size used for allocation purposes is netet_.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html7612"
+  HREF="node489.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7608"
+  HREF="node484.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7602"
+  HREF="node487.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7610"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7613"
+  HREF="node489.html">Mesh refining procedure</A>
+<B> Up:</B> <A NAME="tex2html7609"
+  HREF="node484.html">Mesh refinement</A>
+<B> Previous:</B> <A NAME="tex2html7603"
+  HREF="node487.html">Face fields</A>
+ &nbsp; <B>  <A NAME="tex2html7611"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

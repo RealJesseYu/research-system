@@ -1,0 +1,319 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Discretization of inertia terms (principal axis coordinate frame)</TITLE>
+<META NAME="description" CONTENT="Discretization of inertia terms (principal axis coordinate frame)">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node76.html">
+<LINK REL="previous" HREF="node74.html">
+<LINK REL="up" HREF="node73.html">
+<LINK REL="next" HREF="node76.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2152"
+  HREF="node76.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2148"
+  HREF="node73.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2142"
+  HREF="node74.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2150"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2153"
+  HREF="node76.html">Mass matrix in (local)</A>
+<B> Up:</B> <A NAME="tex2html2149"
+  HREF="node73.html">User Element: 3D Timoshenko</A>
+<B> Previous:</B> <A NAME="tex2html2143"
+  HREF="node74.html">Differential inertia terms in</A>
+ &nbsp; <B>  <A NAME="tex2html2151"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H4><A NAME="SECTION000724620000000000000">
+Discretization of inertia terms (principal axis coordinate frame)</A>
+</H4> 
+<BR>
+A Galerkin discretization of the (virtual) displacements and rotations <!-- MATH
+ $\boldsymbol{U}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img256.png"
+ ALT="$ \boldsymbol{U}$"></SPAN> 
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{U} \approx \boldsymbol{U}^h = \left[
+    \begin{array}{c}
+      U_1(\xi) \\
+      U_2(\xi) \\
+      U_3(\xi) \\
+      \psi_1(\xi) \\
+      \psi_2(\xi) \\
+      \psi_3(\xi)
+    \end{array}
+    \right]
+  = \boldsymbol{N} \boldsymbol{d}
+  \quad  \textrm{and} \quad 
+  \delta \boldsymbol{U} \approx \delta \boldsymbol{U}^h = \left[
+    \begin{array}{c}
+      \delta U_1(\xi) \\
+      \delta U_2(\xi) \\
+      \delta U_3(\xi) \\
+      \delta \psi_1(\xi) \\
+      \delta \psi_2(\xi) \\
+      \delta \psi_3(\xi) 
+    \end{array}
+    \right]
+  = \boldsymbol{N} \delta \boldsymbol{d}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="498" HEIGHT="131" ALIGN="MIDDLE" BORDER="0"
+ SRC="img394.png"
+ ALT="$\displaystyle \boldsymbol{U} \approx \boldsymbol{U}^h = \left[ \begin{array}{c}...
+...\ \delta \psi_3(\xi) \end{array} \right] = \boldsymbol{N} \delta \boldsymbol{d}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">30</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+leads along with the nodal (virtual) displacements and rotations
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{d} =
+   \left[
+    \begin{array}{c}
+      (U_1)_1 \\
+      (U_2)_1 \\
+        : \\
+      (\psi_{3})_2
+    \end{array}
+    \right]
+  \quad  \textrm{and} \quad 
+  \delta \boldsymbol{d} = 
+   \left[
+    \begin{array}{c}
+      \delta (U_1)_1 \\
+      \delta (U_2)_1 \\
+        : \\
+      \delta (\psi_{3})_2
+    \end{array}
+    \right]
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="290" HEIGHT="93" ALIGN="MIDDLE" BORDER="0"
+ SRC="img395.png"
+ ALT="$\displaystyle \boldsymbol{d} = \left[ \begin{array}{c} (U_1)_1 \\ (U_2)_1 \\ : ...
+...delta (U_1)_1 \\ \delta (U_2)_1 \\ : \\ \delta (\psi_{3})_2 \end{array} \right]$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">31</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+and the with isoparametric shape functions
+<!-- MATH
+ $\boldsymbol{N}(\xi)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="41" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img396.png"
+ ALT="$ \boldsymbol{N}(\xi)$"></SPAN> 
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{N} =
+    \left[
+        \begin{array}{cccccccccccc}
+            \varphi_1 &   0 & 0   & 0   & 0   & 0&  \varphi_2 &   0 & 0   & 0   & 0   & 0 \\
+              0 & \varphi_1 & 0   & 0   & 0   & 0&    0 & \varphi_2 & 0   & 0   & 0   & 0 \\
+              0 &   0 & \varphi_1 & 0   & 0   & 0&    0 &   0 & \varphi_2 & 0   & 0   & 0 \\
+              0 & 0   & 0   & \varphi_1 & 0   & 0&    0 & 0   & 0   & \varphi_2 & 0   & 0 \\
+              0 & 0   & 0   & 0   & \varphi_1 & 0&    0 & 0   & 0   & 0   & \varphi_2 & 0 \\
+              0 & 0   & 0   & 0   & 0 & \varphi_1&    0 & 0   & 0   & 0   & 0 & \varphi_2 
+        \end{array}
+    \right]
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="465" HEIGHT="131" ALIGN="MIDDLE" BORDER="0"
+ SRC="img397.png"
+ ALT="$\displaystyle \boldsymbol{N} = \left[ \begin{array}{cccccccccccc} \varphi_1 &amp; 0...
+... &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; \varphi_1&amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; \varphi_2 \end{array} \right]$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">32</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+where 
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\varphi_1(\xi) = \frac{1}{2}(1-\xi) \ ,  \varphi_2(\xi) = \frac{1}{2}(1+\xi)
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="252" HEIGHT="52" ALIGN="MIDDLE" BORDER="0"
+ SRC="img398.png"
+ ALT="$\displaystyle \varphi_1(\xi) = \frac{1}{2}(1-\xi) \ , \varphi_2(\xi) = \frac{1}{2}(1+\xi)$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">33</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+to the following weak formulation of the inertia terms:
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\int_x \delta \boldsymbol{U}^T \cdot
+    \left[\begin{array}{c}
+        \textrm{d}F_1 \\
+        \textrm{d}F_2\\
+        \textrm{d}F_3  \\
+        \textrm{d}M_1 \\
+        \textrm{d}M_2 \\
+        \textrm{d}M_3 
+  \end{array}
+  \right]  \textrm{d}X_1 = 
+   \delta \boldsymbol{d}^T \boldsymbol{M} \ddot{\boldsymbol{d}} 
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="246" HEIGHT="131" ALIGN="MIDDLE" BORDER="0"
+ SRC="img399.png"
+ ALT="$\displaystyle \int_x \delta \boldsymbol{U}^T \cdot \left[\begin{array}{c} \text...
+...t] \textrm{d}X_1 = \delta \boldsymbol{d}^T \boldsymbol{M} \ddot{\boldsymbol{d}}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">34</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+Requiring a constant cross-section along the entire element thus yields constant material
+parameters, which can be pulled out of the above integration of <!-- MATH
+ $\boldsymbol{M}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="24" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img400.png"
+ ALT="$ \boldsymbol{M}$"></SPAN> over <SPAN CLASS="MATH"><IMG
+ WIDTH="24" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img373.png"
+ ALT="$ X_1$"></SPAN>.
+Thus  the integration of the product of the shape functions  can be performed analytically
+(under consideration of the transformation of the length differential <!-- MATH
+ $\textrm{d}X_1$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="33" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img401.png"
+ ALT="$ \textrm{d}X_1$"></SPAN> to 
+ <!-- MATH
+ $\textrm{d}\xi$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img402.png"
+ ALT="$ \textrm{d}\xi$"></SPAN> according to
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\textrm{d}X_1 =  \textrm{det}\boldsymbol{J} \textrm{d}\xi =   \frac{1}{2}(X_2 - X_1)\textrm{d}\xi
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="226" HEIGHT="52" ALIGN="MIDDLE" BORDER="0"
+ SRC="img403.png"
+ ALT="$\displaystyle \textrm{d}X_1 = \textrm{det}\boldsymbol{J} \textrm{d}\xi = \frac{1}{2}(X_2 - X_1)\textrm{d}\xi$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">35</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\int_L \varphi_i \varphi_j \textrm{d}X_1 = \frac{1}{2}(X_2 - X_1)\int_{-\frac{1}{2}}^\frac{1}{2}  \varphi_i \varphi_j \textrm{d}\xi
+  =  \left\{
+   \begin{array}{c}
+      \frac{1}{3}(X_2 - X_1) \ , \quad i = j\\
+      \frac{1}{6}(X_2 - X_1) \ , \quad i \ne j 
+  \end{array}
+    \right.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="472" HEIGHT="62" ALIGN="MIDDLE" BORDER="0"
+ SRC="img404.png"
+ ALT="$\displaystyle \int_L \varphi_i \varphi_j \textrm{d}X_1 = \frac{1}{2}(X_2 - X_1)...
+... \ , \quad i = j\\ \frac{1}{6}(X_2 - X_1) \ , \quad i \ne j \end{array} \right.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">36</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html2152"
+  HREF="node76.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2148"
+  HREF="node73.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2142"
+  HREF="node74.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2150"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2153"
+  HREF="node76.html">Mass matrix in (local)</A>
+<B> Up:</B> <A NAME="tex2html2149"
+  HREF="node73.html">User Element: 3D Timoshenko</A>
+<B> Previous:</B> <A NAME="tex2html2143"
+  HREF="node74.html">Differential inertia terms in</A>
+ &nbsp; <B>  <A NAME="tex2html2151"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

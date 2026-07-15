@@ -13,3 +13,4 @@ harness/triage_last_run.json
 harness/witness_*.log
 harness/killrate_18_*.json
 harness/validation_batch_18.json
+/cases_fea/

@@ -1,0 +1,714 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Frequency analysis</TITLE>
+<META NAME="description" CONTENT="Frequency analysis">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node176.html">
+<LINK REL="previous" HREF="node174.html">
+<LINK REL="up" HREF="node173.html">
+<LINK REL="next" HREF="node176.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html3453"
+  HREF="node176.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3449"
+  HREF="node173.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3443"
+  HREF="node174.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3451"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3454"
+  HREF="node176.html">Complex frequency analysis</A>
+<B> Up:</B> <A NAME="tex2html3450"
+  HREF="node173.html">Types of analysis</A>
+<B> Previous:</B> <A NAME="tex2html3444"
+  HREF="node174.html">Static analysis</A>
+ &nbsp; <B>  <A NAME="tex2html3452"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00079200000000000000">
+Frequency analysis</A>
+</H3>
+
+<P>
+In a frequency analysis the lowest eigenfrequencies and eigenmodes of the structure are calculated. In CalculiX, the mass matrix is not lumped, and thus a generalized eigenvalue problem has to be solved. The theory can be found in any textbook on vibrations or on finite elements, e.g. [<A
+ HREF="node530.html#Zienkiewicz">112</A>]. A crucial point in the present implementation is that, instead of looking for the smallest eigenfrequencies of the generalized eigenvalue problem, the largest eigenvalues of the inverse problem are determined. For large problems this results in execution times cut by about a factor of 100 (!). The inversion is performed by calling the linear equation solver SPOOLES. A frequency step is triggered by the key word <A HREF="node290.html#frequency">*FREQUENCY</A> and  can be perturbative or not.
+
+<P>
+If the perturbation parameter is not activated on the <A HREF="node352.html#step">*STEP</A> card, the frequency analysis is performed on the unloaded structure, constrained by the homogeneous SPC's and MPC's. Any steps preceding the frequency step do not have any influence on the results.
+
+<P>
+If the perturbation parameter is activated, the stiffness matrix is augmented by contributions resulting from the displacements and stresses at the end of the last non-perturbative static step, if any, and the material parameters are based on the temperature at the end of that step. Thus, the effect of the centrifugal force on the frequencies in a turbine blade can be analyzed by first performing a static calculation with these loads, and selecting the perturbation parameter on the <A HREF="node352.html#step">*STEP</A> card in the subsequent frequency step. The loading at the end of a perturbation step is reset to zero.
+
+<P>
+If the input deck is stored in the file &ldquo;problem.inp&rdquo;, where
+&ldquo;problem&rdquo; stands for any name, the eigenfrequencies are stored in
+the &ldquo;problem.dat&rdquo; file (notice that the format of the storage depends on the
+symmetry of the stiffness matrix; a nonsymmetric stiffness matrix results
+e.g. from contact friction and can lead to complex eigenvalues). Furthermore, if the parameter STORAGE is set to yes
+(STORAGE=YES) on the *FREQUENCY card the eigenfrequencies,
+eigenmodes, stiffness matrix and mass matrix are stored in binary form in a "problem.eig" file for further use (e.g. in a linear dynamic step).
+
+<P>
+All output of the eigenmodes is normalized by means of the mass
+matrix, i.e. the generalized mass is one. The eigenvalue of the generalized
+eigenvalue problem is actually the square of the eigenfrequency. The
+eigenvalue is guaranteed to be real (the stiffness and mass matrices are
+symmetric; the only exception to this is if contact friction is included,
+which can lead to complex eigenfrequencies), but it is positive only for positive definite stiffness
+matrices. Due to preloading the stiffness matrix is not necessarily positive
+definite. This can lead to purely imaginary eigenfrequencies which physically
+mean that the structure buckles.
+
+<P>
+Apart from the eigenfrequencies the total effective mass and total effective
+modal mass for all rigid body modes are also calculated and stored in the
+.dat-file. There are six rigid body modes, three translations and three
+rotations. Let us call any of these <SPAN CLASS="MATH"><B><IMG
+ WIDTH="32" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1715.png"
+ ALT="$ \{R\}$"></B></SPAN>. It is a vector corresponding to a
+unit rigid body mode, e.g. a unit translation in the global x-direction. The
+participation factors <SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1716.png"
+ ALT="$ P_i$"></B></SPAN> are calculated by
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+P_i = \{U_i\}^T [M] \{R\}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="141" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1717.png"
+ ALT="$\displaystyle P_i = \{U_i\}^T [M] \{R\}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">522</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+They reflect the degree of participation of each mode in the selected rigid
+body motion. Recall that the modes are mass-normalized, consequently the unit
+of the mode is <!-- MATH
+ $1/\sqrt{\text{mass}}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="67" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1718.png"
+ ALT="$ 1/\sqrt{\text{mass}}$"></B></SPAN>, the unit of the rigid body motion is
+length. The effective modal mass is defined by <SPAN CLASS="MATH"><B><IMG
+ WIDTH="23" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1719.png"
+ ALT="$ P_i^2$"></B></SPAN>, the total effective
+modal mass by
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\sum_i P_i^2
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="49" HEIGHT="48" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1720.png"
+ ALT="$\displaystyle \sum_i P_i^2$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">523</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+(unit: mass <!-- MATH
+ $\cdot \text{length}^2$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="8" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1250.png"
+ ALT="$ \cdot$">&nbsp; &nbsp;length<IMG
+ WIDTH="11" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img9.png"
+ ALT="$ ^2$"></B></SPAN>). The total effective mass is the size of the rigid motion, i.e. it is the
+internal product of the rigid motion with itself:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\{R\}^T [M] \{R\}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="100" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1721.png"
+ ALT="$\displaystyle \{R\}^T [M] \{R\}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">524</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+If one would calculate infinitely many modes the total effective modal mass
+should be equal to the total effective mass. Since only a finite number of
+modes are calculated the total effective modal mass will be less. By comparing
+the total effective modal mass with the total effective mass one gains an
+impression whether enough modes were calculated to perform good modal dynamics
+calculation (at least for the rigid motions). 
+
+<P>
+A special kind of frequency calculations is a cyclic symmetry calculation for which the keyword cards <A HREF="node356.html#surface">*SURFACE</A>, <A HREF="node360.html#tie">*TIE</A>, <A HREF="node258.html#cyclicsymmetrymodel">*CYCLIC SYMMETRY MODEL</A> and <A HREF="node343.html#selectcyclicsymmetrymodes">*SELECT CYCLIC SYMMETRY MODES</A> are available. This kind of calculation applies to structures consisting of identical sectors ordered in a cyclic way such as in Figure <A HREF="#cycsym">145</A>.
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="cycsym"></A><A NAME="18693"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 145:</STRONG>
+Cyclic symmetry structure consisting of four identical sectors</CAPTION>
+<TR><TD><IMG
+ WIDTH="456" HEIGHT="456" BORDER="0"
+ SRC="img1722.png"
+ ALT="\begin{figure}\epsfig{file=Cycsym.eps,width=10cm}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+For such structures it is sufficient to model just one sector (also called datum sector) to obtain the eigenfrequencies and eigenmodes of the whole structure. The displacement values on the left and right boundary (or surfaces) of the datum sector are phase shifted. The shift depends on how many waves are looked for along the circumference of the structure. Figure <A HREF="#noddiam2">146</A> shows an eigenmode for a full disk exhibiting two complete waves along the circumference. This corresponds to four zero-crossings of the waves and a nodal diameter of two. This nodal diameter (also called cyclic symmetry mode number) can be considered as the number of waves, or also as the number of diameters in the structure along which the displacements are zero.
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="noddiam2"></A><A NAME="18694"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 146:</STRONG>
+Eigenmode for a full disk with a nodal diameter of two</CAPTION>
+<TR><TD><IMG
+ WIDTH="453" HEIGHT="398" BORDER="0"
+ SRC="img1723.png"
+ ALT="\begin{figure}\epsfig{file=Noddiam2.eps,width=10cm}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+The lowest nodal diameter is zero and corresponds to a solution which is
+identical on the left and right boundary of the datum sector. For a structure
+consisting of N sectors, the highest feasible nodal diameter is N/2 for N even
+and (N-1)/2 for N odd. The nodal diameter is selected by the user on the
+<A HREF="node343.html#selectcyclicsymmetrymodes">*SELECT CYCLIC SYMMETRY MODES</A> card. On
+the <A HREF="node258.html#cyclicsymmetrymodel">*CYCLIC SYMMETRY MODEL</A> card, the number of base
+sectors fitting in <!-- MATH
+ $360^{\circ}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="35" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1724.png"
+ ALT="$ 360^{\circ}$"></B></SPAN> is to be provided. On the same card the user
+also indicates the number of sectors for which the solution is to be stored in
+the .frd file. In this way, the solution can be plotted for the whole
+structure, although the calculation was done for only one sector. The
+rotational direction for the multiplication of the datum sector is from the
+dependent surface (slave) to the independent surface (master).
+
+<P>
+Mathematically the left and right boundary of the datum sector are coupled by
+MPC's with complex coefficients. This leads to a complex generalized
+eigenvalue problem with a Hermitian stiffness matrix, which can be reduced to
+a real eigenvalue problem the matrices of which are twice the size as those in
+the original problem.
+
+<P>
+The phase shift between left and right boundary of the datum sector is given
+by <SPAN CLASS="MATH"><B><IMG
+ WIDTH="59" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1725.png"
+ ALT="$ 2 \pi N/M$"></B></SPAN>, where N is the nodal diameter and M is the number of base
+sectors in <!-- MATH
+ $360^{\circ}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="35" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1724.png"
+ ALT="$ 360^{\circ}$"></B></SPAN>. Whereas N has to be an integer, CalculiX allows M to
+be a real number. In this way the user may enter a fictitious value for M,
+leading to arbitrary phase shifts between the left and right boundary of the
+datum sector (for advanced applications).
+
+<P>
+For models containing the axis of cyclic symmetry (e.g. a full disk), the
+nodes on the symmetry axis are treated differently depending on whether the
+nodal diameter is 0, 1 or exceeds 1. For nodal diameter 0, these nodes are
+fixed in a plane perpendicular to the cyclic symmetry axis, for nodal diameter
+1 they cannot move along the cyclic symmetry axis and for higher nodal
+diameters they cannot move at all. For this kind of structures calculations
+for nodal diameters 0 or 1 must be performed in separate steps.
+
+<P>
+The mass normalization of a sector subject to cyclic symmetry is done based on
+the mass of the sector itself. If the normalization were done based on
+360<SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img356.png"
+ ALT="$ ^\circ$"></B></SPAN> the modes corresponding to a nodal diameter of 0 and M/2 (if M is
+even) would have to be devided by <SPAN CLASS="MATH"><B><IMG
+ WIDTH="34" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1726.png"
+ ALT="$ \sqrt{M}$"></B></SPAN>, the others by <!-- MATH
+ $\sqrt{M/2}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="52" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1727.png"
+ ALT="$ \sqrt{M/2}$"></B></SPAN>.  
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="multistage"></A><A NAME="18695"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 147:</STRONG>
+</CAPTION>
+<TR><TD><IMG
+ WIDTH="450" HEIGHT="360" BORDER="0"
+ SRC="img1728.png"
+ ALT="\begin{figure}\epsfig{file=multistage.eps,width=10cm}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+Adjacent structures with datum sectors which differ in size can be calculated
+by tying them together with the *TIE,MULTISTAGE keyword. The way this works is
+illustrated in Figure <A HREF="#multistage">147</A>. Two stages I and II with different cyclic
+symmetry are adjacent to each other. To connect them, multiple point
+constraints are created. The larger stage segment is defined as the dependent side,
+the smaller as the independent. A point in between them, such as point A
+(belonging to the dependent stage), can be
+connected directly to the independent stage with a tie MPC. Other points, such
+as B (also belonging to the dependent stage), are mapped into a point opposite
+of 
+the basis sector 0 (point B' belonging to the dependent side) by rotating them by a number of sectors, in this
+case just 1 sector. Therefore, the displacements of B and B' are identical in
+cylindrical coordinates apart from a shift by just one sector:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\{U\}_{\text{cyl},B} = \{U\}_{\text{cyl},B'} \; e^{i \frac{2 \pi}{M}}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="181" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1729.png"
+ ALT="$\displaystyle \{U\}_{\text{cyl},B} = \{U\}_{\text{cyl},B'} \; e^{i \frac{2 \pi}{M}}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">525</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+for nodal diameter <SPAN CLASS="MATH"><B><IMG
+ WIDTH="47" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1730.png"
+ ALT="$ N=1$"></B></SPAN>. The displacements for point B' in the above equation
+are obtained by a tie constraint of B' with the opposite independent face. For other nodal diameters the argument of the
+exponential function has to be multiplied by <SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img764.png"
+ ALT="$ N$"></B></SPAN>. For point C one obtains:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\{U\}_{\text{cyl},C} = \{U\}_{\text{cyl},C'} \; e^{i \frac{4 \pi}{M}},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="185" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1731.png"
+ ALT="$\displaystyle \{U\}_{\text{cyl},C} = \{U\}_{\text{cyl},C'} \; e^{i \frac{4 \pi}{M}},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">526</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and for point D:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\{U\}_{\text{cyl},D} = \{U\}_{\text{cyl},D'} \; e^{i \frac{2 (M-1) \pi}{M}}
+  = \{U\}_{\text{cyl},D'} \; e^{-i \frac{2 \pi}{M}}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="349" HEIGHT="44" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1732.png"
+ ALT="$\displaystyle \{U\}_{\text{cyl},D} = \{U\}_{\text{cyl},D'} \; e^{i \frac{2 (M-1) \pi}{M}} = \{U\}_{\text{cyl},D'} \; e^{-i \frac{2 \pi}{M}}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">527</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+If the frequency calculation is a perturbation step (by specifying the parameter PERTURBATION on
+the *STEP card of the frequency step) preceded by a static step, the
+multistage MPC's reduce to those above for N=0, i.e. the displacements in
+cylindrical coordinates are the same for A and A', for B and B' etc. However,
+this leads to inconsistent results in the presence of forces (axial and/or
+tangential) in between the stages. Indeed, due to the larger size of the
+dependent stage, an axial force in the independent stage has to be multiplied
+by the ratio of the size of the stage segments. In the example in Figure
+<A HREF="#multistage">147</A> the force in the dependent stage has to be four times the
+force in the independent stage. This is obtained by multiplying the
+coefficient of the dependent node in the connecting multiple points
+constraints by four ([<A
+ HREF="node530.html#Dhondt">24</A>], Section 2.6.2). Therefore, the connecting
+multistage constraints are different for a static step than for a frequency
+step. Since the multistage constraints are created in CalculiX in the first
+step, a static and a frequency step cannot be used in the same multistage
+calculation. The solution to this is to perform the static step in a separate
+calculation, store the stresses and displacements in the .dat-file, transform
+them in the format of <A HREF="node304.html#initialconditions">*INITIAL CONDITIONS</A>  for
+stresses and displacements and include these in a subsequent perturbative frequency calculation.
+
+<P>
+The use of multistage conditions is illustrated
+by file multistage.inp in the test examples.
+
+<P>
+Eigenmodes resulting from frequency calculations with cyclic symmetry can be
+interpreted as traveling waves (indeed, all eigenmode solutions exhibiting a
+complex nature, i.e. containing a real and imaginary part, are traveling
+waves). Therefore, a circumferential traveling direction can be
+determined. This traveling direction is determined in CalculiX and stored in the
+.dat-file together with the axis reference direction.
+
+<P>
+To determine the traveling direction (cw or ccw) the displacement solution at
+the center of each element is calculated:
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+u&=&u_R+i u_I \nonumber\\
+  v&=&v_R+i v_I \nonumber\\
+  w&=&w_R+i w_I,
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="13" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1733.png"
+ ALT="$\displaystyle u$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="65" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1734.png"
+ ALT="$\displaystyle u_R+i u_I$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1735.png"
+ ALT="$\displaystyle v$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="62" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1736.png"
+ ALT="$\displaystyle v_R+i v_I$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1737.png"
+ ALT="$\displaystyle w$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="74" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1738.png"
+ ALT="$\displaystyle w_R+i w_I,$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">528</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+where u,v and w are the displacement components, the subscript R denotes the
+real part, I the imaginary part. The sum of the square amounts to
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+u^2+v^2+w^2=(u_R^2+v_R^2+w_R^2-u_I^2-v_I^2-w_I^2)+2 i (u_Ru_I+v_Rv_I+w_Rw_I)
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="528" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1739.png"
+ ALT="$\displaystyle u^2+v^2+w^2=(u_R^2+v_R^2+w_R^2-u_I^2-v_I^2-w_I^2)+2 i (u_Ru_I+v_Rv_I+w_Rw_I)$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">529</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+or
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+u^2+v^2+w^2=A(r,\varphi,z) e^{i \psi(r,\varphi,z)}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="242" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1740.png"
+ ALT="$\displaystyle u^2+v^2+w^2=A(r,\varphi,z) e^{i \psi(r,\varphi,z)}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">530</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+In the latter equation <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img381.png"
+ ALT="$ A$"></B></SPAN> is the amplitude, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="15" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1238.png"
+ ALT="$ \psi$"></B></SPAN> the phase angle, both of
+which depend on the actual location, here described by the cylindrical
+coordinates <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img64.png"
+ ALT="$ r$"></B></SPAN>, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img580.png"
+ ALT="$ \varphi$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img839.png"
+ ALT="$ z$"></B></SPAN>. The motion of <!-- MATH
+ $u^2+v^2+w^2$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="93" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1741.png"
+ ALT="$ u^2+v^2+w^2$"></B></SPAN> is now
+focussed on in order to determine the traveling direction of the eigenmodes. Taking the frequency of the eigenmode into
+account one arrives at:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+(u^2+v^2+w^2)e^{2i \omega t}=A(r,\varphi,z) e^{i (2\omega t + \psi(r,\varphi,z))}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="326" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1742.png"
+ ALT="$\displaystyle (u^2+v^2+w^2)e^{2i \omega t}=A(r,\varphi,z) e^{i (2\omega t + \psi(r,\varphi,z))}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">531</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+From this expression the wave character of the response is obvious. For an observer traveling around the axis (at constant <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img64.png"
+ ALT="$ r$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img839.png"
+ ALT="$ z$"></B></SPAN>) with the local wave velocity one has:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+2\omega t + \psi(r,\varphi,z)=\text{constant}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="127" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1743.png"
+ ALT="$\displaystyle 2\omega t + \psi(r,\varphi,z)=$">constant</SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">532</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+or
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{\partial \psi}{\partial \varphi} \frac{d \varphi}{d t} = -2\omega,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="107" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1744.png"
+ ALT="$\displaystyle \frac{\partial \psi}{\partial \varphi} \frac{d \varphi}{d t} = -2\omega,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">533</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+leading to
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{d \varphi}{d t}=-\frac{2\omega}{\frac{\partial \psi}{\partial \varphi}}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="88" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1745.png"
+ ALT="$\displaystyle \frac{d \varphi}{d t}=-\frac{2\omega}{\frac{\partial \psi}{\partial \varphi}}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">534</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+From the last equation one finds that the traveling direction depends on the
+sign of <!-- MATH
+ $\partial \psi / \partial \varphi$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="52" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1746.png"
+ ALT="$ \partial \psi / \partial \varphi$"></B></SPAN>. If this quantity is positive the
+  traveling direction is backwards (or ccw when looking in the positive direction of
+  the axis), else it is forwards. The partial derivative of obtained by
+  slightly moving the actual position in positive <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img580.png"
+ ALT="$ \varphi$"></B></SPAN>-direction out of
+  the center of the element and reevaluating <SPAN CLASS="MATH"><B><IMG
+ WIDTH="15" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1238.png"
+ ALT="$ \psi$"></B></SPAN>. This procedure is
+  repeated for all elements. For good accuracy the response from the element
+  for which <!-- MATH
+ $||u^2+v^2+w^2||$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="111" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1747.png"
+ ALT="$ \vert\vert u^2+v^2+w^2\vert\vert$"></B></SPAN> is maximum (always evaluated at the center of
+  the element) is taken.
+
+<P>
+Finally one word of caution on frequency calculations with axisymmetric
+elements. Right now, you will only get the eigenmodes corresponding to a nodal
+diameter of 0, i.e. all axisymmetric modes. If you would like to calculate
+asymmetric modes, please model a segment with volumetric elements and
+perform a cyclic symmetry analysis.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html3453"
+  HREF="node176.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3449"
+  HREF="node173.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3443"
+  HREF="node174.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3451"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3454"
+  HREF="node176.html">Complex frequency analysis</A>
+<B> Up:</B> <A NAME="tex2html3450"
+  HREF="node173.html">Types of analysis</A>
+<B> Previous:</B> <A NAME="tex2html3444"
+  HREF="node174.html">Static analysis</A>
+ &nbsp; <B>  <A NAME="tex2html3452"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,385 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Program structure.</TITLE>
+<META NAME="description" CONTENT="Program structure.">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node529.html">
+<LINK REL="previous" HREF="node404.html">
+<LINK REL="up" HREF="ccx.html">
+<LINK REL="next" HREF="node406.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html6412"
+  HREF="node406.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html6408"
+  HREF="ccx.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html6402"
+  HREF="node404.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html6410"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html6413"
+  HREF="node406.html">Allocation of the fields</A>
+<B> Up:</B> <A NAME="tex2html6409"
+  HREF="ccx.html">CalculiX CrunchiX USER'S MANUAL</A>
+<B> Previous:</B> <A NAME="tex2html6403"
+  HREF="node404.html">Programming rules.</A>
+ &nbsp; <B>  <A NAME="tex2html6411"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION000110000000000000000">
+Program structure.</A>
+</H1>
+
+<P>
+The main subroutine of CalculiX is ccx_2.23.c. It consists roughly of the
+following parts:
+
+<P>
+
+<UL>
+<LI>Allocation of the fields
+</LI>
+</UL>
+For each step:
+
+<OL>
+<LI>Reading the step input data (including the prestep data for the first
+  step)
+</LI>
+<LI>Determining the matrix structure
+</LI>
+<LI>Filling and solving the set of equations, storing the results.
+</LI>
+</OL>
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html6414"
+  HREF="node406.html">Allocation of the fields</A>
+<UL>
+<LI><A NAME="tex2html6415"
+  HREF="node407.html">openfile</A>
+<LI><A NAME="tex2html6416"
+  HREF="node408.html">readinput</A>
+<LI><A NAME="tex2html6417"
+  HREF="node409.html">allocate</A>
+<LI><A NAME="tex2html6418"
+  HREF="node410.html">restart</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html6419"
+  HREF="node411.html">Reading the step input data</A>
+<UL>
+<LI><A NAME="tex2html6420"
+  HREF="node412.html">SPC's</A>
+<LI><A NAME="tex2html6421"
+  HREF="node413.html">Homogeneous linear equations</A>
+<LI><A NAME="tex2html6422"
+  HREF="node414.html">Concentrated loads</A>
+<LI><A NAME="tex2html6423"
+  HREF="node415.html">Facial distributed loads</A>
+<LI><A NAME="tex2html6424"
+  HREF="node416.html">Mechanical body loads</A>
+<LI><A NAME="tex2html6425"
+  HREF="node417.html">Distributing coupling loads</A>
+<LI><A NAME="tex2html6426"
+  HREF="node418.html">Sets</A>
+<LI><A NAME="tex2html6427"
+  HREF="node419.html">Material description</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html6428"
+  HREF="node420.html">Expansion of the one-dimensional and two-dimensional elements</A>
+<UL>
+<LI><A NAME="tex2html6429"
+  HREF="node421.html">Cataloguing the elements belonging to a given node</A>
+<LI><A NAME="tex2html6430"
+  HREF="node422.html">Calculating the normals in the nodes</A>
+<LI><A NAME="tex2html6431"
+  HREF="node423.html">Expanding the 1D and 2D elements</A>
+<LI><A NAME="tex2html6432"
+  HREF="node424.html">Connecting 1D and 2D elements to 3D elements</A>
+<LI><A NAME="tex2html6433"
+  HREF="node425.html">Applying the SPC's to the expanded structure</A>
+<LI><A NAME="tex2html6434"
+  HREF="node426.html">Applying the MPC's to the expanded structure</A>
+<LI><A NAME="tex2html6435"
+  HREF="node427.html">Applying temperatures and temperature gradients</A>
+<LI><A NAME="tex2html6436"
+  HREF="node428.html">Applying concentrated forces to the expanded structure</A>
+<LI><A NAME="tex2html6437"
+  HREF="node429.html">Integrating the stresses in beams to obtain the section forces</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html6438"
+  HREF="node430.html">Contact</A>
+<UL>
+<LI><A NAME="tex2html6439"
+  HREF="node431.html">Penalty contact</A>
+<LI><A NAME="tex2html6440"
+  HREF="node432.html">Massless contact</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html6441"
+  HREF="node433.html">Storing distributions for local coordinate systems</A>
+<LI><A NAME="tex2html6442"
+  HREF="node434.html">Determining the matrix structure</A>
+<UL>
+<LI><A NAME="tex2html6443"
+  HREF="node435.html">Matching the SPC's</A>
+<LI><A NAME="tex2html6444"
+  HREF="node436.html">De-cascading the MPC's</A>
+<LI><A NAME="tex2html6445"
+  HREF="node437.html">Determining the matrix structure.</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html6446"
+  HREF="node438.html">Filling and solving the set of equations, storing the results</A>
+<UL>
+<LI><A NAME="tex2html6447"
+  HREF="node439.html">Linear static analysis</A>
+<LI><A NAME="tex2html6448"
+  HREF="node440.html">Nonlinear calculations</A>
+<LI><A NAME="tex2html6449"
+  HREF="node441.html">Frequency calculations</A>
+<LI><A NAME="tex2html6450"
+  HREF="node442.html">Buckling calculations</A>
+<LI><A NAME="tex2html6451"
+  HREF="node443.html">Modal dynamic calculations</A>
+<LI><A NAME="tex2html6452"
+  HREF="node444.html">Steady state dynamics calculations</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html6453"
+  HREF="node445.html">Major routines</A>
+<UL>
+<LI><A NAME="tex2html6454"
+  HREF="node446.html">mafillsm</A>
+<LI><A NAME="tex2html6455"
+  HREF="node447.html">results</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html6456"
+  HREF="node448.html">Aerodynamic and hydraulic networks</A>
+<UL>
+<LI><A NAME="tex2html6457"
+  HREF="node449.html">The variables and the equations</A>
+<LI><A NAME="tex2html6458"
+  HREF="node450.html">Determining the basic characteristics of the network</A>
+<LI><A NAME="tex2html6459"
+  HREF="node451.html">Initializing the unknowns</A>
+<LI><A NAME="tex2html6460"
+  HREF="node452.html">Calculating the residual and setting up the equation system</A>
+<LI><A NAME="tex2html6461"
+  HREF="node453.html">Convergence criteria</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html6462"
+  HREF="node454.html">Turbulent Flow in Open Channels</A>
+<UL>
+<LI><A NAME="tex2html6463"
+  HREF="node455.html">Sluice Gate</A>
+<LI><A NAME="tex2html6464"
+  HREF="node456.html">Wear</A>
+<LI><A NAME="tex2html6465"
+  HREF="node457.html">Straight Channel</A>
+<LI><A NAME="tex2html6466"
+  HREF="node458.html">Reservoir</A>
+<LI><A NAME="tex2html6467"
+  HREF="node459.html">Contraction, Enlargement, Step and Fall</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html6468"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<UL>
+<LI><A NAME="tex2html6469"
+  HREF="node461.html">Renumbering</A>
+<LI><A NAME="tex2html6470"
+  HREF="node462.html">Topological information</A>
+<LI><A NAME="tex2html6471"
+  HREF="node463.html">Determining the structure of the system matrices</A>
+<LI><A NAME="tex2html6472"
+  HREF="node464.html">Initial calculations</A>
+<LI><A NAME="tex2html6473"
+  HREF="node465.html">The left hand sides of the equation systems</A>
+<LI><A NAME="tex2html6474"
+  HREF="node466.html">Determining the time increment</A>
+<LI><A NAME="tex2html6475"
+  HREF="node467.html">Determining the loading</A>
+<LI><A NAME="tex2html6476"
+  HREF="node468.html">Step 1: determining <!-- MATH
+ $\Delta \boldsymbol{V}^*$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="39" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="$ \Delta \boldsymbol {V}^*$"></B></SPAN></A>
+<LI><A NAME="tex2html6477"
+  HREF="node469.html">Step 2: determining the pressure/density correction</A>
+<LI><A NAME="tex2html6478"
+  HREF="node470.html">Step 3: determining the second momentum correction</A>
+<LI><A NAME="tex2html6479"
+  HREF="node471.html">Step 4: determining the energy correction</A>
+<LI><A NAME="tex2html6480"
+  HREF="node472.html">Step 5: determining the turbulence corrections</A>
+<LI><A NAME="tex2html6481"
+  HREF="node473.html">Updating the conservative variables</A>
+<LI><A NAME="tex2html6482"
+  HREF="node474.html">Smoothing the conservative variables for gases</A>
+<LI><A NAME="tex2html6483"
+  HREF="node475.html">Determining the physical variables</A>
+<LI><A NAME="tex2html6484"
+  HREF="node476.html">Application of BC's</A>
+<LI><A NAME="tex2html6485"
+  HREF="node477.html">Calculation of the smoothing field</A>
+<LI><A NAME="tex2html6486"
+  HREF="node478.html">Convergence check</A>
+<LI><A NAME="tex2html6487"
+  HREF="node479.html">Result output</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html6488"
+  HREF="node480.html">Sensitivity Analysis</A>
+<UL>
+<LI><A NAME="tex2html6489"
+  HREF="node481.html">Preprocessing the sensitivity</A>
+<LI><A NAME="tex2html6490"
+  HREF="node482.html">Processing the sensitivity</A>
+<LI><A NAME="tex2html6491"
+  HREF="node483.html">Postprocessing the sensitivity</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html6492"
+  HREF="node484.html">Mesh refinement</A>
+<UL>
+<LI><A NAME="tex2html6493"
+  HREF="node485.html">Nodal fields</A>
+<LI><A NAME="tex2html6494"
+  HREF="node486.html">Edge fields</A>
+<LI><A NAME="tex2html6495"
+  HREF="node487.html">Face fields</A>
+<LI><A NAME="tex2html6496"
+  HREF="node488.html">Element fields</A>
+<LI><A NAME="tex2html6497"
+  HREF="node489.html">Mesh refining procedure</A>
+<UL>
+<LI><A NAME="tex2html6498"
+  HREF="node490.html">cattet.f</A>
+<LI><A NAME="tex2html6499"
+  HREF="node491.html">catedges_refine.f</A>
+<LI><A NAME="tex2html6500"
+  HREF="node492.html">determineextern.f</A>
+<LI><A NAME="tex2html6501"
+  HREF="node493.html">midexternaledges.f</A>
+<LI><A NAME="tex2html6502"
+  HREF="node494.html">midexternalfaces.f</A>
+<LI><A NAME="tex2html6503"
+  HREF="node495.html">START OF MAJOR LOOP</A>
+<LI><A NAME="tex2html6504"
+  HREF="node496.html">first loop: calculateh.f</A>
+<LI><A NAME="tex2html6505"
+  HREF="node497.html">first loop: getlocalresults.f</A>
+<LI><A NAME="tex2html6506"
+  HREF="node498.html">all but the first loop: calculated.f</A>
+<LI><A NAME="tex2html6507"
+  HREF="node499.html">START OF THE REFINEMENT OF THE EXTERNAL EDGES</A>
+<LI><A NAME="tex2html6508"
+  HREF="node500.html">edgedivide.f</A>
+<LI><A NAME="tex2html6509"
+  HREF="node501.html">newnodes.f</A>
+<LI><A NAME="tex2html6510"
+  HREF="node502.html">cavityext_refine.f</A>
+<LI><A NAME="tex2html6511"
+  HREF="node503.html">START OF THE REFINEMENT OF THE INTERNAL EDGES.</A>
+<LI><A NAME="tex2html6512"
+  HREF="node504.html">cavity_refine.f</A>
+<LI><A NAME="tex2html6513"
+  HREF="node505.html">SMOOTHING THE MESH</A>
+<LI><A NAME="tex2html6514"
+  HREF="node506.html">catnodes.f</A>
+<LI><A NAME="tex2html6515"
+  HREF="node507.html">meshquality.f</A>
+<LI><A NAME="tex2html6516"
+  HREF="node508.html">smoothingvertexnodes.f</A>
+<LI><A NAME="tex2html6517"
+  HREF="node509.html">END OF MAJOR LOOP.</A>
+<LI><A NAME="tex2html6518"
+  HREF="node510.html">projectvertexnodes.f</A>
+<LI><A NAME="tex2html6519"
+  HREF="node511.html">smoothbadvertex.f</A>
+<LI><A NAME="tex2html6520"
+  HREF="node512.html">removesliver.f</A>
+<LI><A NAME="tex2html6521"
+  HREF="node513.html">CREATING QUADRATIC TETRAHEDRAL ELEMENTS.</A>
+<LI><A NAME="tex2html6522"
+  HREF="node514.html">genmidnodes.f</A>
+<LI><A NAME="tex2html6523"
+  HREF="node515.html">calculatehmid.f</A>
+<LI><A NAME="tex2html6524"
+  HREF="node516.html">searchmidneigh.f</A>
+<LI><A NAME="tex2html6525"
+  HREF="node517.html">quadmeshquality.f</A>
+<LI><A NAME="tex2html6526"
+  HREF="node518.html">smoothingmidnodes.f</A>
+<LI><A NAME="tex2html6527"
+  HREF="node519.html">projectmidnodes.f</A>
+<LI><A NAME="tex2html6528"
+  HREF="node520.html">smoothbadmid.f</A>
+</UL>
+<LI><A NAME="tex2html6529"
+  HREF="node521.html">Boundary conditions and loading</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html6530"
+  HREF="node522.html">Crack propagation</A>
+<LI><A NAME="tex2html6531"
+  HREF="node523.html">Interpolation procedure</A>
+<UL>
+<LI><A NAME="tex2html6532"
+  HREF="node524.html">Tetrangulation of the master mesh</A>
+<LI><A NAME="tex2html6533"
+  HREF="node525.html">Nearest point algorithm</A>
+<LI><A NAME="tex2html6534"
+  HREF="node526.html">Tetrahedron containment</A>
+<LI><A NAME="tex2html6535"
+  HREF="node527.html">Finite element containment</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html6536"
+  HREF="node528.html">List of variables and their meaning</A>
+</UL>
+<!--End of Table of Child-Links-->
+<BR><HR>
+
+</BODY>
+</HTML>

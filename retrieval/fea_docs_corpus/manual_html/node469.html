@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Step 2: determining the pressure/density correction</TITLE>
+<META NAME="description" CONTENT="Step 2: determining the pressure/density correction">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node470.html">
+<LINK REL="previous" HREF="node468.html">
+<LINK REL="up" HREF="node460.html">
+<LINK REL="next" HREF="node470.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7348"
+  HREF="node470.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7344"
+  HREF="node460.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7338"
+  HREF="node468.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7346"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7349"
+  HREF="node470.html">Step 3: determining the</A>
+<B> Up:</B> <A NAME="tex2html7345"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<B> Previous:</B> <A NAME="tex2html7339"
+  HREF="node468.html">Step 1: determining</A>
+ &nbsp; <B>  <A NAME="tex2html7347"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001111900000000000000">
+Step 2: determining the pressure/density correction</A>
+</H3>
+
+<P>
+In the second step the pressure is determined for liquids and the density for
+gases. For liquids this involves the solution of a regular system of
+equations, the LHS of which has been LU-decomposed. This can be performed in a
+parallel way if the user has activated the multithreading option for the
+linear equation solver, e.g. the option -DUSE_MT for SPOOLES in the
+Makefile and specified the number of cpus by means of the environment variable
+NUM_CPU_SOLVE. The RHS is obtained by adding a term based on <!-- MATH
+ $\Delta
+\boldsymbol{V}^*$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="39" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="$ \Delta \boldsymbol {V}^*$"></B></SPAN> to the value calculated in mafillsmv1rhs.f. This is done in
+mafillprhs.f and e_c3d_prhs.f. For gases a lumped system is solved leading to the density
+correction. In both cases the corrections are stored on a nodal basis in field v(1..nk,4)). Finally, for fluids the pressure boundary conditions are applied in routine
+applybounp.f. For gases this has to wait till later, since the gas pressure is
+not known at this point.
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

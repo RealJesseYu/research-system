@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*HCF</TITLE>
+<META NAME="description" CONTENT="*HCF">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node299.html">
+<LINK REL="previous" HREF="node297.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node299.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html5086"
+  HREF="node299.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html5082"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html5076"
+  HREF="node297.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html5084"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html5087"
+  HREF="node299.html">*HEADING</A>
+<B> Up:</B> <A NAME="tex2html5083"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html5077"
+  HREF="node297.html">*GREEN</A>
+ &nbsp; <B>  <A NAME="tex2html5085"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000871000000000000000"></A><A NAME="hcf"></A>
+<BR>
+*HCF
+</H2>
+
+<P>
+Keyword type: step
+
+<P>
+This keyword card is used to consider High Cycle Fatigue (HCF) in a crack
+propagation calculation. To this end, a modal calculation
+(<A HREF="node290.html#frequency">*FREQUENCY</A>) must have been performed for the uncracked
+structure and the resulting stresses must have been stored in a
+frd-file. Right now, no cyclic symmetry is allowed in this modal
+calculation. There are three required parameters INPUT, MODE and MISSION STEP
+and two optional parameters MAX CYCLE and SCALING.
+
+<P>
+The INPUT parameter is used to denote the frd-file containing the stress
+results of the modal calculation for the uncracked structure. It must have
+been performed in a separate calculation. Temperature results are not
+necessary, since the temperature of the LCF (static) calculation defined on
+the <A HREF="node255.html#crackpropagation">*CRACK PROPAGATION</A> card is used.
+
+<P>
+With the MODE parameter the user can select which mode in the modal
+calculation is to be used. This mode is scaled with the value given by the
+SCALING parameter (default is 1.) and superimposed on the static step defined
+by the MISSION STEP parameter.
+
+<P>
+If HCF crack propagation is not allowed (MAX CYCLE = 0; this is the default) the calculation stops
+as soon as HCF propagation is detected. If it is allowed (MAX CYCLE <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2537.png"
+ ALT="$ &gt;$"></B></SPAN> 0) HCF
+calculation is calculated for the actual crack propagation increment and the
+next increment is started. In that case, no LCF propagation is determined.
+
+<P>
+
+<P><P>
+<BR>
+
+<P>
+First line:
+
+<UL>
+<LI>*HCF
+</LI>
+<LI>Enter any parameters and their value
+</LI>
+</UL>
+
+<P>
+<PRE>
+Example:
+
+*HCF,INPUT=hcf.frd,MODE=3,SCALING=0.01,MISSION STEP=4
+</PRE>
+
+<P>
+defines high cycle fatigue using the stress results for mode 3 from file
+hcf.frd, scaling them by 0.01 and superimposing them on the fourth step in the
+mission. This mission must have been defined using the INPUT parameter on the
+*CRACK PROPAGATION card.
+
+<P>
+
+<P><P>
+<BR>
+Example files: crackIIcumhcf, crackIIcumhcf2.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html5086"
+  HREF="node299.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html5082"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html5076"
+  HREF="node297.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html5084"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html5087"
+  HREF="node299.html">*HEADING</A>
+<B> Up:</B> <A NAME="tex2html5083"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html5077"
+  HREF="node297.html">*GREEN</A>
+ &nbsp; <B>  <A NAME="tex2html5085"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

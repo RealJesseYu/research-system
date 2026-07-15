@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Contraction, Enlargement, Step and Fall</TITLE>
+<META NAME="description" CONTENT="Contraction, Enlargement, Step and Fall">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="previous" HREF="node458.html">
+<LINK REL="up" HREF="node454.html">
+<LINK REL="next" HREF="node460.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7209"
+  HREF="node460.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7205"
+  HREF="node454.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7201"
+  HREF="node458.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7207"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7210"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<B> Up:</B> <A NAME="tex2html7206"
+  HREF="node454.html">Turbulent Flow in Open</A>
+<B> Previous:</B> <A NAME="tex2html7202"
+  HREF="node458.html">Reservoir</A>
+ &nbsp; <B>  <A NAME="tex2html7208"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001110500000000000000">
+Contraction, Enlargement, Step and Fall</A>
+</H3>
+
+<P>
+The contraction, enlargement, step and fall are all treated in subroutine
+contraction.c. For these type of elements the width 'b' and the angle
+'<SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img550.png"
+ ALT="$ \theta$"></B></SPAN>' may differ upstream and downstream, they are labeled bup, bdo,
+thetaup and thetado. The length of the element can be given explicitly by the
+user, or if it is zero it is calculated from the coordinates of nup and
+ndo. This length is used to calculate a contraction or expansion angle
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img141.png"
+ ALT="$ \alpha$"></B></SPAN>. Based on this angle a head loss coefficient is calculated and the
+earth acceleration <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img840.png"
+ ALT="$ g$"></B></SPAN> is appropriately corrected. For the theory behind this
+the reader is referred to Section <A HREF="node127.html#contractionsection">6.6.5</A>.
+
+<P>
+For a frontwater curve the specific energy is calculated in nup. Then, using
+subroutine henergy.f a supercritical depth is calculated corresponding to the same specific
+energy and discharge for the downstream geometry of the element (cf. Section
+<A HREF="node127.html#contractionsection">6.6.5</A>) and defined as
+hdo. Two cases arise:
+
+<P>
+
+<UL>
+<LI>If hdo is positive the solution is found.
+</LI>
+<LI>If hdo is negative it means
+that the specific energy downstream has to be increased such that it
+corresponds to the specific energy corresponding to hk for the given
+discharge. The values of nelem and ndo are stored to stack and a backwater
+curve is calculated starting at ndo.
+</LI>
+</UL>
+
+<P>
+For a backwater curve the specific energy is calculated in ndo. Then, using
+subroutine henergy.f a subcricital depth is calculated corresponding to the
+same specific energy and discharge for the upstream geometry of the element
+
+<P>
+
+<UL>
+<LI>If hup is positive the solution is found.
+</LI>
+<LI>If hup is negative it means
+that the specific energy upstream has to be increased such that it
+corresponds to the specific energy corresponding to hk for the given
+discharge. The values of nelem and ndo are stored to stack and the backwater
+curve calculation is continued at nup.
+</LI>
+</UL>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html7209"
+  HREF="node460.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7205"
+  HREF="node454.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7201"
+  HREF="node458.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7207"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7210"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<B> Up:</B> <A NAME="tex2html7206"
+  HREF="node454.html">Turbulent Flow in Open</A>
+<B> Previous:</B> <A NAME="tex2html7202"
+  HREF="node458.html">Reservoir</A>
+ &nbsp; <B>  <A NAME="tex2html7208"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

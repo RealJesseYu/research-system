@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Smoothing the conservative variables for gases</TITLE>
+<META NAME="description" CONTENT="Smoothing the conservative variables for gases">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node475.html">
+<LINK REL="previous" HREF="node473.html">
+<LINK REL="up" HREF="node460.html">
+<LINK REL="next" HREF="node475.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7408"
+  HREF="node475.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7404"
+  HREF="node460.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7398"
+  HREF="node473.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7406"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7409"
+  HREF="node475.html">Determining the physical variables</A>
+<B> Up:</B> <A NAME="tex2html7405"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<B> Previous:</B> <A NAME="tex2html7399"
+  HREF="node473.html">Updating the conservative variables</A>
+ &nbsp; <B>  <A NAME="tex2html7407"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00011111400000000000000">
+Smoothing the conservative variables for gases</A>
+</H3>
+
+<P>
+For gases the conservative variables <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img36.png"
+ ALT="$ \rho$"></B></SPAN>, <!-- MATH
+ $\rho \boldsymbol{V}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="27" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3124.png"
+ ALT="$ \rho \boldsymbol{V}$"></B></SPAN> and
+<!-- MATH
+ $\rho \epsilon _t$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3125.png"
+ ALT="$ \rho \epsilon _t$"></B></SPAN> are smoothed on basis of the local
+pressure gradient which was calculated in the previous fluid increment
+(subroutine presgradient.f). The smoothing is done in routine
+smoothshock.f. The primary parameter in the smoothing procedure is shockcoef,
+which can take values between 0 (no smoothing) and 2. This parameter can be
+set in the input deck on the *STEP card using the parameter SHOCK
+SMOOTHING. If the solution diverges (this is frequently characterized by the
+presence of NaN (Not a Number) in the solution, leading to negative time steps
+or the divergence of the conservative to physical conversion routine
+con2phys.f), the calculation if restarted with a shock smoothing coefficient
+twice the previous value (or a value of 0.001 if the previous value was
+0). Once the value of 2 is exceeded, the program stops with an error message.
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

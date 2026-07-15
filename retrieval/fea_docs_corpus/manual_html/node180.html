@@ -1,0 +1,1761 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Direct integration dynamic analysis</TITLE>
+<META NAME="description" CONTENT="Direct integration dynamic analysis">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node181.html">
+<LINK REL="previous" HREF="node179.html">
+<LINK REL="up" HREF="node173.html">
+<LINK REL="next" HREF="node181.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html3513"
+  HREF="node181.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3509"
+  HREF="node173.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3503"
+  HREF="node179.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3511"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3514"
+  HREF="node181.html">Heat transfer</A>
+<B> Up:</B> <A NAME="tex2html3510"
+  HREF="node173.html">Types of analysis</A>
+<B> Previous:</B> <A NAME="tex2html3504"
+  HREF="node179.html">Steady state dynamics</A>
+ &nbsp; <B>  <A NAME="tex2html3512"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00079700000000000000">
+Direct integration dynamic analysis</A>
+</H3>
+
+<P>
+In a direct integration dynamic analysis, activated by the
+<A HREF="node273.html#dynamic">*DYNAMIC</A> keyword, the equation of motion is integrated in
+time using the <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img141.png"
+ ALT="$ \alpha$"></B></SPAN>-method developed by Hilber, Hughes and Taylor
+[<A
+ HREF="node530.html#Miranda">65</A>] (unless the massless contact method is selected; this method is treated
+at the end of this section). The method is implemented exactly as described in
+[<A
+ HREF="node530.html#Dhondt">24</A>]. The parameter <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img141.png"
+ ALT="$ \alpha$"></B></SPAN> lies in the interval [-1/3,0] and
+controls the high frequency dissipation: <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img141.png"
+ ALT="$ \alpha$"></B></SPAN>=0 corresponds to the
+classical Newmark method inducing no dissipation at all, while <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img141.png"
+ ALT="$ \alpha$"></B></SPAN>=-1/3
+corresponds to maximum dissipation (default is <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img141.png"
+ ALT="$ \alpha$"></B></SPAN>=-0.05). The user can choose between an implicit and explicit version of the algorithm. The implicit version (default) is unconditionally stable. 
+
+<P>
+In the explicit version, triggered by the parameter EXPLICIT on the *DYNAMIC
+keyword card, the mass matrix is lumped, and a forward integration scheme is
+used so that the solution can be calculated without solving a system of
+equations. This corresponds to section 2.11.5 in [<A
+ HREF="node530.html#Dhondt">24</A>]. The mass
+matrix only has to be set up once at the start of each step and no stiffness
+matrix is needed. Indeed, the terms in equation (2.475) in
+[<A
+ HREF="node530.html#Dhondt">24</A>] in which the <SPAN CLASS="MATH"><B><IMG
+ WIDTH="27" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1761.png"
+ ALT="$ [K]$"></B></SPAN> matrix is used correspond to the internal
+forces. They can be calculated directly from the stresses without need to set
+up the stiffness matrix. Therefore, each increment is much faster than with the implicit
+scheme.  Furthermore, in the explicit method no iterations are
+performed, so each increment consists of exactly one iteration. However, the
+explicit scheme is only conditionally stable: in the <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img141.png"
+ ALT="$ \alpha$"></B></SPAN>-method, which in
+CalculiX is also used for explicit calculations (unless the massless contact
+method is selected), the maximum
+time step <!-- MATH
+ $\Delta t_{cr}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="35" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1762.png"
+ ALT="$ \Delta t_{cr}$"></B></SPAN> is dictated by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\Delta t_{cr} \approx \frac{\Omega _{cr}}{\omega_{max}},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="101" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1763.png"
+ ALT="$\displaystyle \Delta t_{cr} \approx \frac{\Omega _{cr}}{\omega_{max}},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">539</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <!-- MATH
+ $\Omega _{cr}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="28" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1764.png"
+ ALT="$ \Omega _{cr}$"></B></SPAN> is given by Equation (2.477) in  [<A
+ HREF="node530.html#Dhondt">24</A>] and
+<!-- MATH
+ $\omega_{max}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="40" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1765.png"
+ ALT="$ \omega_{max}$"></B></SPAN>, which is the highest natural frequency of an element,
+satisfies for volumetric elements:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\omega_{max} \approx 2 \frac{c}{h_{min}},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="111" HEIGHT="44" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1766.png"
+ ALT="$\displaystyle \omega_{max} \approx 2 \frac{c}{h_{min}},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">540</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1262.png"
+ ALT="$ c$"></B></SPAN> is the velocity of sound for the material at stake and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="37" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1767.png"
+ ALT="$ h_{min}$"></B></SPAN> is the minimum height of the
+element. For an isotropic material <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1262.png"
+ ALT="$ c$"></B></SPAN> satisfies [<A
+ HREF="node530.html#Monjaraz">68</A>]:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+c= \sqrt{\frac{E(1-\nu )}{(1+\nu)(1-2 \nu) \rho } }= \sqrt{\frac{\lambda + 2
+    \mu }{\rho } } .
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="257" HEIGHT="67" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1768.png"
+ ALT="$\displaystyle c= \sqrt{\frac{E(1-\nu )}{(1+\nu)(1-2 \nu) \rho } }= \sqrt{\frac{\lambda + 2 \mu }{\rho } } .$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">541</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+It corresponds to the wave speed of longitudinal waves, which are faster than
+transversal waves, for which the speed amounts to <!-- MATH
+ $\sqrt{\mu/\rho }$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="45" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1769.png"
+ ALT="$ \sqrt{\mu/\rho }$"></B></SPAN>.  For the special case of single crystal materials, which are anistropic
+materials characterized by three independent elastic contants, the derivation
+is more intricate [<A
+ HREF="node530.html#Monjaraz">68</A>]. Here, the derivation will be given for
+general anisotropic materials.
+
+<P>
+First, the difference between the phase velocity and group velocity of a wave
+is explained. A one-dimensional wave is described by
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+f=\cos(k x - \omega t),
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="126" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1770.png"
+ ALT="$\displaystyle f=\cos(k x - \omega t),$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">542</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+in which <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img464.png"
+ ALT="$ k$"></B></SPAN> is the wave number and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img101.png"
+ ALT="$ \omega$"></B></SPAN> the angular frequency. For
+constant values of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img464.png"
+ ALT="$ k$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img101.png"
+ ALT="$ \omega$"></B></SPAN> the wave has a constant amplitude for <!-- MATH
+ $k x
+-\omega t$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="57" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1771.png"
+ ALT="$ k x
+-\omega t $"></B></SPAN> constant or a wave speed satisfying:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+c=\frac{dx}{dt} = \frac{\omega }{k}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="93" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1772.png"
+ ALT="$\displaystyle c=\frac{dx}{dt} = \frac{\omega }{k}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">543</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+Now, adding to this wave a wave with slightly different wave number and
+angular frequency one obtains:
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="modulate"></A><!-- MATH
+ \begin{eqnarray}
+g & :=&\cos(k x - \omega t) + \cos[(k+\delta k) x - (\omega+ \delta \omega) t] \nonumber \\
+  & =& \cos \left [ \left (A + \frac{\delta A}{2} \right ) - \frac{\delta A}{2} \right ] +
+  \cos \left [ \left (A +
+  \frac{\delta A}{2} \right ) + \frac{\delta A}{2} \right ] \nonumber \\
+  & =& 2 \cos (A+ \frac{\delta A}{2})  \cos \frac{\delta A}{2},
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1773.png"
+ ALT="$\displaystyle g$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="21" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1774.png"
+ ALT="$\displaystyle :=$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="292" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1775.png"
+ ALT="$\displaystyle \cos(k x - \omega t) + \cos[(k+\delta k) x - (\omega+ \delta \omega) t]$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="347" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1776.png"
+ ALT="$\displaystyle \cos \left [ \left (A + \frac{\delta A}{2} \right ) - \frac{\delt...
+...os \left [ \left (A +
+\frac{\delta A}{2} \right ) + \frac{\delta A}{2} \right ]$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="157" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1777.png"
+ ALT="$\displaystyle 2 \cos (A+ \frac{\delta A}{2}) \cos \frac{\delta A}{2},$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">544</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+where
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+A := k x - \omega t,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="99" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1778.png"
+ ALT="$\displaystyle A := k x - \omega t,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">545</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\delta A := \delta k x - \delta \omega  t.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="122" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1779.png"
+ ALT="$\displaystyle \delta A := \delta k x - \delta \omega t.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">546</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+The result in the last line of Equation (<A HREF="#modulate">544</A>) is the original wave
+(<!-- MATH
+ $\cos  (A+ \delta A/2) \approx \cos A$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="161" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1780.png"
+ ALT="$ \cos (A+ \delta A/2) \approx \cos A$"></B></SPAN>) with the so-called phase velocity
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+c_{ph} = \frac{\omega + \delta \omega/2}{k + \delta k/2} \approx
+  \frac{\omega }{k}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="150" HEIGHT="53" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1781.png"
+ ALT="$\displaystyle c_{ph} = \frac{\omega + \delta \omega/2}{k + \delta k/2} \approx \frac{\omega }{k}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">547</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+modulated by a wave whose velocity
+amounts to the so-called group velocity:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+c_g = \frac{\delta \omega }{\delta k} \approx \frac{\partial  \omega
+  }{\partial    k}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="110" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1782.png"
+ ALT="$\displaystyle c_g = \frac{\delta \omega }{\delta k} \approx \frac{\partial \omega }{\partial k}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">548</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>   
+
+<P>
+The function <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img101.png"
+ ALT="$ \omega$"></B></SPAN> versus <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img464.png"
+ ALT="$ k$"></B></SPAN> is called the dispersion relationship. If
+this relationship is linear the phase and group velocity coincide. If not,
+they differ.
+
+<P>
+To obtain the phase velocity in three dimensions for an arbitrary material the
+expression for a three-dimensional planar wave:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+u_j = A p_j e^{i(k_m x_m - \omega t)},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="153" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1783.png"
+ ALT="$\displaystyle u_j = A p_j e^{i(k_m x_m - \omega t)},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">549</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <!-- MATH
+ $\boldsymbol{u}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="15" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img346.png"
+ ALT="$ \boldsymbol{u}$"></B></SPAN> is the displacement vector, A is the amplitude,
+<!-- MATH
+ $\boldsymbol{p}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img910.png"
+ ALT="$ \boldsymbol{p} $"></B></SPAN> is the polarization vector and <!-- MATH
+ $\boldsymbol{k}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1784.png"
+ ALT="$ \boldsymbol{k}$"></B></SPAN> is the wave
+number vector, is substituted in the general homogeneous equation of motion:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\sigma_{ij,i} = \rho \ddot{u}_j,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="81" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1785.png"
+ ALT="$\displaystyle \sigma_{ij,i} = \rho \ddot{u}_j,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">550</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+where <!-- MATH
+ $\boldsymbol{\sigma }$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="15" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img260.png"
+ ALT="$ \boldsymbol{\sigma } $"></B></SPAN> is the stress tensor, a comma denotes
+differentiation w.r.t. space and a dot denotes differentiation
+w.r.t. time. Indeed, using the elastic relationship
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\sigma_{ij} = \Sigma_{ijkl} \epsilon_{kl},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="102" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1786.png"
+ ALT="$\displaystyle \sigma_{ij} = \Sigma_{ijkl} \epsilon_{kl},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">551</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+the definition of linear strain
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\epsilon_{kl}= (u_{k,l}+u_{l,k})/2,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="145" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1787.png"
+ ALT="$\displaystyle \epsilon_{kl}= (u_{k,l}+u_{l,k})/2,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">552</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and the symmetry properties of the elasticity tensor
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\Sigma_{ijkl} =  \Sigma_{jikl} = \Sigma_{ijlk} = \Sigma_{klij},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="207" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1788.png"
+ ALT="$\displaystyle \Sigma_{ijkl} = \Sigma_{jikl} = \Sigma_{ijlk} = \Sigma_{klij},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">553</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+one obtains the following form for the equation of motion:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\Sigma_{ijkl} u_{k,li} = \rho \ddot{u}_j.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="117" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1789.png"
+ ALT="$\displaystyle \Sigma_{ijkl} u_{k,li} = \rho \ddot{u}_j.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">554</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Sustitution of the wave equation now yields:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+- \Sigma_{ijkl}k_l k_i p_k = - \rho \omega^2 p_j.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="171" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1790.png"
+ ALT="$\displaystyle - \Sigma_{ijkl}k_l k_i p_k = - \rho \omega^2 p_j.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">555</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Setting <!-- MATH
+ $k_l := k n_l$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="66" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1791.png"
+ ALT="$ k_l := k n_l$"></B></SPAN> and <!-- MATH
+ $k_i := k n_i$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="67" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1792.png"
+ ALT="$ k_i := k n_i$"></B></SPAN> one obtains the eigenvalue problem
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="waveeigenvalueproblem"></A><!-- MATH
+ \begin{equation}
+[\Sigma_{ijkl} n_l n_i] \{p_k \} = \rho c^2 \{p_j\},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="186" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1793.png"
+ ALT="$\displaystyle [\Sigma_{ijkl} n_l n_i] \{p_k \} = \rho c^2 \{p_j\},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">556</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <!-- MATH
+ $c=\omega/k$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="59" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1794.png"
+ ALT="$ c=\omega/k$"></B></SPAN> is the phase velocity we are looking for. Since (denoting
+the matrix on the left hand side by <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img865.png"
+ ALT="$ C$"></B></SPAN>):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+C_{jk} = \Sigma_{ijkl} n_l n_i = \Sigma_{ljki} n_l n_i = \Sigma_{kilj} n_l
+  n_i = \Sigma_{ikjl} n_l n_i = C_{kj}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="413" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1795.png"
+ ALT="$\displaystyle C_{jk} = \Sigma_{ijkl} n_l n_i = \Sigma_{ljki} n_l n_i = \Sigma_{kilj} n_l n_i = \Sigma_{ikjl} n_l n_i = C_{kj}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">557</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+the left hand matrix is symmetric. Furthermore, for an arbitrary vector
+<!-- MATH
+ $\boldsymbol{x}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img342.png"
+ ALT="$ \boldsymbol{x}$"></B></SPAN> one obtains:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\Sigma_{ijkl} n_i x_j x_k n_l = \Sigma_{ijkl} x_i n_j x_k n_l \ge 0,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="250" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1796.png"
+ ALT="$\displaystyle \Sigma_{ijkl} n_i x_j x_k n_l = \Sigma_{ijkl} x_i n_j x_k n_l \ge 0,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">558</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+since <!-- MATH
+ $\Sigma_{ijkl} \epsilon_{ij} \epsilon_{kl} = \sigma_{kl} \epsilon_{kl}
+\ge 0$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="163" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1797.png"
+ ALT="$ \Sigma_{ijkl} \epsilon_{ij} \epsilon_{kl} = \sigma_{kl} \epsilon_{kl}
+\ge 0$"></B></SPAN> (linear elastic energy) and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="34" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1798.png"
+ ALT="$ x_i n_j$"></B></SPAN> can be considered as the
+components of a fictitious strain tensor <!-- MATH
+ $\boldsymbol{x} \otimes
+\boldsymbol{n}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="45" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1799.png"
+ ALT="$ \boldsymbol{x} \otimes
+\boldsymbol{n}$"></B></SPAN>. This now means that <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img865.png"
+ ALT="$ C$"></B></SPAN> is positive definite. Therefore, the
+eigenvalues are real and positive.
+
+<P>
+For an isotropic linear elastic material the elasticity tensor satisfies
+([<A
+ HREF="node530.html#Dhondt">24</A>]):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="isotropicelasticity"></A><!-- MATH
+ \begin{equation}
+\Sigma_{ijkl}=\lambda \delta_{ij}\delta_{kl} + \mu
+  (\delta_{ik}\delta_{jl}+\delta_{il}\delta_{jk}),
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="245" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1800.png"
+ ALT="$\displaystyle \Sigma_{ijkl}=\lambda \delta_{ij}\delta_{kl} + \mu (\delta_{ik}\delta_{jl}+\delta_{il}\delta_{jk}),$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">559</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and component <SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1801.png"
+ ALT="$ jk$"></B></SPAN> of the matrix <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img865.png"
+ ALT="$ C$"></B></SPAN> amounts to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+C_{jk}= \Sigma_{ijkl}n_l n_i = (\lambda+\mu)n_j n_k + \mu \delta_{jk}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="273" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1802.png"
+ ALT="$\displaystyle C_{jk}= \Sigma_{ijkl}n_l n_i = (\lambda+\mu)n_j n_k + \mu \delta_{jk}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">560</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Therefore, <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img865.png"
+ ALT="$ C$"></B></SPAN> can be thought of consisting of the following row vectors (or
+column vectors, since it is a symmetric matrix):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+C= \begin{bmatrix} (\lambda + \mu)n_1 \boldsymbol{n} + \mu \boldsymbol{e}_1
+    \\(\lambda + \mu)n_2 \boldsymbol{n} + \mu \boldsymbol{e}_2 \\
+        (\lambda + \mu)n_3 \boldsymbol{n} + \mu \boldsymbol{e}_3  \end{bmatrix}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="190" HEIGHT="73" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1803.png"
+ ALT="$\displaystyle C= \begin{bmatrix}(\lambda + \mu)n_1 \boldsymbol{n} + \mu \boldsy...
+...e}_2 \\ (\lambda + \mu)n_3 \boldsymbol{n} + \mu \boldsymbol{e}_3 \end{bmatrix}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">561</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Setting the determinant of the eigenvalue matrix to zero amounts to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+| C - \xi I | = [ (\lambda + \mu)n_1 \boldsymbol{n} + (\mu-\xi)
+    \boldsymbol{e}_1] \cdot \{ [(\lambda + \mu)n_2 \boldsymbol{n} + \mu
+    \boldsymbol{e}_2] \times [(\lambda + \mu)n_3 \boldsymbol{n} + \mu
+    \boldsymbol{e}_3] \} =0.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="596" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1804.png"
+ ALT="$\displaystyle \vert C - \xi I \vert = [ (\lambda + \mu)n_1 \boldsymbol{n} + (\m...
+...{e}_2] \times [(\lambda + \mu)n_3 \boldsymbol{n} + \mu \boldsymbol{e}_3] \} =0.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">562</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Multiplying out the different terms leads to:
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+(\lambda+\mu)n_1 (\mu-\xi)^2 \boldsymbol{n} \cdot(\boldsymbol{e}_2 \times
+  \boldsymbol{e}_3)&+&(\lambda+\mu)n_2 (\mu-\xi)^2 \boldsymbol{e}_1 \cdot(\boldsymbol{n} \times
+  \boldsymbol{e}_3) \nonumber \\+ \;\; (\lambda+\mu)n_3 (\mu-\xi)^2 \boldsymbol{e}_1 \cdot(\boldsymbol{e}_2 \times
+  \boldsymbol{n})&+&(\mu-\xi)^3 \boldsymbol{e}_1 \cdot(\boldsymbol{e}_2 \times
+  \boldsymbol{e}_3)=0.
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="214" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1805.png"
+ ALT="$\displaystyle (\lambda+\mu)n_1 (\mu-\xi)^2 \boldsymbol{n} \cdot(\boldsymbol{e}_2 \times
+\boldsymbol{e}_3)$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img456.png"
+ ALT="$\displaystyle +$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="214" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1806.png"
+ ALT="$\displaystyle (\lambda+\mu)n_2 (\mu-\xi)^2 \boldsymbol{e}_1 \cdot(\boldsymbol{n} \times
+\boldsymbol{e}_3)$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="235" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1807.png"
+ ALT="$\displaystyle + \;\; (\lambda+\mu)n_3 (\mu-\xi)^2 \boldsymbol{e}_1 \cdot(\boldsymbol{e}_2 \times
+\boldsymbol{n})$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img456.png"
+ ALT="$\displaystyle +$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="185" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1808.png"
+ ALT="$\displaystyle (\mu-\xi)^3 \boldsymbol{e}_1 \cdot(\boldsymbol{e}_2 \times
+\boldsymbol{e}_3)=0.$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">563</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+Using identities such as <!-- MATH
+ $\boldsymbol{e}_1 \cdot(\boldsymbol{e}_2 \times
+\boldsymbol{n})=\boldsymbol{n} \cdot(\boldsymbol{e}_1 \times
+\boldsymbol{e}_2)$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="198" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1809.png"
+ ALT="$ \boldsymbol{e}_1 \cdot(\boldsymbol{e}_2 \times
+\boldsymbol{n})=\boldsymbol{n} \cdot(\boldsymbol{e}_1 \times
+\boldsymbol{e}_2)$"></B></SPAN> finally leads to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+(\lambda+\mu)(\mu-\xi)^2+(\mu-\xi)^3=0,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="220" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1810.png"
+ ALT="$\displaystyle (\lambda+\mu)(\mu-\xi)^2+(\mu-\xi)^3=0,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">564</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+which leads to a double root <SPAN CLASS="MATH"><B><IMG
+ WIDTH="42" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1811.png"
+ ALT="$ \xi=\mu$"></B></SPAN> and a single root <!-- MATH
+ $\xi=\lambda+2
+\mu$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="79" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1812.png"
+ ALT="$ \xi=\lambda+2
+\mu$"></B></SPAN>. Since <!-- MATH
+ $\xi=\rho c^2$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="55" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1813.png"
+ ALT="$ \xi=\rho c^2$"></B></SPAN> the corresponding phase velocities are
+<!-- MATH
+ $c=\sqrt{\mu/\rho }$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="73" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1814.png"
+ ALT="$ c=\sqrt{\mu/\rho }$"></B></SPAN> and <!-- MATH
+ $c=\sqrt{(\lambda+2 \mu)/\rho }$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="123" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1815.png"
+ ALT="$ c=\sqrt{(\lambda+2 \mu)/\rho }$"></B></SPAN>. The polarization
+vectors are the eigenvectors of the system and are obtained by substituting
+the eigenvalues in the eigenvalue system <SPAN CLASS="MATH"><B><IMG
+ WIDTH="53" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1816.png"
+ ALT="$ C = \xi I$"></B></SPAN>. This leads to the
+polarization vectors <!-- MATH
+ $(n_2,-n_1,0)$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="84" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1817.png"
+ ALT="$ (n_2,-n_1,0)$"></B></SPAN> and <!-- MATH
+ $(n_3,0,-n_1)$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="84" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1818.png"
+ ALT="$ (n_3,0,-n_1)$"></B></SPAN> for the double root and
+<!-- MATH
+ $(n_1,n_2,n_3)$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="80" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1819.png"
+ ALT="$ (n_1,n_2,n_3)$"></B></SPAN> for the single root. The former eigenvectors are orthogonal to
+the propagation direction of the wave <!-- MATH
+ $\boldsymbol{n}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="15" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img335.png"
+ ALT="$ \boldsymbol{n}$"></B></SPAN> and therefore these are
+transversal waves, whereas the latter eigenvector is parallel to the wave
+vector and corresponds to a longitudinal wave.
+
+<P>
+In order to obtain an expression for the group velocity of the wave the
+derivative of the angular frequency <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img101.png"
+ ALT="$ \omega$"></B></SPAN> w.r.t. the wave number vector
+<!-- MATH
+ $\boldsymbol{k}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1784.png"
+ ALT="$ \boldsymbol{k}$"></B></SPAN> is needed. Multiplying the eigenvalue Equation [<A HREF="#waveeigenvalueproblem">556</A>] with the normalized polarization vector <SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1820.png"
+ ALT="$ p_j$"></B></SPAN> yields:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\Sigma_{ijkl} k_l k_i p_k p_j = \rho \omega^2.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="146" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1821.png"
+ ALT="$\displaystyle \Sigma_{ijkl} k_l k_i p_k p_j = \rho \omega^2.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">565</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Taking the derivative w.r.t. <SPAN CLASS="MATH"><B><IMG
+ WIDTH="19" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1822.png"
+ ALT="$ k_q$"></B></SPAN> leads to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\Sigma_{ijkl} \frac{\partial (k_l k_i)}{\partial k_q} p_k p_j = 2 \rho
+  \omega \frac{\partial \omega }{\partial k_q},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="201" HEIGHT="53" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1823.png"
+ ALT="$\displaystyle \Sigma_{ijkl} \frac{\partial (k_l k_i)}{\partial k_q} p_k p_j = 2 \rho \omega \frac{\partial \omega }{\partial k_q},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">566</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+or
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\Sigma_{ijkl} [k_l \delta_{iq} + \delta_{lq} k_i] p_k p_j = 2 \rho
+  \omega \frac{\partial \omega }{\partial k_q}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="241" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1824.png"
+ ALT="$\displaystyle \Sigma_{ijkl} [k_l \delta_{iq} + \delta_{lq} k_i] p_k p_j = 2 \rho \omega \frac{\partial \omega }{\partial k_q}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">567</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+This amounts to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\Sigma_{qjkl} k_l p_k p_j + \Sigma_{ijkq} k_i p_k p_j =  2 \rho
+  \omega \frac{\partial \omega }{\partial k_q}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="263" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1825.png"
+ ALT="$\displaystyle \Sigma_{qjkl} k_l p_k p_j + \Sigma_{ijkq} k_i p_k p_j = 2 \rho \omega \frac{\partial \omega }{\partial k_q}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">568</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Since <!-- MATH
+ $\Sigma_{ijkq}= \Sigma_{kqij}= \Sigma_{qkij}= \Sigma_{qkji}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="211" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1826.png"
+ ALT="$ \Sigma_{ijkq}= \Sigma_{kqij}= \Sigma_{qkij}= \Sigma_{qkji}$"></B></SPAN> the term
+<!-- MATH
+ $\Sigma_{ijkq} k_i p_k p_j$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="84" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1827.png"
+ ALT="$ \Sigma_{ijkq} k_i p_k p_j$"></B></SPAN> equals <!-- MATH
+ $\Sigma_{qjkl} k_l p_j p_k$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="83" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1828.png"
+ ALT="$ \Sigma_{qjkl} k_l p_j p_k$"></B></SPAN>, i.e. it is
+identical with the first term in the equation. Therefore:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\Sigma_{qjkl} k_l p_k p_j  =   \rho
+  \omega \frac{\partial \omega }{\partial k_q},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="156" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1829.png"
+ ALT="$\displaystyle \Sigma_{qjkl} k_l p_k p_j = \rho \omega \frac{\partial \omega }{\partial k_q},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">569</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+or
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\Sigma_{ijkl} k_l p_k p_j  =   \rho
+  \omega \frac{\partial \omega }{\partial k_i},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="152" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1830.png"
+ ALT="$\displaystyle \Sigma_{ijkl} k_l p_k p_j = \rho \omega \frac{\partial \omega }{\partial k_i},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">570</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+which amounts to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="groupvelocity"></A><!-- MATH
+ \begin{equation}
+(c_g)_i = \frac{\partial \omega }{\partial k_i} = \frac{\Sigma_{ijkl} p_j p_k n_l
+  }{\rho  c}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="192" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1831.png"
+ ALT="$\displaystyle (c_g)_i = \frac{\partial \omega }{\partial k_i} = \frac{\Sigma_{ijkl} p_j p_k n_l }{\rho c}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">571</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The latter equation expresses the group velocity as a function of the
+polarization vector, the wave vector and the phase velocity.
+
+<P>
+Substituting the isotropic elasticity tensor from Equation
+[<A HREF="#isotropicelasticity">559</A>] leads to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{\partial \omega }{\partial k_i} = \frac{1}{\rho c} [\lambda p_i p_k
+    n_k + \mu p_i p_l n_l + \mu n_i ].
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="253" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1832.png"
+ ALT="$\displaystyle \frac{\partial \omega }{\partial k_i} = \frac{1}{\rho c} [\lambda p_i p_k n_k + \mu p_i p_l n_l + \mu n_i ].$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">572</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+For the longitudinal wave, knowing that <!-- MATH
+ $c_L:=c=\sqrt{\lambda + 2 \mu /\rho }$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="152" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1833.png"
+ ALT="$ c_L:=c=\sqrt{\lambda + 2 \mu /\rho }
+$"></B></SPAN>, <!-- MATH
+ $\boldsymbol{n} \| \boldsymbol{p}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="33" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1834.png"
+ ALT="$ \boldsymbol{n} \Vert \boldsymbol{p}$"></B></SPAN>, <!-- MATH
+ $\| \boldsymbol{n} \|=1$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="60" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img991.png"
+ ALT="$ \Vert\boldsymbol{n}\Vert=1$"></B></SPAN> and <!-- MATH
+ $\|
+\boldsymbol{p} \|=1$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="58" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1835.png"
+ ALT="$ \Vert
+\boldsymbol{p} \Vert=1$"></B></SPAN> one gets
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{\partial \omega }{\partial k_i} = \frac{(\lambda+2 \mu )}{\rho c_L}
+   n_i =
+   c_L n_i.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="186" HEIGHT="53" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1836.png"
+ ALT="$\displaystyle \frac{\partial \omega }{\partial k_i} = \frac{(\lambda+2 \mu )}{\rho c_L} n_i = c_L n_i.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">573</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+For the transversal waves <!-- MATH
+ $c_T:=c=\sqrt{\mu/\rho }$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="116" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1837.png"
+ ALT="$ c_T:=c=\sqrt{\mu/\rho }$"></B></SPAN> and <!-- MATH
+ $\boldsymbol{n} \perp
+\boldsymbol{p}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="46" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1838.png"
+ ALT="$ \boldsymbol{n} \perp
+\boldsymbol{p}$"></B></SPAN>. Therefore:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{\partial \omega }{\partial k_i} = \frac{\mu }{\rho c_T} n_i =
+   c_T n_i.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="153" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1839.png"
+ ALT="$\displaystyle \frac{\partial \omega }{\partial k_i} = \frac{\mu }{\rho c_T} n_i = c_T n_i.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">574</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Consequently, for an isotropic elastic material the phase and group velocity
+coincide. For an anisotropic material, such as a single crystal, this is not
+necessarily the case.
+
+<P>
+Now, coming back to the original question of a stable time step in an explicit
+dynamic procedure it is clear that the maximal group speed is to be taken. For
+an isotropic material this is the longitudinal wave speed. For an anisotropic
+material the group speed may depend on the wave vector
+<!-- MATH
+ $\boldsymbol{n}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="15" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img335.png"
+ ALT="$ \boldsymbol{n}$"></B></SPAN>. So for a given wave vector Equation
+[<A HREF="#waveeigenvalueproblem">556</A>] has to be solved to yield the phase velocities <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1262.png"
+ ALT="$ c$"></B></SPAN>
+and the corresponding polarization vectors <!-- MATH
+ $\boldsymbol{p}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img910.png"
+ ALT="$ \boldsymbol{p} $"></B></SPAN>. The latter ones
+have to be substituted in Equation [<A HREF="#groupvelocity">571</A>] to find the group
+velocities. Now, the wave vector direction has to be varied so as to find the
+maximum group velocity feasible for a material characterized by the specific
+elastic tensor <!-- MATH
+ $\sigma_{ijkl}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="35" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1840.png"
+ ALT="$ \sigma_{ijkl}$"></B></SPAN>. This velocity is then used to calculate <!-- MATH
+ $\omega_{max}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="40" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1765.png"
+ ALT="$ \omega_{max}$"></B></SPAN> and
+<!-- MATH
+ $\Delta t_{cr}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="35" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1762.png"
+ ALT="$ \Delta t_{cr}$"></B></SPAN>.   
+
+<P>
+For the contact spring elements, the idealization of a spring with spring
+constant <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img464.png"
+ ALT="$ k$"></B></SPAN> connecting two nodes with nodal masses <SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img601.png"
+ ALT="$ M_1$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="26" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img602.png"
+ ALT="$ M_2$"></B></SPAN> is
+used. For such a system one obtains:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\omega_{max}=\sqrt{\frac{k(m_1+m_2)}{m_1 m_2} }
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="164" HEIGHT="70" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1841.png"
+ ALT="$\displaystyle \omega_{max}=\sqrt{\frac{k(m_1+m_2)}{m_1 m_2} }$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">575</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="85" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1842.png"
+ ALT="$ m_1=M_1/2$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="85" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1843.png"
+ ALT="$ m_2=M_2/2$"></B></SPAN>. For node-to-face penalty contact and
+face-to-face penalty contact the nodal mass on the facial sides can be
+obtained by using the shape functions at the spring location.
+
+<P>
+To accelerate explicit dynamic calculations selective mass scaling can be used
+[<A
+ HREF="node530.html#Olovsson">73</A>]. It was introduced in CalculiX in the course of a Master
+Thesis [<A
+ HREF="node530.html#Czech">23</A>]. Applying selective mass scaling the time increment can be
+increased, which reduces the overall computational time. The selective mass
+scaling procedure starts from the lumped mass matrix, which for linear
+elements and one global coordinate direction looks like (examplary for a C3D8-element):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+M=\frac{m^e}{8} \boldsymbol{I},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="81" HEIGHT="50" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1844.png"
+ ALT="$\displaystyle M=\frac{m^e}{8} \boldsymbol{I},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">576</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1845.png"
+ ALT="$ m^e$"></B></SPAN> is the total mass of the element. Now, this mass matrix is augmented
+by a multiple of itself after removal of the rigid body translational modes:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\Delta M = \frac{m^e}{8} (\boldsymbol{I} - \boldsymbol{n} \otimes
+  \boldsymbol{n}),
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="168" HEIGHT="50" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1846.png"
+ ALT="$\displaystyle \Delta M = \frac{m^e}{8} (\boldsymbol{I} - \boldsymbol{n} \otimes \boldsymbol{n}),$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">577</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where (writing <!-- MATH
+ $\boldsymbol{n}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="15" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img335.png"
+ ALT="$ \boldsymbol{n}$"></B></SPAN> as a column vector) 
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{n}^T = \{ 1\; 1\; 1\; 1\; 1\; 1\; 1\; 1 \}/\sqrt{8}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="190" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1847.png"
+ ALT="$\displaystyle \boldsymbol{n}^T = \{ 1\; 1\; 1\; 1\; 1\; 1\; 1\; 1 \}/\sqrt{8}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">578</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+This leads to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\Delta M = \frac{m}{8}  \begin{bmatrix} 7/8 & -1/8 & \cdots & -1/8
+   \\-1/8 & 7/8 & & \\\vdots & & \ddots & \\-1/8 & & & 7/8 \end{bmatrix}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="282" HEIGHT="103" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1848.png"
+ ALT="$\displaystyle \Delta M = \frac{m}{8} \begin{bmatrix}7/8 &amp; -1/8 &amp; \cdots &amp; -1/8 \\ -1/8 &amp; 7/8 &amp; &amp; \\ \vdots &amp; &amp; \ddots &amp; \\ -1/8 &amp; &amp; &amp; 7/8 \end{bmatrix}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">579</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+Now, the division by 8 in the denominator of the matrix is approximated by a
+division by 7 to yield 1 on the diagonal and a scaling factor <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img656.png"
+ ALT="$ \beta$"></B></SPAN> is
+introduced:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\Delta M = \frac{\beta m}{7 \cdot 8}  \begin{bmatrix} 7 & -1 & \cdots & -1
+   \\-1 & 7 & & \\\vdots & & \ddots & \\-1 & & & 7 \end{bmatrix}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="248" HEIGHT="103" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1849.png"
+ ALT="$\displaystyle \Delta M = \frac{\beta m}{7 \cdot 8} \begin{bmatrix}7 &amp; -1 &amp; \cdots &amp; -1 \\ -1 &amp; 7 &amp; &amp; \\ \vdots &amp; &amp; \ddots &amp; \\ -1 &amp; &amp; &amp; 7 \end{bmatrix}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">580</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+In conclusion, the diagonal elements of matrix <SPAN CLASS="MATH"><B><IMG
+ WIDTH="21" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img592.png"
+ ALT="$ M$"></B></SPAN> are now modified by a
+factor <SPAN CLASS="MATH"><B><IMG
+ WIDTH="41" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1850.png"
+ ALT="$ 1+\beta$"></B></SPAN>. Since the natural frequency <!-- MATH
+ $\omega \sim 1/\sqrt{m}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="79" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1851.png"
+ ALT="$ \omega \sim 1/\sqrt{m}$"></B></SPAN> and
+the time increment <!-- MATH
+ $\Delta t \sim 1/\omega$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="70" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1852.png"
+ ALT="$ \Delta t \sim 1/\omega$"></B></SPAN>, one can conclude that
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{\Delta t_{\text{target}}}{\Delta t_{\text{stable}}} =
+  \sqrt{\frac{m_{\text{target}}}{m} } = \sqrt{1+\beta },
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="228" HEIGHT="57" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1853.png"
+ ALT="$\displaystyle \frac{\Delta t_{\text{target}}}{\Delta t_{\text{stable}}} = \sqrt{\frac{m_{\text{target}}}{m} } = \sqrt{1+\beta },$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">581</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+from which <!-- MATH
+ $\beta=(\Delta t_{\text{target}}/\Delta t_{\text{stable}})^2-1$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="195" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1854.png"
+ ALT="$ \beta=(\Delta t_{\text{target}}/\Delta t_{\text{stable}})^2-1$"></B></SPAN>. For other element types &ldquo;7&rdquo; should be replaced by <SPAN CLASS="MATH"><B><IMG
+ WIDTH="41" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1855.png"
+ ALT="$ n-1$"></B></SPAN> and &ldquo;8&rdquo; by <SPAN CLASS="MATH"><B><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img765.png"
+ ALT="$ n$"></B></SPAN>,
+where n is the number of nodes in the element. The resulting mass matrix is
+now not diagonal any more and a LU-decomposition has to be performed. Since
+the mass does not change during the calculation, this decomposition has 
+to be performed only once at the start of the calculation.
+
+<P>
+In CalculiX, selective mass scaling is triggered by specifying the minimum time
+increment <!-- MATH
+ $\Delta t_{\text{target}}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="57" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1856.png"
+ ALT="$ \Delta t_{\text{target}}$"></B></SPAN> which the user is willing to tolerate underneath the <A HREF="node273.html#dynamic">*DYNAMIC </A> keyword (third
+parameter). If for any volumetric element the increment size <!-- MATH
+ $\Delta t_{\text{stable}}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="56" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1857.png"
+ ALT="$ \Delta t_{\text{stable}}$"></B></SPAN> calculated by CalculiX
+(based on the wave speed) is less than the
+minimum, the mass of this element is automatically selectively scaled. In that
+case a message is printed and the
+elements for which the mass was redistributed are stored in file
+&ldquo;jobname_WarnElementMassScaled.nam&rdquo;. This file can be read in any active cgx-session
+by typing &ldquo;read jobname_WarnElementMassScaled.nam inp&rdquo; and the elements
+can be appropriately visualized. If the mass of too many elements is
+redistributed, the lowest eigenfrequencies might be affected, leading to wrong
+results. Therefore, the maximum allowed time increment should be limited by a
+maximum allowed change of the lowest eigenfrequency by, e.g. 1 %. It is the
+responsability of the user to check this by performing a
+<A HREF="node290.html#frequency">*FREQUENCY</A> calculation in which the desired time step is
+provided as the fourth entry underneath the *FREQUENCY card. In addition, the
+value of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img141.png"
+ ALT="$ \alpha$"></B></SPAN> can also be specified.
+
+<P>
+For spring elements the mimimum time
+increment specified by the user is obtained by reducing the spring
+stiffness. CalculiX stores the maximum spring stiffness reduction to standard
+output. 
+
+<P>
+Without a minimum time increment no selective mass scaling nor spring stiffness
+reduction is applied.
+
+<P>
+The following damping options are available:
+
+<UL>
+<LI>Rayleigh damping by means of the <A HREF="node260.html#damping">*DAMPING</A>
+  keyword card underneath a <A HREF="node311.html#material">*MATERIAL</A> card. It assumes the damping matrix to be a linear combination of the
+  problem's stiffness matrix and mass matrix. Although possibly defined for
+  only one material, the
+  coefficients of the linear combination apply to the whole model. For explicit calculations the
+  damping matrix is allowed to be mass matrix proportional only.
+</LI>
+<LI>Dashpot damping by defining dashpot elements (cf. Section
+  <A HREF="node66.html#dashpota">6.2.39</A>; for implicit dynamic calculations only).
+</LI>
+<LI>Contact damping by defining a contact damping constant and, optionally,
+  a tangent fraction using the <A HREF="node246.html#contactdamping">*CONTACT DAMPING</A>
+  keyword card (implicit dynamic calculations only).
+</LI>
+</UL>
+
+<P>
+For explicit dynamic calculations an additional hard contact formulation has
+been coded within a procedure characterized by:
+
+<P>
+
+<UL>
+<LI>the formulation of the contact condition as a set-valued force law
+  [<A
+ HREF="node530.html#Studer">102</A>].
+</LI>
+<LI>a reduction of the dynamic equations to static equations (discarding the
+  inertia) for all contact degrees of freedom (master and slave).
+</LI>
+<LI>a Verlet time integration scheme.
+</LI>
+</UL>
+
+<P>
+From now on the method will be called the massless explicit dynamics method. Its
+implementation closely follows the frictional flow diagram in
+[<A
+ HREF="node530.html#Monjaraz2">69</A>]. From this publication it is clear that the contactless
+stiffness matrix is needed. The submatrix related to the contact
+degrees of freedom (master and slave) is used to set up and solve an inclusion
+problem in an implicit way. The other submatrices are used to calculate the
+right hand side of the dynamic equations. The left hand side of these
+equations is made up of a combination of the mass and damping matrix. It is
+assumed that these latter matrices do not change during the step, therefore,
+they can be factorized once at the beginning of the step.
+
+<P>
+If the NLGEOM parameter is not used on the *STEP card and if all materials are
+linear the stiffness matrix is calculated only once at the beginning of the
+step, else it is calculated in each increment which substantially increases
+the computational time.
+
+<P>
+Limitations right now
+include:
+
+<P>
+
+<UL>
+<LI>no nonzero boundary conditions are allowed.
+</LI>
+<LI>mass scaling cannot be used
+</LI>
+</UL>
+
+<P>
+The method is triggered by the option TYPE=MASSLESS on all <A HREF="node249.html#contactpair">*CONTACT
+  PAIR</A> cards in a <A HREF="node273.html#dynamic">*DYNAMIC</A>, EXPLICIT
+procedure only. In a *STATIC or *DYNAMIC implicit step the contact definition
+is replaced by TYPE=NODE TO SURFACE. Note that within one input deck only one
+type of *CONTACT PAIR is allowed. Since the contact is hard, the only
+parameter is the friction coefficient.
+
+<P>
+In the massless explicit dynamics method selective mass scaling is also
+used. It is triggered in exactly the same way as for the <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img141.png"
+ ALT="$ \alpha$"></B></SPAN>-method,
+i.e. by specifying a minimum time increment exceeding the stable time
+increment. In contrast to the <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img141.png"
+ ALT="$ \alpha$"></B></SPAN>-method the change of mass matrix is
+added to the unlumped mass. Selective mass scaling is particularly
+advantageous in the presence of few very small elements which lead to an
+extremely small stable time increment.
+
+<P>
+For all dynamic calculations (implicit dynamics, explicit dynamics with
+penalty contact or explicit dynamics with massless contact) a energy balance
+can be requested. For implicit dynamics this is done by default, for explicit
+dynamics the balance is calculated if the user has requested the output
+variable ENER underneath a <A HREF="node280.html#elprint">*EL PRINT</A>, <A HREF="node279.html#elfile">*EL
+  FILE</A> or <A HREF="node278.html#elementoutput">*ELEMENT OUTPUT</A> keyword. This
+increases the computational time.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html3513"
+  HREF="node181.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3509"
+  HREF="node173.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3503"
+  HREF="node179.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3511"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3514"
+  HREF="node181.html">Heat transfer</A>
+<B> Up:</B> <A NAME="tex2html3510"
+  HREF="node173.html">Types of analysis</A>
+<B> Previous:</B> <A NAME="tex2html3504"
+  HREF="node179.html">Steady state dynamics</A>
+ &nbsp; <B>  <A NAME="tex2html3512"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*OBJECTIVE</TITLE>
+<META NAME="description" CONTENT="*OBJECTIVE">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node330.html">
+<LINK REL="previous" HREF="node328.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node330.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html5458"
+  HREF="node330.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html5454"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html5448"
+  HREF="node328.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html5456"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html5459"
+  HREF="node330.html">*ORIENTATION</A>
+<B> Up:</B> <A NAME="tex2html5455"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html5449"
+  HREF="node328.html">*NSET</A>
+ &nbsp; <B>  <A NAME="tex2html5457"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION0008102000000000000000"></A><A NAME="objective"></A>
+<BR>
+*OBJECTIVE
+</H2>
+
+<P>
+Keyword type: step
+
+<P>
+With *OBJECTIVE one can define the objective function for which a feasible
+direction shall be computed in a <A HREF="node285.html#feasibledirection">*FEASIBLE
+  DIRECTION</A> step. The feasible direction is basically the
+sensitivity of a design response function defined as objective, possibly
+corrected by design responses defined as constraints and/or geometric constraints. Right now, the
+calculation of a feasible direction can only be done for
+TYPE=COORDINATE design variables. The objective function can be any design
+response function defined in a previous <A HREF="node344.html#sensitivity">*SENSITIVITY</A>
+step. It is referred to by using its name given on the <A HREF="node265.html#designresponse">*DESIGN
+  RESPONSE</A> line.
+
+<P>
+There is one optional parameter TARGET. If TARGET=MIN (= default) the sensivity is
+calculated for a minization of the objective, if TARGET=MAX for a
+maximization. The difference comes into play when determining which
+constraints are active.  Exactly one *OBJECTIVE keyword is required in a
+*FEASIBLE DIRECTION step. This keyword has to be followed by exactly one
+design response name.
+
+<P>
+
+<P><P>
+<BR>
+
+<P>
+First line:
+
+<UL>
+<LI>*OBJECTIVE.
+</LI>
+<LI>the parameter target, if needed.
+</LI>
+</UL>
+
+<P>
+Second line:
+
+<UL>
+<LI>name of a design response
+</LI>
+</UL>
+
+<P>
+<PRE>
+Example:
+
+*OBJECTIVE
+DR1
+</PRE>
+
+<P>
+defines the design response with name DR1 as the objective.
+
+<P>
+
+<P><P>
+<BR>
+Example files: opt1, opt3.
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>In/Out</TITLE>
+<META NAME="description" CONTENT="In/Out">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="previous" HREF="node131.html">
+<LINK REL="up" HREF="node122.html">
+<LINK REL="next" HREF="node133.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2872"
+  HREF="node133.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2868"
+  HREF="node122.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2864"
+  HREF="node131.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2870"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2873"
+  HREF="node133.html">Boundary conditions</A>
+<B> Up:</B> <A NAME="tex2html2869"
+  HREF="node122.html">Fluid Section Types: Open</A>
+<B> Previous:</B> <A NAME="tex2html2865"
+  HREF="node131.html">Channel joint</A>
+ &nbsp; <B>  <A NAME="tex2html2871"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000761000000000000000">
+In/Out</A>
+</H3>
+
+<P>
+At locations where mass flow can enter or leave the network an element with
+node label 0 at the entry and exit, respectively, has to be specified. Its
+fluid section type for liquid channel networks must be CHANNEL INOUT, to be specified on the
+<A HREF="node289.html#fluidsection">*FLUID SECTION</A> card. For this type there are no extra
+parameters.
+
+<P>
+If this type of element is connected to exactly one other element type, the
+entering mass
+flow has to be specified in the middle node using a
+<A HREF="node227.html#boundary">*BOUNDARY</A> card and, if the calculation is thermal, the temperature at the
+downstream node. If the mass flow is exiting the network
+nothing should be prescribed. If a In/Out element is connected two elements
+not of the In/Out type the mass flow always has to be specified, irrespective
+whether it is entering or leaving the network. Furthermore, for a thermal
+calculation also the temperature has to be specified as degree of freedom 0 or
+11 at the middle node. This is an exception to the rule that temperatures can
+only be defined in end nodes due to the fact that the external end node of a
+In/Out element has node number zero. A channel calculation is considered to be
+thermal if the above temperature rules are satisfied. Furthermore, or thermal
+channel calculations the
+definition of absolute zero using a <A HREF="node332.html#physicalconstants">*PHYSICAL
+  CONSTANTS</A> card is mandatory.
+
+<P>
+
+<P><P>
+<BR>
+Example files: channel14, channeljoint1.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html2872"
+  HREF="node133.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2868"
+  HREF="node122.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2864"
+  HREF="node131.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2870"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2873"
+  HREF="node133.html">Boundary conditions</A>
+<B> Up:</B> <A NAME="tex2html2869"
+  HREF="node122.html">Fluid Section Types: Open</A>
+<B> Previous:</B> <A NAME="tex2html2865"
+  HREF="node131.html">Channel joint</A>
+ &nbsp; <B>  <A NAME="tex2html2871"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

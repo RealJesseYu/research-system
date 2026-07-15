@@ -1,0 +1,185 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Initial calculations</TITLE>
+<META NAME="description" CONTENT="Initial calculations">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node465.html">
+<LINK REL="previous" HREF="node463.html">
+<LINK REL="up" HREF="node460.html">
+<LINK REL="next" HREF="node465.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7288"
+  HREF="node465.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7284"
+  HREF="node460.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7278"
+  HREF="node463.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7286"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7289"
+  HREF="node465.html">The left hand sides</A>
+<B> Up:</B> <A NAME="tex2html7285"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<B> Previous:</B> <A NAME="tex2html7279"
+  HREF="node463.html">Determining the structure of</A>
+ &nbsp; <B>  <A NAME="tex2html7287"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001111400000000000000">
+Initial calculations</A>
+</H3>
+
+<P>
+In subroutine initialcfdfem.f the following fields are calculated:
+
+<P>
+
+<UL>
+<LI>For each node i in the fluid, the distance from this node to the nearest
+  solid surface node. This distance is stored in field yy(i) and the
+  corresponding nearest surface node in jyy(i). They are needed for
+  the turbulence model.
+</LI>
+<LI>For each solid surface node, the distance to the nearest in-flow
+  node. It is stored in field xsolidsurf. This quantity is also needed for the
+  turbulence model.
+</LI>
+<LI>For each node i the adjacent element height dh(i). This is the minimum of the
+  height of all elements to which the node belongs. The height of an element j
+  is its volume divided by the largest facial area times a factor (e.g. 1 for
+  a hexahedral element and 3 tetrahedral element). This height is stored in
+  field dhel(j) and is used to determine dh(i). From dh(i) the
+  local time increment <!-- MATH
+ $\Delta t_i$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="28" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2215.png"
+ ALT="$ \Delta
+t_i$"></B></SPAN> is calculated.
+</LI>
+<LI>For shallow water calculations: the depth in all fluid nodes (this is the
+  element
+  length in the direction of the gravity vector).
+</LI>
+<LI>Initial conditions for the turbulence parameters <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img464.png"
+ ALT="$ k$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img101.png"
+ ALT="$ \omega$"></B></SPAN>.
+</LI>
+<LI>The value of the conservative variables in all fluid nodes starting
+  from the physical variables. The conservative variables, stored in field
+  vcon(1..nk,0..mi(2)), are <!-- MATH
+ $\epsilon_t, \rho v_i (i=1,2,3), \rho, \rho k$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="161" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3109.png"
+ ALT="$ \epsilon_t, \rho v_i (i=1,2,3), \rho, \rho k$"></B></SPAN> and
+  <!-- MATH
+ $\rho \omega$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="22" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2205.png"
+ ALT="$ \rho \omega$"></B></SPAN>. For efficiency first <!-- MATH
+ $\epsilon_t$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3110.png"
+ ALT="$ \epsilon_t$"></B></SPAN> is stored for all nodes,
+  then <SPAN CLASS="MATH"><B><IMG
+ WIDTH="27" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3111.png"
+ ALT="$ \rho v_1$"></B></SPAN> and so on..., since they are solved for separately (so a
+  single pointer suffices to switch between the fields). The physical
+  variables are the static temperature <SPAN CLASS="MATH"><B><IMG
+ WIDTH="15" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img465.png"
+ ALT="$ T$"></B></SPAN>, the velocity components <SPAN CLASS="MATH"><B><IMG
+ WIDTH="17" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2207.png"
+ ALT="$ v_i$"></B></SPAN>, 
+  the static pressue <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img443.png"
+ ALT="$ p$"></B></SPAN> and the turbulence parameters <SPAN CLASS="MATH"><B><IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img464.png"
+ ALT="$ k$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img101.png"
+ ALT="$ \omega$"></B></SPAN>. They
+  are stored in field vold(0..mi(2),1..nk) in the way conventional to
+  structural calculations, i.e. first all parameters for node 1, then for node 2....
+</LI>
+</UL>
+
+<P>
+The fields calculated in initialcfdfem frequently contain distances between
+nodes, which may have changed since the last call to compfluid.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html7288"
+  HREF="node465.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7284"
+  HREF="node460.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7278"
+  HREF="node463.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7286"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7289"
+  HREF="node465.html">The left hand sides</A>
+<B> Up:</B> <A NAME="tex2html7285"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<B> Previous:</B> <A NAME="tex2html7279"
+  HREF="node463.html">Determining the structure of</A>
+ &nbsp; <B>  <A NAME="tex2html7287"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

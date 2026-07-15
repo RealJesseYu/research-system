@@ -1,0 +1,144 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Mass matrix in (local) main axis coordinate frame</TITLE>
+<META NAME="description" CONTENT="Mass matrix in (local) main axis coordinate frame">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node77.html">
+<LINK REL="previous" HREF="node75.html">
+<LINK REL="up" HREF="node73.html">
+<LINK REL="next" HREF="node77.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2164"
+  HREF="node77.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2160"
+  HREF="node73.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2154"
+  HREF="node75.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2162"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2165"
+  HREF="node77.html">Mass matrix in global</A>
+<B> Up:</B> <A NAME="tex2html2161"
+  HREF="node73.html">User Element: 3D Timoshenko</A>
+<B> Previous:</B> <A NAME="tex2html2155"
+  HREF="node75.html">Discretization of inertia terms</A>
+ &nbsp; <B>  <A NAME="tex2html2163"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H4><A NAME="SECTION000724630000000000000">
+Mass matrix in (local) main axis coordinate frame</A>
+</H4> 
+<BR>
+<P>
+Consequently, the mass matrix becomes in the principal axis coordinates
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{M}
+        = \left[
+           \begin{array}{cc}
+             \boldsymbol{M}_D & \boldsymbol{M}_{ND} \\
+             \boldsymbol{M}^T_{ND} & \boldsymbol{M}_D
+           \end{array}
+    \right]
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="179" HEIGHT="56" ALIGN="MIDDLE" BORDER="0"
+ SRC="img405.png"
+ ALT="$\displaystyle \boldsymbol{M} = \left[ \begin{array}{cc} \boldsymbol{M}_D &amp; \boldsymbol{M}_{ND} \\ \boldsymbol{M}^T_{ND} &amp; \boldsymbol{M}_D \end{array} \right]$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">37</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+with
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{M}_D =
+    \frac{1}{3}(X_2 - X_1)
+    \left[
+        \begin{array}{cccccc}
+            \rho A & 0 & 0 & 0 & 0 & 0 \\
+            0 & \rho A & 0 & 0 & 0 & 0  \\
+            0 & 0 & \rho A & 0 & 0 & 0 \\
+            0 & 0 & 0 & \rho I_p & 0 & 0 \\
+            0 & 0 & 0 & 0 & \rho I_{22} & 0  \\
+            0 & 0 & 0 & 0 & 0 & \rho I_{33}
+        \end{array}
+    \right]
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="401" HEIGHT="131" ALIGN="MIDDLE" BORDER="0"
+ SRC="img406.png"
+ ALT="$\displaystyle \boldsymbol{M}_D = \frac{1}{3}(X_2 - X_1) \left[ \begin{array}{cc...
+... 0 &amp; 0 &amp; \rho I_{22} &amp; 0 \\ 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; \rho I_{33} \end{array} \right]$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">38</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+and
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{M}_{ND} =
+    \frac{1}{6}(X_2 - X_1)
+    \left[
+        \begin{array}{cccccc}
+          \rho A & 0 & 0 & 0 & 0 & 0\\
+            0 & \rho A & 0 & 0 & 0 &0  \\
+            0 & 0 & \rho A & 0 & 0 & 0 \\
+            0 & 0 & 0 & \rho I_p & 0 & 0 \\
+            0 & 0 & 0 & 0 & \rho I_{22} & 0  \\
+            0 & 0 & 0 & 0 & 0 & \rho I_{33}
+        \end{array}
+    \right]
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="412" HEIGHT="131" ALIGN="MIDDLE" BORDER="0"
+ SRC="img407.png"
+ ALT="$\displaystyle \boldsymbol{M}_{ND} = \frac{1}{6}(X_2 - X_1) \left[ \begin{array}...
+... 0 &amp; 0 &amp; \rho I_{22} &amp; 0 \\ 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; \rho I_{33} \end{array} \right]$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">39</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+<BR><HR>
+
+</BODY>
+</HTML>

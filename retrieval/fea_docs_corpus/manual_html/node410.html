@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>restart</TITLE>
+<META NAME="description" CONTENT="restart">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="previous" HREF="node409.html">
+<LINK REL="up" HREF="node406.html">
+<LINK REL="next" HREF="node411.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html6597"
+  HREF="node411.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html6593"
+  HREF="node406.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html6589"
+  HREF="node409.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html6595"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html6598"
+  HREF="node411.html">Reading the step input</A>
+<B> Up:</B> <A NAME="tex2html6594"
+  HREF="node406.html">Allocation of the fields</A>
+<B> Previous:</B> <A NAME="tex2html6590"
+  HREF="node409.html">allocate</A>
+ &nbsp; <B>  <A NAME="tex2html6596"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000111400000000000000">
+restart</A>
+</H3>
+
+<P>
+If a <A HREF="node338.html#restart">*RESTART,WRITE</A> card is present in the input deck a
+restart file is written (extension .rout) in subroutine restartwrite.f (called
+from ccx_2.23.c).
+
+<P>
+If a  <A HREF="node338.html#restart">*RESTART,READ</A> card is detected a restart file
+(extension .rin) is read in the following subroutines, all of them called by
+ccx_2.23.c:
+
+<P>
+
+<UL>
+<LI>readinput.c <!-- MATH
+ $\rightarrow$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2969.png"
+ ALT="$ \rightarrow$"></B></SPAN> restartshort.f <!-- MATH
+ $\rightarrow$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2969.png"
+ ALT="$ \rightarrow$"></B></SPAN> skip.f: used to determine the number
+  of sets in the input deck
+</LI>
+<LI>allocation.f <!-- MATH
+ $\rightarrow$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2969.png"
+ ALT="$ \rightarrow$"></B></SPAN> restartshort.f <!-- MATH
+ $\rightarrow$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2969.png"
+ ALT="$ \rightarrow$"></B></SPAN> skip.f: used to read the number of
+  nodes, elements, boundary conditions ..
+</LI>
+<LI>calinput.f <!-- MATH
+ $\rightarrow$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2969.png"
+ ALT="$ \rightarrow$"></B></SPAN> restarts.f <!-- MATH
+ $\rightarrow$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2969.png"
+ ALT="$ \rightarrow$"></B></SPAN> restartread.f: detailed reading of all
+  information in the input deck, i.e. not only the number of nodes but
+  also the coordinates of all nodes etc.
+</LI>
+</UL>
+
+<P>
+If the restart information is changed, i.e. if restartwrite.f is changed in
+any way also files restartshort.f, skip.f and restartread.f have to be
+modified appropriately.
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

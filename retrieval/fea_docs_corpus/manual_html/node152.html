@@ -1,0 +1,2021 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Massless Node-to-Face Contact</TITLE>
+<META NAME="description" CONTENT="Massless Node-to-Face Contact">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="previous" HREF="node151.html">
+<LINK REL="up" HREF="node133.html">
+<LINK REL="next" HREF="node153.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html3133"
+  HREF="node153.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3129"
+  HREF="node133.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3125"
+  HREF="node151.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3131"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3134"
+  HREF="node153.html">Materials</A>
+<B> Up:</B> <A NAME="tex2html3130"
+  HREF="node133.html">Boundary conditions</A>
+<B> Previous:</B> <A NAME="tex2html3126"
+  HREF="node151.html">Face-to-Face Mortar Contact</A>
+ &nbsp; <B>  <A NAME="tex2html3132"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00077900000000000000"></A><A NAME="masslesscontact"></A>
+<BR>
+Massless Node-to-Face Contact
+</H3>
+
+<P>
+The massless node-to-face contact formulation has been introduced in CalculiX
+in order to model perfectly hard contact within explicit dynamic
+calculations. The implementation closely follows [<A
+ HREF="node530.html#Monjaraz2">69</A>].
+
+<P>
+For the sake of simplicity, frictionless contact is taken as example. Let <SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img840.png"
+ ALT="$ g$"></SPAN>
+denote the gap, <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img47.png"
+ ALT="$ \lambda$"></SPAN> is the contact force. 
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="massless1"></A><A NAME="18370"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 136:</STRONG>
+Normal hard contact</CAPTION>
+<TR><TD><IMG
+ WIDTH="452" HEIGHT="272" BORDER="0"
+ SRC="img1223.png"
+ ALT="\begin{figure}\centering
+\epsfig{file=massless1.eps,width=10cm}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+For a zero contact force the gap can be any positive real number including zero
+(<!-- MATH
+ $\mathbb{R}^+_0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="26" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3.png"
+ ALT="$ \mathbb{R}^+_0$"></SPAN>), for a strictly positive force the gap is zero and a negative contact
+force is not plausible (i.e. no adhesion is assumed). These
+dependencies can be represented in the form of <!-- MATH
+ $g(\lambda)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="34" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1224.png"
+ ALT="$ g(\lambda)$"></SPAN> as in Figure
+<A HREF="#massless1">136</A>. For dynamic calculations with friction the gap
+velocity <!-- MATH
+ $\gamma=\dot{g}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="42" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1225.png"
+ ALT="$ \gamma=\dot{g}$"></SPAN> is used in the contact laws. In principle, the gap
+velocity can be positive or negative. Indeed, if an object is approaching an
+obstacle the gap decreases and the velocity is negative. After collision the
+gap is increasing and the velocity is positive. However, at collision
+(i.e. <SPAN CLASS="MATH"><IMG
+ WIDTH="41" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1226.png"
+ ALT="$ g=0$"></SPAN>) <!-- MATH
+ $\gamma \ge 0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="42" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1227.png"
+ ALT="$ \gamma \ge 0$"></SPAN> is satisfied (the gap remains zero for static
+equilibrium or is increasing after a collision) and now Figure
+<A HREF="#massless1">136</A> also applies for <!-- MATH
+ $\gamma(\lambda)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="34" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1228.png"
+ ALT="$ \gamma(\lambda)$"></SPAN>. In order for the velocity
+to be strictly positive, the force has to be zero.
+
+<P>
+Now, a couple of mathematical concepts are introduced. For further details the
+reader is referred to [<A
+ HREF="node530.html#Leine">52</A>] and [<A
+ HREF="node530.html#Studer">102</A>].
+
+<P>
+
+<UL>
+<LI>A function is set-valued if it can have more than one value for a
+  given argument. For instance, the gap velocity function satisfies
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+\lambda = 0  &\Rightarrow &  0 \le \gamma \le \infty \\
+    \lambda > 0  &\Rightarrow & \gamma = 0
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="42" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1229.png"
+ ALT="$\displaystyle \lambda = 0$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="20" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1230.png"
+ ALT="$\displaystyle \Rightarrow$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="79" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1231.png"
+ ALT="$\displaystyle 0 \le \gamma \le \infty$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">341</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="42" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1232.png"
+ ALT="$\displaystyle \lambda &gt; 0$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="20" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1230.png"
+ ALT="$\displaystyle \Rightarrow$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="42" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1233.png"
+ ALT="$\displaystyle \gamma = 0$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">342</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+The admissible set on which <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1032.png"
+ ALT="$ \gamma$"></SPAN> is defined is <!-- MATH
+ $\mathbb{R}^+_0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="26" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3.png"
+ ALT="$ \mathbb{R}^+_0$"></SPAN>.
+
+<P>
+</LI>
+<LI>A set <!-- MATH
+ $\mathcal{C}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1234.png"
+ ALT="$ \mathcal{C}$"></SPAN> is convex if any linear combination of
+    elements <!-- MATH
+ $\boldsymbol{x_1}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="22" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1235.png"
+ ALT="$ \boldsymbol{x_1}$"></SPAN> and <!-- MATH
+ $\boldsymbol{x_2}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="22" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1236.png"
+ ALT="$ \boldsymbol{x_2}$"></SPAN> of the form <!-- MATH
+ $(1-\alpha)
+    \boldsymbol{x_1}+ \alpha \boldsymbol{x_2}, 0 \le \alpha \le 1$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="196" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1237.png"
+ ALT="$ (1-\alpha)
+\boldsymbol{x_1}+ \alpha \boldsymbol{x_2}, 0 \le \alpha \le 1$"></SPAN> also
+    belongs to <!-- MATH
+ $\mathcal{C}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1234.png"
+ ALT="$ \mathcal{C}$"></SPAN>. For instance, the interior of a circle in
+    two-dimensional space is convex. This also applies to the interior
+    supplemented by the boundary of the circle. The interior of a ring is not
+    convex. <!-- MATH
+ $\mathbb{R}^+_0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="26" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3.png"
+ ALT="$ \mathbb{R}^+_0$"></SPAN> is convex.
+
+<P>
+</LI>
+<LI>The indicator function <SPAN CLASS="MATH"><IMG
+ WIDTH="15" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1238.png"
+ ALT="$ \psi$"></SPAN> for a set  <!-- MATH
+ $\mathcal{C}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1234.png"
+ ALT="$ \mathcal{C}$"></SPAN> is defined by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\psi_{\mathcal{C}}(\boldsymbol{x}) = \left \{
+        \begin{array}{r l}
+            0  &  \text{if} \quad \boldsymbol{x} \in  \mathcal{C} \\
+            \infty & \text{if} \quad  \boldsymbol{x} \not\in  \mathcal{C}
+          \end{array} \right.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="192" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1239.png"
+ ALT="$\displaystyle \psi_{\mathcal{C}}(\boldsymbol{x}) = \left \{ \begin{array}{r l} ...
+...\infty &amp; \text{if} \quad \boldsymbol{x} \not\in \mathcal{C} \end{array} \right.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">343</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+So the indicator function is zero for all elements included in the set
+      and infinity else. The indicator function for <!-- MATH
+ $\mathbb{R}^+_0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="26" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3.png"
+ ALT="$ \mathbb{R}^+_0$"></SPAN> is shown
+      in Figure <A HREF="#massless2">137</A> (bold line)
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="massless2"></A><A NAME="18372"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 137:</STRONG>
+Indicator function for <!-- MATH
+ $\mathbb{R}^+_0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="26" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3.png"
+ ALT="$ \mathbb{R}^+_0$"></SPAN></CAPTION>
+<TR><TD><IMG
+ WIDTH="452" HEIGHT="392" BORDER="0"
+ SRC="img1240.png"
+ ALT="\begin{figure}\centering
+\epsfig{file=massless2.eps,width=10cm}
+\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+</LI>
+<LI>A function <!-- MATH
+ $\mathcal{C} \rightarrow \mathbb{R}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="49" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1241.png"
+ ALT="$ \mathcal{C} \rightarrow \mathbb{R}$"></SPAN> is convex when
+      <!-- MATH
+ $\{(\boldsymbol{x},y) | y \ge f(\boldsymbol{x}); \boldsymbol{x} \in
+      \mathcal{C}\}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="171" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1242.png"
+ ALT="$ \{(\boldsymbol{x},y) \vert y \ge f(\boldsymbol{x}); \boldsymbol{x} \in
+\mathcal{C}\}$"></SPAN> is a convex set. For instance, for a function on a set in
+      the two-dimensional domain <!-- MATH
+ $\mathbb{R}^2$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="22" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1243.png"
+ ALT="$ \mathbb{R}^2$"></SPAN> this means that the
+      three-dimensional volume above the function values has to be
+      a convex set. Since the indicator function <!-- MATH
+ $\psi_\mathcal{C}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="22" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1244.png"
+ ALT="$ \psi_\mathcal{C}$"></SPAN> is zero
+      everywhere in the set <!-- MATH
+ $\mathcal{C}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1234.png"
+ ALT="$ \mathcal{C}$"></SPAN> it is clear that the indicator
+      function of a convex set is convex.
+
+<P>
+</LI>
+<LI>Now, the concept of subdifferential can be explained, which is a
+      generalization of the differential for functions with kinks. The subdifferential <!-- MATH
+ $\partial f(\boldsymbol{x})$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="45" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1245.png"
+ ALT="$ \partial f(\boldsymbol{x})$"></SPAN> of a
+      convex function <!-- MATH
+ $f(\boldsymbol{x})$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="36" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1246.png"
+ ALT="$ f(\boldsymbol{x})$"></SPAN> is defined by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\partial f(\boldsymbol{x}) = \{ \boldsymbol{y} | f(\boldsymbol{x^*})
+        \ge f(\boldsymbol{x})+
+        \boldsymbol{y} \cdot (\boldsymbol{x^*}-\boldsymbol{x}); \forall
+        \boldsymbol{x^*} \in \mathcal{C} \},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="361" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1247.png"
+ ALT="$\displaystyle \partial f(\boldsymbol{x}) = \{ \boldsymbol{y} \vert f(\boldsymbo...
+...(\boldsymbol{x^*}-\boldsymbol{x}); \forall \boldsymbol{x^*} \in \mathcal{C} \},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">344</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="massless3"></A><A NAME="18373"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 138:</STRONG>
+Subdifferential at several positions</CAPTION>
+<TR><TD><IMG
+ WIDTH="452" HEIGHT="272" BORDER="0"
+ SRC="img1248.png"
+ ALT="\begin{figure}\centering
+\epsfig{file=massless3.eps,width=10cm}
+\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+for <!-- MATH
+ $f(\boldsymbol{x}) < +\infty$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="86" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1249.png"
+ ALT="$ f(\boldsymbol{x}) &lt; +\infty$"></SPAN>, where &ldquo;<SPAN CLASS="MATH"><IMG
+ WIDTH="8" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1250.png"
+ ALT="$ \cdot$"></SPAN>&rdquo; is the inner product. This means that all function values
+      have to 
+      exceed a &ldquo;tangent&rdquo; straight line with the subdifferential as slope. As
+      shown in Figure <A HREF="#massless3">138</A> the 
+      subdifferential at point <SPAN CLASS="MATH"><IMG
+ WIDTH="11" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img436.png"
+ ALT="$ b$"></SPAN>, where the function is continuous
+      differentiable, 
+      coincides with the derivative. In point <SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img435.png"
+ ALT="$ a$"></SPAN>, where the function is
+      continuous 
+      but not differentiable, the subdifferential consists of all tangent
+      lines in 
+      between the left and right derivative at that point. Thus, the
+      subdifferential 
+      in <SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img435.png"
+ ALT="$ a$"></SPAN> is multivalued and a set-valued function. The same applies to the
+      origin 
+      in Figure <A HREF="#massless2">137</A> (dashed lines). Indeed, by comparing Figures
+      <A HREF="#massless1">136</A> and  <A HREF="#massless2">137</A> one observes that the
+      subdifferential of 
+      the indicator function of <!-- MATH
+ $\mathbb{R}^+_0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="26" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3.png"
+ ALT="$ \mathbb{R}^+_0$"></SPAN> coincides with <SPAN CLASS="MATH"><IMG
+ WIDTH="25" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1251.png"
+ ALT="$ -\gamma$"></SPAN>:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\partial \psi _{\mathbb{R}^+_0} = -\gamma.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="88" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1252.png"
+ ALT="$\displaystyle \partial \psi _{\mathbb{R}^+_0} = -\gamma.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">345</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+From analysis it is well known that for a continuous differentiable
+      function a 
+      minimum requires that the derivative is zero. From Figure
+      <A HREF="#massless3">138</A> it 
+      is obvious that for a minimum of a <SPAN CLASS="MATH"><IMG
+ WIDTH="22" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1253.png"
+ ALT="$ C_0$"></SPAN>-continuous function
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+0 \in \partial f(\boldsymbol{x})
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="73" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1254.png"
+ ALT="$\displaystyle 0 \in \partial f(\boldsymbol{x})$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">346</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+has to be satisfied. For the indicator function <SPAN CLASS="MATH"><IMG
+ WIDTH="15" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1238.png"
+ ALT="$ \psi$"></SPAN> the definition of
+      subdifferential reduces to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="def1"></A><!-- MATH
+ \begin{equation}
+\partial \psi_{\mathcal{C}} (\boldsymbol{x}) = \{ \boldsymbol{y} | 0
+        \ge
+        \boldsymbol{y} \cdot (\boldsymbol{x^*}-\boldsymbol{x}); \forall
+        \boldsymbol{x^*} \in \mathcal{C} \},
+      
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="285" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1255.png"
+ ALT="$\displaystyle \partial \psi_{\mathcal{C}} (\boldsymbol{x}) = \{ \boldsymbol{y} ...
+...(\boldsymbol{x^*}-\boldsymbol{x}); \forall \boldsymbol{x^*} \in \mathcal{C} \},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">347</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+since the indicator function is zero in <!-- MATH
+ $\mathcal{C}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1234.png"
+ ALT="$ \mathcal{C}$"></SPAN>.
+
+<P>
+</LI>
+<LI>Now, the normal cone of  <!-- MATH
+ $\mathcal{C}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1234.png"
+ ALT="$ \mathcal{C}$"></SPAN> in <!-- MATH
+ $\boldsymbol{x}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="14" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img342.png"
+ ALT="$ \boldsymbol{x}$"></SPAN>
+      is defined by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="def2"></A><!-- MATH
+ \begin{equation}
+\mathcal{N}_{\mathcal{C}} (\boldsymbol{x}) = \{ \boldsymbol{y} |
+        \boldsymbol{y} \cdot (\boldsymbol{x^*} - \boldsymbol{x}) \le 0; \forall
+        \boldsymbol{x^*} \in   \mathcal{C}; \boldsymbol{x} \in  \mathcal{C} \},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="325" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1256.png"
+ ALT="$\displaystyle \mathcal{N}_{\mathcal{C}} (\boldsymbol{x}) = \{ \boldsymbol{y} \v...
+...0; \forall \boldsymbol{x^*} \in \mathcal{C}; \boldsymbol{x} \in \mathcal{C} \},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">348</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+i.e. it is the set of all vectors which make an angle <!-- MATH
+ $\ge 90 ^{\circ}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="44" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1257.png"
+ ALT="$ \ge 90 ^{\circ}$"></SPAN>
+      with 
+      all vectors connecting <!-- MATH
+ $\boldsymbol{x} \in  \mathcal{C}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="43" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1258.png"
+ ALT="$ \boldsymbol{x} \in \mathcal{C}$"></SPAN> with any other
+      point <!-- MATH
+ $\boldsymbol{x^*} \in  \mathcal{C}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="51" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1259.png"
+ ALT="$ \boldsymbol{x^*} \in \mathcal{C}$"></SPAN>. 
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="massless4"></A><A NAME="18377"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 139:</STRONG>
+Normal cone at several positions</CAPTION>
+<TR><TD><IMG
+ WIDTH="358" HEIGHT="262" BORDER="0"
+ SRC="img1260.png"
+ ALT="\begin{figure}\centering
+\epsfig{file=massless4.eps,width=8cm}
+\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+Looking at Figure <A HREF="#massless4">139</A> the normal cone in <SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img435.png"
+ ALT="$ a$"></SPAN> is
+      <!-- MATH
+ $\{\boldsymbol{0}\}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="29" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1261.png"
+ ALT="$ \{\boldsymbol{0}\}$"></SPAN> , in <SPAN CLASS="MATH"><IMG
+ WIDTH="11" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img436.png"
+ ALT="$ b$"></SPAN>
+      it is (the vectors on) a straight line locally orthogonal to
+      <!-- MATH
+ $\mathcal{C}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1234.png"
+ ALT="$ \mathcal{C}$"></SPAN> and in <SPAN CLASS="MATH"><IMG
+ WIDTH="11" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1262.png"
+ ALT="$ c$"></SPAN> it is (the vectors within)
+      a cone bordered by the dashed lines. By comparing Equations (<A HREF="#def1">347</A>)
+      and (<A HREF="#def2">348</A>) it is clear that:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\partial \psi_{\mathcal{C}} (\boldsymbol{x}) =  \mathcal{N}_{\mathcal{C}}
+        (\boldsymbol{x}) .
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="124" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1263.png"
+ ALT="$\displaystyle \partial \psi_{\mathcal{C}} (\boldsymbol{x}) = \mathcal{N}_{\mathcal{C}} (\boldsymbol{x}) .$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">349</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+This establishes a relationship between the subdifferential and the
+      normal cone concept.
+
+<P>
+</LI>
+<LI>Next, the concept of proximal point is introduced. The proximal
+      point of <!-- MATH
+ $\boldsymbol{z}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1264.png"
+ ALT="$ \boldsymbol{z}$"></SPAN> w.r.t. <!-- MATH
+ $\mathcal{C}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1234.png"
+ ALT="$ \mathcal{C}$"></SPAN> is defined by:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\text{prox}_{\mathcal{C}} (\boldsymbol{z})  = \text{argmin} _{\{\boldsymbol{x^*} \in
+             \; \mathcal{C} \} } \| \boldsymbol{z} - \boldsymbol{x^*}  \|,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH">prox<IMG
+ WIDTH="51" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1265.png"
+ ALT="$\displaystyle _{\mathcal{C}} (\boldsymbol{z}) =$">&nbsp; &nbsp;argmin<IMG
+ WIDTH="120" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1266.png"
+ ALT="$\displaystyle _{\{\boldsymbol{x^*} \in \; \mathcal{C} \} } \Vert \boldsymbol{z} - \boldsymbol{x^*} \Vert,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">350</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+i.e. it is the point within <!-- MATH
+ $\mathcal{C}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1234.png"
+ ALT="$ \mathcal{C}$"></SPAN> which is closest to
+      <!-- MATH
+ $\boldsymbol{z}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1264.png"
+ ALT="$ \boldsymbol{z}$"></SPAN>. For instance, looking at Figure <A HREF="#massless4">139</A> the
+      proximal point of <!-- MATH
+ $\boldsymbol{b^*}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1267.png"
+ ALT="$ \boldsymbol{b^*}$"></SPAN> is <!-- MATH
+ $\boldsymbol{b}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1155.png"
+ ALT="$ \boldsymbol{b}$"></SPAN> and the proximal
+      point of <!-- MATH
+ $\boldsymbol{c^*}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1268.png"
+ ALT="$ \boldsymbol{c^*}$"></SPAN> is <!-- MATH
+ $\boldsymbol{c}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1269.png"
+ ALT="$ \boldsymbol{c}$"></SPAN>. Now, the concept of
+      proximal point can be linked to the normal cone and subdifferential
+      definitions. Indeed:
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+\boldsymbol{x}&=& \text{prox}_{\mathcal{C}} (\boldsymbol{z}) \\
+        \Leftrightarrow \boldsymbol{x} &=&  \text{argmin} _{\{\boldsymbol{x^*} \in
+          \; \mathcal{C}\}  } \| \boldsymbol{x^*} - \boldsymbol{z}  \| \\
+        \Leftrightarrow \boldsymbol{x} &=&  \text{argmin} _{\{\boldsymbol{x^*} \in
+          \; \mathcal{C} \} } \left [ \frac{1}{2}  \| \boldsymbol{x^*} -
+          \boldsymbol{z}  \| ^2 \right ] \\
+        \Leftrightarrow \boldsymbol{x} &=&  \text{argmin} \left [ \frac{1}{2}  \| \boldsymbol{x^*} -
+          \boldsymbol{z}  \| ^2 + \psi_{\mathcal{C}} (\boldsymbol{x^*}) \right ]
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1270.png"
+ ALT="$\displaystyle \boldsymbol{x}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%">prox<IMG
+ WIDTH="34" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1271.png"
+ ALT="$\displaystyle _{\mathcal{C}} (\boldsymbol{z})$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">351</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="35" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1272.png"
+ ALT="$\displaystyle \Leftrightarrow \boldsymbol{x}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%">argmin<IMG
+ WIDTH="116" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1273.png"
+ ALT="$\displaystyle _{\{\boldsymbol{x^*} \in
+\; \mathcal{C}\} } \Vert \boldsymbol{x^*} - \boldsymbol{z} \Vert$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">352</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="35" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1272.png"
+ ALT="$\displaystyle \Leftrightarrow \boldsymbol{x}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%">argmin<IMG
+ WIDTH="154" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1274.png"
+ ALT="$\displaystyle _{\{\boldsymbol{x^*} \in
+\; \mathcal{C} \} } \left [ \frac{1}{2} \Vert \boldsymbol{x^*} -
+\boldsymbol{z} \Vert ^2 \right ]$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">353</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="35" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1272.png"
+ ALT="$\displaystyle \Leftrightarrow \boldsymbol{x}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%">argmin<IMG
+ WIDTH="172" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1275.png"
+ ALT="$\displaystyle \left [ \frac{1}{2} \Vert \boldsymbol{x^*} -
+\boldsymbol{z} \Vert ^2 + \psi_{\mathcal{C}} (\boldsymbol{x^*}) \right ]$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">354</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+Notice that by adding the indicator function the constraint
+      <!-- MATH
+ $\{\boldsymbol{x^*} \in  \mathcal{C}\}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="67" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1276.png"
+ ALT="$ \{\boldsymbol{x^*} \in \mathcal{C}\}$"></SPAN> was removed and a convex constrained
+      minimization problem is turned into a convex unconstrained minimization
+      problem. A minimum is obtained if zero belongs to the subdifferential,
+      i.e.: 
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+\boldsymbol{0} &\in& \partial   \left [ \frac{1}{2}  \| \boldsymbol{x} -
+          \boldsymbol{z}  \| ^2 + \psi_{\mathcal{C}} (\boldsymbol{x}) \right ]
+        \\
+        \Leftrightarrow \boldsymbol{0} &\in& \boldsymbol{x}- \boldsymbol{z} + \partial
+        \psi_{\mathcal{C}} (\boldsymbol{x}) \\
+        \Leftrightarrow \boldsymbol{z} - \boldsymbol{x}  &\in& \partial
+        \psi_{\mathcal{C}} (\boldsymbol{x}) \\
+        \Leftrightarrow \boldsymbol{z} - \boldsymbol{x}  &\in&
+        \mathcal{N}_{\mathcal{C}} (\boldsymbol{x})
+      
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="13" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1277.png"
+ ALT="$\displaystyle \boldsymbol{0}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1278.png"
+ ALT="$\displaystyle \in$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="168" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1279.png"
+ ALT="$\displaystyle \partial \left [ \frac{1}{2} \Vert \boldsymbol{x} -
+\boldsymbol{z} \Vert ^2 + \psi_{\mathcal{C}} (\boldsymbol{x}) \right ]$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">355</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="33" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1280.png"
+ ALT="$\displaystyle \Leftrightarrow \boldsymbol{0}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1278.png"
+ ALT="$\displaystyle \in$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="113" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1281.png"
+ ALT="$\displaystyle \boldsymbol{x}- \boldsymbol{z} + \partial
+\psi_{\mathcal{C}} (\boldsymbol{x})$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">356</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="63" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1282.png"
+ ALT="$\displaystyle \Leftrightarrow \boldsymbol{z} - \boldsymbol{x}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1278.png"
+ ALT="$\displaystyle \in$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="55" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1283.png"
+ ALT="$\displaystyle \partial
+\psi_{\mathcal{C}} (\boldsymbol{x})$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">357</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="63" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1282.png"
+ ALT="$\displaystyle \Leftrightarrow \boldsymbol{z} - \boldsymbol{x}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1278.png"
+ ALT="$\displaystyle \in$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="48" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1284.png"
+ ALT="$\displaystyle \mathcal{N}_{\mathcal{C}} (\boldsymbol{x})$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">358</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+This means that one can write:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{\xi }  \in \mathcal{N}_{\mathcal{C}} (\boldsymbol{x}) \Leftrightarrow
+        \boldsymbol{x} =   \text{prox}_{\mathcal{C}} (\boldsymbol{\xi }+
+        \boldsymbol{x} ).
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="128" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1285.png"
+ ALT="$\displaystyle \boldsymbol{\xi } \in \mathcal{N}_{\mathcal{C}} (\boldsymbol{x}) \Leftrightarrow \boldsymbol{x} =$">&nbsp; &nbsp;prox<IMG
+ WIDTH="67" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1286.png"
+ ALT="$\displaystyle _{\mathcal{C}} (\boldsymbol{\xi }+ \boldsymbol{x} ).$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">359</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+This finishes the mathematical excursion.
+</LI>
+</UL>
+
+<P>
+Applying this to the relationship between the gap velocity <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1032.png"
+ ALT="$ \gamma$"></SPAN> and the
+normal contact force <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img47.png"
+ ALT="$ \lambda$"></SPAN> one can write:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+-\gamma \in \partial \psi _ {\mathbb{R}^+_0} (\lambda)  \Leftrightarrow -
+  \gamma \in \mathcal{N}_{\mathbb{R}^+_0} (\lambda)  \Leftrightarrow \lambda =
+  \text{prox}_{\mathbb{R}^+_0} (-\gamma + \lambda),
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="273" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1287.png"
+ ALT="$\displaystyle -\gamma \in \partial \psi _ {\mathbb{R}^+_0} (\lambda) \Leftright...
+...w - \gamma \in \mathcal{N}_{\mathbb{R}^+_0} (\lambda) \Leftrightarrow \lambda =$">&nbsp; &nbsp;prox<IMG
+ WIDTH="89" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1288.png"
+ ALT="$\displaystyle _{\mathbb{R}^+_0} (-\gamma + \lambda),$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">360</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+which turns a set relationship into a nonlinear equation, which is easier to
+solve. Notice that solving for
+a proximal point usually boils down to a projection on the admissable set.
+
+<P>
+If friction is present the feasible domain consists of the positive real
+numbers (including zero) for the normal contact, and a disk with a radius
+equal to the friction coefficient times the normal force:
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+-\gamma_n &\in& \mathcal{N}_{\mathbb{R}^+_0} (\lambda_n) \\
+  -\boldsymbol{\gamma_t} &\in& \mathcal{N}_{S_p} (\boldsymbol{\lambda_t }) \\
+  S_p &=& \{ \boldsymbol{\lambda_t} \;  | \;  \| \boldsymbol{\lambda_t} \|
+  \le \mu \lambda_n\}
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="33" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1289.png"
+ ALT="$\displaystyle -\gamma_n$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1278.png"
+ ALT="$\displaystyle \in$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="65" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1290.png"
+ ALT="$\displaystyle \mathcal{N}_{\mathbb{R}^+_0} (\lambda_n)$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">361</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="32" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1291.png"
+ ALT="$\displaystyle -\boldsymbol{\gamma_t}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1278.png"
+ ALT="$\displaystyle \in$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="61" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1292.png"
+ ALT="$\displaystyle \mathcal{N}_{S_p} (\boldsymbol{\lambda_t })$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">362</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="21" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1293.png"
+ ALT="$\displaystyle S_p$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="131" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1294.png"
+ ALT="$\displaystyle \{ \boldsymbol{\lambda_t} \; \vert \; \Vert \boldsymbol{\lambda_t} \Vert
+\le \mu \lambda_n\}$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">363</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+Notice that the feasible domain is split into a normal and a tangential
+domain. Therefore, also the projection is split: in normal direction the
+projection is on <!-- MATH
+ $\mathbb{R}^+_0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="26" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3.png"
+ ALT="$ \mathbb{R}^+_0$"></SPAN>, in tangential direction on <SPAN CLASS="MATH"><IMG
+ WIDTH="21" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1295.png"
+ ALT="$ S_p$"></SPAN>.
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="massless5"></A><A NAME="18396"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 140:</STRONG>
+Contact area</CAPTION>
+<TR><TD><IMG
+ WIDTH="356" HEIGHT="264" BORDER="0"
+ SRC="img1296.png"
+ ALT="\begin{figure}\centering
+\epsfig{file=massless5.eps,width=8cm}
+\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+In the following a node-to-face contact definition is assumed
+(cf. Section <A HREF="node142.html#n2fpc">6.7.6</A>) . For the gap
+definition one can start from MPC's connecting a slave node with the opposite
+master face, e.g. for node <SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img435.png"
+ ALT="$ a$"></SPAN> in Figure <A HREF="#massless5">140</A>:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{u_a}= 0.5 \boldsymbol{u_b} + 0.5 \boldsymbol{u_c},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="146" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1297.png"
+ ALT="$\displaystyle \boldsymbol{u_a}= 0.5 \boldsymbol{u_b} + 0.5 \boldsymbol{u_c},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">364</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <!-- MATH
+ $\boldsymbol{u}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="15" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img346.png"
+ ALT="$ \boldsymbol{u}$"></SPAN> represents the displacement field. In the more general case the coefficients have to be determined from the shape
+functions of the master face. The gap vector can now be written as (assuming
+the gap is at the beginning of the calculation zero):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{g} = \boldsymbol{u_a}- 0.5 \boldsymbol{u_b} - 0.5 \boldsymbol{u_c}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="174" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1298.png"
+ ALT="$\displaystyle \boldsymbol{g} = \boldsymbol{u_a}- 0.5 \boldsymbol{u_b} - 0.5 \boldsymbol{u_c}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">365</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+This vector can be transformed in a <!-- MATH
+ $\{ n, \boldsymbol{t} \}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="43" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1299.png"
+ ALT="$ \{ n, \boldsymbol{t} \}$"></SPAN> coordinate system
+leading to a normal component and two tangential components for the gap. This
+can be done for all slave nodes leading to the relationship:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="eqg5"></A><!-- MATH
+ \begin{equation}
+\{g\} = [W_b]^T \{U_b\} + \{g_0(t)\}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="195" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1300.png"
+ ALT="$\displaystyle \{g\} = [W_b]^T \{U_b\} + \{g_0(t)\}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">366</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+<SPAN CLASS="MATH"><IMG
+ WIDTH="28" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1301.png"
+ ALT="$ \{g\}$"></SPAN> contains the gap in local coordinates. Its length is 3 times the number of
+slave nodes in the model (for three-dimensional applications). <SPAN CLASS="MATH"><IMG
+ WIDTH="37" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1302.png"
+ ALT="$ \{U_b\}$"></SPAN> is
+a vector containing the displacements of all contact boundary nodes, i.e. slave
+nodes and master nodes, in the global orthogonal coordinate system.
+<!-- MATH
+ $\{ g_0(t) \}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="53" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1303.png"
+ ALT="$ \{ g_0(t) \}$"></SPAN> represents the initial gap. Assuming small sliding and small
+deformations, the matrix <SPAN CLASS="MATH"><IMG
+ WIDTH="34" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1304.png"
+ ALT="$ [W_b]$"></SPAN> can be assumed constant. Taking the
+derivative w.r.t. time of the above equation yields:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="contacteq"></A><!-- MATH
+ \begin{equation}
+\{\gamma \} = [W_b]^T \{V_b\} + \{ \dot{g}_0(t) \},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="195" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1305.png"
+ ALT="$\displaystyle \{\gamma \} = [W_b]^T \{V_b\} + \{ \dot{g}_0(t) \},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">367</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><IMG
+ WIDTH="35" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1306.png"
+ ALT="$ \{V_b\}$"></SPAN> denotes the velocity of all contact boundary nodes. Now, the equations of motion are written thereby neglecting the mass and
+damping terms for the contact boundary nodes (the index i denotes the internal nodes):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\begin{bmatrix} 0 & 0 \\0 & M_{ii}  \end{bmatrix} \begin{Bmatrix}
+    \dot{V}_b \\\dot{V}_i \end{Bmatrix} + \begin{bmatrix} 0 & 0 \\0 & D_{ii}  \end{bmatrix} \begin{Bmatrix}
+    {V}_b \\{V}_i \end{Bmatrix} + \begin{bmatrix} K_{bb} & K_{bi} \\K_{ib} & K_{ii}  \end{bmatrix} \begin{Bmatrix}
+    {U}_b \\{U}_i \end{Bmatrix} =  \begin{Bmatrix}
+    {F}_b(t) +W_b \lambda  \\{F}_i(t) \end{Bmatrix},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="520" HEIGHT="57" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1307.png"
+ ALT="$\displaystyle \begin{bmatrix}0 &amp; 0 \\ 0 &amp; M_{ii} \end{bmatrix} \begin{Bmatrix}\...
+...\end{Bmatrix} = \begin{Bmatrix}{F}_b(t) +W_b \lambda \\ {F}_i(t) \end{Bmatrix},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">368</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+or
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="bequation"></A><!-- MATH
+ \begin{equation}
+[K_{bb}] \{U_b\} + [K_{bi}] \{U_i\} = \{F_b(t)\}+[W_b] \{ \lambda \}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="303" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1308.png"
+ ALT="$\displaystyle [K_{bb}] \{U_b\} + [K_{bi}] \{U_i\} = \{F_b(t)\}+[W_b] \{ \lambda \}$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">369</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="iequation"></A><!-- MATH
+ \begin{equation}
+[M_{ii}] \{\dot{V}_i\} + [D_{ii}] \{V_i\}+ [K_{ii}] \{U_i\} + [K_{ib}]
+  \{U_b\} = \{F_i(t) \}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="395" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1309.png"
+ ALT="$\displaystyle [M_{ii}] \{\dot{V}_i\} + [D_{ii}] \{V_i\}+ [K_{ii}] \{U_i\} + [K_{ib}] \{U_b\} = \{F_i(t) \}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">370</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+Here, <!-- MATH
+ $\{\lambda \}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="29" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1310.png"
+ ALT="$ \{\lambda \}$"></SPAN> represent the contact forces in the slave nodes in a
+local coordinate system. The size of this vector is three times the number of slave
+nodes. <!-- MATH
+ $[W_b] \{ \lambda \}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="59" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1311.png"
+ ALT="$ [W_b] \{ \lambda \}$"></SPAN> are the contact forces in all nodes (slave and
+master) in global coordinates. The motivation for neglecting the inertia terms
+at the contact boundary comes from the fact that these forces were observed
+to lead to substantial scatter in the solution in the contact area.
+
+<P>
+From Equation (<A HREF="#bequation">369</A>) one obtains for
+the displacements at the boundary nodes for time increment <SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img464.png"
+ ALT="$ k$"></SPAN>:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="eqg4"></A><!-- MATH
+ \begin{equation}
+\{U_b\}^k = [K_{bb}]^{-1} \left ( \{F_b(t^k)\}-[K_{bi}] \{U_i\}^k+[W_b] \{ \lambda \}^k
+  \right )
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="368" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1312.png"
+ ALT="$\displaystyle \{U_b\}^k = [K_{bb}]^{-1} \left ( \{F_b(t^k)\}-[K_{bi}] \{U_i\}^k+[W_b] \{ \lambda \}^k \right )$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">371</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Now, a Verlet scheme in its leapfrog form [<A
+ HREF="node530.html#Monjaraz2">69</A>] is proposed based on the
+trapezoidal rule and a shifted grid. This means that displacements are
+evaluated at times <SPAN CLASS="MATH"><IMG
+ WIDTH="17" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1313.png"
+ ALT="$ t^k$"></SPAN> and <SPAN CLASS="MATH"><IMG
+ WIDTH="33" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1314.png"
+ ALT="$ t^{k+1}$"></SPAN>, while velocities are evaluated at
+times <!-- MATH
+ $t^{k-\frac{1}{2}}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="37" HEIGHT="22" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1315.png"
+ ALT="$ t^{k-\frac{1}{2}}$"></SPAN> and  <!-- MATH
+ $t^{k+\frac{1}{2}}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="36" HEIGHT="22" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1316.png"
+ ALT="$ t^{k+\frac{1}{2}}$"></SPAN>. Evaluating Equation
+(<A HREF="#contacteq">367</A>) at time step <SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img464.png"
+ ALT="$ k$"></SPAN> and using  <!-- MATH
+ $\boldsymbol{v}
+^{k-\frac{1}{2}}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="40" HEIGHT="22" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1317.png"
+ ALT="$ \boldsymbol{v}
+^{k-\frac{1}{2}}$"></SPAN> one obtains:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\{\gamma \}^k = [W_b]^T \frac{(\{U_b\}^k-\{U_b\}^{k-1})}{\Delta t} + \{ \dot{g}_0(t^k) \}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="312" HEIGHT="56" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1318.png"
+ ALT="$\displaystyle \{\gamma \}^k = [W_b]^T \frac{(\{U_b\}^k-\{U_b\}^{k-1})}{\Delta t} + \{ \dot{g}_0(t^k) \}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">372</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and after substituting <SPAN CLASS="MATH"><IMG
+ WIDTH="45" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1319.png"
+ ALT="$ \{U_b\}^k$"></SPAN>:
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="eqg1"></A><!-- MATH
+ \begin{eqnarray}
+\{\gamma \}^k &=& \frac{1}{\Delta t}[W_b]^T [K_{bb}]^{-1}[W_b] \{ \lambda \}^k
+ \nonumber  \\&+&
+  \frac{1}{\Delta t}[W_b]^T \left (
+       [K_{bb}]^{-1} ( \{F_b(t^k)\}-[K_{bi}]
+  \{U_i\}^k)
+  -\{U_b\}^{k-1} \right ) \nonumber \\&+& \{ \dot{g}_0(t^k) \},
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="37" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1320.png"
+ ALT="$\displaystyle \{\gamma \}^k$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="182" HEIGHT="52" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1321.png"
+ ALT="$\displaystyle \frac{1}{\Delta t}[W_b]^T [K_{bb}]^{-1}[W_b] \{ \lambda \}^k$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img456.png"
+ ALT="$\displaystyle +$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="376" HEIGHT="52" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1322.png"
+ ALT="$\displaystyle \frac{1}{\Delta t}[W_b]^T \left (
+[K_{bb}]^{-1} ( \{F_b(t^k)\}-[K_{bi}]
+\{U_i\}^k)
+-\{U_b\}^{k-1} \right )$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img456.png"
+ ALT="$\displaystyle +$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="65" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1323.png"
+ ALT="$\displaystyle \{ \dot{g}_0(t^k) \},$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">373</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+or, introducing the symmetric matrix <SPAN CLASS="MATH"><IMG
+ WIDTH="25" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1324.png"
+ ALT="$ [G]$"></SPAN> and vector <SPAN CLASS="MATH"><IMG
+ WIDTH="27" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1325.png"
+ ALT="$ \{c\}$"></SPAN>:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="eqg2"></A><!-- MATH
+ \begin{equation}
+\{\gamma \}^k= [G]  \{ \lambda \}^k+\{c\}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="159" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1326.png"
+ ALT="$\displaystyle \{\gamma \}^k= [G] \{ \lambda \}^k+\{c\}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">374</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+So the contact constraint at time <SPAN CLASS="MATH"><IMG
+ WIDTH="17" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1313.png"
+ ALT="$ t^k$"></SPAN> (also called an inclusion problem):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+-\boldsymbol{\gamma }^k \in  \mathcal{N}_{\mathcal{C}} (\boldsymbol{\lambda
+  }^k)
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="106" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1327.png"
+ ALT="$\displaystyle -\boldsymbol{\gamma }^k \in \mathcal{N}_{\mathcal{C}} (\boldsymbol{\lambda }^k)$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">375</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+now amounts to:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="eq344"></A><!-- MATH
+ \begin{equation}
+-  ([G]  \{ \lambda \}^k+\{c\}) \in  \mathcal{N}_{\mathcal{C}} (\{ \lambda \}^k),
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="216" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1328.png"
+ ALT="$\displaystyle - ([G] \{ \lambda \}^k+\{c\}) \in \mathcal{N}_{\mathcal{C}} (\{ \lambda \}^k),$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">376</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+or
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\{ \lambda \}^k = \text{prox}_{\mathcal{C}} \left [ \{ \lambda \}^k - ([G]
+    \{ \lambda \}^k + \{c\} ) \right ].
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="54" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1329.png"
+ ALT="$\displaystyle \{ \lambda \}^k =$">&nbsp; &nbsp;prox<IMG
+ WIDTH="196" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1330.png"
+ ALT="$\displaystyle _{\mathcal{C}} \left [ \{ \lambda \}^k - ([G] \{ \lambda \}^k + \{c\} ) \right ].$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">377</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The latter equation can be solved in an iterative way [<A
+ HREF="node530.html#Studer">102</A>]:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="eqg3"></A><!-- MATH
+ \begin{equation}
+\{ \lambda \}^k_{n+1} = \text{prox}_{\mathcal{C}}  \left [ \{ \lambda \}^k_n - [r]([G]
+    \{ \lambda \}^k_n + \{c\} ) \right ],
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="71" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1331.png"
+ ALT="$\displaystyle \{ \lambda \}^k_{n+1} =$">&nbsp; &nbsp;prox<IMG
+ WIDTH="215" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1332.png"
+ ALT="$\displaystyle _{\mathcal{C}} \left [ \{ \lambda \}^k_n - [r]([G] \{ \lambda \}^k_n + \{c\} ) \right ],$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">378</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1333.png"
+ ALT="$ [r]$"></SPAN> is a diagonal matrix with relaxation factors and <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img765.png"
+ ALT="$ n$"></SPAN> is the
+iteration index. The relaxation factors are taken to
+be
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay">
+<!-- MATH
+ \begin{eqnarray}
+r_{ii} &=& \frac{ \omega}{  G_{ii}} \quad \text{if} \quad G_{ii} >
+  \sum_{j,j\ne i} | G_{ij} | \\
+  r_{ii} &=& \frac{\omega}{  \sum_{j,j\ne i} | G_{ij} | } \quad \text{if}
+  \quad  G_{ii} \le \sum_{j,j\ne i} | G_{ij} | ,
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="21" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1334.png"
+ ALT="$\displaystyle r_{ii}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="30" HEIGHT="44" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1335.png"
+ ALT="$\displaystyle \frac{ \omega}{ G_{ii}}$">&nbsp; &nbsp;if<IMG
+ WIDTH="128" HEIGHT="53" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1336.png"
+ ALT="$\displaystyle \quad G_{ii} &gt;
+\sum_{j,j\ne i} \vert G_{ij} \vert$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">379</SPAN>)</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="21" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1334.png"
+ ALT="$\displaystyle r_{ii}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="90" HEIGHT="43" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1337.png"
+ ALT="$\displaystyle \frac{\omega}{ \sum_{j,j\ne i} \vert G_{ij} \vert }$">&nbsp; &nbsp;if<IMG
+ WIDTH="132" HEIGHT="53" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1338.png"
+ ALT="$\displaystyle \quad G_{ii} \le \sum_{j,j\ne i} \vert G_{ij} \vert ,$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">380</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+where <!-- MATH
+ $0 \le \omega \le 2$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="73" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1339.png"
+ ALT="$ 0 \le \omega \le 2$"></SPAN> is a relaxation parameter.
+
+<P>
+Summarizing, the contact displacements in time step <SPAN CLASS="MATH"><IMG
+ WIDTH="17" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1313.png"
+ ALT="$ t^k$"></SPAN> are solved using the
+following steps (knowing <!-- MATH
+ $\{F_b(t^k)\}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="62" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1340.png"
+ ALT="$ \{F_b(t^k)\}$"></SPAN> , <!-- MATH
+ $\dot{g}_0(t^k)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="44" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1341.png"
+ ALT="$ \dot{g}_0(t^k)$"></SPAN>, <SPAN CLASS="MATH"><IMG
+ WIDTH="44" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1342.png"
+ ALT="$ \{U_i\}^k$"></SPAN> and <!-- MATH
+ $\{U_b\}^{k-1}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="61" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1343.png"
+ ALT="$ \{U_b\}^{k-1}$"></SPAN>):
+
+<P>
+
+<UL>
+<LI>determine <SPAN CLASS="MATH"><IMG
+ WIDTH="25" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1324.png"
+ ALT="$ [G]$"></SPAN> and <SPAN CLASS="MATH"><IMG
+ WIDTH="27" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1325.png"
+ ALT="$ \{c\}$"></SPAN> using Equations (<A HREF="#eqg1">373</A>) and
+  (<A HREF="#eqg2">374</A>)
+</LI>
+<LI>solve for <!-- MATH
+ $\{ \lambda \}^k$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="37" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1344.png"
+ ALT="$ \{ \lambda \}^k$"></SPAN> using Equation (<A HREF="#eqg3">378</A>) with  <!-- MATH
+ $\{
+  \lambda \}^{k-1}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="53" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1345.png"
+ ALT="$ \{
+\lambda \}^{k-1}$"></SPAN> as initial guess.
+</LI>
+<LI>solve for <SPAN CLASS="MATH"><IMG
+ WIDTH="45" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1319.png"
+ ALT="$ \{U_b\}^k$"></SPAN> using  Equation (<A HREF="#eqg4">371</A>).
+</LI>
+</UL>
+
+<P>
+The solution of the contact problem, however, is restricted to the active
+contact degrees of freedom. Indeed, only for the nodes in contact the gap
+velocity is positive and Figure <A HREF="#massless1">136</A> applies.
+The procedure to determine these active contact degrees of freedom is called an
+active set strategy. Two cases are considered. For the initially open case
+(i.e. no contact at <SPAN CLASS="MATH"><IMG
+ WIDTH="34" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1346.png"
+ ALT="$ t^{k-1}$"></SPAN>) the gap is calculated at <SPAN CLASS="MATH"><IMG
+ WIDTH="17" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1313.png"
+ ALT="$ t^k$"></SPAN> by substituting
+Equation (<A HREF="#eqg4">371</A>) for <!-- MATH
+ $\{ \lambda \}^k=0$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="66" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1347.png"
+ ALT="$ \{ \lambda \}^k=0$"></SPAN> into Equation (<A HREF="#eqg5">366</A>). The active
+degrees of freedom are those for which the gap is nonpositive. For the
+preloaded case (i.e. the contact forces at  <SPAN CLASS="MATH"><IMG
+ WIDTH="34" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1346.png"
+ ALT="$ t^{k-1}$"></SPAN> are positive) the
+preload is calculated from Equation  (<A HREF="#eqg4">371</A>) assuming sticking contact,
+i.e. <!-- MATH
+ $\{U_b\}^k=\{U_b\}^{k-1}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="123" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1348.png"
+ ALT="$ \{U_b\}^k=\{U_b\}^{k-1}$"></SPAN>. Then, the active degrees of freedom are those,
+for which this sticking contact is changing, i.e. either the normal preload is
+negative or the tangential preload exceeds the sticking range and slip
+occurs. For details the reader is referred to [<A
+ HREF="node530.html#Monjaraz2">69</A>].
+
+<P>
+Once <SPAN CLASS="MATH"><IMG
+ WIDTH="45" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1319.png"
+ ALT="$ \{U_b\}^k$"></SPAN> is calculated <!-- MATH
+ $\{V_i\}^{k+\frac{1}{2}}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="61" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1349.png"
+ ALT="$ \{V_i\}^{k+\frac{1}{2}}$"></SPAN> can be calculated by
+substituting
+<!-- MATH
+ $\{\dot{V}_i\}^k=(\{V_i\}^{k+\frac{1}{2}}-\{V_i\}^{k-\frac{1}{2}} )/\Delta
+t$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="237" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1350.png"
+ ALT="$ \{\dot{V}_i\}^k=(\{V_i\}^{k+\frac{1}{2}}-\{V_i\}^{k-\frac{1}{2}} )/\Delta
+t$"></SPAN> and <!-- MATH
+ $\{V_i\}^k=(\{V_i\}^{k+\frac{1}{2}}+\{V_i\}^{k-\frac{1}{2}} )/2$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="226" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1351.png"
+ ALT="$ \{V_i\}^k=(\{V_i\}^{k+\frac{1}{2}}+\{V_i\}^{k-\frac{1}{2}} )/2$"></SPAN> in
+Equation (<A HREF="#iequation">370</A>) expressed at time <SPAN CLASS="MATH"><IMG
+ WIDTH="17" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1313.png"
+ ALT="$ t^k$"></SPAN> leading to:
+
+<P>
+<BR>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="eqg6"></A><!-- MATH
+ \begin{eqnarray}
+\left( \frac{[M_{ii}]}{\Delta t} + \frac{[D_{ii}]}{2} \right)
+  \{V_i\}^{k+\frac{1}{2}} &=&  \{F_i(t^k) \}-[K_{ii}]
+  \{U_i\}^k-[K_{ib}]\{U_b\}^k \nonumber
+  \\&+& \left( \frac{[M_{ii}]}{\Delta t} - \frac{[D_{ii}]}{2} \right)\{V_i\}^{k-\frac{1}{2}}.
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT"><IMG
+ WIDTH="180" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1352.png"
+ ALT="$\displaystyle \left( \frac{[M_{ii}]}{\Delta t} + \frac{[D_{ii}]}{2} \right)
+\{V_i\}^{k+\frac{1}{2}}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img281.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="246" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1353.png"
+ ALT="$\displaystyle \{F_i(t^k) \}-[K_{ii}]
+\{U_i\}^k-[K_{ib}]\{U_b\}^k$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+&nbsp;</TD></TR>
+<TR VALIGN="MIDDLE"><TD NOWRAP WIDTH="50%" ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img456.png"
+ ALT="$\displaystyle +$"></TD>
+<TD ALIGN="LEFT" NOWRAP WIDTH="50%"><IMG
+ WIDTH="185" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1354.png"
+ ALT="$\displaystyle \left( \frac{[M_{ii}]}{\Delta t} - \frac{[D_{ii}]}{2} \right)\{V_i\}^{k-\frac{1}{2}}.$"></TD>
+<TD CLASS="eqno" WIDTH=10 ALIGN="RIGHT">
+(<SPAN CLASS="arabic">381</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL">
+
+<P>
+The solution of this set of equations requires a linear equation solver. The mass matrix does not change during the calculation. If the damping matrix
+does not change either, the factorization step in the linear equation solver
+can be done just once at the start of the calculation. This drastically
+reduces the computation time. Knowing <!-- MATH
+ $\{V_i\}^{k+\frac{1}{2}}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="61" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1349.png"
+ ALT="$ \{V_i\}^{k+\frac{1}{2}}$"></SPAN> the value of
+the displacements in the internal nodes can be obtained from:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="eqg7"></A><!-- MATH
+ \begin{equation}
+\{U_i\}^{k+1} = \{U_i\}^k + \{V_i\}^{k+\frac{1}{2}} \Delta t.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="221" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1355.png"
+ ALT="$\displaystyle \{U_i\}^{k+1} = \{U_i\}^k + \{V_i\}^{k+\frac{1}{2}} \Delta t.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">382</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+Consequently, the overall algorithm can be summarized as follows, knowing
+<!-- MATH
+ $\{F_b(t^k)\}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="62" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1340.png"
+ ALT="$ \{F_b(t^k)\}$"></SPAN> , <!-- MATH
+ $\dot{g}_0(t^k)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="44" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1341.png"
+ ALT="$ \dot{g}_0(t^k)$"></SPAN>, <SPAN CLASS="MATH"><IMG
+ WIDTH="44" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1342.png"
+ ALT="$ \{U_i\}^k$"></SPAN>, <!-- MATH
+ $\{U_b\}^{k-1}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="61" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1343.png"
+ ALT="$ \{U_b\}^{k-1}$"></SPAN>, <!-- MATH
+ $\{\lambda \}^{k-1}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="53" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1345.png"
+ ALT="$ \{
+\lambda \}^{k-1}$"></SPAN> and <!-- MATH
+ $\{V_i\}^{k-\frac{1}{2}}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="61" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1356.png"
+ ALT="$ \{V_i\}^{k-\frac{1}{2}}$"></SPAN>:
+
+<P>
+
+<UL>
+<LI>Determine the active set
+  
+<UL>
+<LI>If the active set is empty <!-- MATH
+ $\{\lambda\}^k=\{0\}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="82" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1357.png"
+ ALT="$ \{\lambda\}^k=\{0\}$"></SPAN> for an initially
+    open contact, and <!-- MATH
+ $\{\lambda\}^k=\{\lambda ^{\text{pre}}\}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="102" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1358.png"
+ ALT="$ \{\lambda\}^k=\{\lambda ^{\text{pre}}\}$"></SPAN> for a
+    preloaded contact.
+</LI>
+<LI>If the active set is not empty, determine <!-- MATH
+ $\{\lambda\}^k$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="37" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1344.png"
+ ALT="$ \{ \lambda \}^k$"></SPAN> from
+    Equation (<A HREF="#eq344">376</A>) with <!-- MATH
+ $\{\lambda\}^{k-1}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="53" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1345.png"
+ ALT="$ \{
+\lambda \}^{k-1}$"></SPAN> as starting value.
+  
+</LI>
+</UL>
+</LI>
+<LI>Determine <SPAN CLASS="MATH"><IMG
+ WIDTH="45" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1319.png"
+ ALT="$ \{U_b\}^k$"></SPAN> from Equation (<A HREF="#eqg4">371</A>).
+</LI>
+<LI>Determine <!-- MATH
+ $\{V_i\}^{k+\frac{1}{2}}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="61" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1349.png"
+ ALT="$ \{V_i\}^{k+\frac{1}{2}}$"></SPAN> from Equation (<A HREF="#eqg6">381</A>).
+</LI>
+<LI>Determine <!-- MATH
+ $\{U_i\}^{k+1}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="60" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1359.png"
+ ALT="$ \{U_i\}^{k+1}$"></SPAN> from Equation (<A HREF="#eqg7">382</A>).
+</LI>
+</UL>
+
+<P>
+In the first increment (k=1) <SPAN CLASS="MATH"><IMG
+ WIDTH="43" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1360.png"
+ ALT="$ \{U_i\}^1$"></SPAN>, <!-- MATH
+ $\{U_b\}^{0}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="44" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1361.png"
+ ALT="$ \{U_b\}^{0}$"></SPAN> and
+<!-- MATH
+ $\{V_i\}^{\frac{1}{2}}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="44" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1362.png"
+ ALT="$ \{V_i\}^{\frac{1}{2}}$"></SPAN> have to be known.
+
+<P>
+Right now, the following limitations apply to the massless contact method:
+
+<P>
+
+<UL>
+<LI>If NLGEOM is active on the *STEP card selective mass scaling is not reliable
+  and should not be applied, i.e. the user should not specify a minimum
+  increment size underneath the *DYNAMIC card.
+</LI>
+<LI>If NLGEOM is active on the *STEP card large rotations will lead to wrong
+  results.
+</LI>
+</UL>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html3133"
+  HREF="node153.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3129"
+  HREF="node133.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3125"
+  HREF="node151.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3131"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3134"
+  HREF="node153.html">Materials</A>
+<B> Up:</B> <A NAME="tex2html3130"
+  HREF="node133.html">Boundary conditions</A>
+<B> Previous:</B> <A NAME="tex2html3126"
+  HREF="node151.html">Face-to-Face Mortar Contact</A>
+ &nbsp; <B>  <A NAME="tex2html3132"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

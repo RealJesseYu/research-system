@@ -1,0 +1,175 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*FEASIBLE DIRECTION</TITLE>
+<META NAME="description" CONTENT="*FEASIBLE DIRECTION">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node286.html">
+<LINK REL="previous" HREF="node284.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node286.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html4930"
+  HREF="node286.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4926"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4920"
+  HREF="node284.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4928"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4931"
+  HREF="node286.html">*FILM</A>
+<B> Up:</B> <A NAME="tex2html4927"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html4921"
+  HREF="node284.html">*EXPANSION</A>
+ &nbsp; <B>  <A NAME="tex2html4929"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000858000000000000000"></A><A NAME="feasibledirection"></A>
+<BR>
+*FEASIBLE DIRECTION
+</H2>
+
+<P>
+Keyword type: step
+
+<P>
+This procedure is used to calculate a feasible direction for an optimization
+calculation. It must be preceded by one or more
+<A HREF="node344.html#sensitivity">*SENSITIVITY</A> steps and the design variables must be of
+type coordinate. The sensitivities calculated in the sensitivity steps can be
+used as an objective or as constraints. The
+feasible direction step calculates how the steepest descent direction of the
+objective function (<A HREF="node329.html#objective">*OBJECTIVE</A>) has to be modified to
+avoid the violation of nonlinear constrains
+(<A HREF="node245.html#constraint">*CONSTRAINT</A>) or geometric constraints
+(<A HREF="node295.html#geometricconstraint">*GEOMETRIC CONSTRAINT</A>. To calculate this
+modified descent direction two methods are available selected by the optional
+parameter METHOD. It can take the value GRADIENT DESCENT or GRADIENT
+PROJECTION. For details the user is referred to Section <A HREF="node197.html#sectionfeasibledirection">6.9.24</A>.
+
+<P>
+Default is the GRADIENT DESCENT method. It is an interior point method which
+means that the starting point for an optimization has to lie in the feasible
+domain. The influence of the constraints on the feasible direction is always
+taken into account independent of the distance to the constraint bound. This
+methods aims to stay away from the constraint boundaries as long as possible
+on the way to the local optimum.
+
+<P>
+In contrast to that, the GRADIENT PROJECTION method is based on an active set
+strategy which means that the steepest descent direction is chosen as long as
+no constraint boundary is reached. As soon as a constraint boundary is active
+the fasible direction is calculated by projection the objective gradient on
+the subspace tangent of all active constraints.
+
+<P>
+The feasible direction procedure yields values for the motion of the design
+variables normal to the surface which is needed to reach the objective subject
+to the constraints. These values are normed to 1 (i.e. the maximum absolute
+value is 1) and they can be used for a subsequent mesh modification by applying them
+as boundary conditions to the mesh in a linear elastic calculation. The input
+deck for this calculation is automatically generated in the feasible direction
+step and gets the name jobname.equ. Before creating this input deck, the
+values are scaled by the mesh modification factor, which the user specifies on
+the line underneath *FEASIBLE DIRECTION. 
+
+<P><P>
+<BR>
+
+<P>
+First line:
+
+<UL>
+<LI>*FEASIBLE DIRECTION
+</LI>
+<LI>Enter the parameter METHOD if needed and its value
+</LI>
+</UL>
+
+<P>
+Second line:
+
+<UL>
+<LI>Mesh modification size.
+</LI>
+</UL>
+
+<P>
+<PRE>
+Example:
+
+*FEASIBLE DIRECTION,METHOD=GRADIENT PROJECTION
+.1
+</PRE>
+
+<P>
+defines a feasible direction step with the gradient method for the treatment
+of the constraints. The maximum modification of the mesh is 0.1.
+
+<P>
+
+<P><P>
+<BR>
+Example files: opt1, opt3.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html4930"
+  HREF="node286.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html4926"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html4920"
+  HREF="node284.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html4928"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html4931"
+  HREF="node286.html">*FILM</A>
+<B> Up:</B> <A NAME="tex2html4927"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html4921"
+  HREF="node284.html">*EXPANSION</A>
+ &nbsp; <B>  <A NAME="tex2html4929"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

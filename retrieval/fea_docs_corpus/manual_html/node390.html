@@ -1,0 +1,176 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>User-defined mechanical material laws.</TITLE>
+<META NAME="description" CONTENT="User-defined mechanical material laws.">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node397.html">
+<LINK REL="previous" HREF="node377.html">
+<LINK REL="up" HREF="node371.html">
+<LINK REL="next" HREF="node391.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html6230"
+  HREF="node391.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html6226"
+  HREF="node371.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html6220"
+  HREF="node389.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html6228"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html6231"
+  HREF="node391.html">The CalculiX interface.</A>
+<B> Up:</B> <A NAME="tex2html6227"
+  HREF="node371.html">User subroutines.</A>
+<B> Previous:</B> <A NAME="tex2html6221"
+  HREF="node389.html">Gap heat generation (fricheat.f)</A>
+ &nbsp; <B>  <A NAME="tex2html6229"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00095000000000000000"></A><A NAME="user"></A>
+<BR>
+User-defined mechanical material laws.
+</H2>
+User-defined mechanical behavior can be implemented using three
+different interfaces:
+
+<UL>
+<LI>The  native CalculiX interface.
+</LI>
+<LI>The ABAQUS umat routines for linear materials (small strain
+  analyses).
+</LI>
+<LI>The ABAQUSNL umat routines for nonlinear materials (finite
+  strain analyses).
+</LI>
+</UL>
+
+<P>
+There are two ways of introducing user-defined mechanical behavior:
+
+<UL>
+<LI>Modify the CalculiX sources. This option is supported for the
+  three interfaces.
+</LI>
+<LI>Call a behavior defined in shared libraries.
+</LI>
+</UL>
+
+<P>
+Each of these approaches has its own advantages and its own
+pitfalls.
+
+<P>
+The first one is intrusive and requires a partial recompilation of
+CalculiX, which means having access to the sources and the rights to
+install the executable if it is meant to be deployed on a system-wide
+location.
+
+<P>
+The second one does not require any modification to CalculiX, is
+generally easier to set up and is very flexible. There is no intrinsic
+limitation on the number of shared libraries and functions that can
+be dynamically loaded. It is thus quite feasible to create mechanical
+behaviour databases by creating a shared library for each specific
+material. Such libraries will only be loaded if needed. In such an
+approach, the mechanical behaviour is dedicated to a specific material
+and is self-contained: it has no external parameter. Shared libraries
+can be shared between co-workers by putting them on a shared folder.
+However, experience shows that using shared libraries can be confusing
+for some users as they have to update their environment variables (PATH
+on Windows or LD_LIBRARY_PATH on Unix) for the libraries to be
+usable. Shared libraries can also be more sensitive to system
+updates. A further drawback of using shared libraries is that the behavior
+must be written in C or C++ and the name of the functions implementing
+the behavior must be upper-case due to CalculiX internal
+conventions<A NAME="tex2html187"
+  HREF="footnode.html#foot15302"><SUP><SPAN CLASS="arabic">1</SPAN></SUP></A>. The reason of such a restriction is detailed below. One
+way of generating such library with the appropriate naming convention
+is to use the MFront code generator:
+<DIV ALIGN="CENTER">
+http://tfel.sourceforge.net
+
+</DIV>
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html6232"
+  HREF="node391.html">The CalculiX interface.</A>
+<UL>
+<LI><A NAME="tex2html6233"
+  HREF="node392.html">Introduction of a new mechanical behaviour by modifying the
+  sources.</A>
+<LI><A NAME="tex2html6234"
+  HREF="node393.html">Calling mechanical behaviour defining shared libraries.</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html6235"
+  HREF="node394.html">ABAQUS umat routines</A>
+<UL>
+<LI><A NAME="tex2html6236"
+  HREF="node395.html">Limitations.</A>
+<LI><A NAME="tex2html6237"
+  HREF="node396.html">Calling shared libraries.</A>
+</UL></UL>
+<!--End of Table of Child-Links-->
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html6230"
+  HREF="node391.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html6226"
+  HREF="node371.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html6220"
+  HREF="node389.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html6228"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html6231"
+  HREF="node391.html">The CalculiX interface.</A>
+<B> Up:</B> <A NAME="tex2html6227"
+  HREF="node371.html">User subroutines.</A>
+<B> Previous:</B> <A NAME="tex2html6221"
+  HREF="node389.html">Gap heat generation (fricheat.f)</A>
+ &nbsp; <B>  <A NAME="tex2html6229"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

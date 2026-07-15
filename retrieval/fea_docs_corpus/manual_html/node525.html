@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Nearest point algorithm</TITLE>
+<META NAME="description" CONTENT="Nearest point algorithm">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node526.html">
+<LINK REL="previous" HREF="node524.html">
+<LINK REL="up" HREF="node523.html">
+<LINK REL="next" HREF="node526.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html8087"
+  HREF="node526.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html8083"
+  HREF="node523.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html8077"
+  HREF="node524.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html8085"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html8088"
+  HREF="node526.html">Tetrahedron containment</A>
+<B> Up:</B> <A NAME="tex2html8084"
+  HREF="node523.html">Interpolation procedure</A>
+<B> Previous:</B> <A NAME="tex2html8078"
+  HREF="node524.html">Tetrangulation of the master</A>
+ &nbsp; <B>  <A NAME="tex2html8086"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001115200000000000000">
+Nearest point algorithm</A>
+</H3>
+
+<P>
+The centers of gravity of the linear tetrahedra form a cloud of points. One of
+the key parts of the algorithm is the fast selection of the n closest points
+to a given new location in which interpolation is requested. The procedure
+is illustrated in two dimensions in Figure <A HREF="#near2d">207</A>.
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="near2d"></A><A NAME="19377"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 207:</STRONG>
+Scheme of the nearest point algorithm</CAPTION>
+<TR><TD><IMG
+ WIDTH="540" HEIGHT="466" BORDER="0"
+ SRC="img3277.png"
+ ALT="\begin{figure}\centering
+\epsfig{file=near2d.eps,width=12cm}
+\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+The point on the cross section of the two global axes p is the point in which
+the interpolation is to be performed. The black circles symbolize the point
+cloud. Assume we would like to know the closest 3 points. The points in the
+cloud are available in two sorted arrays, one sorted in the global x-direction
+and one in the global y-direction. First, the location of the point p in these
+two arrays is determined using the routine ident.f. Then, a rectangle is
+expanded about p reaching in each direction east, north, west and south until
+the next point in the cloud is attained. This is symbolized with the simple
+dashed lines and the points are denoted A, B, C and D (A and D
+coincide). Then, the distance from p to these points is calculated, sorted,
+and stored in an array. The size of this array is the number of closest
+neighbors requested, so in our case only the smallest three distances are kept.
+
+<P>
+Next, the rectangle is expanded in each direction until the next cloud point
+is reached, denoded by E, F, G and H. Again, the distance from p to these
+points is calculated, stored in the distance array, sorted and the lowest
+three values are kept (only the three closest points are needed). Now, this
+procedure is repeated until the smallest distance from p to one of the corner
+points of the rectangle (symbolized by 1, 2, 3 and 4 for the largest rectangle
+shown in the figure) exceeds the largest value in the distance array. Then we
+know that we have found the closest three neighboring points.
+
+<P>
+The procedure in three dimensions is completely equivalent, we just have two
+extra directions &ldquo;backward&rdquo; and &ldquo;forward&rdquo;. 
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html8087"
+  HREF="node526.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html8083"
+  HREF="node523.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html8077"
+  HREF="node524.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html8085"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html8088"
+  HREF="node526.html">Tetrahedron containment</A>
+<B> Up:</B> <A NAME="tex2html8084"
+  HREF="node523.html">Interpolation procedure</A>
+<B> Previous:</B> <A NAME="tex2html8078"
+  HREF="node524.html">Tetrangulation of the master</A>
+ &nbsp; <B>  <A NAME="tex2html8086"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

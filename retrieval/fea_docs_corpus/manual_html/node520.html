@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>smoothbadmid.f</TITLE>
+<META NAME="description" CONTENT="smoothbadmid.f">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="previous" HREF="node519.html">
+<LINK REL="up" HREF="node489.html">
+<LINK REL="next" HREF="node521.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html8025"
+  HREF="node521.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html8021"
+  HREF="node489.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html8017"
+  HREF="node519.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html8023"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html8026"
+  HREF="node521.html">Boundary conditions and loading</A>
+<B> Up:</B> <A NAME="tex2html8022"
+  HREF="node489.html">Mesh refining procedure</A>
+<B> Previous:</B> <A NAME="tex2html8018"
+  HREF="node519.html">projectmidnodes.f</A>
+ &nbsp; <B>  <A NAME="tex2html8024"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H4><A NAME="SECTION00011135310000000000000">
+smoothbadmid.f</A>
+</H4>
+
+<P>
+In smoothbadmid.f the position of all subsurface bad midnodes (surface bad
+midnodes are not modified) is optimized by minimizing the following function F
+(using fminsi):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+F=\max_{i \in \text{shell} \atop j \in i} Q_j + \sum_{ i \in
+      \text{shell} \atop k \in
+    \text{(ip)}_i}  10^{30}(1-J_{ik}) \frac{<-J_{ik}>}{|J_{ik}|}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="325" HEIGHT="69" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3228.png"
+ ALT="$\displaystyle F=\max_{i \in \text{shell} \atop j \in i} Q_j + \sum_{ i \in \tex...
+...top k \in \text{(ip)}_i} 10^{30}(1-J_{ik}) \frac{&lt;-J_{ik}&gt;}{\vert J_{ik}\vert}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">992</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+In the first term of the right hand side <SPAN CLASS="MATH"><B><IMG
+ WIDTH="23" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3229.png"
+ ALT="$ Q_j$"></B></SPAN> is the quality measure for
+linear tetrahedra. To this end each quadratic tetrahedral element is
+subdivided into 8 linear tetrahedrons. This measure seems to be more
+appropriate than using <SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3230.png"
+ ALT="$ Q_i^*$"></B></SPAN> during the optimization and leads to better
+shaped tetrahedrons. So basically the first term optimizes the volume of the 8
+linear subtetrahedra of the quadratic tetrahedron. The second term avoids the presence of negative Jacobian determinants at the
+integration points (abreviated as ip in the above formula).
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

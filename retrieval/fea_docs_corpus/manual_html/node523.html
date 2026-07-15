@@ -1,0 +1,202 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Interpolation procedure</TITLE>
+<META NAME="description" CONTENT="Interpolation procedure">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node528.html">
+<LINK REL="previous" HREF="node522.html">
+<LINK REL="up" HREF="node405.html">
+<LINK REL="next" HREF="node524.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html8059"
+  HREF="node524.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html8055"
+  HREF="node405.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html8049"
+  HREF="node522.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html8057"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html8060"
+  HREF="node524.html">Tetrangulation of the master</A>
+<B> Up:</B> <A NAME="tex2html8056"
+  HREF="node405.html">Program structure.</A>
+<B> Previous:</B> <A NAME="tex2html8050"
+  HREF="node522.html">Crack propagation</A>
+ &nbsp; <B>  <A NAME="tex2html8058"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION0001115000000000000000">
+Interpolation procedure</A>
+</H2>
+
+<P>
+Interpolation in between an existing mesh is used in different places in
+CalculiX:
+
+<P>
+
+<UL>
+<LI>Mesh refinement
+  
+<UL>
+<LI>Determine the desired edge length in newly created nodes (newnodes.f,
+    updategeodata.f) 
+</LI>
+<LI>Determine the interpolation coefficients for the connection of a
+    node in the unrefined mesh to the refined mesh (treatment of SPC's and
+    MPC's: genmpc.f)
+</LI>
+<LI>Determine the interpolation coefficients for the connection of a node
+    in the refined mesh to the unrefined mesh (treatment of temperatures:
+    genratio.f) 
+  
+</LI>
+</UL>
+</LI>
+<LI>Crack propagation calculations
+  
+<UL>
+<LI>For the crack length definition: find the intersection of a straight
+    line of the external surface of the structure (cracklength.f)
+</LI>
+<LI>For the crack propagation: find the intersection of the crack front
+    with the external surface of the structure (crackprop.f)
+</LI>
+<LI>Determine the nodes on the crack boundary which are inside the
+    structure (interpolextnodes.f) 
+  
+</LI>
+</UL>
+</LI>
+<LI>Submodel calculations
+  
+<UL>
+<LI>Interpolation of displacements, stresses... onto the boundary of the
+    submodel (interpolsubmodel.f)
+  
+</LI>
+</UL>
+</LI>
+</UL>
+
+<P>
+The input to the interpolation procedure is a master mesh consisting of
+volumetric elements (no 1d-elements such as beams or 2d-elements such as
+shells) and results at the nodes of the mesh, and a slave &ldquo;mesh&rdquo; consisting
+of  one or more nodes in which
+the results are to be interpolated. Notice that the slave mesh does not have
+to contain elements. The interpolation consists of the following steps:
+
+<P>
+
+<UL>
+<LI>Tetrangulation of the master mesh using linear tetrahedral
+  elements. Calculation of the centers of gravity of these tetrahedrons and
+  sorting these in global x-direction, global y-direction and global
+  z-direction.
+</LI>
+<LI>For each slave location:
+  
+<UL>
+<LI>find the set of the n=1 closest centers of
+    gravity (the corresponding set of tetrahedra is called the n-closest-set)
+</LI>
+<LI>Check whether the slave location belongs to any of the tetrahedrons
+    in the n-closest-set. If yes, take this
+    tetrahedron for further analysis; if not, identify the
+    tetrahedron in the n-closest-set to which the slave location is closest.
+</LI>
+<LI>Check whether the slave location belongs to the master element to
+    which the tetrahedron belongs. If yes, interpolation is done within this
+    master element; if not, check the master elements of all other tetrahedra
+    in the n-closest-set. If this test is positive, perform interpolation in
+    the identified master element. If negative, save the closest position to
+    any of the master elements considered and repeat the exercise for this
+    slave location for n=10 and n=100. If the latter is not successful, the
+    slave location is considered to be outside the master mesh and the closest
+    projection is saved.
+  
+</LI>
+</UL>
+</LI>
+</UL>
+
+<P>
+In the next sections the different aspects of the procedure are analyzed in
+detail. 
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html8061"
+  HREF="node524.html">Tetrangulation of the master mesh</A>
+<LI><A NAME="tex2html8062"
+  HREF="node525.html">Nearest point algorithm</A>
+<LI><A NAME="tex2html8063"
+  HREF="node526.html">Tetrahedron containment</A>
+<LI><A NAME="tex2html8064"
+  HREF="node527.html">Finite element containment</A>
+</UL>
+<!--End of Table of Child-Links-->
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html8059"
+  HREF="node524.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html8055"
+  HREF="node405.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html8049"
+  HREF="node522.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html8057"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html8060"
+  HREF="node524.html">Tetrangulation of the master</A>
+<B> Up:</B> <A NAME="tex2html8056"
+  HREF="node405.html">Program structure.</A>
+<B> Previous:</B> <A NAME="tex2html8050"
+  HREF="node522.html">Crack propagation</A>
+ &nbsp; <B>  <A NAME="tex2html8058"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

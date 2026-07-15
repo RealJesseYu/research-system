@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>meshquality.f</TITLE>
+<META NAME="description" CONTENT="meshquality.f">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node508.html">
+<LINK REL="previous" HREF="node506.html">
+<LINK REL="up" HREF="node489.html">
+<LINK REL="next" HREF="node508.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7871"
+  HREF="node508.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7867"
+  HREF="node489.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7861"
+  HREF="node506.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7869"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7872"
+  HREF="node508.html">smoothingvertexnodes.f</A>
+<B> Up:</B> <A NAME="tex2html7868"
+  HREF="node489.html">Mesh refining procedure</A>
+<B> Previous:</B> <A NAME="tex2html7862"
+  HREF="node506.html">catnodes.f</A>
+ &nbsp; <B>  <A NAME="tex2html7870"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H4><A NAME="SECTION00011135180000000000000">
+meshquality.f</A>
+</H4>
+
+<P>
+In this routine the quality of each element is determined. To this end the
+ratio of the largest edge <SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3212.png"
+ ALT="$ L_i$"></B></SPAN> to the radius of the inscribed sphere is used. One can prove that the radius of the inscribed sphere of a
+linear tetrahedral is three times the volume <SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2123.png"
+ ALT="$ V_i$"></B></SPAN> divided by the sum of the area of
+its faces <!-- MATH
+ $(\sum S)_i$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="52" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3213.png"
+ ALT="$ (\sum S)_i$"></B></SPAN> [<A
+ HREF="node530.html#George">31</A>]. Therefore, the quality <SPAN CLASS="MATH"><B><IMG
+ WIDTH="22" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3214.png"
+ ALT="$ Q_i$"></B></SPAN> for element <SPAN CLASS="MATH"><B><IMG
+ WIDTH="9" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img894.png"
+ ALT="$ i$"></B></SPAN> can be written as:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+Q_i=\frac{\sqrt{6} }{12 } \frac{L_i (\sum S)_i }{3 \max(V_i, 10^{-30})}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="190" HEIGHT="58" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3215.png"
+ ALT="$\displaystyle Q_i=\frac{\sqrt{6} }{12 } \frac{L_i (\sum S)_i }{3 \max(V_i, 10^{-30})}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">988</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The factor <!-- MATH
+ $\frac{\sqrt{6} }{12 }$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3216.png"
+ ALT="$ \frac{\sqrt{6} }{12 }$"></B></SPAN> is such that the quality of an equilateral
+tetrahedron is 1. For all other tetrahedra it exceeds 1. The larger the value,
+the worse the element. The cut-off of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="43" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2934.png"
+ ALT="$ 10^{-30}$"></B></SPAN> was introduced to avoid
+dividing by zero or getting a negative value.
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

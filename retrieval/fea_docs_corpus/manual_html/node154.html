@@ -1,0 +1,179 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Linear elasticity</TITLE>
+<META NAME="description" CONTENT="Linear elasticity">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node155.html">
+<LINK REL="previous" HREF="node153.html">
+<LINK REL="up" HREF="node153.html">
+<LINK REL="next" HREF="node155.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html3176"
+  HREF="node155.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3172"
+  HREF="node153.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3166"
+  HREF="node153.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3174"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3177"
+  HREF="node155.html">Linear elasticity for large</A>
+<B> Up:</B> <A NAME="tex2html3173"
+  HREF="node153.html">Materials</A>
+<B> Previous:</B> <A NAME="tex2html3167"
+  HREF="node153.html">Materials</A>
+ &nbsp; <B>  <A NAME="tex2html3175"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00078100000000000000">
+Linear elasticity</A>
+</H3>
+
+<P>
+Linear elastic materials are characterized by an elastic potential of which
+only the quadratic terms in the strain are kept. It can be defined in a
+isotropic, orthotropic or fully anisotropic version. Isotropic linear elastic
+materials are characterized by their Young's modulus and Poisson's
+coefficient. Common steels are usually isotropic. Orthotropic materials, such
+as wood or cubic single crystals are characterized by 9 nonzero constants and
+fully anisotropic materials by 21 constants. For elastic materials the keyword
+<A HREF="node274.html#elastic">*ELASTIC</A> is used.
+
+<P>
+A linear elastic material, as implemented in CalculiX simulates a linear
+elastic relationship between the Lagrange strain and the Piola-Kirchhoff
+stress of the second kind (PK2). For small strains and rotations, the Lagrange
+strain reduces to the linear strain and the PK2 stress to a generic stress
+tensor. For large strains and/or rotations one can prove that a linear elastic
+connection of the Lagrange strain and the PK2 stress does not make physically
+sense (cf. next section), and other relationships derived from stored-energy
+functions are preferred.
+
+<P>
+In Abaqus, a linear elastic material expresses a linear elastic relationship between
+the logarithmic strain and the Cauchy stress. If the Cauchy-Green tensor is
+written as
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{C}= \sum_{i=1}^{3} \lambda_{\underline{i}}^2 \boldsymbol{M}_{\underline{i}},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="111" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1363.png"
+ ALT="$\displaystyle \boldsymbol{C}= \sum_{i=1}^{3} \lambda_{\underline{i}}^2 \boldsymbol{M}_{\underline{i}},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">383</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><IMG
+ WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img972.png"
+ ALT="$ \lambda_i$"></SPAN> are the three principal stretches and <!-- MATH
+ $\boldsymbol{M}_i$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="29" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1364.png"
+ ALT="$ \boldsymbol{M}_i$"></SPAN> are
+the structural tensors (cf. [<A
+ HREF="node530.html#Dhondt">24</A>], Equation (1.121), here reduced for
+a global rectangular system) then the logarithmic strain satisfies:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{E}_{\text{ln}}= \sum_{i=1}^{3} \ln(\lambda_{\underline{i}}) \boldsymbol{M}_{\underline{i}}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="146" HEIGHT="65" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1365.png"
+ ALT="$\displaystyle \boldsymbol{E}_{\text{ln}}= \sum_{i=1}^{3} \ln(\lambda_{\underline{i}}) \boldsymbol{M}_{\underline{i}}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">384</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+By defining a linear elastic material in user subroutine umat_abaqusnl.f one
+can simulate this behavior. In fact, the material coded as an example in
+umat_abaqusnl.f is exactly such material.
+
+<P>
+For finite strain (visco)plasticity, triggered by the keywords *PLASTIC and/or
+*CREEP in combination with the paramter NLGEOM on the *STATIC card, a
+hyperelastic-type potential is used for the elastic range. For details the
+reader is referred to [<A
+ HREF="node530.html#Dhondt">24</A>], Section 6.3.1.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html3176"
+  HREF="node155.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3172"
+  HREF="node153.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3166"
+  HREF="node153.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3174"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3177"
+  HREF="node155.html">Linear elasticity for large</A>
+<B> Up:</B> <A NAME="tex2html3173"
+  HREF="node153.html">Materials</A>
+<B> Previous:</B> <A NAME="tex2html3167"
+  HREF="node153.html">Materials</A>
+ &nbsp; <B>  <A NAME="tex2html3175"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

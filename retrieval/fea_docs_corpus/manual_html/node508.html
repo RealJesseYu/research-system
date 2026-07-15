@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>smoothingvertexnodes.f</TITLE>
+<META NAME="description" CONTENT="smoothingvertexnodes.f">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node509.html">
+<LINK REL="previous" HREF="node507.html">
+<LINK REL="up" HREF="node489.html">
+<LINK REL="next" HREF="node509.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7883"
+  HREF="node509.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7879"
+  HREF="node489.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7873"
+  HREF="node507.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7881"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7884"
+  HREF="node509.html">END OF MAJOR LOOP.</A>
+<B> Up:</B> <A NAME="tex2html7880"
+  HREF="node489.html">Mesh refining procedure</A>
+<B> Previous:</B> <A NAME="tex2html7874"
+  HREF="node507.html">meshquality.f</A>
+ &nbsp; <B>  <A NAME="tex2html7882"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H4><A NAME="SECTION00011135190000000000000">
+smoothingvertexnodes.f</A>
+</H4>
+
+<P>
+After smoothing a node its position <!-- MATH
+ $\boldsymbol{P}_i$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="23" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3217.png"
+ ALT="$ \boldsymbol{P}_i$"></B></SPAN> has changed into
+<!-- MATH
+ $\boldsymbol{P}^*_i$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="25" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3218.png"
+ ALT="$ \boldsymbol{P}^*_i$"></B></SPAN> satisfying:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{P}^*_i = \omega \frac{\sum_{j}\frac{1}{\overline{h}_j^2
+    }\boldsymbol{P}_j   }{\sum_{j} \frac{1}{\overline{h}_j^2
+    } }  + (1-\omega ) \boldsymbol{P}_i,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="218" HEIGHT="74" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3219.png"
+ ALT="$\displaystyle \boldsymbol{P}^*_i = \omega \frac{\sum_{j}\frac{1}{\overline{h}_j...
+...l{P}_j }{\sum_{j} \frac{1}{\overline{h}_j^2 } } + (1-\omega ) \boldsymbol{P}_i,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">989</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><B><IMG
+ WIDTH="11" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1753.png"
+ ALT="$ j$"></B></SPAN> are the neighbors of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="9" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img894.png"
+ ALT="$ i$"></B></SPAN>, <!-- MATH
+ $\overline{h}_j:=(h_i+h_j)/2$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="123" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3220.png"
+ ALT="$ \overline{h}_j:=(h_i+h_j)/2$"></B></SPAN> (<SPAN CLASS="MATH"><B><IMG
+ WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img898.png"
+ ALT="$ h_i$"></B></SPAN> is
+the desired edge length in node <SPAN CLASS="MATH"><B><IMG
+ WIDTH="9" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img894.png"
+ ALT="$ i$"></B></SPAN>) and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img101.png"
+ ALT="$ \omega$"></B></SPAN>
+is a relaxation factor taking the value of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="24" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3221.png"
+ ALT="$ 0.5$"></B></SPAN>. Defining the quality of the
+ball to be the quality of its worst element (i.e. highest value), a node <SPAN CLASS="MATH"><B><IMG
+ WIDTH="9" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img894.png"
+ ALT="$ i$"></B></SPAN> is only smoothed if
+the quality of its ball after smoothing has a smaller value (i.e. is better)
+than before smoothing. 
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>projectvertexnodes.f</TITLE>
+<META NAME="description" CONTENT="projectvertexnodes.f">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node511.html">
+<LINK REL="previous" HREF="node509.html">
+<LINK REL="up" HREF="node489.html">
+<LINK REL="next" HREF="node511.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7907"
+  HREF="node511.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7903"
+  HREF="node489.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7897"
+  HREF="node509.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7905"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7908"
+  HREF="node511.html">smoothbadvertex.f</A>
+<B> Up:</B> <A NAME="tex2html7904"
+  HREF="node489.html">Mesh refining procedure</A>
+<B> Previous:</B> <A NAME="tex2html7898"
+  HREF="node509.html">END OF MAJOR LOOP.</A>
+ &nbsp; <B>  <A NAME="tex2html7906"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H4><A NAME="SECTION00011135210000000000000">
+projectvertexnodes.f</A>
+</H4>
+
+<P>
+After inserting nodes in several loops the external nodes are projected on the external edges and/or faces. If an
+edge i on which the node lies is part of an external edge of the unrefined
+mesh (i.e. iexternedg(i)<SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2537.png"
+ ALT="$ &gt;$"></B></SPAN>0) and this edge is sharp then a projection is performed on this external
+edge. If not, the node is projected on an external face. To this end the
+faces to which the node belongs are determined. For each of these faces j a
+check is performed whether the face is external (i.e. iexternfa(j)<SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2537.png"
+ ALT="$ &gt;$"></B></SPAN>0). If
+so, a projection is performed on the correct external face of the unrefined
+mesh. To this end a loop is performed starting with face iexternfa(j) using
+the adjacency relationships stored in fields ifacexted and iedgeextfa, until
+the correct face is found (i.e. the condition that the projection lies
+inside the face). While applying the adjacency relations field isharp is
+used to assure that sharp edges are not crossed.
+
+<P>
+Since projection may lead to bad (i.e. with non-positive Jacobian determinant) elements it is performed in several loops. In
+each loop an increasing fraction of the motion from the actual position of
+the node to its projection on the external surface is performed. Each time a
+node is moved, the Jacobian determinant of all elements belonging to its ball
+is checked for positivity. If any Jacobian is negative, the size of the motion
+for this node in this iteration
+is decreased by half. If after three reductions there is still an element with
+a negative Jacobian the node is not moved at all in this iteration. If any
+reduction of the target motion
+took place (i.e. the projection of the external node on the surface was not
+successfull) all nodes belonging to the ball are listed as bad nodes for further
+treatment in smoothbadvertex.f.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html7907"
+  HREF="node511.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7903"
+  HREF="node489.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7897"
+  HREF="node509.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7905"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7908"
+  HREF="node511.html">smoothbadvertex.f</A>
+<B> Up:</B> <A NAME="tex2html7904"
+  HREF="node489.html">Mesh refining procedure</A>
+<B> Previous:</B> <A NAME="tex2html7898"
+  HREF="node509.html">END OF MAJOR LOOP.</A>
+ &nbsp; <B>  <A NAME="tex2html7906"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>*SENSITIVITY</TITLE>
+<META NAME="description" CONTENT="*SENSITIVITY">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node345.html">
+<LINK REL="previous" HREF="node343.html">
+<LINK REL="up" HREF="node223.html">
+<LINK REL="next" HREF="node345.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html5638"
+  HREF="node345.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html5634"
+  HREF="node223.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html5628"
+  HREF="node343.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html5636"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html5639"
+  HREF="node345.html">*SHELL SECTION</A>
+<B> Up:</B> <A NAME="tex2html5635"
+  HREF="node223.html">Input deck format</A>
+<B> Previous:</B> <A NAME="tex2html5629"
+  HREF="node343.html">*SELECT CYCLIC SYMMETRY MODES</A>
+ &nbsp; <B>  <A NAME="tex2html5637"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION0008117000000000000000"></A><A NAME="sensitivity"></A>
+<BR>
+*SENSITIVITY
+</H2>
+
+<P>
+Keyword type: step
+
+<P>
+This procedure is used to perform a sensitivity analysis. There are two
+optional parameters: READ and WRITE.
+
+<P>
+The parameters READ and WRITE are mutually exclusive and can only be used if
+the coordinates are the design variables. If WRITE is selected,
+the &ldquo;raw&rdquo; sensitivities (i.e. without filtering or any other action defined
+underneath the <A HREF="node287.html#filter">*FILTER</A> card) for all design nodes are stored in file jobname.sen in
+ascending order of the design node numbers. If READ is selected the raw
+sensitivities are read from file jobname.sen. They can be further processed by
+filtering etc.
+
+<P>
+Notice that the objective functions STRAIN ENERGY, MASS, ALL-DISP,
+MISESSTRESS, PS1STRESS, PS3STRESS and EQUIVALENT PLASTIC STRAIN
+require a previous *STATIC step, the objective GREEN requires a previous
+*GREEN step and the objective EIGENFREQUENCY requires a previous *FREQUENCY
+step, possibly preceded by a *STATIC step, cf. <A HREF="node329.html#objective">*OBJECTIVE</A>.
+
+<P><P>
+<BR>
+
+<P>
+First line:
+
+<UL>
+<LI>*SENSITIVITY
+</LI>
+<LI>Enter the READ or WRITE parameter if needed.
+</LI>
+</UL>
+
+<P>
+<PRE>
+Example:
+
+*SENSITIVITY
+</PRE>
+
+<P>
+defines a linear sensitivity step.
+
+<P>
+
+<P><P>
+<BR>
+Example files: beampic, beampis.
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Normal contact stiffness</TITLE>
+<META NAME="description" CONTENT="Normal contact stiffness">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node150.html">
+<LINK REL="previous" HREF="node148.html">
+<LINK REL="up" HREF="node146.html">
+<LINK REL="next" HREF="node150.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html3101"
+  HREF="node150.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3097"
+  HREF="node146.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3091"
+  HREF="node148.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3099"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3102"
+  HREF="node150.html">Tangent contact stiffness</A>
+<B> Up:</B> <A NAME="tex2html3098"
+  HREF="node146.html">Face-to-Face Penalty Contact</A>
+<B> Previous:</B> <A NAME="tex2html3092"
+  HREF="node148.html">Weak formulation</A>
+ &nbsp; <B>  <A NAME="tex2html3100"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H4><A NAME="SECTION00077730000000000000">
+Normal contact stiffness</A>
+</H4>
+
+<P>
+The traction excerted by the master face on the slave face at a slave
+integration point p can be written analogous to Equation (<A HREF="node144.html#forcn2f">255</A>):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\boldsymbol{t_{(n)}}= f(r) \boldsymbol{n}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="98" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1210.png"
+ ALT="$\displaystyle \boldsymbol{t_{(n)}}= f(r) \boldsymbol{n}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">334</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+For simplicity, in the face-to-face penalty contact formulation it is assumed that
+within an increment the location <!-- MATH
+ $(\xi _{m_k}, \eta _{m_k})$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="76" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1211.png"
+ ALT="$ (\xi _{m_k}, \eta _{m_k})$"></SPAN> of the projection
+of the slave integration points on the master face and the local Jacobian on the
+master face do not change. Consequently (cf. the section <A HREF="node144.html#normalc">6.7.6</A>):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{\partial \boldsymbol{m} }{\partial \boldsymbol{u_p} }=\frac{\partial \xi
+}{\partial \boldsymbol{u_p} }  = \frac{\partial \eta }{\partial
+  \boldsymbol{u_p} } =\boldsymbol{0}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="178" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1212.png"
+ ALT="$\displaystyle \frac{\partial \boldsymbol{m} }{\partial \boldsymbol{u_p} }=\frac...
+...bol{u_p} } = \frac{\partial \eta }{\partial \boldsymbol{u_p} } =\boldsymbol{0}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">335</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{\partial \boldsymbol{r} }{\partial \boldsymbol{u_p} }= \boldsymbol{I},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="71" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1213.png"
+ ALT="$\displaystyle \frac{\partial \boldsymbol{r} }{\partial \boldsymbol{u_p} }= \boldsymbol{I},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">336</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+which leads to
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\frac{\partial
+   \boldsymbol{t_{(n)}}}{\partial  \boldsymbol{u_p} } = \frac{\partial
+   f}{\partial r} \boldsymbol{n} \otimes \boldsymbol{n}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="135" HEIGHT="53" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1214.png"
+ ALT="$\displaystyle \frac{\partial \boldsymbol{t_{(n)}}}{\partial \boldsymbol{u_p} } = \frac{\partial f}{\partial r} \boldsymbol{n} \otimes \boldsymbol{n}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">337</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>    
+
+<P>
+This is the normal contact contribution to Equation (<A HREF="node148.html#eq98">333</A>). 
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

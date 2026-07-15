@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Determining the time increment</TITLE>
+<META NAME="description" CONTENT="Determining the time increment">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node467.html">
+<LINK REL="previous" HREF="node465.html">
+<LINK REL="up" HREF="node460.html">
+<LINK REL="next" HREF="node467.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7312"
+  HREF="node467.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7308"
+  HREF="node460.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7302"
+  HREF="node465.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7310"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7313"
+  HREF="node467.html">Determining the loading</A>
+<B> Up:</B> <A NAME="tex2html7309"
+  HREF="node460.html">Three-Dimensional Navier-Stokes Calculations</A>
+<B> Previous:</B> <A NAME="tex2html7303"
+  HREF="node465.html">The left hand sides</A>
+ &nbsp; <B>  <A NAME="tex2html7311"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001111600000000000000">
+Determining the time increment</A>
+</H3>
+
+<P>
+The first action within the major loop is the determination of the time
+increment in subroutine compdt. The formulas for doing so are Formulas (<A HREF="node192.html#imptime">723</A>)
+and (<A HREF="node192.html#exptime">725</A>) for liquids and gases, respectively. Notice that the
+solution influences the time increment, so the increment has to be
+recalculated at the start of the major loop. For steady state calculations the
+time step is only recalculated in iterations <SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3112.png"
+ ALT="$ 2^n$"></B></SPAN>, <!-- MATH
+ $n \in \mathbb{N}$
+ -->
+<SPAN CLASS="MATH"><B><IMG
+ WIDTH="44" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3113.png"
+ ALT="$ n \in \mathbb{N}$"></B></SPAN>, since the
+change in solution decreases the closer steady state. This accelerates the
+steady state calculations.
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>edgedivide.f</TITLE>
+<META NAME="description" CONTENT="edgedivide.f">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node501.html">
+<LINK REL="previous" HREF="node499.html">
+<LINK REL="up" HREF="node489.html">
+<LINK REL="next" HREF="node501.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7787"
+  HREF="node501.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7783"
+  HREF="node489.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7777"
+  HREF="node499.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7785"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7788"
+  HREF="node501.html">newnodes.f</A>
+<B> Up:</B> <A NAME="tex2html7784"
+  HREF="node489.html">Mesh refining procedure</A>
+<B> Previous:</B> <A NAME="tex2html7778"
+  HREF="node499.html">START OF THE REFINEMENT</A>
+ &nbsp; <B>  <A NAME="tex2html7786"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H4><A NAME="SECTION00011135110000000000000">
+edgedivide.f</A>
+</H4>
+
+<P>
+An external edge i with length d and h-values at its nodes of <SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3209.png"
+ ALT="$ h_1$"></B></SPAN> and <SPAN CLASS="MATH"><B><IMG
+ WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3210.png"
+ ALT="$ h_2$"></B></SPAN> is
+divided into n(i)+1 edges satisfying:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\text{n(i)}=\min \left \lbrace \text{int} \left[ \frac{d}{\left( \frac{h_1 + h_2}{2} \right) } -1
+    \right ] , 1 \right \rbrace,
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH">n(i)<IMG
+ WIDTH="227" HEIGHT="63" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3211.png"
+ ALT="$\displaystyle =\min \left \lbrace \text{int} \left[ \frac{d}{\left( \frac{h_1 + h_2}{2} \right) } -1 \right ] , 1 \right \rbrace,$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">987</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where int(x) is the integer smaller than or equal to the real number x. This
+creates at most 2 edges out of 1. In edgedivide.f n(i) is determined and
+stored. The actual splitting of the edges is done in cavityext_refine.f.
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

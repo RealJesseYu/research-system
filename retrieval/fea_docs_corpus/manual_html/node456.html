@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Wear</TITLE>
+<META NAME="description" CONTENT="Wear">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node457.html">
+<LINK REL="previous" HREF="node455.html">
+<LINK REL="up" HREF="node454.html">
+<LINK REL="next" HREF="node457.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html7175"
+  HREF="node457.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html7171"
+  HREF="node454.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html7165"
+  HREF="node455.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html7173"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html7176"
+  HREF="node457.html">Straight Channel</A>
+<B> Up:</B> <A NAME="tex2html7172"
+  HREF="node454.html">Turbulent Flow in Open</A>
+<B> Previous:</B> <A NAME="tex2html7166"
+  HREF="node455.html">Sluice Gate</A>
+ &nbsp; <B>  <A NAME="tex2html7174"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001110200000000000000">
+Wear</A>
+</H3>
+
+<P>
+A wear can only be used upstream of a channel. It corresponds to a sluice gate
+with an infinite value for ha.
+
+<P>
+For a frontwater curve:
+
+<UL>
+<LI>if hup=0, the discharge Q must be given. The value of hdo corresponds to the critical depth
+  for Q. From this hup can be determined.
+</LI>
+<LI>else if hup <SPAN CLASS="MATH"><B><IMG
+ WIDTH="16" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2537.png"
+ ALT="$ &gt;$"></B></SPAN> 0 and Q=0, the discharge can be calculated from hup
+  and the knowledge that critical conditions are reached at ndo.
+</LI>
+</UL>
+
+<P>
+For a backwater curve:
+
+<UL>
+<LI>if hup is a boundary condition Q* can be calculated based on hup and hdo
+  (hdo is known since the curve is a backwater curve). If this value
+  matches the value Q used for the backwater curve the solution is found. Else,
+  restart the backwater curve calculation with (Q+Q*)/2 until convergence.
+</LI>
+<LI>else the discharge was given at the sluice gate. From Q and hdo
+  the value of hup can be determined.
+</LI>
+</UL>
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

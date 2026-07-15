@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Storing distributions for local coordinate systems</TITLE>
+<META NAME="description" CONTENT="Storing distributions for local coordinate systems">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node434.html">
+<LINK REL="previous" HREF="node430.html">
+<LINK REL="up" HREF="node405.html">
+<LINK REL="next" HREF="node434.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html6886"
+  HREF="node434.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html6882"
+  HREF="node405.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html6876"
+  HREF="node432.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html6884"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html6887"
+  HREF="node434.html">Determining the matrix structure</A>
+<B> Up:</B> <A NAME="tex2html6883"
+  HREF="node405.html">Program structure.</A>
+<B> Previous:</B> <A NAME="tex2html6877"
+  HREF="node432.html">Massless contact</A>
+ &nbsp; <B>  <A NAME="tex2html6885"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000115000000000000000">
+Storing distributions for local coordinate systems</A>
+</H2>
+
+<P>
+In CalculiX distributions can be used to define local coordinate systems in an
+elementwise fashion. The corresponding keyword is
+<A HREF="node270.html#distribution">*DISTRIBUTION</A>. Since this option is strongly related
+to the <A HREF="node330.html#orientation">*ORIENTATION</A> keyword, the latter's data
+structure is used to cover distributions as well.
+
+<P>
+An orientation i is described by its name in  orname(i), the coordinates of
+its defining points a and b in orab(1..6,i) and a flag defining whether the
+local coordinate system is rectangular (value 1.) or cylindrical (value -1.)
+in orab(7,i). For each layer j of element k the entry ielorien(j,k) points to
+the local orientation (default: 0, i.e. no local system).
+
+<P>
+The *DISTRIBUTION cards in an input deck are always treated before any
+*ORIENTATION cards (independent of the order in which the user has set up
+his input deck; the key routine taking care of this is keystart.f). As soon as a *DISTRIBUTION card is encountered, as may
+orientations are created as there are lines underneath the *DISTRIBUTION
+card. For each of these orientations i the distribution name (let us call this
+distname) is stored in
+orname(i) and the defining points a and b in orab(1..6,i). The entry orab(7,i)
+takes the default zero. For each element k in
+which a distribution is defined (first entry in all lines underneath the *DISTRIBUTION card
+except the first one, which defines the default) ielorien(1,k) is set to the
+appropriate orientation i containing the correct distribution for this
+element, preceded by a minus sign, i.e. ielorien(1,k)=-i. The minus sign
+indicates that this orientation is optional and not yet active. It can only be
+activated by the correct combination of an *ORIENTATION and <A HREF="node346.html#solidsection">*SOLID
+  SECTION</A> card.
+
+<P>
+As soon as an *ORIENTATION card (e.g. with name ornam) is encountered using this distribution all orientations i are checked on whether their name coincides with
+the name of the distribution, i.e. whether orname(i)=distname. If so:
+
+<UL>
+<LI>the name of the orientation is replaced by ornam,
+  i.e. orname(i)=ornam.
+</LI>
+<LI>orab(7,i) is set to the kind of local system defined on the
+  *ORIENTATION card
+</LI>
+<LI>If an additional rotation angle about a local axis is defined on the
+  *ORIENTATION card, orab(1..6,i) is modified appropriately
+</LI>
+</UL>
+
+<P>
+Notice that distname and ornam may be identical. The only way in which to
+detect that orname(i) points to an orientation and not just a distribution
+is by checking orab(7,i). If this is zero it is a distribution, else it is an
+orientation.
+
+<P>
+As soon as a *SOLID SECTION card is encountered pointing to an orientation
+(e.g. OR) the
+following steps are undertaken:
+
+<UL>
+<LI>In a loop over all orientations i the first occurrence of the
+  orientation name on the *SOLID SECTION card (i.e. OR) is checked for. This orientation
+  is the default one (if the *ORIENTATION was defined by a distribution it
+  corresponds to the first line underneath a *DISTRIBUTION card).
+</LI>
+<LI>For all elements k belonging to the element set on the *SOLID SECTION card:
+  if m=ielorien(1,k) is negative AND orname(-m)=OR AND orab(7,-m) is nonzero
+  then ielorien(1,k) is set to -m. Else it is set to the default orientation.
+</LI>
+</UL>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html6886"
+  HREF="node434.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html6882"
+  HREF="node405.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html6876"
+  HREF="node432.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html6884"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html6887"
+  HREF="node434.html">Determining the matrix structure</A>
+<B> Up:</B> <A NAME="tex2html6883"
+  HREF="node405.html">Program structure.</A>
+<B> Previous:</B> <A NAME="tex2html6877"
+  HREF="node432.html">Massless contact</A>
+ &nbsp; <B>  <A NAME="tex2html6885"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

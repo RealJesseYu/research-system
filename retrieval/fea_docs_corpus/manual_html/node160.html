@@ -1,0 +1,195 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Deformation plasticity</TITLE>
+<META NAME="description" CONTENT="Deformation plasticity">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node161.html">
+<LINK REL="previous" HREF="node159.html">
+<LINK REL="up" HREF="node153.html">
+<LINK REL="next" HREF="node161.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html3248"
+  HREF="node161.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3244"
+  HREF="node153.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3238"
+  HREF="node159.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3246"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3249"
+  HREF="node161.html">Incremental (visco)plasticity: multiplicative decomposition</A>
+<B> Up:</B> <A NAME="tex2html3245"
+  HREF="node153.html">Materials</A>
+<B> Previous:</B> <A NAME="tex2html3239"
+  HREF="node159.html">Hyperelastic and hyperfoam materials</A>
+ &nbsp; <B>  <A NAME="tex2html3247"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00078700000000000000">
+Deformation plasticity</A>
+</H3>
+
+<P>
+Deformation plasticity is characterized by a one-to-one (bijective)
+relationship between the strain and the stress. This relationship is a
+three-dimensional generalization of the one-dimensional Ramberg-Osgood law
+frequently used for metallic materials (e.g. in the simple tension test)
+yielding a monotonic increasing function of the stress as a function of the
+strain. Because tensile and compressive test results coincide well when
+plotting the Cauchy (true) stress versus the logarithmic strain, these quantities are generally used in the deformation plasticity law. 
+The implementation in CalculiX (keyword card <A HREF="node262.html#deformationplasticity">*DEFORMATION
+  PLASTICITY</A>) implicitly uses the Abaqus interface in
+CalculiX for large deformations. The three-dimensional extension of the
+Ramberg-Osgood law reads [<A
+ HREF="node530.html#ABAQUS">1</A>]:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+E \boldsymbol{e}_{\text{ln}} = (1+\nu ) \boldsymbol{s } - (1-2 \nu) p \;
+  \boldsymbol{i} + \frac{3}{2} \alpha \left( \frac{q}{\sigma_0} \right) ^
+             {n-1} \boldsymbol{s },
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="338" HEIGHT="61" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1410.png"
+ ALT="$\displaystyle E \boldsymbol{e}_{\text{ln}} = (1+\nu ) \boldsymbol{s } - (1-2 \n...
+...+ \frac{3}{2} \alpha \left( \frac{q}{\sigma_0} \right) ^ {n-1} \boldsymbol{s },$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">403</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <!-- MATH
+ $\boldsymbol{e}_{\text{ln}}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="24" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1411.png"
+ ALT="$ \boldsymbol{e}_{\text{ln}}$"></SPAN> is the logarithmic strain (cf. beginning of
+Section
+<A HREF="node25.html#strains">6</A>), <!-- MATH
+ $\boldsymbol{\sigma }$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="15" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img260.png"
+ ALT="$ \boldsymbol{\sigma } $"></SPAN> is the Cauchy stress, <!-- MATH
+ $\boldsymbol{i}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="10" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1412.png"
+ ALT="$ \boldsymbol{i}$"></SPAN>
+is the identity tensor in spatial coordinates, <!-- MATH
+ $p:= -\boldsymbol{\sigma }:
+\boldsymbol{i}/3$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="97" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1413.png"
+ ALT="$ p:= -\boldsymbol{\sigma }:
+\boldsymbol{i}/3$"></SPAN> is the pressure, <!-- MATH
+ $\boldsymbol{s}=\boldsymbol{\sigma }+ p
+\boldsymbol{i}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="79" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1414.png"
+ ALT="$ \boldsymbol{s}=\boldsymbol{\sigma }+ p
+\boldsymbol{i}$"></SPAN> is the stress deviator and <!-- MATH
+ $q=\sqrt{3 \boldsymbol{s}:
+  \boldsymbol{s}/2  }$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="103" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1415.png"
+ ALT="$ q=\sqrt{3 \boldsymbol{s}:
+\boldsymbol{s}/2 }$"></SPAN> is the von Mises stress. <SPAN CLASS="MATH"><IMG
+ WIDTH="16" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1373.png"
+ ALT="$ E$"></SPAN> and <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img78.png"
+ ALT="$ \nu$"></SPAN> are Young's
+modulus and Poisson's coefficient, respectively (cf. <A HREF="node262.html#deformationplasticity">*DEFORMATION
+  PLASTICITY</A> for the one-dimensional form).       
+
+<P>
+The user should give the Ramberg-Osgood material constants 
+<SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1416.png"
+ ALT="$ \sigma_0$"></SPAN>, <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img765.png"
+ ALT="$ n$"></SPAN> and <SPAN CLASS="MATH"><IMG
+ WIDTH="14" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img141.png"
+ ALT="$ \alpha$"></SPAN> directly (by plotting a Cauchy stress versus logarithmic strain curve and performing a fit).
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html3248"
+  HREF="node161.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html3244"
+  HREF="node153.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html3238"
+  HREF="node159.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html3246"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html3249"
+  HREF="node161.html">Incremental (visco)plasticity: multiplicative decomposition</A>
+<B> Up:</B> <A NAME="tex2html3245"
+  HREF="node153.html">Materials</A>
+<B> Previous:</B> <A NAME="tex2html3239"
+  HREF="node159.html">Hyperelastic and hyperfoam materials</A>
+ &nbsp; <B>  <A NAME="tex2html3247"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

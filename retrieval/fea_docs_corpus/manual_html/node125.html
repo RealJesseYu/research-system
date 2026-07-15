@@ -1,0 +1,275 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2017.2 (Released Jan 23, 2017) -->
+<HTML>
+<HEAD>
+<TITLE>Weir</TITLE>
+<META NAME="description" CONTENT="Weir">
+<META NAME="keywords" CONTENT="ccx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2017.2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="ccx.css">
+
+<LINK REL="next" HREF="node126.html">
+<LINK REL="previous" HREF="node124.html">
+<LINK REL="up" HREF="node122.html">
+<LINK REL="next" HREF="node126.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html2790"
+  HREF="node126.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2786"
+  HREF="node122.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2780"
+  HREF="node124.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2788"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2791"
+  HREF="node126.html">Reservoir</A>
+<B> Up:</B> <A NAME="tex2html2787"
+  HREF="node122.html">Fluid Section Types: Open</A>
+<B> Previous:</B> <A NAME="tex2html2781"
+  HREF="node124.html">Sluice Gate</A>
+ &nbsp; <B>  <A NAME="tex2html2789"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00076300000000000000">
+Weir</A>
+</H3>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="weir"></A><A NAME="18040"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 122:</STRONG>
+Weir geometry</CAPTION>
+<TR><TD><IMG
+ WIDTH="451" HEIGHT="218" BORDER="0"
+ SRC="img857.png"
+ ALT="\begin{figure}\epsfig{file=Weir.eps,width=10cm}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+A wear is a structure as in  Figure <A HREF="#weir">122</A> at the upstream end of a
+channel. The weir can occur in different
+forms such as broad-crested weirs (left picture in the Figure) and
+sharp-crested weirs (right picture in the Figure). The wear element in
+CalculiX can be used to simulate the part of the wear to the left of the
+highest point, which is the point at which critical flow is observed. The part
+to the right of this point (denoted by &ldquo;L&rdquo; in the figure) has to be modeled
+by a straight channel element with high slope or by a step element with
+negative step size (i.e. drop). 
+
+<P>
+The volumetric flow <SPAN CLASS="MATH"><IMG
+ WIDTH="16" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img841.png"
+ ALT="$ Q$"></SPAN> can be characterized by
+a law of the form
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><A NAME="weireq"></A><!-- MATH
+ \begin{equation}
+Q=C b (h-p)^{3/2},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="130" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img858.png"
+ ALT="$\displaystyle Q=C b (h-p)^{3/2},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">197</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where C is a constant. For instance, in the formula by Poleni <!-- MATH
+ $C=2 C_d \sqrt{2
+  g}/3$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="110" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img859.png"
+ ALT="$ C=2 C_d \sqrt{2
+g}/3$"></SPAN>, where <SPAN CLASS="MATH"><IMG
+ WIDTH="23" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img537.png"
+ ALT="$ C_d$"></SPAN> is coefficient smaller than 1 to be measured
+experimentally [<A
+ HREF="node530.html#Berlamont2">12</A>]. The flow across a wear corresponds to the
+flow underneath a sluice gate with infinite depth underneath the gate and critical conditions,
+therefore (Equation (<A HREF="node124.html#critical">194</A>), for <SPAN CLASS="MATH"><IMG
+ WIDTH="41" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img191.png"
+ ALT="$ \theta=0 $"></SPAN> and <SPAN CLASS="MATH"><IMG
+ WIDTH="50" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img860.png"
+ ALT="$ S_0=0$"></SPAN>):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+Q=C^* b h_c \sqrt{2 g (h-h_c)},
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="173" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img861.png"
+ ALT="$\displaystyle Q=C^* b h_c \sqrt{2 g (h-h_c)},$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">198</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+where <SPAN CLASS="MATH"><IMG
+ WIDTH="24" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img862.png"
+ ALT="$ C^*$"></SPAN> now satisfies (by equating to the above equations and taking
+<SPAN CLASS="MATH"><IMG
+ WIDTH="74" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img853.png"
+ ALT="$ h_c=2h/3$"></SPAN> and <SPAN CLASS="MATH"><IMG
+ WIDTH="41" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img863.png"
+ ALT="$ p=0$"></SPAN>):
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+C^* = \frac{C}{\sqrt{g} } \left( 3/2 \right ) ^ {3/2}.
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="136" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="img864.png"
+ ALT="$\displaystyle C^* = \frac{C}{\sqrt{g} } \left( 3/2 \right ) ^ {3/2}.$"></SPAN></TD>
+<TD NOWRAP CLASS="eqno" WIDTH="10" ALIGN="RIGHT">
+(<SPAN CLASS="arabic">199</SPAN>)</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P> 
+
+<P>
+The following constants have to be specified on the
+line beneath the *FLUID SECTION,TYPE=CHANNEL WEIR card (the width, the
+trapezoid angle, the slope and the grain diameter should be the same as for the downstream
+element immediately next to the weir; they are needed for the
+calculation of the critical height and normal height):
+
+<P>
+
+<UL>
+<LI>the width <SPAN CLASS="MATH"><IMG
+ WIDTH="11" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img436.png"
+ ALT="$ b$"></SPAN>
+</LI>
+<LI>the trapezoid angle <SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img550.png"
+ ALT="$ \theta$"></SPAN> 
+</LI>
+<LI>not used
+</LI>
+<LI>the slope <!-- MATH
+ $S_0 = \sin \phi, -1<S_0<1$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="168" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img856.png"
+ ALT="$ S_0 = \sin \phi, -1&lt;S_0&lt;1 $"></SPAN> (for this element the slope must be
+</LI>
+<LI>the grain diameter <SPAN CLASS="MATH"><IMG
+ WIDTH="19" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img577.png"
+ ALT="$ k_s$"></SPAN> for the White-Colebrook law or the Manning
+  constant <SPAN CLASS="MATH"><IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img765.png"
+ ALT="$ n$"></SPAN> for the Manning law (in the latter case the user has to specify
+  the parameter MANNING on the *FLUID SECTION card)
+</LI>
+<LI>the height of the weir <SPAN CLASS="MATH"><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img443.png"
+ ALT="$ p$"></SPAN>
+</LI>
+<LI>the weir constant <SPAN CLASS="MATH"><IMG
+ WIDTH="16" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img865.png"
+ ALT="$ C$"></SPAN>
+</LI>
+</UL>
+
+<P>
+A wear can only be used at the upstream end of a channel. A wear in the middle
+of a channel has to be modeled by a step followed by a drop.
+
+<P>
+
+<P><P>
+<BR>
+Example files: channel7.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html2790"
+  HREF="node126.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html2786"
+  HREF="node122.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html2780"
+  HREF="node124.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html2788"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html2791"
+  HREF="node126.html">Reservoir</A>
+<B> Up:</B> <A NAME="tex2html2787"
+  HREF="node122.html">Fluid Section Types: Open</A>
+<B> Previous:</B> <A NAME="tex2html2781"
+  HREF="node124.html">Sluice Gate</A>
+ &nbsp; <B>  <A NAME="tex2html2789"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>
