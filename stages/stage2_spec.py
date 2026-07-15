@@ -17,8 +17,9 @@ from __future__ import annotations
 from typing import Any
 
 # The wrapper's own QoI vocabularies are the single source of truth — imported,
-# never redefined here. (_QOI_FIELD_RE is the wrapper's field-identifier rule.)
-from tools.run_cfd import QOI_COMPONENTS, QOI_OPERATIONS, _QOI_FIELD_RE
+# never redefined here. (_QOI_FIELD_RE is the wrapper's field-identifier rule;
+# MASK_TYPES is the wrapper's spatial-mask vocabulary for multi-QoI extraction.)
+from tools.run_cfd import QOI_COMPONENTS, QOI_OPERATIONS, MASK_TYPES, _QOI_FIELD_RE
 
 REQUIRED_SPEC_FIELDS = (
     "hypothesis_id",
@@ -39,8 +40,16 @@ REQUIRED_SPEC_FIELDS = (
 # control experiment: {description, params, expected_null_outcome} — the design
 # under which the hypothesized effect should VANISH, so a downstream comparison
 # (tools/null_twin.py) can catch an artifact that reproduces the effect anyway.
+#
+# `qois` (Multi-QoI build, part B) carries a LIST of qoi objects — the same
+# shape as the single `qoi`, each entry additionally permitted a `mask`. It
+# rides alongside the existing single `qoi`, never replacing it: absent leaves
+# validation byte-identical, and no stage-2 prompt asks for it (frozen). A spec
+# that requests a masked or interior extremum declares it here; the eventual
+# stage-4 translation to the wrapper's `qois=[...]` vector is a later build.
 OPTIONAL_SPEC_FIELDS = (
     "control_block",
+    "qois",
 )
 
 QOI_REQUIRED_FIELDS = ("name", "units", "definition", "how_extracted")
@@ -131,19 +140,42 @@ def _validate_parameters(params: Any, errors: list[str]) -> tuple[dict, dict, se
     return sweep_ranges, fixed_values, derived_names
 
 
-def _validate_qoi(qoi: Any, errors: list[str]) -> None:
+def _validate_mask(mask: Any, errors: list[str], label: str) -> None:
+    """Optional spatial mask on a qoi (Multi-QoI build, part B). Present-only
+    light check, control_block precedent. Shape: {type, params} — type one of
+    the wrapper's MASK_TYPES, params an object carrying that mask's numeric
+    bounds (e.g. {radius_frac} for corner_exclusion). The exact bound keys are
+    not deep-checked here; the wrapper is the authority on those.
+    """
+    if not isinstance(mask, dict):
+        errors.append(
+            f"{label} mask, when present, must be an object with 'type' and 'params'."
+        )
+        return
+    if mask.get("type") not in MASK_TYPES:
+        errors.append(
+            f"{label} mask type must be one of {sorted(MASK_TYPES)}; "
+            f"got {mask.get('type')!r}."
+        )
+    if not isinstance(mask.get("params"), dict):
+        errors.append(
+            f"{label} mask must carry a 'params' object of the mask's numeric bounds."
+        )
+
+
+def _validate_qoi(qoi: Any, errors: list[str], label: str = "qoi") -> None:
     if isinstance(qoi, list):
         errors.append(
-            "qoi must be a single object, never a list — pick the one quantity "
+            f"{label} must be a single object, never a list — pick the one quantity "
             "of interest this experiment is about."
         )
         return
     if not isinstance(qoi, dict):
-        errors.append("qoi must be an object with name, units, definition, and how_extracted.")
+        errors.append(f"{label} must be an object with name, units, definition, and how_extracted.")
         return
     for field in QOI_REQUIRED_FIELDS:
         if field not in qoi:
-            errors.append(f"qoi is missing '{field}'.")
+            errors.append(f"{label} is missing '{field}'.")
 
     # Optional machine-readable extraction keys: absent (all three) is valid —
     # it declares the QoI not extractable by the substrate. Any that are
@@ -154,7 +186,7 @@ def _validate_qoi(qoi: Any, errors: list[str]) -> None:
         for needed in ("field", "operation"):
             if needed not in qoi:
                 errors.append(
-                    f"qoi carries the machine-readable key(s) "
+                    f"{label} carries the machine-readable key(s) "
                     f"{', '.join(repr(k) for k in machine_keys)} but is missing "
                     f"'{needed}' — an extractable qoi must carry both 'field' and "
                     f"'operation' ('component' stays optional); either add "
@@ -164,20 +196,42 @@ def _validate_qoi(qoi: Any, errors: list[str]) -> None:
         name = qoi["field"]
         if not isinstance(name, str) or not _QOI_FIELD_RE.match(name):
             errors.append(
-                f"qoi field must be the exact name of a field the case already "
+                f"{label} field must be the exact name of a field the case already "
                 f"writes — a plain identifier (letters, digits, underscore, dot, "
                 f"starting with a letter); got {name!r}."
             )
     if "operation" in qoi and qoi["operation"] not in QOI_OPERATIONS:
         errors.append(
-            f"qoi operation must be one of {sorted(QOI_OPERATIONS)}; "
+            f"{label} operation must be one of {sorted(QOI_OPERATIONS)}; "
             f"got {qoi['operation']!r}."
         )
     if "component" in qoi and qoi["component"] not in QOI_COMPONENTS:
         errors.append(
-            f"qoi component must be \"mag\" or 0|1|2 (or omitted entirely); "
+            f"{label} component must be \"mag\" or 0|1|2 (or omitted entirely); "
             f"got {qoi['component']!r}."
         )
+    # Optional spatial mask (Multi-QoI build, part B): present-only.
+    if "mask" in qoi:
+        _validate_mask(qoi["mask"], errors, label)
+
+
+def _validate_qois(qois: Any, errors: list[str]) -> None:
+    """Optional VECTOR of qoi objects (Multi-QoI build, part B). Present-only;
+    each entry is validated exactly like the single `qoi` (same required
+    fields, same machine-key rules, plus the optional `mask`). Rides alongside
+    the single `qoi`, never replacing it — absent is valid.
+    """
+    if not isinstance(qois, list):
+        errors.append("qois, when present, must be a list of qoi objects.")
+        return
+    if not qois:
+        errors.append(
+            "qois, when present, must be a non-empty list of qoi objects — "
+            "omit it entirely instead of sending an empty list."
+        )
+        return
+    for idx, entry in enumerate(qois):
+        _validate_qoi(entry, errors, label=f"qois[{idx}]")
 
 
 def _validate_success_criterion(sc: Any, errors: list[str]) -> None:
@@ -370,6 +424,8 @@ def validate_spec(spec: Any, chosen_id: str) -> list[str]:
         )
     if "qoi" in spec:
         _validate_qoi(spec["qoi"], errors)
+    if "qois" in spec:
+        _validate_qois(spec["qois"], errors)
     if "success_criterion" in spec:
         _validate_success_criterion(spec["success_criterion"], errors)
     if "regime" in spec:

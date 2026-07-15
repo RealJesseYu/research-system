@@ -56,3 +56,39 @@ own hash). All contract blocks IMPORT CAVITY_2D_CONTRACT — no pasted copy.
   FEASIBILITY_NUDGE disclosure and opens no new comparability era. With the
   switch off (default) all composed inputs remain byte-identical to era
   f9dd2ca's.
+
+## R-MB-1 — era-of-record moves to this commit (Multi-QoI build, part B)
+
+The model-visible surface changed this window, so the comparability era moves
+to the single commit that lands it (its hash is in this session's git log; a
+commit cannot embed its own hash). All contract blocks still IMPORT
+CAVITY_2D_CONTRACT — no pasted copy anywhere.
+
+Model-visible changes:
+  - `CAVITY_2D_CONTRACT` §3 (extraction) — ADDED a `qois` bullet: a VECTOR of
+    QoIs from one solved case, each a min | max | volAverage reduction over U
+    or p (component mag or 0|1|2), each optionally carrying a deterministic
+    spatial mask — corner_exclusion {radius_frac}, boundary_exclusion
+    {distance_frac}, or box {x/y fractions} — with masked results reporting
+    cells masked / total; and a COMPACT FIELD EXPORT (cell centres + volumes +
+    final U, p) for offline analysis, summary-only across the wrapper boundary.
+  - `CAVITY_2D_CONTRACT` §4 (honest limits) — AMENDED the "single-shot" bullet:
+    the latest-time-only reduction now covers a single QoI OR a vector (masked
+    or whole-domain) plus the field export; the whole-domain-only framing is
+    gone (time-series / probes still absent). ADDED a masked-extremum honesty
+    bullet: (i) a masked extremum MUST state its mask type and parameters in
+    the spec; (ii) masked-extremum trends must be shown mask-insensitive before
+    they are relied on — measured example: interior min(p) at Re 100 is −0.270
+    at radius 0.05 vs −0.141 at radius 0.10.
+  - `stages/stage2_spec.py` schema — ADDED optional additive fields, all
+    present-only (control_block precedent), old on-disk specs validate
+    unchanged: a `qois` list of qoi objects (each validated exactly like the
+    single `qoi`) alongside the existing single `qoi`, and a per-qoi optional
+    `mask` {type ∈ MASK_TYPES, params object}. No stage-2 prompt text changed;
+    stage 2 meets this vocabulary only through the contract it already imports.
+
+Comparability note: era `f9dd2ca` held ZERO scored data points (no scored run
+landed under it), so the boundary moves cleanly to this commit — there is no
+in-era scored data to straddle. Scored numbers taken before this commit are not
+comparable to scored numbers taken after it; this commit is the new
+era-of-record for anything the model-visible contract or spec schema touches.

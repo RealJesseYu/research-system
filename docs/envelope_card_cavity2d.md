@@ -230,6 +230,32 @@ pressure-extremum) QoI passes the extraction contract's mechanical fit yet
 reports the singularity, not the flow — a converged-but-misleading result that
 no internal diagnostic flags.
 
+### 4H. Masked extrema: mask-radius sensitivity (measured 2026-07-15, part-A self-check)
+
+The corner-singularity contamination of §4G can now be *unmasked*: the wrapper
+extracts spatially-masked reductions (corner_exclusion / boundary_exclusion /
+box) as part of a multi-QoI vector, so an interior extremum that excludes the
+lid corners can be requested directly. **Capability now exists** — carrier: the
+multi-QoI build, commits `50a4646` (part A, the wrapper) + this commit (part B,
+the model-visible contract and spec schema).
+
+But a masked extremum is only as honest as its mask. The interior minimum of
+`p` at Re 100 measured in part A's self-check is **NOT** mask-radius-stable:
+
+| corner-exclusion radius (frac) | interior min(p) |
+|---|---|
+| 0.05 | −0.270301 |
+| 0.10 | −0.140503 |
+
+Nearly a two-fold change as the exclusion grows from 0.05 to 0.10 — the small
+radius still catches part of the corner well. **Screening guidance:** a masked
+extremum (and any TREND built from one) must be demonstrated mask-insensitive —
+the value stable as the exclusion region grows — before it is relied on; a
+single-radius masked extremum is a starting point, not a result. This mirrors
+§4G's lesson one layer out: the mask removes the gross contamination but a
+too-small mask leaves a residue, so the radius itself is a variable that must
+be swept, not assumed.
+
 ---
 
 ## 5. What the diagnostics CAN and CANNOT see

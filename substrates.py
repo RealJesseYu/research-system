@@ -68,6 +68,25 @@ On a run that completes, a small fixed summary — never the full solver log:
     error, unparseable output) the summary carries qoi_error with an
     honest reason and NO qoi block — the instrument never fabricates a
     number.
+  - qois (OPTIONAL, on request): instead of a single QoI, a VECTOR of
+    quantities of interest may be extracted from ONE solved case in a single
+    pass. Each entry names a reduction — min | max | volAverage — over an
+    existing field (U or p; a vector component is chosen with mag for the
+    magnitude or 0|1|2 for one component). Each reduction may additionally
+    carry a deterministic spatial mask that restricts it to part of the
+    domain: corner_exclusion {radius_frac} drops cells within that fraction
+    of the domain size of any corner; boundary_exclusion {distance_frac}
+    keeps only cells at least that fraction of the domain size away from any
+    wall; box {x_min, x_max, y_min, y_max as domain fractions} keeps only the
+    cells inside that fractional box. A masked result reports the number of
+    cells masked and the total cell count beside its value. Each entry
+    succeeds or fails independently, exactly as the single-QoI path does — a
+    bad entry yields a per-entry qoi_error and NO number, never a fabricated
+    value. Alongside the vector, a COMPACT FIELD EXPORT is written for
+    offline analysis: cell centres and cell volumes plus the final U and p
+    fields, saved as an on-disk array file, with only a small summary (its
+    path, the field list, the cell count, and per-field min/max/mean)
+    returned — the raw field arrays never cross back into any stage.
 On a failed run: converged is false and only a bounded set of error lines
 (at most 40) explaining the failure is returned. A run is killed after 600
 seconds of wall-clock time and reported as a failure.
@@ -91,9 +110,24 @@ includes container exec, meshing, and log-parsing overhead.
     new fields the case didn't write. A spec may still request an
     unservable QoI — judging whether the instrument can feasibly serve a
     spec is the fidelity gate's job, not stage 2's.
-  - Post-processing is single-shot: one QoI per run, one value at the
-    latest written time only. No time-series extraction, no probes, no
-    field sampling beyond the volume reductions listed above.
+  - Post-processing reads the latest written time only: a single QoI or a
+    whole VECTOR of QoIs (each optionally spatially masked) plus the compact
+    field export are all taken from that one final written state. There is no
+    time-series extraction, no probes, and no field sampling other than the
+    volume reductions (masked or whole-domain) and the field export listed
+    above — nothing before the final time can be read.
+  - A masked extremum is only as trustworthy as its mask is honest, and two
+    rules follow. (i) A masked extremum MUST state its mask type and its
+    parameters in the spec — an extremum whose masking region is left
+    unstated is not interpretable. (ii) A masked-extremum TREND should be
+    demonstrated mask-insensitive — the value stays stable as the exclusion
+    region grows — before it is relied on, because a mask that merely clips a
+    boundary singularity by a little still reports that singularity. Measured
+    example on this substrate: the interior minimum of p at Re 100 is -0.270
+    with a corner-exclusion radius of 0.05 but only -0.141 at radius 0.10 — a
+    roughly two-fold swing, so this particular extremum is NOT yet
+    mask-insensitive and its trend must not be trusted without a
+    wider-radius check.
   - Convergence is judged from residuals and end time only; it says the
     solver settled, not that the physics is resolved (mesh-independence is
     nobody's promise here).
