@@ -15,6 +15,7 @@ import json
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -29,14 +30,25 @@ CODE = "code_sklearn_eval"
 
 class TestCaseFileIntegrity(unittest.TestCase):
     def test_fea_composition(self):
+        # Step 26 / R-CAL-2: slate is 15 — gate 10 (in 5 / out 5), wrapper 5.
+        # C15 (out) exercises F4: geometry in-envelope, QoI max_von_mises unvalidated.
         data = cb.load_cases(FEA)
-        self.assertEqual(len(data["gate_cases"]), 9)
+        self.assertEqual(len(data["gate_cases"]), 10)
         self.assertEqual(len(data["wrapper_cases"]), 5)
         classes = [g["expected_class"] for g in data["gate_cases"]]
         self.assertEqual(classes.count("in"), 5)
-        self.assertEqual(classes.count("out"), 4)
+        self.assertEqual(classes.count("out"), 5)
         self.assertTrue(all(w["expected_class"] == "setup_error"
                             for w in data["wrapper_cases"]))
+
+    def test_c15_f4_case_is_out_and_never_trust(self):
+        # The F4 reported-only QoI case: geometry in-envelope, but max_von_mises is
+        # NOT validated, so a raw trust is the wrong verdict.
+        c15 = {g["id"]: g for g in cb.load_cases(FEA)["gate_cases"]}["C15"]
+        self.assertEqual(c15["expected_class"], "out")
+        self.assertNotIn("trust", c15["acceptable_labels"])
+        self.assertEqual(set(c15["acceptable_labels"]), {"refine", "defer"})
+        self.assertIn("max_von_mises", c15["experiment"])
 
     def test_code_composition(self):
         data = cb.load_cases(CODE)
@@ -79,6 +91,74 @@ class TestCaseFileIntegrity(unittest.TestCase):
                 serialized = json.dumps(stage_input)
                 for k in cb._ANSWER_KEY_KEYS:
                     self.assertNotIn(f'"{k}"', serialized, f"{sid}/{g['id']}/{k}")
+
+    def test_answer_key_blocklist_covers_every_hidden_gate_field(self):
+        # COMPLETENESS / DRIFT GUARD (Step 26): the hardcoded _ANSWER_KEY_KEYS must
+        # cover every gate-case field that is NOT model-visible. Derived per case as
+        # (all keys) - {"id", "experiment"}. Fails the moment a case gains a hidden
+        # field the blocklist does not know — so the blocklist cannot silently drift
+        # out of coverage as cases are added.
+        for sid in (FEA, CODE):
+            for g in cb.load_cases(sid)["gate_cases"]:
+                hidden = set(g) - set(cb._MODEL_VISIBLE_GATE_FIELDS)
+                missing = hidden - set(cb._ANSWER_KEY_KEYS)
+                self.assertEqual(
+                    missing, set(),
+                    f"{sid}/{g['id']}: answer-key field(s) not in blocklist: {missing}")
+
+
+class TestAnswerKeyTripwire(unittest.TestCase):
+    """The RULE-1 answer-key tripwire, proven by FAILING THE ESCAPE — not by
+    re-reading the safe construction. Each test fails if the guard is removed."""
+
+    def test_tripwire_fires_on_leaked_key(self):
+        # A stage_input that leaks an answer-key key (exactly what a future
+        # `stage_input = {**gate_case, ...}` regression would produce) MUST abort.
+        # If the assert is deleted, no AssertionError is raised and this fails.
+        leaking = {
+            "case_id": "C-LEAK",
+            "substrate": "s", "envelope": "e", "experiment": "x",
+            "acceptable_labels": ["trust"],  # <-- the answer key, leaked in
+        }
+        with self.assertRaises(AssertionError) as ctx:
+            cb._assert_no_answer_key_leak(leaking, "C-LEAK")
+        self.assertIn("ANSWER KEY LEAK", str(ctx.exception))
+        self.assertIn("C-LEAK", str(ctx.exception))
+        self.assertIn("acceptable_labels", str(ctx.exception))
+
+    def test_tripwire_fires_on_each_answer_key_field(self):
+        # Every field in the blocklist is individually caught, not just one.
+        for k in cb._ANSWER_KEY_KEYS:
+            with self.assertRaises(AssertionError, msg=k):
+                cb._assert_no_answer_key_leak({k: "anything"}, "C-LEAK")
+
+    def test_tripwire_passes_on_clean_input(self):
+        # The known-safe construction must NOT raise (guard is not over-eager).
+        clean = {"case_id": "C01", "substrate": "s", "envelope": "e", "experiment": "x"}
+        cb._assert_no_answer_key_leak(clean, "C01")  # no raise == pass
+
+    def test_run_gate_case_actually_invokes_the_tripwire(self):
+        # WIRING: run_gate_case must call the tripwire BEFORE any model call. A spy
+        # that raises proves it is on the path; the RuntimeError propagating (not a
+        # model/transport error) proves the guard runs first. Fails if the call is
+        # removed from run_gate_case.
+        marker = RuntimeError("TRIPWIRE-ON-PATH")
+
+        def boom(stage_input, case_id):
+            raise marker
+
+        def must_not_be_called(*a, **k):  # call_stage_model — a real Opus spend
+            raise AssertionError("model was reached before the tripwire fired")
+
+        with mock.patch.object(cb, "_assert_no_answer_key_leak", boom), \
+                mock.patch.object(cb, "call_stage_model", must_not_be_called):
+            with self.assertRaises(RuntimeError) as ctx:
+                cb.run_gate_case(
+                    {"substrate_text": "s", "envelope_text": "e"},
+                    {"id": "C01", "experiment": "x"},
+                    "auto",
+                )
+            self.assertIn("TRIPWIRE-ON-PATH", str(ctx.exception))
 
 
 class TestConfusion(unittest.TestCase):

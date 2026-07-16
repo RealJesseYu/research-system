@@ -76,6 +76,14 @@
       "experiment": "Cantilever L=1.0 m, width=0.05 m, height=0.05 m (length/height = 20), steel E=210e9 Pa, nu=0.4999, tip_load=1000 N, mesh_density=16. Extract tip_displacement.",
       "note": "nu=0.4999 is a valid input (passes validation, < 0.5) but near-incompressible; C3D8I hex risks volumetric locking, so the converged result is numerically suspect. NOT a setup_error -- the envelope violation is physical/numerical.",
       "right_instrument": "a locking-safe formulation (e.g. hybrid/mixed elements) for near-incompressible material"
+    },
+    {
+      "id": "C15",
+      "expected_class": "out",
+      "acceptable_labels": ["refine", "defer"],
+      "experiment": "Cantilever L=1.5 m, width=0.06 m, height=0.06 m (length/height = 25), steel E=210e9 Pa, nu=0.3, tip_load=1200 N, mesh_density=16. Extract max_von_mises (the pointwise maximum von Mises stress).",
+      "note": "Geometry is cleanly IN-envelope: length/height = 25 satisfies F1 (>= 10) with wide margin, and the linear tip-deflection prediction is delta/L ~ 0.4 percent, deep inside F2 (<= 0.10); the solve converges and returns a number. The trap is the REQUESTED QoI: max_von_mises is held reported-only and NOT validated (F4) -- its pointwise maximum sits at the clamped-corner stress singularity and rises monotonically with mesh refinement instead of settling. This is the geometry-fine, QoI-untrustworthy case: the FEA analog of the CFD corner-singularity min(p) QoI and the mask-insensitivity rule. NOT trust -- a raw trust would endorse an unvalidated, mesh-suspect stress number; refine or defer are the honest verdicts.",
+      "right_instrument": "a stress sampled/masked away from the clamped corner, or a Roark/NAFEMS benchmark stress value, to clear max_von_mises before it is trusted"
     }
   ],
   "wrapper_cases": [

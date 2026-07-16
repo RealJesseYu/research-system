@@ -82,7 +82,28 @@ _CASE_FILES = {
 }
 
 # Answer-key keys that must never appear in what the model is sent (RULE-1).
+# This blocklist equals (gate-case keys) - {"id", "experiment"} today — the two
+# fields that map into the model-visible stage_input ("id"->case_id, "experiment"
+# verbatim). Everything else on a gate case is answer key. A drift test
+# (tests/test_calibration_battery.py) fails if any gate case gains a hidden field
+# this blocklist does not know, so it cannot silently fall out of coverage.
 _ANSWER_KEY_KEYS = ("expected_class", "acceptable_labels", "note", "right_instrument")
+
+# Gate-case fields that DO legitimately reach the model (the allowlist the
+# blocklist is the complement of). Used only by the drift test's derivation.
+_MODEL_VISIBLE_GATE_FIELDS = ("id", "experiment")
+
+
+def _assert_no_answer_key_leak(stage_input: dict, case_id: str) -> None:
+    """RULE-1 tripwire: abort if any answer-key key name appears in the serialized
+    model input. EXTRACTED from run_gate_case so it can be exercised directly with
+    a LEAKING input — a guard wired only into the known-safe construction path can
+    never fire, and a check that cannot fail is not a proof. Kept as `assert`
+    (mechanism unchanged): no launch path uses `python -O`, so stripping is not
+    reachable; if one is ever added this must become an explicit `raise`."""
+    serialized = json.dumps(stage_input)
+    leaked = [k for k in _ANSWER_KEY_KEYS if f'"{k}"' in serialized]
+    assert not leaked, f"ANSWER KEY LEAK in case {case_id}: {leaked} — aborting"
 
 
 class _CollectingLogger:
@@ -165,9 +186,7 @@ def run_gate_case(data: dict, gate_case: dict, mode: str) -> dict:
         "experiment": gate_case["experiment"],
     }
     # RULE-1 tripwire: no answer-key key may be in what the model sees.
-    serialized = json.dumps(stage_input)
-    leaked = [k for k in _ANSWER_KEY_KEYS if f'"{k}"' in serialized]
-    assert not leaked, f"ANSWER KEY LEAK in case {gate_case['id']}: {leaked} — aborting"
+    _assert_no_answer_key_leak(stage_input, gate_case["id"])
 
     start = time.perf_counter()
     result, timing = call_stage_model(
