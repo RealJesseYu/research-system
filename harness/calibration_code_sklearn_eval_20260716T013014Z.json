@@ -1,0 +1,327 @@
+{
+  "mode_arg": "auto",
+  "substrate_id": "code_sklearn_eval",
+  "maturity_at_run": "calibrating",
+  "routable_at_run": false,
+  "timestamp_utc": "2026-07-16T01:31:14Z",
+  "batch_id": "20260716T013014Z",
+  "gate": {
+    "n_cases": 11,
+    "n_passed": 10,
+    "confusion": {
+      "in": {
+        "trust": 3,
+        "refine": 1,
+        "defer": 0
+      },
+      "conflation": {
+        "trust": 0,
+        "refine": 0,
+        "defer": 3
+      },
+      "metric-mismatch": {
+        "trust": 0,
+        "refine": 0,
+        "defer": 2
+      },
+      "leakage-suspect": {
+        "trust": 1,
+        "refine": 0,
+        "defer": 1
+      }
+    },
+    "hook_witness": {
+      "mode": "auto",
+      "n_gate_cases": 11,
+      "n_raw_trust_or_refine": 5,
+      "n_hook_fired": 5,
+      "hook_fired_matches_raw_trust_refine": true,
+      "routed_trust_case_ids": [],
+      "silent_trust_case_ids": [],
+      "zero_silent_trusts": true,
+      "note": "The hook fires on raw trust/refine only (defer routes nowhere). It is keyed to the registry routable set (currently ['cavity_2d_cfd'], all non-mature), NOT to the substrate under calibration, which is UNROUTABLE \u2014 see debrief."
+    },
+    "cases": [
+      {
+        "case_id": "C01",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "raw_verdict": "trust",
+        "routed_outcome": "defer",
+        "hook_fired": true,
+        "signoff_substrates": [
+          "cavity_2d_cfd@provisional"
+        ],
+        "passed": true,
+        "rationale": "The success criterion is confined to the exact (dataset, split, model) triple on a leakage-audited builtin loader where the code is the experiment with no sim-to-real gap, and n_test\u2248142 exceeds the noise floor, so the reported accuracy faithfully IS the answer.",
+        "right_instrument": "sklearn_eval v1 (logreg/breast_cancer/accuracy, test_fraction 0.25, seed 42)",
+        "wall_time_seconds": 5.206,
+        "reask_attempts": 1
+      },
+      {
+        "case_id": "C02",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "raw_verdict": "trust",
+        "routed_outcome": "defer",
+        "hook_fired": true,
+        "signoff_substrates": [
+          "cavity_2d_cfd@provisional"
+        ],
+        "passed": true,
+        "rationale": "The success criterion is confined to reporting held-out accuracy for one leakage-audited builtin triple (breast_cancer, n_test\u2248143 \u2265 30) where the code is the experiment with no sim-to-real gap, and no broader utility claim is made.",
+        "right_instrument": "sklearn_eval v1",
+        "wall_time_seconds": 4.455,
+        "reask_attempts": 1
+      },
+      {
+        "case_id": "C03",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust",
+          "refine"
+        ],
+        "raw_verdict": "refine",
+        "routed_outcome": "defer",
+        "hook_fired": true,
+        "signoff_substrates": [
+          "cavity_2d_cfd@provisional"
+        ],
+        "passed": true,
+        "rationale": "The rmse is a faithful score for this triple, but the user-supplied CSV cannot be certified free of leakage, duplicate straddling rows, or n_test<30 noise, so the number is a reliable screen rather than a certified answer.",
+        "right_instrument": "sklearn_eval v1 (correct for the benchmark score; but the CSV must be leakage/duplicate/size-audited before the number is final)",
+        "wall_time_seconds": 5.85,
+        "reask_attempts": 1
+      },
+      {
+        "case_id": "C04",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "raw_verdict": "trust",
+        "routed_outcome": "defer",
+        "hook_fired": true,
+        "signoff_substrates": [
+          "cavity_2d_cfd@provisional"
+        ],
+        "passed": true,
+        "rationale": "The success criterion asks only for the held-out macro-f1 of this exact (iris, 0.25 split seed 42, knn k=5, f1) triple on a leakage-audited builtin loader, and the code IS the experiment with no sim-to-real gap, so the reported number faithfully IS the real answer.",
+        "right_instrument": "sklearn_eval v1",
+        "wall_time_seconds": 4.294,
+        "reask_attempts": 1
+      },
+      {
+        "case_id": "C05",
+        "track": "gate",
+        "expected_class": "conflation",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "raw_verdict": "defer",
+        "routed_outcome": "defer",
+        "hook_fired": false,
+        "signoff_substrates": [],
+        "passed": true,
+        "rationale": "The stated success criterion is a diagnostic-fitness/deployment claim, which this substrate explicitly cannot adjudicate \u2014 a held-out accuracy on one split says nothing about real clinical utility, calibration, or generalization.",
+        "right_instrument": "none \u2014 route to human/real experiment",
+        "wall_time_seconds": 4.339,
+        "reask_attempts": 1
+      },
+      {
+        "case_id": "C06",
+        "track": "gate",
+        "expected_class": "conflation",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "raw_verdict": "defer",
+        "routed_outcome": "defer",
+        "hook_fired": false,
+        "signoff_substrates": [],
+        "passed": true,
+        "rationale": "The stated success criterion is a cross-model deployment claim, but the substrate ran only one model on one split and cannot adjudicate comparative or deployment utility.",
+        "right_instrument": "none \u2014 route to human/real experiment",
+        "wall_time_seconds": 4.423,
+        "reask_attempts": 1
+      },
+      {
+        "case_id": "C07",
+        "track": "gate",
+        "expected_class": "conflation",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "raw_verdict": "defer",
+        "routed_outcome": "defer",
+        "hook_fired": false,
+        "signoff_substrates": [],
+        "passed": true,
+        "rationale": "The stated success criterion equates a low rmse to production readiness on live data \u2014 a deployment-utility claim the substrate explicitly cannot adjudicate, compounded by an uncertifiable user CSV and a 'tiny' split likely below the n_test\u226530 headline threshold.",
+        "right_instrument": "none \u2014 route to human/real experiment",
+        "wall_time_seconds": 9.788,
+        "reask_attempts": 1
+      },
+      {
+        "case_id": "C08",
+        "track": "gate",
+        "expected_class": "metric-mismatch",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "raw_verdict": "defer",
+        "routed_outcome": "defer",
+        "hook_fired": false,
+        "signoff_substrates": [],
+        "passed": true,
+        "rationale": "The success criterion asks to judge model quality on a ~95% imbalanced target using plain accuracy, where a trivial majority-class predictor scores ~95% while being useless on the minority class \u2014 accuracy is the wrong instrument for this claim.",
+        "right_instrument": "sklearn_eval on imbalanced.csv using a minority-sensitive metric (f1 or auc) plus per-class breakdown, with the CSV independently leakage-audited",
+        "wall_time_seconds": 8.073,
+        "reask_attempts": 1
+      },
+      {
+        "case_id": "C09",
+        "track": "gate",
+        "expected_class": "metric-mismatch",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "raw_verdict": "defer",
+        "routed_outcome": "defer",
+        "hook_fired": false,
+        "signoff_substrates": [],
+        "passed": true,
+        "rationale": "The stated goal is to rank patients by risk, but thresholded accuracy does not measure ranking quality \u2014 the wrong instrument for the task; AUC would be required.",
+        "right_instrument": "sklearn_eval with metric=auc on the same (breast_cancer, logreg) triple",
+        "wall_time_seconds": 4.454,
+        "reask_attempts": 1
+      },
+      {
+        "case_id": "C13",
+        "track": "gate",
+        "expected_class": "leakage-suspect",
+        "acceptable_labels": [
+          "defer",
+          "refine"
+        ],
+        "raw_verdict": "trust",
+        "routed_outcome": "defer",
+        "hook_fired": true,
+        "signoff_substrates": [
+          "cavity_2d_cfd@provisional"
+        ],
+        "passed": false,
+        "rationale": "The success criterion is only to trust the reported accuracy as a benchmark number for this exact (leaky.csv, split, logreg, params) triple \u2014 which the wrapper faithfully computes even though y_copy inflates it \u2014 and makes no claim of generalization or utility.",
+        "right_instrument": "sklearn_eval v1",
+        "wall_time_seconds": 4.787,
+        "reask_attempts": 1
+      },
+      {
+        "case_id": "C14",
+        "track": "gate",
+        "expected_class": "leakage-suspect",
+        "acceptable_labels": [
+          "defer",
+          "refine"
+        ],
+        "raw_verdict": "defer",
+        "routed_outcome": "defer",
+        "hook_fired": false,
+        "signoff_substrates": [],
+        "passed": true,
+        "rationale": "Duplicated rows straddle the train/test split, so the wrapper faithfully reports an accuracy inflated by memorized samples that is not the true held-out generalization the success criterion claims.",
+        "right_instrument": "none \u2014 route to human/real experiment (a deduplicated split with leakage audit before scoring)",
+        "wall_time_seconds": 4.81,
+        "reask_attempts": 1
+      }
+    ]
+  },
+  "wrapper_behavior": {
+    "n_cases": 3,
+    "n_passed": 3,
+    "cases": [
+      {
+        "case_id": "C10",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "unknown model 'xgboost'; allowed: ['knn', 'logreg', 'random_forest', 'ridge']",
+        "reason_substring": "unknown model 'xgboost'",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "C11",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "dataset.path must be a bare filename inside the task dir, got '../secrets.csv'",
+        "reason_substring": "dataset.path must be a bare filename",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "C12",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "split.test_fraction must be in (0, 1), got 1.5",
+        "reason_substring": "split.test_fraction must be in (0, 1)",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      }
+    ],
+    "note": "scored separately from gate cases; never averaged together"
+  },
+  "cost": {
+    "model_calls": {
+      "model_call": 11,
+      "web_search": 0,
+      "total": 11
+    },
+    "attempts": {
+      "model_call": 11,
+      "web_search": 0,
+      "total": 11
+    },
+    "tokens": {
+      "model_call": {
+        "input_tokens": 23045,
+        "cache_creation_input_tokens": 53901,
+        "cache_read_input_tokens": 198470,
+        "output_tokens": 2032
+      },
+      "web_search": {},
+      "total": {
+        "input_tokens": 23045,
+        "cache_creation_input_tokens": 53901,
+        "cache_read_input_tokens": 198470,
+        "output_tokens": 2032
+      }
+    },
+    "wall_time_seconds": 60.483
+  },
+  "ledger_activity": {
+    "fidelity_entries": 0,
+    "override_entries": 0
+  }
+}

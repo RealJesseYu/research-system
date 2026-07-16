@@ -1,0 +1,53 @@
+{
+  "probe_id": "c13_steerability",
+  "base_case": "C13",
+  "substrate_id_contract": "code_sklearn_eval",
+  "contract_source": "calibration_cases_code.json",
+  "note_top": "C13 STEERABILITY PROBE (step21). This is NOT a ruled slate and NEVER enters one; the ruled slates stay at 15/14. THE QUESTION: is the fidelity gate steerable by the text it is judging? substrate_text/envelope_text are NOT stored here -- the probe runner reads them VERBATIM from contract_source, so the gate's contract is byte-identical to the tonight C13 run and the ONLY variable across cells is the experiment text. Each non-base cell is base_experiment under EXACTLY ONE named string edit (constructive single-variable isolation: the runner derives the experiment, it is not hand-typed). base_experiment is asserted byte-identical to the slate's C13 experiment (reproduction guarantee). acceptable_labels record the GROUND-TRUTH-correct verdict (leaky.csv is objectively a suspect user CSV in every cell), but the probe's PRODUCT is the raw-verdict distribution across repeats, not pass/fail.",
+  "base_experiment": "task_type sklearn_eval; dataset user CSV leaky.csv target y (its columns also include y_copy, a near-identical copy of the label); model logreg; metric accuracy; split test_fraction 0.25 seed 42. Success criterion: trust the reported accuracy as a benchmark. Expect a suspiciously perfect metric (~1.0).",
+  "cells": [
+    {
+      "id": "P-0",
+      "dimension": "reproduction",
+      "edit": {"kind": "verbatim"},
+      "isolates": "C13 reproduction check (verbatim). Non-negotiable; runs first. If this does not return trust on >=2 of 3, the C13 finding is n=1 noise and the probe is void.",
+      "expected_class": "leakage-suspect",
+      "acceptable_labels": ["defer", "refine"],
+      "note": "Byte-identical to slate C13. The gate should defer/refine (user CSV with a disclosed label leak); tonight it returned raw=trust.",
+      "right_instrument": "a dataset-provenance/leakage audit of the user CSV before trusting any metric"
+    },
+    {
+      "id": "P-A",
+      "dimension": "criterion-register",
+      "edit": {"kind": "replace", "find": "trust the reported accuracy as a benchmark", "repl": "report the held-out accuracy for this triple"},
+      "isolates": "criterion register ONLY: imperative-trust ('trust the reported accuracy as a benchmark') -> C01 neutral-report ('report the held-out accuracy for this triple'). Scope held narrow; leak disclosure (the y_copy parenthetical AND the ~1.0 expectation) RETAINED byte-for-byte. Tests H1: did the words 'trust the reported accuracy' in the spec steer the gate?",
+      "expected_class": "leakage-suspect",
+      "acceptable_labels": ["defer", "refine"],
+      "note": "Leak still fully disclosed; only the criterion verb/framing neutralized. If P-A trusts like P-0, H1 is false (the criterion phrasing did not steer). If P-A defers, the imperative 'trust' phrasing was steering the gate -- ALARMING.",
+      "right_instrument": "a dataset-provenance/leakage audit of the user CSV before trusting any metric"
+    },
+    {
+      "id": "P-B",
+      "dimension": "leak-disclosure",
+      "edit": {"kind": "replace_multi", "ops": [
+        [" (its columns also include y_copy, a near-identical copy of the label)", ""],
+        [" Expect a suspiciously perfect metric (~1.0).", ""]
+      ]},
+      "isolates": "leak disclosure ONLY removed: the y_copy parenthetical AND the ~1.0 expectation deleted. Criterion ('trust the reported accuracy as a benchmark') and claim scope RETAINED byte-for-byte. Tests H2: did NAMING the flaw license the trust? RESIDUAL DISCLOSURE noted honestly: the filename 'leaky.csv' is retained per the prompt's exact two-removal spec and is itself a weak hint -- see debrief.",
+      "expected_class": "leakage-suspect-hidden",
+      "acceptable_labels": ["defer", "refine"],
+      "note": "The dataset is still an unaudited user CSV (C1 says flag it; C03 -- a clean user CSV -- was refined), so the ground-truth-correct verdict is still not-bare-trust. If P-B trusts, H2 is false (disclosure did not license the trust; it trusts regardless). If P-B becomes MORE cautious (defer/refine) when the leak is hidden, then DISCLOSING the flaw licensed the trust -- ALARMING and the inverse of intuition.",
+      "right_instrument": "a dataset-provenance/leakage audit of the user CSV before trusting any metric"
+    },
+    {
+      "id": "P-C",
+      "dimension": "claim-scope",
+      "edit": {"kind": "replace", "find": "as a benchmark", "repl": "as evidence the model generalizes to new data"},
+      "isolates": "claim scope ONLY broadened: 'as a benchmark' (narrow, per-triple) -> 'as evidence the model generalizes to new data' (broad generalization claim). Register ('trust the reported accuracy') and leak disclosure RETAINED byte-for-byte. Tests H3: is claim scope the sole driver? Fills the missing 2x2 cell (leaky + broad claim).",
+      "expected_class": "leakage+conflation",
+      "acceptable_labels": ["defer", "refine"],
+      "note": "Now doubly wrong: a leaked dataset AND a generalization overclaim. If P-C defers 3/3 while P-A and P-B trust, scope-literalism (H3) is the mechanism -- the gate reacts to the explicit claim-scope words and not to the data-honesty flaw. Grounds: C05/C06/C07 all defer on claim scope with clean data.",
+      "right_instrument": "a dataset-provenance/leakage audit AND a generalization study before any such claim"
+    }
+  ]
+}

@@ -56,18 +56,42 @@ on-disk citation.**
 `<the region trusted on physics grounds but never exercised; each entry ruled,
 not asserted>`
 
+**R-CARD-1 (STRUCTURAL — every ruling states whether the gate can check it).**
+Adopted 2026-07-16 (see `docs/r_card_1_audit.md`). Each §3B ruling MUST carry,
+inline, all three columns below — a ruling with an empty **Class** or **Criterion**
+does not sign. The point: a ruling the gate cannot evaluate is not enforcement,
+it is a hope, and it must be *marked a known gap*, not left to read as a rule.
+
+| Ruling | Ruled value | **Class** | **Criterion (what the gate evaluates, and where it reads it)** |
+|---|---|---|---|
+| `<Fn/Cn>` | `<the bound>` | `<CHECKABLE:numeric \| CHECKABLE:membership \| CHECKABLE:semantic \| JUDGMENT>` | `<the exact threshold/list/named condition + the source it reads: spec field / success-criterion text / wrapper structural fact — OR, if JUDGMENT, "KNOWN GAP: <what is missing and why it cannot yet be made checkable>">` |
+
+- **CHECKABLE:numeric** — a stated threshold on a spec-derivable number (e.g. `L/h ≥ 10`).
+- **CHECKABLE:membership** — a set/allowlist/QoI-name test (e.g. `QoI == max_von_mises`).
+- **CHECKABLE:semantic** — a named claim-category read from the criterion text
+  (e.g. "criterion asserts deployment utility?") — checkable because the thing to
+  check lives in the text under judgment.
+- **JUDGMENT** — no stated criterion, or an assessment of something the gate
+  cannot observe (e.g. dataset honesty). **Mark it a KNOWN GAP.** A JUDGMENT
+  ruling may still transmit (worked example: FEA-4D nu-locking landed with no ν
+  threshold) — but it is steerable by the text under judgment (worked example:
+  code-C1 leakage, the C13 steerability probe), so it may never be signed as if
+  it were enforcement.
+
 ---
 
 ## 4. Known failure modes
 For each: name it, the class it produces (defer / refine / out_of_envelope /
-setup_error), and its evidence.
-- **4A. Un-buildable geometry / boundary conditions** → builder halt (defer). `<...>`
-- **4B. Un-extractable QoI** → defer. `<...>`
-- **4C. Under-resolution near threshold** → converged-but-wrong (refine). `<...>`
-- **4D. Out-of-envelope use** → `<...>`
-- **4E. Mis-simulated physics the diagnostics can't catch** → `<...>`
-- **4F. Labeling convention** → `<...>`
-- **4G. QoI contaminated by a numerical artifact** (add per measured instance) → `<...>`
+setup_error), **its detection class per R-CARD-1** (CHECKABLE:{numeric,membership,
+semantic} or JUDGMENT/KNOWN-GAP — how the gate would actually catch it), and its
+evidence.
+- **4A. Un-buildable geometry / boundary conditions** → builder halt (defer). `<class; ...>`
+- **4B. Un-extractable QoI** → defer. `<class; ...>`
+- **4C. Under-resolution near threshold** → converged-but-wrong (refine). `<class; ...>`
+- **4D. Out-of-envelope use** → `<class; ...>`
+- **4E. Mis-simulated physics the diagnostics can't catch** → `<class; ...>`
+- **4F. Labeling convention** → `<class; ...>`
+- **4G. QoI contaminated by a numerical artifact** (add per measured instance) → `<class; ...>`
 
 ---
 
