@@ -1,0 +1,38 @@
+14 CONTENTS
+15.3.8 .SP S-Parameter Analysis . . . . . . . . . . . . . . . . . . . . . . . 316
+15.3.9 .TF: Transfer Function Analysis . . . . . . . . . . . . . . . . . . . . 317
+15.3.10 .TRAN: Transient Analysis . . . . . . . . . . . . . . . . . . . . . . 317
+15.3.11 Transient noise analysis (at low frequency) . . . . . . . . . . . . . . 318
+15.3.12 .PSS: Periodic Steady State Analysis . . . . . . . . . . . . . . . . . 321
+15.4 Measurements after AC, DC and Transient Analysis . . . . . . . . . . . . . 322
+15.4.1 .meas(ure) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 322
+15.4.2 batch versus interactive mode . . . . . . . . . . . . . . . . . . . . . 322
+15.4.3 General remarks . . . . . . . . . . . . . . . . . . . . . . . . . . . . 322
+15.4.4 Input . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 323
+15.4.5 Trig Targ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 324
+15.4.6 Find ... When . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 325
+15.4.7 AVG|MIN|MAX|PP|RMS|MIN_AT|MAX_AT . . . . . . . . . . . . . . . . 326
+15.4.8 Integ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 327
+15.4.9 param . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 327
+15.4.10 par('expression ') . . . . . . . . . . . . . . . . . . . . . . . . . . . . 327
+15.4.11 Deriv . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 328
+15.4.12 More examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 328
+15.5 Safe Operating Area (SOA) warning messages . . . . . . . . . . . . . . . . 329
+15.5.1 Resistor and Capacitor SOA model parameters . . . . . . . . . . . 330
+15.5.2 Diode SOA model parameters . . . . . . . . . . . . . . . . . . . . . 330
+15.5.3 BJT SOA model parameters . . . . . . . . . . . . . . . . . . . . . . 331
+15.5.4 MOS SOA model parameters . . . . . . . . . . . . . . . . . . . . . 332
+15.5.5 VDMOS SOA model parameters . . . . . . . . . . . . . . . . . . . 333
+15.6 Batch Output . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 333
+15.6.1 .SA VE: Name vector(s) to be saved in raw file . . . . . . . . . . . . 333
+15.6.2 .PRINT Lines . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 334
+15.6.3 .PLOT Lines . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 335
+15.6.4 .FOUR: Fourier Analysis of Transient Analysis Output . . . . . . . 335
+15.6.5 .PROBE: Save device node currents, device power dissipation, or
+differential voltages between arbitrary nodes . . . . . . . . . . . . . 336
+15.6.6 par( 'expression '): Algebraic expressions for output . . . . . . . . . . 340
+15.6.7 .width . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 341
+15.7 Measuring current through device terminals . . . . . . . . . . . . . . . . . 341
+15.7.1 Using the .probe command . . . . . . . . . . . . . . . . . . . . . . . 341
+15.7.2 Adding a voltage source in series . . . . . . . . . . . . . . . . . . . 341
+15.7.3 Using option 'savecurrents' . . . . . . . . . . . . . . . . . . . . . . . 342

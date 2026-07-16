@@ -1,0 +1,40 @@
+15.3. ANALYSES 313
+• one for the Voltage or Current Noise Spectral Density (in V/
+√
+Hz or A/
+√
+Hz respective
+the input is a voltage or current source) curves (e.g. after setplot noise1 ). There
+are two vectors over frequency:
+- onoise_spectrum: This is the output noise voltage or current divided by√
+Hz .
+- inoise_spectrum: This the equivalent input noise = output noise divided by
+the gain of the circuit.
+• one for the Total Integrated Noise (in V or A) over the specified frequency range
+(e.g. after setplot noise 2). There are two vectors which are in reality scalars:
+- onoise_total: This is the output noise voltage over the specified frequency
+range
+- inoise_total: This the equivalent input noise over the specified frequency
+range = output noise divided by the gain of the circuit.
+The units of all result vectors can be changed by using control variable sqrnoise:
+• set sqrnoise: will deliver results in squared form, means the unit is V 2
+/Hz or
+A2
+/Hz . This value refers more to the convenient Power Spectral Density.
+Default setting of ngspice is unset sqrnoise, which delivers Voltage or Current Noise
+Spectral Density. This is more practical from designers point of view.
+The KLU matrix solver ( 15.1.1) is not compatible with noise simulation.
+15.3.5 .OP: Operating Point Analysis
+General form:
+. op
+Compute the DC operating point of the circuit with inductors shorted and capacitors
+opened.
+A DC solution can be difficult to find for some circuits, including those with floating nodes
+or active devices that are non-conducting. After an attempt at an initial DC solution
+(may be suppressed by .option noopiter ), ngspice uses the following convergence aids,
+in order, to try to obtain a DC solution:
+1. gmin stepping (gminsteps option). Inserts small conductances across active devices.
+• gminsteps = 0: No gmin
+• gminsteps = 1: Two gmin stepping processes in series (default)
+• gminsteps = 2: Original SPICE 3 gmin
+2. source stepping (srcsteps option)

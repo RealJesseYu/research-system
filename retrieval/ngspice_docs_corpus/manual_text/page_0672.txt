@@ -1,0 +1,39 @@
+672 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+31.3.6 Gxxxx: Voltage-Controlled Current Source (VCCS)
+31.3.6.1 VCCS instance parameters
+# Name Direction Type Description
+1 gain InOut real Transconductance of source (gain)
+8 sens_trans In flag flag to request sensitivity WRT transconductance
+3 pos_node Out integer Positive node of source
+4 neg_node Out integer Negative node of source
+5 cont_p_node Out integer Positive node of contr. source
+6 cont_n_node Out integer Negative node of contr. source
+2 ic In real Initial condition of controlling source
+9 i Out real Output current
+11 v Out real Voltage across output
+10 p Out real Power
+206 sens_dc Out real dc sensitivity
+201 sens_real Out real real part of ac sensitivity
+202 sens_imag Out real imag part of ac sensitivity
+203 sens_mag Out real sensitivity of ac magnitude
+204 sens_ph Out real sensitivity of ac phase
+205 sens_cplx Out complex ac sensitivity
+31.3.7 Exxxx: Voltage-Controlled Voltage Source (VCVS)
+31.3.7.1 VCVS instance parameters
+# Name Direction Type Description
+1 gain InOut real Voltage gain
+9 sens_gain In flag flag to request sensitivity WRT gain
+2 pos_node Out integer Positive node of source
+3 neg_node Out integer Negative node of source
+4 cont_p_node Out integer Positive node of contr. source
+5 cont_n_node Out integer Negative node of contr. source
+7 ic In real Initial condition of controlling source
+10 i Out real Output current
+12 v Out real Output voltage
+11 p Out real Power
+206 sens_dc Out real dc sensitivity
+201 sens_real Out real real part of ac sensitivity
+202 sens_imag Out real imag part of ac sensitivity
+203 sens_mag Out real sensitivity of ac magnitude
+204 sens_ph Out real sensitivity of ac phase
+205 sens_cplx Out complex ac sensitivity

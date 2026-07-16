@@ -1,0 +1,33 @@
+17.5. COMMANDS 421
+17.5.86 Status*: Display breakpoint information
+General Form:
+status
+Display all of the saved nodes and parameters, traces and breakpoints currently in effect.
+17.5.87 Step*: Run a fixed number of time-points
+General Form:
+step [ number ]
+Iterate number times, or once, and then stop.
+17.5.88 Stop*: Set a breakpoint
+General Form:
+stop [ after n ] [ when value cond value ] ...
+Set a breakpoint. The argument after n means stop after iteration number 'n', and
+the argument when value cond value means stop when the first value is in the given
+relation with the second value, the possible relations being
+Symbol Alias Meaning
+= eq equal to
+<> ne not equal
+> gt greater than
+< lt less than
+>= ge greater than or equal to
+<= le less than or equal to
+Symbol or alias may be used alternatively. All stop commands have to be given in the
+control flow before the run command. The values above may be node names in the
+running circuit, or real values. If more than one condition is given, e.g.
+stop after 4 when v(1) > 4 when v(2) < 2 ,
+the conjunction of the conditions is implied. If the condition is met, the simulation and
+control flow are interrupted, and ngspice waits for user input.
+In a transient simulation the ' =' or eq will only work with vector time in commands like
+stop when time = 200n .
+Internally, a breakpoint will be set at the time requested. Multiple breakpoints may
+be set. If the first stop condition is met, the simulation is interrupted, the commands
+following run or tran (e.g. alter or altermod) are executed, then the simulation may

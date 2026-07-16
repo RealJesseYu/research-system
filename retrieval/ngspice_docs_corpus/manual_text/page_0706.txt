@@ -1,0 +1,43 @@
+706 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+31.6.7 BSIM2 - Berkeley Short Channel IGFET Model
+31.6.7.1 BSIM2 instance parameters
+# Name Direction Type Description
+2 l InOut real Length
+1 w InOut real Width
+14 m InOut real Parallel Multiplier
+4 ad InOut real Drain area
+3 as InOut real Source area
+6 pd InOut real Drain perimeter
+5 ps InOut real Source perimeter
+8 nrd InOut real Number of squares in drain
+7 nrs InOut real Number of squares in source
+9 off InOut flag Device is initially off
+11 vds InOut real Initial D-S voltage
+12 vgs InOut real Initial G-S voltage
+10 vbs InOut real Initial B-S voltage
+13 ic In unknown vector Vector of DS,GS,BS initial voltages
+31.6.7.2 BSIM2 model parameters
+# Name Direction Type Description
+101 vfb InOut real Flat band voltage
+102 lvfb InOut real Length dependence of vfb
+103 wvfb InOut real Width dependence of vfb
+104 phi InOut real Strong inversion surface potential
+105 lphi InOut real Length dependence of phi
+106 wphi InOut real Width dependence of phi
+107 k1 InOut real Bulk effect coefficient 1
+108 lk1 InOut real Length dependence of k1
+109 wk1 InOut real Width dependence of k1
+110 k2 InOut real Bulk effect coefficient 2
+111 lk2 InOut real Length dependence of k2
+112 wk2 InOut real Width dependence of k2
+113 eta0 InOut real VDS dependence of threshold voltage at VDD=0
+114 leta0 InOut real Length dependence of eta0
+115 weta0 InOut real Width dependence of eta0
+116 etab InOut real VBS dependence of eta
+117 letab InOut real Length dependence of etab
+118 wetab InOut real Width dependence of etab
+119 dl InOut real Channel length reduction in um
+120 dw InOut real Channel width reduction in um
+121 mu0 InOut real Low-field mobility, at VDS=0 VGS=VTH
+122 mu0b InOut real VBS dependence of low-field mobility
+123 lmu0b InOut real Length dependence of mu0b

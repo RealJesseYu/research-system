@@ -1,0 +1,13 @@
+Chapter 3
+Circuit Elements and Models
+Data fields that are enclosed in less-than and greater-than signs (' < > ') are optional.
+All indicated punctuation (parentheses, equal signs, etc.) is optional but indicate the
+presence of any delimiter. Further, future implementations may require the punctuation
+as stated. A consistent style adhering to the punctuation shown here makes the input
+easier to understand. With respect to branch voltages and currents, ngspice uniformly
+uses the associated reference convention (current flows in the direction of voltage drop).
+3.1 About netlists, device instances, models and model
+parameters
+The input to ngspice is a netlist, which lists all circuit elements, their interconnects and
+model parameters.
+71

@@ -1,0 +1,46 @@
+106CHAPTER 5. NON-LINEAR DEPENDENT SOURCES (BEHA VIORAL SOURCES)
+I(T ) = I(TNOM)
+
+1 + T C1(T − TNOM) + T C2(T − TNOM)2
+
+(5.1)
+or
+V (T ) = V (TNOM)
+
+1 + T C1(T − TNOM) + T C2(T − TNOM)2
+
+(5.2)
+In the above formula, ' T ' represents the instance temperature, which can be explicitly set
+using the temp keyword or calculated using the circuit temperature and dtemp, if present.
+If both temp and dtemp are specified, the latter is ignored.
+The small-signal AC behavior of the nonlinear source is a linear dependent source (or
+sources) with a proportionality constant equal to the derivative (or derivatives) of the
+source at the DC operating point. The expressions given for V and I may be any function
+of voltages and currents through voltage sources in the system.
+The following functions of a single real variable are defined:
+Trigonometric functions: cos, sin, tan, acos, asin, atan
+Hyperbolic functions: cosh, sinh, acosh, asinh, atanh
+Exponential and logarithmic: exp, ln, log, log10 (ln, log with base e, log10 with base
+10)
+Other: abs, sqrt, u, u2, uramp, floor, ceil, i
+Functions of two variables are min, max, pow, **, pwr, ^
+Functions of three variables are a ? b:c
+For convergence reasons the 'exp' function has a limit of 14 for its argument, beyond that
+value it will increase linearily. The function ' u' is the unit step function, with a value
+of one for arguments greater than zero, a value of 0.5 at zero, and a value of zero for
+arguments less than zero. The function ' u2' returns a value of zero for arguments less
+than zero, one for arguments greater than one and assumes the value of the argument
+between these limits. The function ' uramp' is the integral of the unit step: for an input x,
+the value is zero if x is less than zero, or, if x is greater than or equal to zero, the value is
+x. These three functions are useful in synthesizing piece-wise non-linear functions, though
+convergence may be adversely affected.
+The function i(xyz) returns the current through the first node of device instance xyz.
+The following standard operators are defined: +, -, *, /, ^, unary -
+Logical operators are !=, <>, >=, <=, ==, >, <, ||, &&, ! .
+A ternary function is defined as a ? b : c , which means IF a, THEN b, ELSE c . Be
+sure to place a space in front of ' ?' to allow the parser distinguishing it from other tokens.
+The B source functions pow, **, ^, and pwr need some special care to avoid undefined
+regions in x1, as they differ from the common mathematical usage (and from the functions
+depicted in chapt. 2.9.5).
+The functions y = pow (x1,x2), x1**x2, and x1^x2 , all of them describing y = x1x2,
+resolve to the following:

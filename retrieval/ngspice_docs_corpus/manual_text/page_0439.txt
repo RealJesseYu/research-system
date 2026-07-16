@@ -1,0 +1,41 @@
+17.7. INTERNALLY PREDEFINED V ARIABLES 439
+nosavecurrents If set by ' set nosavecurrents ' and followed by ' reset', the setting of
+internal current vectors ( .options savecurrents ) is suppressed. This is useful in
+ac simulation which does not support ' options savecurrents ' and you have a mix
+of several simulations in a single script.
+nosort Don't let display sort the variable names.
+nostepsizelimit The maximum step size during transient simulation is per default
+limited to tstep given by .tran tstep tstop <tstart <tmax>‌> (15.3.10, 17.5.95).
+It may be overridden and set to a value of (tstop - tstart)/50 by adding 'set
+nostepsizelimit' to .spiceinit. Both may be overriden by setting tmax on the
+.tran line.
+nosubckt Don't expand subcircuits.
+notrnoise Switch off the transient noise sources (Chapt. 4.1.7).
+nounits Plotting of the units token for the x and y axes of a graph is suppressed. Units
+may be added manually to the y and x labels for SI conformity.
+numdgt The number of digits to use when printing tables of data ( print col ). The de-
+fault precision is 6 digits. On the PC, approximately 16 decimal digits are available
+using double precision, so p should not be more than 16. If the number is negative,
+one fewer digit is printed to ensure constant widths in tables.
+num_threads The number of of threads to be used if OpenMP (see Chapt. 16.10) is
+selected. The default value is 2.
+oscompiled is set during ngspice compilation and returns a number corresponding to
+the operating environment used during compilation. 0 Other, 1 MINGW for MS
+Windows, 2 Cygwin for MS Windows, 3 FreeBSD, 4 OpenBSD, 5 Solaris, 6 Linux,
+7 macOS, 8 Visual Studio for MS Windows .
+osdi_enabled is set by ngspice upon start-up when the OSDI interface ( 13.2) is compiled
+in.
+plainlet Command let (17.5.42) will executed without evaluating any expression in its
+command line. This is useful if characters like '/' are part of the vector names, e.g.
+as issued by KiCad. Setting plainlet may be used to rename a vector including
+such math characters into a vector using only standard characters. Then standard
+plot, print, and write commands may be applied to this renamed vector.
+plainplot Command plot (17.5.53) will executed without evaluating any expression in
+its command line. This is useful if characters like '/' are part of the vector names.
+plainwrite Command write (17.5.104) will executed without evaluating any expression
+in its command line. This is useful if characters like '/' are part of the vector names.
+plotstyle This should be one of linplot, combplot, or pointplot. linplot, the
+default, causes points to be plotted as parts of connected lines. combplot causes a
+comb plot to be done. It plots vectors by drawing a vertical line from each point
+to the X-axis, as opposed to joining the points. pointplot causes each point to be
+plotted separately.

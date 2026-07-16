@@ -1,0 +1,36 @@
+Acknowledgments
+ngspice contributors
+Spice3 and CIDER were originally written at The University of California at Berkeley
+(USA).
+XSPICE has been provided by Georgia Institute of Technology, Atlanta (USA).
+Since then, there have been many people working on the software, most of them releasing
+patches to the original code through the Internet.
+The following people have contributed in some way:
+Vera Albrecht,
+Cecil Aswell,
+Giles Atkinson,
+Giles C. Billingsley,
+Phil Barker,
+Steven Borley,
+Stuart Brorson,
+Alessio Cacciatori,
+Mansun Chan,
+Wayne A. Christopher,
+Al Davis,
+Glao S. Dezai,
+Jon Engelbert,
+Daniele Foci,
+Noah Friedman,
+David A. Gates,
+Alan Gillespie,
+John Heidemann,
+Marcel Hendrix,
+Jeffrey M. Hsu,
+JianHui Huang,
+S. Hwang,
+Chris Inbody,
+Gordon M. Jacobs,
+Min-Chie Jeng,
+Beorn Johnson,
+Stefan Jones,
+33

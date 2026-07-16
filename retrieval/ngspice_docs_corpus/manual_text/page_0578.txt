@@ -1,0 +1,39 @@
+578 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+Models may be constructed that pass information back and forth via these nodes. Such
+models are constructed in the manner described in the previous sections, with appropriate
+changes to the Interface Specification and Model Definition Files.
+Because of the need of electrical engineers to have ready access to both digital and analog
+simulation capabilities, the digital node type is provided as a built-in node type along
+with standard SPICE analog nodes. For digital nodes, extensive support is provided
+in the form of macros and functions so that you can treat this node type as a standard
+type analogous to standard SPICE analog nodes when creating and using code models.
+In addition to analog and digital nodes, the node types real and int are also provided
+with the simulator. These were created using the User-Defined Node (UDN) creation
+facilities described below and may serve as a template for further node types.
+The first step in creating a new node type within XSPICE is to set up a node type
+directory along with the appropriate template files needed.
+cd ngspice/src/xspice/icm/xtraevt
+mkdir <directory name>
+<directory name> should be the name of the new type to be defined. Copy file udnfunc.c
+from /icm/xtraevt/int into the new directory. Edit this file according to the new type you
+want to create.
+Notify ngspice about this new UDN directory by editing
+ngspice/src/xspice/icm/xtraevt/udnpath.lst. Add a new line containing <directory name> .
+For compiling and linking see Chapt. 28.5.
+The UDN Definition File contains a set of C language functions. These functions perform
+operations such as allocating space for data structures, initializing them, and comparing
+them to each other. Section 28.8 describes the form and function of the User-Defined
+Node Definition File in detail and includes an example UDN Definition File.
+28.4 Adding a new code model library
+A group of code models may be assembled into a library. A new library is a means to
+distribute new code models, independently from the existing ones. This is the way to
+generate a new code model library:
+cd ngspice/src/xspice/icm/
+mkdir <directory name>
+<directory name> is the name of the new library. Copy empty files modpath.lst and
+udnpath.lst into this directory.
+Edit file ngspice/src/xspice/icm/GNUmakefile.in, add <directory name> to the end of line
+10, which starts with CMDIRS = ... .
+That's all you have to do about a new library! Of course it is empty right now, so you
+have to define at least one code model according to the procedure described in Chapt.
+28.2.

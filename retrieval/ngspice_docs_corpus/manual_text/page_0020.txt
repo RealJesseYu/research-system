@@ -1,0 +1,35 @@
+20 CONTENTS
+17.8.5 control structures . . . . . . . . . . . . . . . . . . . . . . . . . . . . 445
+17.8.6 Example script 'spectrum' . . . . . . . . . . . . . . . . . . . . . . . 449
+17.8.7 Example script for random numbers . . . . . . . . . . . . . . . . . . 451
+17.8.8 Parameter sweep . . . . . . . . . . . . . . . . . . . . . . . . . . . . 452
+17.8.9 Output redirection . . . . . . . . . . . . . . . . . . . . . . . . . . . 452
+17.9 Scattering parameters (S-parameters) . . . . . . . . . . . . . . . . . . . . . 454
+17.9.1 Intro . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 454
+17.9.2 S-parameter measurement basics . . . . . . . . . . . . . . . . . . . 454
+17.9.3 Usage of .sp and sp . . . . . . . . . . . . . . . . . . . . . . . . . . . 456
+17.9.4 Usage of the script . . . . . . . . . . . . . . . . . . . . . . . . . . . 456
+17.10Using shell variables . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 456
+17.11MISCELLANEOUS . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 457
+17.12Bugs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 457
+18 Ngspice User Interfaces 459
+18.1 MS Windows Graphical User Interface . . . . . . . . . . . . . . . . . . . . 459
+18.2 MS Windows Console . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 462
+18.3 Linux . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 463
+18.4 CygWin . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 463
+18.5 Error handling . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 463
+18.6 Output-to-file options . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 464
+18.6.1 Graphics files . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 464
+18.6.2 Tabulated files . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 469
+18.7 Gnuplot . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 472
+18.7.1 Using Gnuplot to produce 1D graphs of (electrical) simulation results 472
+18.7.2 Using gnuplot to produce 2D contour plots for Cider . . . . . . . . 473
+18.8 Integration with CAD software and 'third party' GUIs . . . . . . . . . . . 477
+18.8.1 KiCad . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 477
+18.8.2 Xschem . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 477
+18.8.3 Qucs-S . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 477
+18.8.4 GNU Spice GUI . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 477
+18.8.5 XCircuit . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 478
+18.8.6 GEDA . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 478
+18.8.7 MSEspice . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 478
+18.8.8 GNU Octave . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 478

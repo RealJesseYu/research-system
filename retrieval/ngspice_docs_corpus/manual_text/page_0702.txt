@@ -1,0 +1,52 @@
+702 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+31.6.5.2 MOS9 model parameters
+# Name Direction Type Description
+144 type Out string N-channel or P-channel MOS
+133 nmos In flag N type MOSfet model
+134 pmos In flag P type MOSfet model
+101 vto InOut real Threshold voltage
+101 vt0 InOut real
+102 kp InOut real Transconductance parameter
+103 gamma InOut real Bulk threshold parameter
+104 phi InOut real Surface potential
+105 rd InOut real Drain ohmic resistance
+106 rs InOut real Source ohmic resistance
+107 cbd InOut real B-D junction capacitance
+108 cbs InOut real B-S junction capacitance
+109 is InOut real Bulk junction sat. current
+110 pb InOut real Bulk junction potential
+111 cgso InOut real Gate-source overlap cap.
+112 cgdo InOut real Gate-drain overlap cap.
+113 cgbo InOut real Gate-bulk overlap cap.
+114 rsh InOut real Sheet resistance
+115 cj InOut real Bottom junction cap per area
+116 mj InOut real Bottom grading coefficient
+117 cjsw InOut real Side junction cap per area
+118 mjsw InOut real Side grading coefficient
+119 js InOut real Bulk jct. sat. current density
+120 tox InOut real Oxide thickness
+121 ld InOut real Lateral diffusion
+145 xl InOut real Length mask adjustment
+146 wd InOut real Width Narrowing (Diffusion)
+147 xw InOut real Width mask adjustment
+148 delvto InOut real Threshold voltage Adjust
+148 delvt0 InOut real
+122 u0 InOut real Surface mobility
+122 uo InOut real
+123 fc InOut real Forward bias jct. fit parm.
+124 nsub InOut real Substrate doping
+125 tpg InOut integer Gate type
+126 nss InOut real Surface state density
+131 vmax InOut real Maximum carrier drift velocity
+135 xj InOut real Junction depth
+129 nfs InOut real Fast surface state density
+138 xd InOut real Depletion layer width
+139 alpha InOut real Alpha
+127 eta InOut real Vds dependence of threshold voltage
+128 delta InOut real Width effect on threshold
+140 input_delta InOut real
+130 theta InOut real Vgs dependence on mobility
+132 kappa InOut real Kappa
+141 tnom InOut real Parameter measurement temperature
+142 kf InOut real Flicker noise coefficient
+143 af InOut real Flicker noise exponent

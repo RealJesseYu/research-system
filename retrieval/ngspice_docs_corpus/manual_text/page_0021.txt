@@ -1,0 +1,35 @@
+CONTENTS 21
+19 ngspice as shared library or dynamic link library 479
+19.1 Compile options . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 479
+19.1.1 How to get the sources . . . . . . . . . . . . . . . . . . . . . . . . . 479
+19.1.2 Linux, MINGW, CYGWIN . . . . . . . . . . . . . . . . . . . . . . 479
+19.1.3 MS Visual Studio . . . . . . . . . . . . . . . . . . . . . . . . . . . . 480
+19.2 Linking shared ngspice to a calling application . . . . . . . . . . . . . . . . 480
+19.2.1 Linking during creating the caller . . . . . . . . . . . . . . . . . . . 480
+19.2.2 Loading at runtime . . . . . . . . . . . . . . . . . . . . . . . . . . . 480
+19.3 Shared ngspice API . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 480
+19.3.1 structs and types defined for transporting data . . . . . . . . . . . . 480
+19.3.2 Exported functions . . . . . . . . . . . . . . . . . . . . . . . . . . . 483
+19.3.3 Callback functions . . . . . . . . . . . . . . . . . . . . . . . . . . . 485
+19.4 General remarks on using the API . . . . . . . . . . . . . . . . . . . . . . . 488
+19.4.1 Loading a netlist . . . . . . . . . . . . . . . . . . . . . . . . . . . . 488
+19.4.2 Running the simulation . . . . . . . . . . . . . . . . . . . . . . . . . 490
+19.4.3 Accessing data . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 491
+19.4.4 Altering model or device parameters . . . . . . . . . . . . . . . . . 492
+19.4.5 Output . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 492
+19.4.6 Error handling . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 492
+19.5 Example applications . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 493
+19.6 ngspice parallel . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 493
+19.6.1 Go parallel! . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 493
+19.6.2 Additional exported functions . . . . . . . . . . . . . . . . . . . . . 495
+19.6.3 Additional callback functions . . . . . . . . . . . . . . . . . . . . . 496
+19.6.4 Parallel ngspice example . . . . . . . . . . . . . . . . . . . . . . . . 497
+20 TCLspice 499
+20.1 tclspice framework . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 499
+20.2 tclspice documentation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 499
+20.3 spicetoblt . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 500
+20.4 Running TCLspice . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 500
+20.5 examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 501
+20.5.1 Active capacitor measurement . . . . . . . . . . . . . . . . . . . . . 501
+20.5.2 Optimization of a linearization circuit for a Thermistor . . . . . . . 503
+20.5.3 Progressive display . . . . . . . . . . . . . . . . . . . . . . . . . . . 507

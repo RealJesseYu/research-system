@@ -1,0 +1,28 @@
+Chapter 26
+Execution Procedures
+This chapter covers operation of the XSPICE simulator and the Code Model Subsystem.
+It begins with background material on simulation and modeling and then discusses the
+analysis modes supported in XSPICE and the circuit description syntax used for modeling.
+Detailed descriptions of the predefined Code Models and Node Types provided in the
+XSPICE libraries are also included.
+26.1 Simulation and Modeling Overview
+This section introduces the concepts of circuit simulation and modeling. It is intended
+primarily for users who have little or no previous experience with circuit simulators, and
+also for those who have not used circuit simulators recently. However, experienced SPICE
+users may wish to scan the material presented here since it provides background for new
+Code Model and User-Defined Node capabilities of the XSPICE option.
+26.1.1 Describing the Circuit
+This section provides an overview of the circuit description syntax expected by the
+XSPICE simulator. A general understanding of circuit description syntax will be help-
+ful to you should you encounter problems with your circuit and need to examine the
+simulator's error messages, or should you wish to develop your own models.
+This section will introduce you to the creation of circuit description input files using the
+control language user interface. Note that this material is presented in an overview form.
+Details of circuit description syntax are given later in this chapter and in the previous
+chapters of this manual.
+26.1.1.1 Example Circuit Description Input
+Although different SPICE-based simulators may include various enhancements to the
+basic version from the University of California at Berkeley, most use a similar approach in
+describing circuits. This approach involves capturing the information present in a circuit
+schematic in the form of a text file that follows a defined format. This format requires the
+553

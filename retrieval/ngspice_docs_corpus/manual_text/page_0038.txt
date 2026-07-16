@@ -1,0 +1,41 @@
+38 CHAPTER 1. INTRODUCTION
+1.1.5 Mixed-Signal Simulation
+Modern circuits often contain a mix of analog and digital circuits. To simulate such circuits
+efficiently and accurately, a mix of analog and digital simulation techniques is required.
+When analog simulation algorithms are combined with digital simulation algorithms, the
+result is termed 'mixed-mode simulation' .
+Two basic methods of implementing mixed-mode simulation used in practice are the 'na-
+tive mode' and 'glued mode' approaches. Native mode simulators implement both an
+analog algorithm and a digital algorithm in the same executable. Glued mode simulators
+actually use two simulators, one of which is analog and the other digital. This type of
+simulator must define an input/output protocol so that the two executables can com-
+municate with each other effectively. The communication constraints tend to reduce the
+speed, and sometimes the accuracy, of the complete simulator. On the other hand, the
+use of a glued mode simulator allows the component models developed for the separate
+executables to be used without modification.
+Ngspice is a native mode simulator providing both analog and event-based simulation
+in the same executable. The underlying algorithms of ngspice (coming from XSPICE
+and its Code Model Subsystem) allow use of all the standard SPICE models, provide a
+pre-defined collection of the most common analog and digital functions, and provide an
+extensible base on which to build additional models.
+1.1.5.1 User-Defined Nodes
+Ngspice supports creation of 'User-Defined Node' types. User-Defined Node types allow
+you to specify nodes that propagate data other than voltages, currents, and digital states.
+Like digital nodes, User-Defined Nodes use event-driven simulation, but the state value
+may be an arbitrary data type. A simple example application of User-Defined Nodes is
+the simulation of a digital signal processing filter algorithm. In this application, each
+node could assume a real or integer value. More complex applications may define types
+that involve complex data such as digital data vectors or even non-electronic data.
+Ngspice digital simulation is actually implemented as a special case of this User-Defined
+Node capability where the digital state is defined by a data structure that holds a Boolean
+logic state and a strength value.
+1.1.6 Mixed-Level Simulation (Electronic and TCAD)
+Ngspice implements mixed-level simulation through the merging of its code with CIDER
+(details see Chapt. 30).
+CIDER is a mixed-level circuit and device simulator that provides a direct link between
+technology parameters and circuit performance. A mixed-level circuit and device simula-
+tor can provide greater simulation accuracy than a stand-alone circuit or device simulator
+by numerically modeling the critical devices in a circuit. Compact models can be used
+for noncritical devices.
+CIDER couples ngspice to a internal C-based device simulator, thus providing circuit
+analyses, compact models for semiconductor devices, and an interactive user interface.

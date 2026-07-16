@@ -1,0 +1,45 @@
+28.7. MODEL DEFINITION FILE 603
+unsigned int conn_index; /* Connection index */
+unsigned int port_index; /* Port index within connection */
+void *value; /* Pointer to event value, input and return */
+bool cm_schedule_output(unsigned int conn_index, unsigned int port_index, double delay, void *vp)
+unsigned int conn_index; /* Connection index */
+unsigned int port_index; /* Port index within connection */
+double delay; /* Delay time, similar to OUTPUT_DELAY */
+void *vp; /* Pointer to the event value, like OUTPUT */
+bool cm_getvar(char *name, enum cp_types type, void *retval, size_t rsize)
+char *name; /* Variable name */
+enum cp_types type; /* Type of data requested */
+void *retval; /* Buffer for data returned */
+size_t rsize; /* Buffer size */
+void cm_cexit(int exitcode)
+int exitcode; /* Number returned upon exiting */
+void cm_irreversible(unsigned int priority)
+unsigned int priority; /* Relative priority of code model instance */
+cm_climit_fcn() is a very specific function that mimics the behavior of the climit code
+model (see the Predefined Models section). In brief, the cm_climit_fcn() takes as input
+an in value, an offset, and controlling upper and lower values. Parameter values include
+delta values for the controlling inputs, a smoothing range, gain, and fraction switch values.
+Outputs include the final value, plus the partial derivatives of the output with respect to
+signal input, and both control inputs. These all operate identically to the similarly-named
+inputs and parameters of the climit model.
+The function performs a limit on the in value, holding it to within some delta of the
+controlling inputs, and handling smoothing, etc. The cm_climit_fcn() was originally
+used in the ilimit code model to handle much of the primary limiting in that model,
+and can be used by a code model developer to take care of limiting in larger models that
+require it. See the detailed description of the climit model a for more in-depth description.
+cm_netlist_get_c() and cm_netlist_get_l() functions search the analog circuitry
+to which their input is connected, and total the capacitance or inductance, respectively,
+found at that node. The functions, as they are currently written, assume they are called
+by a model that has only one single-ended analog input port.
+cm_get_path() fetches the path of the first netlist input file found on the ngspice com-
+mand line or in the source command, which ngspice saves to the global variable Infile_Path.
+cm_get_circuit() returns a pointer to the (fundamental) ngspice circuit structure.
+This allows accessing a wealth of data, as defined by CKTcircuit structure in cktdefs.h.
+To build complex custom-built XSPICE-models, access to such parameters (e.g. maxi-
+mum step size) may be needed to get reasonable results from a simulation. This may be
+necessary when SPICE interacts with an external sensor-simulator and the results of that
+external simulator do not have a direct impact on the SPICE circuit. Then, modifying
+the maximum step size on the fly may help to improve the simulation results.
+cm_get_node_name() returns the name of the node attached to a port. The second
+argument is the index for vector ports.

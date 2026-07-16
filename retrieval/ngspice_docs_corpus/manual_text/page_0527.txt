@@ -1,0 +1,41 @@
+22.5. MONTE-CARLO SIMULATION 527
+Name Function
+rnd(vector) A vector with each component a random integer
+between 0 and the absolute value of the input vector's
+corresponding integer element value.
+sgauss(vector) Returns a vector of random numbers drawn from a
+Gaussian distribution (real value, mean = 0 , standard
+deviation = 1). The length of the vector returned is
+determined by the input vector. The contents of the
+input vector will not be used. A call to sgauss(0) will
+return a single value of a random number as a vector of
+length 1..
+sunif(vector) Returns a vector of random real numbers uniformly
+distributed in the interval [-1 .. 1]. The length of the
+vector returned is determined by the input vector. The
+contents of the input vector will not be used. A call to
+sunif(0) will return a single value of a random number
+as a vector of length 1.
+poisson(vector) Returns a vector with its elements being integers
+drawn from a Poisson distribution. The elements of the
+input vector (real numbers) are the expected numbers
+λ. Complex vectors are allowed, real and imaginary
+values are treated separately.
+exponential(vector) Returns a vector with its elements (real numbers)
+drawn from an exponential distribution. The elements
+of the input vector are the respective mean values (real
+numbers). Complex vectors are allowed, real and
+imaginary values are treated separately.
+22.5 Monte-Carlo Simulation
+The ngspice scripting language may be used to run Monte-Carlo simulations with statis-
+tically varying device or model parameters. Calls to the functions sgauss(0) or sunif(0)
+(see 17.2) will return Gaussian or uniform distributed random numbers (real numbers),
+stored in a vector. You may define (see 17.5.16) your own function using sgauss or sunif,
+e.g. to change the mean or range. In a loop (see 17.6) then you may call the alter ( 17.5.3)
+or altermod ( 17.5.4) statements with random parameters followed by an analysis like op,
+dc, ac, tran or other.
+22.5.1 Example 1
+The first examples is a LC band pass filter, where L and C device parameters will be
+changed 100 times. Each change is followed by an ac analysis. All graphs of output
+voltage versus frequency are plotted. The file is available in the distribution as /exam-
+ples/Monte_Carlo/MonteCarlo.sp as well as from the git repository .

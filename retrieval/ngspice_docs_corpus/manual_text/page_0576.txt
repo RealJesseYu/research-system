@@ -1,0 +1,35 @@
+576 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+compile them into a shared lib, and 4) load them into the ngspice simulator upon runtime.
+All code models finally reside in dynamically linkable shared libraries (* .cm), which in
+fact are .so files under Linux or dlls under MS Windows. Currently we have 5 of them
+(analog.cm, digital.cm, spice2poly.cm, xtradev.cm, xtraevt.cm). Upon start up of ngspice
+they are dynamically loaded into the simulator by the ngspice codemodel command (which
+is located in file spinit (see Chapt. 16.5) for the standard code models). Once you have
+added your new code model into one of these libraries (or have created a new library
+file, e.g. my-own.cm), instances of the model can be placed into any simulator deck that
+describes a circuit of interest and simulated along with all of the other components in
+that circuit.
+A quick entry to get a new code model has already been presented in Chapt. 26.3. You
+may find the details of the XSPICE language in Chapt. 28.6 ff.
+28.1 Code Model Data Type Definitions
+There are several data types that you can incorporate into a model. These have already
+been used extensively in the code model library included with the simulator. They are
+detailed below:
+Boolean_t The Boolean type is an enumerated type that can take on values of F ALSE
+(integer value 0) or TRUE (integer value 1). Alternative names for these enumerations
+are MIF F ALSE and MIF TRUE, respectively.
+Complex_t The Complex type is a structure composed of two double values. The
+first of these is the .real field, and the second is the .imag field. Typically these values are
+accessed as shown:
+For complex value 'data', the real portion is 'data.real', and the imaginary portion is
+'data.imag' .
+Digital_State_t The Digital State type is an enumerated value that can be either
+ZERO (integer value 0), ONE (integer value 1), or UNKNOWN (integer value 2).
+Digital_Strength_t The Digital Strength type is an enumerated value that can
+be either STRONG (integer value 0), RESISTIVE (integer value 1), HI IMPEDANCE
+(integer value 2) or UNDETERMINED (integer value 3).
+Digital_t The Digital type is a composite of the Digital_State_t and Digital_Strength_t
+enumerated data types. The actual variable names within the Digital type are .state and
+.strength and are accessed as shown below:
+For Digital_t value 'data', the state portion is 'data.state', and the strength portion is
+'data.strength' .

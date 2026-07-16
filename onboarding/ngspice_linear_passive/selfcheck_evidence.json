@@ -1,0 +1,396 @@
+{
+  "substrate": "ngspice_linear_passive",
+  "generated_utc": "2026-07-16T17:43:29Z",
+  "environment": {
+    "container": "ngspice-prod",
+    "docker_context": "colima",
+    "ngspice_version_verbatim": "******\n** ngspice-42 : Circuit level simulation program\n** Compiled with KLU Direct Linear Solver\n** The U. C. Berkeley CAD Group\n** Copyright 1985-1994, Regents of the University of California.\n** Copyright 2001-2023, The ngspice team.\n** Please get your ngspice manual from https://ngspice.sourceforge.io/docs.html\n** Please file your bug-reports at http://ngspice.sourceforge.net/bugrep.html\n** Creation Date: Sun Mar 31 20:15:14 UTC 2024\n******",
+    "dpkg_version": "42+ds-3build1",
+    "uname_m": "aarch64",
+    "host": "macOS + colima"
+  },
+  "wrapper": {
+    "module": "tools/run_ngspice.py",
+    "returned_fields": [
+      "valid",
+      "qoi",
+      "diagnostics",
+      "runtime_s"
+    ],
+    "timeout_seconds": 600,
+    "max_retries": 1,
+    "max_diag_chars": 800
+  },
+  "total_wall_clock_s": 43.0,
+  "checks": [
+    {
+      "name": "a. resistive divider, .op",
+      "settings": {
+        "vin": 10.0,
+        "r1": 1000.0,
+        "r2": 2000.0,
+        "analysis": "op",
+        "qoi": "op_value of v(out)"
+      },
+      "measured": 6.66666667,
+      "analytic": 6.666666666666667,
+      "rel_error": 4.999999081434225e-10,
+      "valid": true,
+      "runtime_s": 0.282,
+      "diagnostics": "ngspice op on 3 element line(s); 1 data row(s); op_value of v(out)"
+    },
+    {
+      "name": "b. resistive divider, .dc sweep",
+      "settings": {
+        "sweep": "V1 0->10 step 1",
+        "r1": 1000.0,
+        "r2": 2000.0,
+        "fit_points": [
+          0.0,
+          2.0,
+          4.0,
+          6.0,
+          8.0,
+          10.0
+        ]
+      },
+      "measured_slope": 0.6666666668571428,
+      "analytic_slope": 0.6666666666666666,
+      "rel_error": 2.8571428556389833e-10,
+      "swept_values": [
+        0.0,
+        1.33333333,
+        2.66666667,
+        4.0,
+        5.33333333,
+        6.66666667
+      ],
+      "valid": true,
+      "runtime_s_total": 1.535
+    },
+    {
+      "name": "c. RC low-pass, .ac corner vs grid density",
+      "settings": {
+        "r": 1000.0,
+        "c": 1.59155e-07,
+        "sweep": "dec 10Hz..100kHz",
+        "points_per_decade": [
+          10,
+          100
+        ]
+      },
+      "analytic_corner_hz": 999.9996424359609,
+      "per_grid": {
+        "10": {
+          "corner_hz": 1000.0952908498522,
+          "valid": true,
+          "runtime_s": 0.253,
+          "rel_error_vs_analytic": 9.564844809168556e-05
+        },
+        "100": {
+          "corner_hz": 1000.099080038621,
+          "valid": true,
+          "runtime_s": 0.256,
+          "rel_error_vs_analytic": 9.943763821535565e-05
+        }
+      },
+      "delta_abs_hz": 0.0037891887687919734,
+      "delta_rel": 3.788827728177812e-06,
+      "grid_sensitivity_note": "corner shifts by this much when the frequency grid is refined 10x; a corner that moved materially here would not be a trustworthy QoI",
+      "fstart_sensitivity": {
+        "10.0": {
+          "corner_hz": 1000.099080038621,
+          "rel_error_vs_analytic": 9.943763821535565e-05,
+          "predicted_bias_fstart_over_fc_squared": 0.00010000007151284615
+        },
+        "1.0": {
+          "corner_hz": 1000.0006383969074,
+          "rel_error_vs_analytic": 9.959613026312779e-07,
+          "predicted_bias_fstart_over_fc_squared": 1.0000007151284616e-06
+        },
+        "0.1": {
+          "corner_hz": 999.9996499468248,
+          "rel_error_vs_analytic": 7.51086652404935e-09,
+          "predicted_bias_fstart_over_fc_squared": 1.0000007151284618e-08
+        }
+      },
+      "dominant_error_finding": "The corner's error is NOT dominated by grid density. |H_dc| is proxied by |H| at fstart, biasing the corner high by a relative (fstart/fc)^2 \u2014 1e-4 at fstart=10Hz, confirmed to 3 digits by the fstart sweep above and by closed-form algebra (u = sqrt(1+2s^2)). That bias is ~26x LARGER than the 3.8e-6 grid delta measured at the same fstart. Reporting the grid delta as the corner's error bar would understate it by that factor."
+    },
+    {
+      "name": "d. RC step, .tran convergence vs tmax",
+      "settings": {
+        "vin": 1.0,
+        "r": 1000.0,
+        "c": 1e-06,
+        "tau_s": 0.001,
+        "tstep_s": 1e-05,
+        "tstop_s": 0.005,
+        "tmax_s": [
+          5e-05,
+          5e-06,
+          5e-07
+        ],
+        "error_grid": "50 points over [0, 5 tau]"
+      },
+      "table": [
+        {
+          "tmax_s": 5e-05,
+          "v_at_tau_measured": 0.632089130834968,
+          "v_at_tau_analytic": 0.6321205588285577,
+          "rel_error_at_tau": 4.971835380251747e-05,
+          "max_rel_error_0_to_5tau": 0.0025960950620469345,
+          "max_rel_error_at_t_s": 0.0001,
+          "runtime_s": 0.255
+        },
+        {
+          "tmax_s": 5e-06,
+          "v_at_tau_measured": 0.6321201344077108,
+          "v_at_tau_analytic": 0.6321205588285577,
+          "rel_error_at_tau": 6.714238937241311e-07,
+          "max_rel_error_0_to_5tau": 2.880854824465454e-05,
+          "max_rel_error_at_t_s": 0.0001,
+          "runtime_s": 0.263
+        },
+        {
+          "tmax_s": 5e-07,
+          "v_at_tau_measured": 0.6321203819241193,
+          "v_at_tau_analytic": 0.6321205588285577,
+          "rel_error_at_tau": 2.798587007646952e-07,
+          "max_rel_error_0_to_5tau": 4.789995234330059e-06,
+          "max_rel_error_at_t_s": 0.0001,
+          "runtime_s": 0.273
+        }
+      ],
+      "monotone_shrinking": true
+    },
+    {
+      "name": "e. series RLC step overshoot (D.5 discretization screen)",
+      "settings": {
+        "vin": 1.0,
+        "r": 12.649,
+        "l": 0.001,
+        "c": 1e-06,
+        "zeta": 0.19999825061734913,
+        "tstep_s": 1e-06,
+        "tstop_s": 0.003,
+        "tmax_s": [
+          1e-05,
+          1e-06,
+          1e-07
+        ],
+        "qoi": "max of v(out) across C"
+      },
+      "analytic_peak": 1.5266236763247512,
+      "table": [
+        {
+          "tmax_s": 1e-05,
+          "peak_measured": 1.531468,
+          "peak_analytic": 1.5266236763247512,
+          "gap_to_analytic_peak": 0.004844323675248896,
+          "settled_measured": 1.0,
+          "settled_analytic": 1.0,
+          "settled_residual": 0.0,
+          "runtime_s": 0.409
+        },
+        {
+          "tmax_s": 1e-06,
+          "peak_measured": 1.52667938,
+          "peak_analytic": 1.5266236763247512,
+          "gap_to_analytic_peak": 5.570367524887487e-05,
+          "settled_measured": 1.0,
+          "settled_analytic": 1.0,
+          "settled_residual": 0.0,
+          "runtime_s": 0.451
+        },
+        {
+          "tmax_s": 1e-07,
+          "peak_measured": 1.52662415,
+          "peak_analytic": 1.5266236763247512,
+          "gap_to_analytic_peak": 4.736752488021523e-07,
+          "settled_measured": 1.0,
+          "settled_analytic": 1.0,
+          "settled_residual": 0.0,
+          "runtime_s": 0.667
+        }
+      ],
+      "monotone_settle": true,
+      "screen_note": "max(v_out) is an EXTREMUM QoI and therefore a discretization-artifact suspect. The trend across tightening tmax is the screen: a peak that keeps climbing as the step shrinks is tracking the grid, not the physics."
+    },
+    {
+      "name": "f. adversarial probes (jails proven by failing the escape)",
+      "setup_errors": [
+        {
+          "probe": "floating node (no DC path)",
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "solver reported a failure (exit 0): singular matrix \u2014 a node has no DC path to ground [Warning: singular matrix:  check node mid | Warning: singular matrix:  check node mid | Warning: Dynamic gmin stepping failed | Warning: singular matrix:  check node mid]",
+          "pass": true
+        },
+        {
+          "probe": "undefined model",
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 2: 'D1 a 0 nosuchmodel' \u2014 element letter 'D' is outside the linear-passive regime (allowed: C E F G H I L R V)",
+          "pass": true
+        },
+        {
+          "probe": "zero-value resistor",
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 2: 'R1 a 0 0' \u2014 R value '0' parses to 0, which is not positive; ngspice would silently substitute a minimum value and return a fabricated result",
+          "pass": true
+        },
+        {
+          "probe": "garbage line",
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 3: '5R xx yy zz' \u2014 element letter '5' is outside the linear-passive regime (allowed: C E F G H I L R V)",
+          "pass": true
+        },
+        {
+          "probe": "missing analysis field",
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: missing required field(s): analysis",
+          "pass": true
+        }
+      ],
+      "regime_escapes": [
+        {
+          "probe": "diode line",
+          "screen_reasons": [
+            "line 2: 'D1 a 0 dmod' \u2014 element letter 'D' is outside the linear-passive regime (allowed: C E F G H I L R V)"
+          ],
+          "rejected_pre_solve": true,
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 2: 'D1 a 0 dmod' \u2014 element letter 'D' is outside the linear-passive regime (allowed: C E F G H I L R V)",
+          "pass": true
+        },
+        {
+          "probe": ".model line",
+          "screen_reasons": [
+            "line 3: '.model dmod D(is=1e-14)' \u2014 dot-commands are owned by the wrapper, not the caller; the netlist body carries circuit elements only"
+          ],
+          "rejected_pre_solve": true,
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 3: '.model dmod D(is=1e-14)' \u2014 dot-commands are owned by the wrapper, not the caller; the netlist body carries circuit elements only",
+          "pass": true
+        },
+        {
+          "probe": "B-source (behavioral)",
+          "screen_reasons": [
+            "line 2: 'B1 b 0 V=v(a)*v(a)' \u2014 element letter 'B' is outside the linear-passive regime (allowed: C E F G H I L R V)"
+          ],
+          "rejected_pre_solve": true,
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 2: 'B1 b 0 V=v(a)*v(a)' \u2014 element letter 'B' is outside the linear-passive regime (allowed: C E F G H I L R V)",
+          "pass": true
+        },
+        {
+          "probe": "POLY controlled source",
+          "screen_reasons": [
+            "line 2: 'E1 b 0 POLY(1) a 0 0 1 1' \u2014 'POLY' form on a controlled source is nonlinear/expression-valued; only the plain linear-gain form passes v1"
+          ],
+          "rejected_pre_solve": true,
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 2: 'E1 b 0 POLY(1) a 0 0 1 1' \u2014 'POLY' form on a controlled source is nonlinear/expression-valued; only the plain linear-gain form passes v1",
+          "pass": true
+        },
+        {
+          "probe": ".include line",
+          "screen_reasons": [
+            "line 3: '.include /etc/passwd' \u2014 dot-commands are owned by the wrapper, not the caller; the netlist body carries circuit elements only"
+          ],
+          "rejected_pre_solve": true,
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 3: '.include /etc/passwd' \u2014 dot-commands are owned by the wrapper, not the caller; the netlist body carries circuit elements only",
+          "pass": true
+        },
+        {
+          "probe": "brace expression",
+          "screen_reasons": [
+            "line 2: 'R1 a 0 {rval*2}' \u2014 '{' (expression interpolation) is not allowed in the linear-passive regime",
+            "line 2: 'R1 a 0 {rval*2}' \u2014 cannot parse the R value '{rval*2}' as a SPICE number"
+          ],
+          "rejected_pre_solve": true,
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 2: 'R1 a 0 {rval*2}' \u2014 '{' (expression interpolation) is not allowed in the linear-passive regime | line 2: 'R1 a 0 {rval*2}' \u2014 cannot parse the R value '{rval*2}' as a SPICE number",
+          "pass": true
+        },
+        {
+          "probe": "K coupled inductors",
+          "screen_reasons": [
+            "line 5: 'K1 L1 L2 0.5' \u2014 element letter 'K' is outside the linear-passive regime (allowed: C E F G H I L R V)"
+          ],
+          "rejected_pre_solve": true,
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 5: 'K1 L1 L2 0.5' \u2014 element letter 'K' is outside the linear-passive regime (allowed: C E F G H I L R V)",
+          "pass": true
+        },
+        {
+          "probe": "negative resistor",
+          "screen_reasons": [
+            "line 2: 'R1 a 0 -1k' \u2014 R value '-1k' parses to -1000, which is not positive; ngspice would silently substitute a minimum value and return a fabricated result"
+          ],
+          "rejected_pre_solve": true,
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 2: 'R1 a 0 -1k' \u2014 R value '-1k' parses to -1000, which is not positive; ngspice would silently substitute a minimum value and return a fabricated result",
+          "pass": true
+        },
+        {
+          "probe": "per-analysis value override (ac=)",
+          "screen_reasons": [
+            "line 2: 'R1 a out 1k ac=100k' \u2014 R element takes exactly '<name> <node+> <node-> <value>' in v1; the extra token(s) 'ac=100k' select a model or a per-analysis/temperature value override, which can silently change the simulated value away from the one written here"
+          ],
+          "rejected_pre_solve": true,
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 2: 'R1 a out 1k ac=100k' \u2014 R element takes exactly '<name> <node+> <node-> <value>' in v1; the extra token(s) 'ac=100k' select a model or a per-analysis/temperature value override, which can silently change the simulated value away from the one written here",
+          "pass": true
+        },
+        {
+          "probe": "temperature coefficient (tc1=)",
+          "screen_reasons": [
+            "line 2: 'R1 a 0 1k tc1=0.001' \u2014 R element takes exactly '<name> <node+> <node-> <value>' in v1; the extra token(s) 'tc1=0.001' select a model or a per-analysis/temperature value override, which can silently change the simulated value away from the one written here"
+          ],
+          "rejected_pre_solve": true,
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 2: 'R1 a 0 1k tc1=0.001' \u2014 R element takes exactly '<name> <node+> <node-> <value>' in v1; the extra token(s) 'tc1=0.001' select a model or a per-analysis/temperature value override, which can silently change the simulated value away from the one written here",
+          "pass": true
+        },
+        {
+          "probe": "initial condition (ic=)",
+          "screen_reasons": [
+            "line 3: 'C1 b 0 1u ic=3' \u2014 C element takes exactly '<name> <node+> <node-> <value>' in v1; the extra token(s) 'ic=3' select a model or a per-analysis/temperature value override, which can silently change the simulated value away from the one written here"
+          ],
+          "rejected_pre_solve": true,
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 3: 'C1 b 0 1u ic=3' \u2014 C element takes exactly '<name> <node+> <node-> <value>' in v1; the extra token(s) 'ic=3' select a model or a per-analysis/temperature value override, which can silently change the simulated value away from the one written here",
+          "pass": true
+        },
+        {
+          "probe": "model name on a passive",
+          "screen_reasons": [
+            "line 2: 'R1 a 0 rmodel w=1u' \u2014 R element takes exactly '<name> <node+> <node-> <value>' in v1; the extra token(s) 'w=1u' select a model or a per-analysis/temperature value override, which can silently change the simulated value away from the one written here"
+          ],
+          "rejected_pre_solve": true,
+          "valid": false,
+          "qoi": null,
+          "diagnostics": "input rejected: netlist rejected by the regime screen: line 2: 'R1 a 0 rmodel w=1u' \u2014 R element takes exactly '<name> <node+> <node-> <value>' in v1; the extra token(s) 'w=1u' select a model or a per-analysis/temperature value override, which can silently change the simulated value away from the one written here",
+          "pass": true
+        }
+      ],
+      "all_pass": true
+    }
+  ]
+}

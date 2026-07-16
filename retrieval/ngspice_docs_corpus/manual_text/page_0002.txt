@@ -1,0 +1,28 @@
+2
+Locations
+The project and download pages of ngspice may be found at
+Ngspice home page http://ngspice.sourceforge.net/
+Project page at SourceForge http://sourceforge.net/projects/ngspice/
+Download page at SourceForge https://sourceforge.net/projects/ngspice/files/ng-spice-
+rework/
+Git source download https://sourceforge.net/p/ngspice/ngspice/ci/master/tree/
+Status
+This manual is a work in progress. Some to-dos are listed in Chapt. 24.3. More is surely
+needed. You are invited to report bugs, missing items, wrongly described items, bad
+English style, etc.
+How to use this Manual
+The manual is a "work in progress. " It may accompany a specific ngspice release, e.g.
+ngspice-35 as manual version 35. If its name contains 'Version xxplus', it describes the
+actual code status, found at the date of issue in the Git Source Code Management (SCM)
+tool. This manual is intended to provide a complete description of ngspice's functionality,
+features, commands, and procedures. This manual is not a book about learning SPICE
+usage, however the novice user may find some hints how to start using ngspice. Chapter
+21.1 gives a short introduction how to set up and simulate a small circuit. Chapter 32 is
+about compiling and installing ngspice from a tarball or the actual Git source code, which
+you may find on the ngspice web pages . If you are running a specific Linux distribution,
+you may check if it provides ngspice as part of the package. Some are listed here.
+License
+This document is covered by the Creative Commons Attribution Share-Alike (CC-BY-SA)
+v4.0..
+Part of chapters 12 and 25-29 are in the public domain.
+Chapter 30 is covered by New BSD (chapt. 33.3.2).

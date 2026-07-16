@@ -1,0 +1,30 @@
+Chapter 25
+XSPICE Basics
+25.1 ngspice with the XSPICE option
+The XSPICE option allows you to add event-driven simulation capabilities to ngspice.
+ngspice now is the main software program that performs mathematical simulation of a
+circuit specified by you, the user. It takes input in the form of commands and circuit
+descriptions and produces output data (e.g. voltages, currents, digital states, and wave-
+forms) that describe the circuit's behavior.
+Plain ngspice is designed for analog simulation and is based exclusively on matrix solution
+techniques. The XSPICE option adds even-driven simulation capabilities. Thus, designs
+that contain significant portions of digital circuitry can be efficiently simulated together
+with analog components. ngspice with XSPICE option also includes a 'User-Defined Node'
+capability that allows event-driven simulations to be carried out with any type of data.
+The XSPICE option has been developed by the Computer Science and Information Tech-
+nology Laboratory at Georgia Tech Research Institute of the Georgia Institute of Tech-
+nology, Atlanta, Georgia 30332 at around 1990 and enhanced by the ngspice team. The
+manual is based on the original XSPICE user's manual, no longer available from Georgia
+Tech, but from the ngspice web site .
+In the following, the term 'XSPICE' may be read as 'ngspice with XSPICE code model
+subsystem enabled' . You may enable the option by adding --enable-xspice to the
+./configure command. The MS Windows distribution already contains the XSPICE
+option.
+25.2 The XSPICE Code Model Subsystem
+The new component of ngspice, the Code Model Subsystem, provides the tools needed to
+model the various parts of your system. While ngspice is targeted primarily at integrated
+circuit (IC) analysis, XSPICE includes features to model and simulate board-level and
+system-level designs as well. The Code Model Subsystem is central to this new capability,
+providing XSPICE with an extensive set of models to use in designs and allowing you to
+add your own models to this model set.
+549

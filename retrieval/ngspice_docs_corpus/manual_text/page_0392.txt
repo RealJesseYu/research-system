@@ -1,0 +1,19 @@
+392 CHAPTER 17. INTERACTIVE INTERPRETER
+specwindow: This variable is set to one of the following strings, which will determine
+the type of windowing used for the Fourier transform in the spec and fft command. If
+not set, the default is hanning.
+none No windowing
+rectangular Rectangular window
+bartlet Bartlett (also triangle) window
+blackman Blackman window
+hanning Hanning (also hann or cosine) window
+hamming Hamming window
+gaussian Gaussian window
+flattop Flat top window
+Figure 17.1: Spec and FFT window functions (Gaussian order = 4)
+specwindoworder: This can be set to an integer in the range 2-8. This sets the order
+when the Gaussian window is used in the spec and fft commands. If not set, order 2 is
+used.
+17.5.31 Fopen: open a text file
+General Form:
+fopen handle file_name [ mode ]

@@ -1,0 +1,32 @@
+410 CHAPTER 17. INTERACTIVE INTERPRETER
+17.5.65 Rspice*: Remote ngspice submission
+General Form:
+rspice < input file >
+Runs a ngspice remotely taking the input file as a ngspice input file, or the current circuit
+if no argument is given. Ngspice waits for the job to complete, and passes output from
+the remote job to the user's standard output. When the job is finished the data is loaded
+in as with aspice. If the variable rhost is set, ngnutmeg connects to this host instead of
+the default remote ngspice server machine. This command uses the rsh command and
+thereby requires authentication via a .rhosts file or other equivalent method. Note that
+rsh refers to the 'remote shell' program, which may be remsh on your system; to override
+the default name of rsh, set the variable remote_shell. If the variable rprogram is set,
+then rspice uses this as the pathname to the program to run on the remote system.
+Note: rspice will not acknowledge elements that have been changed via the alter or altermod
+commands.
+17.5.66 Run*: Run analysis from the input file
+General Form:
+run [ rawfile ]
+Run the simulation as specified in the input file. If there were any of the control lines
+.ac, .op, .tran, or .dc, they are executed. The output is put in rawfile if it was given,
+in addition to being available interactively.
+17.5.67 Rusage: Resource usage
+General Form:
+rusage [ resource ...]
+Print resource usage statistics. If any resources are given, just print the usage of that
+resource. Most resources require that a circuit be loaded. Currently valid resources are
+time Total Analysis Time
+cputime The amount of time elapsed since the last rusage cputime call.
+totalcputime Total elapsed time used so far.
+decklineno Number of lines in deck
+netloadtime Nelist loading time
+netparsetime Netlist parsing time

@@ -1,0 +1,44 @@
+234CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+-4.50672E-10 -4.49099E-10 -4.48838E-10 -4.48795E-10 ...
+-4.55575E-10 -4.4953E-10 -4.48435E-10 -4.48217E-10 ...
+...
+*table -1.6
+-3.10015E-10 -3.09767E-10 -3.0973E-10 -3.09724E-10 ...
+-3.09748E-10 -3.08524E-10 -3.08339E-10 -3.08312E-10 ...
+...
+*table -1.4
+-2.04848E-10 -2.04008E-10 -2.03882E-10 ...
+-2.07275E-10 -2.03117E-10 -2.02491E-10 ...
+...
+Description: The usage example simulates a NMOS transistor with independent drain,
+gate and bulk nodes, referenced to source. Parameter gain may be used to emulate
+transistor width, with respect to the table transistor.
+Example SPICE Usage:
+amos1 %vd(d s) %vd(g s) %vd(b s) %id(d s) mostable1
+.model mostable1 table3d (offset=0.0 gain=0.5 order=3
++ verbose=1 file="table-3D-bsim4n.txt")
+12.2.32 Simple Diode Model
+NAME_TABLE:
+C_Function_Name: cm_sidiode
+Spice_Model_Name: sidiode
+Description: "simple diode"
+PORT_TABLE:
+Port_Name: ds
+Description: "diode port"
+Direction: inout
+Default_Type: gd
+Allowed_Types: [gd]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: ron roff
+Description: "resistance on-state" "resistance off-state"
+Data_Type: real real
+Default_Value: 1 11
+Limits: [1e-6 - ] [1e-12 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+1If roff is not given, ron is the default

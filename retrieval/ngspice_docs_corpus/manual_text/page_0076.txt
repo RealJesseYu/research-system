@@ -1,0 +1,38 @@
+76 CHAPTER 3. CIRCUIT ELEMENTS AND MODELS
+state. If a device is specified OFF, the dc operating point is determined with the terminal
+voltages for that device set to zero. After convergence is obtained, the program continues
+to iterate to obtain the exact value for the terminal voltages. If a circuit has more than
+one dc stable state, the OFF option can be used to force the solution to correspond to a
+desired state. If a device is specified OFF when in reality the device is conducting, the
+program still obtains the correct solution (assuming the solutions converge) but more
+iterations are required since the program must independently converge to two separate
+solutions.
+The .NODESET control line (see Chapt. 15.2.1) serves a similar purpose as the OFF option.
+The .NODESET option is easier to apply and is the preferred means to aid convergence. The
+second form of initial conditions are specified for use with the transient analysis. These
+are true 'initial conditions' as opposed to the convergence aids above. See the description
+of the .IC control line (Chapt. 15.2.2) and the .TRAN control line (Chapt. 15.3.10) for a
+detailed explanation of initial conditions.
+3.3 Elementary Devices
+3.3.1 Resistors
+General form:
+RXXXXXXX n + n - < resistance | r = > value < ac = val > <m = val >
++ < scale = val > < temp = val > < dtemp = val > < tc1 = val > < tc2 = val >
++ < noisy =0|1 >
+Examples:
+R1 1 2 100
+RC1 12 17 1 K
+R2 5 7 1 K ac =2 K
+RL 1 4 2 K m =2
+Ngspice has a fairly complex model for resistors. It can simulate both discrete and semi-
+conductor resistors. Semiconductor resistors in ngspice means: resistors described by
+geometrical parameters. So, do not expect detailed modeling of semiconductor effects.
+n+ and n- are the two element nodes, value is the resistance (in ohms) and may be
+positive or negative 1 but not zero.
+Simulating small valued resistors: If you need to simulate very small
+resistors (0.001 Ohm or less), you should use CCVS (transresistance).
+It is less efficient but improves overall numerical accuracy. Consider a
+small resistance as a large conductance.
+Ngspice can assign a resistor instance a different value for AC analysis, specified using the
+ac keyword. This value must not be zero as described above. The AC resistance is used
+1A negative resistor modeling an active element can cause convergence problems, please avoid it.

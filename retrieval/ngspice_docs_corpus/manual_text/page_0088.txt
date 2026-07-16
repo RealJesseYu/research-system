@@ -1,0 +1,16 @@
+88 CHAPTER 3. CIRCUIT ELEMENTS AND MODELS
+When there are more than two inductors coupled for interaction, some combination of
+coupling constants are not possible physically because the magnetic fields then would
+violate energy conservation. ngspice checks the coupling matrix for such conditions and
+issues a warning.
+3.3.13 Inductors, dependent on expressions (behavioral induc-
+tor)
+General form:
+LXXXXXXX n + n - L = ' expression ' < tc1 = value > < tc2 = value >
+LXXXXXXX n + n - ' expression ' < tc1 = value > < tc2 = value >
+Examples:
+L1 l2 lll L = 'i ( Vm ) < { It } ? { Ll } : { Lh } ' tc1 = -4 e -03 tc2 =6 e -05
+Expression may be an equation or an expression containing node voltages or branch
+currents (in the form of i(vm)) and any other terms as given for the B source and described
+in Chapt. 5.1. It may contain parameters ( 2.9.1) and the special variables time, temper,
+and hertz (5.1.2).

@@ -1,0 +1,40 @@
+570 CHAPTER 27. EXAMPLE CIRCUITS
+Example (continued):
+. subckt opamp plus minus out
+*
+r1 plus minus 300 k
+a1 % vd ( plus minus ) outint lim
+. model lim limit ( o u t _ l o w e r _ l i m i t = -12 o u t _ u p p e r _ l i m i t = 12
++ fraction = true l imi t_r an ge = 0.2 gain =300 e3 )
+r3 outint out 50.0
+r2 out 0 1 e12
+*
+. ends opamp
+*
+. end
+This circuit is a high-level design of a sampled-data filter. An analog step waveform
+(created from a ngspice pulse waveform) is introduced as 'v1' and converted to digital by
+code model instance 'abridge' . This digital data is used to enable a Nand-Gate oscillator
+('aclk') after a short delay. The Nand-Gate oscillator generates a square-wave clock signal
+with a period of approximately two times the gate delay, which is specified as 1e-5 seconds.
+This 50 kHz clock is divided by a series of D Flip Flops ('adiv2', 'adiv4', 'adiv8') to produce
+a square-wave at approximately 6.25 kHz. Note particularly the use of the reserved word
+'NULL' for certain nodes on the D Flip Flops. This tells the code model that there is no
+node connected to these ports of the flip flop.
+The divide-by-8 and enable waveforms are converted by the instance 'abridge2' to the
+format required by the User-Defined Node type 'real', which expected real-valued data.
+The output of this instance on node filt_in is a real valued square wave that oscillates
+between values of -1 and 1. Note that the associated code model d_to_real is not part
+of the original XSPICE code model library but has been added later to ngspice.
+This signal is then passed through subcircuit 'xfilter' that contains a digital low-pass filter
+clocked by node 'clk' . The result of passing this square-wave through the digital low-pass
+filter is the production of a sampled sine wave (the filter passes only the fundamental of
+the square-wave input) on node filt_out. This signal is then converted back to ngspice
+analog data on node a_out by node bridge instance 'abridge3' .
+The resulting analog waveform is then passed through an op-amp-based low-pass analog
+filter constructed around subcircuit 'xlpf' to produce the final output at analog node
+'lpf_out' .
+27.2.2 Running example C3
+Now copy the file xspice_c3.cir from directory /examples/xspice/ into the current directory:
+$ cp /examples/xspice/xspice_c3.cir xspice_c3.cir
+and invoke the new simulator executable as you did in the previous examples.

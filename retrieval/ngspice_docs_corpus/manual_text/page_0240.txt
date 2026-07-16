@@ -1,0 +1,46 @@
+240CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Description: The dac_bridge is the first of three node bridge devices designed to allow
+for the ready transfer of digital information to analog values and back again. The
+second device is the adc_bridge (which takes an analog value and maps it to a dig-
+ital one).The dac_bridge takes as input a digital value from a digital node. This
+value by definition may take on only one of the values ' 0', '1' or 'U' . The dac_bridge
+then outputs the value out_low, out_high or out_undef, or ramps linearly toward
+one of these 'final' values from its current analog output level. The speed at which
+this ramping occurs depends on the values of t_rise and t_fall. These parame-
+ters are interpreted by the model such that the rise or fall slope generated is always
+constant. Note that the dac_bridge includes test code in its cfunc.mod file for de-
+termining the presence of the out_undef parameter. If this parameter is not specified
+by you, and if out_high and out_low values are specified, then out_undef is as-
+signed the value of the arithmetic mean of out_high and out_low. This simplifies
+coding of output buffers, where typically a logic family will include an out_low and
+out_high voltage, but not an out_undef value. This model also posts an input
+load value (in farads) based on the parameter input load.
+Example SPICE Usage:
+abridge1 [7] [2] dac1
+.model dac1 dac_bridge(out_low = 0.7 out_high = 3.5 out_undef = 2.2
++ input_load = 5.0e-12 t_rise = 50e-9
++ t_fall = 20e-9)
+12.3.2 Analog-to-Digital Node Bridge
+NAME_TABLE:
+C_Function_Name: cm_adc_bridge
+Spice_Model_Name: adc_bridge
+Description: "analog-to-digital node bridge"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: v d
+Allowed_Types: [v,vd,i,id,d] [d]
+Vector: yes yes
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: in_low
+Description: "maximum 0-valued analog input"
+Data_Type: real
+Default_Value: 1.0
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:

@@ -1,0 +1,24 @@
+Chapter 33
+Copyrights and licenses
+33.1 Documentation license
+The license for this document is covered by the Creative Commons Attribution Share-
+Alike (CC-BY-SA) v4.0.
+See here for details of the legal code.
+Parts of chapters 12 and 25-27 are in the public domain.
+Chapter 30 is covered by the 3-clause BSD (modified BSD).
+33.2 ngspice license
+The SPICE license is the 'Modified' BSD license , (see 33.3.2 and Spice link at UCB ).
+ngspice adopts this 'Modified' BSD license for all of its source code except for tclspice,
+admst, and numparam that are under LGPLv2, and XSPICE, which is in the public
+domain. Some adms device models have company specific licenses and thus are not part
+of the standard distribution (see file COPYING for details) . The ngspice licences are
+compliant with the DFSG (Debian Free Software Guidelines).
+33.3 Some license details
+33.3.1 CC-BY-SA
+This is a human-readable summary of (and not a substitute for) the license CC-BY-SA.
+You are free to:
+Share - copy and redistribute the material in any medium or format Adapt - remix,
+transform, and build upon the material for any purpose, even commercially.
+This license is acceptable for Free Cultural Works.
+The licensor cannot revoke these freedoms as long as you follow the license terms.
+733

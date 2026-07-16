@@ -1,0 +1,37 @@
+508 CHAPTER 20. TCLSPICE
+stripchart . chart
+pack . chart - side top - fill both - expand true
+. chart axis configure x - title " Time " spice :: source example . cir
+spice :: bg
+run after 1000 vector
+create a0 vector
+create b0 vectorry
+create a1 vector
+create b1 vector
+create stime
+proc bltupdate {} {
+puts [ spice :: spice_data ]
+spice :: spicetoblt a0 a0
+spice :: spicetoblt b0 b0
+spice :: spicetoblt a1 a1
+spice :: spicetoblt b1 b1
+spice :: spicetoblt time stime
+after 100 bltupdate }
+bltupdate . chart element create a0 - color red - xdata
++ stime - ydata a0
+. chart element create b0 - color blue - xdata stime - ydata b0
+. chart element create a1 - color yellow - xdata stime - ydata a1
+. chart element create b1 - color black - xdata stime - ydata b1
+20.6 Compiling
+20.6.1 Linux
+Get tcl8.4 from your distribution. You will need the blt plotting package (compatible to
+the old tcl 8.4 only) from here. See also the actual blt wiki .
+./configure --with-tcl ..
+make
+sudo make install
+20.6.2 MS Windows
+Can be done, but is tedious. Here it is described by a procedure on Windows 7, 64 Bit
+Home Edition.
+20.6.2.1 Downloads
+download tcl8.6b2-src.zip from http://www.tcl.tk/software/tcltk/download.html
+download tk8.6b2-src.zip

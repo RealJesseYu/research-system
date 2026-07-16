@@ -1,0 +1,39 @@
+23.5. NGSPICE OPTIMIZER USING ASCO 535
+23.5.1 Three stage operational amplifier
+This example is taken from Chapt. 6.2.2 'Tutorial #2' from the ASCO manual. The
+directory examples /ngspice/amp3 contains four files:
+amp3.cfg This file contains all configuration data for this optimization. Of special
+interest is the following section, which sets the required measurements and the constraints
+on the measured parameters:
+# Measurements #
+ac_power:VDD:MIN:0
+dc_gain:VOUT:GE:122
+unity_gain_frequency:VOUT:GE:3.15E6
+phase_margin:VOUT:GE:51.8
+phase_margin:VOUT:LE:70
+amp3_slew_rate:VOUT:GE:0.777E6
+#
+Each of these entries is linked to a file in the /extract subdirectory, having exactly
+the same names as given here, e.g. ac_power, dc_gain, unity_gain, phase_margin, and
+amp3_slew_rate. Each of these files contains an # Info # section, which is currently
+not used. The # Commands # section may contain a measurement command (includ-
+ing ASCO parameter #SYMBOL#, see file /extract/unity_gain_frequency). It also may
+contain a .control section (see file /extract/phase_margin_min). During set-up #SYM-
+BOL# is replaced by the file name, a leading 'z', and a trailing number according to the
+above sequence, starting with 0.
+amp3.sp This is the basic circuit description. Entries like #LM2# are ASCO-specific,
+defined in the # Parameters # section of file amp3.cfg. ASCO will replace these parameter
+placeholders with real values for simulation, determined by the optimization algorithm.
+The .control ... .endc section is specific to ngspice. Entries to this section may deliver
+workarounds of some commands not available in ngspice, but used in other simulators.
+You may also define additional measurements, get access to variables and vectors, or
+define some data manipulation. In this example the .control section contains an op
+measurement, required later for slew rate calculation, as well as the ac simulation, which
+has to occur before any further data evaluation. Data from the op simulation are stored
+in a plot op1. Its name is saved in variable dt. The ac measurements sets another plot ac1.
+To retrieve op data from the former plot, you have to use the {$dt}.<vector> notation
+(see file /extract/amp3_slew_rate).
+n.typ, p.typ MOSFET parameter files, to be included by amp3.sp.
+Testing the set-up
+Copy a sco-test.exe and ngspice_c.exe (console executable of ngspice) into the directory,
+and run

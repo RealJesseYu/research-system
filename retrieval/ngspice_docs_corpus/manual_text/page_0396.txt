@@ -1,0 +1,44 @@
+396 CHAPTER 17. INTERACTIVE INTERPRETER
+:r Removes the trailing .str extension from the first selected word.
+:h Removes a trailing path name component from the first selected word.
+:t Removes all leading path name components from the first selected word.
+:e Remove all but the trailing suffix.
+:p Print the new command but do not execute it.
+s/old/new Substitute new for the first occurrence of old in the event line. Any delimiter may
+be used in place of ' /' . The delimiter may be quoted in old and new with a single
+backslash. If ' &' appears in new, it is replaced by old. A single backslash will quote
+the ' &' . The final delimiter is optional if it is the last character on the input line.
+& Repeat the previous substitution.
+g a Cause changes to be applied over the entire event line. Used in conjunction with
+'s', as in gs/old/new/, or with ' &' .
+G Apply the following ' s' modifier once to each word in the event.
+For example, if the command ls /usr/elsa/toys.txt has just been executed, then the com-
+mand echo !!^:r !!^:h !!^:t !!^:t:r produces the output /usr/elsa/toys /usr/elsa toys.txt toys
+. The ' ^' command is explained in the table below.
+You can select a subset of the words of an event by attaching a selector to the event. A
+history substitution without a selector includes all of the words of the event. These are
+the possible selectors for selecting words of the event:
+:0 The command name
+[:]^ The first argument
+[:]$ The last argument
+:n The nth argument ( n ≥ 1)
+:n1-n2 Words n1 through n2
+[:]* Words 1 through $
+:x* Words x through $
+:x- Words x through ($ - 1)
+[:]-x Words 0 through x
+[:]% The word matched by the last ?str? search used
+The colon preceding a selector can be omitted if the selector does not start with a digit.
+The following additional special conventions provide abbreviations for commonly used
+forms of history substitution:
+• An event specification can be omitted from a history substitution if it is followed by
+a selector that does not start with a digit. In this case the event is taken to be the
+event used in the most recent history reference on the same line if there is one, or
+the preceding event otherwise. For example, the command echo !?qucs?^ !$ echoes
+the first and last arguments of the most recent command containing the string qucs
+.
+• If the first non-blank character of an input line is '^', the '^' is taken as an abbre-
+viation for !:s^ . This form provides a convenient way to correct a simple spelling
+error in the previous line. For example, if by mistake you typed the command cat
+/etc/lasswd you could re-execute the command with lasswd changed to passwd by
+typing ^l^p .

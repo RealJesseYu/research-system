@@ -1,0 +1,49 @@
+194CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Two aspects of the PWL Controlled Source warrant special attention. These are
+the handling of endpoints and the smoothing of the described transfer function near
+coordinate points.
+In order to fully specify outputs for values of in outside of the bounds of the
+PWL function (i.e., less than x_array[0] or greater than x_array[n], where n is
+the largest user-specified coordinate index), the PWL Controlled Source model ex-
+tends the slope found between the lowest two coordinate pairs and the highest two
+coordinate pairs. This has the effect of making the transfer function completely
+linear for in less than x_array[0] and in greater than x_array[n]. It also has the
+potentially subtle effect of unrealistically causing an output to reach a very large or
+small value for large inputs. You should thus keep in mind that the PWL Source
+does not inherently provide a limiting capability.
+In order to diminish the potential for non-convergence of simulations when using the
+PWL block, a form of smoothing around the x_array, y_array coordinate points
+is necessary. This is due to the iterative nature of the simulator and its reliance on
+smooth first derivatives of transfer functions in order to arrive at a matrix solution.
+Consequently, the input_domain and fraction parameters are included to allow
+you some control over the amount and nature of the smoothing performed.
+Fraction is a switch that is either TRUE or F ALSE. When TRUE (the default
+setting), the simulator assumes that the specified input domain value is to be in-
+terpreted as a fractional figure. Otherwise, it is interpreted as an absolute value.
+Thus, if fraction=TRUE and input_domain=0.10, The simulator assumes that
+the smoothing radius about each coordinate point is to be set equal to 10% of the
+length of either the x_array segment above each coordinate point, or the x_array
+segment below each coordinate point. The specific segment length chosen will be
+the smallest of these two for each coordinate point.
+On the other hand, if fraction=F ALSE andinput_domain=0.10, then the simula-
+tor will begin smoothing the transfer function at 0.10 volts (or amperes) below each
+x_array coordinate and will continue the smoothing process for another 0.10 volts
+(or amperes) above each x_array coordinate point. Since the overlap of smoothing
+domains is not allowed, checking is done by the model to ensure that the specified
+input domain value is not excessive.
+One subtle consequence of the use of the fraction=TRUE feature of the PWL
+Controlled Source is that, in certain cases, you may inadvertently create extreme
+smoothing of functions by choosing inappropriate coordinate value points. This can
+be demonstrated by considering a function described by three coordinate pairs, such
+as (-1,-1), (1,1), and (2,1). In this case, with a 10% input_domain value specified
+(fraction=TRUE, input_domain=0.10), you would expect to see rounding occur
+between in=0.9 and in=1.1, and nowhere else. On the other hand, if you were to
+specify the same function using the coordinate pairs (-100,-100), (1,1) and (201,1),
+you would find that rounding occurs between in=-19 and in=21. Clearly in the
+latter case the smoothing might cause an excessive divergence from the intended
+linearity above and below in=1.
+Example SPICE Usage:
+a7 2 4 xfer_cntl1
+.model xfer_cntl1 pwlts(x_array=[-2.0 -1.0 2.0 4.0 5.0]
++ y_array=[-0.2 -0.2 0.1 2.0 10.0]
++ input_domain=0.05 fraction=TRUE)

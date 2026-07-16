@@ -1,0 +1,36 @@
+15.3. ANALYSES 315
+15.3.6 .PZ: Pole-Zero Analysis
+General form:
+. pz node1 node2 node3 node4 cur pol
+. pz node1 node2 node3 node4 cur zer
+. pz node1 node2 node3 node4 cur pz
+. pz node1 node2 node3 node4 vol pol
+. pz node1 node2 NODE3 node4 vol zer
+. pz node1 node2 node3 node4 vol pz
+Examples:
+. pz 1 0 3 0 cur pol
+. pz 2 3 5 0 vol zer
+. pz 4 1 4 1 cur pz
+cur stands for a transfer function of the type (output voltage)/(input current) while vol
+stands for a transfer function of the type (output voltage)/(input voltage). pol stands
+for pole analysis only, zer for zero analysis only and pz for both. This feature is provided
+mainly because if there is a non-convergence in finding poles or zeros, then, at least the
+other can be found. Finally, node1 and node2 are the two input nodes and node3 and
+node4 are the two output nodes. Thus, there is complete freedom regarding the output
+and input ports and the type of transfer function.
+In interactive mode, the command syntax is the same except that the first field is pz
+instead of .pz. To print the results, one should use the command print all .
+15.3.7 .SENS: DC or Small-Signal AC Sensitivity Analysis
+General form:
+. SENS OUTVAR
+. SENS OUTVAR AC DEC ND FSTART FSTOP
+. SENS OUTVAR AC OCT NO FSTART FSTOP
+. SENS OUTVAR AC LIN NP FSTART FSTOP
+Examples:
+. SENS V (1 , OUT )
+. SENS V ( OUT ) AC DEC 10 100 100 k
+. SENS I ( VTEST )
+The sensitivity of OUTV AR to all non-zero device parameters is calculated when the
+SENS analysis is specified. OUTV AR is a circuit variable (node voltage or voltage-source
+branch current). The first form calculates sensitivity of the DC operating-point value
+of OUTV AR. The second form calculates sensitivity of the AC values of OUTV AR. The

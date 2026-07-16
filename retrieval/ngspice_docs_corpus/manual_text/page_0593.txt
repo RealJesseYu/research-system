@@ -1,0 +1,39 @@
+28.7. MODEL DEFINITION FILE 593
+OUTPUT_DELAY(y) may be assigned a double value representing a delay associated
+with a particular event simulator port. Note that this macro must be set for each
+digital or User-Defined Node output from a model during each pass, unless the
+OUTPUT_CHANGED(a) macro is set to F ALSE. Note also that a positive value
+must be assigned to OUTPUT_DELAY(). Assigning a value of zero (or a negative
+value) will cause an error.
+OUTPUT_STATE(a) may be assigned a state value for a digital output node. Valid
+values are ZERO, ONE, and UNKNOWN. This is the normal way of posting an out-
+put state from a digital code model. This is a convenient alternative to constructing
+a full digital value (state and strength) and assigning to *OUTPUT(a).
+OUTPUT_STRENGTH(a) may be assigned a strength value for a digital output
+node. This is the normal way of posting an output strength from a digital code
+model. Valid values are
+1. STRONG
+2. RESISTIVE
+3. HI_IMPEDANCE
+4. UNDETERMINED
+28.7.1.8 Partial Derivatives
+PARTIAL(y,a)
+PARTIAL(y[n],a)
+PARTIAL(y,a[m])
+PARTIAL(y[n],a[m])
+PARTIAL(y,a) (indexed) resolves to the value of the partial derivative of scalar output
+'y' with respect to scalar input 'a' . The type is always double since partial derivatives
+are only defined for nodes with real valued quantities (i.e., analog nodes).
+The remaining uses of PARTIAL are shown for the cases in which either the output, the
+input, or both are vectors.
+Partial derivatives are required by the simulator to allow it to solve the non-linear equa-
+tions that describe circuit behavior for analog nodes. Since coding of partial derivatives
+can become difficult and error-prone for complex analog models, you may wish to consider
+using the cm_analog_auto_partial() code model support function instead of using this
+macro.
+PARTIAL(a, a) is valid for an inout port and its use may greatly improve convergence.
+28.7.1.9 AC Gains
+AC_GAIN(y,a)
+AC_GAIN(y[n],a)
+AC_GAIN(y,a[m])
+AC_GAIN(y[n],a[m])

@@ -1,0 +1,38 @@
+80 CHAPTER 3. CIRCUIT ELEMENTS AND MODELS
+3.3.4 Resistors, dependent on expressions (behavioral resistor)
+General form:
+RXXXXXXX n + n - R = ' expression ' < tc1 = value > < tc2 = value > < noisy =0 >
+RXXXXXXX n + n - ' expression ' < tc1 = value > < tc2 = value > < noisy =0 >
+Examples:
+R1 rr 0 r = 'V ( rr ) < { Vt } ? { R0 } : {2* R0 } ' tc1 =2 e -03 tc2 =3.3 e -06
+R2 r2 rr r = {5 k + 50* TEMPER }
+. param rp1 = 20
+R3 no1 no2 r = '5 k * rp1 ' noisy =1
+Expression may be an equation or an expression containing node voltages or branch
+currents (in the form of i(vm)) and any other terms as given for the B source and described
+in Chapt. 5.1. It may contain parameters ( 2.9.1) and the special variables time, temper,
+and hertz (5.1.2). An example file is given below. Small signal noise in the resistor
+(15.3.4) may be evaluated as white noise, depending on resistance, temperature and tc1,
+tc2. To enable noise calculation, add the flag noisy=1 to the instance line. As a default
+the behavioral resistor is noiseless.
+Example input file for non-linear resistor:
+Non - linear resistor
+. param R0 =1 k Vi =1 Vt =0.5
+* resistor depending on control voltage V ( rr )
+R1 rr 0 r = 'V ( rr ) < { Vt } ? { R0 } : {2* R0 } '
+* control voltage
+V1 rr 0 PWL (0 0 100 u { Vi })
+. control
+unset askquit
+tran 100 n 100 u uic
+plot i ( V1 )
+. endc
+. end
+3.3.5 Resistor with nonlinear r2_cmc model
+In the adms version of ngspice, a resistor model r2_cmc is implemented. This is a 2-
+terminal resistor model developed by the resistor subcommittee of the CMC. The goal
+was to have a standard 2-terminal resistor model with standard parameter names and
+a standard, numerically well behaved nonlinearity model. It may be selected by setting
+level=2 in the .model line.
+For now a detailed description is available in the Verilog A source code file to be found a
+src/spicelib/devices/adms/r2_cmc/admsva/r2_cmc.va.

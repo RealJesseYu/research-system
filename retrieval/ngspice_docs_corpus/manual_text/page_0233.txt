@@ -1,0 +1,47 @@
+12.2. ANALOG MODELS 233
+PARAMETER_TABLE:
+Parameter_Name: offset gain
+Description: "offset" "gain"
+Data_Type: real real
+Default_Value: 0.0 1.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: file
+Description: "file name"
+Data_Type: string
+Default_Value: "3D-table-model.txt"
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: The 3D table model reads a matrix from file "file name" (default 3D-
+table-model.txt) which has x columns, y rows per table and z tables. Each x,y,z
+triple, addressed by inx, iny, and inz, yields an output value out. Linear interpola-
+tion is used for out, eno (essentially non oscillating) interpolation for its derivatives.
+Parameters offset (default 0) and gain (default 1) modify the output table values
+according to of f set+ gain out . Parameter order (default 3) influences the calcu-
+lation of the derivatives. Parameter verbose (default 0) yields test outputs, if set
+to 1 or 2. The table format is shown below. Be careful to include the data point
+inx = 0, iny = 0, inz = 0 into your table, because ngspice needs these to for the .OP
+calculation. The x horizontal, y vertical, and z table address values have to increase
+monotonically.
+Table Example:
+* 3D table for nmos bsim 4, W=10um, L=0.13um
+*x
+39
+*y
+39
+*z
+11
+*x (drain voltage)
+-0.1 -0.05 0 0.05 0.1 0.15 0.2 0.25 ...
+*y (gate voltage)
+-0.1 -0.05 0 0.05 0.1 0.15 0.2 0.25 ...
+*z (substrate voltage)
+-1.8 -1.6 -1.4 -1.2 -1 -0.8 -0.6 -0.4 -0.2 0 0.2
+*table -1.8
+-4.50688E-10 -4.50613E-10 -4.50601E-10 -4.50599E-10 ...
+-4.49622E-10 -4.49267E-10 -4.4921E-10 -4.49202E-10 ...

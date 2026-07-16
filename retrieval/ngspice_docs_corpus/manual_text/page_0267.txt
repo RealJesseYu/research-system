@@ -1,0 +1,43 @@
+12.4. DIGITAL MODELS 267
+that will store data whenever the clk input line transitions from low to high (ZERO
+to ONE). The value stored (i.e., the out value) will depend on the s and r input pin
+values, and will be:
+out=ONE if s=ONE and r=ZERO;
+out=ZERO if s=ZERO and r=ONE;
+out=previous value if s=ZERO and r=ZERO;
+out=UNKNOWN if s=ONE and r=ONE;
+In addition, asynchronous set and reset signals exist, and each of the three methods of
+changing the stored output of the d_srff have separate load values and delays associated
+with them. You may also specify separate rise and fall delay values that are added to
+those specified for the input lines; these allow for more faithful reproduction of the output
+characteristics of different IC fabrication technologies.
+Note that any UNKNOWN inputs other than s and r immediately cause the output to
+go UNKNOWN.
+Example SPICE Usage:
+a8 2 12 4 5 6 3 14 flop7
+.model flop7 d_srff(clk_delay = 13.0e-9 set_delay = 25.0e-9
++ reset_delay = 27.0e-9 ic = 2 rise_delay = 10.0e-9
++ fall_delay = 3e-9)
+12.4.16 D Latch
+NAME_TABLE:
+C_Function_Name: cm_d_dlatch
+Spice_Model_Name: d_dlatch
+Description: "digital d-type latch"
+PORT_TABLE:
+Port Name: data enable
+Description: "input data" "enable input"
+Direction: in in
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PORT_TABLE:
+Port Name: set reset
+Description: "set" "reset"
+Direction: in in
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes

@@ -1,0 +1,37 @@
+3.2. GENERAL OPTIONS 75
+Using m may fail to correctly describe geometrical properties for real devices like MOS
+transistors.
+M1 d g s nmos W=0.3u L=0.18u m=20
+is probably not be the same as
+M1 d g s nmos W=6u L=0.18u
+because the former may suffer from small width (or edge) effects, whereas the latter is
+simply a wide transistor.
+3.2.2 Instance and model parameters
+The simple device example below consists of two lines: The device is defined on the
+instance line, starting with Lload ...: The first letter determines the device type (an
+inductor in this example). Following the device name are two nodes 1 and 2, then the
+inductance value 1u is set. The model name ind1 is a connection to the respective model
+line. Finally we have a parameter on the instance line, together with its value dtemp=5.
+Parameters on an instance line are called instance parameters.
+The model line starts with the token .model, followed by the model name, the model type
+and at least one model parameter, here tc1=0.001. There are complex models with more
+than 100 model parameters.
+Lload 1 2 1 u ind1 dtemp =5
+. MODEL ind1 L tc1 =0.001
+Instance parameters are listed in each of the following device descriptions. Model pa-
+rameters sometimes are given below as well, for complex models like the BSIM transistor
+models, they are available in the model makers documentation. Instance parameters may
+also be placed in the .model line. Thus they are recognized by each device instance refer-
+ring to that model. Their values may be overridden for a specific instance of a device by
+placing them additionally onto its instance line.
+3.2.3 Model binning
+Binning is a kind of range partitioning for geometry dependent models like MOSFET's.
+The purpose is to cover larger geometry ranges (Width and Length) with higher accuracy
+than the model built-in geometry formulas. Each size range described by the additional
+model parameters LMIN, LMAX, WMIN and WMAX has its own model parameter set.
+These model cards are defined by a number extension, like 'nch.1' . ngspice has an algo-
+rithm to choose the right model card by the requested W and L.
+This is implemented for BSIM3 ( 11.2.10) and BSIM4 ( 11.2.11) models.
+3.2.4 Initial conditions
+Two different forms of initial conditions may be specified for some devices. The first form
+is included to improve the dc convergence for circuits that contain more than one stable

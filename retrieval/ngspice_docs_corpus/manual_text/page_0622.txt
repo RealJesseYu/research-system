@@ -1,0 +1,37 @@
+622 CHAPTER 29. ERROR MESSAGES
+29.3.7 Code Model oneshot
+oneshot_allocation_error:
+**** Error ****
+ONESHOT: Error allocating oneshot block storage
+Generic storage allocation error.
+oneshot_array_error:
+**** Error ****
+ONESHOT: Size of control array different than pulse-width array
+This error indicates that the control array and pulse-width arrays are of different sizes.
+oneshot_pw_clamp:
+**** Warning ****
+ONESHOT: Extrapolated Pulse-Width Limited to zero
+This error indicates that for the current control input, a pulse-width of less than zero is
+indicated. The model will consequently limit the pulse width to zero until the control
+input returns to a more reasonable value.
+29.3.8 Code Model pwl
+allocation_error:
+***ERROR***
+PWL: Allocation calloc failed!
+Generic storage allocation error.
+limit_error:
+***ERROR***
+PWL: Violation of 50% rule in breakpoints!
+This error message indicates that the pwl model has an absolute value for its input domain,
+and that the x_array coordinates are so close together that the required smoothing regions
+would overlap. To fix the problem, you can either spread the x_array coordinates out or
+make the input domain value smaller.
+29.3.9 Code Model s_xfer
+num_size_error:
+***ERROR***
+S_XFER: Numerator coefficient array size greater than
+denominator coefficient array size.
+This error message indicates that the order of the numerator polynomial specified is
+greater than that of the denominator. For the s_xfer model, the orders of numerator
+and denominator polynomials must be equal, or the order of the denominator polynomial
+must be greater than that or the numerator.

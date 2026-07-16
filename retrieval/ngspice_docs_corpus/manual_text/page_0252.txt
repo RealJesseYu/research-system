@@ -1,0 +1,41 @@
+252CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+PARAMETER_TABLE:
+Parameter_Name: inertial_delay family
+Description: "swallow short pulses" "Logic family for bridging"
+Data_Type: boolean string
+Default_Value: false -
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+12.4.1 Buffer
+NAME_TABLE:
+C_Function_Name: cm_d_buffer
+Spice_Model_Name: d_buffer
+Description: "digital one-bit-wide buffer"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+Common parameters: inertial_delay, family, rise_delay, fall_delay, input_load.
+Description: The buffer is a single-input, single-output digital buffer that produces as
+output a time-delayed copy of its input.
+Example SPICE Usage:
+a6 1 8 buff1
+.model buff1 d_buffer(rise_delay = 0.5e-9 fall_delay = 0.3e-9
++ input_load = 0.5e-12)
+12.4.2 Inverter
+NAME_TABLE:
+C_Function_Name: cm_d_inverter
+Spice_Model_Name: d_inverter
+Description: "digital one-bit-wide inverter"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: d d

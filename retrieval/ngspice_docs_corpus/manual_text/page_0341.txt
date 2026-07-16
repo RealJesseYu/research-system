@@ -1,0 +1,36 @@
+15.7. MEASURING CURRENT THROUGH DEVICE TERMINALS 341
+in each line, up to 99 per input file. The internal nodes are named pa_00 to pa_99. An
+error will occur if the input file contains any of these reserved node names.
+In .four, .plot, .print, .save, but not in .measure, an alternative syntax
+output=par('expression ') is possible. par('expression ') may be used as described above.
+output is the name of the new node to replace the expression. So output has to be unique
+and a valid node name.
+The syntax of output=par(expression) is strict: no spaces are allowed between par and
+('or between ( and '. Also,(' and ') both are required. There is not much error
+checking on your input, so if there is a typo, for example, an error may pop up at an
+unexpected place.
+15.6.7 .width
+Set the width of a print-out or plot with the following card:
+.with out = 256
+Parameter out yields the maximum number of characters plotted in a row, if printing in
+columns or an ASCII-plot is selected.
+15.7 Measuring current through device terminals
+15.7.1 Using the .probe command
+Device currents (discrete devices or subcircuits) may be measured by the .probe command
+(15.6.5). Voltage sources for measurements are placed in series to the devices nodes
+specified by the user. For details please see ( 15.6.5).
+15.7.2 Adding a voltage source in series
+The ngspice matrix solver determines node voltages and currents through independent
+voltage sources. So to measure the currents through a resistor, you may add a voltage
+source in series with dc voltage 0.
+Current measurement with series voltage source
+* measure current through R1
+V1 1 0 1
+R1 1 0 5
+R2 1 0 10
+* will become
+V1 1 0 1
+R1 1 11 5
+Vmeas 11 0 dc 0
+R2 1 0 10
+and the current is available as

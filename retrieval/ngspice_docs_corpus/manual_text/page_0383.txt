@@ -1,0 +1,16 @@
+17.5. COMMANDS 383
+Example:
+circbyline test circuit
+circbyline v1 1 0 1
+circbyline r1 1 0 1
+circbyline . dc v1 0.5 1.5 0.1
+circbyline . end
+run
+plot i ( v1 )
+17.5.12 Codemodel*: Load an XSPICE code model library
+General Form:
+codemodel [ library file ]
+Load a XSPICE code model shared library file (e.g. analog.cm ...). Only available if
+ngspice is compiled with the XSPICE option ( --enable-xspice) or with the Windows
+executable distributed since ngspice21. This command has to be called from spinit (see
+Chapt. 16.5) (or .spiceinit for personal code models, 16.6).

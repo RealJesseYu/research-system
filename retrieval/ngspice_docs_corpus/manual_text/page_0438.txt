@@ -1,0 +1,36 @@
+438 CHAPTER 17. INTERACTIVE INTERPRETER
+modelcard The name of the model card (normally .MODEL)
+moremode If moremode is set, whenever a large amount of data is being printed to the
+screen (e.g, the print or asciiplot commands), the output is stopped every screen-
+ful and continues when a carriage return is typed. If moremode is unset, then data
+scrolls off the screen without pausing.
+nfreqs The number of frequencies to compute in the Fourier command. (Defaults to 10.)
+ngbehavior Sets the compatibility mode of ngspice. Default value is 'all'. To be set
+in spinit (16.5) or .spiceinit (16.6). A value of 'all' improves compatibility with
+commercial simulators. Full compatibility is however not the intention of ngspice!
+The values 'ps', 'psa', 'lt', 'lta', 'hs' and 'spice3' are available. See Chapt.
+16.14.
+ngdebug enables several debugging printouts (see 16.16).
+nginfo Enables a status report during simulation (currently available only with MS Win-
+dows GUI version).
+ng_nomodcheck Suppresses any model parameter check, if set.
+no_auto_gnd Setting this boolean variable by set no_auto_gnd in spinit or .spiceinit,
+ngspice will refrain from replacing all nodes named gnd by node 0. In using this
+setting, you will have to take care of proper zeroing appropriate ground nodes. If
+you fail to do so, ngspice may crash, or deliver wrong results.
+nobreak Don't have asciiplot and print col break between pages.
+noasciiplotvalue Don't print the first vector plotted to the left when doing an asciiplot.
+nobjthack BJTs can have either 3 or 4 nodes, which makes it difficult for the subcircuit
+expansion routines to decide what to rename. If the fourth parameter has been
+declared as a model name, then it is assumed that there are 3 nodes, otherwise it
+is considered a node. To disable this, you can set the variable nobjthack and force
+BJTs to have 4 nodes (for the purposes of subcircuit expansion, at least).
+noclobber Don't overwrite existing files when doing IO redirection.
+noglob Don't expand the global characters ' *', ' ?', ' [', and ' ]' . This is the default.
+nolegend Don't plot the legend, when using the plot command..
+nonomatch If noglob is unset and a global expression cannot be matched, use the global
+characters literally instead of complaining.
+noparse Don't attempt to parse input files when they are read in (useful for debugging).
+Of course, they cannot be run if they are not parsed.
+noprintscale Don't print the scale in the leftmost column when a print col command
+is given.

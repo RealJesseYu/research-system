@@ -1,0 +1,32 @@
+3.2. GENERAL OPTIONS 73
+Simplified bipolar transistor instance and model parameter set:
+Q1 intc intb 0 defaultmod
+. model defaultmod npn
+If you enter the bipolar transistor instance as shown above, you make use of a default
+model parameter set supplied by ngspice. defaultmod is an arbitrary name. This procedure
+models a generic bipolar transistor, not resembling any commercial device. The default
+parameter values may be assessed by the command showmod Q1 .
+You will get more information on devices, instances and models in the following chapters
+3.3 to 12.
+3.2 General options
+3.2.1 Paralleling devices with multiplier m
+When it is needed to simulate several devices of the same kind in parallel, use the ' m'
+(parallel multiplier) instance parameter available for the devices listed in Table 3.1. This
+multiplies the value of the element's matrix stamp with m's value. The netlist below shows
+how to correctly use the parallel multiplier:
+Multiple device example:
+d1 2 0 mydiode m =10
+d01 1 0 mydiode
+d02 1 0 mydiode
+d03 1 0 mydiode
+d04 1 0 mydiode
+d05 1 0 mydiode
+d06 1 0 mydiode
+d07 1 0 mydiode
+d08 1 0 mydiode
+d09 1 0 mydiode
+d10 1 0 mydiode
+...
+The d1 instance connected between nodes 2 and 0 is equivalent to the 10 parallel devices
+d01-d10 connected between nodes 1 and 0.
+The following devices support the multiplier m:

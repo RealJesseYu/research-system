@@ -1,0 +1,33 @@
+172 CHAPTER 11. MOSFETS
+framework. It shares the same basic equations with the bulk model so that the physical
+nature and smoothness of BSIM3v3 are retained. Four models are supported in ngspice,
+those based on BSIM3 and modeling fully depleted (FD, level 55), partially depleted
+(PD, level 57) and both (DD, level 56), as well as the modern BSIMSOI version 4 model
+(levels 10, 58). Detailed descriptions are beyond the scope of this manual, but see e.g.
+BSIMSOIv4.4 User Manual for a very extensive description of the recent model version.
+OpenMP support is available for levels 10, 58, version 4.4.
+11.2.13 SOI3 model (level 60)
+see literature citation [18] for a description.
+11.2.14 HiSIM models of the University of Hiroshima
+There are two model implementations available - see also HiSIM Research Center :
+1. HiSIM2 model: Surface-Potential-Based MOSFET Model for Circuit Simulation
+version 2.8.0 - level 68 (see link to HiSIM2 for source code and manual).
+2. HiSIM_HV model: Surface-Potential-Based HV/LD-MOSFET Model for Circuit
+Simulation version 1.2.4 and 2.2.0 - level 73 (see link to HiSIM_HV for source code
+and manual).
+11.2.15 MOS models available via OpenV AF/OSDI
+With its integrated OSDI interface and the OpenV AFcompiler (see chapter 13 for details),
+ngspice makes available several Verilog-A compact MOS models. To obtain the sources
+you may visit the github repository V A-Models which assembles most of the publicly
+available Verilog-A compact models. To just name a few models:
+11.2.15.1 PSP model
+The PSP model is a compact MOSFET model intended for digital, analog and RF-design,
+which is jointly developed by NXP Semiconductors Research (formerly part of Philips),
+different universities and CEA-Leti.
+PSP is a surface-potential based MOS Model, containing all relevant physical effects to
+model present-day and upcoming deep-submicron bulk CMOS technologies:
+• mobility reduction
+• velocity saturation drain induced barrier lowering DIBL
+• gate current
+• lateral doping gradient effects
+• STI stress

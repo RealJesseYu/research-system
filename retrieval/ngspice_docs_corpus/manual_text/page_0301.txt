@@ -1,0 +1,29 @@
+Chapter 15
+Analyses and Output Control (batch
+mode)
+The command lines described in this chapter are used to specify analyses and outputs
+within the circuit description file. They start with a ' .' (dot commands). Specifying
+analyses and plots (or tables) in the input file with dot commands is used with batch
+runs. Batch mode is entered when either the -b option is given upon starting ngspice
+ngspice -b -r rawfile.raw circuitfile.cir
+or when the default input source is redirected from a file (see also Chapt. 16.4.1).
+ngspice < circuitfile.cir
+In batch mode, the analyses specified by the control lines in the input file (e.g. .ac,
+.tran, etc.) are immediately executed. If the -r rawfile option is given then all data
+generated is written to a ngspice rawfile. The rawfile may later be read by the interactive
+mode of ngspice using the load command (see 17.5.45). In this case, the .save line (see
+15.6) may be used to record the value of internal device variables (see Appendix, Chapt.
+31).
+If a rawfile is not specified, then output plots (in 'line-printer' form) and tables can be
+printed according to the .print, .plot, and .four control lines, described in Chapt.
+15.6.
+If ngspice is started in interactive mode (see Chapt. 16.4.2), like
+ngspice circuitfile.cir
+and no control section ( .control ... .endc, see 16.4.3) is provided in the circuit file, the
+dot commands are not executed immediately, but are waiting for manually receiving the
+command run.
+15.1 Simulator Variables (.options)
+Various parameters of the simulations available in Ngspice can be altered to control the
+accuracy, speed, or default values for some devices. These parameters may be changed
+via the option command (described in Chapt. 17.5.52) or via the .options line:
+301

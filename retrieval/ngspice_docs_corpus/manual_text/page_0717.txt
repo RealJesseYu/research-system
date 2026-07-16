@@ -1,0 +1,34 @@
+32.1. NGSPICE INSTALLATION UNDER LINUX (AND OTHER 'UNIXES') 717
+32.1.6 Relative paths for spinit and code models
+The ./configure option
+$ ./configure --enable-relpath
+deserves some extra mentioning:
+It sets relative search paths for the file spinit and the XSPICE code models *.cm. spinit
+will be look up in ../share/ngspice/scripts. The search path for the code models (as
+set by the parameter to the codemodel command in spinit) is set to ../lib/ngspice. The
+binary is found in ../bin. All these paths are relative to the current directory. Under
+MS Windows, this is the directory of ngspice.exe as per default, but may be set to any
+other directory with the cd (chapt. 17.5.9) command.
+The install path for the ngspice executable is determined by the --prefix flag of ./configure.
+The current directory for the ngspice shared library is determined by the calling program.
+32.1.7 Installation on Red Hat or Oracle Linux (and similar,
+e.g. Centos)
+These OSs, widely distributed among commercial users, require some special considera-
+tions. There is an extra document, NGSPICE on Red Hat Like Distributions.pdf ,
+provided by Justin Fisher, available with the ngspice distribution.
+32.1.8 Advanced Install
+Some extra options can be provided to ./configure. To get all available options do:
+$ ./configure --help
+Some of these options are generic to the GNU build process that is used by Ngspice, other
+are specific to Ngspice.
+The following sections provide some guidance and descriptions for many, but not all, of
+these options.
+32.1.8.1 Options Specific to Using Ngspice
+--enable-openmp Compile ngspice for multi-core processors. Paralleling is done by
+OpenMP (see Chapt. 16.10).
+--enable-xspice Enable XSPICE enhancements, yielding a mixed signal simulator inte-
+grated into ngspice with codemodel dynamic loading support. See Chapt. 12 and section
+II for details.
+-enable-osdi Enable the OSDI interface for loading Verilog-A compact device models
+compiled by OpenV AF (see 13.2)
+--with-readline=yes Enable GNU readline support for the command line interface.

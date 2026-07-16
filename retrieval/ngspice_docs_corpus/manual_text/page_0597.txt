@@ -1,0 +1,43 @@
+28.7. MODEL DEFINITION FILE 597
+int cm_event_queue
+Special Purpose Functions:
+void cm_climit_fcn
+double cm_netlist_get_c
+double cm_netlist_get_l
+char *cm_get_path
+const char *cm_get_node_name
+bool cm_probe_node
+bool cm_schedule_output
+bool cm_getvar
+void cm_cexit
+void cm_irreversible
+Complex Math Functions:
+complex_t cm_complex_set
+complex_t cm_complex_add
+complex_t cm_complex_sub
+complex_t cm_complex_mult
+complex_t cm_complex_div
+28.7.2.2 Smoothing Functions
+void
+cm_smooth_corner(x_input, x_center, y_center, domain,
+lower_slope, upper_slope, y_output, dy_dx)
+double x_input; /* The value of the x input */
+double x_center; /* The x intercept of the two slopes */
+double y_center; /* The y intercept of the two slopes */
+double domain; /* The smoothing domain */
+double lower_slope; /* The lower slope */
+double upper_slope; /* The upper slope */
+double *y_output; /* The smoothed y output */
+double *dy_dx; /* The partial of y wrt x */
+void
+cm_smooth_discontinuity(x_input, x_lower, y_lower, x_upper, y_upper
+y_output, dy_dx)
+double x_input; /* The x value at which to compute y */
+double x_lower; /* The x value of the lower corner */
+double y_lower; /* The y value of the lower corner */
+double x_upper; /* The x value of the upper corner */
+double y_upper; /* The y value of the upper corner */
+double *y_output; /* The computed smoothed y value */
+double *dy_dx; /* The partial of y wrt x */
+double
+cm_smooth_pwl(x_input, x, y, size, input_domain, dout_din)

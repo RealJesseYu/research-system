@@ -1,0 +1,34 @@
+17.5. COMMANDS 387
+Delete the specified saved nodes and parameters, breakpoints and traces. The debug
+numbers are those shown by the status command (unless you do status > file , in which
+case the debug numbers are not printed).
+17.5.19 Destroy: Delete an output data set
+General Form:
+destroy [ plotnames | all ]
+Release the memory holding the output data (the given plot or all plots) for the specified
+runs. The initial plot, "const", can not be destroyed.
+17.5.20 Devhelp: information on available devices
+General Form:
+devhelp [ - csv ] [ - type ] [ - flags ] [ dev ice _na me [ parameter ]]
+Devhelp command shows the user information about the devices available in the simulator.
+If called without arguments, it simply displays the list of available devices in the simulator.
+The name of the device is the name used inside the simulator to access that device. If
+the user specifies a device name, then all the parameters of that device (model and
+instance parameters) will be printed. Parameter description includes the internal ID of
+the parameter ( id#), the name used in the model card or on the instance line ( Name),
+the direction ( Dir) and the description of the parameter ( Description). All the fields are
+self-explanatory, except the 'direction' . Direction can be in, out or inout and corresponds
+to a ' write-only', ' read-only' or a ' read/write' parameter. Read-only parameters can be
+read but not set, write only can be set but not read and read/write can be both set and
+read by the user.
+The -type option prints the type of each parameter, for example real, integer, string.
+Values ending with vec indicate vectors.
+The -csv option prints the fields, separated by a commas, for direct import into a spread-
+sheet. This option is used to generate the simulator documentation.
+The -flags option prints the internal Spice flags for each parameter. A specific string is
+appended to the result for each flag:
+X the parameter is not used in sensitivity analysis.
+Q the parameter must be non-zero for sensitivity analysis of the subsequent parameter.
+Z the previous parameter must be non-zero for sensitivity analysis.
+QO Like Q, but or-ed with the previous Q value.
+A the parameter is significant for time-varying (non-DC) analyses.

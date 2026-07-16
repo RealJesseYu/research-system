@@ -1,0 +1,23 @@
+31.6. MOSFETS 709
+216 temp InOut real Temperature in degree Celcius
+217 vdd InOut real Maximum Vds
+218 vgg InOut real Maximum Vgs
+219 vbb InOut real Maximum Vbs
+220 cgso InOut real Gate source overlap capacitance per unit channel width(m)
+221 cgdo InOut real Gate drain overlap capacitance per unit channel width(m)
+222 cgbo InOut real Gate bulk overlap capacitance per unit channel length(m)
+223 xpart InOut real Flag for channel charge partitioning
+224 rsh InOut real Source drain diffusion sheet resistance in ohm per square
+225 js InOut real Source drain junction saturation current per unit area
+226 pb InOut real Source drain junction built in potential
+227 mj InOut real Source drain bottom junction capacitance grading coefficient
+228 pbsw InOut real Source drain side junction capacitance built in potential
+229 mjsw InOut real Source drain side junction capacitance grading coefficient
+230 cj InOut real Source drain bottom junction capacitance per unit area
+231 cjsw InOut real Source drain side junction capacitance per unit area
+232 wdf InOut real Default width of source drain diffusion in um
+233 dell InOut real Length reduction of source drain diffusion
+236 kf InOut real Flicker noise coefficient
+237 af InOut real Flicker noise exponent
+234 nmos In flag Flag to indicate NMOS
+235 pmos In flag Flag to indicate PMOS

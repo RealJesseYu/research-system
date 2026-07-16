@@ -1,0 +1,45 @@
+12.2. ANALOG MODELS 209
+Data_Type: real real
+Default_Value: - -
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: limit_range
+Description: "upper & lower limit smoothing range"
+Data_Type: real
+Default_Value: 1.0e-6
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: The Differentiator block is a simple derivative stage that approximates
+the time derivative of an input signal by calculating the incremental slope of that
+signal since the previous time point. The block also includes gain and output offset
+parameters to allow for tailoring of the required signal, and output upper and lower
+limits to prevent convergence errors resulting from excessively large output values.
+The incremental value of output below the output upper limit and above the output
+lower limit at which smoothing begins is specified via the limit range parameter.
+In AC analysis, the value returned is equal to the radian frequency of analysis
+multiplied by the gain.
+Note that since truncation error checking is not included in the d_dt block, it is not
+recommended that the model be used to provide an integration function through
+the use of a feedback loop. Such an arrangement could produce erroneous results.
+Instead, you should make use of the "integrate" model, which does include truncation
+error checking for enhanced accuracy.
+Example SPICE Usage:
+a12 7 12 slope_gen
+.
+.
+.model slope_gen d_dt(out_offset=0.0 gain=1.0
++ out_lower_limit=1e-12 out_upper_limit=1e12
++ limit_range=1e-9)
+12.2.17 Integrator
+NAME_TABLE:
+C_Function_Name: cm_int
+Spice_Model_Name: int
+Description: "time-integration block"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"

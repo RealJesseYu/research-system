@@ -1,0 +1,36 @@
+364 CHAPTER 16. STARTING NGSPICE
+or
+set ngbehavior=lta
+in spinit or .spiceinit, ngspice will translate all files that have been read into ngspice
+netlist by the .include command ( lt) or the complete netlist ( lta) from LTSPICE syn-
+tax to ngspice. This feature allows reading of LTSPICE compatible device libraries or
+complete netlists.
+Currently we offer only a subset of the documented or undocumented functions (uplim,
+dnlim, uplim_tanh, dnlim_tanh). More user input is definitely required here!
+This compatibility mode also adds a simple diode using the sidiode code model ( 12.2.32).
+The diode model
+d1 a k ds1
+.model ds1 d(Roff=1000 Ron=0.7 Rrev=0.2 Vfwd=1
++ Vrev=10 Revepsilon=0.2 Epsilon=0.2 Ilimit=7 Revilimit=15)
+is translated automatically to the equivalent code model diode
+ad1 a k ads1
+.model ads1 sidiode(Roff=1000 Ron=0.7 Rrev=0.2 Vfwd=1
++ Vrev=10 Revepsilon=0.2 Epsilon=0.2 Ilimit=7 Revilimit=15)
+RKM code compatibility:
+• In LT compatibility mode ngspice will follow the RKM code notation. In addition
+to the standard notation, resistor (R) and capacitor (C) values may also be entered
+according to the following listings (the internally translated value is given after the
+;):
+RKM code for resistors
+R1 1 0 4 K7 ; 4.7 k
+R2 1 0 4 R7 ; 4.7
+R3 1 0 R47 ; 0.47
+R4 1 0 470 R ; 470
+R5 1 0 47 K ; 47 k
+R6 1 0 47 K3 ; 47.3 k
+R7 1 0 470 K ; 470 k
+R8 1 0 4 Meg7 tc1 =1 e -6 tc2 =1 e -9 dtemp =6
+* ; 4.7 Meg <-- Not defined in the RKM notation
+R9 1 0 4 L7 ; 4.7 m
+R10 1 0 470 L ; 470 m
+R11 1 0 4 M7 ; 4.7 m <-- This deviates fom the RKM notation

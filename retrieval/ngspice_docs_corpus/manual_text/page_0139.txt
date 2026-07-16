@@ -1,0 +1,27 @@
+Chapter 8
+BJT
+8.1 Bipolar Junction Transistors (BJTs)
+General form:
+QXXXXXXX nc nb ne <ns > <tj > mname < area = val > < areac = val >
++ < areab = val > <m = val > < off > < ic = vbe , vce > < temp = val >
++ < dtemp = val >
+Examples:
+Q23 10 24 13 QMOD IC =0.6 , 5.0
+Q50A 11 26 4 20 MOD1
+nc, nb, and ne are the collector, base, and emitter nodes, respectively. ns is the (op-
+tional) substrate node. When unspecified, ground is used. tj is the (optional) junction
+temperature node, available in the VBIC model (see 8.2.2). mname is the model name,
+area, areab, areac are the area factors (emitter, base and collector respectively), and
+off indicates an (optional) initial condition on the device for the dc analysis. If the area
+factor is omitted, a value of 1.0 is assumed.
+The (optional) initial condition specification using ic=vbe,vce is intended for use with the
+uic option on a .tran control line, when a transient analysis is desired to start from other
+than the quiescent operating point. See the .ic control line description for a better way to
+set transient initial conditions. The (optional) temp value is the temperature where this
+device is to operate, and overrides the temperature specification on the .option control
+line. Using the dtemp option one can specify the instance's temperature relative to the
+circuit temperature.
+8.2 BJT Models (NPN/PNP)
+Ngspice provides three different BJT device models, which are selected by the .model
+card.
+139

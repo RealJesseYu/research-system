@@ -1,0 +1,37 @@
+17.5. COMMANDS 391
+17.5.30 FFT: fast Fourier transform of vectors
+General Form:
+fft vector1 [ vector2 ] ...
+This analysis provides a fast Fourier transform of the input vector(s) in forward direction.
+fft is much faster than spec (17.5.85) (about a factor of 50 to 100 for larger vectors).
+The fft command will create a new plot consisting of the Fourier transforms of the
+vectors given on the command line. Each vector given should be a transient analysis
+result, i.e. it should have time as a scale. You will have gotten these vectors by the tran
+Tstep Tstop Tstart command.
+The vector should have a linear equidistant time scale. Therefore linearization using the
+linearize command is recommended before running fft. Be careful selecting a Tstep
+value small enough for good interpolation, e.g. much smaller than any signal period
+to be resolved by fft (see linearize command). The Fast Fourier Transform will be
+computed using a window function as given with the specwindow variable. A new plot
+named specx will be generated with a new vector (having the same name as the input
+vector, see command above) containing the transformed data.
+Ngspice has two FFT implementations:
+1. Standard code is based on the FFT function provided by John Green 'FFTs for RISC
+2.0', downloaded 2012, now to be found here. These are a power-of-two routines for
+fft and ifft. If the input size doesn't fit this requirement the remaining data will be
+zero padded up to the next 2 N field size. You have to take care of the correlated
+change in the scale vector.
+2. If available on the operating system (see Chapter 32) ngspice can be linked to
+the famous FFTW-3 package, found here. This high performance package has
+advantages in speed and accuracy compared to most of the freely available FFT
+libraries. It makes arbitrary size transforms for even and odd data.
+How to compute the fft from a transient simulation output:
+ngspice 8 -> setplot tran1
+ngspice 9 -> linearize V (2)
+ngspice 9 -> set specwindow = blackman
+ngspice 10 -> fft V (2)
+ngspice 11 -> plot mag ( V (2))
+Linearize will create a new vector V(2) in a new plot tran2. The command fft V(2)
+will create a new plot spec1 with vector V(2) holding the resulting data.
+The variables listed in the following table control operation of the fft command. Each
+can be set with the set command before calling fft.

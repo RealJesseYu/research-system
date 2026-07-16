@@ -1,0 +1,42 @@
+12.4. DIGITAL MODELS 251
+translated to XSPICE primitives. Also, .model statements are generated containing
+inertial_delay=true. This causes the circuits to run with inertial delays (suppress
+glitches) rather than transport delays (propagate glitches). Most digital simulators
+model gates using inertial delays.
+If you run the examples in ngspice-39 and ngspice-40 then compare waveforms
+produced by circuits behav-tristate-pulse.cir and behav-283.cir, you will see how
+glitches are suppressed by the inertial delay mechanism. To obtain transport delay
+behavior with ngspice-40, add the following line:
+set digital_delay_type=2
+to the .spiceinit file in that directory.
+family This is a string-valued parameter that has no effect on the model itself, but labels
+the ports of instances of the model to guide the automatic bridging mechanism. See
+12.6.
+rise_delay The delay time between a change in a model's internal state, as driven by
+its inputs, and a change in output to digital one. This is used when there is only
+one output, or they all have the same delays.
+fall_delay Like rise_delay, but for transitions to zero.
+input_load The capacitance of one or all digital inputs, in Farads. Code models may use
+the TOTAL_LOAD macro to find the capacitative load on their outputs. However,
+the outputs of models listed here do not respond to their loading. These models
+always drive outputs strongly with the specified delays.
+These common parameters appear in individual Interface Specification Files in these
+forms:
+PARAMETER_TABLE:
+Parameter_Name: rise_delay fall_delay
+Description: "rise delay" "fall delay"
+Data_Type: real real
+Default_Value: 1.0e-9 1.0e-9
+Limits: [1.0e-12 -] [1.0e-12 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: input_load
+Description: "input load value (F)"
+Data_Type: real
+Default_Value: 1.0e-12
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes

@@ -1,0 +1,33 @@
+66 CHAPTER 2. CIRCUIT DESCRIPTION
+cos(x)-1. All occurrences of f(x,y) will be replaced by x*y. Function statements may
+be nested to a depth of t.b.d..
+2.11 .CSPARAM
+Create a constant vector (see 17.8.2) from a parameter in plot (17.3) const.
+General form:
+. csparam < ident > = < expr >
+Examples:
+. param pippo =5
+. param pp =6
+. csparam pippp ={ pippo + pp }
+. param p ={ pp }
+. csparam pap = ' pp +p '
+In the example shown, vectors pippp, and pap are added to the constants that already
+reside in plot const, having length one and real values. These vectors are generated dur-
+ing circuit parsing and thus cannot be changed later (same as with ordinary parameters).
+They may be used in ngspice scripts and .control sections (see Chapt. 17).
+The use of .csparam is still experimental and has to be tested. A simple usage is shown
+below.
+* test csparam
+.param TEMPS = 27
+.csparam newt = {3*TEMPS}
+.csparam mytemp = '2 + TEMPS'
+.control
+echo $&newt $&mytemp
+.endc
+.end
+2.12 .TEMP
+Sets the circuit temperature in degrees Celsius.
+General form:
+. temp value
+Examples:
+. temp 27

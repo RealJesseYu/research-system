@@ -1,0 +1,37 @@
+674 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+31.4.2 LTRA - Lossy transmission line
+31.4.2.1 LTRA instance parameters
+# Name Direction Type Description
+6 v1 InOut real Initial voltage at end 1
+8 v2 InOut real Initial voltage at end 2
+7 i1 InOut real Initial current at end 1
+9 i2 InOut real Initial current at end 2
+10 ic In real vector Initial condition vector:v1,i1,v2,i2
+13 pos_node1 Out integer Positive node of end 1 of t-line
+14 neg_node1 Out integer Negative node of end 1 of t.line
+15 pos_node2 Out integer Positive node of end 2 of t-line
+16 neg_node2 Out integer Negative node of end 2 of t-line
+31.4.2.2 LTRA model parameters
+# Name Direction Type Description
+0 ltra InOut flag LTRA model
+1 r InOut real Resistance per meter
+2 l InOut real Inductance per meter
+3 g InOut real
+4 c InOut real Capacitance per meter
+5 len InOut real length of line
+11 rel Out real Rel. rate of change of deriv. for bkpt
+12 abs Out real Abs. rate of change of deriv. for bkpt
+28 nocontrol InOut flag No timestep control
+32 steplimit InOut flag always limit timestep to 0.8*(delay of line)
+33 nosteplimit InOut flag don't always limit timestep to 0.8*(delay of
+line)
+34 lininterp InOut flag use linear interpolation
+35 quadinterp InOut flag use quadratic interpolation
+36 mixedinterp InOut flag use linear interpolation if quadratic results
+look unacceptable
+46 truncnr InOut flag use N-R iterations for step calculation in
+LTRAtrunc
+47 truncdontcut InOut flag don't limit timestep to keep impulse
+response calculation errors low
+42 compactrel InOut real special reltol for straight line checking
+43 compactabs InOut real special abstol for straight line checking

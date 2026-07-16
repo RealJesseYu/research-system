@@ -1,0 +1,41 @@
+140 CHAPTER 8. BJT
+.model QMOD1 PNP
+.model QMOD3 NPN level=4
+These are the minimal versions, using default parameters supplied by ngspice. Further
+optional parameters listed in the table below may replace the ngspice default parameters.
+The level keyword specifies the model to be used:
+• level=1: This is the original SPICE BJT model, and it is the default model if the
+level keyword is not specified on the .model line. By activating certain parameter
+a modified version of the original SPICE BJT that models both vertical and lateral
+devices, includes temperature corrections of collector, emitter and base resistors and
+allow modeling of quasi-saturation effects.
+• level=4: Advanced VBIC model (see 8.2.2 and http://www.designers-guide.org/VBIC/
+for details)
+• level=8: HICUM/L2 model (see 8.2.4 and the official website for details)
+With the (new in ngspice-39) OpenV AF/OSDI approach (see 13), all modern bipolar
+models, written in Verilog-A, become available, like VBIC, Mextram and HICUM.
+8.2.1 Gummel-Poon Models
+The bipolar junction transistor model in ngspice is an adaptation of the integral charge
+control model of Gummel and Poon. This modified Gummel-Poon model extends the
+original model to include several effects at high bias levels. The model automatically
+simplifies to the simpler Ebers-Moll model when certain parameters are not specified.
+The parameter names used in the modified Gummel-Poon model have been chosen to be
+more easily understood by the user, and to reflect better both physical and circuit design
+thinking.
+The dc model is defined by the parameters IS, BF, NF, ISE, IKF, and NE, which determine
+the forward current gain characteristics, IS, BR, NR, ISC, IKR, and NC, which determine
+the reverse current gain characteristics, and VAF and VAR, which determine the output
+conductance for forward and reverse regions.
+A more accurate model for transport current components is possible by specification of
+model parameter IBE and IBC instead of IS.
+Parameter NKF(NK)was introduced for more accurate high current beta rolloff modelling.
+The BJT model has among the standard temperature parameters an extension compatible
+with most foundry provided process design kits (see parameter table below TLEV).
+The BJT model includes the substrate saturation current ISS. Three ohmic resistances
+RB, RC, and RE are included, where RB can be high current dependent. Base charge storage
+is modeled by forward and reverse transit times, TF and TR, where the forward transit time
+TF can be bias dependent if desired. Nonlinear depletion layer capacitances are defined
+with CJE, VJE, and NJE for the B-E junction, CJC, VJC, and NJC for the B-C junction and
+CJS, VJS, and MJS for the C-S (collector-substrate) junction.
+The BJT model support a substrate capacitance that is connected to the device's base
+or collector, to model lateral or vertical devices dependent on the parameter SUBS. The

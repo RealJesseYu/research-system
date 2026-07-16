@@ -1,0 +1,36 @@
+16.7. ENVIRONMENTAL V ARIABLES 351
+.spiceinit for simulating circuits containing PSPICE-compatible behavioural models may
+contain:
+* User defined ngspice init file
+set filetype = ascii
+* set ngdebug
+* set outputpath = C :\ Spice64 \ out
+set ngbehavior = ltpsa
+option sparse
+set ngbehavior = ltpsa will provide PSPICE compatibility. option sparse (maybe
+omitted) selects the venerable Sparse 1.3 matrix solver, which sometimes is much faster
+than klu.
+Some editors on MS Windows refuse to save files with leading dot in their names. An
+alternative name to .spiceinit is therefore spice.rc.
+16.7 Environmental variables
+16.7.1 Ngspice specific variables
+SPICE_LIB_DIR default: /usr/local/share/ngspice (Linux, CYGWIN), C:\Spice\share\ngspice
+(Windows)
+SPICE_EXEC_DIR default: /usr/local/bin (Linux, CYGWIN), C:\Spice\bin (Windows)
+SPICE_BUGADDR default: https://ngspice.sourceforge.io/bugrep.html
+Where to send bug reports on ngspice.
+SPICE_EDITOR default: vi (Linux, CYGWIN), notepad.exe (MINGW, Visual Studio)
+Set the editor called in the edit command. Always overrides the EDITOR env.
+variable.
+SPICE_ASCIIRAWFILE default: 0
+Format of the rawfile. 0 for binary, and 1 for ascii.
+SPICE_NEWS default: $SPICE_LIB_DIR/news
+A file that is copied verbatim to stdout when ngspice starts in interactive mode.
+SPICE_HELP_DIR default: $SPICE_LIB_DIR/helpdir
+Help directory, not used in Windows mode
+SPICE_HOST default: empty string
+Used in the rspice command (probably obsolete, to be documented)
+SPICE_SCRIPTS default: $SPICE_LIB_DIR/scripts
+In this directory the spinit file will be searched.
+SPICE_PATH default: $SPICE_EXEC_DIR/ngspice
+Used in the aspice command (probably obsolete, to be documented)

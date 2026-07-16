@@ -1,0 +1,46 @@
+12.2. ANALOG MODELS 211
+that found in an operational amplifier-based integration stage, in that once a limit
+is reached, additional storage does not occur. Thus, the input of a negative value to
+an integrator that is currently driving at the out upper limit level will immediately
+cause a drop in the output, regardless of how long the integrator was previously
+summing positive inputs. The incremental value of output below the output upper
+limit and above the output lower limit at which smoothing begins is specified via
+the limit range parameter. In AC analysis, the value returned is equal to the gain
+divided by the radian frequency of analysis.
+Note that truncation error checking is included in the int block. This should provide
+for a more accurate simulation of the time integration function, since the model will
+inherently request smaller time increments between simulation points if truncation
+errors would otherwise be excessive.
+Example SPICE Usage:
+a13 7 12 time_count
+.model time_count int(in_offset=0.0 gain=1.0
++ out_lower_limit=-1e12 out_upper_limit=1e12
++ limit_range=1e-9 out_ic=0.0)
+12.2.18 S-Domain Transfer Function
+NAME_TABLE:
+C_Function_Name: cm_s_xfer
+Spice_Model_Name: s_xfer
+Description: "s-domain transfer function"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: v v
+Allowed_Types: [v,vd,i,id] [v,vd,i,id]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: in_offset gain
+Description: "input offset" "gain"
+Data_Type: real real
+Default_Value: 0.0 1.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: num_coeff
+Description: "numerator polynomial coefficients"
+Data_Type: real
+Default_Value: -

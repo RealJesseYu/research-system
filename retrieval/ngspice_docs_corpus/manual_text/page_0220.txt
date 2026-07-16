@@ -1,0 +1,34 @@
+220CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: This function is a conceptual model that is used as a building block to
+create a wide variety of inductive and magnetic circuit models. This function is
+almost always expected to be used in conjunction with the lcouple model to build
+up systems that mock the behavior of linear and nonlinear magnetic components.
+There are two fundamental modes of operation for the core model. These are the
+pwl mode (which is the default, and which is the most likely to be of use to you)
+and the hysteresis mode. These are detailed below.
+PWL Mode (mode = 1)
+The core model in PWL mode takes as input a voltage that it treats as a magnetomotive
+force (mmf) value. This value is divided by the total effective length of the core to
+produce a value for the Magnetic Field Intensity, H. This value of H is then used to find
+the corresponding Flux Density, B, using the piecewise linear relationship described by
+you in the H array / B array coordinate pairs. B is then multiplied by the cross-sectional
+area of the core to find the Flux value, which is output as a current. The pertinent
+mathematical equations are listed below:
+H = mmf
+L , where L = Length
+Here H, the Magnetic Field Intensity, is expressed in ampere-turns/meter.
+B = f (H)
+The B value is derived from a piecewise linear transfer function described to the model
+via the (H_array[],B_array[]) parameter coordinate pairs. This transfer function does
+not include hysteretic effects; for that, you would need to substitute a HYST model for
+the core.
+ϕ = BA, where A = Area
+The final current allowed to flow through the core is equal to ϕ. This value in turn is
+used by the "lcouple" code model to obtain a value for the voltage reflected back across
+its terminals to the driving electrical circuit.
+The following example code shows the use of two lcouple models and one core model to
+produce a simple primary/secondary transformer.

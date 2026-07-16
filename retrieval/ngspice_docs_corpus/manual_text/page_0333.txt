@@ -1,0 +1,33 @@
+15.6. BATCH OUTPUT 333
+15.5.5 VDMOS SOA model parameters
+1. Vgs_max: If |Vgs| exceeds Vgs_max, SOA warning is issued.
+2. Vgd_max: If |Vgd| exceeds Vgd_max, SOA warning is issued.
+3. Vds_max: If |Vds| exceeds Vds_max, SOA warning is issued.
+4. Vgsr_max: If |Vgsr| exceeds Vgsr_max, SOA warning is issued.
+5. Vgdr_max: If |Vgdr| exceeds Vgdr_max, SOA warning is issued.
+15.6 Batch Output
+The following commands .print (15.6.2), .plot (15.6.3) and .four (15.6.4) are valid
+only if ngspice is started in batch mode (see 16.4.1), whereas .save and the equivalent
+.probe are aknowledged in all operating modes.
+If you start ngspice in batch mode using the -b command line option, the outputs of
+.print, .plot, and .four are printed to the console output. You may use the output
+redirection of your shell to direct this printout into a file (not available with MS Windows
+GUI). As an alternative, you may extend the ngspice command by specifying an output
+file:
+ngspice -b -o output.log input.cir
+If you however add the command line option -r to create a rawfile, .print and .plot
+are ignored. If you want to involve the graphics plot output of ngspice, use the control
+mode ( 16.4.3) instead of the -b batch mode option.
+15.6.1 .SA VE: Name vector(s) to be saved in raw file
+General form:
+. save vector vector vector ...
+Examples:
+. save i ( vin ) node1 v ( node2 )
+. save @m1 [ id ] vsource # branch
+. save all @m2 [ vdsat ]
+The vectors listed on the .SAVE line are recorded in the rawfile for use later with ngspice.
+The standard vector names are accepted. Node voltages may be saved by giving the
+nodename or v(nodename). Currents through an independent voltage source are given by
+i(sourcename) or sourcename#branch. Internal device data are accepted as @dev[param].
+If no .SAVE line is given, then the default set of vectors is saved (node voltages and voltage
+source branch currents). If .SAVE lines are given, only those vectors specified are saved.

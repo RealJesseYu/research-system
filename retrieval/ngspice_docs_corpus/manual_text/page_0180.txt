@@ -1,0 +1,29 @@
+180CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+uses a predefined 'gain' code model taking as an input some value on node 1, multiplies
+it by a gain of 5.0, and outputs the new value to node 2. Note that, by convention, input
+ports are specified first on code models. Output ports follow the inputs.
+Example:
+a1 1 2 amp
+. model amp gain ( gain =5.0)
+In this example the numerical values picked up from single-ended (i.e. ground referenced)
+input node 1 and output to single-ended output node 2 will be voltages, since in the
+Interface Specification File for this code model (i.e., gain), the default port type is spec-
+ified as a voltage (more on this later). However, if you didn't know this, the following
+modifications to the instance card could be used to insure it:
+Example:
+a1 % v (1) % v (2) amp
+. model amp gain ( gain =5.0)
+The specification %v preceding the input and output node numbers of the instance card
+indicate to the simulator that the inputs to the model should be single-ended voltage
+values. Other possibilities exist, as described later.
+Some of the other features of the instance and .MODEL cards are worth noting. Of particu-
+lar interest is the portion of the .MODEL card that specifies gain=5.0. This portion of the
+card assigns a value to a parameter of the 'gain' model. There are other parameters that
+can be assigned values for this model, and in general code models will have several. In
+addition to numeric values, code model parameters can take non-numeric values (such as
+TRUE and F ALSE), and even vector values. All of these topics will be discussed at length
+in the following pages. In general, however, the instance and .MODEL cards that define a
+code model will follow the abstract form described below. This form illustrates that the
+number of inputs and outputs and the number of parameters that can be specified is rel-
+atively open-ended and can be interpreted in a variety of ways (note that angle-brackets
+'<' and ' >' enclose optional inputs):

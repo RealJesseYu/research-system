@@ -1,0 +1,46 @@
+31.5. BJTS 681
+31.5.2 VBIC - Vertical Bipolar Inter-Company Model
+31.5.2.1 VBIC instance parameters
+# Name Direction Type Description
+1 area InOut real Area factor
+2 off InOut flag Device initially off
+3 ic In real vector Initial condition vector
+4 icvbe InOut real Initial B-E voltage
+5 icvce InOut real Initial C-E voltage
+6 temp InOut real Instance temperature
+7 dtemp InOut real Instance delta temperature
+8 m InOut real Multiplier
+212 collnode Out integer Number of collector node
+213 basenode Out integer Number of base node
+214 emitnode Out integer Number of emitter node
+215 subsnode Out integer Number of substrate node
+216 collCXnode Out integer Internal collector node
+217 collCInode Out integer Internal collector node
+218 baseBXnode Out integer Internal base node
+219 baseBInode Out integer Internal base node
+220 baseBPnode Out integer Internal base node
+221 emitEInode Out integer Internal emitter node
+222 subsSInode Out integer Internal substrate node
+223 vbe Out real B-E voltage
+224 vbc Out real B-C voltage
+225 ic Out real Collector current
+226 ib Out real Base current
+227 ie Out real Emitter current
+228 is Out real Substrate current
+229 gm Out real Small signal transconductance dIc/dVbe
+230 go Out real Small signal output conductance dIc/dVbc
+231 gpi Out real Small signal input conductance dIb/dVbe
+232 gmu Out real Small signal conductance dIb/dVbc
+233 gx Out real Conductance from base to internal base
+247 cbe Out real Internal base to emitter capacitance
+248 cbex Out real External base to emitter capacitance
+249 cbc Out real Internal base to collector capacitance
+250 cbcx Out real External Base to collector capacitance
+251 cbep Out real Parasitic Base to emitter capacitance
+252 cbcp Out real Parasitic Base to collector capacitance
+259 p Out real Power dissipation
+243 geqcb Out real Internal C-B-base cap. equiv. cond.
+246 geqbx Out real External C-B-base cap. equiv. cond.
+234 qbe Out real Charge storage B-E junction
+235 cqbe Out real Cap. due to charge storage in B-E jct.
+236 qbc Out real Charge storage B-C junction

@@ -1,0 +1,30 @@
+15.5. SAFE OPERATING AREA (SOA) W ARNING MESSAGES 331
+15.5.3 BJT SOA model parameters
+15.5.3.1 Gummel-Poon (levels 1 and 2)
+Bipolar device models level 1 and 2 are supported with all the SOA parameters named
+below.
+1. Vbe_max: If |Vbe| exceeds Vbe_max, SOA warning is issued.
+2. Vbc_max: If |Vbc| exceeds Vbc_max, SOA warning is issued.
+3. Vce_max: If |Vce| exceeds Vce_max, SOA warning is issued.
+4. Vcs_max: If |Vcs| exceeds Vcs_max, SOA warning is issued.
+5. Ic_max: If |Ic| exceeds Ic_max, SOA warning is issued.
+6. Ib_max: If |Ib| exceeds Ib_max, SOA warning is issued.
+7. Pd_max: If power exceeds Pd_max, SOA warning is issued.
+8. Te_max: If temperature exceeds Te_max, SOA warning is issued.
+9. rth0: Thermal resistance between junction and ambient.
+10. tnom: Nominal temperature where all parameters have been measured at.
+Two SOA modes are available (self-heating is not yet modeled in bipolar level 1 and 2).
+All modes check for Vbe_max, Vbc_max, Vce_max, Vcs_max, Ic_max and Ib_max.
+If rth0 and tnom are given, then a static max. power derating is calculated, taking the
+device temperature (set by its default value 27 °C, or the global .temp value, or the device
+specific instance parameter temp) into account. The reference temperature is tnom.
+pdmax = pdmaxmod − (temp − tnom)/rth0
+If rth0 or tnom are not given, no derating is calculated, the power disspation is simply
+checked against Pd_max.
+Te_max is not (yet) used.
+15.5.3.2 HICUM (level 8)
+HICUM2 currently aknowledges the following voltage parameters:
+1. Vbe_max: If |Vbe| exceeds Vbe_max, SOA warning is issued.
+2. Vbc_max: If |Vbc| exceeds Vbc_max, SOA warning is issued.
+3. Vce_max: If |Vce| exceeds Vce_max, SOA warning is issued.
+4. Vcs_max: If |Vcs| exceeds Vcs_max, SOA warning is issued.

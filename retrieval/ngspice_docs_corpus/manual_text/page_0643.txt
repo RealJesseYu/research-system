@@ -1,0 +1,37 @@
+30.11. MOBILITY 643
+appropriate for GaAs (GA). The velocity-saturation models are the Caughey-Thomas
+(CT) and Scharfetter-Gummel (SG) models for Si, and the PISCES model for GaAs
+(GA). There is also a set of Arora (AR) parameters for the Caughey-Thomas model.
+30.11.2 Parameters
+Name Type Description
+Material Integer ID number of material
+Electron : Hole Flag Mobile carrier
+Majority : Minority Flag Mobile carrier type
+MUS Real Maximum surface mobility, ( cm2/Vs )
+EC.A Real Surface mobility 1st-order critical field, ( V/cm )
+EC.B Real Real Surface mobility 2nd-order critical field, ( V2/cm2 )
+MuMax Real Maximum bulk mobility, ( cm2/Vs )
+MuMin Real Minimum bulk mobility, ( cm2/Vs)
+NtRef Real Ionized impurity reference concentration, ( cm-3 )
+NtExp Real Ionized impurity exponent
+Vsat Real Saturation velocity, ( cm/s )
+Vwarm Real Warm carrier reference velocity, ( cm/s )
+ConcModel String Ionized impurity model, ( CT, AR, UF, SG, Dr GA )
+FieldModel String Velocity saturation model, ( CT, AR, SG, or GA )
+Init Flag Copy model-specific defaults
+30.11.3 Examples
+The following set of cards completely updates the bulk mobility parameters for material
+#1:
+mobility mat = l concmod = sg fieldmod = sg
+mobility mat = l elec major mumax =1000.0 mumin = l00 .0
++ ntref = l .0 el6 ntexp =0.8 vsat = l .0 e7 vwarm =3.0 e6
+mobility mat = l elec minor mumax =1000.0 mumin =200. O
++ ntref = l .0 el7 ntexp =0.9
+mobility mat = l hole major mumax =500.0 mumin =50.0
++ ntref = l .0 el6 ntexp =0.7 vsat =8.0 e6 vwarm = l .0 e6
+mobility mat = l hole minor mumax =500.0 mumin =150.0
++ ntref = l .0 el7 ntexp =0.8
+The electron surface mobility is changed by the following:
+mobility mat = l elec mus =800.0 ec . a =3.0 e5 ec . b =9.0 e5
+Finally, the default Scharfetter-Gummel parameters can be used in Si with the GaAs
+velocity-saturation model (even though it doesn't make physical sense!):

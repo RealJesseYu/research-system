@@ -1,0 +1,37 @@
+12.2. ANALOG MODELS 185
+12.2 Analog Models
+The following analog models are supplied with XSPICE. The descriptions included consist
+of the model Interface Specification File and a description of the model's operation. This
+is followed by an example of a simulator-deck placement of the model, including the
+.MODEL card and the specification of all available parameters.
+12.2.1 Gain
+NAME_TABLE:
+C_Function_Name: cm_gain
+Spice_Model_Name: gain
+Description: "A simple gain block"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: v v
+Allowed_Types: [v,vd,i,id,vnam] [v,vd,i,id]
+Vector: no no
+Vector.Bounds: - -
+Null.Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: in_offset gain out_offset
+Description: "input offset" "gain" "output offset"
+Data_Type: real real real
+Default_Value: 0.0 1.0 0.0
+Limits: - - -
+Vector: no no no
+Vector_Bounds: - - -
+Null_Allowed: yes yes yes
+Description: This function is a simple gain block with optional offsets on the input and
+the output. The input offset is added to the input, the sum is then multiplied by
+the gain, and the result is produced by adding the output offset. This model will
+operate in DC, AC, and Transient analysis modes.
+Example:
+a1 1 2 amp
+. model amp gain ( in_offset =0.1 gain =5.0
++ out_offset = -0.01)

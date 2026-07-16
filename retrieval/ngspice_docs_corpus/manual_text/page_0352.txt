@@ -1,0 +1,35 @@
+352 CHAPTER 16. STARTING NGSPICE
+NGSPICE_MEAS_PRECISION default: 5
+Sets the number of digits if output values are printed by the meas(ure) command.
+SPICE_NO_DATASEG_CHECK default: undefined
+If defined, will suppress memory resource info (probably obsolete, not used on Win-
+dows or where the /proc information system is available.)
+NGSPICE_INPUT_DIR default: undefined
+If defined, using a valid directory name, will add the given directory to the search
+path when looking for input files ( *.cir, *.inc, *.lib).
+SPICE_USERINIT_DIR default: undefined
+If defined, using a valid directory name, this is the first place to search for the user-
+defined initialization file .spiceinit (or spice.rc). The search sequence then following
+is: current directory, HOME directory, USERPROFILE directory
+16.7.2 Common environment variables
+TERM LINES COLS DISPLAY HOME PATH EDITOR SHELL POSIXLY_CORRECT
+16.8 Memory usage
+Ngspice started with batch option (-b) and rawfile output (-r rawfile) will store all sim-
+ulation data immediately into the rawfile without keeping them in memory. Thus very
+large circuits may be simulated, the memory requested upon ngspice start up will depend
+on the circuit size, but will not increase during simulation.
+If you start ngspice in interactive mode or interactively with control section, all data will
+be kept in memory, to be available for later evaluation. A large circuit may outgrow even
+Gigabytes of memory. The same may happen after a very long simulation run with many
+vectors and many time steps to be stored. Issuing the save <nodes> command will help
+to reduce memory requirements by saving only the data defined by the command. You
+may also choose option INTERP ( 15.1.4) to reduce memory usage.
+16.9 Simulation time
+Simulating large circuits may take an considerable amount of CPU time. If this is of
+importance, you should compile ngspice with the flags for optimum speed, set during
+configuring ngspice compilation. Under Linux, MINGW, and CYGWIN you should select
+the following option to disable the debug mode, which slows down ngspice:
+./configure --disable-debug
+Adding --disable-debug will set the -O2 optimization flag for compiling and linking.
+Under MS Visual Studio, you will have to select the release version, which includes
+optimization for speed.

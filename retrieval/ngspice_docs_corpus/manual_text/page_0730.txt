@@ -1,0 +1,39 @@
+730 CHAPTER 32. COMPILATION NOTES
+List of standard ngspice dependencies (acquired with command otool -L
+/usr/local/bin/ngspice):
+/ usr / local / opt / ncurses / lib / l ibn cur se sw .6. dylib
+/ usr / local / opt / gcc / lib / gcc /11/ libstdc ++.6. dylib
+/ usr / local / opt / fftw / lib / fftw3 .3. dylib
+/ usr / local / opt / readline / lib / l ibr ead lin e .8. dylib
+/ opt / local / lib / libXaw .7. dylib
+/ opt / local / lib / libXmu .6. dylib
+/ opt / local / lib / libXt .6. dylib
+/ opt / local / lib / libXext .6. dylib
+/ opt / local / lib / libX11 .6. dylib
+/ opt / local / lib / l i b f o n t c o n f i g .1. dylib
+/ opt / local / lib / libXrender .1. dylib
+/ opt / local / lib / l ibf ree typ e .6. dylib
+/ opt / local / lib / libSM .6. dylib
+/ opt / local / lib / libICE .6. dylib
+/ usr / local / opt / gcc / lib / gcc /11/ libgomp .1. dylib
+/ usr / lib / libSystem . B . dylib
+/ usr / local / lib / gcc /11/ libgcc_s .1. dylib
+32.3.2 Compiling ngspice
+A compile script is provided, supporting gcc-11 from Homebrew, see
+https://sourceforge.net/p/ngspice/ngspice/ci/master/tree/compile_macos_gcc.sh.
+ngspice is also available from MacPorts, Homebrew or Fink, partially as source code,
+partially as an executable. ngspice from Homebrew for example currently does not offer
+the graphics interface to X11 (thus not needing the above mentioned Quartz installation
+and X11 runtime libraries).
+32.3.3 Compiling ngspice shared library
+The ngspice shared library does not have any command line or graphics interface, thus
+neither needing X11 (Quartz) nor readline nor ncurses. Compilation (with gcc-11) is as
+straightforward as running the compile script . The list of depencencies now is shorter
+than before:
+List of shared ngspice dependencies (acquired with command otool -L
+/usr/local/lib/libngspice.0.dylib):
+/ usr / local / opt / gcc / lib / gcc /11/ libstdc ++.6. dylib
+/ usr / local / opt / fftw / lib / libfftw3 .3. dylib
+/ usr / local / opt / gcc / lib / gcc /11/ libgomp .1. dylib
+/ usr / lib / libSystem . B . dylib
+/ usr / local / lib / gcc /11/ libgcc_s .1. dylib

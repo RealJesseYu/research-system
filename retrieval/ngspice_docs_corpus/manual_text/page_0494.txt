@@ -1,0 +1,38 @@
+494CHAPTER 19. NGSPICE AS SHARED LIBRARY OR DYNAMIC LINK LIBRARY
+1. initialization
+2. calculation of operating point
+3. next time step: set new breakpoints (VSRC, ISRC, TRA, LTRA)
+4. send simulation data to output, callback function SendData* datfcn
+5. check for autostop and other end conditions
+6. check for interrupting simulation (e.g. by bg_halt)
+7. breakpoint handling (e.g. enforce breakpoint, set new small cktdelta if directly after
+the breakpoint)
+8. calling ngspice internal function sharedsync() that invokes callback function Get-
+SyncData* getsync with location flag loc = 0
+9. save the previous states
+10. start endless loop
+11. save cktdelta to olddelta, set new time point by adding cktdelta to ckttime
+12. new iteration of circuit at new time point, which uses callback functions GetVS-
+RCData* getvdat and GetISRCData* getidat to retrieve external voltage or
+current inputs, returns redostep=0, if converged, redostep=1 if not converged
+13. if not converged, divide cktdelta by 8
+14. check for truncation error with all non-linear devices, if necessary create a new
+(smaller) cktdelta to limit the error, optionally change integration order
+15. calling ngspice internal function sharedsync() that invokes callback function Get-
+SyncData* getsync with location flag loc = 1: as a result either goto 3 (next
+time step) or to 10 (loop start), depending on ngspice and user data, see the next
+paragraph.
+The code of the synchronization procedure is handled in the ngspice internal function
+sharedsync() and its companion user defined callback function GetSyncData* getsync .
+The actual setup is as follows:
+If no synchronization is asked for (GetSyncData* set to NULL), program control jumps
+to 'next time step' (3) if redostep==0, or subtracts olddelta from ckttime and jumps to
+'loop start' (9) if redostep <> 0. This is the standard ngspice behavior.
+If GetSyncData* has been set to a valid address by ngSpice_Init_Sync(), the callback
+function getsync is involved. If redostep <> 0, olddelta is subtracted from ckttime,
+getsync is called, either the cktdelta time suggested by ngspice is kept or the user provides
+his own deltatime, and the program execution jumps to (9) for redoing the last step with
+the new deltatime. The return value of getsync is not used. If redostep == 0, getsync
+is called. The user may keep the deltatime suggested by ngspice or define a new value. If
+the user sets the return value of getsync to 0, the program execution then jumps to 'next
+time step' (3). If the return value of getsync is 1, olddelta is subtracted from ckttime,

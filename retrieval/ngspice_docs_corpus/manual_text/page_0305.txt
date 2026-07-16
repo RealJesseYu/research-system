@@ -1,0 +1,39 @@
+15.1. SIMULATOR V ARIABLES (.OPTIONS) 305
+15.1.3 AC Solution Options
+NOOPAC Do not run an operating point (OP) analysis prior to an AC analysis. This
+option requires that the circuit is linear, i.e. consists only of R, L, and C devices,
+independent V, I sources and linear dependent E, G, H, and F sources (without poly
+statement, non-behavioral). If a non-linear device is detected, the OP analysis is
+executed automatically. This option is of interest e.g. in nested LC circuits where
+no series resistance for L devices is present. During the OP analysis an ill-formed
+matrix may be encountered, causing the simulator to abort with an error message.
+It is also useful if you have very large linear arrays (10000 nodes and more), where
+simulation speedup by a factor of 10 may be achieved.
+15.1.4 Transient Analysis Options
+AUTOSTOP stops a transient analysis after successfully calculating all functions ( 15.4)
+specified with the dot command .meas. Autostop is not available with the meas
+(17.5.47) command used in control mode.
+CHGTOL=x resets the charge tolerance of the program. The default value is 1.0e-14.
+CONVSTEP=x relative step limit applied to code models.
+CONV ABSSTEP=x absolute step limit applied to code models.
+INTERP interpolates output data onto fixed time steps on a TSTEP grid (15.3.10). Uses
+linear interpolation between previous and next time values. Simulation itself is not
+influenced by this option. This option can be used in all simulation modes (batch,
+control or interactive, 16.4). It may drastically reduce memory requirements in con-
+trol mode, and file size in batch mode, but care is needed not to undersample the out-
+put data. See also the command linearize (17.5.43) that achieves a similar result
+by post-processing the data in control mode. The Ngspice/examples/xspice/delta-
+sigma/delta-sigma-1.cir example demonstrates how INTERP reduces memory re-
+quirements and speeds up plotting.
+ITL3=x resets the lower transient analysis iteration limit. The default value is 4. (Note:
+not implemented in Spice3).
+ITL4=x resets the transient analysis time-point iteration limit. The default is 10.
+ITL5=x resets the transient analysis total iteration limit. The default is 5000. Set
+ITL5=0 to omit this test. (Note: not implemented in Spice3).
+ITL6=x [*] synonym for SRCSTEPS.
+MAXEVTITER=x sets the maximum number of event iterations per analysis point.
+MAXOPALTER=x specifies the maximum number of analog/event alternations that
+the simulator will use to solve a hybrid circuit.
+MAXORD=x [*] specifies the maximum order for the numerical integration method
+used by SPICE. Possible values for the Gear method are from 2 (the default) to 6.
+Using the value 1 with the trapezoidal method specifies backward Euler integration.

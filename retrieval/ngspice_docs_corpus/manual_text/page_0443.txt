@@ -1,0 +1,44 @@
+17.8. SCRIPTS 443
+ngspice scripting language is not very powerful, but well integrated into the simulation
+flow. After reading the input file, any command sequences are immediately processed.
+Variables or vectors set by previous commands may be referenced by the commands
+following them. Data can be stored, plotted or grouped into new vectors for either plotting
+or other means of data evaluation.
+An input file may contain only a title and the .control .. .endc section: it is a pure
+script. The need for a title (that may be blank) is an unfortunate result of the source
+command being used for both circuit input and command file execution. Note that
+this does allow the user to merely type the name of a circuit file as a command and
+it is automatically run. The commands are executed immediately, without running any
+analyses that may be specified in the circuit (to execute the analyses before the script
+executes, include a run command in the script).
+An alternative way to indicate a pure script is to put *ng_script in the first line, the
+rest of the file is then treated as if it were inside a control section. As a special case, if a
+script file begins with *ng_script_with_params and it was the first non-option argument
+on the ngspice command line, then remaining command arguments are treated as script
+arguments, not additional netlists.
+Before a script is read, the variables argc and argv are set to the number of words follow-
+ing the file-name on the command line, and a list of those words respectively. Individual
+script arguments may be accessed as $1, $2 etc. After the file is finished, these variables
+are unset. Note that if a command file calls another, it must save its argv and argc
+since they are altered. Also, command files may not be re-entrant since there are no local
+variables. Of course, the procedures may explicitly manipulate a stack ...; that way one
+can write scripts analogous to shell scripts for ngspice.
+17.8.1 Variables
+Variables are defined and initialized with the set command ( 17.5.70). set output=10
+defines the variable output and sets it to the number 10. Predefined variables, which are
+used inside ngspice for specific purposes, are listed in Chapt. 17.7. Variables are accessible
+globally. The values of variables may be used in commands by writing $varname where
+the value of the variable is to appear, e.g. $output. If a variable is substituted that is
+not defined internally, but is defined in the program environment, then the external value
+is used. The special variable $$ refers to the process ID of the program. With $< a line
+of input is read from the terminal.
+If a variable is assigned with $&word, then word must be a vector (see below), and word's
+numeric value is taken to be the new value of the variable.
+Variables may have a value that is a list of values. If foo is a valid variable, and is of
+type list, then the expression $foo[low-high] expands to a range of elements. Either
+the upper or lower index may be left out, and in addition to slicing also reversing of a
+list is possible through $foo[len-0] (len is the length of the list, the first valid index is
+always 1).
+Furthermore, the notation $?foo evaluates to 1 if the variable foo is defined, 0 otherwise,
+and $#foo evaluates to the number of elements in foo if it is a list, 1 if it is a number or
+string, and 0 if it is a Boolean variable.

@@ -1,0 +1,37 @@
+124 CHAPTER 6. TRANSMISSION LINES
+increase simulation speed. These are to be used with the TRYTOCOMPACT option, described
+in the . OPTIONS section. TRUNCNR is a flag that turns on the use of Newton-Raphson it-
+erations to determine an appropriate time-step in the time-step control routines. The
+default is a trial and error procedure by cutting the previous time-step in half. REL and
+ABS are quantities that control the setting of breakpoints.
+The option most worth experimenting with for increasing the speed of simulation is REL.
+The default value of 1 is usually safe from the point of view of accuracy but occasionally
+increases computation time. A value greater than 2 eliminates all breakpoints and may
+be worth trying depending on the nature of the rest of the circuit, keeping in mind that
+it might not be safe from the viewpoint of accuracy.
+Breakpoints may usually be entirely eliminated if it is expected the circuit will not display
+sharp discontinuities. Values between 0 and 1 are usually not required but may be used
+for setting many breakpoints.
+COMPACTREL may also be experimented with when the option TRYTOCOMPACT is specified
+in a .OPTIONS card. The legal range is between 0 and 1. Larger values usually decrease
+the accuracy of the simulation but in some cases improve speed. If TRYTOCOMPACT is not
+specified on a .OPTIONS card, history compaction is not attempted and accuracy is high.
+NO CONTROL , TRUNCDONTCUT and NOSTEPLIMIT also tend to increase speed at the expense
+of accuracy.
+6.3 Uniform Distributed RC Lines
+General form:
+UXXXXXXX n1 n2 n3 mname l = len <n = lumps >
+Examples:
+U1 1 2 0 URCMOD L =50 U
+URC2 1 12 2 UMODL l =1 MIL N =6
+n1 and n2 are the two element nodes the RC line connects, while n3 is the node the
+capacitances are connected to. mname is the model name, len is the length of the RC line
+in meters. lumps, if specified, is the number of lumped segments to use in modeling the
+RC line (see the model description for the action taken if this parameter is omitted).
+6.3.1 Uniform Distributed RC Model (URC)
+The URC model is derived from a model proposed by L. Gertzberg in 1974. The model
+is accomplished by a subcircuit type expansion of the URC line into a network of lumped
+RC segments with internally generated nodes. The RC segments are in a geometric
+progression, increasing toward the middle of the URC line, with K as a proportionality
+constant. The number of lumped segments used, if not specified for the URC line device,
+is determined by the following formula:

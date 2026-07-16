@@ -1,0 +1,33 @@
+17.5. COMMANDS 403
+The noise command will generate two plots (typically named noise1 and noise2) with
+Noise Spectral Density Curves and Integrated Noise data. To write these data into output
+file(s), you may use the following command sequence:
+Command sequence for writing noise data to file(s):
+. control
+tran 1e -6 1e -3
+write test_tran . raw
+noise V ( out ) vinp dec 333 1 1 e8 16
+print i n o i s e _ t o t a l o n o i s e _ t o t a l
+* first option to get all of the output ( two files )
+setplot noise1
+write t est _no ise 1 . raw all
+setplot noise2
+write t est _no ise 2 . raw all
+* second option ( all in one raw - file )
+write testall . raw noise1 . all noise2 . all
+. endc
+17.5.51 Op*: Perform an operating point analysis
+General Form:
+op
+Do an operating point analysis. See Chapt. 15.3.5 for more details.
+17.5.52 Option*: Set a ngspice option
+General Form:
+option [ option = val ] [ option = val ] ...
+Set any of the simulator variables as listed in Chapt. 15.1. See this chapter also for more
+information on the available options. The option command without any argument lists
+the current options set in the simulator. It shows the current options, while new values
+are set to be used in the next analysis run. That means that changed options will not be
+visible immediately. Multiple options may be set in a single line.
+The following example demonstrates a control section, which may be added to your circuit
+file to test the influence of variable trtol on the number of iterations and on the simulation
+time.

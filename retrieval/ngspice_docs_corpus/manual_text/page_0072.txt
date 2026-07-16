@@ -1,0 +1,40 @@
+72 CHAPTER 3. CIRCUIT ELEMENTS AND MODELS
+Netlist example of a simple bipolar amplifier:
+bipolar amplifier
+R3 vcc intc 10 k
+R1 vcc intb 68 k
+R2 intb 0 10 k
+Cout out intc 10 u
+Cin intb in 10 u
+RLoad out 0 100 k
+Q1 intc intb 0 BC546B
+VCC vcc 0 5
+Vin in 0 dc 0 ac 1 sin (0 1 m 500)
+. model BC546B npn ( IS =7.59 E -15 VAF =73.4 BF =480 IKF =0.0962
++ NE =1.2665 ISE =3.278 E -15 IKR =0.03 ISC =2.00 E -13 NC =1.2 NR =1
++ BR =5 RC =0.25 CJC =6.33 E -12 FC =0.5 MJC =0.33 VJC =0.65
++ CJE =1.25 E -11 MJE =0.55 VJE =0.65 TF =4.26 E -10 ITF =0.6 VTF =3
++ XTF =20 RB =100 IRB =0.0001 RBM =10 RE =0.5 TR =1.50 E -07)
+. end
+After the first line, which is always a title line only, the netlist starts. Each line here is a
+device instance (except for lines starting with a dot ' . '). We have simple circuit elements
+that consist of a single line only, e.g. resistors like R3. In its simplest implementation,
+the resistor model does not need any model parameters except for the resistance value
+(same for capacitors like Cout). Netlist lines like R3 vcc intc 10k are called instance lines,
+as each line is the representation of an instance of a generic model hard-coded into the
+ngspice simulator (here: resistor). R3 denotes the device name. Its first character R
+denotes a resistor. The next two tokens vcc intc are the two nodes of the resistor, 10k is
+the resistance value. Equal node names on different devices denote a connection between
+these nodes.
+A more complex device is described by the instance line Q1 intc intb 0 BC546B . Q denotes
+a bipolar transistor, intc intb 0 are the three nodes collector, base, and emitter. BC546B is
+the name of a model parameter set, named after a real transistor and describing (together
+with the implemented bipolar transistor model) its electrical behavior. The associated
+model parameters are given in the line .model BC546B npn (IS=7.59E-15 ...) . This is not an
+instance line, because starting with a dot. It contains the model parameters as supplied by
+the device manufacturer or by people having them extracted from the electrical behavior
+and data sheet (to be found e.g. on his or her web pages). BC546B is the name of the
+model parameter set and relates it to the device instance. npn is the type of the device.
+The parameters ( name=value) are given in brackets.
+The instance Q1... requires model parameters. For a quick test one may do without
+device maker's model parameters.

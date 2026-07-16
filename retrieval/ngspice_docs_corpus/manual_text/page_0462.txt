@@ -1,0 +1,22 @@
+462 CHAPTER 18. NGSPICE USER INTERF ACES
+Figure 18.2: Plotting with white background
+Many more set command options are available to customize the plot window. To name a
+few (please see 17.7 for details): colorN, gridsize, gridstyle, plotstyle, pointchars, ticchar,
+ticmarks, ticlist, wfont 1, wfont_size, xbrushwidth, xgridwidth, xfont 2, xfont_size.
+As ngspice supports UNICODE text, fonts supporting other letterings than plain English
+may be selected, e.g. Korean, Japanese, Chinese, Cyrillic, Arabic etc..
+18.2 MS Windows Console
+If the --with-wingui flag for ./configure under MINGW is omitted (see 32.2.4) or con-
+sole_debug or console_release is selected in the MS Visual Studio configuration manager,
+then ngspice will compile without any internal graphical input or output capability. This
+may be useful if you apply ngspice in a pipe inside the MSYS window, or use it being
+called from another program, and just generating output files from a given input. The
+plot (17.5.53) command will not work and leads to an error message. In the MS Windows
+release of ngspice its binary is distributed as ngspice_con.exe.
+Only on the ngspice console binary in MS Windows input/output redirection is possible,
+if ngspice is called (e.g. within a MSYS shell or from a shell script) like
+$ ngspice_con < input.
+This feature is used in the new CMC model test suite (to be described elsewhere), thus
+requires a console binary.
+1Win GUI only
+2X11 only

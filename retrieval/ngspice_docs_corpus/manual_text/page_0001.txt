@@ -1,0 +1,5 @@
+Ngspice User's Manual
+Version 42
+(ngspice release version)
+Holger Vogt, Giles Atkinson, Paolo Nenzi
+December 27th, 2023

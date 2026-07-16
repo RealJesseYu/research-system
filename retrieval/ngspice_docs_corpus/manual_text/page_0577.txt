@@ -1,0 +1,40 @@
+28.2. CREATING CODE MODELS 577
+28.2 Creating Code Models
+The following description deals with extending one of the five existing code model libraries.
+Adding a new library is described in Chapt. 28.4. The first step in creating a new code
+model within XSPICE is to create a model directory inside of the selected library directory.
+The new directory name is the name of the new code model. As an example you may add
+a directory d_counter to the library directory digital.
+cd ngspice/src/xspice/icm/digital
+mkdir d_counter
+Into this new directory you copy the following template files:
+• Interface Specification File (ifspec.ifs)
+• Model Definition File (cfunc.mod)
+You may choose existing files that are similar to the new code model you intend to
+integrate. The template Interface Specification File (ifspec.ifs) is edited to define the
+model's inputs, outputs, parameters, etc (see Chapt. 28.6). You then edit the template
+Model Definition File ( cfunc.mod) to include the C-language source code that defines the
+model behavior (see Chapt. 28.7). As a final step you have to notify ngspice of the new
+code model. You have to edit the file modpath.lst that resides in the library directory
+ngspice/src/xspice/icm/digital. Just add the entry d_counter to this file.
+The Interface Specification File is a text file that describes, in a tabular format, infor-
+mation needed for the code model to be properly interpreted by the simulator when it is
+placed with other circuit components into a SPICE deck. This information includes such
+things as the parameter names, parameter default values, and the name of the model it-
+self. The specific format presented to you in the Interface Specification File template must
+be followed exactly, but is quite straightforward. A detailed description of the required
+syntax, along with numerous examples, is included in Section 28.6.
+The Model Definition File contains a C programming language function definition. This
+function specifies the operations to be performed within the model on the data passed to
+it by the simulator. Special macros are provided that allow the function to retrieve input
+data and return output data. Similarly, macros are provided to allow for such things
+as storage of information between iteration time-points and sending of error messages.
+Section 28.7 describes the form and function of the Model Definition File in detail and
+lists the support macros provided within the simulator for use in code models.
+To allow compiling and linking (see Chapt. 28.5) you have at least to adapt the names of
+the functions inside of the two copied files to get unique function and model names. If for
+example you have chosen ifspec.ifs and cfunc.mod from model d_fdiv as your template,
+simply replace all entries d_fdiv by d_counter inside of the two files.
+28.3 Creating User-Defined Nodes
+In addition to providing the capability of adding new models to the simulator, a facility
+exists that allows node types other than those found in standard SPICE to be created.

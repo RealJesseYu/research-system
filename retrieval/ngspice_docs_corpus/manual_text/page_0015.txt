@@ -1,0 +1,36 @@
+CONTENTS 15
+16 Starting ngspice 343
+16.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 343
+16.2 Where to obtain ngspice . . . . . . . . . . . . . . . . . . . . . . . . . . . . 343
+16.3 Command line options for starting ngspice . . . . . . . . . . . . . . . . . . 344
+16.4 Starting options . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 346
+16.4.1 Batch mode . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 346
+16.4.2 Interactive mode . . . . . . . . . . . . . . . . . . . . . . . . . . . . 346
+16.4.3 Control mode (Interactive mode with control file or control section) 347
+16.5 Standard configuration file spinit . . . . . . . . . . . . . . . . . . . . . . . 348
+16.6 User defined configuration file .spiceinit . . . . . . . . . . . . . . . . . . . . 350
+16.7 Environmental variables . . . . . . . . . . . . . . . . . . . . . . . . . . . . 351
+16.7.1 Ngspice specific variables . . . . . . . . . . . . . . . . . . . . . . . . 351
+16.7.2 Common environment variables . . . . . . . . . . . . . . . . . . . . 352
+16.8 Memory usage . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 352
+16.9 Simulation time . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 352
+16.10Ngspice on multi-core processors using OpenMP . . . . . . . . . . . . . . . 353
+16.10.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 353
+16.10.2 Internals . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 353
+16.10.3 Some results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 354
+16.10.4 Usage . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 355
+16.10.5 Literature . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 355
+16.11Server mode option -s . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 355
+16.12Pipe mode option -p . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 357
+16.13Ngspice control via input, output fifos . . . . . . . . . . . . . . . . . . . . . 358
+16.14Compatibility . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 359
+16.14.1 Compatibility mode . . . . . . . . . . . . . . . . . . . . . . . . . . . 359
+16.14.2 Missing functions . . . . . . . . . . . . . . . . . . . . . . . . . . . . 360
+16.14.3 Devices . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 360
+16.14.4 Controls and commands . . . . . . . . . . . . . . . . . . . . . . . . 361
+16.14.5 PSPICE Compatibility mode . . . . . . . . . . . . . . . . . . . . . 362
+16.14.6 LTSPICE Compatibility mode . . . . . . . . . . . . . . . . . . . . . 363
+16.14.7 LTSPICE/PSPICE Compatibility mode . . . . . . . . . . . . . . . 365
+16.14.8 KiCad Compatibility mode . . . . . . . . . . . . . . . . . . . . . . . 365
+16.14.9 Spectre Compatibility mode . . . . . . . . . . . . . . . . . . . . . . 366
+16.14.10 HSPICE Compatibility mode . . . . . . . . . . . . . . . . . . . . . 366

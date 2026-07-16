@@ -1,0 +1,40 @@
+28.7. MODEL DEFINITION FILE 587
+U D N _ E x a m p l e _ T y p e * a_ptr , /* A pointer used to access a
+User - Defined Node type */
+* y_ptr ; /* A pointer used to access a
+User - Defined Node type */
+/* I n i t i a l i z i n g and outputting a User - Defined Node result */
+if ( INIT ) {
+OUTPUT ( y ) = malloc ( sizeof ( user . defined . struct ));
+y_ptr = OUTPUT ( y );
+y_ptr - > component1 = 0.0;
+y_ptr - > component2 = 0.0;
+}
+else {
+y_ptr = OUTPUT ( y );
+y_ptr - > component1 = x1 ;
+y_ptr - > component2 = x2 ;
+}
+/* Det erm ini ng analysis type */
+if ( ANALYSIS == AC ) {
+/* Perform AC analysis - dependent operations here */
+}
+/* Accessing a parameter value from the . model card */
+p = PARAM ( gain );
+/* Accessing a vector parameter from the . model card */
+for ( i = 0; i < PARAM_SIZE ( in_offset ); i ++)
+p = PARAM ( in_offset [ i ]);
+/* Accessing the value of a simple real - valued input */
+x = INPUT ( a );
+/* Accessing a vector input and checking for null port */
+if ( ! PORT_NULL ( a ))
+for ( i = 0; i < PORT_SIZE ( a ); i ++)
+x = INPUT ( a [ i ]);
+/* Accessing a digital input */
+x = INPUT ( a );
+/* Accessing the value of a User - Defined Node input ...
+*/
+/* This node type includes two elements in its definition . */
+a_ptr = INPUT ( a );
+x = a_ptr - > component1 ;
+y = a_ptr - > component2 ;

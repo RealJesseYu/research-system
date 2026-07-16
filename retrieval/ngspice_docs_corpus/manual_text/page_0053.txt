@@ -1,0 +1,35 @@
+2.3. BASIC LINES 53
+2.3 Basic lines
+2.3.1 .TITLE line
+Examples:
+POWER AMPLIFIER CIRCUIT
+* additional lines following
+*...
+Test of CAM cell
+* additional lines following
+*...
+The title line must be the first in the input file. Its contents are printed verbatim as the
+heading for each section of output.
+As an alternative, you may place a .TITLE <any title> line anywhere in your input
+deck. The first line of your input deck will be overridden by the contents of this line
+following the .TITLE statement.
+.TITLE line example:
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+* additional lines following
+*...
+. TITLE Test of CAM cell
+* additional lines following
+*...
+will internally be replaced by
+Internal input deck:
+Test of CAM cell
+* additional lines following
+*...
+* TITLE Test of CAM cell
+* additional lines following
+*...
+2.3.2 .END Line
+Examples:
+. end
+The .end line must always be the last in the input file. Note that the period is an integral
+part of the name.

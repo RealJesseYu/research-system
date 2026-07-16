@@ -1,0 +1,49 @@
+12.2. ANALOG MODELS 203
+Direction: inout
+Default_Type: gd
+Allowed_Types: [gd]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: v_breakdown i_breakdown
+Description: "breakdown voltage" "breakdown current"
+Data_Type: real real
+Default_Value: - 2.0e-2
+Limits: [1.0e-6 1.0e6] [1.0e-9 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no yes
+PARAMETER_TABLE:
+Parameter_Name: i_sat n_forward
+Description: "saturation current" "forward emission coefficient"
+Data_Type: real real
+Default_Value: 1.0e-12 1.0
+Limits: [1.0e-15 -] [0.1 10]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: limit_switch
+Description: "switch for on-board limiting (convergence aid)"
+Data_Type: boolean
+Default_Value: FALSE
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+STATIC_VAR_TABLE:
+Static_Var_Name: previous_voltage
+Data_Type: pointer
+Description: "iteration holding variable for limiting"
+Description: The Zener Diode models the DC characteristics of most zeners. This model
+differs from the Diode/Rectifier by providing a user-defined dynamic resistance in
+the reverse breakdown region. The forward characteristic is defined by only a single
+point, since most data sheets for zener diodes do not give detailed characteristics in
+the forward region.
+The first three parameters define the DC characteristics of the zener in the break-
+down region and are usually explicitly given on the data sheet.
+The saturation current refers to the relatively constant reverse current that is pro-
+duced when the voltage across the zener is negative, but breakdown has not been
+reached. The reverse leakage current determines the slight increase in reverse cur-
+rent as the voltage across the zener becomes more negative. It is modeled as a

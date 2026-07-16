@@ -1,0 +1,42 @@
+17.7. INTERNALLY PREDEFINED V ARIABLES 435
+askquit Check to make sure that there are circuits suspended or plots unsaved. ngspice
+warns the user when he tries to quit if this is the case. brief If set to FALSE, the
+netlist will be printed.
+auto_bridge When set to zero, automatic insertion of bridging devices ( 12.6) is disabled.
+auto_bridge_xxxx Variables of this general format are used to control insertion of au-
+tomatic bridging devices. See section 12.6.
+batchmode Set by ngspice if run with the -b command line parameter. May be used in
+input files to suppress plotting if ngspice runs in batch mode.
+brief Suppresses automatic display of the processed netlist. It is set by default.
+colorN These variables determine the colors used during plotting. Color values may be
+entered as RGB values from 0 to 255 (hex or decimal) or stating a color name.
+The identification number N may be an integer between 0 and 22. Color0 is the
+background, color1 is the grid and text color, and color ids from 2 through 22
+are used for graphs (vectors) plotted. Hex color coding is done according to set
+colorN=rgb:r/g/b, where r, g, and b may range from 00 to FF each. For example
+green is selected by set color3=rgb:00/FF/ 00. Decimal coding is available as set
+colorN=rgbd:rd/gd/bd, where rd, gd, and bd may range from 0 to 255. If X11 is
+being run (Linux, macOS, Cygwin), the value of the color variables may be any of
+the standard X-Server color names, which may be found in file /usr/lib/rgb.txt.
+ngspice GUI for Windows supports color names according to the Naming Common
+Colors project. Details with more than 140 color names are to be found in file
+wincolornames.h. An example is set color3=blue . If no color id is set, then a
+predefined set of colors is applied automatically.
+controlswait (only available with shared ngspice, chapt. 19.4.1.4) If the simulation is
+started with the background thread (command bg_run), the .control section com-
+mands are executed immediately after bg_run has been given, i.e. typically before
+the simulation has finished. This often is not very useful because you want to evalu-
+ate the simulation results. If controlswait is set in .spiceinit or spice.rc, the command
+execution is delayed until the background thread has returned (aka the simulation
+has finished). If set controlswait is given inside of the .control section, only the
+commands following this statement are delayed.
+cpdebug Print control debugging information.
+csnumprec Allows setting the precision of values derived from vectors and variables (by
+$var, $&vec) as arguments to functions listet in chapter 17.5. Default is 6, as has
+been standard up to now. If functions are using directly a vector as input (without
+the tranfer to number by $&), full double precision is used.
+curplot (read only) Returns <type><no.> of the current plot. Type is one of tran, ac,
+op, sp, dc, unknown, no. is a number, sequentially set internally. This information
+is used to uniquely identify each plot.
+curplotdate Sets the date of the current plot.
+curplotname Sets the name of the current plot.

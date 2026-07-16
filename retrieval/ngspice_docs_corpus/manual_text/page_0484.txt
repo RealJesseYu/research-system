@@ -1,0 +1,26 @@
+484CHAPTER 19. NGSPICE AS SHARED LIBRARY OR DYNAMIC LINK LIBRARY
+Sending ngSpice_Command(NULL) will clear the internal control structures. Each com-
+mand sent to ngspice is stored in the control structures. If you run scripts with 10.000 or
+more commands, sending NULL from time to time will release this memory.
+19.3.2.4 bool ngSpice_running (void)
+Checks if ngspice is running in its background thread (returning 'true').
+19.3.2.5 pvector_info ngGet_Vec_Info(char*)
+uses the name of a vector (may be in the form 'vectorname' or <plotname>.vectorname)
+as parameter and returns a pointer to a vector_info struct. The caller may then directly
+assess the vector data (but better should not modify them).
+19.3.2.6 int ngSpice_Circ(char**)
+sends an array of null-terminated char* to ngspice.dll. Each char* contains a single line of
+a circuit (Each line is like it is found in an input file *.sp.). The last entry to char** has to
+be NULL. Upon receiving the array, ngspice.dll will immediately parse the input and set
+up the circuit structure (as if the circuit is loaded from a file by the 'source' command).
+The function returns a '1' upon error, otherwise '0' .
+19.3.2.7 char* ngSpice_CurPlot(void)
+returns to the caller a pointer to the name of the current plot. For a definition of the
+term 'plot' see Chapt. 17.3.
+19.3.2.8 char** ngSpice_AllPlots(void)
+returns to the caller a pointer to an array of all plots (listed by their typename).
+19.3.2.9 char** ngSpice_AllVecs(char*)
+returns to the caller a pointer to an array of all vector names in the plot named by the
+string in the argument.
+19.3.2.10 bool ngSpice_SetBkpt(double)
+see Chapt. 19.6.

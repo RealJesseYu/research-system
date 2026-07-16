@@ -1,0 +1,45 @@
+12.2. ANALOG MODELS 217
+The slew rate block will continue to raise or lower its output until the difference
+between the input and the output values is zero. Thereafter, it will resume following
+the input signal, unless the slope again exceeds its rise or fall slope limits. The range
+input specifies a smoothing region above or below the input value. Whenever the
+model is slewing and the output comes to within the input + or - the range value,
+the partial derivative of the output with respect to the input will begin to smoothly
+transition from 0.0 to 1.0. When the model is no longer slewing (output = input),
+dout/din will equal 1.0.
+Example SPICE Usage:
+a15 1 2 slew1
+.model slew1 slew(rise_slope=0.5e6 fall_slope=0.5e6)
+12.2.21 Inductive Coupling
+NAME_TABLE:
+C_Function_Name: cm_lcouple
+Spice_Model_Name: lcouple
+Description: "inductive coupling (for use with 'core' model)"
+PORT_TABLE:
+Port_Name: l mmf_out
+Description: "inductor" "mmf output (in ampere-turns)"
+Direction: inout inout
+Default_Type: hd hd
+Allowed_Types: [h,hd] [hd]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: num_turns
+Description: "number of inductor turns"
+Data_Type: real
+Default_Value: 1.0
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: This function is a conceptual model that is used as a building block to
+create a wide variety of inductive and magnetic circuit models. This function is
+normally used in conjunction with the core model, but can also be used with
+resistors, hysteresis blocks, etc. to build up systems that mock the behavior of
+linear and nonlinear components.
+The lcouple takes as an input (on the ' l' port), a current. This current value is
+multiplied by the num_turns value, N, to produce an output value (a voltage value
+that appears on the mmf_out port). The mmf_out acts similar to a magnetomotive
+force in a magnetic circuit; when the lcouple is connected to the core model, or
+to some other resistive device, a current will flow. This current value (which is

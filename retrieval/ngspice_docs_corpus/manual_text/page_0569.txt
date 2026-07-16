@@ -1,0 +1,53 @@
+27.2. XSPICE ADV ANCED USAGE 569
+Example (continued):
+abridge2 div8_out enable filt_in n o d e _ b r i d g e 2
+. model n o d e _ b r i d g e 2 d_to_real ( zero = -1 one =1)
+*
+xfilter filt_in clk filt_out dig_filter
+*
+abridge3 filt_out a_out n o d e _ b r i d g e 3
+. model n o d e _ b r i d g e 3 real_to_v
+*
+rlpf1 a_out oa_minus 10 k
+*
+xlpf 0 oa_minus lpf_out opamp
+*
+rlpf2 oa_minus lpf_out 10 k
+clpf lpf_out oa_minus 0.01 uF
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+. subckt dig_filter filt_in clk filt_out
+. model n0 real_gain ( gain =1.0)
+. model n1 real_gain ( gain =2.0)
+. model n2 real_gain ( gain =1.0)
+. model g1 real_gain ( gain =0.125)
+. model zm1 real_delay
+. model d0a real_gain ( gain = -0.75)
+. model d1a real_gain ( gain =0.5625)
+. model d0b real_gain ( gain = -0.3438)
+. model d1b real_gain ( gain =1.0)
+*
+an0a filt_in x0a n0
+an1a filt_in x1a n1
+an2a filt_in x2a n2
+*
+az0a x0a clk x1a zm1
+az1a x1a clk x2a zm1
+*
+ad0a x2a x0a d0a
+ad1a x2a x1a d1a
+*
+az2a x2a filt1_out g1
+az3a filt1_out clk filt2_in zm1
+*
+an0b filt2_in x0b n0
+an1b filt2_in x1b n1
+an2b filt2_in x2b n2
+*
+az0b x0b clk x1b zm1
+az1b x1b clk x2b zm1
+*
+ad0 x2b x0b d0b
+ad1 x2b x1b d1b
+*
+az2b x2b clk filt_out zm1
+. ends dig_filter

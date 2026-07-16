@@ -1,0 +1,32 @@
+340 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+P = i1*(v1-vref) + i2*(v2-vref) +...+ in*(vn-vref)
+General form for power measurements:
+. probe p ( device )
+Examples:
+* power di ssi pat ion of a subcircuit device
+. probe p ( XU1 )
+* power di ssi pat ion in a MOS transistor
+. probe p ( MQ1 )
+Resulting output vectors:
+xu1 : power
+mq1 : power
+All new items are added to the list of vectors named by .SAVE (see 15.6.1). If .save is not
+given, only the newly generated .PROBE vectors are saved.
+15.6.6 par( 'expression '): Algebraic expressions for output
+General form:
+par ( ' expression ')
+output = par ( ' expression ') $ not in . measure ac
+Examples:
+. four 1001 sq1 = par ( ' v (1)* v (1) ')
+. measure tran vtest find par ( '( v (2)* v (1)) ') AT =2.3 m
+. print tran output = par ( ' v (1)/ v (2) ') v (1) v (2)
+. plot dc v (1) diff = par ( '( v (4) - v (2))/0.01 ') out222
+With the output lines .four, .plot, .print, .save and in .measure evaluation, it
+is possible to add algebraic expressions for output, in addition to vectors. All of these
+output lines accept par('expression '), where expression is any expression valid for a B
+source (see Chapt. 5.1). Thus expression may contain predefined functions, numerical val-
+ues, constants, simulator output like v(n1) or i(vdb), parameters predefined by a .param
+statement, and the variables hertz, temper, and time. Note that a B-source, and there-
+fore the par('...') feature, operates on values of type complex in AC analysis mode.
+Internally the expression is replaced by a generated voltage node that is the output of a B
+source, one node, and the B source implementing par(' ... '). Several par(' ... ') are allowed

@@ -1,0 +1,30 @@
+500 CHAPTER 20. TCLSPICE
+20.3 spicetoblt
+Tclspice opens its doors to TCL and BLT with a single specific command spicetoblt.
+TCLspice gets its identity in the command spice::vectoblt . This command copies data
+computed by the simulation engine into a tcl variable. vectoblt is composed of three
+words: vec, to and blt. Vec means SPICE vector data. To is the English preposition, and
+blt is a useful tcl package providing a vector data structure. Example:
+blt :: vector create Iex
+spice :: vectoblt Vex # branch Iex
+Here an empty blt vector is created. It is then filled with the vector representation of the
+current flowing out of source Vex. Vex#branch is native SPICE syntax. Iex is the name
+of the BLT vector.
+The reverse operation is handled by native SPICE commands, such as alter, let and
+set.
+20.4 Running TCLspice
+TCLspice consists of a library or a package to include in your tcl console or script:
+load / somepath / libspice . so
+package require spice
+Then you can execute any native SPICE command by preceding it with spice::. For
+example if you want to source the testCapa.cir netlist, type the following:
+spice :: source testCapa . cir
+spice :: spicetoblt example ...
+Plotting data is not a matter of SPICE, but of tcl. Once the data is stored in a blt vector,
+it can be plotted. Example:
+blt :: graph . cimvd - title " Cim = f ( Vd )"
+pack . cimvd
+. cimvd element create line1 - xdata Vcmd - ydata Cim
+With blt::graph a plotting structure is allocated in memory. With pack it is placed into
+the output window, and becomes visible. The last command, and not the least, plots the
+function Cim = f (Vcmd), where Cim and Vcmd are two BLT vectors.

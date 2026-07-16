@@ -1,0 +1,41 @@
+370 CHAPTER 17. INTERACTIVE INTERPRETER
+variables, with different syntax, to access double and complex double vectors (possibly of
+length 1). This new variable type is modified with let, and can be used without special
+syntax in places where a numerical expression is expected: let bar = 4 * 5; let zoo
+= bar * 4 works. Unfortunately, occasionally one has to cross the boundary between
+the numeric and the string domain. For this purpose the $& construct is available - it
+queries a variable in the numerical let domain, and expands it to a c-sh string denoting
+the value. This lets you do do something like set another = "this is $&bar" . It is
+important to remember that set can only operate on (c-sh) strings, and that let operates
+only on numeric data contained in vectors. Convert from numeric to string with $&, and
+from string to numeric with $.
+17.2 Expressions, Functions, and Constants
+Ngspice stores data in the form of vectors: time, voltage, etc. Each vector has a type,
+and vectors can be operated on and combined algebraically in ways consistent with their
+types. Vectors are normally created as the output of a simulation, or when a data file
+(output raw file) is read in again (ngspice using the the load command 17.5.45), or when
+the initial data-file is loaded directly into ngnutmeg. They can also be created with the
+let command ( 17.5.42).
+An expression is an algebraic formula involving vectors and scalars (a scalar is a vector
+of length 1) and the following operations:
++ - * / ^ % ,
+% is the modulo operator, and the comma operator has two meanings: if it is present
+in the argument list of a user definable function, it serves to separate the arguments.
+Otherwise, the term x , y is synonymous with x + j(y) . Also available are the logical
+operations & (and), | (or), ! (not), and the relational operations <, >, >=, <=, =,
+and <> (not equal). If used in an algebraic expression they work like they would in C,
+producing values of 0 or 1. The relational operators have the following synonyms:
+Operator Synonym
+gt >
+lt <
+ge >=
+le <=
+ne <>
+and &
+or |
+not !
+eq =
+The operators are useful when < and > might be confused with the internal IO redirection
+(see 17.4, which is almost always happening). It is however safe to use < and > with the
+define command ( 17.5.16).
+The following functions are available:

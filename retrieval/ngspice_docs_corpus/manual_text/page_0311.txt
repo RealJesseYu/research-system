@@ -1,0 +1,48 @@
+15.3. ANALYSES 311
+If the optional parameter f2overf1 is not specified, .disto does a harmonic analysis - i.e.,
+it analyses distortion in the circuit using only a single input frequency F1, which is swept
+as specified by arguments of the .disto command exactly as in the .ac command. Inputs
+at this frequency may be present at more than one input source, and their magnitudes
+and phases are specified by the arguments of the distof1 keyword in the input file lines
+for the input sources (see the description for independent sources). (The arguments of
+the distof2 keyword are not relevant in this case).
+The analysis produces information about the AC values of all node voltages and branch
+currents at the harmonic frequencies 2F1 and , vs. the input frequency F1 as it is swept. (A
+value of 1 (as a complex distortion output) signifies cos(2π(2F1)t) at 2F1 and cos(2π(3F1)t)
+at 3F1, using the convention that 1 at the input fundamental frequency is equivalent
+to cos(2πF1t).) The distortion component desired ( 2F1 or 3F1) can be selected using
+interactive or control commands in ngspice, and then printed or plotted. (Normally, one
+is interested primarily in the magnitude of the harmonic components, so the magnitude
+of the AC distortion value is looked at). It should be noted that these are the AC values
+of the actual harmonic components, and are not equal to HD2 and HD3. To obtain HD2
+and HD3, one must divide by the corresponding AC values at F1, obtained from an .ac
+line. This division can be done again using interactive or control commands.
+If the optional f2overf1 parameter is specified, it should be a real number between (and
+not equal to) 0.0 and 1.0; in this case, .disto does a spectral analysis. It considers
+the circuit with sinusoidal inputs at two different frequencies F1 and F2. F1 is swept
+according to the .disto control line options exactly as in the .ac control line. F2 is
+kept fixed at a single frequency as F1 sweeps - the value at which it is kept fixed is
+equal to f2overf1 times fstart. Each independent source in the circuit may potentially
+have two (superimposed) sinusoidal inputs for distortion, at the frequencies F1 and F2.
+The magnitude and phase of the F1 component are specified by the arguments of the
+distof1 keyword in the source's input line (see the description of independent sources);
+the magnitude and phase of the F2 component are specified by the arguments of the
+distof2 keyword. The analysis produces plots of all node voltages/branch currents at
+the intermodulation product frequencies F1 + F2, F1 − F2, and (2F1) − F2, vs the swept
+frequency F1. The IM product of interest may be selected using the setplot command,
+and displayed with the print and plot commands. It is to be noted as in the harmonic
+analysis case, the results are the actual AC voltages and currents at the intermodulation
+frequencies, and need to be normalized with respect to .ac values to obtain the IM
+parameters.
+If the distof1 or distof2 keywords are missing from the description of an independent
+source, then that source is assumed to have no input at the corresponding frequency. The
+default values of the magnitude and phase are 1.0 and 0.0 respectively. The phase should
+be specified in degrees.
+It should be carefully noted that the number f2overf1 should ideally be an irrational
+number, and that since this is not possible in practice, efforts should be made to keep
+the denominator in its fractional representation as large as possible, certainly above 3,
+for accurate results (i.e., if f2overf1 is represented as a fraction A/B, where A and B
+are integers with no common factors, B should be as large as possible; note that A < B
+because f2overf1 is constrained to be < 1). To illustrate why, consider the cases where
+f2overf1 is 49/100 and 1/2. In a spectral analysis, the outputs produced are at F1 + F2,
+F1 − F2 and 2F1 − F2. In the latter case, F1 − F2 = F2, so the result at the F1 − F2

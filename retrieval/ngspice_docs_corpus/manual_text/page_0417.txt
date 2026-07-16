@@ -1,0 +1,35 @@
+17.5. COMMANDS 417
+17.5.79 Show*: List device state
+General Form:
+show devices [ : parameters ] , ...
+The show command prints out tables summarizing the operating condition of selected
+devices. If devices is missing, a default set of devices are listed, if devices is a single
+letter, devices of that type are listed. A device's full name may be specified to list only
+that device. Finally, devices may be selected by model by using the form #modelname.
+Because the output format is tabular, long strings, including device names, may be trun-
+cated. The command " set altshow " selects an alternative output format without trun-
+cations.
+If no parameters are specified, the values for a standard set of parameters are listed. If
+the list of parameters contains a ' +', the default set of parameters is listed along with
+any other specified parameters.
+For both devices and parameters, the word all has the obvious meaning.
+Note: there must be spaces around the ' :' that divides the device list from the parameter
+list.
+17.5.80 Showmod*: List model parameter values
+General Form:
+showmod models [ : parameters ] , ...
+The showmod command operates like the show command (above) but prints out model
+parameter values. The applicable forms for models are a single letter specifying the device
+type letter (e.g. m, or c), a device name (e.g. m.xbuf22.m4b), or #modelname (e.g. #p1).
+Typical usage (e.g. for BSIM4 model):
+showmod # cmosn # cmosp : lkvth0 vth0
+Note: there must be spaces around the ' :' that divides the device list from the parameter
+list.
+Obtain the default model parameters (e.g. for a BJT device):
+netlist for default bipolar transistor
+Q1 cc bb ee defbip
+. model defbip npn
+. control
+op
+showmod q1
+. endc

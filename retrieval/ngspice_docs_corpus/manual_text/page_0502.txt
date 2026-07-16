@@ -1,0 +1,33 @@
+502 CHAPTER 20. TCLSPICE
+blt :: graph . cimvd - title " Cim = f ( Vd )"
+blt :: graph . checkvd - title " Rim = f ( Vd )"
+blt :: vector create Iex
+blt :: vector create freq
+blt :: graph . freqanal - title " Analyse f r e q u e n t i e l l e "
+#
+# First simulation : A simple AC plot
+#
+set v [ expr { $vmin + $n * $pas / 4}]
+spice :: alter vd = $v
+spice :: op
+spice :: ac dec 10 100 100 k
+Retrieve a the intensity of the current across Vex source
+spice :: vectoblt { Vex # branch } Iex
+Retrieve the frequency at which the current have been assessed
+spice :: vectoblt { frequency } freq
+Room the graph in the display window
+pack . freqanal
+Plot the function Iex =f(V)
+. freqanal element create line1 - xdata freq - ydata Iex
+#
+# Second simulation : Cap aci tan ce versus voltage control
+# for { set i 0} {[ expr $n - $i ]} { incr i }
+# { set v [ expr { $vmin + $i * $pas }]
+spice :: alter vd = $v
+spice :: op spice :: ac dec 10 100 100 k
+Image capacitance is calculated by SPICE, instead of TCL there is no objective reason
+spice :: let Cim = real ( mean ( Vex # branch /(2* Pi * i * frequency *( V (5) - V (6)))))
+spice :: vectoblt Cim Ctmp
+Build function vector point by point
+Cim append $Ctmp (0: end )
+Build a control vector to check simulation success

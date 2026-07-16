@@ -1,0 +1,44 @@
+20.5. EXAMPLES 505
+proc t h e r m i s t a n c e _ c a l c { res B points } {
+set tzero 273.15
+set tref 25
+set t h e r m i s t a n c e ""
+foreach t $points {
+set res_temp [ expr " $res *
++ exp ( $B * ( 1 / ( $tzero + $t ) -
++ 1 / ( $tzero + $tref ) ) ) " ]
+set t h e r m i s t a n c e " $ t h e r m i s t a n c e $res_temp "
+}
+return $ t h e r m i s t a n c e }
+generates the expected floating value as a vector, typically run: tref_calc res B [ temper-
+atures_calc temp_inf temp_sup points ]
+proc tref_calc { points } {
+set tref ""
+foreach t $points {
+set tref " $tref [ expr "6*(2.275 -0.005*( $t -20)) -9"]"
+}
+return $tref }
+In the optimization algorithm, this function computes the effective floating voltage at the
+given temperature.
+### NOTE :
+### As component values are modified by a spice ::
+alter
+### Component values can be considered as global
+variable .
+### R10 and R12 are not passed to iteration function
+### because it is expected to be correct , i . e . to
+### have been modified soon before
+proc iteration { t } { set tzero 273.15 spice :: alter
+r11 = [ t h e r m i s t a n c e _ c a l c 10000 3900 $t ]
+# Te mpe rat ure simulation often crashes . Comment it
+out ...
+# spice :: set temp = [ expr " $tzero + $t " ]
+spice :: op
+spice :: vectoblt vref_temp tref_tmp
+### NOTE :
+### As the library is executed once for the
+### whole script execution , it is important to manage
+the memory
+### and regularly destroy unused data set . The data
+### computed here will not be reused . Clean it
+spice :: destroy all return [ tref_tmp range 0 0 ] }

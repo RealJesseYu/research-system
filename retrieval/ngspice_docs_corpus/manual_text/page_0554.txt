@@ -1,0 +1,30 @@
+554 CHAPTER 26. EXECUTION PROCEDURES
+Figure 26.1: Example Circuit 1
+assignment of alphanumeric identifiers to each circuit node, the assignment of component
+identifiers to each circuit device, and the definition of the significant parameters for each
+device. For example, the circuit description below shows the equivalent input file for the
+circuit shown in Fig. 26.1.
+Examples for control of a behavioral resistor:
+Small Signal Amplifier
+*
+* This circuit simulates a simple small signal amplifier .
+*
+Vin Input 0
+0 SIN (0 .1 500 Hz )
+R_source Input Amp_In 100
+C1 Amp_In 0 1 uF
+R_A mp_ Inp ut Amp_In 0 1 MEG
+E1 ( Amp_Out 0) ( Amp_In 0) -10
+R_Load Amp_Out 0 1000
+. Tran 1.0 u 0.01
+. end
+This file exhibits many of the most important properties common to all SPICE circuit
+description files including the following:
+• The first line of the file is always interpreted as the title of the circuit. The title
+may consist of any text string.
+• Lines that provide user comments, but no circuit information, are begun by an
+asterisk.
+• A circuit device is specified by a device name, followed by the node(s) to which it
+is connected, and then by any required parameter information.
+• The first character of a device name tells the simulator what kind of device it is
+(e.g. R = resistor, C = capacitor, E = voltage controlled voltage source).

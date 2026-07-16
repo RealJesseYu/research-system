@@ -1,0 +1,49 @@
+196CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+STATIC_VAR_TABLE:
+Static_Var_Name: x y
+Data_Type: pointer pointer
+Description: "time array" "y-coefficient array"
+Description: The Piece-Wise Linear Time Controlled Source is a time input, single out-
+put function. The output follows an time/output relationship specified by you via
+the x_array and y_array coordinates. This is detailed below.
+The x_array and y_array values represent vectors of coordinate points on the x and
+y axes, respectively. The x_array values are progressively increasing positive input
+coordinate points (minimum is 0), and the associated y_array values represent the
+outputs at those points. There may be as few as two ( x_array[n], y_array[n])
+pairs specified, or as many as memory and simulation speed allow. This permits
+you to very finely approximate a non-linear time dependent waveform by capturing
+multiple input-output coordinate points.
+Two aspects of the PWLTS Controlled Source warrant special attention. These are
+the handling of endpoints and the smoothing of the described transfer function near
+coordinate points.
+In order to fully specify outputs for values of in outside of the bounds of the PWLTS
+function (i.e., less than x_array[0] (with x_array[0] >= 0 always) or greater than
+x_array[n], where n is the largest user-specified coordinate index), the PWLTS
+Time Controlled Source model extends the slope found between the lowest two co-
+ordinate pairs and the highest two coordinate pairs. This has the effect of making
+the transfer function completely linear for times less than x_array[0] and times
+greater than x_array[n]. It also has the potentially subtle effect of unrealistically
+causing an output to reach a very large or small value for large input times.
+In order to diminish the potential for non-convergence of simulations when using the
+PWL block, a form of smoothing around the x_array, y_array coordinate points
+is necessary. This is due to the iterative nature of the simulator and its reliance on
+smooth first derivatives of transfer functions in order to arrive at a matrix solution.
+Consequently, the input_domain and fraction parameters are included to allow
+you some control over the amount and nature of the smoothing performed.
+Fraction is a switch that is either TRUE or F ALSE. When TRUE (the default
+setting), the simulator assumes that the specified input domain value is to be in-
+terpreted as a fractional figure. Otherwise, it is interpreted as an absolute value.
+Thus, if fraction=TRUE and input_domain=0.10, the simulator assumes that the
+smoothing radius about each coordinate point is to be set equal to 10% of the length
+of either the x_array segment above each coordinate point, or the x_array segment
+below each coordinate point. The specific segment length chosen will be the small-
+est of these two for each coordinate point.
+On the other hand, if fraction=F ALSE and input_domain=0.10, then the simu-
+lator will begin smoothing the transfer function at 0.10 seconds below each x_array
+coordinate and will continue the smoothing process for another 0.10 seconds above
+each x_array coordinate point. Since the overlap of smoothing domains is not al-
+lowed, checking is done by the model to ensure that the specified input domain
+value is not excessive.
+One subtle consequence of the use of the fraction=TRUE feature of the PWL
+Time Controlled Source is that, in certain cases, you may inadvertently create ex-
+treme smoothing of functions by choosing inappropriate coordinate value points.

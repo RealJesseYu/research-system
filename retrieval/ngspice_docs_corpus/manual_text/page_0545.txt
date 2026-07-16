@@ -1,0 +1,5 @@
+BIBLIOGRAPHY 545
+[28] F. Lannutti, P. Nenzi and M. Olivieri, "KLU sparse direct linear solver implementa-
+tion into NGSPICE," Proceedings of the 19th International Conference Mixed Design
+of Integrated Circuits and Systems - MIXDES 2012, Warsaw, Poland, 2012, pp. 69-
+73.

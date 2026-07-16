@@ -1,0 +1,34 @@
+CONTENTS 27
+30.18NBJT . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 654
+30.18.1 DESCRIPTION . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 654
+30.18.2 Parameters . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 655
+30.18.3 EXAMPLES . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 655
+30.18.4 SEE ALSO . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 656
+30.18.5 BUGS . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 656
+30.19NUMOS . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 656
+30.19.1 DESCRIPTION . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 657
+30.19.2 Parameters . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 657
+30.19.3 EXAMPLES . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 658
+30.19.4 SEE ALSO . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 658
+30.202D contour plots . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 658
+30.21Cider examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 658
+IV Miscellaneous 659
+31 Model and Device Parameters 661
+31.1 Accessing internal device parameters . . . . . . . . . . . . . . . . . . . . . 661
+31.2 Elementary Devices . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 663
+31.2.1 Resistor . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 663
+31.2.2 Capacitor - Fixed capacitor . . . . . . . . . . . . . . . . . . . . . . 665
+31.2.3 Inductor - Fixed inductor . . . . . . . . . . . . . . . . . . . . . . . 666
+31.2.4 Mutual - Mutual Inductor . . . . . . . . . . . . . . . . . . . . . . . 667
+31.3 Voltage and current sources . . . . . . . . . . . . . . . . . . . . . . . . . . 668
+31.3.1 Bxxxx - Arbitrary source (ASRC) . . . . . . . . . . . . . . . . . . . 668
+31.3.2 Isource - Independent current source . . . . . . . . . . . . . . . . . 669
+31.3.3 Vsource - Independent voltage source . . . . . . . . . . . . . . . . . 670
+31.3.4 Fxxxx: Current-Controlled Current Source (CCCS) . . . . . . . . . 671
+31.3.5 Hxxxx: Current-Controlled Voltage Source (CCVS) . . . . . . . . . 671
+31.3.6 Gxxxx: Voltage-Controlled Current Source (VCCS) . . . . . . . . . 672
+31.3.7 Exxxx: Voltage-Controlled Voltage Source (VCVS) . . . . . . . . . 672
+31.4 Transmission Lines . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 673
+31.4.1 CplLines - Simple Coupled Multiconductor Lines . . . . . . . . . . 673
+31.4.2 LTRA - Lossy transmission line . . . . . . . . . . . . . . . . . . . . 674
+31.4.3 Tranline - Lossless transmission line . . . . . . . . . . . . . . . . . . 675

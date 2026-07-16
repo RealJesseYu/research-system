@@ -1,0 +1,29 @@
+28.8. USER-DEFINED NODE DEFINITION FILE 607
+create Allocate data structure used as inputs and outputs to
+code models.
+initialize Set structure to appropriate initial value for first use as
+model input.
+copy Make a copy of the contents into created but possibly
+uninitialized structure.
+compare Determine if two structures are equal in value.
+Optional functions:
+dismantle Free allocations inside structure (but not structure itself).
+invert Invert logical value of structure.
+resolve Determine the resultant when multiple outputs are connected
+to a node.
+plot_val Output a real value for specified structure component for
+plotting purposes.
+print_val Output a string value for specified structure component for
+printing.
+ipc_val Output a binary representation of the structure suitable
+for sending over the IPC channel.
+The required actions for each of these functions are described in the following subsections.
+In each function, you have to replace the XXX with the node type name specified. The
+macros used in implementing the functions are described in a later section.
+28.8.2.1 Function udn_XXX_create
+Allocate space for the data structure defined for the User-Defined Node to pass data
+between models. Then assign pointer created by the storage allocator (e.g. malloc) to
+MALLOCED_PTR.
+28.8.2.2 Function udn_XXX_initialize
+Assign STRUCT_PTR to a pointer variable of defined type and then initialize the value
+of the structure.

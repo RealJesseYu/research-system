@@ -1,0 +1,49 @@
+12.2. ANALOG MODELS 205
+Parameter_Name: r_out_source r_out_sink
+Description: "sourcing resistance" "sinking resistance"
+Data_Type: real real
+Default_Value: 1.0 1.0
+Limits: [1.0e-9 1.0e9] [1.0e-9 1.0e9]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: i_limit_source
+Description: "current sourcing limit"
+Data_Type: real
+Default_Value: -
+Limits: [1.0e-12 -]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: i_limit_sink
+Description: "current sinking limit"
+Data_Type: real
+Default_Value: -
+Limits: [1.0e-12 -]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: v_pwr_range i_source_range
+Description: "upper & lower power "sourcing current
+supply smoothing range" smoothing range"
+Data_Type: real real
+Default_Value: 1.0e-6 1.0e-9
+Limits: [1.0e-15 -] [1.0e-15 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: i_sink_range
+Description: "sinking current smoothing range"
+Data_Type: real
+Default_Value: 1.0e-9
+Limits: [1.0e-15 -]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: r_out_domain
+Description: "internal/external voltage delta smoothing range"

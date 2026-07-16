@@ -1,0 +1,41 @@
+15.4. MEASUREMENTS AFTER AC, DC AND TRANSIENT ANALYSIS 323
+analyze a spectrum from the spec or fft commands is only available when executed in a
+meas command, see 17.5.47.
+result will be a vector containing the result of the measurement. trig_variable,
+targ_variable, and out_variable are vectors stemming from the simulation, e.g. a
+voltage vector v(out).
+VAL=val expects a real number val. It may be as well a parameter delimited by " or {}
+expanding to a real number.
+TD=td and AT=time expect a time value if measure type is tran. For ac and sp, AT
+will be a frequency value, TD is ignored. For dc analysis, AT is a voltage (or current), TD
+is ignored as well.
+CROSS=# requires an integer number #. CROSS=LAST is possible as well. The same is
+expected by RISE and FALL.
+Frequency and time values may start at 0 and extend to positive real numbers. Voltage
+(or current) inputs for the independent (scale) axis in a dc analysis may start or end at
+arbitrary real valued numbers.
+Please note that not all of the .measure commands have been implemented.
+15.4.4 Input
+In the following lines you will get some explanation on the .measure commands. A
+simple simulation file with two sines of different frequencies may serve as an example.
+The transient simulation delivers time as the independent variable and two voltages as
+output (dependent variables).
+Input file:
+File : simple - meas - tran . sp
+* Simple . measure examples
+* transient simulation of two sine
+* signals with different fr equ enc ies
+vac1 1 0 DC 0 sin (0 1 1 k 0 0)
+vac2 2 0 DC 0 sin (0 1.2 0.9 k 0 0)
+. tran 10 u 5 m
+*
+. measure tran ... $ for the different inputs see
+below !
+*
+. control
+run
+plot v (1) v (2)
+. endc
+. end
+After displaying the general syntax of the .measure statement, some examples are posted,
+referring to the input file given above.

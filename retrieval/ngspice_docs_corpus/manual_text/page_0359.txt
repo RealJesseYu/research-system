@@ -1,0 +1,37 @@
+16.14. COMPATIBILITY 359
+- runs ngspice with the tran command
+- reads the output and prints it onto the console.
+The input file with a small circuit is:
+Circuit.cir:
+* Circuit . cir
+V1 n0 0 SIN (0 10 1 kHz )
+C1 n1 n0 3.3 nF
+R1 0 n1 1 k
+. end
+16.14 Compatibility
+ngspice is a direct derivative of spice3f5 from UC Berkeley and thus inherits all of the
+commands available in its predecessor. Thanks to the open source policy of UCB (orig-
+inal spice3 from 1994 is still available here), several commercial variants have sprung
+off, either being more dedicated to IC design or more concentrating on simulating dis-
+crete and board level electronics. None of the commercial and almost none of the freely
+downloadable SPICE providers publishes the source code. All of them have proceeded
+with the development, by adding functionality, or by adding a more dedicated user inter-
+face. Some have kept the original SPICE syntax for their netlist description, others have
+quickly changed some if not many of the commands, functions and procedures. Thus it
+is difficult, if not impossible, to offer a simulator that acknowledges all of these netlist
+dialects. ngspice includes some features that enhance compatibility that are included au-
+tomatically. This selection may be controlled to some extend by setting the compatibility
+mode. Others may be invoked by the user by small additions to the netlist input file.
+Some of them are listed in this chapter, some will be integrated into ngspice at a later
+stage, others will be added if they are reported by users.
+16.14.1 Compatibility mode
+The variable ( 17.7) ngbehavior sets the compatibility mode. Per default no compatibility
+mode is selected. The compatibility status will be displayed in the output window.
+set ngbehavior=ltpsa
+in spinit or .spiceinit is atypical command, setting PSPICE and LTSPICE compatibility
+for the whole netlist. Flag ' a' may be combined with any of the flags listed below. By
+contrast
+set ngbehavior=ps
+(without ' a') will set PSPICE compatibility only for libraries which are added by a .in-
+clude command. So you may keep your Spice3 compatible netlist, but including PSPICE
+device models. The available compatibility flags are:

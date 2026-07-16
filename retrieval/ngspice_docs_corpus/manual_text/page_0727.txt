@@ -1,0 +1,44 @@
+32.2. NGSPICE COMPILATION UNDER WINDOWS OS 727
+The user defined build tree saves the object files, instead of putting them into the source
+tree, in a release (and a debug) tree. Please see Chapt. 32.1.4 for instructions.
+If you need updating your local source code tree from Git, just enter ngspice directory
+and issue the command
+git pull
+git pull will not overwrite modified files in your working directory. To drop your local
+changes first, you can run
+git reset --hard
+To learn more about Git, which can be both powerful and difficult to master, please
+consult http://git-scm.com/, especially: http://git-scm.com/documentation, which has
+pointers to documentation and tutorials.
+The script ./compile_min.sh or the command make install will create a directory tree
+with 64-bit ngspice as shown below:
+C:\Spice64\
+bin\
+ngspice.exe
+cmpp.exe
+lib\
+ngspice\
+analog.cm
+digital.cm
+spice2poly.cm
+extradev.cm
+extravt.cm
+share\
+info\
+dir
+ngspice.info
+ngspice.info-1
+..
+ngspice.info-10
+man\
+man1\
+ngspice.1
+ngspice\
+scripts\
+ciderinit
+devaxis
+devload
+setplot
+spectrum
+spinit
+Table 32.4: ngspice standard installation tree under MS Windows

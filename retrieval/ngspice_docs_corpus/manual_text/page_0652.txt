@@ -1,0 +1,38 @@
+652 CHAPTER 30. CIDER USER'S MANUAL
+30.17 NUMD
+Diode / two-terminal numerical models and elements
+SYNOPSIS Model:
+. MODEL model - name NUMD [ level ]
++ ...
+SYNOPSIS Element:
+DXXXXXXX nl n2 model - name [ geometry ] [ t emp era tu re ] [ initial - conditions ]
+SYNOPSIS Output:
+. SAVE [ small - signal values ]
+30.17.1 DESCRIPTION
+NUMD is the name for a diode numerical model. In addition, this same model can be
+used to simulate other two-terminal structures such as semiconductor resistors and MOS
+capacitors. See the options card for more information on how to customize the device
+type.
+Both 1D and 2D devices are supported. These correspond to the LEVEL=l and LEVEL=2
+models, respectively. If left unspecified, it is assumed that the device is one-dimensional.
+All numerical two-terminal element names begin with the letter 'D. The element name is
+then followed by the names of the positive (n1) and negative (n2) nodes. After this must
+come the name of the model used for the element. The remaining information can come in
+any order. The layout dimensions of an element are specified relative to the geometry of a
+default device. For 1D devices, the default device has an area of 1m 2, and for 2D devices,
+the default device has a width of 1 m. However, these defaults can be overridden on an
+options card. The operating temperature of a device can be set independently from that
+of the rest of the circuit in order to simulate non-isothermal circuit operation. Finally,
+the name of a file containing an initial state for the device can be specified. Remember
+that if the filename contains capital letters, they must be protected by surrounding the
+filename with double quotes. Alternatively, the device can be placed in an OFF state
+(thermal equilibrium) at the beginning of the analysis. For more information on the use
+of initial conditions, see the ngspice User's Manual, Chapt. 7.1.
+In addition to the element input parameters, there are output-only parameters that can
+be shown using the ngspice show command ( 17.5.79) or captured using the save/.SAVE
+(17.5.68/15.6.1) command. These parameters are the elements of the indefinite con-
+ductance (G), capacitance (C), and admittance (Y) matrices where Y = G + jωC . By
+default, the parameters are computed at 1 Hz. Each element is accessed using the name
+of the matrix (g, c or y) followed by the node indices of the output terminal and the input
+terminal (e.g. g11). Beware that names are case-sensitive for save/show, so lower-case
+letters must be used.

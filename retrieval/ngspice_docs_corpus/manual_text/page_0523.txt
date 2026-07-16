@@ -1,0 +1,30 @@
+Chapter 22
+Statistical circuit analysis
+22.1 Introduction
+Real circuits do not operate in a world with fixed values of device parameters, power
+supplies and environmental data. Even if a ngspice output offers 5 digits or more of preci-
+sion, this should not mislead you thinking that your circuits will behave exactly the same.
+All physical parameters influencing a circuit (e.g. MOS Source/drain resistance, thresh-
+old voltage, transconductance) are distributed parameters, often following a Gaussian
+distribution with a mean value µand a standard deviation σ.
+To obtain circuits operating reliably under varying parameters, it might be necessary
+to simulate them taking certain parameter spreads into account. ngspice offers several
+methods supporting this task. A powerful random number generator is working in the
+background. It is not providing true random numbers, but a long sequence of pseudo
+random numbers. This sequence depends on a seed value. The same seed value will
+deliver the same sequence of random numbers.
+ngspice offers several methods to set this seed value. If no input is given, then ngspice
+sets the seed (stored in variable rndseed) to 1 upon start up. With the option SEED
+you may either set a value to rndseed upon start up of ngspice ( option SEED=nn , nn is
+an integer greater than 0), or obtain a "random" number as seed, that is the number of
+seconds since 01.01.1970 ( option SEED=random ). This command is best set in .spiceinit
+(16.6). With the command setseed (see chapt. 17.5.75) you may choose any other seed
+value (integer greater than 0).
+The following three chapters offer a short introduction to the statistical methods available
+in ngspice. The diversity of approaches stems from historical reasons, and from some
+efforts to make ngspice compatible to other simulators.
+22.2 Using random param(eters)
+The ngspice frontend (with its 'numparam' parser) contains the .param (see Chapt. 2.9.1)
+and .func (see Chapt. 2.10) commands. Among the built-in functions supported (see
+2.9.5) you will find the following statistical functions:
+523

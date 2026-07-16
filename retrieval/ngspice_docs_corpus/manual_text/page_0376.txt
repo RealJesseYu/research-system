@@ -1,0 +1,32 @@
+376 CHAPTER 17. INTERACTIVE INTERPRETER
+Example:
+. control
+pre_set s t r i c t _ e r r o r h a n d l i n g
+unset ngdebug
+* save outputs and specials
+save x1 . x1 . x1 .7 V (9) V (10) V (11) V (12) V (13)
+run
+display
+* plot the inputs , use offset to plot on top of each other
+plot v (1) v (2)+4 v (3)+8 v (4)+12 v (5)+16 v (6)+20 v (7)+24 v (8)+28
+* plot the outputs , use offset to plot on top of each other
+plot v (9) v (10)+4 v (11)+8 v (12)+12 v (13)+16
+. endc
+17.5 Commands
+Commands marked with a * are only available in ngspice, not in ngnutmeg.
+17.5.1 Ac*: Perform an AC, small-signal frequency response
+analysis
+General Form:
+ac ( DEC | OCT | LIN ) N Fstart Fstop
+Do an small signal ac analysis (see also Chapt. 15.3.1) over the specified frequency range.
+DEC decade variation, and N is the number of points per decade.
+OCT stands for octave variation, and N is the number of points per octave.
+LIN stands for linear variation, and N is the number of points.
+fstart is the starting frequency, and fstop is the final frequency.
+Note that in order for this analysis to be meaningful, at least one independent source
+must have been specified with an ac value.
+In this ac analysis all non-linear devices are linearized around their actual dc operating
+point. Each Ls and Cs gets its imaginary value based on the actual frequency step. Each
+output vector will be calculated relative to the input voltage (current) given by the ac
+value (Iin equals to 1 in the example below). The resulting node voltages (and branch
+currents) are complex vectors. Therefore you have to be careful using the plot command.

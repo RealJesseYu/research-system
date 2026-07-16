@@ -1,0 +1,43 @@
+17.2. EXPRESSIONS, FUNCTIONS, AND CONSTANTS 373
+Name Function
+rnd(vector) A vector with each component a random integer
+between 0 and the absolute value of the input vector's
+corresponding integer element value.
+sgauss(vector) Returns a vector of random numbers drawn from a
+Gaussian distribution (real value, mean = 0 , standard
+deviation = 1). The length of the vector returned is
+determined by the input vector. The contents of the
+input vector will not be used. A call to sgauss(0) will
+return a single value of a random number as a vector of
+length 1.
+sunif(vector) Returns a vector of random real numbers uniformly
+distributed in the interval [-1 .. 1[. The length of the
+vector returned is determined by the input vector. The
+contents of the input vector will not be used. A call to
+sunif(0) will return a single value of a random number
+as a vector of length 1.
+poisson(vector) Returns a vector with its elements being integers
+drawn from a Poisson distribution. The elements of the
+input vector (real numbers) are the expected numbers
+λ. Complex vectors are allowed, real and imaginary
+values are treated separately.
+exponential(vector) Returns a vector with its elements (real numbers)
+drawn from an exponential distribution. The elements
+of the input vector are the respective mean values (real
+numbers). Complex vectors are allowed, real and
+imaginary values are treated separately.
+An input vector may be either the name of a vector already defined or a floating-point
+number (a scalar). A scalar will result in an output vector of length 1. A number may
+be written in any format acceptable to ngspice, such as 14.6Meg or -1.231e-4. Note that
+you can either use scientific notation or one of the abbreviations like MEG or G, but not
+both. As with ngspice, a number may have trailing alphabetic characters.
+The notation expr [num] denotes the num'th element of expr. For multi-dimensional
+vectors, a vector of one less dimension is returned. Also for multi-dimensional vectors,
+the notation expr[m][n] will return the nth element of the mth subvector. To get a subrange
+of a vector, use the form expr[lower, upper]. To reference vectors in a plot that is not the
+current plot (see the setplot command, below), the notation plotname.vecname can be
+used. Either a plotname or a vector name may be the wildcard all. If the plotname is all,
+matching vectors from all plots are specified, and if the vector name is all, all vectors in the
+specified plots are referenced. Note that you may not use binary operations on expressions
+involving wildcards - it is not obvious what all + all should denote, for instance. Some
+(contrived) examples of expressions are shown below.

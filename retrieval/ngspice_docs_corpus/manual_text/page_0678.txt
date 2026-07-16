@@ -1,0 +1,44 @@
+678 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+31.5 BJTs
+31.5.1 BJT - Bipolar Junction Transistor
+31.5.1.1 BJT instance parameters
+# Name Direction Type Description
+2 off InOut flag Device initially off
+3 icvbe InOut real Initial B-E voltage
+4 icvce InOut real Initial C-E voltage
+1 area InOut real (Emitter) Area factor
+10 areab InOut real Base area factor
+11 areac InOut real Collector area factor
+9 m InOut real Parallel Multiplier
+5 ic In real vector Initial condition vector
+6 sens_area In flag flag to request sensitivity WRT area
+202 colnode Out integer Number of collector node
+203 basenode Out integer Number of base node
+204 emitnode Out integer Number of emitter node
+205 substnode Out integer Number of substrate node
+206 colprimenode Out integer Internal collector node
+207 baseprimenode Out integer Internal base node
+208 emitprimenode Out integer Internal emitter node
+211 ic Out real Current at collector node
+212 ib Out real Current at base node
+236 ie Out real Emitter current
+237 is Out real Substrate current
+209 vbe Out real B-E voltage
+210 vbc Out real B-C voltage
+215 gm Out real Small signal transconductance
+213 gpi Out real Small signal input conductance - pi
+214 gmu Out real Small signal conductance - mu
+225 gx Out real Conductance from base to internal base
+216 go Out real Small signal output conductance
+227 geqcb Out real d(Ibe)/d(Vbc)
+228 gcsub Out real Internal Subs. cap. equiv. cond.
+243 gdsub Out real Internal Subs. Diode equiv. cond.
+229 geqbx Out real Internal C-B-base cap. equiv. cond.
+239 cpi Out real Internal base to emitter capactance
+240 cmu Out real Internal base to collector capactiance
+241 cbx Out real Base to collector capacitance
+242 csub Out real Substrate capacitance
+218 cqbe Out real Cap. due to charge storage in B-E jct.
+220 cqbc Out real Cap. due to charge storage in B-C jct.
+222 cqsub Out real Cap. due to charge storage in Subs. jct.
+224 cqbx Out real Cap. due to charge storage in B-X jct.

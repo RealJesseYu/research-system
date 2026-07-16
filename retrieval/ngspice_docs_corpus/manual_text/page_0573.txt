@@ -1,0 +1,34 @@
+27.2. XSPICE ADV ANCED USAGE 573
+analysis, 37 total calls were made to event-driven code model functions, and two separate
+event passes or iterations were required before the event nodes obtained stable values.
+Once the transient analysis commenced, there were 4299 total calls to event-driven code
+model functions. Lastly, the analog simulation algorithm performed 87 time-step backups
+that forced the event-driven simulator to backup its state data and its event queues.
+A similar output is obtained when printing the values of digital nodes. For example, print
+the values of the node 'div8 out' as follows:
+ngspice 5 -> eprint div8_out
+**** Results Data ****
+Time or Step
+div8_out
+0.000000000e+000 1s
+1.810070000e-004 0s
+2.610070000e-004 1s
+...
+9.010070000e-004 1s
+9.810070000e-004 0s
+**** Messages ****
+**** Statistics ****
+Operating point analog/event alternations: 1
+Operating point load calls: 37
+Operating point event passes: 2
+Transient analysis load calls: 4299
+Transient analysis timestep backups: 87
+From this printout, we see that digital node values are composed of a two character
+string. The first character (0, 1, or U) gives the state of the node (logic zero, logic one,
+or unknown logic state). The second character (s, r, z, u) gives the 'strength' of the logic
+state (strong, resistive, hi-impedance, or undetermined).
+If you wish, examine other nodes in this circuit with either the plot or eprint commands.
+When you are done, enter the quit command to exit the simulator and return to the
+operating system prompt:
+ngspice 6 -> quit
+So long.

@@ -1,0 +1,49 @@
+134 CHAPTER 7. DIODES
+• Breakdown: the breakdown region is modeled only if the bv model parameter is
+given. When a diode enters breakdown the current increases exponentially (remem-
+ber to limit it); bv is a positive value.
+Parameters Scaling
+Model parameters are scaled using the unit-less parameters area and pj and the multiplier
+m as depicted below:
+AREA ef f = AREA m
+P Jef f = PJ m
+IS ef f = IS AREA ef f + JSW P Jef f
+IBV ef f = IBV AREA ef f
+IK ef f = IK AREA ef f
+IKR ef f = IKR AREA ef f
+CJ ef f = CJ0 AREA ef f
+CJP ef f = CJP P Jef f
+Diode DC, Transient and AC model equations
+The diode model has certain dc currents for bottom and sidewall components. Exemplary
+here is the equation for the bottom part:
+ID =
+8
+>><
+>>:
+IS ef f(e
+qVD
+N kT − 1) + VD · GM IN, if VD ≥ −3 N kT
+q
+−IS ef f[1 + ( 3N kT
+qVDe )3] + VD · GM IN, if − BVef f < V D < −3 N kT
+q
+−IS ef f(e
+−q(BVef f +VD )
+N kT ) + VD · GM IN, if VD ≤ −BVef f
+(7.1)
+Two secondary effects are modeled if the appropriate parameters (see table Junction DC
+parameters) are given: Recombination current and bottom and sidewall tunnel current.
+The breakdown region must be described with more depth since the breakdown is not
+modeled physically. As written before, the breakdown modeling is based on two model
+parameters: the 'nominal breakdown voltage' bv and the current at the onset of break-
+down ibv. For the diode model to be consistent, the current value cannot be arbitrarily
+chosen, since the reverse bias and breakdown regions must match. When the diode enters
+breakdown region from reverse bias, the current is calculated using the formula 1:
+Ibdwn = −IS ef f(e
+−qBV
+N kT − 1) (7.2)
+The computed current is necessary to adjust the breakdown voltage making the two
+regions match. The algorithm is a little bit convoluted and only a brief description is
+given here:
+1if you look at the source code in file diotemp.c you will discover that the exponential relation is
+replaced with a first order Taylor series expansion.

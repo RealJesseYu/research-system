@@ -1,0 +1,29 @@
+152 CHAPTER 9. JFETS
+variation of drain current with gate voltage, LAMBDA, which determines the output con-
+ductance, and IS, the saturation current of the two gate junctions. Two ohmic resistances,
+RD and RS, are included.
+vgst = vgs − V T O (9.1)
+βp = BET A (1 + LAM BDA vds) (9.2)
+bf ac = 1 − B
+P B − V T O (9.3)
+IDrain =
+8
+><
+>:
+vds · GM IN, if vgst ≤ 0
+βp vds (vds (bf ac vds − B) vgst (2B + 3bf ac (vgst − vds))) + vds · GM IN, if vgst ≥ vds
+βp vgst 2 (B + vgst bf ac) + vds · GM IN, if vgst < vds
+(9.4)
+Note that in Spice3f and later, the fitting parameter B has been added by Parker and
+Skellern. For details, see [ 9]. If parameter B is set to 1 equation above simplifies to
+IDrain =
+8
+><
+>:
+vds · GM IN, if vgst ≤ 0
+βp vds (2vgst − vds) + vds · GM IN, if vgst ≥ vds
+βp vgst 2 + vds · GM IN, if vgst < vds
+(9.5)
+Charge storage is modeled by nonlinear depletion layer capacitances for both gate junc-
+tions, which vary as the −1/2 power of junction voltage and are defined by the parameters
+CGS, CGD, and PB.

@@ -1,0 +1,17 @@
+31.4. TRANSMISSION LINES 673
+31.4 Transmission Lines
+31.4.1 CplLines - Simple Coupled Multiconductor Lines
+31.4.1.1 CplLines instance parameters
+# Name Direction Type Description
+1 pos_nodes InOut string vector in nodes
+2 neg_nodes InOut string vector out nodes
+3 dimension InOut integer number of coupled lines
+4 length InOut real length of lines
+31.4.1.2 CplLines model parameters
+# Name Direction Type Description
+101 r InOut real vector resistance per length
+104 l InOut real vector inductance per length
+102 c InOut real vector capacitance per length
+103 g InOut real vector conductance per length
+105 length InOut real length
+106 cpl In flag Device is a cpl model

@@ -1,0 +1,33 @@
+310 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+tests for the absence of any other devices. If successful, the often lengthy op calculation
+is skipped, ac is started immediately. Considerable simulation time savings may result.
+15.3.2 .DC: DC Transfer Function
+General form:
+. dc srcnam vstart vstop vincr [ src2 start2 stop2 incr2 ]
+Examples:
+. dc VIN 0.25 5.0 0.25
+. dc VDS 0 10 .5 VGS 0 5 1
+. dc VCE 0 10 .25 IB 0 10 u 1 u
+. dc RLoad 1 k 2 k 100
+. dc TEMP -15 75 5
+The .dc line defines the dc transfer curve source and sweep limits (with capacitors open
+and inductors shorted). srcnam is the name of an independent voltage or current source,
+a resistor, or the circuit temperature. vstart, vstop, and vincr are the starting, final,
+and incrementing values, respectively. The first example causes the value of the voltage
+source VIN to be swept from 0.25 Volts to 5.0 Volts with steps of 0.25 Volt. A second
+source ( src2) may optionally be specified with its own associated sweep parameters. In
+such a case the first source is swept over its own range for each value of the second source.
+This option is useful for obtaining semiconductor device output characteristics. See the
+example on transistor characterization ( 21.3).
+15.3.3 .DISTO: Distortion Analysis
+General form:
+. disto dec nd fstart fstop < f2overf1 >
+. disto oct no fstart fstop < f2overf1 >
+. disto lin np fstart fstop < f2overf1 >
+Examples:
+. disto dec 10 1 kHz 100 MEG
+. disto dec 10 1 kHz 100 MEG 0.9
+The .disto line does a small-signal distortion analysis of the circuit. A multi-dimensional
+Volterra series analysis is done using multi-dimensional Taylor series to represent the
+nonlinearities at the operating point. Terms of up to third order are used in the series
+expansions.

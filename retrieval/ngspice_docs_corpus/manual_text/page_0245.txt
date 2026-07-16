@@ -1,0 +1,46 @@
+12.3. HYBRID MODELS 245
+Example SPICE Usage:
+abridge2 [1 2 3] [8 9 10] null bidi_buff
+.model bidi_buff bidi_bridge(in_low = 2 in_high = 1.5)
+12.3.4 Controlled Digital Oscillator
+NAME_TABLE:
+C_Function_Name: cm_d_osc
+Spice_Model_Name: d_osc
+Description: "controlled digital oscillator"
+PORT_TABLE:
+Port Name: cntl_in out
+Description: "control input" "output"
+Direction: in out
+Default_Type: v d
+Allowed_Types: [v,vd,i,id] [d]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: cntl_array freq_array
+Description: "control array" "frequency array"
+Data_Type: real real
+Default_Value: 0.0 1.0e6
+Limits: - [0 -]
+Vector: yes yes
+Vector_Bounds: [2 -] cntl_array
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: duty_cycle init_phase
+Description: "duty cycle" "initial phase of output"
+Data_Type: real real
+Default_Value: 0.5 0
+Limits: [1e-6 0.999999] [-180.0 +360.0]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: rise_delay fall_delay
+Description: "rise delay" "fall delay"
+Data_Type: real real
+Default_Value: 1e-9 1e-9
+Limits: [0 -] [0 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Description: The digital oscillator is a hybrid model that accepts as input a voltage or

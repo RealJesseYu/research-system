@@ -1,0 +1,45 @@
+680 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+124 pe InOut real
+125 mje InOut real B-E junction grading coefficient
+125 me InOut real
+126 tf InOut real Ideal forward transit time
+127 xtf InOut real Coefficient for bias dependence of TF
+128 vtf InOut real Voltage giving VBC dependence of TF
+129 itf InOut real High current dependence of TF
+130 ptf InOut real Excess phase
+131 cjc InOut real Zero bias B-C depletion capacitance
+132 vjc InOut real B-C built in potential
+132 pc InOut real
+133 mjc InOut real B-C junction grading coefficient
+133 mc InOut real
+134 xcjc InOut real Fraction of B-C cap to internal base
+135 tr InOut real Ideal reverse transit time
+136 cjs InOut real Zero bias Substrate capacitance
+136 csub InOut real
+137 vjs InOut real Substrate junction built in potential
+137 ps InOut real
+138 mjs InOut real Substrate junction grading coefficient
+138 ms InOut real
+139 xtb InOut real Forward and reverse beta temp. exp.
+140 eg InOut real Energy gap for IS temp. dependency
+141 xti InOut real Temp. exponent for IS
+148 tre1 InOut real Temp. coefficient 1 for RE
+149 tre2 InOut real Temp. coefficient 2 for RE
+150 trc1 InOut real Temp. coefficient 1 for RC
+151 trc2 InOut real Temp. coefficient 2 for RC
+152 trb1 InOut real Temp. coefficient 1 for RB
+153 trb2 InOut real Temp. coefficient 2 for RB
+154 trbm1 InOut real Temp. coefficient 1 for RBM
+155 trbm2 InOut real Temp. coefficient 2 for RBM
+142 fc InOut real Forward bias junction fit parameter
+301 invearlyvoltf Out real Inverse early voltage:forward
+302 invearlyvoltr Out real Inverse early voltage:reverse
+303 invrollofff Out real Inverse roll off - forward
+304 invrolloffr Out real Inverse roll off - reverse
+305 collectorconduct Out real Collector conductance
+306 emitterconduct Out real Emitter conductance
+307 transtimevbcfact Out real Transit time VBC factor
+308 excessphasefactor Out real Excess phase fact.
+143 tnom InOut real Parameter measurement temperature
+145 kf InOut real Flicker Noise Coefficient
+144 af InOut real Flicker Noise Exponent

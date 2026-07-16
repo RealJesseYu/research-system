@@ -1,0 +1,35 @@
+12.4. DIGITAL MODELS 253
+Allowed_Types: [d] [d]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+Common parameters: inertial_delay, family, rise_delay, fall_delay, input_load.
+Description: The inverter is a single-input, single-output digital inverter that produces
+as output an inverted, time-delayed copy of its input.
+Example SPICE Usage:
+a6 1 8 inv1
+.model inv1 d_inverter(rise_delay = 0.5e-9 fall_delay = 0.3e-9
++ input_load = 0.5e-12)
+12.4.3 And
+NAME_TABLE:
+C_Function_Name: cm_d_and
+Spice_Model_Name: d_and
+Description: "digital 'and' gate"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: yes no
+Vector_Bounds: [2 -] -
+Null_Allowed: no no
+Common parameters: inertial_delay, family, rise_delay, fall_delay, input_load.
+Description: The digital and gate is an n-input, single-output and gate that produces
+an active ' 1' value if, and only if, all of its inputs are also ' 1' values. If ANY of the
+inputs is a ' 0', the output will also be a ' 0'; if neither of these conditions holds, the
+output will be unknown.
+Example SPICE Usage:
+a6 [1 2] 8 and1
+.model and1 d_and(rise_delay = 0.5e-9 fall_delay = 0.3e-9
++ input_load = 0.5e-12)

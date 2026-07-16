@@ -1,0 +1,26 @@
+Chapter 5
+Non-linear Dependent Sources
+(Behavioral Sources)
+The non-linear dependent sources B ( see Chapt. 5.1), E (see 5.2), G see ( 5.3) described
+in this chapter allow the generation of voltages or currents that result from evaluating a
+mathematical expression. Internally E and G sources are converted to the more general
+B source. All three sources may be used to introduce behavioral modeling and analysis.
+5.1 Bxxxx: Nonlinear dependent source (ASRC)
+5.1.1 Syntax and usage
+General form:
+BXXXXXXX n + n - <i = expr > <v = expr > < tc1 = value > < tc2 = value >
++ < temp = value > < dtemp = value >
+Examples:
+B1 0 1 I = cos ( v (1))+ sin ( v (2))
+B2 0 1 V = ln ( cos ( log ( v (1 ,2)^2))) - v (3)^4+ v (2)^ v (1)
+B3 3 4 I =17
+B4 3 4 V = exp ( pi ^ i ( vdd ))
+B5 2 0 V = V (1) < { Vlow } ? { Vlow } :
++ V (1) > { Vhigh } ? { Vhigh } : V (1)
+n+ is the positive node, and n- is the negative node. The values of the V and I parameters
+determine the voltages and currents across and through the device, respectively. If I is
+given then the device is a current source, and if V is given the device is a voltage source.
+One and only one of these parameters must be given. All instance parameters are listed
+in chapter 31.3.1.
+A simple model is implemented for temperature behavior by the formula:
+105

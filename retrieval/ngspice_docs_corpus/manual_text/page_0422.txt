@@ -1,0 +1,31 @@
+422 CHAPTER 17. INTERACTIVE INTERPRETER
+continue at the first resume command. The next breakpoint requires another resume to
+continue automatically. Otherwise the simulation stops and ngspice waits for user input.
+If you try to stop at
+stop when V(1) eq 1
+(or similar) during a transient simulation, you probably will miss this point, because it is
+not very likely that at any time step the vector v(1) will have the exact value of 1. Then
+ngspice simply will not stop.
+17.5.89 Strcmp: Compare two strings
+General Form:
+strcmp _flag $string1 " string2 "
+The command compares two strings, either given by a variable (string1) or as a string
+in quotes ('string2'). _flag is set as an output variable to '0', if both strings are equal.
+A value greater than zero indicates that the first character that does not match has a
+greater value in str1 than in str2; and a value less than zero indicates the opposite (like
+the C strcmp function).
+17.5.90 Strslice: Extract a substring
+General Form:
+strslice result input offset length
+This command sets variable 'result' to be a portion of string 'input' starting at the given
+offset and with the requested length. Offset and length should be integers. If offset is
+negative, it is counted from the end of the input string.
+17.5.91 Strstr: Find a substring
+General Form:
+strstr result " $haystack " needle
+The command searches string variable 'haystack' for a copy of string 'needle' . If successful,
+variable 'result' is set to the offset of the first match. Otherwise, the result is -1. As a
+special case, if 'needle' is the empty string, the result is the length of $haystack.
+17.5.92 Sysinfo*: Print system information
+General Form:
+sysinfo

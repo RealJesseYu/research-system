@@ -1,0 +1,5 @@
+22.6. DATA EV ALUATION WITH GNUPLOT 531
+pl4mag.data is the simulation data, f2(x) the starting curve, f1(x) the fitted Gaussian
+distribution.
+This is just a simple example. You might explore the powerful built-in functions of
+Gnuplot to do a much more sophisticated statistical data analysis.

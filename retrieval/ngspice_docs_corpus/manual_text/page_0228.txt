@@ -1,0 +1,44 @@
+228CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+12.2.27 Capacitance Meter
+NAME_TABLE:
+C_Function_Name: cm_cmeter
+Spice_Model_Name: cmeter
+Description: "capacitance meter"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: v v
+Allowed_Types: [v,vd,i,id] [v,vd,i,id]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: gain
+Description: "gain"
+Data_Type: real
+Default_Value: 1.0
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: The capacitance meter is a sensing device that is attached to a circuit
+node and produces as an output a scaled value equal to the total capacitance seen
+on its input multiplied by the gain parameter. This model is primarily intended
+as a building block for other models that must sense a capacitance value and alter
+their behavior based upon it.
+Example SPICE Usage:
+atest1 1 2 ctest
+.model ctest cmeter(gain=1.0e12)
+12.2.28 Inductance Meter
+NAME_TABLE:
+C_Function_Name: cm_lmeter
+Spice_Model_Name: lmeter
+Description: "inductance meter"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: v v
+Allowed_Types: [v,vd,i,id] [v,vd,i,id]
+Vector: no no

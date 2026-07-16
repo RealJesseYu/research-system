@@ -1,0 +1,42 @@
+374 CHAPTER 17. INTERACTIVE INTERPRETER
+Expressions examples:
+cos ( TIME ) + db ( v (3))
+sin ( cos ( log ([1 2 3 4 5 6 7 8 9 10])))
+TIME * rnd ( v (9)) - 15 * cos ( vin # branch ) ^ [7.9 e5 8]
+not (( ac3 . FREQ [32] & tran1 . TIME [10]) gt 3)
+( sunif (0) ge 0) ? 1.0 : 2.0
+mag ( fft ( v (18)))
+Vector names in ngspice may look like @dname[param], where dname is either the name
+of a device instance or of a device model. The vector contains the value of the parameter
+of the device or model. See Appendix, Chapt. 31 for details of which parameters are
+available. The returned value is a vector of length 1. Please note that finding the value
+of device and device model parameters can also be done with the show command (e.g.
+show v1 : dc ).
+There are a number of pre-defined constants in ngspice, which you may use by their name.
+They are stored in plot ( 17.3) const and are listed in the table below:
+Name Description Value
+pi π 3.14159...
+e e (the base of natural logarithms) 2.71828...
+c c (the speed of light) 299,792,458 m/sec
+i i (the square root of -1) √−1
+kelvin (absolute zero in centigrade) -273.15◦C
+echarge q (the charge of an electron) 1.60219e-19 C
+boltz k (Boltzmann's constant) 1.38062e-23J/K
+planck h (Planck's constant) 6.62607e-34 J s
+yes boolean 1
+no boolean 0
+TRUE boolean 1
+F ALSE boolean 0
+These constants are all given in MKS units. If you define another variable with a name
+that conflicts with one of these then it takes precedence.
+Additional constants may be generated during circuit setup (see .csparam, 2.11).
+17.3 Plots
+The output vectors of any analysis are stored in plots, a traditional SPICE notion. A
+plot is a group of vectors. A first tran command will generate several vectors within
+a plot tran1. A subsequent tran command will store their vectors in tran2. Then a
+linearize command will linearize all vectors from tran2 and store them in tran3, which
+then becomes the current plot. A fft will generate a plot spec1, again now the current
+plot. The display command always will show all vectors in the current plot. Echo
+$plots followed by Return lists all plots generated so far . Setplot followed by Return
+will show all plots and ask for a (new) plot to become current. A simple Return will end
+the command. Setplot name will change the current plot to 'name' (e.g. setplot tran2

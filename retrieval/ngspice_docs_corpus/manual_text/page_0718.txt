@@ -1,0 +1,41 @@
+718 CHAPTER 32. COMPILATION NOTES
+--enable-cider Cider is a mixed-level simulator that couples Spice3 and DSIM to simu-
+late devices from their technological parameters. This part of the simulator is not compiled
+by default.
+--with-editline=yes Enables the use of the BSD editline library (libedit).
+See http://www.thrysoee.dk/editline/. To be used instead of --with-readline=yes.
+--without-x Disable the X-Windows graphical system. Compile without needing X
+headers and X libraries. The plot command ( 17.5.53) is now disabled. You may use
+Gnuplot ( 17.5.35) instead.
+--with-tcl=tcldir When configured with this option the tcl module 'tclspice' is com-
+piled and installed instead of plain ngspice.
+--with-ngshared This option will create a shared library ( *.so in Linux) or dynamic link
+library (*.dll) instead of plain ngspice.
+--enable-relpath This options introduces a search path for spinit relative to the calling
+executable (ngspice or the caller using the ngspice shared library) as ../share/ngspice.
+In spinit the search path for code models is also set as relative as ../lib. This option
+may be effective especially when not using standard installation paths in Linux, but
+especially for ngspice.dll under MS Windows, if to be installed in other directories than
+in C:\Spice64.
+--disable-debug This option will remove the '-g' option passed to the compiler. This
+speeds up execution time, creates a small executable, and is recommended for normal use.
+If you want to run ngspice in a debugger (e.g. gdb), you should not select this option.
+--enable-pss This is an experimental feature to enable Periodic Steady State Analysis.
+--enable-oldapps Beginning with ngspice-28, only ngspice executable is made. If you
+need old apps like ngnutmeg, ngmakeidx, ngmultidec, ngproc2mod, ngsconvert, use this
+./configure flag.
+--with-fftw3=no Do not check for and use the fftw fast fourier transform library ( www.fftw.org).
+Use an internal fft algorithm instead. Default is yes.
+--disable-utf8 Switch off UNICODE support, use extended ASCII with Western char-
+acter support instead.
+--disable-sp Switch off RF support: no integrated S-parameter simulation, no RF noise
+simulation ( 15.3.8).
+--enable-shortcheck Enables a 'make check' with strongly reduced runtime. Besides
+some regression tests only BSIM3 and BSM4 devices are checked.
+32.1.8.2 Options for experimental usage only
+The following options are seldom used today, not tested, some may even no longer be
+implemented (correctly) and lead to errors.
+--enable-adms ADMS is a deprecated model compiler that translates Verilog-A compact
+models into C code that can be compiled into ngspice. This is no longer supported, and
+only working with some limitations to the models (e.g. no noise models, bugs). If you
+want to use it, please refer to the ADMS section on ngspice web site .

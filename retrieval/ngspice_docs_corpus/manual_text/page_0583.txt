@@ -1,0 +1,33 @@
+28.6. INTERF ACE SPECIFICATION FILE 583
+28.6.2.7 Vector Bounds
+If a port is a vector, limits on its size must be specified in the vector bounds field. The
+Vector Bounds field specifies the upper and lower bounds on the size of a vector. The
+Vector Bounds field is usually introduced by the Vector_Bounds: keyword followed by
+a range of integers (e.g. '[1 7]' or '[3, 20]'). The lower bound of the vector specifies
+the minimum number of elements in the vector; the upper bound specifies the maximum
+number of elements. If the range is unconstrained, or the associated port is not a vector,
+the vector bounds may be specified by a hyphen (' -'). Using the hyphen convention,
+partial constraints on the vector bound may be defined (e.g., '[2, -]' indicates that the
+least number of port elements allowed is two, but there is no maximum number).
+28.6.2.8 Null Allowed
+In some cases, it is desirable to permit a port to remain unconnected to any electrical
+node in a circuit. The Null_Allowed field specifies whether this constitutes an error for a
+particular port. The Null_Allowed field is introduced by the ' Null_Allowed:' keyword
+and is followed by a boolean constant: 'YES', 'TRUE', 'NO' or 'F ALSE' . The values 'YES'
+and 'TRUE' are equivalent and specify that it is legal to leave this port unconnected. 'NO'
+or 'F ALSE' specify that the port must be connected.
+28.6.3 The Parameter Table
+The parameter table is introduced by the Parameter_Table: keyword. It defines the set
+of valid parameters available to the code model. The following sections define the valid
+fields that may be specified in the parameter table.
+28.6.3.1 Parameter Name
+A parameter name is a valid SPICE identifier that will be used on SPICE .MODEL cards
+to refer to this parameter. It is introduced by the Parameter_Name: keyword followed
+by a valid SPICE identifier.
+28.6.3.2 Description
+The description string is used to describe the purpose and function of the parameter. It
+is introduced by the ' Description:' keyword followed by a string literal.
+28.6.3.3 Data Type
+The parameter's data type is specified by the Data Type field. The Data Type field is
+introduced by the keyword ' Data_Type:' and is followed by a valid data type. Valid data
+types include boolean, complex, int, real, and string.

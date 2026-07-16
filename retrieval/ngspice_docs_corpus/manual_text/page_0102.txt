@@ -1,0 +1,28 @@
+102 CHAPTER 4. VOLTAGE AND CURRENT SOURCES
+n+ is the positive node, and n- is the negative node. nc+ and nc- are the positive and
+negative controlling nodes, respectively. value is the voltage gain. Instance parameters
+are listed in chapt. 31.3.7.
+4.2.3 Fxxxx: Linear Current-Controlled Current Sources (CCCS)
+General form:
+FXXXXXXX N + N - VNAM VALUE <m = val >
+Examples:
+F1 13 5 VSENS 5 m =2
+n+ and n- are the positive and negative nodes, respectively. Current flow is from the
+positive node, through the source, to the negative node. vnam is the name of a voltage
+source through which the controlling current flows. The direction of positive controlling
+current flow is from the positive node, through the source, to the negative node of vnam.
+value is the current gain. m is an optional multiplier to the output current. Instance
+parameters are listed in chapt. 31.3.4.
+4.2.4 Hxxxx: Linear Current-Controlled Voltage Sources (CCVS)
+General form:
+HXXXXXXX N + N - VNAM VALUE
+Examples:
+HX 5 17 VZ 0.5 K
+n+ and n- are the positive and negative nodes, respectively. vnam is the name of a voltage
+source through which the controlling current flows. The direction of positive controlling
+current flow is from the positive node, through the source, to the negative node of vnam.
+value is the transresistance (in ohms). Instance parameters are listed in chapt. 31.3.5.
+4.2.5 Polynomial Source Compatibility
+Dependent polynomial sources available in SPICE2G6 are fully supported in ngspice using
+the XSPICE extension ( 25.1). The form used to specify these sources is shown in Table
+4.1. For details on its usage please see Chapt. 5.5.

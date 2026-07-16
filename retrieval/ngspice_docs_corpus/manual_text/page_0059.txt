@@ -1,0 +1,31 @@
+2.8. .LIB 59
+If the filename is a relative path and the file is not found, it is searched for in the locations
+given by variable sourcepath ( 17.7). There is no restriction on the file name imposed by
+ngspice beyond those imposed by the local operating system.
+2.8 .LIB
+General form:
+. LIB filename libname
+Examples:
+. LIB / users / spice / common / mosfets . lib mos1
+The .LIB statement allows including library descriptions into the input file. Inside the
+*.lib file a library libname will be selected. The statements of each library inside the
+*.lib file are enclosed in .LIB libname <...> .ENDL statements. The file is searched for
+in the same way as for .include.
+If the compatibility mode ( 16.14) is set to 'ps' by set ngbehavior=ps (17.7) in spinit
+(16.5) or .spiceinit (16.6), then a simplified syntax .LIB filename is available: a warning
+is issued and filename is simply included as described in Chapt. 2.7.
+2.9 .PARAM Parametric netlists
+Ngspice allows for the definition of parametric attributes in the netlists. This is an
+enhancement of the ngspice front-end that adds arithmetic functionality to the circuit
+description language.
+2.9.1 .param line
+General form:
+. param < ident > = < expr > < ident > = < expr > ...
+Examples:
+. param pippo =5
+. param po =6 pp =7.8 pap ={ AGAUSS ( pippo , 1 , 1.67)}
+. param pippp ={ pippo + pp }
+. param p ={ pp }
+. param pop = ' pp +p '
+This line assigns numerical values to identifiers. More than one assignment per line
+is possible using a separating space. Parameter identifier names must begin with an

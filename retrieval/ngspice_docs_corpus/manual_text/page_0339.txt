@@ -1,0 +1,34 @@
+15.6. BATCH OUTPUT 339
+General form for (differential) voltage measurements:
+. probe v ( node1 )
+. probe vd ( device : node1 : node2 )
+. probe vd ( device1 : node1 , device2 : node2 )
+device, device1, and device2 are device names (first token in an instance line). node1,
+node2 are either numbers (according to the node sequence in the instance line, e.g. 1,
+2, 3, ...), or are node names of known devices (d, g, s, b for MOS of JFET, c, b, e for
+bipolar.
+Examples:
+* voltage at node named nR1
+. probe v ( nR1 )
+* voltage across a two - terminal device named R1
+. probe vd ( R1 )
+* voltage at instance node 1 of device m4
+. probe vd ( m4 :1:0)
+* voltage between nodes 1 and 3 of device m4
+. probe vd ( m4 :1:3)
+* voltage between node 1 of device m4 and node 3 of device m5
+. probe vd ( m4 :1 , m5 :3)
+* m4 , m5 are MOS devices , so the following is equivalent :
+. probe vd ( m4 :d , m5 : s )
+Resulting output vectors:
+nR1
+vd_R1
+vd_m4 : d :0
+vd_m4 : d : s
+vd_m3 : d_m5 : s
+15.6.5.3 Measurement of power dissipation in a device
+A power consumption measurement of a device with n nodes consists of two steps: all
+n device node currents i1, i2, ... , in are measured (see 15.6.5.1). Then all node
+voltages v1 ... vn are measured. A common virtual star point vref is calculated as
+the mean of all n node voltages. Power is the sum of the products of each node current
+times its node voltage minus vref.

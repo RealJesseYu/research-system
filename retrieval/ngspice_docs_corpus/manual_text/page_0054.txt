@@ -1,0 +1,28 @@
+54 CHAPTER 2. CIRCUIT DESCRIPTION
+2.3.3 Comments
+General Form:
+* < any comment >
+Examples:
+* RF =1 K Gain should be 100
+* Check open - loop gain and phase margin
+The asterisk in the first column indicates that this line is a comment line. Comment lines
+may be placed anywhere in the circuit description.
+2.3.4 End-of-line comments
+General Form:
+< any command > $ < any comment >
+< any command > ; < any comment >
+Examples:
+RF2 =1 K $ Gain should be 100
+C1 =10 p ; Check open - loop gain and phase margin
+. param n1 =1 // new value
+ngspice supports comments that begin with double characters ' $ ' (dollar plus space) or
+'//' . For readability you should precede each comment character with a space. ngspice
+will accept the single character ' $' .
+Please note that the '$' character is not a valid end-of-line comment delimiter, if the
+PSPICE compatibility mode ( 16.14.5) has been chosen. Then '$' becomes an ordinary
+character.
+2.3.5 Continuation lines
+General Form:
+< any command >
++ < c o n t i n u a t i o n of any command > ; some comment
++ < further c o n t i n u a t i o n of any command >

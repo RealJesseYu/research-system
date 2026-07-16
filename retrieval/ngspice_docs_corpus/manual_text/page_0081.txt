@@ -1,0 +1,35 @@
+3.3. ELEMENTARY DEVICES 81
+Example input file for non-linear resistor with r2_cmc model
+r2_cmc
+v1 1 0 10
+Rr2_cmc 1 0 rmodel w =1 u l =20 u isnoisy =1
+. model rmodel r ( level =2 rsh =200 xl =0.2 u xw = -0.05 u
++ p3 =0.12 q3 =1.6 p2 =0.015 q2 =3.8 tc1 =1.5 e -4 tc2 =7 e -7)
+. control
+op
+let res = v (1) / - v1 # branch
+print res . endc
+. end
+3.3.6 Capacitors
+General form:
+CXXXXXXX n + n - < value > < mname > <m = val > < scale = val > < temp = val >
++ < dtemp = val > < tc1 = val > < tc2 = val > < ic = init_condition >
+Examples:
+CBYP 13 0 1 UF
+COSC 17 23 10 U IC =3 V
+Ngspice provides a detailed model for capacitors. Capacitors in the netlist can be specified
+giving their capacitance or their geometrical and physical characteristics. Following the
+original SPICE3 'convention', capacitors specified by their geometrical or physical char-
+acteristics are called 'semiconductor capacitors' and are described in the next section.
+In this first form n+ and n- are the positive and negative element nodes, respectively and
+value is the capacitance in Farads.
+Capacitance can be specified in the instance line as in the examples above or in a .model
+line, as in the example below:
+C1 15 5 cstd
+C2 2 7 cstd
+. model cstd C cap =3 n
+Both capacitors have a capacitance of 3nF.
+If you want to simulate temperature dependence of a capacitor, you need to specify its
+temperature coefficients, using a .model line, like in the example below:
+CEB 1 2 1 u cap1 dtemp =5
+. MODEL cap1 C tc1 =0.001

@@ -1,0 +1,34 @@
+20.7. MS WINDOWS 32 BIT BINARIES 509
+download blt from http://ngspice.sourceforge.net/experimental/blt2.4z.7z
+expand all to d:\software
+20.6.2.2 Tcl
+double click on D:\software\tcl8.6b2\win\tcl.dsw
+convert to MS Visual Studio 2008 project
+select release or debug
+create tcl as tcl86t.dll.
+20.6.2.3 Tk
+edit D:\software\tk8.6b2\win\buildall.vc.bat
+line 31 to
+call C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\vcvarsall.bat
+line 53 to
+if "%TCLDIR%" == "" set TCLDIR=..\..\tcl8.6b2
+open cmd window
+cd to
+d:\software\tk8.6b2\win>
+then
+d:\software\tk8.6b2\win> buildall.vc.bat debug
+tk will be made as tk86t.dll, in addition wish86t.exe is generated.
+20.6.2.4 blt
+blt source files have been downloaded from the blt web page and modified for compatibility
+with TCL8.6. To facilitate making blt24.dll, the modified source code is available as a 7z
+compressed file , including a project file for MS Visual Studio 2008.
+20.6.2.5 tclspice
+ngspice is compiled and linked into a dll called spice.dll that may be loaded by wish86t.exe.
+MS Visual Studio 2008 is the compiler applied. A project file may be downloaded as a 7z
+compressed file. Expand this file in the ngspice main directory. The links to tcl and tk are
+hard-coded, so both have to be installed in the places described above ( d:\software\...).
+spice.dll may be generated in Debug, Release or ReleaseOMP mode.
+20.7 MS Windows 32 Bit binaries
+You may download the compiled binaries, including tcl, tk, blt and tclspice, plus the
+examples, slightly modified, from http://ngspice.sourceforge.net/experimental/tclspice-
+25.7z.

@@ -1,0 +1,44 @@
+246CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+current. This input is compared to the voltage-to-frequency transfer characteristic
+specified by the cntl_array/freq_array coordinate pairs, and a frequency is ob-
+tained that represents a linear interpolation or extrapolation based on those pairs.
+A digital time-varying signal is then produced with this fundamental frequency.
+The output waveform, which is the equivalent of a digital clock signal, has rise and
+fall delays that can be specified independently. In addition, the duty cycle and the
+phase of the waveform are also variable and can be set by you.
+Example SPICE Usage:
+a5 1 8 var_clock
+.model var_clock d_osc(cntl_array = [-2 -1 1 2]
++ freq_array = [1e3 1e3 10e3 10e3]
++ duty_cycle = 0.4 init_phase = 180.0
++ rise_delay = 10e-9 fall_delay=8e-9)
+12.3.5 Node bridge from digital to real with enable
+NAME_TABLE:
+Spice_Model_Name: d_to_real
+C_Function_Name: ucm_d_to_real
+Description: "Node bridge from digital to real with enable"
+PORT_TABLE:
+Port_Name: in enable out
+Description: "input" "enable" "output"
+Direction: in in out
+Default_Type: d d real
+Allowed_Types: [d] [d] [real]
+Vector: no no no
+Vector_Bounds: - - -
+Null_Allowed: no yes no
+PARAMETER_TABLE:
+Parameter_Name: zero one delay
+Description: "value for 0" "value for 1" "delay"
+Data_Type: real real real
+Default_Value: 0.0 1.0 1e-9
+Limits: - - [1e-15 -]
+Vector: no no no
+Vector_Bounds: - - -
+Null_Allowed: yes yes yes
+12.3.6 A Z**-1 block working on real data
+NAME_TABLE:
+Spice_Model_Name: real_delay
+C_Function_Name: ucm_real_delay
+Description: "A Z ** -1 block working on real data"
+PORT_TABLE:
+Port_Name: in clk out

@@ -1,0 +1,35 @@
+Chapter 28
+Code Models and User-Defined
+Nodes
+The following sections explain the steps required to create code models and User-Defined
+Nodes (UDNs), store them in shared libraries and load them into the simulator at runtime.
+The ngspice simulator already includes XSPICE libraries of predefined models and node
+types that span the analog and digital domains. These have been detailed earlier in this
+document (see Sections 12.2, 12.3, and 12.4). However, the real power of the XSPICE
+is in its support for extending these libraries with new models written by users. ngspice
+includes an XSPICE code model generator. Adding code models to ngspice will require a
+model definition plus some simple file operations, which are explained in this chapter.
+The original manual cited an XSPICE 'Code Model Toolkit' that enabled one to define
+new models and node data types to be passed between them offline, independent from
+ngspice. Whereas this Toolkit is still available in the original source code distribution at
+the XSPICE web page , it is neither required nor supported any more.
+So we make use of the existing XSPICE infrastructure provided with ngspice to create
+new code models. With an 'intelligent' copy and paste, and the many available code
+models serving as a guide you will be quickly able to create your own models. You have
+to have a compiler (gcc) available under Linux, MS Windows (Cygwin, MINGW), maybe
+also for other OSs, including supporting software (Flex, Bison, and the autotools if you
+start from Git sources). The compilation procedures for ngspice are described in detail in
+Chapt. 32. Adding a code model may then require defining the functionality, interface,
+and eventually user defined nodes. Compiling into a shared library is only a simple 'make',
+loading the shared lib(s) into ngspice is done by the ngspice command codemodel... (see
+Chapt. 17.5.12). This will allow you to either add some code model to an existing library,
+or you may generate a new library with your own code models. The latter is of interest
+if you want to distribute your code models independently from the ngspice sources or
+executables.
+These new code models are handled by ngspice in a manner analogous to its treating
+of SPICE devices and XSPICE Predefined Code Models. The basic steps required to
+create sources for new code models or User-Defined Nodes, compile them and load them
+into ngspice are similar. They consist of 1) creating the code model or UserDefined
+Node (UDN) directory and its associated model or data files, 2) inform ngspice about
+the code model or UDN directories that have to be compiled and linked into ngspice, 3)
+575

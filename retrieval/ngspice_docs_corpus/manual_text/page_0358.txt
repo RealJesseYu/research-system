@@ -1,0 +1,34 @@
+358 CHAPTER 16. STARTING NGSPICE
+16.13 Ngspice control via input, output fifos
+Example bash script:
+#!/ usr / bin / env bash
+N G S P I C E _ C O M M A N D =" ngspice "
+rm input . fifo
+rm output . fifo
+mkfifo input . fifo
+mkfifo output . fifo
+$ N G S P I C E _ C O M M A N D -p -i < input . fifo > output . fifo &
+exec 3 > input . fifo
+echo " I can write to input . fifo "
+echo " Start processing ..."
+echo ""
+echo " source circuit . cir " >&3
+echo " unset askquit " >&3
+echo " set nobreak " >&3
+echo " tran 0.01 ms 0.1 ms " >&3
+echo " print n0 " >&3
+echo " quit " >&3
+echo " Try to open output . fifo ..."
+exec 4 < output . fifo
+echo " I can read from output . fifo "
+echo " Ready to read ..."
+while read output
+do
+echo $output
+done <&4
+exec 3 >& -
+exec 4 >& -
+echo " End processing "
+The bash script listed above (tested under Linux and Cygwin)
+- launches ngspice in pipe mode (-p) in another thread.
+- writes some commands to the ngspice input

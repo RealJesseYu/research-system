@@ -1,0 +1,25 @@
+18.1. MS WINDOWS GRAPHICAL USER INTERF ACE 461
+has to wait until the window is accessible from within ngspice, e.g. during an update of
+the progress window.
+In the plot window there is the upper left button, which activates a drop down menu.
+You may select to print the plot window shown (a simple printer interface), set up any
+of the printers available on your computer, or issue a postscript file or a SVG file of the
+active plot window.
+A left-click in the plot window will print the coordinates of that point in the text window,
+allowing data to be captured from the plot. Click, drag and release will show both start
+and end points, as well as the slope of the line joining them. Click and drag with the
+right button outlines a rectangle; on release a new window opens with a"zoomed" plot of
+that rectangular area.
+Instead of plotting with black background, you may set the background to any other color,
+preferably to 'white' using the command shown below.
+Input file modification for white background:
+. control
+run
+* white background
+set color0 = white
+* black grid and text ( only needed with X11 , automatic with MS Win )
+set color1 = black
+* wider plot lines
+set xb rus hwi dth =2
+plot vss # branch
+. endc

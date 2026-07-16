@@ -1,0 +1,23 @@
+148 CHAPTER 8. BJT
+Figure 8.3: The equivalent circuit of HICUM/L2 without the self-heating, NQS and noise
+correlation networks.
+8.2.4 HICUM level 2 Model
+The physics-based HIgh-CUrrent Model (HICUM) Level2 (L2) has been a standard com-
+pact model for bipolar junction transistors and heterojunction bipolar transistors (HBTs)
+for many years. The model has been shown to be applicable to many process genera-
+tions of SiGe HBTs and also to InP HBTs, including high-speed and high-voltage device
+designs. The implemented version in Ngspice is HICUML2/2.4 and can be activated by
+BJT model parameter level=8.
+HICUML2 captures most to all known physical effects relevant in HBTs, in example:
+• substrate transistor
+• avalanche effect
+• physics based transfer current model
+• self-heating
+• accurate modeling of the temperature dependence
+• excess phase between base and collector current
+Note that the noise correlation network is not implemented in Ngspice. More information
+regarding the model and its parameters can be found on the website.
+The equivalent circuit of the model is shown in fig. 8.3. The model is employed in many
+PDKs for state-of-the-art SiGe and InP HBTs and is actively developed at TU Dresden.
+The HICUM model exposes the following nodes to the user:
+C(ollector) B(ase) E(mitter) S(ubstrate) T(emperature)

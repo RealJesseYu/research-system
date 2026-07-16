@@ -1,0 +1,45 @@
+278CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+line. The width of the RAM words (M) is set through the use of the word width
+parameter. The depth of the RAM (N) is set by the number of address lines input
+to the device. The value of N is related to the number of address input lines (P) by
+the following equation:
+2P = N
+There is no reset line into the device. However, an initial value for all bits may be
+specified by setting the ic parameter to either 0 or 1. In reading a word from the
+ram, the read delay value is invoked, and output will not appear until that delay
+has been satisfied. Separate rise and fall delays are not supported for this device.
+Note that UNKNOWN inputs on the address lines are not allowed during a write.
+In the event that an address line does indeed go unknown during a write, the entire
+contents of the ram will be set to unknown . This is in contrast to the data in lines
+being set to unknown during a write; in that case, only the selected word will be
+corrupted, and this is corrected once the data lines settle back to a known value.
+Note that protection is added to the write en line such that extended UNKNOWN
+values on that line are interpreted as ZERO values. This is the equivalent of a read
+operation and will not corrupt the contents of the RAM. A similar mechanism exists
+for the select lines. If they are unknown, then it is assumed that the chip is not
+selected.
+Detailed timing-checking routines are not provided in this model, other than for
+the enable delay and select delay restrictions on read operations. You are advised,
+therefore, to carefully check the timing into and out of the RAM for correct read
+and write cycle times, setup and hold times, etc. for the particular device they are
+attempting to model.
+Example SPICE Usage:
+a4 [3 4 5 6] [3 4 5 6] [12 13 14 15 16 17 18 19] 30 [22 23 24] ram2
+.model ram2 d_ram(select_value = 2 ic = 2 read_delay = 80e-9)
+12.4.21 Digital Source
+NAME_TABLE:
+C_Function_Name: cm_d_source
+Spice_Model_Name: d_source
+Description: "digital signal source"
+PORT_TABLE:
+Port Name: out
+Description: "output"
+Direction: out
+Default_Type: d
+Allowed_Types: [d]
+Vector: yes
+Vector_Bounds: -
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: input_file
+Description: "digital input vector filename"

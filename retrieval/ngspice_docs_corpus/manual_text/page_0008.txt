@@ -1,0 +1,36 @@
+8 CONTENTS
+4.1.9 External voltage or current input . . . . . . . . . . . . . . . . . . . 100
+4.1.10 Arbitrary Phase Sources . . . . . . . . . . . . . . . . . . . . . . . . 100
+4.1.11 RF Port . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 100
+4.2 Linear Dependent Sources . . . . . . . . . . . . . . . . . . . . . . . . . . . 101
+4.2.1 Gxxxx: Linear Voltage-Controlled Current Sources (VCCS) . . . . 101
+4.2.2 Exxxx: Linear Voltage-Controlled Voltage Sources (VCVS) . . . . . 101
+4.2.3 Fxxxx: Linear Current-Controlled Current Sources (CCCS) . . . . 102
+4.2.4 Hxxxx: Linear Current-Controlled Voltage Sources (CCVS) . . . . 102
+4.2.5 Polynomial Source Compatibility . . . . . . . . . . . . . . . . . . . 102
+5 Non-linear Dependent Sources (Behavioral Sources) 105
+5.1 Bxxxx: Nonlinear dependent source (ASRC) . . . . . . . . . . . . . . . . . 105
+5.1.1 Syntax and usage . . . . . . . . . . . . . . . . . . . . . . . . . . . . 105
+5.1.2 Special B-Source Variables time, temper, hertz . . . . . . . . . . . . 109
+5.1.3 par( 'expression ') . . . . . . . . . . . . . . . . . . . . . . . . . . . . 109
+5.1.4 Piecewise Linear Function: pwl . . . . . . . . . . . . . . . . . . . . 109
+5.2 Exxxx: non-linear voltage source . . . . . . . . . . . . . . . . . . . . . . . 112
+5.2.1 VOL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 112
+5.2.2 V ALUE . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 113
+5.2.3 TABLE . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 113
+5.2.4 POLY . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 113
+5.2.5 LAPLACE . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 113
+5.2.6 FREQ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 114
+5.2.7 AND/OR/NAND/NOR . . . . . . . . . . . . . . . . . . . . . . . . 115
+5.3 Gxxxx: non-linear current source . . . . . . . . . . . . . . . . . . . . . . . 115
+5.3.1 CUR . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 115
+5.3.2 V ALUE . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 116
+5.3.3 TABLE . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 116
+5.3.4 POLY . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 116
+5.3.5 LAPLACE . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 116
+5.3.6 FREQ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 117
+5.3.7 Example . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 117
+5.4 Debugging a behavioral source . . . . . . . . . . . . . . . . . . . . . . . . . 117
+5.5 POLY Sources . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 118
+5.5.1 E voltage source, G current source . . . . . . . . . . . . . . . . . . 119
+5.5.2 F voltage source, H current source . . . . . . . . . . . . . . . . . . . 119

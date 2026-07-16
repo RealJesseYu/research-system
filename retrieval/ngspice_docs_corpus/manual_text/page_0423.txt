@@ -1,0 +1,28 @@
+17.5. COMMANDS 423
+The command prints system information useful for sending bug report to developers.
+Information consists of
+• Name of the operating system,
+• CPU type,
+• Number of physical processors,
+• Number of logical processors,
+• Total amount of DRAM available,
+• DRAM currently available.
+The example below shows the use of this command.
+ngspice 1 -> sysinfo
+OS : CYGWIN_NT -5.1 1 . 5 . 2 5 ( 0 . 1 5 6 / 4 / 2 ) 2008 -06 -12 19:34
+CPU : Intel ( R ) Pentium ( R ) 4 CPU 3.40 GHz
+Logical processors : 2
+Total DRAM available = 15 35 .48 04 69 MB .
+DRAM currently available = 984.683594 MB .
+ngspice 2 ->
+This command has been tested under Windows OS and Linux. It may not be available
+in your operating system environment.
+17.5.93 Tf*: Run a Transfer Function analysis
+General Form:
+tf out put _no de i n p u t _ s o u r c e
+The tf command performs a transfer function analysis, returning:
+• the transfer function (output/input),
+• output resistance,
+• and input resistance
+between the given output node and the given input source. The analysis assumes a
+small-signal DC (slowly varying) input. The following example file

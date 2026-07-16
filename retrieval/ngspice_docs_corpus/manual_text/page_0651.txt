@@ -1,0 +1,35 @@
+30.16. X.MESH, Y.MESH 651
+be provided. If only one is given, it will be the smallest space and the largest space will
+be at the opposite end of the interval. If both are given, the largest space will be in
+the middle of the interval. In certain cases it is desirable to limit the growth of space
+widths in order to control the solution accuracy. This can be accomplished by specifying
+a maximum space size, but this option is only available when one of the two end lengths
+is given. Note that once the number of new lines is determined using the desired ratio,
+the actual spacing ratio may be adjusted so that the spaces exactly fill the interval.
+30.16.2 Parameters
+Name Type Description
+Location Real Location of this mesh line, ( µm )
+:Width Real Width between this and previous mesh lines, ( µm )
+Number | Node Integer Number of this mesh line
+:Ratio Real Ratio of sizes of adjacent spaces
+H.Start | H1 Real Space size at start of interval, ( µm )
+H.End | H2 Real Space size at end of interval, ( µm )
+H.Max | H3 Real Maximum space size inside interval, ( µm )
+30.16.3 EXAMPLES
+A 50 node, uniform mesh for a 5 µm long semiconductor resistor can be specified as:
+x . mesh loc =0.0 n =1
+x . mesh loc =5.0 n =50
+An accurate mesh for a 1D diode needs fine spacing near the junction. In this example,
+the junction is assumed to be 0.75 µm deep. The spacing near the diode ends is limited
+to a maximum of 0.1 µm:
+x . mesh w =0.75 h . e =0.001 h . m =0. l ratio =1.5
+x . mesh w =2.25 h . s =0.001 h . m =0. l ratio =1.5
+The vertical mesh spacing of a MOSFET can generally be specified as uniform through the
+gate oxide, very fine for the surface inversion layer, moderate down to the so source/drain
+junction depth, and then increasing all the way to the bulk contact:
+y . mesh loc = -0.04 node =1
+y . mesh loc =0.0 node =6
+y . mesh width =0.5 h . start =0.001 h . max =.05 ratio =2.0
+y . mesh width =2.5 h . start =0.05 ratio =2.0
+30.16.4 SEE ALSO
+domain

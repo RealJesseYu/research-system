@@ -1,0 +1,46 @@
+15.3. ANALYSES 319
+Example:
+* Shot noise test with B source , diode
+* voltage on device ( diode , forward )
+Vdev out 0 DC 0 PULSE (0.4 0.45 10 u )
+* diode , forward direction , to be modeled with noise
+D1 mess 0 DMOD
+. model DMOD D IS =1 e -14 N =1
+X1 0 mess out ishot
+* device between 1 and 2
+* new output terminals of device including noise : 1 and 3
+. subckt ishot 1 2 3
+* white noise source with rms 1 V
+* 20000 sample points
+VNG 0 11 DC 0 TRNOISE (1 1 n 0 0)
+* measure the current i ( v1 )
+V1 2 3 DC 0
+* calculate the shot noise
+* sqrt (2* current * q * bandwidth )
+BI 1 3 I = sqrt (2* abs ( i ( v1 ))*1.6 e -19*1 e7 )* v (11)
+. ends ishot
+. tran 1 n 20 u
+. control
+run
+plot ( -1)* i ( vdev )
+. endc
+. end
+The selection of the delta time step ( NT) is worth discussing. Gaussian white noise has un-
+limited bandwidth and thus unlimited energy content. This is unrealistic. The bandwidth
+of real noise is limited, but it is still called 'White' if it is the same level throughout the
+frequency range of interest, e.g. the bandwidth of your system. Thus you may select NT
+to be a factor of 10 smaller than the frequency limit of your circuit. A thorough analysis
+is still needed to clarify the appropriate factor. The transient method is probably most
+suited to circuits including switches, which are not amenable to the small signal .NOISE
+analysis (Chapt. 15.3.4).
+There is a price you have to pay for transient noise analysis: the number of required time
+steps, and thus the simulation time, increases.
+In addition to white and 1/f noise the independent voltage and current sources offer
+a random telegraph signal ( RTS) noise source, also known as burst noise or popcorn
+noise, again for transient analysis. For each voltage (current) source offering RTS noise
+an individual noise amplitude is required for input, as well as a mean capture time and a
+mean emission time. The amplitude resembles the influence of a single trap on the current
+or voltage. The capture and emission times emulate the filling and emptying of the trap,
+typically following a Poisson process. They are generated from an random exponential
+distribution with respective mean values given by the user. To simulate an ensemble of
+traps, you may combine several current or voltage sources with different parameters.

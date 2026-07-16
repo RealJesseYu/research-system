@@ -1,0 +1,36 @@
+5.1. BXXXX: NONLINEAR DEPENDENT SOURCE (ASRC) 107
+y = pow(fabs(x1), x2)
+pow in the preceding line is the standard C math library function.
+The function y = pwr(x1,x2) resolves to
+if (x1 < 0.0)
+y = (-pow(-x1, x2));
+else
+y = (pow(x1, x2));
+pow here again is the standard C math library function.
+Example: Ternary function
+* B source test Clamped voltage source
+* C . P . Basso " Switched - mode power supplies " , New York , 2008
+. param Vhigh = 4.6
+. param Vlow = 0.4
+Vin1 1 0 DC 0 PWL (0 0 1 u 5)
+Bcl 2 0 V = V (1) < Vlow ? Vlow : V (1) > Vhigh ? Vhigh : V (1)
+. control
+unset askquit
+tran 5 n 1 u
+plot V (2) vs V (1)
+. endc
+. end
+If the argument of log, ln, or sqrt becomes less than zero, the absolute value of the
+argument is used. If a divisor becomes zero or the argument of log or ln becomes zero,
+an error will result. Other problems may occur when the argument for a function in a
+partial derivative enters a region where that function is undefined.
+Parameters may be used like {Vlow} shown in the example above. Parameters will be
+evaluated upon set up of the circuit, vectors like V(1) will be evaluated during the simu-
+lation.
+To get time into the expression you can integrate the current from a constant current
+source with a capacitor and use the resulting voltage (don't forget to set the initial voltage
+across the capacitor).
+Non-linear resistors, capacitors, and inductors may be synthesized with the nonlinear de-
+pendent source. Nonlinear resistors, capacitors and inductors are implemented with their
+linear counterparts by a change of variables implemented with the nonlinear dependent
+source. The following subcircuit will implement a nonlinear capacitor:

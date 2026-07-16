@@ -1,0 +1,27 @@
+30.4. CONTACT 631
+30.3.1 DESCRIPTION
+Annotations can be added to a device definition using the comment card. All text on a
+comment card is ignored. Several popular commenting characters are also supported as
+aliases: ' *' from SPICE, ' $' from PISCES, and ' #' from Linux shell scripts.
+30.3.2 EXAMPLES
+A SPICE-like comment is followed by a PISCES-like comment and shell script comment:
+* CIDER and SPICE would ignore this input line
+$ CIDER and PISCES would ignore this , but SPICE wouldn ' t
+# CIDER and Linux Shell scripts would ignore this input line
+30.4 CONTACT
+Specify properties of an electrode
+SYNOPSIS
+contact number [ w o r k f u n c t i o n ]
+30.4.1 DESCRIPTION
+The properties of an electrode can be set using the contact card. The only changeable
+property is the work-function of the electrode material and this only affects contacts made
+to an insulating material. All contacts to semiconductor material are assumed to be ohmic
+in nature.
+30.4.2 PARAMETERS
+Name Type Description
+Number Integer ID number of the electrode
+Work-function Real Work-function of electrode material. ( eV )
+30.4.3 EXAMPLES
+The following shows how the work-function of the gate contact of a MOSFET might be
+changed to a value appropriate for a P+ polysilicon gate:
+contact num =2 workf =5.29

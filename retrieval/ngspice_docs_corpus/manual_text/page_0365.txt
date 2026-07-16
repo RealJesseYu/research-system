@@ -1,0 +1,36 @@
+16.14. COMPATIBILITY 365
+RKM code for capacitors
+C1 1 0 4 p7 ; 4.7 p
+C2 1 0 4 n7 ; 4.7 n
+C3 1 0 4 u7 ; 4.7 u
+C4 1 0 4 m7 ; 4.7 m
+C5 1 0 4 F7 ; 4.7 f <-- This deviates fom the RKM notation
+C6 1 0 47 p3 ; 4.73 p
+C7 1 0 470 p ; 470 p
+C8 1 0 4 u76 tc1 =1 e -6 tc2 =1 e -9 dtemp =6
+* ; 4.76 u
+C9 1 0 4 m7 ; 4.7 m
+C10 1 0 470 nF ; 470 n
+C11 1 0 47 fF ; 47 f <-- This deviates fom the RKM notation
+There are some exceptions to the RKM code notation:
+• all letters may be entered upper or lower case, and will internally be transformed
+to lower case.
+• m, M always denote milli (1e-3).
+• f, F denote femto (1e-15), fF will be again femto
+• meg, Meg denotes mega (1e6)
+16.14.7 LTSPICE/PSPICE Compatibility mode
+If the variable ( 17.7) ngbehavior is set to 'ltps' or 'ltpsa' with the commands
+set ngbehavior=ltps
+or
+set ngbehavior=ltpsa
+in spinit or .spiceinit, ngspice will translate all files that have been read into ngspice netlist
+by the .include command ( ltps) or the complete netlist ( ltpsa) 16.14.6, 16.14.5 from LT-
+SPICE and PSPICE syntax to ngspice. This feature allows reading of LTSPICE and
+PSPICE compatible device libraries or complete netlists.
+16.14.8 KiCad Compatibility mode
+KiCad will generate vector names containing '/' . If the variable ( 17.7) ngbehavior is set
+to ki with the command
+set ngbehavior=ki
+is set in .spiceinit (or plot line flag kicad is given 17.5.53), ngspice will place " around
+this vector name. The mathematical operation 'division' in the plot command will then
+work only if spaces are placed around the division operator /.

@@ -1,0 +1,25 @@
+CONTENTS 29
+32.2.2 How to make ngspice with MINGW and MSYS2 . . . . . . . . . . 725
+32.2.3 make ngspice with pure CYGWIN . . . . . . . . . . . . . . . . . . . 728
+32.2.4 ngspice mingw or cygwin console executable w/o graphics . . . . . 728
+32.2.5 ngspice for MS Windows, cross compiled from Linux . . . . . . . . 729
+32.3 Ngspice Compilation under macOS . . . . . . . . . . . . . . . . . . . . . . 729
+32.3.1 Prerequisites . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 729
+32.3.2 Compiling ngspice . . . . . . . . . . . . . . . . . . . . . . . . . . . 730
+32.3.3 Compiling ngspice shared library . . . . . . . . . . . . . . . . . . . 730
+32.4 Reporting errors . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 731
+33 Copyrights and licenses 733
+33.1 Documentation license . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 733
+33.2 ngspice license . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 733
+33.3 Some license details . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 733
+33.3.1 CC-BY-SA . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 733
+33.3.2 'Modified' BSD license . . . . . . . . . . . . . . . . . . . . . . . . . 734
+33.4 On the historical evolvement of the ngspice licenses . . . . . . . . . . . . . 735
+33.4.1 XSPICE SOFTW ARE (documentation) copyright . . . . . . . . . . 735
+33.4.2 CIDER RESEARCH SOFTW ARE AGREEMENT (superseded by
+33.4.3) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 735
+33.4.3 'Modified' BSD license . . . . . . . . . . . . . . . . . . . . . . . . . 736
+33.4.4 XSPICE . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 737
+33.4.5 OSDI . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 737
+33.4.6 tclspice, numparam . . . . . . . . . . . . . . . . . . . . . . . . . . . 737
+33.4.7 Linking to GPLd libraries (e.g. readline, fftw, table.cm): . . . . . . 737

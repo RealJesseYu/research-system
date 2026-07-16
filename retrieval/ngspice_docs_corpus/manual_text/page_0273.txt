@@ -1,0 +1,46 @@
+12.4. DIGITAL MODELS 273
+Description: "default state on RESET & at DC"
+Data_Type: int
+Default_Value: 0
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: clk_load
+Description: "clock loading capacitance (F)"
+Data_Type: real
+Default_Value: 1.0e-12
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: reset_load
+Description: "reset loading capacitance (F)"
+Data_Type: real
+Default_Value: 1.0e-12
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Common parameters: input_load.
+Description: The digital state machine provides for straightforward descriptions of clocked
+combinational logic blocks with a variable number of inputs and outputs and with
+an unlimited number of possible states. The model can be configured to behave as
+virtually any type of counter or clocked combinational logic block and can be used
+to replace very large digital circuit schematics with an identically functional but
+faster representation.
+The d state model is configured through the use of a state definition file (state.in)
+that resides in a directory of your choosing. The file defines all states to be under-
+stood by the model, plus input bit combinations that trigger changes in state. An
+example state.in file is shown below:
+----------- begin file -------------
+* This is an example state.in file. This file
+* defines a simple 2-bit counter with one input. The
+* value of this input determines whether the counter counts
+* up (in = 1) or down (in = 0).
+0 0s 0s 0 -> 3
+1 -> 1
+1 0s 1z 0 -> 0
+1 -> 2

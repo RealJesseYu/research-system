@@ -1,0 +1,32 @@
+114CHAPTER 5. NON-LINEAR DEPENDENT SOURCES (BEHA VIORAL SOURCES)
+which you may invoke manually. The XSPICE option has to be enabled ( 32.1). AC
+(15.3.1) and transient analysis ( 15.3.10) is supported.
+The following E-Source:
+ELOPASS 4 0 LAPLACE { V (1)}
++ {5 * ( s /100 + 1) / ( s ^2/42000 + s /60 + 1)}
+may be replaced by:
+AELOPASS 1 int_4 filter1
+. model filter1 s_xfer ( gain =5
++ num_coeff =[{1/100} 1]
++ den_coeff =[{ 1/4 200 0} {1/60} 1]
++ int_ic =[0 0])
+ELOPASS 4 0 int_4 0 1
+where you have the voltage of node 1 as input, an intermediate output node int_4 and an
+E-source as buffer to keep the name 'ELOPASS' available if further processing is required.
+If the controlling expression is more complex than just a voltage node, you may add a
+B-Source ( 5.1) for evaluating the expression before entering the A-device.
+E-Source with complex controlling expression:
+ELOPASS 4 0 LAPLACE { V (1)* v (2)} {10 / ( s /6800 + 1)}
+may be replaced by:
+BELOPASS int_1 0 V = V (1)* v (2)
+AELOPASS int_1 int_4 filter1
+. model filter1 s_xfer ( gain =10
++ num_coeff =[1]
++ den_coeff =[{1/6800} 1]
++ int_ic =[0])
+ELOPASS 4 0 int_4 0 1
+5.2.6 FREQ
+Currently ngspice does not offer a direct E-Source element with the FREQ option but
+it is implemented by a XSPICE code model equivalent called xfer (see 12.2.19) that is
+automatically invoked by rewriting the netlist. The XSPICE option has to be enabled
+(32.1) and only AC ( 15.3.1) analysis is supported.

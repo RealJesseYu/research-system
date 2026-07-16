@@ -1,0 +1,40 @@
+636 CHAPTER 30. CIDER USER'S MANUAL
+are elliptical rather than circular.
+30.6.2 PARAMETERS
+Name Type Description
+Domains Int List List of domains to dope
+Uniform : Flag Primary profile type
+Linear :
+Erfc :
+Exponential :
+Suprem3 :
+Ascii :
+Ascii Suprem3
+InFile String Name of Suprem3, Ascii or Ascii Suprem3 input file
+Lat.Rotate : Flag Lateral profile type
+Lat.Unif :
+Lat.Lin :
+Lat.Gauss :
+Lat.Erfc :
+Lat.Exp
+X.Axis:Y.Axis Flag Primary profile direction
+N.Type : P.Type : Flag Impurity type
+Donor : Acceptor :
+Phosphorus :
+Arsenic :
+Antimony :
+Boron
+X.Low Real Lowest X location of constant box, ( µm)
+X.High Real Highest X location of constant box, ( µm)
+Y.Low Real Lowest Y location of constant box, ( µm)
+Y.High Real Highest Y location of constant box, ( µm)
+Conic | Peak.conic Real Dopant concentration, ( cm−3)
+Location | Range Real Location of profile edge/peak, ( µm)
+Char.Length Real Characteristic length of profile, ( µm)
+Ratio.Lat Real Ratio of lateral to primary distances
+30.6.3 EXAMPLES
+This first example adds a uniform background P-type doping of 1.0 × 1016cm−3 to an
+entire device:
+doping uniform p . type conc = l .0 el6
+A Gaussian implantation with rotated lateral falloff, such as might be used for a MOSFET
+source, is then added:

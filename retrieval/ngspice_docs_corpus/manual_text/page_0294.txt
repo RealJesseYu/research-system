@@ -1,0 +1,37 @@
+294 CHAPTER 13. VERILOG-A COMPACT DEVICE MODELS
+13.3.1.6 Prepare the ngspice netlist
+The compiled model, e.g. bsimbulk.osdi, has to be loaded into ngspice. This may occur
+automatically during start-up of ngspice, if the installation has been prepared according
+to the bulk model install (compiled *.osdi models in lib/ngspice, osdi commands added
+to spinit).
+Local usage of a *.osdi which are residing in an arbitrary directory is possible from within
+a .control section ( 16.4.3) by the pre_osdi command. A relative path (as in the example
+below) or an absolute path to that directory may be chosen.
+pre_osdi ../osdi_libs/bsimbulk107.osdi
+The reference designator for the OSDI devices is the letter N. Instance lines starting with
+N are recognized as OSDI devices. The model name mname has to point to the .model
+line which contains the parameter set to be selected.
+Instance line, general form:
+Ndevname node1 ... nodex mname pname1 = pval1 pname2 = pval2 ...
+Examples:
+Np1 z a vdd vdd B S I M B U L K _ o s d i _ P l =0.1 u w =1 u
++ as =0.26235 p ad =0.26235 p ps =2.51 u pd =2.51 u
+Nn1 z a vss vss B S I M B U L K _ o s d i _ N l =0.1 u w =0.5 u
++ as =0.131175 p ad =0.131175 p ps =1.52 u pd =1.52 u
+NMOS and PMOS devices are selected by their respective model names BSIMBULK_osdi_N
+and BSIMBULK_osdi_P. The number and role of the nodes has been defined in the V A
+code in its module statement ( module bsimbulk(d, g, s, b, t); in the BSIMBULK
+example). Instance parameters (like l, w, as etc.) are allowed, as defined by the V A code.
+13.3.1.7 Run the simulation
+The simulation may be run as usual. Batch mode is especially supported when the OSDI
+libraries are loaded via spinit during ngspice start-up.
+13.3.2 OSDI/OpenV AF examples distributed with ngspice
+Several example input netlists are available in folder ngspice/examples/osdi. All (ex-
+cept for bsimbulk-local) make use of the *.osdi installation as a bulk model install
+in a folder pointed to by spinit. bsimbulk-local however requires a local copy of
+bsimbulk.osdi into folder bsimbulk-local/osdi_libs.
+Example folders bsimbulk, bsimbulk-local, bsimcmg, mixed-models, and psp103 con-
+tain MOS devices with their dc characteristics, CMOS inverters, CMOS ring oscilla-
+tors, or even the 7552_ann benchmark CMOS circuit with 15.000 transistors and may
+more passives. Hicuml0, or mextram contain bipolar devices with output characteristics,
+Gummel-plot and some circuits. r2_cmc is a special resistor model.

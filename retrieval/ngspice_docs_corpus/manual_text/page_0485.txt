@@ -1,0 +1,31 @@
+19.3. SHARED NGSPICE API 485
+19.3.2.11 char *ngCM_Input_Path(char*)
+Some XSPICE code models are supposed to read their input data (e.g. digital stimulus
+data) from a file, like the Digital Source ( 12.4.21). There is a certain search sequence for
+the location of this input file, e.g. the current directory or the directory of the previous
+input (e.g. the netlist). However, when the netlist is entered into shared ngspice via the
+function int ngSpice_Circ(char**) ( 19.3.2.6), there will be no information available about
+a previous input directory. Therefore ngCM_Input_Path allows to send such directory
+information to the XSPICE code models. Its return string is the newly set directory path,
+if sent with argument NULL, it will return the currently available search path.
+19.3.2.12 int ngSpice_LockRealloc(void)
+19.3.2.13 int ngSpice_UnlockRealloc(void)
+Locking and unlocking the realloc of output vectors during simulation. May be set before
+and unset after reading output vectors in the primary thread, while the simulation in the
+background thread is moving on.
+19.3.2.14 int ngSpice_Init_Evt(SendEvtData*, SendInitEvtData*, void*)
+return callback initialization addresses to caller
+Pointers to callback functions (details see 19.3.3):
+SendEvtData* data for a specific event node at time 'step'
+SendInitEvtData* single line entry of event node dictionary (list)
+void* pointer to user-defined data, will not be modified, but handed over back to caller
+during Callback, e.g. address of calling object
+19.3.2.15 pevt_shared_data ngGet_Evt_NodeInfo(char*)
+Get info about the event node vector. If node_name is NULL, just delete previous data
+19.3.2.16 char** ngSpice_AllEvtNodes(void)
+get a list of all event nodes
+19.3.3 Callback functions
+Callback functions are a means to return data from ngspice to the caller. These functions
+are defined as global functions in the caller, so to be reachable by the C-coded ngspice.
+They are declared according to the typedefs given below. ngspice receives their addresses
+from the caller upon initialization with the ngSpice_Init(...) function (see 19.3.2.1). If the

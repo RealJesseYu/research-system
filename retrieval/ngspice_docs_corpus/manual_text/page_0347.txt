@@ -1,0 +1,39 @@
+16.4. STARTING OPTIONS 347
+16.4.3 Control mode (Interactive mode with control file or con-
+trol section)
+If you add the following control section to your input file adder-mos.cir, you may call
+ngspice adder-mos.cir
+from the command line and see ngspice starting, simulating and then plotting immediately.
+Control section:
+* ADDER - 4 BIT ALL - NAND - GATE BINARY ADDER
+. control
+save vcc # branch
+run
+plot vcc # branch
+rusage all
+. endc
+Any suitable command listed in Chapt. 17.5 may be added to the control section, as well
+as control structures described in Chapt. 17.6. Batch-like behavior may be obtained by
+changing the control section to
+Control section with batch-like behavior:
+* ADDER - 4 BIT ALL - NAND - GATE BINARY ADDER
+. control
+save vcc # branch
+run
+write adder . raw vcc # branch
+quit
+. endc
+If you put this control section into a file, say adder-start.sp, you may just add the line
+.include adder-start.sp
+to your input file adder-mos.cir to obtain the batch-like behavior. In the following example
+the line .tran ... from the input file is overridden by the tran command given in the
+control section.
+Control section overriding the .tran command:
+* ADDER - 4 BIT ALL - NAND - GATE BINARY ADDER
+. control
+save vcc # branch
+tran 1 n 500 n
+plot vcc # branch
+rusage time
+. endc
+The commands within the .control section are executed in the order they are listed and

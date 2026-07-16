@@ -1,0 +1,38 @@
+98 CHAPTER 4. VOLTAGE AND CURRENT SOURCES
+Name Parameter Default value Units
+V A Amplitude - V , A
+VO Offset - V , A
+MF Modulating frequency - Hz
+FC Carrier frequency 1/T ST OP Hz
+TD Signal delay - s
+PHASES Phase 0.0 degrees
+The shape of the waveform is described by the following equation:
+V (t) = VA (V O + sin (2π · M F · t) + P HASES ) sin (2π · F C · t + P HASES ) (4.4)
+4.1.7 Transient noise source
+General form:
+TRNOISE ( NA NT NALPHA NAMP RTSAM RTSCAPT RTSEMT )
+Examples:
+VNoiw 1 0 DC 0 TRNOISE (20 n 0.5 n 0 0) $ white
+VNoi1of 1 0 DC 0 TRNOISE (0 10 p 1.1 12 p ) $ 1/ f
+VNoiw1of 1 0 DC 0 TRNOISE (20 10 p 1.1 12 p ) $ white and 1/ f
+IALL 10 0 DC 0 trnoise (1 m 1 u 1.0 0.1 m 15 m 22 u 50 u )
+$ white , 1/ f , RTS
+Transient noise is an experimental feature allowing (low frequency) transient noise injec-
+tion and analysis. See Chapt. 15.3.11 for a detailed description. NA is the Gaussian noise
+rms voltage amplitude, NT is the time between sample values (breakpoints will be en-
+forced on multiples of this value). NALPHA (exponent to the frequency dependency), NAMP
+(rms voltage or current amplitude) are the parameters for 1/f noise, RTSAM the random
+telegraph signal amplitude, RTSCAPT the mean of the exponential distribution of the trap
+capture time, and RTSEMT its emission time mean. White Gaussian, 1/f, and RTS noise
+may be combined into a single statement.
+Name Parameter Default value Units
+NA Rms noise amplitude (Gaussian) - V , A
+NT Time step - sec
+NALPHA 1/f exponent 0 < α < 2 -
+NAMP Amplitude (1/f) - V , A
+RTSAM Amplitude - V , A
+RTSCAPT Trap capture time - sec
+RTSEMT Trap emission time - sec
+If you set NT and RTSAM to 0, the noise option TRNOISE ... is ignored. Thus you may
+switch off the noise contribution of an individual voltage source VNOI by the command
+alter @vnoi[trnoise] = [ 0 0 0 0 ] $ no noise

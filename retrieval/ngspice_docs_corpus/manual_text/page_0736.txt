@@ -1,0 +1,37 @@
+736 CHAPTER 33. COPYRIGHTS AND LICENSES
+AND FITNESS FOR A PARTICULAR PURPOSE. THE UNIVERSITY IS NOT LI-
+ABLE FOR ANY DAMAGES INCURRED BY THE RECIPIENT IN USE OF THE
+SOFTW ARE AND DOCUMENTATION, INCLUDING DIRECT, INDIRECT, SPECIAL,
+INCIDENTAL, OR CONSEQUENTIAL DAMAGES.
+The University of California grants the recipient the right to modify, copy, and redistribute
+the software and documentation, both within the recipient's organization and externally,
+subject to the following restrictions:
+(a) The recipient agrees not to charge for the University of California code itself. The
+recipient may, however, charge for additions, extensions, or support.
+(b) In any product based on the software, the recipient agrees to acknowledge the research
+group that developed the software. This acknowledgment shall appear in the product
+documentation.
+(c) The recipient agrees to obey all U.S. Government restrictions governing redistribution
+or export of the software and documentation.
+All BSD licenses have been changed to the 'modified' BSD license by UCB in 1999 (see
+Chapt. 33.4.3).
+33.4.3 'Modified' BSD license
+All 'old' BSD licenses (of SPICE or CIDER) have been changed to the 'modified' BSD
+license according to the following publication
+(see ftp://ftp.cs.berkeley.edu/pub/4bsd/README.Impt.License.Change):
+July 22, 1999
+To All Licensees, Distributors of Any Version of BSD:
+As you know, certain of the Berkeley Software Distribution ('BSD') source code files re-
+quire that further distributions of products containing all or portions of the software,
+acknowledge within their advertising materials that such products contain software de-
+veloped by UC Berkeley and its contributors.
+Specifically, the provision reads:
+'3. All advertising materials mentioning features or use of this software must display the
+following acknowledgment: This product includes software developed by the University
+of California, Berkeley and its contributors. '
+Effective immediately, licensees and distributors are no longer required to include the
+acknowledgment within advertising materials. Accordingly, the foregoing paragraph of
+those BSD Unix files containing it is hereby deleted in its entirety.
+William Hoskins
+Director, Office of Technology Licensing
+University of California, Berkeley

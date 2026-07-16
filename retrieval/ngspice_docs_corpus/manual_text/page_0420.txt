@@ -1,0 +1,33 @@
+420 CHAPTER 17. INTERACTIVE INTERPRETER
+For ngutmeg: reads commands from the file infile. Lines beginning with the character
+'*' are considered comments and are ignored.
+The following search path is executed to find infile: current directory (OS dependent),
+<prefix>/share/ngspice/scripts, env. variable NGSPICE_INPUT_DIR (if defined), see 16.7.
+This sequence may be overridden by setting the internal sourcepath variable (see 17.7)
+before calling source infile .
+17.5.84 Sp: S-Parameter Analysis
+General form:
+sp dec nd fstart fstop < donoise >
+sp oct no fstart fstop < donoise >
+sp lin np fstart fstop < donoise >
+Examples:
+sp dec 10 1 10 K
+sp dec 10 1 K 100 MEG 1
+sp lin 100 1 100 HZ
+For details please see chapter 15.3.8. the ports required are available as an option to the
+independent voltage source VSRC (see 4.1.11 ).
+17.5.85 Spec: Create a frequency domain plot
+General Form:
+spec start_freq stop_freq step_freq vector [ vector ...]
+Calculates a new complex vector containing the Fourier transform of the input vector
+(typically the linearized result of a transient analysis). The default behavior is to use
+a Hanning window, but this can be changed by setting the variables specwindow and
+specwindoworder appropriately.
+Typical usage:
+ngspice 13 -> linearize
+ngspice 14 -> set specwindow = " blackman "
+ngspice 15 -> spec 10 1000000 1000 v ( out )
+ngspice 16 -> plot mag ( v ( out ))
+Possible values for specwindow are none, hanning, cosine, rectangular, hamming, triangle,
+bartlet, blackman, gaussian and flattop. In the case of a Gaussian window specwindoworder
+is a number specifying its order. For a list of window functions see 17.5.30.

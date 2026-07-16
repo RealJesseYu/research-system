@@ -1,0 +1,48 @@
+44 CHAPTER 1. INTRODUCTION
+where T0 and T1 are in degrees Kelvin, and XT B is a user-supplied model parameter.
+Temperature effects on beta are carried out by appropriate adjustment to the values of
+BF , ISE , BR, and ISC (SPICE model parameters BF, ISE, BR, and ISC, respectively).
+Temperature dependence of the saturation current in the junction diode model is deter-
+mined by:
+IS (T1) = IS (T0)
+ T1
+T0
+ XT I
+N
+exp
+ Egq (T1 − T0)
+N k (T1T0)
+
+(1.3)
+where N is the emission coefficient model parameter, and the other symbols have the
+same meaning as above. Note that for Schottky barrier diodes, the value of the saturation
+current temperature exponent, XT I, is usually 2. Temperature appears explicitly in the
+value of junction potential, U (in Ngspice PHI), for all the device models.
+The temperature dependence is determined by:
+U (T ) = kT
+q ln
+ NaNd
+Ni (T )2
+
+(1.4)
+where k is Boltzmann's constant, q is the electronic charge, Na is the acceptor impurity
+density, Nd is the donor impurity density, Ni is the intrinsic carrier concentration, and Eg
+is the energy gap. Temperature appears explicitly in the value of surface mobility, M0(or
+U0), for the MOSFET model.
+The temperature dependence is determined by:
+M0 (T ) = M0 (T0)
+T
+T0
+1.5 (1.5)
+The effects of temperature on resistors, capacitor and inductors is modeled by the formula:
+R (T ) = R (T0)
+
+1 + T C1 (T − T0) + T C2 (T − T0)2
+(1.6)
+where T is the circuit temperature, T0 is the nominal temperature, and T C1 and T C2 are
+the first and second order temperature coefficients.
+1.3.2 Controlling the temperature
+The default temperature is set to 27 °C.
+.temp 40
+will set the overall temperature to 40 °C ( 2.12). The command
+.options temp=60

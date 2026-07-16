@@ -1,0 +1,38 @@
+28.5. COMPILING AND LOADING THE NEW CODE MODEL (LIBRARY) 579
+28.5 Compiling and loading the new code model (li-
+brary)
+Compiling is now as simple as issuing the commands
+cd ngspice/release
+make
+sudo make install
+if you have installed ngspice according to Chapt. 32.1.4. This procedure will install
+the code model libraries into a directory <prefix>/lib/spice/, e.g. C:/Spice/lib/spice/ for
+standard Windows install or /usr/local/lib/spice/ for Linux.
+Thus the code model libraries are not linked into ngspice at compile time, but may be
+loaded at runtime using the codemodel command (see Chapt. 17.5.12). This is done
+automatically for the predefined code model libraries upon starting ngspice. The appro-
+priate commands are provided in the start up file spinit (see Chapt. 16.5). So if you have
+added a new code model inside of one of the existing libraries, nothing has to be done,
+you will have immediate access to your new model.
+If you have generated a new code model library, e.g. new_lib.cm, then you have to add
+the line
+@XSPICEINIT@ codemodel @prefix@/@libname@/spice/new_lib.cm
+to spinit.in in ngspice/src. This will create a new spinit if ngspice is recompiled from
+scratch.
+To avoid the need for recompilation of ngspice, you also may directly edit the file spinit
+by adding the line
+codemodel C:/Spice/lib/spice/new_lib.cm
+(OS MS Windows) or the appropriate Linux equivalent. Upon starting ngspice, the new
+library will be loaded and you have access to the new code model(s). The codemodel
+command has to be executed upon start-up of ngspice, so that the model information is
+available as soon as the circuit is parsed. Failing to do so will lead to an error message of
+a model missing. So spinit (or .spiceinit for personal code model libraries) is the correct
+place for codemodel.
+28.6 Interface Specification File
+The Interface Specification (IFS) file is a text file that describes the model's naming infor-
+mation, its expected input and output ports, its expected parameters, and any variables
+within the model that are to be used for storage of data across an entire simulation. These
+four types of data are described to the simulator in IFS file sections labeled NAME_TABLE,
+PORT_TABLE, PARAMETER_TABLE and STATIC_VAR_TABLE, respectively. An example IFS
+file is given below. The example is followed by detailed descriptions of each of the entries,
+what they signify, and what values are acceptable for them. Keywords are case insensitive.

@@ -1,0 +1,45 @@
+682 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+237 cqbc Out real Cap. due to charge storage in B-C jct.
+238 qbx Out real Charge storage B-X junction
+239 cqbx Out real Cap. due to charge storage in B-X jct.
+258 sens_dc Out real DC sensitivity
+253 sens_real Out real Real part of AC sensitivity
+254 sens_imag Out real DC sens. & imag part of AC sens.
+255 sens_mag Out real Sensitivity of AC magnitude
+256 sens_ph Out real Sensitivity of AC phase
+257 sens_cplx Out complex AC sensitivity
+31.5.2.2 VBIC model parameters
+# Name Direction Type Description
+305 type Out string NPN or PNP
+101 npn InOut flag NPN type device
+102 pnp InOut flag PNP type device
+103 tnom (tref) InOut real Parameter measurement temperature
+104 rcx InOut real Extrinsic coll resistance
+105 rci InOut real Intrinsic coll resistance
+106 vo InOut real Epi drift saturation voltage
+107 gamm InOut real Epi doping parameter
+108 hrcf InOut real High current RC factor
+109 rbx InOut real Extrinsic base resistance
+110 rbi InOut real Intrinsic base resistance
+111 re InOut real Intrinsic emitter resistance
+112 rs InOut real Intrinsic substrate resistance
+113 rbp InOut real Parasitic base resistance
+114 is InOut real Transport saturation current
+115 nf InOut real Forward emission coefficient
+116 nr InOut real Reverse emission coefficient
+117 fc InOut real Fwd bias depletion capacitance limit
+118 cbeo InOut real Extrinsic B-E overlap capacitance
+119 cje InOut real Zero bias B-E depletion capacitance
+120 pe InOut real B-E built in potential
+121 me InOut real B-E junction grading coefficient
+122 aje InOut real B-E capacitance smoothing factor
+123 cbco InOut real Extrinsic B-C overlap capacitance
+124 cjc InOut real Zero bias B-C depletion capacitance
+125 qco InOut real Epi charge parameter
+126 cjep InOut real B-C extrinsic zero bias capacitance
+127 pc InOut real B-C built in potential
+128 mc InOut real B-C junction grading coefficient
+129 ajc InOut real B-C capacitance smoothing factor
+130 cjcp InOut real Zero bias S-C capacitance
+131 ps InOut real S-C junction built in potential
+132 ms InOut real S-C junction grading coefficient

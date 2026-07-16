@@ -1,0 +1,40 @@
+400 CHAPTER 17. INTERACTIVE INTERPRETER
+your signal. If no circuit is loaded and the data have been acquired by the load (17.5.45)
+command, Linearize will take time data from transient analysis scale vector.
+The linearize command may be used to create a linearized cutout of the original vec-
+tor by defining the vectors lin-tstart, lin-tstop, and lin-tstep before issuing the
+linearize command. At least lin-tstart or lin-tstop has to be defined. This may be
+used to plot just a portion of a vector, or to prepare a better fft by skipping the start-up
+phase of a ring oscillator.
+Excerpt from the ring oscillator example soi/ring51_40.sp:
+* original time scale by . tran command is from 0 to 16 ns
+save out25 out50
+run
+plot out25 out50
+let lin - tstart = 4 n $ skip the start - up phase
+let lin - tstop = 14 n $ end earlier ( just for d e m o n s t r a t i o n )
+let lin - tstep = 5 p
+linearize out25 out50
+plot out25 out50
+The linearize command should explicitly name the vectors of interest. Otherwise warn-
+ing messages pop up that the vectors lin-tstart etc cannot be linearized.
+17.5.44 Listing*: Print a listing of the current circuit
+General Form:
+listing [ logical ] [ physical ] [ deck ] [ expand ] [ runnable ] [ param ]
+If the logical argument is given, the listing is with all continuation lines collapsed into
+one line, and if the physical argument is given the lines are printed out as they were
+found in the file. The default is logical. A deck listing is just like the physical listing,
+except without the line numbers it recreates the input file verbatim (except that it does
+not preserve case). If the word expand is present, the circuit is printed with all subcir-
+cuits expanded. Argument runnable will list the circuit netlist expanded, but without
+additional line numbers, ready to be sourced again and run in ngspice. The option param
+allows printing all parameters and their actual values.
+Example:
+source d :\ myngspice \ inputs \ d e c a d e _ c o u n t e r . cir
+listing r > $inputdir / d e c a d e _ c o u n t e r _ r u n n a b l e . cir
+All options (except for param) may be invoked by just entering their first letter. The
+example sources a ngspice netlist, the listing r command will save the expanded netlist
+(all parameters evaluated, subcircuits flattened, .control sections removed) into a file
+within the same directory.
+If you are using CIDER ( 30), listing r will not create a runnable netlist, because some
+data lines which have been created internally are missing.

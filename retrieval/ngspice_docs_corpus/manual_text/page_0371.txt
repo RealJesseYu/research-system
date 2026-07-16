@@ -1,0 +1,55 @@
+17.2. EXPRESSIONS, FUNCTIONS, AND CONSTANTS 371
+Name Function
+mag(vector) Magnitude of vector (same as abs(vector)).
+ph(vector) Phase of complex vector, in radians.
+cph(vector) Phase of complex vector, in radians. Continuous
+values, no discontinuity at ±π.
+unwrap(vector) Phase of vector with real phase vector in degrees as
+input and output. Continuous values, no discontinuity
+at ±180.
+j(vector) i (sqrt(-1)) times vector.
+real(vector) The real component of vector.
+imag(vector) The imaginary part of vector.
+conj(vector) The complex conjugate of a vector
+db(vector) 20 log10(mag(vector)).
+log10(vector) The logarithm (base 10) of vector.
+ln(vector) The natural logarithm (base e) of vector.
+exp(vector) e to the vector power.
+abs(vector) The absolute value of vector (same as mag).
+sqrt(vector) The square root of vector.
+sin(vector) The sine of vector.
+cos(vector) The cosine of vector.
+tan(vector) The tangent of vector.
+atan(vector) The inverse tangent of vector.
+sinh(vector) The hyperbolic sine of vector.
+cosh(vector) The hyperbolic cosine of vector.
+tanh(vector) The hyperbolic tangent of vector.
+atanh(vector) The inverse hyperbolic tangent of vector.
+floor(vector) Largest integer that is less than or equal to vector.
+ceil(vector) Smallest integer that is greater than or equal to vector.
+norm(vector) The vector normalized to 1 (i.e, the largest magnitude
+of any component is 1).
+mean(vector) The result is a scalar (a length 1 vector) that is the
+mean of the elements of vector (elements values added,
+divided by number of elements).
+avg(vector) The average of a vector.
+Returns a vector where each element is the mean of the
+preceding elements of the input vector (including the
+actual element).
+stddev(vector) The result is a scalar (a length 1 vector) that is the
+standard deviation of the elements of vector .
+group_delay(vector) Calculates the group delay −dphase[rad]/dω[rad/s].
+Input is the complex vector of a system transfer
+function versus frequency, resembling damping and
+phase per frequency value. Output is a vector of group
+delay values (real values of delay times) versus
+frequency.
+vector(number) The result is a vector of length number, with elements
+0, 1, ... number - 1. If number is a vector then just the
+first element is taken, and if it isn't an integer then the
+floor of the magnitude is used.
+cvector(number) Return a vector of length number, containing complex
+elements, with the real part values increasing from 0 to
+number-1, the imaginary values are set to 0.
+unitvec(number) The result is a vector of length number, all elements
+having a value 1.

@@ -1,0 +1,49 @@
+260CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Allowed_Types: [d] [d]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PORT_TABLE:
+Port Name: out Nout
+Description: "data output" "inverted data output"
+Direction: out out
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: clk_delay set_delay
+Description: "delay from clk" "delay from set"
+Data_Type: real real
+Default_Value: 1.0e-9 1.0e-9
+Limits: [1.0e-12 -] [1.0e-12 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: reset_delay ic
+Description: "delay from reset" "output initial state"
+Data_Type: real int
+Default_Value: 1.0e-9 0
+Limits: [1.0e-12 -] [0 2]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: data_load clk_load
+Description: "data load value (F)" "clk load value (F)"
+Data_Type: real real
+Default_Value: 1.0e-12 1.0e-12
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: set_load reset_load
+Description: "set load value (F)" "reset load (F)"
+Data_Type: real real
+Default_Value: 1.0e-12 1.0e-12
+Limits: - -
+Vector: no no
+Vector.Bounds: - -

@@ -1,0 +1,38 @@
+17.5. COMMANDS 413
+17.5.69 Sens*: Run a sensitivity analysis
+General Form:
+sens o u t p u t _ v a r i a b l e
+sens o u t p u t _ v a r i a b l e ac ( DEC | OCT | LIN ) N Fstart Fstop
+Perform a Sensitivity analysis. output_variable is either a node voltage (ex. v(1)
+or v(A,out)) or a current through a voltage source (e.g. i(vtest)). The first form
+calculates DC sensitivities, the second form AC sensitivities. The output values are in
+dimensions of change in output per unit change of input (as opposed to percent change
+in output or per percent change of input).
+17.5.70 17.5.70Set: Set the value of a variable
+General Form:
+set [ word ]
+set [ word = value ] ...
+set [ word = ( list of values )] ...
+Set the value of word to value, if it is present. You can set any word to be any value:
+numeric, string or list. If no value is given then the value is the Boolean 'true' . If you
+enter a string, you have to enclose it in double quotes. Set saves the lower case version
+of a word string but the setcs variant of the command preserves case. If a variable is set
+to a list of values that are enclosed in parentheses (which must be separated from their
+values by white space), the value of the variable is the list.
+The value of word may be inserted into a command by writing $word,or $word[index]for
+an individual list element. The index may itself be a substitution: $word[$index].
+The variables used by ngspice are listed in section 17.7.
+If a variable has the same name as a simulator option, setting it will also attempt to set
+the option.
+Set entered without any parameter will list all variables set, and their values, if applicable.
+Be advised that set sets the lower case variant of word. An exceptions to this rule is the
+variable sourcepath.
+Set automatically tries to distinguish between values given as numbers, strings or lists.
+If a string starts with a numerical value, like 2N5401_C and is not enclosed in double
+quotes, it is interpreted as a real number 2n, i.e. 2e-9. The rest of the string is discarded.
+A variable may be set to a value read from a file by I/O redirection.
+Example:
+set invar < infile . txt
+echo $invar
+echo $invar [2]
+echo $invar [5]

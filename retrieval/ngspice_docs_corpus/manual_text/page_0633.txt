@@ -1,0 +1,36 @@
+30.6. DOPING 633
+The next example defines the two domains that would be typical of a planar MOSFET
+simulation. One occupies all of the mesh below y = 0 and the other occupies the mesh
+above y = 0. Because the x values are left unspecified, the low and high x boundaries
+default to the edges of the mesh:
+domain n = l m = l y . l = O . O
+domain n =2 m =2 y . h = O . O
+30.5.4 SEE ALSO
+x.mesh, material
+30.6 DOPING
+Add dopant to regions of a device
+SYNOPSIS
+doping [ domains ] profile - type [ lateral - profile - type ] [ axis ]
+[ impurity - type1 [ constant - box ] [ profile - s p e c i f i c a t i o n s ]
+30.6.1 DESCRIPTION
+Doping cards are used to add impurities to the various domains of a device. Initially each
+domain is dopant-free. Each new doping card creates a new doping profile that defines
+the dopant concentration as a function of position. The doping at a particular location is
+then the sum over all profiles of the concentration values at that position. Each profile can
+be restricted to a subset of a device's domains by supplying a list of the desired domains.
+Otherwise, all domains are doped by each profile.
+A profile has uniform concentration inside the constant box. Outside this region, it varies
+according to the primary an lateral profile shapes. In 1D devices the lateral shape is
+unused and in 2D devices the y-axis is the default axis for the primary profile. Several
+analytic functions can be used to define the primary profile shape. Alternatively, empirical
+or simulated profile data can be extracted from a file. For the analytic profiles, the doping
+is the product of a profile function (e.g. Gaussian) and a reference concentration, which
+is either the constant concentration of a uniform profile, or the peak concentration for
+any of the other functions. If concentration data is used instead take from an ASCII file
+containing a list of location-concentration pairs or a SUPREM3 exported file, the name of
+the file must be provided. If necessary, the final concentration at a point is then found by
+multiplying the primary profile concentration by the value of the lateral profile function
+at that point. Empirical profiles must first be normalized by the value at 0.0 to provide a
+usable profile functions. Alternatively, the second dimension can be included by assigning
+the same concentration to all points equidistant from the edges of the constant box. The
+contours of the profile are the circular.

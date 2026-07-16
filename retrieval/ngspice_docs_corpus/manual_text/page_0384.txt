@@ -1,0 +1,23 @@
+384 CHAPTER 17. INTERACTIVE INTERPRETER
+17.5.13 Compose: Compose a vector
+General form 1 - List of values:
+compose name values value1 [ value2 ... ]
+General forms 2 - Linearly spaced values:
+compose name start = val stop = val step = val
+compose name center = val span = val step = val
+compose name lin = val center = val span = val
+compose name lin = val < start = val > < stop = val > < step = val >
+General forms 3 - Logarithmically spaced values:
+compose name ( log = val | dec = val | oct = val ) start = val stop = val
+compose name ( log = val | dec = val | oct = val ) center = val span = val
+General form 4 - Gaussian distributed values:
+compose name gauss = val < mean = val > < sd = val >
+General forms 5 - Uniformly distributed values:
+compose name unif = val < mean = val > < span = val >
+compose name unif = val start = val stop = val
+General form 6 - XSPICE node history:
+compose name xspice event - node
+The general form 1 takes the values and creates a new vector, where the values may
+be arbitrary expressions. If negative numbers or expressions starting with '-' are to be
+entered, put them into brackets, e.g. (-2.364) or (-5*PI).
+The forms 2 - 5 create a new vector according the following possible parameters:

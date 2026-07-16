@@ -1,0 +1,63 @@
+142 CHAPTER 8. BJT
+RBM Minimum base resistance at high
+currents
+Ω RB 10 1/area
+RE Emitter resistance Ω 0 1 1/area
+RC Collector resistance Ω 0 10 1/area
+CJE B-E zero-bias depletion
+capacitance
+F 0 2pF area
+VJE (PE) B-E built-in potential V 0.75 0.6
+MJE (ME) B-E junction exponential factor - 0.33 0.33
+TF Ideal forward transit time sec 0 0.1ns
+XTF Coefficient for bias dependence
+of TF
+- 0
+VTF Voltage describing VBC
+dependence of TF
+V ∞
+ITF High-current parameter for effect
+on TF
+A 0 - area
+PTF Excess phase at freq= 1
+2πT F Hz deg 0
+CJC B-C zero-bias depletion
+capacitance (scale is 'areab' for
+vertical devices and 'areac' for
+lateral)
+F 0 2pF areab,areac
+VJC (PC) B-C built-in potential V 0.75 0.5
+MJC B-C junction exponential factor - 0.33 0.5
+XCJC Fraction of B-C depletion
+capacitance connected to
+internal base node
+- 1
+TR Ideal reverse transit time sec 0 10ns
+CJS Zero-bias collector-substrate
+capacitance (scale is 'areac' for
+vertical devices and 'areab' for
+lateral)
+F 0 2pF areab,areac
+VJS (PS) Substrate junction built-in
+potential
+V 0.75
+MJS (MS) Substrate junction exponential
+factor
+- 0 0.5
+XTB Forward and reverse beta
+temperature exponent
+- 0
+EG Energy gap for temperature
+effect on IS
+eV 1.11
+XTI Temperature exponent for effect
+on IS
+- 3
+KF Flicker-noise coefficient - 0
+AF Flicker-noise exponent - 1
+FC Coefficient for forward-bias
+depletion capacitance formula
+- 0.5 0
+TNOM (TREF) Parameter measurement
+temperature
+◦C 27 50

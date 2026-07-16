@@ -1,0 +1,23 @@
+562 CHAPTER 26. EXECUTION PROCEDURES
+mkdir d_xxor
+Copy the two files cfunc.mod and ifspec.ifs from ngspice/src/xspice/icm/digital/d_xor to
+ngspice/src/xspice/icm/xtradev/d_xxor. These two files may serve as a template for your
+new model!
+For simplicity reasons we do only a very simple editing to these files here, in fact the
+functionality is not changed, just the name translated to a new model. Edit the new
+cfunc.mod: In lines 5, 28, 122, 138, 167, 178 replace the old name ( d_xor) by the new
+name d_xxor. Edit the new ifspec.ifs: In lines 16, 23, 24 replace cm_d_xor by cm_d_xxor
+and d_xor by d_xxor.
+Make ngspice aware of the new code model by editing file
+ngspice/src/xspice/icm/xtradev/modpath.lst:
+Add a line with the new model name d_xxor.
+Redo ngspice by entering directory ngspice/release, and issuing the commands:
+make
+sudo make install
+And that's it! In ngspice/release/src/xspice/icm/xtradev/ you now will find cfunc.c and
+ifspec.c and the corresponding object files. The new code model d_xxor resides in the
+shared library xtradev.cm, and is available after ngspice is started. As a test example you
+may edit
+ngspice/src/xspice/examples/digital_models1.deck, and change line 60 to the new model:
+.model d_xor1 d_xxor (rise_delay=1.0e-6 fall_delay=2.0e-6 input_load=1.0e-12)
+The complete input file follows:

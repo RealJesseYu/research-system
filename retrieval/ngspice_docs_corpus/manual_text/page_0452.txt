@@ -1,0 +1,32 @@
+452 CHAPTER 17. INTERACTIVE INTERPRETER
+17.8.8 Parameter sweep
+While there is no direct command to sweep a device parameter during simulation, you
+may use a script to emulate such behavior. The example input file contains of an resistive
+divider with R1 and R2, where R1 is swept from a start to a stop value inside of the
+control section, using the alter command (see 17.5.3).
+Input file with parameter sweep
+parameter sweep
+* resistive divider , R1 swept from start_r to stop_r
+VDD 1 0 DC 1
+R1 1 2 1 k
+R2 2 0 1 k
+. control
+let start_r = 1 k
+let stop_r = 10 k
+let delta_r = 1 k
+let r_act = start_r
+* loop
+while r_act le stop_r
+alter r1 r_act
+op
+print v (2)
+let r_act = r_act + delta_r
+end
+. endc
+. end
+17.8.9 Output redirection
+The console outputs delivered by commands like print (17.5.56), echo (17.5.23), or others
+may be redirected into a text file. 'print vec > filename' will generate a new file or
+overwrite an existing file named 'filename', 'echo text >‌> filename' will append the
+new data to the file 'filename' . Output redirection may be mixed with commands like
+wrdata.

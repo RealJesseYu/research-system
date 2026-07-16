@@ -1,0 +1,31 @@
+Chapter 7
+Diodes
+7.1 Junction Diodes
+General form:
+DXXXXXXX n + n - mname < area = val > <m = val > < pj = val > < off >
++ < ic = vd > < temp = val > < dtemp = val >
++ < lm = val > < wm = val > < lp = val > < wp = val >
+Examples:
+DBRIDGE 2 10 DIODE1
+DCLMP aa cc DMOD AREA =3.0 IC =0.2
+The pn junction (diode) implemented in ngspice expands the one found in SPICE3f5.
+Perimeter effects and high injection level have been introduced into the original model
+and temperature dependence of some parameters has been added. n+ and n- are the
+positive (anode) and negative (cathode) nodes, respectively. mname is the model name.
+Instance parameters may follow, dedicated to only the diode described on the respective
+line. area is the area scale factor, which may scale the saturation current given by
+the model parameters (and others, see table below). pj is the perimeter scale factor,
+scaling the sidewall saturation current and its associated capacitance. m is a multiplier
+of area and perimeter, and off indicates an (optional) starting condition on the device
+for dc analysis. If the area factor is omitted, a value of 1.0 is assumed. The (optional)
+initial condition specification using ic is intended for use with the uic option on the
+.tran control line, when a transient analysis is desired starting from other than the
+quiescent operating point. You should supply the initial voltage across the diode there.
+The (optional) temp value is the temperature at which this device is to operate, and
+overrides the temperature specification on the .option control line. The temperature
+of each instance can be specified as an offset to the circuit temperature with the dtemp
+option.
+To fulfill requirements of modern process design kits (PDK) the basic spice3 model was
+extended with the capability of modeling parasitic effects like sidewall junction currents
+and capacitances, tunnel currents and metal and polysilicon overlap capacitances. Latter
+129

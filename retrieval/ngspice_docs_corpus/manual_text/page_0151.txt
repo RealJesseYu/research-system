@@ -1,0 +1,23 @@
+Chapter 9
+JFETs
+9.1 Junction Field-Effect Transistors (JFETs)
+General form:
+JXXXXXXX nd ng ns mname < area > < off > < ic = vds , vgs > < temp =t >
+Examples:
+J1 7 2 3 JM1 OFF
+nd, ng, and ns are the drain, gate, and source nodes, respectively. mname is the model
+name, area is the area factor, and off indicates an (optional) initial condition on the
+device for dc analysis. If the area factor is omitted, a value of 1.0 is assumed. The
+(optional) initial condition specification, using ic=VDS,VGS is intended for use with the
+uic option on the .TRAN control line, when a transient analysis is desired starting from
+other than the quiescent operating point. See the .ic control line for a better way to set
+initial conditions. The (optional) temp value is the temperature where this device is to
+operate, and overrides the temperature specification on the .option control line.
+9.2 JFET Models (NJF/PJF)
+9.2.1 Basic model statement
+.model JM1 NJF level=1
+.model JMOD2 PJF level=2
+9.2.2 JFET level 1 model with Parker Skellern modification
+The level 1 JFET model is derived from the FET model of Shichman and Hodges. The
+dc characteristics are defined by the parameters VTO and BETA, which determine the
+151

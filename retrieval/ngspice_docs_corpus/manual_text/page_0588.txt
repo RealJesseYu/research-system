@@ -1,0 +1,39 @@
+588 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+/* Outputting a simple real - valued result */
+OUTPUT ( out1 ) = 0.0;
+/* Outputting a vector result and checking for null */
+if ( ! PORT_NULL ( a ))
+for ( i = 0; i < PORT_SIZE ( a ); i ++)
+OUTPUT ( a [ i ]) = 0.0;
+/* Outputting the partial of output out1 w . r . t . input a */
+PARTIAL ( out1 , a ) = PARAM ( gain );
+/* Outputting the partial of output out2 ( i ) w . r . t . input b ( j ) */
+for ( i = 0; i < PORT_SIZE ( out2 ); i ++) {
+for ( j = 0; j < PORT_SIZE ( b ); j ++) {
+PARTIAL ( out2 [ i ] , b [ j ]) = 0.0;
+}
+}
+/* Outputting gain from input c to output out3 in an
+AC analysis */
+c o m p l e x _ g a i n _ r e a l = 1.0;
+c o m p l e x _ g a i n _ i m a g = 0.0;
+AC_GAIN ( out3 , c ) = c o m p l e x _ g a i n ;
+/* Outputting a digital result */
+O U T P U T _ S T A T E ( out4 ) = ONE ;
+/* Outputting the delay for a digital or user - defined output */
+O U T P U T _ D E L A Y ( out5 ) = 1.0 e -9;
+}
+28.7.1.1 Macro Definitions
+The full set of accessor macros is listed below. Arguments shown in parenthesis are
+examples only. Explanations of the accessor macros are provided in the subsections below.
+Circuit Data:
+ARGS
+CALL_TYPE
+INIT
+ANALYSIS
+FIRST_TIMEPOINT
+TIME
+T(n)
+RAD_FREQ
+TEMPERATURE
+CALLBACK

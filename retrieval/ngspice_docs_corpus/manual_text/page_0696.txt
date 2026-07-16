@@ -1,0 +1,45 @@
+696 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+31.6.4 MOS6 - Level 6 MOSFET model with Meyer capacitance
+model
+31.6.4.1 MOS6 instance parameters
+# Name Direction Type Description
+2 l InOut real Length
+1 w InOut real Width
+22 m InOut real Parallel Multiplier
+4 ad InOut real Drain area
+3 as InOut real Source area
+6 pd InOut real Drain perimeter
+5 ps InOut real Source perimeter
+215 id Out real Drain current
+215 cd Out real Drain current
+18 is Out real Source current
+17 ig Out real Gate current
+16 ib Out real Bulk current
+216 ibs Out real B-S junction capacitance
+217 ibd Out real B-D junction capacitance
+231 vgs Out real Gate-Source voltage
+232 vds Out real Drain-Source voltage
+230 vbs Out real Bulk-Source voltage
+229 vbd Out real Bulk-Drain voltage
+8 nrd InOut real Drain squares
+7 nrs InOut real Source squares
+9 off In flag Device initially off
+12 icvds InOut real Initial D-S voltage
+13 icvgs InOut real Initial G-S voltage
+11 icvbs InOut real Initial B-S voltage
+20 temp InOut real Instance temperature
+21 dtemp InOut real Instance temperature difference
+10 ic In real vector Vector of D-S, G-S, B-S voltages
+15 sens_l In flag flag to request sensitivity WRT length
+14 sens_w In flag flag to request sensitivity WRT width
+203 dnode Out integer Number of the drain node
+204 gnode Out integer Number of the gate node
+205 snode Out integer Number of the source node
+206 bnode Out integer Number of the node
+207 dnodeprime Out integer Number of int. drain node
+208 snodeprime Out integer Number of int. source node
+258 rs Out real Source resistance
+209 sourceconductance Out real Source conductance
+259 rd Out real Drain resistance
+210 drainconductance Out real Drain conductance
+211 von Out real Turn-on voltage

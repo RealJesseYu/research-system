@@ -1,0 +1,13 @@
+460 CHAPTER 18. NGSPICE USER INTERF ACES
+The GUI consists of an I/O port (lower window) and a graphics window, created by the
+plot command.
+Figure 18.1: MS Windows GUI
+The output window displays messages issued by ngspice. You may scroll the window
+to get more of the text. The input box (white box) may be activated by a mouse click
+to accept any of the valid ngspice commands. The lower left output bar displays the
+actual input file. ngspice progress during setup and simulation is shown in the progress
+window ( --ready--). The Stop button will interrupt the current simulation. Data may
+be analysed, simulation resumed by the command resume. However, if ngspice is running
+in a flow or loop from within a .control section, this flow or loop stays interrupted, only
+the current simulation job will be finished by resume. The Quit button allows exiting
+ngspice. If ngspice is actively simulating, due to using only a single thread, this interrupt

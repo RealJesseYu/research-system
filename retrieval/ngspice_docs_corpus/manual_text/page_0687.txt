@@ -1,0 +1,38 @@
+31.6. MOSFETS 687
+31.6.1.2 MOS1 model parameters
+# Name Direction Type Description
+133 type Out string N-channel or P-channel MOS
+101 vto InOut real Threshold voltage
+101 vt0 InOut real
+102 kp InOut real Transconductance parameter
+103 gamma InOut real Bulk threshold parameter
+104 phi InOut real Surface potential
+105 lambda InOut real Channel length modulation
+106 rd InOut real Drain ohmic resistance
+107 rs InOut real Source ohmic resistance
+108 cbd InOut real B-D junction capacitance
+109 cbs InOut real B-S junction capacitance
+110 is InOut real Bulk junction sat. current
+111 pb InOut real Bulk junction potential
+112 cgso InOut real Gate-source overlap cap.
+113 cgdo InOut real Gate-drain overlap cap.
+114 cgbo InOut real Gate-bulk overlap cap.
+122 rsh InOut real Sheet resistance
+115 cj InOut real Bottom junction cap per area
+116 mj InOut real Bottom grading coefficient
+117 cjsw InOut real Side junction cap per area
+118 mjsw InOut real Side grading coefficient
+119 js InOut real Bulk jct. sat. current density
+120 tox InOut real Oxide thickness
+121 ld InOut real Lateral diffusion
+123 u0 InOut real Surface mobility
+123 uo InOut real
+124 fc InOut real Forward bias jct. fit parm.
+128 nmos In flag N type MOSfet model
+129 pmos In flag P type MOSfet model
+125 nsub InOut real Substrate doping
+126 tpg InOut integer Gate type
+127 nss InOut real Surface state density
+130 tnom InOut real Parameter measurement temperature
+131 kf InOut real Flicker noise coefficient
+132 af InOut real Flicker noise exponent

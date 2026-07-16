@@ -1,0 +1,37 @@
+2.9. .PARAM PARAMETRIC NETLISTS 61
+2.9.3 Subcircuit parameters
+General form:
+. subckt < identn > node node ... < ident >= < value > < ident >= < value > ...
+Examples:
+. subckt myfilter in out rval =100 k cval =100 nF
+<identn> is the name of the subcircuit given by the user. node is an integer number
+or an identifier, for one of the external nodes. The first <ident>=<value> introduces an
+optional section of the line. Each <ident> is a formal parameter, and each <value> is
+either a SPICE number or a brace expression. Inside the .subckt ... .ends context, each
+formal parameter may be used like any identifier that was defined on a .param control
+line. The <value> parts are default values of the parameters.
+The syntax of a subcircuit call (invocation) is:
+General form:
+X < name > node node ... < identn > < ident >= < value > < ident >= < value > ...
+Examples:
+X1 input output myfilter rval =1 k
+Here <name> is the symbolic name given to that instance of the subcircuit, <identn>
+is the name of a subcircuit defined beforehand. node node ... is the list of actual
+nodes where the subcircuit is connected. <value> is either a SPICE number or a brace
+expression { <expr> } .
+Subcircuit example with parameters:
+* Param - example
+. param amplitude = 1 V
+*
+. subckt myfilter in out rval =100 k cval =100 nF
+Ra in p1 {2* rval }
+Rb p1 out {2* rval }
+C1 p1 0 {2* cval }
+Ca in p2 { cval }
+Cb p2 out { cval }
+R1 p2 0 { rval }
+. ends myfilter
+*
+X1 input output myfilter rval =1 k cval =1 n
+V1 input 0 AC { amplitude }
+. end

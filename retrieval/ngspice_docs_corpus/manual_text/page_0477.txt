@@ -1,0 +1,38 @@
+18.8. INTEGRATION WITH CAD SOFTW ARE AND 'THIRD PARTY' GUIS 477
+18.8 Integration with CAD software and 'third party'
+GUIs
+In this chapter you will find some links and comments on GUIs for ngspice offered from
+other projects and on the integration of ngspice into a circuit development flow. The data
+given rely mostly on information available from the web and thus is out of our control.
+It also may be far from complete. For a list of actual links with more than 20 entries
+please have a look at the ngspice web pages . Some open source tools are listed here.
+The GUIs MSEspice and GNUSpiceGUI help you to navigate the commands to need to
+perform your simulation. XCircuit and the GEDA tools gschem and gnetlist offer inte-
+grating schematic capture and simulation. KiCad offers a complete design environment
+for electronic circuits. Xschem focusses on IC design, supporting all the open source
+PDKs.
+18.8.1 KiCad
+KiCad is a cross platform and open source electronics design automation suite. Its
+schematic editor Eeschema fully integrates shared ngspice (see Chapt. 19) as the sim-
+ulation tool. The target audience is PCB circuit designers, using discrete devices, ICs
+and passives. On the ngspice web pages there is a tutorial available which presents an
+introduction to using ngspice from within KiCad. Simulation examples are presented at
+KiCad/ngspice simulation examples 1 and KiCad/ngspice simulation examples 2 .
+18.8.2 Xschem
+Xschem is a schematic capture program, it allows to create a hierarchical representation
+of circuits with a top down approach . By focusing on interconnections, hierarchy and
+properties a complex system (IC) can be described in terms of simpler building blocks. A
+VHDL, Verilog or ngspice netlist can be generated from the drawn schematic, allowing the
+simulation of the circuit. The target audience is IC designers, especially the open source
+PDKs from Skywater, Google and IHP are supported. An excellent video introduces the
+design and simulation of a CMOS comparator.
+18.8.3 Qucs-S
+Qucs-S is a circuit simulation program based on the Qucs circuit simulator. The "S"
+letter indicates SPICE. The purpose of the Qucs-S project is to use free SPICE circuit
+simulation kernels with the GUI based on Qt toolkit. It merges the power of SPICE and
+the simplicity of the Qucs GUI. Qucs-S is not a simulator by itself, but it requires to use
+an external simulation backend, e.g. ngspice, with it. Quc-S is strong when simulating
+RF devices and circuits.
+18.8.4 GNU Spice GUI
+A GUI, to be found at https://sourceforge.net/projects/gspiceui/. It aids in viewing,
+modifying, and simulating SPICE CIRCUIT files.

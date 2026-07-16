@@ -1,0 +1,44 @@
+28.7. MODEL DEFINITION FILE 589
+Parameter Data:
+PARAM(gain)
+PARAM_SIZE(gain)
+PARAM_NULL(gain)
+Port Data:
+PORT_SIZE(a)
+PORT_NULL(a)
+LOAD(a)
+TOTAL_LOAD(a)
+Input Data:
+INPUT(a)
+INPUT_STATE(a)
+INPUT_STRENGTH(a)
+Output Data:
+OUTPUT(y)
+OUTPUT_CHANGED(a)
+OUTPUT_DELAY(y)
+OUTPUT_STATE(a)
+OUTPUT_STRENGTH(a)
+Partial Derivatives:
+PARTIAL(y,a)
+AC Gains:
+AC_GAIN(y,a)
+Static Variable:
+STATIC_VAR(x)
+28.7.1.2 Macro arguments for vector ports and parameters
+When a port or parameter has been defined as a vector in the interface specification, some
+macros require an argument that includes the vector index, as in OUTPUT(y[i]), while
+others accept only the simple port or parameter name. The first kind are identified as
+"indexed" in the descriptions below. The index may be any C expression that specifies a
+valid index for the vector.
+28.7.1.3 Circuit Data
+ARGS
+CALL_TYPE
+INIT
+ANALYSIS
+FIRST_TIMEPOINT
+TIME
+T(n)
+RAD_FREQ
+TEMPERATURE
+CALLBACK
+ARGS is a macro that is passed in the argument list of every code model. It is there

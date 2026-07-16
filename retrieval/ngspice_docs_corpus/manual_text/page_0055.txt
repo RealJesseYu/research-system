@@ -1,0 +1,37 @@
+2.4. .MODEL DEVICE MODELS 55
+If input lines get overly long, they may be split into two or more lines (e.g. for better
+readability). Internally they will be merged into a single line. Each follow-up line starts
+with character '+' plus additional space. Follow-up lines have to follow immediately after
+each other. End-of-line comments will be ignored. Lines may also be continued by ending
+the line with two backslashes, as used in Unix shells. The following lines do not allow
+using continuation lines: .title, .lib, and .include.
+2.4 .MODEL Device Models
+General form:
+. model mname type ( pname1 = pval1 pname2 = pval2 ... )
+Examples:
+. model MOD1 npn ( bf =50 is =1 e -13 vbf =50)
+Most simple circuit elements typically require only a few parameter values. However,
+some devices (semiconductor devices in particular) that are included in ngspice require
+many parameter values. Often, many devices in a circuit are defined by the same set of
+device model parameters. For these reasons, a set of device model parameters is defined
+on a separate .model line and assigned a unique model name. The device element lines
+in ngspice then refer to the model name.
+For these more complex device types, each device element line contains the device name,
+the nodes the device is connected to, and the device model name. In addition, other
+optional parameters may be specified for some devices: geometric factors and an initial
+condition (see the following section on Transistors ( 8 to 11) and Diodes ( 7) for more
+details). mname in the above is the model name, and type is one of the following fifteen
+types:
+Parameter values are defined by appending the parameter name followed by an equal sign
+and the parameter value. Model parameters that are not given a value are assigned the
+default values given below for each model type. Models are listed in the section on each
+device along with the description of device element lines. Model parameters and their
+default values are given in Chapt. 31.
+2.5 .SUBCKT Subcircuits
+Subcircuits consisting of ngspice elements can be defined and used similarly to device
+models. Subcircuits are the way ngspice implements hierarchical modeling and make
+circuits with repeated sections easier to represent. During parsing of a SPICE deck, each
+subcircuit instance is replaced by its definition using text expansion and the hierarchy is
+not present after input processing.
+The subcircuit is defined in the input deck by a grouping of element cards delimited by
+the .subckt and the .ends cards (or the keywords defined by the substart and subend

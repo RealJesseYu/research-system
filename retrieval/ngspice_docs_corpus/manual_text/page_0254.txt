@@ -1,0 +1,43 @@
+254CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+12.4.4 Nand
+NAME_TABLE:
+C_Function_Name: cm_d_nand
+Spice_Model_Name: d_nand
+Description: "digital 'nand' gate"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: yes no
+Vector_Bounds: [2 -] -
+Null_Allowed: no no
+Common parameters: inertial_delay, family, rise_delay, fall_delay, input_load.
+Description: The digital nand gate is an n-input, single-output nand gate that produces
+an active ' 0' value if and only if all of its inputs are ' 1' values. If ANY of the inputs
+is a ' 0', the output will be a ' 1'; if neither of these conditions holds, the output will
+be unknown.
+Example SPICE Usage:
+a6 [1 2 3] 8 nand1
+.model nand1 d_nand(rise_delay = 0.5e-9 fall_delay = 0.3e-9
++ input_load = 0.5e-12)
+12.4.5 Or
+NAME_TABLE:
+C_Function_Name: cm_d_or
+Spice_Model_Name: d_or
+Description: "digital 'or' gate"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: yes no
+Vector_Bounds: [2 -] -
+Null_Allowed: no no
+Common parameters: inertial_delay, family, rise_delay, fall_delay, input_load.
+Description: The digital or gate is an n-input, single-output or gate that produces an
+active ' 1' value if at least one of its inputs is a ' 1' value. The gate produces a ' 0'
+value if all inputs are ' 0'; if neither of these two conditions holds, the output is
+unknown.

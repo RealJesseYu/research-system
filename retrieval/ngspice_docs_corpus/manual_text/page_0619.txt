@@ -1,0 +1,28 @@
+29.3. CODE MODEL ERROR MESSAGES 619
+ERROR - model: %s - Array parameter expected - No array delimiter found
+An array (vector) parameter was expected on the .model card, but enclosing [ ] characters
+were not found to delimit its values.
+ERROR - model: %s - Unexpected end of model card
+The end of the indicated .model line was reached before all required information was
+supplied.
+ERROR - model: %s - Array parameter must have at least one value
+An array parameter was encountered that had no values.
+ERROR - model: %s - Bad boolean value
+A bad values was supplied for a Boolean. Value used must be TRUE, F ALSE, T, or F.
+ERROR - model: %s - Bad integer, octal, or hex value
+A badly formed integer value was found.
+ERROR - model: %s - Bad real value
+A badly formed real value was found.
+ERROR - model: %s - Bad complex value
+A badly formed complex number was found. Complex numbers must be enclosed in < >
+delimiters.
+29.3 Code Model Error Messages
+The following is a list of error messages that may be encountered while attempting to run
+a simulation with certain code models. These are listed alphabetically based on the name
+of the code model, and explanations follow the name and listing.
+29.3.1 Code Model aswitch
+cntl_error:
+*****ERROR*****
+ASWITCH: CONTROL voltage delta less than 1.0e-12
+This message occurs as a result of the cntl_off and cntl_on values being less than 1.0e-12
+volts/amperes apart.

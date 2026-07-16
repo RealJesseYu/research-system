@@ -1,0 +1,25 @@
+614 CHAPTER 29. ERROR MESSAGES
+The Code Model Preprocessor (cmpp) command was invoked with an invalid argument.
+ERROR - File not found: s<filename>
+The specified file was not found, or could not be opened for read access.
+ERROR - Line <line number> of <filename> exceeds XX characters
+The specified line was too long.
+ERROR - Pathname on line <line number> of <filename>
+exceeds XX characters.
+The specified line was too long.
+ERROR - No pathnames found in file: <filename>
+The indicated modpath.lst file does not have pathnames properly listed.
+ERROR - Problems reading ifspec.ifs in directory <pathname>
+The Interface Specification File (ifspec.ifs) for the code model could not be read.
+ERROR - Model name <model name> is same as internal SPICE model name
+A model has been given the same name as an intrinsic SPICE device.
+ERROR - Model name '<model name>' in directory: <pathname>
+is same as
+model name '<model name>' in directory: <pathname>
+Two models in different directories have the same name.
+ERROR - C function name '<function name>' in directory: <pathname>,
+is same as
+C function name '<function name>' in directory: <pathname>
+Two C language functions in separate model directories have the same names; these would
+cause a collision when linking the final executable.
+ERROR - Problems opening CMextrn.h for write

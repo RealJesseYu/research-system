@@ -1,0 +1,15 @@
+32 CONTENTS
+Indeed. At the end of the day, this is engineering, and one learns to live
+within the limitations of the tools.
+Kevin Aylward, Warden of the King's Ale
+Preface to the current edition (as of Nov 2023)
+Due to the wealth of new material and options in ngspice the actual order of chapters has
+been revised. Several new chapters have been added. The L YX text processor has allowed
+adding internal cross references. The PDF format has become the standard format for
+distribution of the manual. There is also a xhtml version available. Within each new
+ngspice distribution a manual edition is provided reflecting the ngspice status at the time
+of distribution. At the same time, located at ngspice manuals , the manual is constantly
+updated. Every new ngspice feature should enter this manual as soon as it has been made
+available in the Git source code master branch.
+Holger Vogt
+Mülheim, 2023

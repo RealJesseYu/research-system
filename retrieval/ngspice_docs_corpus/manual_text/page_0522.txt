@@ -1,0 +1,13 @@
+522 CHAPTER 21. EXAMPLE CIRCUITS
+Example:
+Transmission - line inverter
+v1 1 0 pulse (0 1 0 0.1 n )
+r1 1 2 50
+x1 2 0 0 4 tline
+r2 4 0 50
+. subckt tline 1 2 3 4
+t1 1 2 3 4 z0 =50 td =1.5 ns
+t2 2 0 4 0 z0 =100 td =1 ns
+. ends tline
+. tran 0.1 ns 20 ns
+. end

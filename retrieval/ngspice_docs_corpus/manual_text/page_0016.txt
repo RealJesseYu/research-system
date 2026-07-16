@@ -1,0 +1,35 @@
+16 CONTENTS
+16.15Tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 366
+16.16Tools for debugging a circuit netlist . . . . . . . . . . . . . . . . . . . . . . 367
+16.16.1 options and initial conditions . . . . . . . . . . . . . . . . . . . . . 367
+16.16.2 set debug . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 367
+16.16.3 set ngdebug . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 368
+16.16.4 miscellaneous . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 368
+16.17Reporting bugs and errors . . . . . . . . . . . . . . . . . . . . . . . . . . . 368
+17 Interactive Interpreter 369
+17.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 369
+17.2 Expressions, Functions, and Constants . . . . . . . . . . . . . . . . . . . . 370
+17.3 Plots . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 374
+17.4 Command Interpretation . . . . . . . . . . . . . . . . . . . . . . . . . . . . 375
+17.4.1 On the console . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 375
+17.4.2 Scripts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 375
+17.4.3 Add-on to circuit file . . . . . . . . . . . . . . . . . . . . . . . . . . 375
+17.5 Commands . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 376
+17.5.1 Ac*: Perform an AC, small-signal frequency response analysis . . . 376
+17.5.2 Alias: Create an alias for a command . . . . . . . . . . . . . . . . . 377
+17.5.3 Alter*: Change a device or model parameter . . . . . . . . . . . . . 377
+17.5.4 Altermod*: Change model parameter(s) . . . . . . . . . . . . . . . 379
+17.5.5 Alterparam*: Change value of a global parameter . . . . . . . . . . 380
+17.5.6 Asciiplot: Plot values using old-style character plots . . . . . . . . . 381
+17.5.7 Aspice*: Asynchronous ngspice run . . . . . . . . . . . . . . . . . . 381
+17.5.8 Bug: Output URL for ngspice bug tracker . . . . . . . . . . . . . . 381
+17.5.9 Cd: Change directory . . . . . . . . . . . . . . . . . . . . . . . . . . 381
+17.5.10 Cdump: Dump the control flow to the screen . . . . . . . . . . . . . 382
+17.5.11 Circbyline*: Enter a circuit line by line . . . . . . . . . . . . . . . . 382
+17.5.12 Codemodel*: Load an XSPICE code model library . . . . . . . . . 383
+17.5.13 Compose: Compose a vector . . . . . . . . . . . . . . . . . . . . . . 384
+17.5.14 Cutout: Cut out a section of all vectors in a tran plot . . . . . . . . 385
+17.5.15 Dc*: Perform a DC-sweep analysis . . . . . . . . . . . . . . . . . . 385
+17.5.16 Define: Define a function . . . . . . . . . . . . . . . . . . . . . . . . 386
+17.5.17 Deftype: Define a new type for a vector or plot . . . . . . . . . . . 386
+17.5.18 Delete*: Remove a trace or breakpoint . . . . . . . . . . . . . . . . 386

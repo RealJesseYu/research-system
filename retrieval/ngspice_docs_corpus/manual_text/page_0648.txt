@@ -1,0 +1,42 @@
+648 CHAPTER 30. CIDER USER'S MANUAL
+30.14.2 Parameters
+Name Type Description
+All.Debug Flag Debug all analyses
+OP.Debug Flag .OP analyses
+DC.Debug Flag .DC analyses
+TRAN.Debug Flag .TRAN analyses
+AC.Debug Flag .AC analyses
+PZ.Debug Flag .PZ analyses
+Material Flag Physical material information
+Statistics | Resources Flag Resource usage information
+RootFile String Root of output file names
+Psi Flag Potential ( V )
+Equ.Psi Flag Equilibrium potential ( V )
+Vac.Psi Flag Vacuum potential ( V )
+Doping Flag Net doping ( cm 3 )
+N.Conc Flag Electron concentration ( cm 3 )
+P.Conc Flag Hole concentration ( cm 3 )
+PhiN Flag Electron quasi-fermi potential ( V )
+PhiP Flag Hole quasi-fermi potential ( V )
+PhiC Flag Conduction band potential ( V )
+PhiV Flag Valence band potential ( V )
+E.Field Flag Electric field ( V/cm )
+JC Flag Conduction current density ( A/cm 2 )
+JD Flag Displacement current density ( A/cm 2 )
+JN Flag Electron current density ( A/cm 2 )
+JP Flag Hole current density ( A/cm 2 )
+JT Flag Total current density ( A/cm 2 )
+Unet Flag Net recombination ( 1/cm 3 s )
+MuN Flag Electron mobility (low-field) ( cm 2/Vs )
+MuP Flag Hole mobility (low-field) ( cm 2/Vs )
+30.14.3 Examples
+The following example activates all potentially valuable diagnostic output:
+output all . debug mater stat
+Energy band diagrams generally contain the potential, the quasi-fermi levels, the energies
+and the vacuum energy. The following example enables saving of the r values needed to
+make energy band diagrams:
+output phin phjp phic phiv vac . psi
+Sometimes it is desirable to save certain key solutions, and then reload them for use in
+subsequent simulations. In such cases only the essential values ( Ψ, n, and p ) need to be
+saved. This example turns off the nonessential default values (and indicates the essential
+ones explicitly):

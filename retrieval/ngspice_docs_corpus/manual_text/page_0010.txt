@@ -1,0 +1,35 @@
+10 CONTENTS
+11 MOSFETs 161
+11.1 MOSFET devices . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 161
+11.2 MOSFET models (NMOS/PMOS) . . . . . . . . . . . . . . . . . . . . . . 162
+11.2.1 MOS Level 1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 164
+11.2.2 MOS Level 2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 164
+11.2.3 MOS Level 3 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 164
+11.2.4 MOS Level 6 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 164
+11.2.5 Notes on Level 1-6 models . . . . . . . . . . . . . . . . . . . . . . . 164
+11.2.6 MOS Level 9 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 167
+11.2.7 BSIM Models . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 167
+11.2.8 BSIM1 model (level 4) . . . . . . . . . . . . . . . . . . . . . . . . . 168
+11.2.9 BSIM2 model (level 5) . . . . . . . . . . . . . . . . . . . . . . . . . 170
+11.2.10 BSIM3 model (levels 8, 49) . . . . . . . . . . . . . . . . . . . . . . . 170
+11.2.11 BSIM4 model (levels 14, 54) . . . . . . . . . . . . . . . . . . . . . . 171
+11.2.12 BSIMSOI models (levels 10, 58, 55, 56, 57) . . . . . . . . . . . . . . 171
+11.2.13 SOI3 model (level 60) . . . . . . . . . . . . . . . . . . . . . . . . . . 172
+11.2.14 HiSIM models of the University of Hiroshima . . . . . . . . . . . . 172
+11.2.15 MOS models available via OpenV AF/OSDI . . . . . . . . . . . . . . 172
+11.3 Power MOSFET model (VDMOS) . . . . . . . . . . . . . . . . . . . . . . 173
+12 Mixed-Mode and Behavioral Modeling with XSPICE 179
+12.1 Code Model Element & .MODEL Cards . . . . . . . . . . . . . . . . . . . 179
+12.1.1 Syntax . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 179
+12.1.2 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 183
+12.1.3 Search path for file input . . . . . . . . . . . . . . . . . . . . . . . . 184
+12.1.4 Code model location and assessment . . . . . . . . . . . . . . . . . 184
+12.2 Analog Models . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 185
+12.2.1 Gain . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 185
+12.2.2 Summer . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 186
+12.2.3 Multiplier . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 187
+12.2.4 Divider . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 188
+12.2.5 Limiter . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 190
+12.2.6 Controlled Limiter . . . . . . . . . . . . . . . . . . . . . . . . . . . 191
+12.2.7 PWL Controlled Source . . . . . . . . . . . . . . . . . . . . . . . . 193
+12.2.8 PWL Time Controlled Source with optional edge smoothing . . . . 195

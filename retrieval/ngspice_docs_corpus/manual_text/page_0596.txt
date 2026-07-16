@@ -1,0 +1,41 @@
+596 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+Table 28.3: Accessor macros
+T(n) int index Current and previous analysis
+times (T(0) = TIME = current
+analysis time, T(1) = previous
+analysis time). Valid only in
+analog calls.
+TEMPERATURE double <none> Current analysis temperature.
+TIME double <none> Current analysis time (same as
+T(0)).
+TOTAL_LOAD double name[i] The total of all loads on the
+node attached to this event
+driven port.
+28.7.2 Function Library
+28.7.2.1 Overview
+Aside from the accessor macros, the simulator also provides a library of functions callable
+from within code models. The header file containing prototypes to these functions is au-
+tomatically inserted into the Model Definition File for you. The complete list of available
+functions follows:
+Smoothing Functions:
+void cm_smooth_corner
+void cm_smooth_discontinuity
+double cm_smooth_pwl
+Model State Storage Functions:
+void cm_analog_alloc
+void cm_event_alloc
+void *cm_analog_get_ptr
+void *cm_event_get_ptr
+Integration and Convergence Functions:
+int cm_analog_integrate
+int cm_analog_converge
+void cm_analog_not_converged
+void cm_analog_auto_partial
+double cm_analog_ramp_factor
+Message Handling Functions:
+char *cm_message_get_errmsg
+void cm_message_send
+int cm_message_printf
+Breakpoint Handling Functions:
+int cm_analog_set_temp_bkpt
+int cm_analog_set_perm_bkpt

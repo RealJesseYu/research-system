@@ -1,0 +1,41 @@
+544 BIBLIOGRAPHY
+[13] Weidong Lui et al.: ' BSIM3.v3.3.0 MOSFET Model User's Manual ', BSIM3v3.3.0
+[14] 'SPICE3.C1 Nutmeg Programmer's Manual ', Department of Electrical Engineering
+and Computer Sciences, University of California, Berkeley, California, April, 1987.
+[15] Thomas L. Quarles: SPICE3 Version 3C1 User's Guide , Department of Electrical
+Engineering and Computer Sciences, University of California, Berkeley, California,
+April, 1989.
+[16] Brian Kernighan and Dennis Ritchie: ' The C Programming Language ', Second Edi-
+tion, Prentice-Hall, Englewood Cliffs, New Jersey, 1988.
+[17] 'Code-Level Modeling in XSPICE ', F.L. Cox, W.B. Kuhn, J.P. Murray, and S.D.
+Tynor, published in the Proceedings of the 1992 International Symposium on Circuits
+and Systems, San Diego, CA, May 1992, vol 2, pp. 871-874.
+[18] 'A Physically Based Compact Model of Partially Depleted SOI MOSFETs for Analog
+Circuit Simulation ', Mike S. L. Lee, Bernard M. Tenbroek, William Redman-White,
+James Benson, and Michael J. Uren, IEEE JOURNAL OF SOLID-STATE CIR-
+CUITS, VOL. 36, NO. 1, JANUARY 2001, pp. 110-121
+[19] 'A Realistic Large-signal MESFET Model for SPICE ', A. E. Parker, and D. J.
+Skellern, IEEE Transactions on Microwave Theory and Techniques, vol. 45, no. 9,
+Sept. 1997, pp. 1563-1571.
+[20] 'Integrating RTS Noise into Circuit Analysis ', T. B. Tang and A. F. Murray, IEEE
+ISCAS, 2009, Proc. of IEEE ISCAS, Taipei, Taiwan, May 2009, pp 585-588
+[21] R. Storn, and K. Price: ' Differential Evolution ', technical report TR-95-012, ICSI,
+March 1995, see report download , or the DE web page
+[22] M. J. M. Pelgrom e.a.: ' Matching Properties of MOS Transistors ', IEEE J. Sol. State
+Circ, vol. 24, no. 5, Oct. 1989, pp. 1433-1440
+[23] Y. V. Pershin, M. Di Ventra: 'SPICE model of memristive de-
+vices with threshold ', arXiv:1204.2600v1 [physics.comp-ph] 12 Apr 2012,
+http://arxiv.org/pdf/1204.2600.pdf
+[24] George M. Kull e.a. 'A Unified Circuit Model for Bipolar Transistors Including Quasi-
+Saturation Effects', IEEE TRANSACTIONS ON ELECTRON DEVICES, VOL. ED-
+32, NO. 6, JUNE 1985
+[25] Matthias Bucher, Christophe Lallement, Christian Enz, Fabien Théodoloz, François
+Krummenacher, 'The EPFL-EKV MOSFET Model Equations for Simulation', Tech-
+nical Report, Revision II, July 1998, Electronics Laboratories, Swiss Federal Institute
+of Technology (EPFL), Lausanne, Switzerland
+[26] Kenneth Kundert, Sparse Matrix Techniques, in Circuit Analysis, Simulation and
+Design, Albert Ruehli (Ed.), North-Holland, 1986
+[27] T. A. Davis and Ekanathan Palamadai Natarajan. 2010. Algorithm 907:
+KLU, A Direct Sparse Solver for Circuit Simulation Problems. ACM
+Trans. Math. Softw. 37, 3, Article 36 (September 2010), 17 pages.
+https://dl.acm.org/doi/abs/10.1145/1824801.1824814

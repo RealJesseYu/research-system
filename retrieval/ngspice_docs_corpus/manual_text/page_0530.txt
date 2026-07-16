@@ -1,0 +1,28 @@
+530 CHAPTER 22. STATISTICAL CIRCUIT ANALYSIS
+22.6 Data evaluation with Gnuplot
+Run the example file /examples/Monte_Carlo/OpWien.sp, described in Chapt. 22.3. Gen-
+erate a plot with Gnuplot by the ngspice command
+gnuplot pl4mag v4mag xlimit 500 1500
+Open and run the command file in the Gnuplot command line window by
+load 'pl-v4mag.p'
+A Gaussian curve will be fitted to the simulation data. The mean oscillator frequency
+and its deviation are printed in the curve fitting log in the Gnuplot window.
+Gnuplot script for data evaluation:
+# This file : pl - v4mag . p
+# ngspice file OpWien . sp
+# ngspice command :
+# gnuplot pl4mag v4mag xlimit 500 1500
+# a gnuplot manual :
+# http :// www . duke . edu /~ hpgavin / gnuplot . html
+# Gauss function to be fitted
+f1 ( x )=( c1 /( a1 * sqrt ( 2 * 3 . 1 4 1 5 9 ) ) * exp ( -(( x - b1 )**2)/(2* a1 **2)))
+# Gauss function to plot start graph
+f2 ( x )=( c2 /( a2 * sqrt ( 2 * 3 . 1 4 1 5 9 ) ) * exp ( -(( x - b2 )**2)/(2* a2 **2)))
+# start values
+a1 =50 ; b1 =900 ; c1 =50
+# keep start values in a2 , b2 , c2
+a2 = a1 b2 = b1 ; c2 = c1
+# curve fitting
+fit f1 ( x ) ' pl4mag . data ' using 1:2 via a1 , b1 , c1
+# plot original and fitted curves with new a1 , b1 , c1
+plot " pl4mag . data " using 1:2 with lines , f1 ( x ) , f2 ( x )

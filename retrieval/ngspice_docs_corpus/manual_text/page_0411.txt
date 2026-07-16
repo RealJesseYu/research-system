@@ -1,0 +1,31 @@
+17.5. COMMANDS 411
+faults Number of page faults and context switches (BSD only).
+space Data space used (output is depending on the operating system).
+temp Operating temperature.
+tnom Temperature at which device parameters were measured.
+equations Number of circuit equations
+totiter Total iterations
+accept Accepted time-points
+rejected Rejected time-points
+loadtime Time spent loading the circuit matrix and RHS.
+reordertime Matrix reordering time
+lutime L-U decomposition time
+solvetime Matrix solve time
+trantime Transient analysis time
+tranpoints Transient time-points
+traniter Transient iterations
+trancuriters Transient iterations for the last time point
+tranlutime Transient L-U decomposition time
+transolvetime Transient matrix solve time
+everything All of the above.
+all All of the above.
+If rusage is given without any parameter, a sequence of outputs is printed using the
+following rusage parameters: time, totalcputime, space.
+17.5.68 Save*: Save a set of outputs
+General Form:
+save [ all | outvec ...]
+Save a set of outputs, discarding the rest (if keyword all is not given). May be used to
+dramatically reduce memory (RAM) requirements if only a few useful node voltages or
+branch currents are saved.
+Node voltages may be saved by giving the nodename or v(nodename). Currents through
+an independent voltage source are given by i(sourcename) or sourcename# branch. Internal

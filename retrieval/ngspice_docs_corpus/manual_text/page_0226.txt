@@ -1,0 +1,49 @@
+226CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Null_Allowed: no yes
+PORT_TABLE:
+Port Name: clear out
+Description: "clear signal" "output"
+Direction: in out
+Default_Type: v v
+Allowed_Types: [v,vd,i,id] [v,vd,i,id]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes no
+PARAMETER_TABLE:
+Parameter_Name: clk_trig retrig
+Description: "clock trigger value" "retrigger switch"
+Data_Type: real boolean
+Default_Value: 0.5 FALSE
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no yes
+PARAMETER_TABLE:
+Parameter_Name: pos_edge_trig
+Description: "positive/negative edge trigger switch"
+Data_Type: boolean
+Default_Value: TRUE
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: cntl_array pw_array
+Description: "control array" "pulse width array"
+Data_Type: real real
+Default_Value: 0.0 1.0e-6
+Limits: - [0.00 -]
+Vector: yes yes
+Vector_Bounds: - cntl_array
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: out_low out_high
+Description: "output low value" "output high value"
+Data_Type: real real
+Default_Value: 0.0 1.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: fall_time rise_time

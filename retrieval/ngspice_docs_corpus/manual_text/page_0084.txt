@@ -1,0 +1,20 @@
+84 CHAPTER 3. CIRCUIT ELEMENTS AND MODELS
+where C(TNOM) = Cnom.
+In the above formula, ' T ' represents the instance temperature, which can be explicitly set
+using the temp keyword or calculated using the circuit temperature and dtemp, if present.
+3.3.9 Capacitors, dependent on expressions (behavioral capaci-
+tor)
+There are two forms for behavioral capacitors allowed:
+1. Capacitance formulated expressions C = 'expression'
+2. Charge formulated expressions Q = 'expression'
+General form:
+CXXXXXXX n + n - C = ' expression ' < tc1 = value > < tc2 = value >
+CXXXXXXX n + n - ' expression ' < tc1 = value > < tc2 = value >
+CXXXXXXX n + n - Q = ' expression ' < tc1 = value > < tc2 = value >
+Examples:
+C1 cc 0 c = 'V ( cc ) < { Vt } ? { C1 } : { Ch } ' tc1 = -1 e -03 tc2 =1.3 e -05
+C1 a b q = '1 u *(4* atan ( V (a , b )/4)*2+ V (a , b ))/3 '
+Expression may be an equation or an expression containing node voltages or branch
+currents (in the form of i(vm)) and any other terms as given for the B source and described
+in Chapt. 5.1. It may contain parameters ( 2.9.1) and the special variables time, temper,
+and hertz (5.1.2).

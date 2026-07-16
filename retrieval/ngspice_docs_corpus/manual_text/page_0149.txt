@@ -1,0 +1,18 @@
+8.2. BJT MODELS (NPN/PNP) 149
+By connecting the T and S nodes of the model to other circuit elements, the thermal
+and substrate network can be modified by the user. Note that both self-heating and the
+avalanche effect may cause convergency issues if the operating region is too extreme.
+The HICUM/L2 model can be initiated like this example:
+vc c 0 0
+vb b 0 1
+ve e 0 0
+vs s 0 0
+Q1 c b e s dt mod1 area =1
+. model mod1 npn Level =8
+Self-heating is activated by model parameters FLSH, RTH and connecting T node of the
+device instance. FLSH = 1 will only consider main thermal contributions of IC and IB,
+FLSH = 2 include all power dissipations of the transistor.
+8.2.5 HICUM level 0 Model
+The HIgh-CUrrent Model (HICUM) Level0 (L0) is a simplified version of the HICUM
+level 2 model. Ngspice has implemented version 1.32 in its experimental ADMS tree. It
+will be activated by the BJT model parameter level=7.

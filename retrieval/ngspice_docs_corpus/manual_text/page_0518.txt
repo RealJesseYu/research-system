@@ -1,0 +1,35 @@
+518 CHAPTER 21. EXAMPLE CIRCUITS
+times of 2ns and a pulse width of 30ns. The transient interval is 0 to 100ns, with printing
+to be done every nanosecond.
+Example:
+SIMPLE RTL INVERTER
+VCC 4 0 5
+VIN 1 0 PULSE 0 5 2 NS 2 NS 2 NS 30 NS
+RB 1 2 10 K
+Q1 3 2 0 Q1
+RC 3 4 1 K
+. MODEL Q1 NPN BF 20 RB 100 TF .1 NS CJC 2 PF
+. DC VIN 0 5 0.1
+. TRAN 1 NS 100 NS
+. END
+21.5 Four-Bit Binary Adder (Bipolar)
+The following deck simulates a four-bit binary adder, using several subcircuits to describe
+various pieces of the overall circuit.
+Example:
+ADDER - 4 BIT ALL - NAND - GATE BINARY ADDER
+*** SUBCIRCUIT DEF INI TIO NS
+. SUBCKT NAND 1 2 3 4
+* NODES : INPUT (2) , OUTPUT , VCC
+Q1 9 5 1 QMOD
+D1CLAMP 0 1 DMOD
+Q2 9 5 2 QMOD
+D2CLAMP 0 2 DMOD
+RB 4 5 4 K
+R1 4 6 1.6 K
+Q3 6 9 8 QMOD
+R2 8 0 1 K
+RC 4 7 130
+Q4 7 6 10 QMOD
+DVBEDROP 10 3 DMOD
+Q5 3 8 0 QMOD
+. ENDS NAND

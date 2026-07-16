@@ -1,0 +1,22 @@
+48 CHAPTER 2. CIRCUIT DESCRIPTION
+2.1.2.2 Special characters leading a line
+If the first character in a netlist or .control line is one of =[]?()&%$§\"!:, then ngspice
+replaces it by '*' and issues a warning. Command set strict_errorhandling will force
+ngspice to exit.
+2.1.2.3 Dot command couple completion
+Check for .control ... .endc , .subckt ... .ends , .if ... .endif .
+2.1.3 Circuit elements (device instances)
+Each element in the circuit is a device instance specified by an instance line that con-
+tains:
+• the element instance name,
+• the circuit nodes to which the element is connected,
+• and the values of the parameters that determine the electrical characteristics of the
+element.
+The first letter of the element instance name specifies the element type. The format
+for the ngspice element types is given in the following manual chapters. In the rest of
+the manual, the strings XXXXXXX, YYYYYYY, and ZZZZZZZ denote arbitrary alphanumeric
+strings.
+For example, a resistor instance name must begin with the letter R and can contain one or
+more characters. Hence, R, R1, RSE, ROUT, and R3AC2ZY are valid resistor names. Details
+of each type of device are supplied in a following section 3. Table 2.1 lists the element
+types available in ngspice, sorted by their first letter.

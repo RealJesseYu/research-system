@@ -1,0 +1,39 @@
+16.10. NGSPICE ON MULTI-CORE PROCESSORS USING OPENMP 353
+If you have selected XSPICE (see Chapt. 12 and II) as part of your compilation con-
+figuration (by adding the option --enable-xspice to your ./configure command), the
+value of trtol (see 15.1.4) is set internally to 1 (instead of default 7) for higher precision
+if XSPICE code model 'A' devices included in the circuit. This may double or even triple
+the CPU time needed for any transient simulation, because the amount of time steps and
+thus iteration steps is more than doubled. For MS Visual Studio compilation there is
+currently no simple way to exclude XSPICE during compilation.
+You may enforce higher speed during XSPICE usage by setting the variable xtrtol in your
+.spiceinit initialization file or in the .control section in front of the tran command (via set
+xtrtol=2 using the set command 17.5.70) and override the above trtol reduction. Beware
+however of precision or convergence issues if you use XSPICE 'A' devices, especially if
+xtrtol is set to values larger than 2.
+If your circuit is composed mostly of MOS transistors, and you have a multi-core processor
+at hand, you may benefit from OpenMP parallel processing, as described next ( 16.10).
+16.10 Ngspice on multi-core processors using OpenMP
+16.10.1 Introduction
+Today's computers typically come with CPUs having more than one core. It will thus be
+useful to enhance ngspice to make use of such multi-core processors.
+Using circuits containing mostly transistors and e.g. the BSIM3 model, around 2/3 of the
+CPU time is spent in evaluating the model equations (e.g. in the BSIM3Load() function).
+The same happens with other advanced transistor models. Thus, such functions should be
+parallelized, if possible. Solving the matrix takes about 10% to 50% of the CPU time, so
+parallel processing in the matrix solver is sometimes of secondary interest only! Further,
+such paralellization is difficult to achieve with our Sparse Matrix and KLU solvers.
+Another alternative is using CUSPICE, that is ngspice (current version 27) designed for
+running massively parallel on NVIDIA GPUs. CUDA enhancements to C code are applied.
+For LINUX, please see the user guide. For MS Windows, an executable is available at the
+ngspice download pages .
+16.10.2 Internals
+A publication [1] has described a way to exactly do that using OpenMP, which is available
+on many platforms and is easy to use, especially if you want to perform parallel processing
+of a for-loop.
+To explain the implemented approach BSIM3 version 3.3.0 model was chosen, located in
+the BSIM3 directory, as the first example. The BSIM3load() function in b3ld.c contains
+two nested for-loops using linked lists (models and instances, e.g. individual transistors).
+Unfortunately OpenMP requires a loop with an integer index. So in file B3set.c an
+array is defined, filled with pointers to all instances of BSIM3 and stored in model-
+>BSIM3InstanceArray.

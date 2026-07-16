@@ -1,0 +1,32 @@
+32.2. NGSPICE COMPILATION UNDER WINDOWS OS 723
+available with flag Win32. Standard for everyday use are the ReleaseOMP variants (GUI
+or console) for 64 bit.
+Compilation of the ngspice and XSPICE codes requires the installation of FLEX and
+BISON. They may be downloaded as Windows executables from winflexbison. Please
+unzip the zip file and copy its content into a directory named flex-bison at the same level
+as the ngspice directory. The resulting source tree then is:
+D:\MySpiceSources\
+ngspice\
+visualc\
+...
+flex-bison\
+...
+Table 32.1: ngspice source tree under MS Windows
+Procedure:
+Download ngspice. You may obtain a snapshot from ngspice git page at SourceForge,
+where you will find on top of the page a link named 'Download Snapshot' . On the left you
+may select any of the branches which are of interest. Branch 'master' is the most mature
+code selection, branch 'pre-master' is an actual development branch. Another approach is
+to install 'git' from git for Windows and installing ngspice source code with the command
+git clone git://git.code.sf.net/p/ngspice/ngspice
+as described in chapter 32.1.2.
+Go to directory /ngspice/visualc.
+Start MS Visual Studio as admin if you need to create C:\Spice etc and open the input
+file vngspice.sln. Or start MS Visual Studio by double click on vngspice.sln if C:\Spice etc.
+already exist or your have selected any other accessible stroage location (see comment
+from above). After MS Visual Studio opens, select the debug or release version (with
+or without OpenMP support) by checking Build, Configuration-Manager, Debug, Release
+or ReleaseOMP. Start making ngspice.exe by selecting Build and Build Solution . The ex-
+ecutable will be created and stored in visualc/vngspice/<configuration.platform>. Object
+files will be stored to visualc/vngspice/<configuration.platform>/obj.
+A simplified installation tree is created in parallel:

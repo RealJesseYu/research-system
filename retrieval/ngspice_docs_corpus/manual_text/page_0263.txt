@@ -1,0 +1,44 @@
+12.4. DIGITAL MODELS 263
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Common parameters: rise_delay, fall_delay.
+Description: The digital jk-type flip flop is a one-bit, edge-triggered storage element
+that will store data whenever the clk input line transitions from low to high (ZERO
+to ONE). In addition, asynchronous set and reset signals exist, and each of the three
+methods of changing the stored output of the d_jkff have separate load values and
+delays associated with them. Additionally, you may specify separate rise and fall
+delay values that are added to those specified for the input lines; these allow for
+more faithful reproduction of the output characteristics of different IC fabrication
+technologies.
+Note that any UNKNOWN inputs other than j or k cause the output to go UN-
+KNOWN automatically.
+Example SPICE Usage:
+a8 1 2 3 4 5 6 7 flop2
+.model flop2 d_jkff(clk_delay = 13.0e-9 set_delay = 25.0e-9
++ reset_delay = 27.0e-9 ic = 2 rise_delay = 10.0e-9
++ fall_delay = 3e-9)
+12.4.14 Toggle Flip Flop
+NAME_TABLE:
+C_Function_Name: cm_d_tff
+Spice_Model_Name: d_tff
+Description: "digital toggle flip flop"
+PORT_TABLE:
+Port Name: t clk
+Description: "toggle input" "clock"
+Direction: in in
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PORT_TABLE:
+Port Name: set reset
+Description: "set" "reset"
+Direction: in in
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PORT_TABLE:

@@ -1,0 +1,54 @@
+168 CHAPTER 11. MOSFETS
+Weffective = Winput − DW (11.3)
+Note that unlike the other models in ngspice, the BSIM models are designed for use
+with a process characterization system that provides all the parameters, thus there are no
+defaults for the parameters, and leaving one out is considered an error. For an example set
+of parameters and the format of a process file, see the SPICE2 implementation notes [3].
+For more information on BSIM2, see reference [5]. BSIM3 ( 11.2.10) and BSIM4 ( 11.2.11)
+represent state of the art for submicron and deep submicron IC design.
+11.2.8 BSIM1 model (level 4)
+BSIM1 model (the first is a long series) is an empirical model. Developers placed less
+emphasis on device physics and based the model on parametrical polynomial equations
+to model the various physical effects. This approach pays in terms of circuit simulation
+behavior but the accuracy degrades in the submicron region. A known problem of this
+model is the negative output conductance and the convergence problems, both related to
+poor behavior of the polynomial equations.
+BSIM1 (level 4) parameters
+Name Parameter Units l/w
+VFB Flat-band voltage V *
+PHI Surface inversion potential V *
+K1 Body effect coefficient
+√
+V *
+K2 Drain/source depletion charge-sharing
+coefficient
+- *
+ETA Zero-bias drain-induced barrier-lowering
+coefficient
+- *
+MUZ Zero-bias mobility cm2
+/V ·sec
+DL Shortening of channel µm
+DW Narrowing of channel µm
+U0 Zero-bias transverse-field mobility
+degradation coefficient
+1/V *
+U1 Zero-bias velocity saturation coefficient µ/V *
+X2MZ Sens. of mobility to substrate bias at v=0 cm2
+/V 2·sec *
+X2E Sens. of drain-induced barrier lowering
+effect to substrate bias
+1/V *
+X3E Sens. of drain-induced barrier lowering
+effect to drain bias at Vds = Vdd
+1/V *
+X2U0 Sens. of transverse field mobility
+degradation effect to substrate bias
+1/V 2 *
+X2U1 Sens. of velocity saturation effect to
+substrate bias
+µm/V 2 *
+MUS Mobility at zero substrate bias and at
+Vds = Vdd
+cm2
+/V 2sec

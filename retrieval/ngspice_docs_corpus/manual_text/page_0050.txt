@@ -1,0 +1,39 @@
+50 CHAPTER 2. CIRCUIT DESCRIPTION
+column 2. Lines may also be continued in Unix shell style, when the final two characters
+are backslashes. A device name field must begin with a letter (A through Z) and cannot
+contain any delimiters.
+2.1.4.2 Numbers
+A number field may be an integer field (12, -44), a floating point field (3.14159), either
+an integer or floating point number followed by an integer exponent (1e-14, 2.65e3), or
+either an integer or a floating point number followed by one of the following scale factors:
+Suffix Name Factor
+T Tera 1012
+G Giga 109
+Meg Mega 106
+K Kilo 103
+mil Mil 25.4 × 10−6
+m milli 10−3
+u micro 10−6
+n nano 10−9
+p pico 10−12
+f femto 10−15
+a atto 10−18
+Table 2.2: Ngspice scale factors
+2.1.4.3 Letters following a number
+Letters immediately following a number that are not scale factors are ignored, and letters
+immediately following a scale factor are ignored. Hence, 10, 10V, 10Volts, and 10Hz all
+represent the same number, and M, MA, MSec, and MMhos all represent the same scale
+factor. Note that 1000, 1000.0, 1000Hz, 1e3, 1.0e3, 1kHz, and 1k all represent the same
+number. Note that 'M' or 'm' denote 'milli', i.e. 10−3. Suffix meg has to be used for
+106. If compatibility mode LT ( 16.14.6) is set, ngspice will accept the RKM notation for
+entering resistance or capacitance values, e.g. 2K7 or 100R.
+2.1.4.4 Node names
+Node names may be arbitrary character strings (exceptions see below) and are case in-
+sensitive, if ngspice is used in batch mode ( 16.4.1). If in interactive ( 16.4.2) or control
+(16.4.3) mode, node names may either be plain numbers or arbitrary character strings,
+not starting with a number. The following characters = % ( ) , [ ] < > ~ are not allowed
+in a node name, especially when XSPICE code models are used (they have their special
+meanings then and act as string delimiters).
+2.1.4.5 Ground node
+The ground node must be named ' 0' (zero). For compatibility reason gnd is accepted as
+ground node, and will internally be treated as a global node and be converted to ' 0' . If

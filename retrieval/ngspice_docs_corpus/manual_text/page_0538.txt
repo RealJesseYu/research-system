@@ -1,0 +1,38 @@
+538 CHAPTER 23. CIRCUIT OPTIMIZATION WITH NGSPICE
+NMOS (nm) and PMOS (pm) model parameter sets are loaded from three different model
+files, each containing both NMOS and PMOS sets. b3.typ is assembled from the original
+parameter files n.typ and p.typ, provided with original ASCO, with some adaptation to
+ngspice BSIM3. The min and max sets are artificially created in that only the gate oxide
+thickness deviates ±1 nm from what is found in model file b3.typ. In addition the power
+supply voltage is varied, so in total you will find 3 x 3 simulation combinations in the
+input file <computer-name>.sp (after running asco-test).
+23.5.3 Bandpass
+This example is taken from Chapt. 6.2.4 Tutorial #4 from the ASCO manual. S11 in
+the passband is to be maximised. S21 is used to extract side lobe parameters. The .net
+command is not available in ngspice, so S11 and S21 are derived with a script in file
+bandpass.sp as described in Chapt. 17.9. The measurements requested in bandpass.cfg as
+# Measurements #
+Left_Side_Lobe:---:LE:-20
+Pass_Band_Ripple:---:GE:-1
+Right_Side_Lobe:---:LE:-20
+S11_In_Band:---:MAX:---
+#
+are realized as ' measure' commands inside of control sections (see files in directory ex-
+tract). The result of a measure statement is a vector, which may be processed by com-
+mands in the following lines. In file extract/S1_In_Band #Symbol# is made available
+only after a short calculation (inversion of sign), using the print command. quit has
+been added to this entry because it will become the final control section in <computer-
+name>.sp. A disadvantage of measure inside of a .control section is that parameters
+from .param statements may not be used (as is done in example 23.5.4).
+The bandpass example includes the calculation of RF parasitic elements defined in rfmodule.cfg
+(see Chapt. 7.5 of the ASCO manual). This calculation is invoked by setting
+ExecuteRF:yes $Execute or no the RF module to add RF parasitics?
+in bandpass.cfg. The two subcircuits LBOND_sub and CSMD_sub are generated in
+<computer-name>.sp to simulate these effects.
+23.5.4 Class-E power amplifier
+This example is taken from Chapt. 6.2.3 Tutorial #3 from the ASCO manual. In this
+example the ASCO post processing is applied in file extract/P_OUT (see Chapt. 7.4 of
+the ASCO manual.). In this example .measure statements are used. They allow using
+parameters from .param statements, because they will be located outside of .control
+sections, but do not allow doing data post processing inside of ngspice. You may use
+ASCO post processing instead.

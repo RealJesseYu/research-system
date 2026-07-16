@@ -1,0 +1,34 @@
+60 CHAPTER 2. CIRCUIT DESCRIPTION
+alphabetic character. The other characters must be either alphabetic, a number, or ! #
+$ % [ ] _ as special characters. The variables time, temper, and hertz (see 5.1.1) are
+not valid identifier names. Other restrictions on naming conventions apply as well, see
+2.9.6.
+The .param lines inside subcircuits are copied per call, like any other line. All assignments
+are executed sequentially through the expanded circuit. Before its first use, a parameter
+name must have been assigned a value. Expressions defining a parameter should be put
+within braces {p+p2}, or alternatively within single quotes 'AGAUSS(pippo, 1, 1.67)' .
+An assignment cannot be self-referential, something like .param pip = 'pip+3' will not
+work.
+The current ngspice version does not always need quotes or braces in expressions, es-
+pecially when spaces are used sparingly. However, it is recommended to do so, as the
+following examples demonstrate.
+. param a = 123 * 3 b = sqrt (9) $ doesn ' t work , a <= 123
+. param a = '123 * 3 ' b = sqrt (9) $ ok .
+. param c = a + 123 $ won ' t work
+. param c = 'a + 123 ' $ ok .
+. param c = a +123 $ ok .
+Parameters may also have string values, but support is limited. String-valued parameters
+can be defined by .param and used in the same ways as numeric parameters. The only
+operation on string values is concatenation and that is possible only in top-level .param
+assignments.
+. param str1 =" first " str2 =" second "
+. param both ={ str1 }" and " str2
+2.9.2 Brace expressions in circuit elements:
+General form:
+{ < expr > }
+Examples:
+These are allowed in .model lines and in device lines. A SPICE number is a floating
+point number with an optional scaling suffix, immediately glued to the numeric tokens
+(see Chapt. 2.9.5). Brace expressions ({..}) cannot be used to parameterize node names
+or parts of names. All identifiers used within an <expr> must have known values at the
+time when the line is evaluated, else an error is flagged.

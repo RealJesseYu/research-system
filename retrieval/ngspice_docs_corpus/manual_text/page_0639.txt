@@ -1,0 +1,23 @@
+30.8. END 639
+30.7.4 SEE ALSO
+domain, contact
+30.8 END
+Terminate processing of a device definition
+SYNOPSIS
+end
+30.8.1 DESCRIPTION
+The end card stops processing of a device definition. It may appear anywhere within a
+definition. Subsequent continuation lines of the definition will be ignored. If no end card
+is supplied, all the cards will be processed.
+30.9 MATERIAL
+Specify physical properties of a material
+SYNOPSIS
+material number type [ physical - constants ]
+30.9.1 DESCRIPTION
+The material card is used to create an entry in the list of materials used in a device. Each
+entry needs a unique identification number and the type of the material. Default values
+are assigned to the physical properties of the material. Most material parameters are
+accessible either here or on the mobility or contact cards. However, some parameters
+remain inaccessible (e.g. the ionization coefficient parameters). Parameters for most
+physical effect models are collected here. Mobility parameters are handled separately by
+the mobility card. Properties of electrode materials are set using the contact card.

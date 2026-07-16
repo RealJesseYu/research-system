@@ -1,0 +1,27 @@
+29.1. PREPROCESSOR ERROR MESSAGES 617
+A parameter value was not compatible with the specified type for the parameter.
+Named range not allowed for limits
+A name was found where numeric limits were expected.
+Direction of port '<port number>' in <port name>()
+is not <IN or OUT> or INOUT
+A problem exists with the direction of one of the elements of a port vector.
+Port '<port name>' is an array - subscript required
+A port was referenced that is specified as an array (vector) in the Interface Specification
+File. A subscript is required (e.g. myport[i])
+Parameter '<parameter name>' is an array - subscript required
+A parameter was referenced that is specified as an array (vector) in the Interface Specifi-
+cation File. A subscript is required (e.g. myparam[i])
+Port '<port name>' is not an array - subscript prohibited
+A port was referenced that is not specified as an array (vector) in the Interface Specifica-
+tion File. A subscript is not allowed.
+Parameter '<parameter name>' is not an array - subscript prohibited
+A parameter was referenced that is not specified as an array (vector) in the Interface
+Specification File. A subscript is not allowed.
+Static variable '<static variable name>' is not an array - subscript prohibited
+Array static variables are not supported. Use a POINTER type for the static variable.
+Buffer overflow - try reducing the complexity of CM-macro array subscripts
+The argument to a code model accessor macro was too long.
+Unmatched )
+An open ( was found with no corresponding closing ).
+Unmatched ]
+An open [ was found with no corresponding closing ].

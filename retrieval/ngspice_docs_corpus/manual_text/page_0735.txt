@@ -1,0 +1,36 @@
+33.4. ON THE HISTORICAL EVOL VEMENT OF THE NGSPICE LICENSES 735
+NEGLIGENCE OR OTHER WISE) ARISING IN ANY W AY OUT OF THE USE OF
+THIS SOFTW ARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+(Source)
+33.4 On the historical evolvement of the ngspice li-
+censes
+The SPICE license is the 'Modified' BSD license , (see Spice link at UCB ). The original
+Spice3f5 had been released under the 4-clause BSD (the original BSD license), which has
+been modified by UCB towards the now commonn 3-clause BSD. ngspice adopts this
+'Modified' BSD license for all of its source code (except for tclspice, admst, and numparam
+that are under LGPLv2, and XSPICE, which is in the public domain (see 33.4.4)).
+33.4.1 XSPICE SOFTW ARE (documentation) copyright
+Code added to SPICE3 to create the XSPICE Simulator and the XSPICE Code Model
+Subsystem was developed at the Computer Science and Information Technology Labora-
+tory, Georgia Tech Research Institute, Atlanta GA, and is covered by license agreement
+the following copyright:
+Copyright © 1992 Georgia Tech Research Corporation All Rights Reserved. This material
+may be reproduced by or for the U.S. Government pursuant to the copyright license under
+the clause at DF ARS 252.227-7013 (Oct. 1988)
+Refer to U.C. Berkeley and Georgia Tech license agreements for additional information.
+This license is now superseded by Chapt. 33.4.4
+33.4.2 CIDER RESEARCH SOFTW ARE AGREEMENT (su-
+perseded by 33.4.3)
+This chapter specifies the terms under which the CIDER software and documentation
+coming with the original distribution are provided. This agreement is superseded by
+33.4.3, the 'modified' BSD license.
+Software is distributed as is, completely without warranty or service support. The Uni-
+versity of California and its employees are not liable for the condition or performance of
+the software.
+The University does not warrant that it owns the copyright or other proprietary rights
+to all software and documentation provided under this agreement, notwithstanding any
+copyright notice, and shall not be liable for any infringement of copyright or proprietary
+rights brought by third parties against the recipient of the software and documentation
+provided under this agreement.
+THE UNIVERSITY OF CALIFORNIA HEREBY DISCLAIMS ALL IMPLIED W AR-
+RANTIES, INCLUDING THE IMPLIED W ARRANTIES OF MERCHANTABILITY

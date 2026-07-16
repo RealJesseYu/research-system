@@ -1,0 +1,46 @@
+222CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Description: "controlled sine wave oscillator"
+PORT_TABLE:
+Port Name: cntl_in out
+Description: "control input" "output"
+Direction: in out
+Default_Type: v v
+Allowed_Types: [v,vd,i,id] [v,vd,i,id]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: cntl_array freq_array
+Description: "control array" "frequency array"
+Data_Type: real real
+Default_Value: 0.0 1.0e3
+Limits: - [0 -]
+Vector: yes yes
+Vector_Bounds: [2 -] cntl_array
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: out_low out_high
+Description: "output peak low value" "output peak high value"
+Data_Type: real real
+Default_Value: -1.0 1.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Description: This function is a controlled sine wave oscillator with parametrizable values
+of low and high peak output. It takes an input voltage or current value. This value
+is used as the independent variable in the piecewise linear curve described by the
+coordinate points of the cntl array and freq array pairs. From the curve, a frequency
+value is determined, and the oscillator will output a sine wave at that frequency.
+From the above, it is easy to see that array sizes of 2 for both the cntl array and the
+freq array will yield a linear variation of the frequency with respect to the control
+input. Any sizes greater than 2 will yield a piecewise linear transfer characteristic.
+For more detail, refer to the description of the piecewise linear controlled source,
+which uses a similar method to derive an output value given a control input.
+Example SPICE Usage:
+asine 1 2 in_sine
+.model in_sine sine(cntl_array = [-1 0 5 6]
++ freq_array=[10 10 1000 1000] out_low = -5.0
++ out_high = 5.0)
+12.2.24 Controlled Triangle Wave Oscillator
+NAME_TABLE:

@@ -1,0 +1,34 @@
+16.16. TOOLS FOR DEBUGGING A CIRCUIT NETLIST 367
+BSIMSOI4, HICUM2, HiSIM, and HiSIM_HV models implement the QA test. You may
+invoke it by running the command given above or by
+$ make -i check 2>&1 | tee results
+-i will cause make to ignore any errors, and tee will provide console output as well as
+printing to file 'results' . Be aware that under MS Windows you will need the console
+binary (see 32.2.4) to run the CMC tests, and you have to have Perl installed!
+As these tests may consume a considerable amount of CPU time, there is a configure
+option --enable-shortcheck 32.1.8.1 available, providing a strongly reduced runtime,
+because besides some regression tests only BSIM3 and BSM4 devices are checked.
+Other tests have been developed, there are also some benchmark circuit compilations
+available. Please have a look at our Tests and Quality Assurance web page.
+16.16 Tools for debugging a circuit netlist
+This a chapter only in its initial state. Not all circuits will simulate immediately and
+easily. The netlist may contain a bug. The netlist may be o.k., but then ngspice may not
+find an operating point. If the operating point has been found, the transient simulation
+will just yield the famous error message 'transient time step too small' . Unfortumately
+there are many reasons for failure, on the other hand there is a lot of literature available
+to traet non-convergence.
+So for now there will be listed here only a few 'tools' offered by ngspice to aid debugging.
+16.16.1 options and initial conditions
+If ngspice has trouble finding the operating point, setting some initial conditions by adding
+.nodeset (15.2.1) or .ic (15.2.2) for critical nodes may help. The variation of some op
+option parameters may help as well (see 15.1.2). If there are nodes without dc connection
+to ground (e.g. two capacitors in series connection), finding the operating point will fail.
+Here the option RSHUNT may be of help by adding are (typically large) resistor from
+each node to ground. Convergence may be improved by the RSERIES option that add a
+(typically small) resistor in series to each inductor.
+Transient simulations are governed by another set of options (see 15.1.4). Careful variation
+of the parameters, as described in the literature, may enable convergence in incritical
+situations (not guaranteed, however).
+16.16.2 set debug
+If set in .spiceinit (or spice.rc), the command set debug will yield an analysis of each
+command which is run from .spiceinit and .control.

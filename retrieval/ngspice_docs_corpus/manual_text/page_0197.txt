@@ -1,0 +1,45 @@
+12.2. ANALOG MODELS 197
+This can be demonstrated by considering a function described by three coordinate
+pairs, such as (0,-1), (2,1), and (3,1). In this case, with a 10% input_domain value
+specified ( fraction=TRUE, input_domain=0.10), you would expect to see round-
+ing occur between time=1.9 and time=2.1, and nowhere else. On the other hand,
+if you were to specify the same function using the coordinate pairs (0,-100), (101,1)
+and (301,1), you would find that rounding occurs between time=81 and time=121.
+Clearly in the latter case the smoothing might cause an excessive divergence from
+the intended linearity above and below time=101.
+Example SPICE Usage:
+a8 out pwl_cntl1
+.model pwl_cntl1 pwlts(x_array=[0 1m 1.1m 2m 2.1m]
++ y_array=[-0.2 -0.2 0.6 0.6 0.35]
++ input_domain=0.2 fraction=TRUE
++ limit=TRUE)
+12.2.9 Filesource (PWL sourced from file)
+NAME_TABLE:
+C_Function_Name: cm_filesource
+Spice_Model_Name: filesource
+Description: "File Source"
+PORT_TABLE:
+Port_Name: out
+Description: "output"
+Direction: out
+Default_Type: v
+Allowed_Types: [v,vd,i,id]
+Vector: yes
+Vector_Bounds: [1 -]
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: timeoffset timescale
+Description: "time offset" "timescale"
+Data_Type: real real
+Default_Value: 0.0 1.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: timerelative amplstep
+Description: "relative time" "step amplitude"
+Data_Type: boolean boolean
+Default_Value: FALSE FALSE
+Limits: - -
+Vector: no no

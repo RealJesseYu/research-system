@@ -1,0 +1,39 @@
+356 CHAPTER 16. STARTING NGSPICE
+pipe, ngspice transfers its output (similar to a raw file, see below) to less via another
+pipe.
+Example command line:
+cat input . cir | ngspice -s | less
+Under MS Windows you will need to compile ngspice as a console application (see Chapt.
+32.2.4) for this server mode usage.
+Example input file:
+test -s
+v1 1 0 1
+r1 1 0 2 k
+. options filetype = ascii
+. save i ( v1 )
+. dc v1 -1 1 0.5
+. end
+If you start ngspice console with
+ngspice -s
+you may type in the above circuit line by line (not to forget the first line, which is a title
+and will be ignored). If you close your input with ctrl Z , and return, you will get the
+following output (this is valid for MINGW only) on the console, like a raw file:
+Circuit: test -s
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+Title: test -s
+Date: Sun Jan 15 18:57:13 2012
+Plotname: DC transfer characteristic
+Flags: real
+No. Variables: 2
+No. Points: 0
+Variables:
+No. of Data Columns : 2
+0 v(v-sweep) voltage
+1 i(v1) current
+Values:
+0 -1.000000000000000e+000
+5.000000000000000e-004
+1 -5.000000000000000e-001
+2.500000000000000e-004
+2 0.000000000000000e+000
+0.000000000000000e+000

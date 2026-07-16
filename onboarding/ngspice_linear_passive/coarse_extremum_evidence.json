@@ -1,0 +1,373 @@
+{
+  "measurement": "G10 coarse-extremum setting (series RLC peak)",
+  "purpose": "establish, by measurement, a tmax at which the RLC peak's gap to analytic exceeds N2's 1% RELATIVE tolerance, so the G10 `refine` calibration case rests on a measured setting",
+  "generated_utc": "2026-07-16T18:14:29Z",
+  "generator": "onboarding/ngspice_linear_passive/measure_coarse_extremum.py",
+  "environment": {
+    "container": "ngspice-prod",
+    "solver": "ngspice-42 (dpkg 42+ds-3build1), aarch64, KLU",
+    "wrapper": "tools/run_ngspice.py"
+  },
+  "circuit": {
+    "source": "selfcheck_evidence.json check (e), verbatim",
+    "vin": 1.0,
+    "r": 12.649,
+    "l": 0.001,
+    "c": 1e-06,
+    "zeta": 0.19999825061734913,
+    "tstop_s": 0.003,
+    "analytic_peak": 1.5266236763247512,
+    "qoi": "max of v(out) across C"
+  },
+  "units_warning": "selfcheck_evidence.json check (e) reports gap_to_analytic_peak as an ABSOLUTE difference; N2's tolerance is RELATIVE. Both are reported here and never mixed. Check (e)'s 4.844e-03 absolute at tmax=1e-5 is 3.173e-03 relative.",
+  "n2_relative_tolerance": 0.01,
+  "validated_ladder_from_check_e": [
+    1e-05,
+    1e-06,
+    1e-07
+  ],
+  "tmax_sweep": [
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 0.0002,
+      "valid": true,
+      "peak_measured": 1.52415539,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": -0.0024682863247511566,
+      "gap_rel": 0.001616826964647501,
+      "overshoots": false,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 144,
+      "runtime_s": 0.848
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 0.00015,
+      "valid": true,
+      "peak_measured": 1.52415539,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": -0.0024682863247511566,
+      "gap_rel": 0.001616826964647501,
+      "overshoots": false,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 144,
+      "runtime_s": 0.246
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 0.0001,
+      "valid": true,
+      "peak_measured": 1.52415539,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": -0.0024682863247511566,
+      "gap_rel": 0.001616826964647501,
+      "overshoots": false,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 144,
+      "runtime_s": 0.215
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 8e-05,
+      "valid": true,
+      "peak_measured": 1.52415539,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": -0.0024682863247511566,
+      "gap_rel": 0.001616826964647501,
+      "overshoots": false,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 144,
+      "runtime_s": 0.206
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 6e-05,
+      "valid": true,
+      "peak_measured": 1.52415539,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": -0.0024682863247511566,
+      "gap_rel": 0.001616826964647501,
+      "overshoots": false,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 144,
+      "runtime_s": 0.193
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 5e-05,
+      "valid": true,
+      "peak_measured": 1.52415539,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": -0.0024682863247511566,
+      "gap_rel": 0.001616826964647501,
+      "overshoots": false,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 144,
+      "runtime_s": 0.199
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 4e-05,
+      "valid": true,
+      "peak_measured": 1.52415539,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": -0.0024682863247511566,
+      "gap_rel": 0.001616826964647501,
+      "overshoots": false,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 144,
+      "runtime_s": 0.206
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 3e-05,
+      "valid": true,
+      "peak_measured": 1.54179764,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": 0.015173963675248814,
+      "gap_rel": 0.009939557410624706,
+      "overshoots": true,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 143,
+      "runtime_s": 0.203
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 2.5e-05,
+      "valid": true,
+      "peak_measured": 1.51512478,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": -0.011498896324751096,
+      "gap_rel": 0.0075322402652852555,
+      "overshoots": false,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 152,
+      "runtime_s": 0.19
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 2e-05,
+      "valid": true,
+      "peak_measured": 1.54340849,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": 0.016784813675248866,
+      "gap_rel": 0.010994729045246588,
+      "overshoots": true,
+      "exceeds_n2_1pct_relative": true,
+      "data_rows": 180,
+      "runtime_s": 0.212
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 1.5e-05,
+      "valid": true,
+      "peak_measured": 1.52925545,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": 0.0026317736752488052,
+      "gap_rel": 0.001723917764451703,
+      "overshoots": true,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 230,
+      "runtime_s": 0.2
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 1.2e-05,
+      "valid": true,
+      "peak_measured": 1.52937797,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": 0.002754293675248931,
+      "gap_rel": 0.001804173299525733,
+      "overshoots": true,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 280,
+      "runtime_s": 0.204
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 1e-05,
+      "valid": true,
+      "peak_measured": 1.531468,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": 0.004844323675248896,
+      "gap_rel": 0.003173227135394163,
+      "overshoots": true,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 329,
+      "runtime_s": 0.213
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 5e-06,
+      "valid": true,
+      "peak_measured": 1.52772236,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": 0.0010986836752489015,
+      "gap_rel": 0.000719682061982631,
+      "overshoots": true,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 628,
+      "runtime_s": 0.19
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 1e-06,
+      "valid": true,
+      "peak_measured": 1.52667938,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": 5.570367524887487e-05,
+      "gap_rel": 3.648815101766135e-05,
+      "overshoots": true,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 3026,
+      "runtime_s": 0.205
+    }
+  ],
+  "tstep_sweep": [
+    {
+      "tstep_s": 5e-05,
+      "tmax_s": 1e-07,
+      "valid": true,
+      "peak_measured": 1.52662415,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": 4.736752488021523e-07,
+      "gap_rel": 3.1027636748206027e-07,
+      "overshoots": true,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 30023,
+      "runtime_s": 0.325
+    },
+    {
+      "tstep_s": 4e-05,
+      "tmax_s": 1e-07,
+      "valid": true,
+      "peak_measured": 1.52662415,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": 4.736752488021523e-07,
+      "gap_rel": 3.1027636748206027e-07,
+      "overshoots": true,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 30023,
+      "runtime_s": 0.321
+    },
+    {
+      "tstep_s": 3e-05,
+      "tmax_s": 1e-07,
+      "valid": true,
+      "peak_measured": 1.52662415,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": 4.736752488021523e-07,
+      "gap_rel": 3.1027636748206027e-07,
+      "overshoots": true,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 30023,
+      "runtime_s": 0.332
+    },
+    {
+      "tstep_s": 2e-05,
+      "tmax_s": 1e-07,
+      "valid": true,
+      "peak_measured": 1.52662415,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": 4.736752488021523e-07,
+      "gap_rel": 3.1027636748206027e-07,
+      "overshoots": true,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 30023,
+      "runtime_s": 0.318
+    },
+    {
+      "tstep_s": 1e-05,
+      "tmax_s": 1e-07,
+      "valid": true,
+      "peak_measured": 1.52662415,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": 4.736752488021523e-07,
+      "gap_rel": 3.1027636748206027e-07,
+      "overshoots": true,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 30023,
+      "runtime_s": 0.307
+    },
+    {
+      "tstep_s": 5e-06,
+      "tmax_s": 1e-07,
+      "valid": true,
+      "peak_measured": 1.52662415,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": 4.736752488021523e-07,
+      "gap_rel": 3.1027636748206027e-07,
+      "overshoots": true,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 30023,
+      "runtime_s": 0.314
+    },
+    {
+      "tstep_s": 1e-06,
+      "tmax_s": 1e-07,
+      "valid": true,
+      "peak_measured": 1.52662415,
+      "peak_analytic": 1.5266236763247512,
+      "gap_abs": 4.736752488021523e-07,
+      "gap_rel": 3.1027636748206027e-07,
+      "overshoots": true,
+      "exceeds_n2_1pct_relative": false,
+      "data_rows": 30023,
+      "runtime_s": 0.307
+    }
+  ],
+  "findings": {
+    "tmax_is_a_ceiling_not_a_target": {
+      "holds": true,
+      "plateau_tmax_s": [
+        4e-05,
+        5e-05,
+        6e-05,
+        8e-05,
+        0.0001,
+        0.00015,
+        0.0002
+      ],
+      "plateau_peak": 1.52415539,
+      "plateau_data_rows": [
+        144
+      ],
+      "note": "every tmax in the plateau returns one identical peak from an identical row count: the request is inert because ngspice's adaptive error control already steps finer than it asks. A .tran cannot be coarsened past its adaptive floor, only refined."
+    },
+    "tstep_does_not_control_the_written_grid": {
+      "holds": true,
+      "distinct_peaks": 1,
+      "distinct_row_counts": 1,
+      "row_count": 30023,
+      "note": "wrdata writes one row per INTERNAL timestep, so the row count tracks tmax (~tstop/tmax) and tstep is inert. An extremum read off wrdata is sampled on the solver's grid, never on the print grid."
+    },
+    "error_is_non_monotone_in_the_binding_coarse_band": {
+      "binding_region_monotone": false,
+      "fine_region_monotone_tmax_le_1e-5": true,
+      "note": "check (e)'s monotone settle holds over its own ladder (tmax <= 1e-5). In the binding-but-coarse band the error is non-monotone and flips sign as sample points shift around the true peak \u2014 the signature of an extremum tracking the grid. The N4 monotone-settle screen is therefore only meaningful on a ladder wholly inside the fine region."
+    },
+    "reachable_error_is_bounded": {
+      "max_gap_rel_observed": 0.010994729045246588,
+      "note": "because tmax saturates, the worst reachable peak error on this circuit is ~1.1% \u2014 so no setting produces a decisively-over-tolerance extremum here."
+    },
+    "pre_registration": {
+      "predicted": "tmax=1e-4 gap lands between 10% and 50%",
+      "measured_at_1e-4_rel": 0.001616826964647501,
+      "verdict": "FALSIFIED",
+      "why": "tmax=1e-4 is inert (above the adaptive floor), so it returns the plateau peak, not a coarse one. The guess assumed tmax was a target the solver would honour."
+    }
+  },
+  "g10_selected_setting": {
+    "tstep_s": 1e-06,
+    "tmax_s": 2e-05,
+    "tstop_s": 0.003,
+    "peak_measured": 1.54340849,
+    "gap_rel": 0.010994729045246588,
+    "gap_abs": 0.016784813675248866,
+    "data_rows": 180,
+    "exceeds_n2_1pct_relative": true,
+    "knife_edge_disclosure": "the ONLY swept point over the 1% bar; its neighbours at 3e-5 (9.94e-03) and 1.5e-5 (1.72e-03) sit UNDER it. Marginal by construction \u2014 see reachable_error_is_bounded.",
+    "why_well_founded": "two independent reasons agree: the setting is outside the validated ladder (tmax <= 1e-6), and its measured gap exceeds N2's 1% relative bar."
+  },
+  "all_runs_valid": true
+}

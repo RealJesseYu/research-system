@@ -1,0 +1,15 @@
+676 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+31.4.4 TransLine - Simple Lossy Transmission Line
+31.4.4.1 TransLine instance parameters
+# Name Direction Type Description
+1 pos_node In integer Positive node of txl
+2 neg_node In integer Negative node of txl
+3 length InOut real length of line
+31.4.4.2 TransLine model parameters
+# Name Direction Type Description
+101 r InOut real resistance per length
+104 l InOut real inductance per length
+102 c InOut real capacitance per length
+103 g InOut real conductance per length
+105 length InOut real length
+106 txl In flag Device is a txl model

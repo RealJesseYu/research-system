@@ -1,0 +1,15 @@
+32.4. REPORTING ERRORS 731
+Currently no work has been done to create a package and have the package certified by
+Apple.
+32.4 Reporting errors
+Setting up ngspice is a complex task. The source code contains over 1500 files. ngspice
+should run on various operating systems. Therefore errors may be found, some still
+evolving from the original spice3f5 code, others introduced during the ongoing code en-
+hancements.
+If you happen to experience an error during compilation of ngspice, please send a report
+to the development team. Ngspice is hosted on SourceForge, the preferred place to post a
+bug report is the ngspice bug tracker. We would prefer to have your bug tested against the
+actual source code available at Git, but of course a report using the most recent ngspice
+release is welcome! Please provide the following information with your report: Ngspice
+version, Operating system, Small input file to reproduce the bug (if to report a runtime
+error), Actual output versus the expected output.

@@ -1,0 +1,50 @@
+132 CHAPTER 7. DIODES
+Junction capacitance parameters
+Name Parameter Units Default Example Scale factor
+CJO (CJ0) Zero-bias junction
+bottom-wall capacitance
+F 0.0 2pF area
+CJP (CJSW) Zero-bias junction sidewall
+capacitance
+F 0.0 .1pF perimeter
+FC Coefficient for forward-bias
+depletion bottom-wall
+capacitance formula
+- 0.5 -
+FCS Coefficient for forward-bias
+depletion sidewall
+capacitance formula
+- 0.5 -
+M (MJ) Area junction grading
+coefficient
+- 0.5 0.5
+MJSW Periphery junction grading
+coefficient
+- 0.33 0.5
+VJ (PB) Junction potential V 1 0.6
+PHP Periphery junction
+potential
+V 1 0.6
+TT Transit-time sec 0 0.1ns
+Metal and Polysilicon Overlap Capacitances (level=3)
+Name Parameter Units Default Example Scale factor
+LM Length of metal capacitor m 0.0 4um SCALE
+LP Length of polysilicon
+capacitor
+m 0.0 5um SCALE
+WM Width of metal capacitor m 0.0 2um SCALE
+WP Width of polysilicon
+capacitor
+m 0.0 4um SCALE
+XOM Thickness of the metal to
+bulk oxide
+m 1e-06 -
+XOI Thickness of the polysilicon
+to bulk oxide
+m 1e-06 -
+XM Masking and etching effects
+in metal
+m 0.0 -
+XP Masking and etching effects
+in polysilicon
+m 0.0 -

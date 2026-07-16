@@ -1,0 +1,27 @@
+82 CHAPTER 3. CIRCUIT ELEMENTS AND MODELS
+The (optional) initial condition is the initial (time zero) value of capacitor voltage (in
+Volts). Note that the initial conditions (if any) apply only if the uic option is specified
+on the .tran control line.
+Ngspice calculates the nominal capacitance as described below:
+Cnom = value · scale · m (3.7)
+The temperature coefficients tc1 and tc2 describe a quadratic temperature dependence
+(see equation 17.14) of the capacitance. If given in the instance line (the C... line) their
+values will override the tc1 and tc2 of the .model line ( 3.3.8).
+3.3.7 Semiconductor Capacitors
+General form:
+CXXXXXXX n + n - < value > < mname > <l = length > <w = width > <m = val >
++ < scale = val > < temp = val > < dtemp = val > < ic = init_condition >
+Examples:
+CLOAD 2 10 10 P
+CMOD 3 7 CMODEL L =10 u W =1 u
+This is the more general form of the Capacitor presented in section ( 3.3.6), and allows
+for the calculation of the actual capacitance value from strictly geometric information
+and the specifications of the process. If value is specified, it defines the capacitance and
+both process and geometrical information are discarded. If value is not specified, the
+capacitance is calculated from information contained model mname and the given length
+and width ( l, w keywords, respectively).
+It is possible to specify mname only, without geometrical dimensions and set the capaci-
+tance in the .model line ( 3.3.6).
+3.3.8 Semiconductor Capacitor Model (C)
+The capacitor model contains process information that may be used to compute the
+capacitance from strictly geometric information.

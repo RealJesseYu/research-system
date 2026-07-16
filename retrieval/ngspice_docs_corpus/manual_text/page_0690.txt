@@ -1,0 +1,45 @@
+690 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+65 sens_w_real Out real dc sensitivity and real part of ac
+sensitivity wrt width
+66 sens_w_imag Out real imag part of ac sensitivity wrt
+width
+67 sens_w_mag Out real sensitivity wrt w of ac magnitude
+68 sens_w_ph Out real sensitivity wrt w of ac phase
+69 sens_w_cplx Out complex ac sensitivity wrt width
+31.6.2.2 MOS2 model parameters
+# Name Direction Type Description
+141 type Out string N-channel or P-channel MOS
+101 vto InOut real Threshold voltage
+101 vt0 InOut real
+102 kp InOut real Transconductance parameter
+103 gamma InOut real Bulk threshold parameter
+104 phi InOut real Surface potential
+105 lambda InOut real Channel length modulation
+106 rd InOut real Drain ohmic resistance
+107 rs InOut real Source ohmic resistance
+108 cbd InOut real B-D junction capacitance
+109 cbs InOut real B-S junction capacitance
+110 is InOut real Bulk junction sat. current
+111 pb InOut real Bulk junction potential
+112 cgso InOut real Gate-source overlap cap.
+113 cgdo InOut real Gate-drain overlap cap.
+114 cgbo InOut real Gate-bulk overlap cap.
+122 rsh InOut real Sheet resistance
+115 cj InOut real Bottom junction cap per area
+116 mj InOut real Bottom grading coefficient
+117 cjsw InOut real Side junction cap per area
+118 mjsw InOut real Side grading coefficient
+119 js InOut real Bulk jct. sat. current density
+120 tox InOut real Oxide thickness
+121 ld InOut real Lateral diffusion
+123 u0 InOut real Surface mobility
+123 uo InOut real
+124 fc InOut real Forward bias jct. fit parm.
+135 nmos In flag N type MOSfet model
+136 pmos In flag P type MOSfet model
+125 nsub InOut real Substrate doping
+126 tpg InOut integer Gate type
+127 nss InOut real Surface state density
+129 delta InOut real Width effect on threshold
+130 uexp InOut real Crit. field exp for mob. deg.
+134 ucrit InOut real Crit. field for mob. degradation

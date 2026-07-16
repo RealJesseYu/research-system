@@ -1,0 +1,33 @@
+306 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+METHOD=name sets the numerical integration method used by SPICE. Possible
+names are 'Gear' or 'trapezoidal' (or just 'trap'). The default is trapezoidal.
+NOOPALTER=TRUE|F ALSEif set to false, alternations between analog and event
+calls to XSPICE models are enabled during initial DC operating analysis.
+RAMPTIME=x During source stepping, this option sets the rate of change of indepen-
+dent supplies. It also affects code model inductors and capacitors that have initial
+conditions specified.
+SRCSTEPS=x [*] a non-zero value causes SPICE to use a source-stepping method to
+find the DC operating point. The value specifies the number of steps.
+TRTOL=x resets the transient error tolerance. The default value is 7. This parameter
+is an estimate of the factor by which SPICE overestimates the actual truncation
+error. If XSPICE is configured and 'A' devices are included, the value is internally
+set to 1 for higher precision. This slows down transient analysis by a factor of two.
+XMU=x sets the damping factor for trapezoidal integration. The default value is
+XMU=0.5. A value < 0.5 may be chosen. Even a small reduction, e.g. to 0.495,
+may already suppress trap ringing. The reduction has to be set carefully in order
+not to excessively damp circuits that are prone to ringing or oscillation, which might
+lead the user to believe that the circuit is stable.
+15.1.5 ELEMENT Specific options
+BADMOS3 Use the older version of the MOS3 model with the 'kappa' discontinuity.
+DEF AD=x resets the value for MOS drain diffusion area; the default is 0.
+DEF AS=x resets the value for MOS source diffusion area; the default is 0.
+DEFL=x resets the value for MOS channel length; the default is 100 µm.
+DEFW=x resets the value for MOS channel width; the default is 100 µm.
+SCALE=x set the element scaling factor for geometric element parameters whose default
+unit is meters. As an example: scale=1u and a MOSFET instance parameter W=10
+will result in a width of 10 µm for this device. An area parameter AD=20 will result
+in 20e − 12 m2. Following instance parameters are scaled:
+• Resistors and Capacitors: W, L
+• Diodes: W, L, Area
+• JFET, MESFET: W, L, Area
+• MOSFET: W, L, AS, AD, PS, PD, SA, SB, SC, SD

@@ -1,0 +1,28 @@
+670 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+31.3.3 Vsource - Independent voltage source
+31.3.3.1 Vsource instance parameters
+# Name Direction Type Description
+1 dc InOut real D.C. source value
+3 acmag InOut real A.C. Magnitude
+4 acphase InOut real A.C. Phase
+5 pulse In real vector Pulse description
+6 sine In real vector Sinusoidal source description
+6 sin In real vector Sinusoidal source description
+7 exp In real vector Exponential source description
+8 pwl In real vector Piecewise linear description
+9 sffm In real vector Single freq. FM descripton
+22 am In real vector Amplitude modulation descripton
+16 pos_node Out integer Positive node of source
+17 neg_node Out integer Negative node of source
+11 function Out integer Function of the source
+12 order Out integer Order of the source function
+13 coeffs Out real vector Coefficients for the function
+14 acreal Out real AC real part
+15 acimag Out real AC imaginary part
+2 ac In real vector AC magnitude, phase vector
+18 i Out real Voltage source current
+19 p Out real Instantaneous power
+20 distof1 In real vector f1 input for distortion
+21 distof2 In real vector f2 input for distortion
+23 r In real pwl repeat start time value
+24 td In real pwl delay time value

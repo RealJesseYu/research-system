@@ -1,0 +1,42 @@
+258CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+.model tri7 d_tristate(delay = 0.5e-9 input_load = 0.5e-12
++ enable_load = 0.5e-12)
+12.4.10 Pullup
+NAME_TABLE:
+C_Function_Name: cm_d_pullup
+Spice_Model_Name: d_pullup
+Description: "digital pullup resistor"
+PORT_TABLE:
+Port Name: out
+Description: "output"
+Direction: out
+Default_Type: d
+Allowed_Types: [d]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: load
+Description: "load value (F)"
+Data_Type: real
+Default_Value: 1.0e-12
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: The digital pullup resistor is a device that emulates the behavior of an
+analog resistance value tied to a high voltage level. The pullup may be used in
+conjunction with tristate buffers to provide open-collector wired or constructs, or
+any other logical constructs that rely on a resistive pullup common to many tristated
+output devices. The model posts an input load value (in farads) based on the
+parameter load.
+Example SPICE Usage:
+a2 9 pullup1
+.model pullup1 d_pullup(load = 20.0e-12)
+12.4.11 Pulldown
+NAME_TABLE:
+C_Function_Name: cm_d_pulldown
+Spice_Model_Name: d_pulldown
+Description: "digital pulldown resistor"
+PORT_TABLE:
+Port Name: out

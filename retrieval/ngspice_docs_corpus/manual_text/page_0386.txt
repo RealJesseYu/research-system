@@ -1,0 +1,31 @@
+386 CHAPTER 17. INTERACTIVE INTERPRETER
+17.5.16 Define: Define a function
+General Form:
+define function ( arg1 , arg2 , ...) expression
+Define the function with the name function and arguments arg1, arg2, ... to be expression,
+which may involve the arguments. When the function is later used, the arguments it is
+given are substituted for the formal parameters when it was parsed. If expression is not
+present, any existing definition for function is printed, and if there are no arguments then
+expressions for all currently active definitions are printed. Note that you may have dif-
+ferent functions defined with the same name but different arities. Some useful definitions
+are
+Example:
+define max (x , y ) ( x > y ) * x + ( x <= y ) * y
+define min (x , y ) ( x < y ) * x + ( x >= y ) * y
+define limit ( nom , avar ) ( nom + (( sgauss (0) >= 0) ? avar : - avar ))
+When defining the function, the tokens used (here x, y, nom, or avar) should not have
+been defined elsewhere, e.g. as vectors. Otherwise strange errors may result.
+17.5.17 Deftype: Define a new type for a vector or plot
+General Form:
+deftype [ v | p ] typename abbrev
+defines types for vectors and plots. abbrev will be used to parse things like abbrev(name)
+and to label axes with M<abbrev>, instead of numbers. Also, the command 'deftype p
+plottype pattern ... ' will assign plottype as the name for any plot with one of the patterns
+in its Name: field.
+Example:
+deftype v c apa cit anc e F
+settype cap aci ta nce moscap
+plot moscap vs v ( cc )
+17.5.18 Delete*: Remove a trace or breakpoint
+General Form:
+delete [ debug - number ... ]

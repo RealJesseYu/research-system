@@ -1,0 +1,43 @@
+3.3. ELEMENTARY DEVICES 83
+Name Parameter Units Default Example
+CAP model capacitance F 0.0 1e-6
+CJ junction bottom capacitance F/m2 - 5e-5
+CJSW junction sidewall capacitance F/m - 2e-11
+DEFW default device width m 1e-6 2e-6
+DEFL default device length m 0.0 1e-6
+NARROW narrowing due to side etching m 0.0 1e-7
+SHORT shortening due to side etching m 0.0 1e-7
+TC1 first order temperature coeff. F/◦C 0.0 0.001
+TC2 second order temperature coeff. F/◦C2 0.0 0.0001
+TNOM parameter measurement temperature ◦C 27 50
+DI relative dielectric constant F/m - 1
+THICK insulator thickness m 0.0 1e-9
+The capacitor has a capacitance computed as:
+If value is specified on the instance line then
+Cnom = value · scale · m (3.8)
+If model capacitance is specified then
+Cnom = CAP · scale · m (3.9)
+If neither value nor CAP are specified, then geometrical and physical parameters are take
+into account:
+C0 = CJ(l − SHORT)(w − NARROW) + 2CJSW(l − SHORT + w − NARROW) (3.10)
+CJ can be explicitly given on the .model line or calculated by physical parameters. When
+CJ is not given, is calculated as:
+If THICK is not zero:
+CJ = DI ϵ0
+THICK if DI is specified ,
+CJ =
+ϵSiO2
+THICK otherwise.
+(3.11)
+If the relative dielectric constant is not specified the one for SiO2 is used. The values
+of the constants are ϵ0 = 8 .854214871e − 12 F
+m and ϵSiO2 = 3 .4531479969e − 11 F
+m . The
+nominal capacitance is then computed as:
+Cnom = C0 scale m (3.12)
+After the nominal capacitance is calculated, it is adjusted for temperature by the formula:
+C(T ) = C(TNOM)
+
+1 + T C1(T − TNOM) + T C2(T − TNOM)2
+
+(3.13)

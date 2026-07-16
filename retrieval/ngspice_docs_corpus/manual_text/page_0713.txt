@@ -1,0 +1,28 @@
+Chapter 32
+Compilation notes
+This file describes the procedures to install ngspice from sources.
+Some special considerations are required when Verilog-A models are to be included (see
+chapter 13.2).
+32.1 Ngspice Installation under Linux (and other 'UNIXes')
+32.1.1 Prerequisites
+Ngspice is written in C and thus a complete C compilation environment is needed. Ngspice
+is developed on GNU/Linux with autotools, gcc, and GNU make.
+The following software must be installed in your system to compile ngspice: bison, flex ,
+and X11 (and Xaw, Xmu, Xext, Xft, FontConfig, Xrender, and freetype) headers
+(e.g. libX11-devel) and libs (e.g. libX11-6).
+The X11 headers and libraries are typically available in an X11 development package from
+your Linux distribution.
+If you want to compile the source code from Git, you will need additional software:
+autoconf, automake, libtool .
+For your convenience you always should add readline (or editline) libs and headers.
+If you intend to make tclspice (see chapt. 20), you will need tcl/tk and blt.
+If you want to have high performance and accurate FFT's you should install: fftw-3.
+The ngspice configure script will find the library and will induce the build process to link
+against it.
+32.1.2 Install from Git
+This section describes how to install from source code taken direct from Git. This will
+give you access to the most recent enhancements and corrections. However be careful
+as the code in Git may be under development and thus still unstable. For user install
+instructions using source from released distributions, please see the sections titled 'Install
+from tarball' ( 32.1.3) and 'Advanced Install' ( 32.1.8).
+713

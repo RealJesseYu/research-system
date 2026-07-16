@@ -1,0 +1,31 @@
+17.5. COMMANDS 425
+17.5.96 Transpose: Swap the elements in a multi-dimensional
+data set
+General Form:
+transpose vector vector ...
+This command transposes a multidimensional vector. No analysis in ngspice produces
+multidimensional vectors, although the DC transfer curve may be run with two varying
+sources. You must use the reshape command to reform the one-dimensional vectors into
+two dimensional vectors. In addition, the default scale is incorrect for plotting. You must
+plot versus the vector corresponding to the second source, but you must also refer only
+to the first segment of this second source vector. For example (circuit to produce the
+transfer characteristic of a MOS transistor):
+How to produce the transfer characteristic of a MOS transistor:
+ngspice > dc vgg 0 5 1 vdd 0 5 1
+ngspice > plot i ( vdd )
+ngspice > reshape all [6 ,6]
+ngspice > transpose i ( vdd ) v ( drain )
+ngspice > plot i ( vdd ) vs v ( drain )[0]
+17.5.97 Unalias: Retract an alias
+General Form:
+unalias [ word ...]
+Removes any aliases present for the words.
+17.5.98 Undefine: Retract a definition
+General Form:
+undefine [ function ...]
+undefine *
+Definitions for the named user-defined functions are deleted. If * is given, all user-defined
+functions are deleted.
+17.5.99 Unlet: Delete the specified vector(s)
+General Form:
+unlet [ vector ...]

@@ -1,0 +1,47 @@
+12.4. DIGITAL MODELS 281
+C_Function_Name: cm_d_genlut
+Spice_Model_Name: d_genlut
+Description: "digital n-input x m-output look-up table gate"
+PORT_TABLE:
+Port_Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: yes yes
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: input_load input_delay
+Description: "input load value (F)" "input delay"
+Data_Type: real real
+Default_Value: 1.0e-12 0.0
+Limits: - -
+Vector: yes yes
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: table_values
+Description: "lookup table values"
+Data_Type: string
+Default_Value: "0"
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+Common parameters: rise_delay, fall_delay.
+Description: The lookup table provides a way to map any arbitrary n-input, m-output
+combinational logic block to XSPICE. The inputs are mapped to the output using
+a string of length m * (2^n). The string may contain values "0", "1", "X", or "Z",
+corresponding to an output of low, high, unknown, or high-impedance, respectively.
+The outputs are only mapped for inputs which are valid logic levels. Any unknown
+bit in the input vector will always produce an unknown output. The character
+string is in groups of (2^n) characters, one group corresponding to each output pin,
+in order. The first character of a group in the string table_values corresponds to
+all inputs value zero, and the last (2^n) character in the group corresponds to all
+inputs value one, with the first signal in the input vector being the least significant
+bit. For example, a 2-input lookup table representing the function (A * B) (that is,
+A AND B ), with input vector [A B] can be constructed with a table_values string
+of "0001"; function (~A * B) with input vector [A B] can be constructed with a
+"table_values" string of "0010". The delays associated with each output pin's rise
+and those associated with each output pin's fall may be specified independently. The

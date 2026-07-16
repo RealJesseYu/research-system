@@ -1,0 +1,70 @@
+144 CHAPTER 8. BJT
+TNE2 2nd order temperature coefficient
+for NE
+1/◦C2 0.0 1e-5
+TNF1 1st order temperature coefficient
+for NF
+1/◦C 0.0 1e-3
+TNF2 2nd order temperature coefficient
+for NF
+1/◦C2 0.0 1e-5
+TNR1 1st order temperature coefficient
+for IKF
+1/◦C 0.0 1e-3
+TNR2 2nd order temperature coefficient
+for IKF
+1/◦C2 0.0 1e-5
+TV AF1 1st order temperature coefficient
+for V AF
+1/◦C 0.0 1e-3
+TV AF2 2nd order temperature coefficient
+for V AF
+1/◦C2 0.0 1e-5
+TV AR1 1st order temperature coefficient
+for V AR
+1/◦C 0.0 1e-3
+TV AR2 2nd order temperature coefficient
+for V AR
+1/◦C2 0.0 1e-5
+CTC 1st order temperature coefficient
+for CJC
+1/◦C 0.0 1e-3
+CTE 1st order temperature coefficient
+for CJE
+1/◦C 0.0 1e-3
+CTS 1st order temperature coefficient
+for CJS
+1/◦C 0.0 1e-3
+TVJC 1st order temperature coefficient
+for VJC
+1/◦C2 0.0 1e-5
+TVJE 1st order temperature coefficient
+for VJE
+1/◦C 0.0 1e-3
+TITF1 1st order temperature coefficient
+for ITF
+1/◦C 0.0 1e-3
+TITF2 2nd order temperature coefficient
+for ITF
+1/◦C2 0.0 1e-5
+TTF1 1st order temperature coefficient
+for TF
+1/◦C 0.0 1e-3
+TTF2 2nd order temperature coefficient
+for TF
+1/◦C2 0.0 1e-5
+TTR1 1st order temperature coefficient
+for TR
+1/◦C 0.0 1e-3
+TTR2 2nd order temperature coefficient
+for TR
+1/◦C2 0.0 1e-5
+TMJE1 1st order temperature coefficient
+for MJE
+1/◦C 0.0 1e-3
+TMJE2 2nd order temperature coefficient
+for MJE
+1/◦C2 0.0 1e-5
+TMJC1 1st order temperature coefficient
+for MJC
+1/◦C 0.0 1e-3

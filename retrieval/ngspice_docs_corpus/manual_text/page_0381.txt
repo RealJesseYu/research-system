@@ -1,0 +1,32 @@
+17.5. COMMANDS 381
+parameter value change to become effective.
+17.5.6 Asciiplot: Plot values using old-style character plots
+General Form:
+asciiplot plotargs
+Produce a line printer plot of the vectors. The plot is sent to the standard output, or
+you can put it into a file with asciiplot args ... > file . The set options width, height, and
+nobreak determine the width and height of the plot, and whether there are page breaks,
+respectively. The 'more' mode is the standard mode if printing to the screen, that is after
+a number of lines given by height, and after a page break printing stops with request
+for answering the prompt by <return>, 'c' or 'q' . If everything shall be printed without
+stopping, put the command set nomoremode into .spiceinit 16.6 (or spinit 16.5). Note
+that you will have problems if you try to asciiplot something with an X-scale that isn't
+monotonic (i.e, something like sin(TIME) ), because asciiplot uses a simple-minded
+linear interpolation. The asciiplot command doesn't deal with log scales or the delta
+keywords.
+17.5.7 Aspice*: Asynchronous ngspice run
+General Form:
+aspice input - file [ output - file ]
+Start an ngspice run, and when it is finished load the resulting data. The raw data is
+kept in a temporary file. If output-file is specified then the diagnostic output is directed
+into that file, otherwise it is thrown away.
+17.5.8 Bug: Output URL for ngspice bug tracker
+General Form:
+bug
+Get URL to file a bug report. Please go the the URL provided by this command when you
+have a bug report to file. Include a short summary of the problem, the version number
+and name of the operating system that you are running, the version of ngspice that you
+are running, and any relevant ngspice input and output files.
+17.5.9 Cd: Change directory
+General Form:
+cd [ directory ]

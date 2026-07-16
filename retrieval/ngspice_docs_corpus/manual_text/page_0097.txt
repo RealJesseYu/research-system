@@ -1,0 +1,31 @@
+4.1. INDEPENDENT SOURCES FOR VOLTAGE OR CURRENT 97
+Each pair of values ( Ti, Vi) specifies that the value of the source is Vi (in Volts or Amps)
+at time = Ti. The value of the source at intermediate values of time is determined by
+using linear interpolation on the input values. The parameter r determines a repeat time
+point. If r is set to -1 or is not given, the whole sequence of values ( Ti, Vi) is issued once
+only, then the output stays at its final value. If r = 0 , the whole sequence from time 0 to
+time Tn is repeated forever. If r = 10ns , the sequence between 10ns and 50ns is repeated
+forever. The r value has to be one of the time points T1 to Tn of the PWL sequence. If
+td is given, the whole PWL sequence is delayed by the value of td. Please note that for
+now r and td are available only with the voltage source, not with the current source.
+4.1.5 Single-Frequency FM
+General Form:
+SFFM ( VO VA FC MDI FS PHASEC PHASES )
+Examples:
+V1 12 0 SFFM (0 1 M 20 K 5 1 K )
+Name Parameter Default value Units
+VO Offset - V , A
+V A Amplitude - V , A
+FC Carrier frequency 1/T ST OP Hz
+MDI Modulation index -
+FS Signal frequency 1/T ST OP Hz
+PHASEC carrier phase 0 degrees
+PHASES signal phase 0 degrees
+The shape of the waveform is described by the following equation:
+V (t) = VO + VA sin (2π · F C · t + M DI sin (2π · F S · t + P HASES ) + P HASEC )
+(4.3)
+4.1.6 Amplitude modulated source (AM)
+General form:
+AM ( VA VO MF FC TD PHASES )
+Examples:
+V1 12 0 AM (0.5 1 20 K 5 MEG 1 m )

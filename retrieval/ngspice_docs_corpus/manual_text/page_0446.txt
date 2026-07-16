@@ -1,0 +1,39 @@
+446 CHAPTER 17. INTERACTIVE INTERPRETER
+Control structure examples:
+Test sequences for ngspice control structures
+* vectors are used ( except foreach )
+* start in in ter act ive mode
+. control
+* test sequence for while , dowhile
+let loop = 0
+echo
+echo enter loop with " $ & loop "
+dowhile loop < 3
+echo within dowhile loop " $ & loop "
+let loop = loop + 1
+end
+echo after dowhile loop " $ & loop "
+echo
+let loop = 0
+while loop < 3
+echo within while loop " $ & loop "
+let loop = loop + 1
+end
+echo after while loop " $ & loop "
+let loop = 3
+echo
+echo enter loop with " $ & loop "
+dowhile loop < 3
+echo within dowhile loop " $ & loop "
+$ output expected
+let loop = loop + 1
+end
+echo after dowhile loop " $ & loop "
+echo
+let loop = 3
+while loop < 3
+echo within while loop " $ & loop "
+$ no output expected
+let loop = loop + 1
+end
+echo after while loop " $ & loop "

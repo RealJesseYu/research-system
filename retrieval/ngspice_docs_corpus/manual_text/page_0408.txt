@@ -1,0 +1,29 @@
+408 CHAPTER 17. INTERACTIVE INTERPRETER
+17.5.58 Quit: Leave Ngspice
+General Form:
+quit
+quit [ exitcode ]
+Quit ngspice. Ngspice will ask for an acknowledgment if parameters have not been saved.
+If unset askquit is specified, ngspice will terminate immediately.
+The optional parameter exitcode is an integer that sets the exit code for ngspice. This
+is useful to return a success/fail value to the operating system.
+17.5.59 Rehash: Reset internal hash tables
+General Form:
+rehash
+Recalculate the internal hash tables used when looking up UNIX commands, and make all
+UNIX commands in the user's PATH available for command completion. This is useless
+unless you have set unixcom first (see above).
+17.5.60 Remcirc*: Remove the current circuit
+General Form:
+remcirc
+This command removes the current circuit from the list of circuits sourced into ngspice.
+To select a specific circuit, use setcirc (17.5.72). To load another circuit, refer to source
+(17.5.83). The new active circuit will be the circuit on top of the list of the remaining
+circuits.
+17.5.61 Remzerovec: Remove zero length vectors
+General Form:
+remzerovec
+This command removes vectors of length zero from the current plot.
+17.5.62 Reset*: Reset an analysis
+General Form:
+reset

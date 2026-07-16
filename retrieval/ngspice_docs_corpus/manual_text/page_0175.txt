@@ -1,0 +1,58 @@
+11.3. POWER MOSFET MODEL (VDMOS) 175
+Name Parameter Units Default Example
+KF Flicker noise coefficient - 0.0
+AF Flicker noise exponent - 1.0
+TNOM Parameter measurement
+temperature
+◦C 27 25
+RQ Quasi saturation
+resistance fitting
+parameter
+Ω 0.0 0.5
+VQ Quasi saturation voltage
+fitting parameter
+V 0.0 100
+MTRIODE Conductance multiplier in
+triode region
+− 1.0 0.8
+SUBSHIFT shift along gate voltage
+axis in the dual parameter
+subthreshold model
+V 0.0
+KSUBTHRES slope in the single
+parameter subthreshold
+model
+- 0.1 0.27
+BV Vds breakdown voltage V ∞
+IBV Current at Vds=bv A 1.0e-10
+NBV Vds breakdown emission
+coefficient
+- 1.0
+RDS Drain-source shunt
+resistance
+Ω ∞ 1e7
+RB Body diode ohmic
+resistance
+Ω 0.0 14m
+N Body diode emission
+coefficient
+- 1.0 1.1
+TT Body diode transit time s 0.0
+EG Body diode activation
+energy for temperature
+effect on IS
+eV 1.11
+XTI Body diode saturation
+current temperature
+exponent
+- 3.0 3.2
+IS Body diode saturation
+current
+A 1e-14 60p
+VJ Body diode junction
+potential
+V 0.8
+FC Body diode coefficient for
+forward-bias depletion
+capacitance formula
+- 0.5

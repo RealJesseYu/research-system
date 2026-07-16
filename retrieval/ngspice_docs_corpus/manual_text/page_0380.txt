@@ -1,0 +1,35 @@
+380 CHAPTER 17. INTERACTIVE INTERPRETER
+General form:
+altermod mod1 [ mod2 .. mod15 ] file = < model file name >
+altermod mod1 [ mod2 .. mod15 ] file < model file name >
+Example:
+altermod nc1 file = BSIM3_nmos . mod
+altermod nc1 pc1 file BSIM4_mos . mod
+Be careful that the new model file corresponds to the existing model selected by token
+nc1. In the example given above, the models nc1 (or nc1 and pc1) have to be already
+included in the netlist before calling altermod. If they are not found in the active circuit,
+ngspice will terminate with an error message. The file BSIM3_nmos.mod has to include
+a .model line starting with .MODEL nc1 nmos .... There is no checking however of the
+version and level parameters! So you have to be responsible for offering model data of
+the same model name ( nc1) and level (e.g. level 8 for BSIM3). Thus no new model is
+selectable by altermod, but the parameters of the existing model(s) (here nc1 and pc1)
+may be changed (partially, completely, temporarily).
+17.5.5 Alterparam*: Change value of a global parameter
+General form:
+alterparam paramname = pvalue
+alterparam subname paramname = pvalue
+Example (global, top level parameter):
+. param npar = 5
+...
+alterparam npar = 7 $ change npar from 5 to 7
+reset
+Example (parameter in a subcircuit):
+. subckt sname
+. param subpar = 13
+...
+. ends
+...
+alterparam sname subpar = 11 $ change subpar from 13 to 11
+reset
+Alterparam operates on global parameters or on parameters in a subcircuit defined by
+the .param ... statement. A subsequent call to reset (17.5.62) is required for the

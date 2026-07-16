@@ -1,0 +1,38 @@
+22.5. MONTE-CARLO SIMULATION 529
+22.5.2 Example 2
+A more sophisticated input file for Monte Carlo simulation is distributed with the file /ex-
+amples/Monte_Carlo/MC_ring.sp (or git repository ). Due to its length it is not reproduced
+here, but some comments on its enhancements over example 1 ( 22.5.1) are presented in
+the following.
+A 25-stage ring oscillator is the circuit used with a transient simulation. It comprises of
+CMOS inverters, modeled with BSIM3. Several model parameters (vth, u0, tox, L, and
+W) shall be varied statistically between each simulation run. The frequency of oscillation
+will be measured by a fft and stored. Finally a histogram of all measured frequencies
+will be plotted.
+The function calls to sunif(0) and sgauss(0) return uniformly or Gaussian distributed
+random numbers. A function unif, defined by the line
+define unif(nom, var) (nom + (nom*var) * sunif(0))
+will return a value with mean nom and deviation var relative to nom.
+The line
+set n1vth0=@n1[vth0]
+will store the threshold voltage vth0, given by the model parameter set, into a variable
+n1vth0, ready to be used by unif, aunif, gauss, or agauss function calls.
+In the simulation loop the altermod command changes the model parameters before a call
+to tran. After the transient simulation the resulting vector is linearized, a fft is calculated,
+and the maximum of the fft signal is measured by the meas command and stored in a
+vector maxffts. Finally the contents of the vector maxffts is plotted in a histogram.
+For more details, please have a look at the strongly commented input file MC_ring.sp.
+22.5.3 Example 3
+The next example is contained in the files MC_2_control.sp and MC_2_circ.sp from folder
+/examples/Monte_Carlo/. MC_2_control.sp is a ngspice script (see 17.8). It starts a loop
+by setting the random number generator seed value to the value of the loop counter,
+sources the circuit file MC_2_circ.sp, runs the simulation, stores a raw file, makes an
+fft, saves the oscillator frequency thus measured, deletes all outputs, increases the loop
+counter and restarts the loop. The netlist file MC_2_circ.sp contains the circuit, which
+is the same ring oscillator as of example 2. However, now the MOS model parameter
+set, which is included with this netlist file, inherits some AGAUSS functions (see 2.9.5)
+to vary threshold voltage, mobility and gate oxide thickness of the NMOS and PMOS
+transistors. This is an approach similar to what commercial foundries deliver within
+their device libraries. So this example may be your source for running Monte Carlo with
+commercial libs. Start example 3 by calling
+ngspice -o MC_2_control.log MC_2_control.sp

@@ -1,0 +1,38 @@
+322 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+15.4 Measurements after AC, DC and Transient Anal-
+ysis
+15.4.1 .meas(ure)
+The .meas or .measure statement (and its equivalent meas command, see Chapt.
+17.5.47) are used to analyze the output data of a tran, ac, or dc simulation. The command
+is executed immediately after the simulation has finished.
+15.4.2 batch versus interactive mode
+.meas analysis may not be used in batch mode ( -b command line option), if an output
+file (rawfile) is given at the same time ( -r rawfile command line option). In this batch
+mode ngspice will write its simulation output data directly to the output file. The data
+is not kept in memory, thus is no longer available for further analysis. This is done to
+allow a very large output stream with only a relatively small memory usage. For .meas
+to be active you need to run the batch mode with a .plot or .print command. A better
+alternative may be to start ngspice in interactive mode.
+If you need batch like operation, you may add a .control ... .endc section to the
+input file:
+Example:
+* input file
+...
+. tran 1 ns 1000 ns
+...
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+. control
+run
+write outputfile data
+. endc
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+. end
+and start ngspice in interactive mode, e.g. by running the command
+ngspice inputfile .
+.meas<ure> then prints its user-defined data analysis to the standard output. The anal-
+ysis includes propagation, delay, rise time, fall time, peak-to-peak voltage, minimum or
+maximum voltage, the integral or derivative over a specified period and several other user
+defined values.
+15.4.3 General remarks
+The measure type {DC|AC|TRAN|SP} depends on the data that is to be evaluated, either
+originating from a dc analysis, an ac analysis, or a transient simulation. The type SP to

@@ -1,0 +1,27 @@
+Contents
+I Ngspice User's Manual 3
+1 Introduction 35
+1.1 Simulation Algorithms . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 36
+1.1.1 Analog Simulation . . . . . . . . . . . . . . . . . . . . . . . . . . . 36
+1.1.2 Matrix solvers . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 36
+1.1.3 Device Models for Analog Simulation . . . . . . . . . . . . . . . . . 37
+1.1.4 Digital Simulation . . . . . . . . . . . . . . . . . . . . . . . . . . . 37
+1.1.5 Mixed-Signal Simulation . . . . . . . . . . . . . . . . . . . . . . . . 38
+1.1.6 Mixed-Level Simulation (Electronic and TCAD) . . . . . . . . . . . 38
+1.2 Supported Analyses . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 39
+1.2.1 DC Analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 40
+1.2.2 AC Small-Signal Analysis . . . . . . . . . . . . . . . . . . . . . . . 40
+1.2.3 Transient Analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . 41
+1.2.4 Pole-Zero Analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . 41
+1.2.5 Small-Signal Distortion Analysis . . . . . . . . . . . . . . . . . . . . 41
+1.2.6 Sensitivity Analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . 42
+1.2.7 Noise Analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 42
+1.2.8 Periodic Steady State Analysis . . . . . . . . . . . . . . . . . . . . . 42
+1.3 Analysis at Different Temperatures . . . . . . . . . . . . . . . . . . . . . . 43
+1.3.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+1.3.2 Controlling the temperature . . . . . . . . . . . . . . . . . . . . . . 44
+1.4 Convergence . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 45
+1.4.1 Voltage convergence criterion . . . . . . . . . . . . . . . . . . . . . 46
+1.4.2 Current convergence criterion . . . . . . . . . . . . . . . . . . . . . 46
+1.4.3 Convergence failure . . . . . . . . . . . . . . . . . . . . . . . . . . . 46
+5

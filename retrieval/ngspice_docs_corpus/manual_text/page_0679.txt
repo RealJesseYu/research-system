@@ -1,0 +1,45 @@
+31.5. BJTS 679
+226 cexbc Out real Total Capacitance in B-X junction
+217 qbe Out real Charge storage B-E junction
+219 qbc Out real Charge storage B-C junction
+221 qsub Out real Charge storage Subs. junction
+223 qbx Out real Charge storage B-X junction
+238 p Out real Power dissipation
+235 sens_dc Out real dc sensitivity
+230 sens_real Out real real part of ac sensitivity
+231 sens_imag Out real dc sens. & imag part of ac sens.
+232 sens_mag Out real sensitivity of ac magnitude
+233 sens_ph Out real sensitivity of ac phase
+234 sens_cplx Out complex ac sensitivity
+7 temp InOut real instance temperature
+8 dtemp InOut real instance temperature delta from circuit
+31.5.1.2 BJT model parameters
+# Name Direction Type Description
+309 type Out string NPN or PNP
+101 npn InOut flag NPN type device
+102 pnp InOut flag PNP type device
+147 subs InOut integer Vertical or Lateral device
+103 is InOut real Saturation Current
+146 iss InOut real Substrate Jct. Saturation Current
+104 bf InOut real Ideal forward beta
+105 nf InOut real Forward emission coefficient
+106 vaf InOut real Forward Early voltage
+106 va InOut real
+107 ikf InOut real Forward beta roll-off corner current
+107 ik InOut real
+108 ise InOut real B-E leakage saturation current
+110 ne InOut real B-E leakage emission coefficient
+111 br InOut real Ideal reverse beta
+112 nr InOut real Reverse emission coefficient
+113 var InOut real Reverse Early voltage
+113 vb InOut real
+114 ikr InOut real reverse beta roll-off corner current
+115 isc InOut real B-C leakage saturation current
+117 nc InOut real B-C leakage emission coefficient
+118 rb InOut real Zero bias base resistance
+119 irb InOut real Current for base resistance=(rb+rbm)/2
+120 rbm InOut real Minimum base resistance
+121 re InOut real Emitter resistance
+122 rc InOut real Collector resistance
+123 cje InOut real Zero bias B-E depletion capacitance
+124 vje InOut real B-E built in potential

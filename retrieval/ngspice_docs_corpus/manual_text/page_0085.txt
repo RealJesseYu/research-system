@@ -1,0 +1,39 @@
+3.3. ELEMENTARY DEVICES 85
+Example input file:
+Behavioral Capacitor
+. param Cl =5 n Ch =1 n Vt =1 m Il =100 n
+. ic v ( cc ) = 0 v ( cc2 ) = 0
+* capacitor depending on control voltage V ( cc )
+C1 cc 0 c = 'V ( cc ) < { Vt } ? { Cl } : { Ch } '
+I1 0 1 { Il }
+Exxx n1 - copy n2 n2 cc2 1
+Cxxx n1 - copy n2 1
+Bxxx cc2 n2 I = '( V ( cc2 ) < { Vt } ? { Cl } : { Ch }) ' * i ( Exxx )
+I2 n2 22 { Il }
+vn2 n2 0 DC 0
+* measure charge by i nte gra tin g current
+aint1 % id (1 cc ) 2 time_count
+aint2 % id (22 cc2 ) 3 time_count
+. model time_count int ( in_offset =0.0 gain =1.0
++ o u t _ l o w e r _ l i m i t = -1 e12 o u t _ u p p e r _ l i m i t =1 e12
++ li mit _ra nge =1 e -9 out_ic =0.0)
+. control
+unset askquit
+tran 100 n 100 u
+plot v (2)
+plot v ( cc ) v ( cc2 )
+. endc
+. end
+3.3.10 Inductors
+General form:
+LYYYYYYY n + n - < value > < mname > < nt = val > <m = val >
++ < scale = val > < temp = val > < dtemp = val > < tc1 = val >
++ < tc2 = val > < ic = init_condition >
+Examples:
+LLINK 42 69 1 UH
+LSHUNT 23 51 10 U IC =15.7 MA
+The inductor device implemented into ngspice has many enhancements over the original
+one.n+ and n- are the positive and negative element nodes, respectively. value is the
+inductance in Henry. The initial condition (a curremt through L) becomes effective when
+the uic parameter is set on the .tran line. Inductance can be specified in the instance
+line as in the examples above or in a .model line, as in the example below:

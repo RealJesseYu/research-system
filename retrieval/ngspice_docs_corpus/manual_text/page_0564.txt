@@ -1,0 +1,4 @@
+564 CHAPTER 26. EXECUTION PROCEDURES
+take the existing analog, digital, mixed signal and other existing code models (to be found
+in the subdirectories to ngspice/release/src/xspice/icm) as stimulating examples for your
+work.

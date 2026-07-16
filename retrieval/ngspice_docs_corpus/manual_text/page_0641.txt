@@ -1,0 +1,36 @@
+30.10. METHOD 641
+30.10 METHOD
+Choose types and parameters of numerical methods
+SYNOPSIS
+method [ types ] [ parameters ]
+30.10.1 DESCRIPTION
+The method card controls which numerical methods are used during a simulation and the
+parameters of these methods. Most of these methods are optimizations that reduce run
+time, but may sacrifice accuracy or reliable convergence.
+For majority-carrier devices such as MOSFETs, one carrier simulations can be used to
+save simulation time. The systems of equations in AC analysis may be solved using either
+direct or successive-over-relaxation techniques. Successive-over-relaxation is faster, but
+at high frequencies, it may fail to converge or may converge to the wrong answer. In
+some cases, it is desirable to obtain AC parameters as functions of DC bias conditions.
+If necessary, a one-point AC analysis is performed at a predefined frequency in order to
+obtain these small-signal parameters. The default for this frequency is 1 Hz. The Jacobian
+matrix for DC and transient analyses can be simplified by ignoring the derivatives of the
+mobility with respect to the solution variables. However, the resulting analysis may have
+convergence problems. Additionally, if they are ignored during AC analyses, incorrect
+results may be obtained.
+A damped Newton method is used as the primary solution technique for the device-level
+partial differential equations. This algorithm is based on an iterative loop that terminates
+when the error in the solution is small enough or the iteration limit is reached. Error
+tolerances are used when determining if the error is 'small enough' . The tolerances are
+expressed in terms of an absolute, solution-independent error and a relative, solution-
+dependent error. The absolute-error limit can be set on this card. The relative error is
+computed by multiplying the size of the solution by the circuit level SPICE parameter
+RELTOL.
+30.10.2 Parameters
+Name Type Description
+OneCarrier Flag Solve for majority carriers only
+AC analysis String AC analysis method, ( either DIRECT or SOR)
+NoMobDeriv Flag Ignore mobility derivatives
+Frequency Real AC analysis frequency, ( Hz )
+ItLim Integer Newton iteration limit
+DevTol Real Maximum residual error in device equations

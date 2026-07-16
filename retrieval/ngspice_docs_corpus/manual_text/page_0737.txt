@@ -1,0 +1,21 @@
+33.4. ON THE HISTORICAL EVOL VEMENT OF THE NGSPICE LICENSES 737
+33.4.4 XSPICE
+According to https://web.archive.org/web/20161030172156/http://users.ece.gatech.edu/∼mrichard/Xspice/
+(as of Feb. 2012) the XSPICE source code and documentation have been put into the
+public domain by the Georgia Institute of Technology.
+33.4.5 OSDI
+The OSDI interface to OpenV AF-compiled device models is licensed according to the
+Mozilla Public License, v. 2.0.(see https://mozilla.org/MPL/2.0/).
+33.4.6 tclspice, numparam
+Both software packages are copyrighted and are released under LGPLv2
+(see http://www.gnu.org/licenses/lgpl-2.1.html).
+33.4.7 Linking to GPLd libraries (e.g. readline, fftw, table.cm):
+The readline manual at http://tiswww.case.edu/php/chet/readline/rltop.html states: Read-
+line is free software, distributed under the terms of the GNU General Public License,
+version 3. This means that if you want to use Readline in a program that you release
+or distribute to anyone, the program must be free software and have a GPL-compatible
+license.
+According to http://www.gnu.org/licenses/license-list.html, the modified BSD license ,
+thus also the ngspice license, belongs to the family of GPL-Compatible Free Software
+Licenses. Therefore the linking restrictions to readline, which have existed with the old
+BSD license, are no longer in effect.

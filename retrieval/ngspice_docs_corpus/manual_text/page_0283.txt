@@ -1,0 +1,49 @@
+12.4. DIGITAL MODELS 283
+Default_Value: 1.0e-9
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: process_file
+Description: "file name of the executable process"
+Data_Type: string
+Default_Value: "process"
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: process_params
+Description: "parameters to be passed to an executable process"
+Data_Type: string
+Default_Value: -
+Limits: -
+Vector: yes
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: input_load
+Description: "input loading capacitance (F)"
+Data_Type: real
+Default_Value: 1.0e-12
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: clk_load
+Description: "clock loading capacitance (F)"
+Data_Type: real
+Default_Value: 1.0e-12
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: reset_load
+Description: "reset loading capacitance (F)"
+Data_Type: real
+Default_Value: 1.0e-12
+Limits: -
+Vector: no

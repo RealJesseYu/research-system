@@ -1,0 +1,36 @@
+18 CONTENTS
+17.5.53 Plot: Plot vectors on the display . . . . . . . . . . . . . . . . . . . 404
+17.5.54 Pre_<command>: execute commands prior to parsing the circuit . 406
+17.5.55 Pre_OSDI: load a *.osdi compact device model shared library . . . 406
+17.5.56 Print: Print values . . . . . . . . . . . . . . . . . . . . . . . . . . . 407
+17.5.57 Psd: power spectral density of vectors . . . . . . . . . . . . . . . . 407
+17.5.58 Quit: Leave Ngspice . . . . . . . . . . . . . . . . . . . . . . . . . . 408
+17.5.59 Rehash: Reset internal hash tables . . . . . . . . . . . . . . . . . . 408
+17.5.60 Remcirc*: Remove the current circuit . . . . . . . . . . . . . . . . . 408
+17.5.61 Remzerovec: Remove zero length vectors . . . . . . . . . . . . . . . 408
+17.5.62 Reset*: Reset an analysis . . . . . . . . . . . . . . . . . . . . . . . 408
+17.5.63 Reshape: Alter the dimensionality or dimensions of a vector . . . . 409
+17.5.64 Resume*: Continue a simulation after a stop . . . . . . . . . . . . . 409
+17.5.65 Rspice*: Remote ngspice submission . . . . . . . . . . . . . . . . . 410
+17.5.66 Run*: Run analysis from the input file . . . . . . . . . . . . . . . . 410
+17.5.67 Rusage: Resource usage . . . . . . . . . . . . . . . . . . . . . . . . 410
+17.5.68 Save*: Save a set of outputs . . . . . . . . . . . . . . . . . . . . . . 411
+17.5.69 Sens*: Run a sensitivity analysis . . . . . . . . . . . . . . . . . . . 413
+17.5.70 17.5.70Set: Set the value of a variable . . . . . . . . . . . . . . . . . 413
+17.5.71 Setcs: Set the value of a variable, case preserved . . . . . . . . . . . 414
+17.5.72 Setcirc*: Change the current circuit . . . . . . . . . . . . . . . . . . 414
+17.5.73 Setplot: Switch the current set of vectors . . . . . . . . . . . . . . . 415
+17.5.74 Setscale: Set the scale vector for the current plot . . . . . . . . . . 415
+17.5.75 Setseed: Set the seed value for the random number generator . . . . 415
+17.5.76 Settype: Set the type of a vector . . . . . . . . . . . . . . . . . . . 416
+17.5.77 Shell: Call the command interpreter . . . . . . . . . . . . . . . . . . 416
+17.5.78 Shift: Alter a list variable . . . . . . . . . . . . . . . . . . . . . . . 416
+17.5.79 Show*: List device state . . . . . . . . . . . . . . . . . . . . . . . . 417
+17.5.80 Showmod*: List model parameter values . . . . . . . . . . . . . . . 417
+17.5.81 Snload*: Load the snapshot file . . . . . . . . . . . . . . . . . . . . 418
+17.5.82 Snsave*: Save a snapshot file . . . . . . . . . . . . . . . . . . . . . 418
+17.5.83 Source: Read a ngspice input file . . . . . . . . . . . . . . . . . . . 419
+17.5.84 Sp: S-Parameter Analysis . . . . . . . . . . . . . . . . . . . . . . . 420
+17.5.85 Spec: Create a frequency domain plot . . . . . . . . . . . . . . . . . 420
+17.5.86 Status*: Display breakpoint information . . . . . . . . . . . . . . . 421
+17.5.87 Step*: Run a fixed number of time-points . . . . . . . . . . . . . . 421

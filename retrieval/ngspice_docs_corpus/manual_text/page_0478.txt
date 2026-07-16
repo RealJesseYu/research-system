@@ -1,0 +1,16 @@
+478 CHAPTER 18. NGSPICE USER INTERF ACES
+18.8.5 XCircuit
+CYGWIN and especially Linux users may find XCircuit valuable to establish a develop-
+ment flow including schematic capture and circuit simulation.
+18.8.6 GEDA
+The gEDA project is developing a full GPL'd suite and toolkit of Electronic Design
+Automation tools for use with a Linux. Ngspice may be integrated into the development
+flow. Two web sites offer tutorials using gschem and gnetlist with ngspice:
+http://geda-project.org/wiki/geda:csygas
+http://geda-project.org/wiki/geda:ngspice_and_gschem
+18.8.7 MSEspice
+A graphical front end to ngspice, using the Free Pascal cross platform RAD environment
+MSEide+MSEgui.
+18.8.8 GNU Octave
+GNU Octave is a high-level language, primarily intended for numerical computations. An
+interface to ngspice is available here.

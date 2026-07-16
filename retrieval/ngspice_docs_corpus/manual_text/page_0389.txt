@@ -1,0 +1,30 @@
+17.5. COMMANDS 389
+17.5.23 Echo: Print text
+General Form:
+echo [ - n ] [ text | $variable | $ & vector ] ...
+Echos all text, variables and vectors to the screen or the redirected output location. If
+-n included as the first argument, a newline will not be printed. Otherwise one will be
+appended to the output.
+17.5.24 Edit*: Edit the current circuit
+General Form:
+edit [ file - name ]
+Print the current ngspice input file into a file, call up the editor on that file and allow the
+user to modify it, and then read it back in, replacing the original file. If a file-name is
+given, then edit that file and load it, making the circuit the current one. The editor may
+be defined in .spiceinit or spinit by a command line like
+set editor=emacs
+Using MS Windows, to allow the edit command calling an editor, you will have to add
+the editor's path to the PATH variable of the command prompt windows (see here). edit
+then calls cmd.exe with e.g. notepad++ and file-name as parameter, if you have set
+set editor=notepad++.exe
+in .spiceinit or spinit.
+17.5.25 Edisplay: Print a list of all the event nodes
+General Form:
+edisplay
+Print the node names, node types, and number of events per node of all event driven
+nodes generated or used by XSPICE 'A' devices. See eprint, eprvcd, and 27.2.2 for an
+example.
+17.5.26 Eprint: Print an event driven node
+General Form:
+eprint node [ node ]
+eprint node [ node ] > nodeout . txt $ output redirected

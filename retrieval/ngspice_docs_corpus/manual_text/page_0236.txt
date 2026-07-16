@@ -1,0 +1,48 @@
+236CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+12.2.33 Analog delay
+NAME_TABLE:
+C_Function_Name: cm_delay
+Spice_Model_Name: delay
+Description: "analog delay line"
+PORT_TABLE:
+Port_Name: in out cntrl
+Description: "input" "output" "control"
+Direction: in out in
+Default_Type: v v v
+Allowed_Types: [v,vd,vnam] [v,vd] [v,vd,i,id]
+Vector: no no no
+Vector_Bounds: - - -
+Null_Allowed: no no yes
+PARAMETER_TABLE:
+Parameter_Name: delay buffer_size
+Description: "time delay" "size of delay buffer"
+Data_Type: real int
+Default_Value: 0.0 1024
+Limits: - [1 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: has_delay_cnt
+Description: "controlled delay"
+Data_Type: boolean
+Default_Value: FALSE
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: delmin delmax
+Description: "min delay" "max delay"
+Data_Type: real real
+Default_Value: 0 0
+Limits: [0 -] [0 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Description: During a transient simulation the input voltage at node in and its
+associated time value are stored in a ring buffer. buffer_size allows to set the
+size of the buffer, the default is 1024 time steps. There are two modes to read out
+the buffer contents with a delay and obtain the delayed values at port out,
+determined by has_delay_cnt. If has_delay_cnt is TRUE, then you may vary the
+delay time between delmin and delmax by a control voltage between 0 and 1 at

@@ -1,0 +1,65 @@
+176 CHAPTER 11. MOSFETS
+Name Parameter Units Default Example
+CJO Zero-bias body diode
+junction capacitance
+F 0.0 1.5n
+M Body diode grading
+coefficient
+- 0.5 0.6
+CGDMIN Minimum non-linear G-D
+capacitance
+F 0.0 10p
+CGDMAX Maximum non-linear G-D
+capacitance
+F 0.0 2.45n
+A Non-linear Cgd
+capacitance parameter
+- 1 0.3
+CGS Gate-source capacitance F 0.0 1.2n
+TCVTH (VTOTC) Linear Vth0 temperature
+coefficient
+1/°C 0.0 0.0065
+MU (BEX) Exponent of gain
+temperature dependency
+- -1.5 -1.27
+TEXP0 Drain resistance rd0
+temperature exponent
+- 1.5
+TEXP1 Drain resistance rd1
+temperature exponent
+- 0.3
+TRD1 Drain resistance linear
+temperature coefficient
+1/°C 0.0
+TRD2 Drain resistance quadratic
+temperature coefficient
+1/(°C)2 0.0
+TRG1 Gate resistance linear
+temperature coefficient
+1/°C 0.0
+TRG2 Gate resistance quadratic
+temperature coefficient
+1/(°C)2 0.0
+TRS1 Source resistance linear
+temperature coefficient
+1/°C 0.0
+TRS2 Source resistance
+quadratic temperature
+coefficient
+1/(°C)2 0.0
+TRB1 Body resistance linear
+temperature coefficient
+1/°C 0.0
+TRB2 Body resistance quadratic
+temperature coefficient
+1/(°C)2 0.0
+TKSUBTHRES1 Linear temperature
+coefficient of ksubthres
+1/°C 0.0
+TKSUBTHRES2 Quadratic temperature
+coefficient of ksubthres
+1/(°C)2 0.0
+RTHJC Thermal resistance
+junction-case
+K/W 1.0 0.4
+CTHJ Thermal capacitance J/K 10e-6 5e-3

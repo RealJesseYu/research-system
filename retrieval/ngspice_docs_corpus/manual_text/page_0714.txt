@@ -1,0 +1,38 @@
+714 CHAPTER 32. COMPILATION NOTES
+Download source from Git as described on the sourceforge ngspice Git page . Define and
+enter a directory of your choice, e.g. /home/myname/software/. Download the complete
+ngspice repository from Git, for example by anonymous access issuing the command
+git clone git://git.code.sf.net/p/ngspice/ngspice
+or via http protocol
+git clone http://git.code.sf.net/p/ngspice/ngspice
+You will find the sources in directory /home/myname/software/ngspice. Now enter the
+ngspice top level directory ngspice (where the installation instruction file INSTALL can
+be found).
+The project uses the GNU build process. You should be able to do the following:
+$ ./compile_linux.sh
+This script will run autogen.sh, create a release directory, run ./configure, clean, make and
+make install, all with suitable parameters to compile a 64 bit version of ngspice, including
+the XSPICE code models.
+A suitable manual approach for compiling (without release directory) might be:
+$ ./autogen.sh
+$ ./configure --enable-xspice --enable-cider
+--disable-debug --with-readline=yes CFLAGS="-m64 -O2" LDFLAGS="-m64 -s"
+$ make clean
+$ make
+$ sudo make install
+See the section titled 'Advanced Install' ( 32.1.8) for instructions about arguments that
+can be passed to ./configure to customize the build and installation. The following
+arguments are already used here and may be called sort of 'standard':
+--enable-xspice Include the XSPICE extensions (see Chapt. 12 and 28)
+--enable-cider Include CIDER numerical device simulator (see Chapt. 30)
+--disable-debug No debugging information included (optimized and compact code)
+--with-readline=yes Include an editor for the input command line (command history,
+backspace, insert etc.). If readline is not available, editline may be used.
+--enable-openmp Compile ngspice for multi-core processors. Paralleling is done by
+OpenMP (see Chapt. 16.10), and is enabled for certain MOS models.
+-enable-osdi Enable the OSDI interface for loading Verilog-A compact device models
+compiled by OpenV AF (see 13.2)
+CFLAGS="-m64 -O2" LDFLAGS="-m64 -s" will enable a 64 bit build ( -m64) and stress the
+optmisation (-O2). -s will yield a minimum size executable (debug information stripped).
+On most systems --disable-debug will have the same effect. A 32bit build can be made
+if all 32 bit tools (compiler etc.) are installed and -m32 is given instead of -m64.

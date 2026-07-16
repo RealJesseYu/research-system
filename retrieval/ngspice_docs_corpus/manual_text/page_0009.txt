@@ -1,0 +1,36 @@
+CONTENTS 9
+6 Transmission Lines 121
+6.1 Lossless Transmission Lines . . . . . . . . . . . . . . . . . . . . . . . . . . 121
+6.2 Lossy Transmission Lines . . . . . . . . . . . . . . . . . . . . . . . . . . . . 122
+6.2.1 Lossy Transmission Line Model (LTRA) . . . . . . . . . . . . . . . 122
+6.3 Uniform Distributed RC Lines . . . . . . . . . . . . . . . . . . . . . . . . . 124
+6.3.1 Uniform Distributed RC Model (URC) . . . . . . . . . . . . . . . . 124
+6.4 KSPICE Lossy Transmission Lines . . . . . . . . . . . . . . . . . . . . . . 125
+6.4.1 Single Lossy Transmission Line (TXL) . . . . . . . . . . . . . . . . 126
+6.4.2 Coupled Multiconductor Line (CPL) . . . . . . . . . . . . . . . . . 126
+7 Diodes 129
+7.1 Junction Diodes . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 129
+7.2 Diode Model (D) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 130
+7.3 Diode Equations . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 133
+8 BJT 139
+8.1 Bipolar Junction Transistors (BJTs) . . . . . . . . . . . . . . . . . . . . . . 139
+8.2 BJT Models (NPN/PNP) . . . . . . . . . . . . . . . . . . . . . . . . . . . 139
+8.2.1 Gummel-Poon Models . . . . . . . . . . . . . . . . . . . . . . . . . 140
+8.2.2 VBIC Model . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 145
+8.2.3 MEXTRAM Model . . . . . . . . . . . . . . . . . . . . . . . . . . . 147
+8.2.4 HICUM level 2 Model . . . . . . . . . . . . . . . . . . . . . . . . . 148
+8.2.5 HICUM level 0 Model . . . . . . . . . . . . . . . . . . . . . . . . . 149
+9 JFETs 151
+9.1 Junction Field-Effect Transistors (JFETs) . . . . . . . . . . . . . . . . . . 151
+9.2 JFET Models (NJF/PJF) . . . . . . . . . . . . . . . . . . . . . . . . . . . 151
+9.2.1 Basic model statement . . . . . . . . . . . . . . . . . . . . . . . . . 151
+9.2.2 JFET level 1 model with Parker Skellern modification . . . . . . . . 151
+9.2.3 JFET level 2 Parker Skellern model . . . . . . . . . . . . . . . . . . 154
+10 MESFETs 157
+10.1 MESFETs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 157
+10.2 MESFET Models (NMF/PMF) . . . . . . . . . . . . . . . . . . . . . . . . 157
+10.2.1 Basic model statements . . . . . . . . . . . . . . . . . . . . . . . . . 157
+10.2.2 Model by Statz e.a. . . . . . . . . . . . . . . . . . . . . . . . . . . . 157
+10.2.3 Model by Ytterdal e.a. . . . . . . . . . . . . . . . . . . . . . . . . . 158
+10.2.4 hfet1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 158
+10.2.5 hfet2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 159

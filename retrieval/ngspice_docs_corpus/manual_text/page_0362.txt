@@ -1,0 +1,36 @@
+362 CHAPTER 16. STARTING NGSPICE
+Input file with parameter sweep
+parameter sweep
+* resistive divider , R1 swept from start_r to stop_r
+* replaces . STEP R1 1 k 10 k 1 k
+R1 1 2 1 k
+R2 2 0 1 k
+VDD 1 0 DC 1
+. dc VDD 0 1 .1
+. control
+let start_r = 1 k
+let stop_r = 10 k
+let delta_r = 1 k
+let r_act = start_r
+* loop
+while r_act le stop_r
+alter r1 r_act
+run
+write dc - sweep . out v (2)
+set ap pen dwr ite
+let r_act = r_act + delta_r
+end
+plot dc1 . v (2) dc2 . v (2) dc3 . v (2) dc4 . v (2) dc5 . v (2)
++ dc6 . v (2) dc7 . v (2) dc8 . v (2) dc9 . v (2) dc10 . v (2)
+. endc
+. end
+16.14.5 PSPICE Compatibility mode
+If the variable ( 17.7) ngbehavior is set to 'ps' or 'psa' with the commands
+set ngbehavior=ps
+or
+set ngbehavior=psa
+in spinit or .spiceinit, ngspice will translate all files that have been read into ngspice netlist
+by the .include command ( ps) or the complete netlist ( psa) from PSPICE syntax to
+ngspice. This feature allows reading of PSPICE (or TINA) compatible device libraries
+(ps) that are often supplied by the semiconductor device manufacturers. Or you may
+choose to use complete PSPICE simulation decks ( psa). Some ngspice input files may

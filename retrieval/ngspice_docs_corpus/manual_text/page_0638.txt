@@ -1,0 +1,37 @@
+638 CHAPTER 30. CIDER USER'S MANUAL
+specified in terms of line segments. Boxes and segments for the same electrode do not
+have to overlap. If they don't, it is assumed that the electrode is wired together outside
+the area covered by the simulation mesh. However, pieces of different electrodes must not
+overlap, since this would represent a short circuit. Each electrode box or segment can
+be specified in terms of the locations or mesh-indices of its boundaries. A missing value
+defaults to the corresponding mesh boundary.
+30.7.2 PARAMETERS
+Name Type Description
+Number Integer ID number of this domain
+X.Low Real Lowest X location of electrode, ( µm)
+: IX.Low Integer Lowest X mesh-index of electrode
+X.High Real Highest X location of electrode, ( µm)
+: IX.High Integer Highest X mesh-index of electrode
+Y.Low Real Lowest Y location of electrode, ( µm)
+: IY.Low Integer Lowest Y mesh-index of electrode
+Y.High Real Highest Y location of electrode, ( µm)
+: IY.High Integer Highest Y mesh-index of electrode
+30.7.3 EXAMPLES
+The following shows how the four contacts of a MOSFET might be specified:
+* DRAIN
+electrode x . l =0.0 x . h =0.5 y . l =0.0 y . h =0.0
+* GATE
+electrode x . l =1.0 x . h =3.0 iy . l =0 iy . h =0
+* SOURCE
+electrode x . l =3.0 x . h =4.0 y . l =0.0 y . h =0.0
+* BULK
+electrode x . l =0.0 x . h =4.0 y . l =2.0 y . h =2.0
+The numbering option can be used when specifying bipolar transistors with dual base
+contacts:
+* EMITTER
+electrode num =3 x . l =1.0 x . h =2.0 y . l =0.0 y . h =0.0
+* BASE
+electrode num =2 x . l =0.0 x . h =0.5 y . l =0.0 y . h =0.0
+electrode num =2 x . l =2.5 x . h =3.0 y . l =0.0 y . h =0.0
+* COLLECTOR
+electrode num =1 x . l =0.0 x . h =3.0 y . l =1.0 y . h =1.0

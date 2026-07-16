@@ -1,0 +1,33 @@
+Chapter 23
+Circuit optimization with ngspice
+23.1 Optimization of a circuit
+Your circuit design (analog, maybe mixed-signal) has already the best circuit topology.
+There might be still some room for parameter selection, e.g. the geometries of transistors
+or values of passive elements, to best fit the specific purpose. This is, what (automatic)
+circuit optimization will deliver. In addition you may fine-tune, optimize and verify the
+circuit over voltage, process or temperature corners. So circuit optimization is a valuable
+tool in the hands of an experienced designer. It will relieve you from the routine task of
+'endless' repetitions of re-simulating your design.
+You have to choose circuit variables as parameters to be varied during optimization (e.g.
+device size, component values, bias inputs etc.). Then you may pose performance con-
+straints onto you circuits (e.g. Vnode < 1.2V, gain > 50 etc.). Optimization objectives
+are the variables to be minimized or maximized. The n objectives and m constraints are
+assembled into a cost function.
+The optimization flow is now the following: The circuit is loaded. Several (perhaps only
+one) simulations are started with a suitable starter set of variables. Measurements are
+done on the simulator output to check for the performance constraints and optimization
+objectives. These data are fed into the optimizer to evaluate the cost function. A so-
+phisticated algorithm now determines a new set of circuit variables for the next simulator
+run(s). Stop conditions have to be defined by the user to tell the simulator when to finish
+(e.g. fall below a cost function value, parameter changes fall below a certain threshold,
+number of iterations exceeded).
+The optimizer algorithms, its parameters and the starting point influence the convergence
+behavior. The algorithms have to provide measures to reaching the global optimum, not
+to stick to a local one, and thus are tantamount for the quality of the optimizer.
+ngspice does not have an integral optimization processor. Thus this chapter will rely on
+work done by third parties to introduce ngspice optimization capability. ngspice pro-
+vides the simulation engine, a script or program controls the simulator and provides the
+optimizer functionality.
+Four optimizers are presented here, using ngspice scripting language, using tclspice, using
+a Python script, and using ASCO, a c-coded optimization program.
+533

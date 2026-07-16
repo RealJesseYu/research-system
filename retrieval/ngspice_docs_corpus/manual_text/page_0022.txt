@@ -1,0 +1,33 @@
+22 CONTENTS
+20.6 Compiling . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 508
+20.6.1 Linux . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 508
+20.6.2 MS Windows . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 508
+20.7 MS Windows 32 Bit binaries . . . . . . . . . . . . . . . . . . . . . . . . . . 509
+21 Example Circuits 511
+21.1 AC coupled transistor amplifier . . . . . . . . . . . . . . . . . . . . . . . . 511
+21.2 Differential Pair . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 517
+21.3 MOSFET Characterization . . . . . . . . . . . . . . . . . . . . . . . . . . . 517
+21.4 RTL Inverter . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 517
+21.5 Four-Bit Binary Adder (Bipolar) . . . . . . . . . . . . . . . . . . . . . . . 518
+21.6 Four-Bit Binary Adder (MOS) . . . . . . . . . . . . . . . . . . . . . . . . . 520
+21.7 Transmission-Line Inverter . . . . . . . . . . . . . . . . . . . . . . . . . . . 521
+22 Statistical circuit analysis 523
+22.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 523
+22.2 Using random param(eters) . . . . . . . . . . . . . . . . . . . . . . . . . . 523
+22.3 Behavioral sources (B, E, G, R, L, C) with random control . . . . . . . . . 525
+22.4 ngspice scripting language . . . . . . . . . . . . . . . . . . . . . . . . . . . 526
+22.5 Monte-Carlo Simulation . . . . . . . . . . . . . . . . . . . . . . . . . . . . 527
+22.5.1 Example 1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 527
+22.5.2 Example 2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 529
+22.5.3 Example 3 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 529
+22.6 Data evaluation with Gnuplot . . . . . . . . . . . . . . . . . . . . . . . . . 530
+23 Circuit optimization with ngspice 533
+23.1 Optimization of a circuit . . . . . . . . . . . . . . . . . . . . . . . . . . . . 533
+23.2 ngspice optimizer using ngspice scripts . . . . . . . . . . . . . . . . . . . . 534
+23.3 ngspice optimizer using tclspice . . . . . . . . . . . . . . . . . . . . . . . . 534
+23.4 ngspice optimizer using a Python script . . . . . . . . . . . . . . . . . . . . 534
+23.5 ngspice optimizer using ASCO . . . . . . . . . . . . . . . . . . . . . . . . . 534
+23.5.1 Three stage operational amplifier . . . . . . . . . . . . . . . . . . . 535
+23.5.2 Digital inverter . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 536
+23.5.3 Bandpass . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 538
+23.5.4 Class-E power amplifier . . . . . . . . . . . . . . . . . . . . . . . . 538

@@ -1,0 +1,42 @@
+170 CHAPTER 11. MOSFETS
+11.2.9 BSIM2 model (level 5)
+This model contains many improvements over BSIM1 and is suitable for analog simulation.
+Nevertheless, even BSIM2 breaks transistor operation into several distinct regions and this
+leads to discontinuities in the first derivative in C-V and I-V characteristics that can cause
+numerical problems during simulation.
+11.2.10 BSIM3 model (levels 8, 49)
+BSIM3 solves the numerical problems of previous models with the introduction of smooth-
+ing functions. It adopts a single equation to describe device characteristics in the operating
+regions. This approach eliminates the discontinuities in the I-V and C-V characteristics.
+The original model, BSIM3 evolved through three versions: BSIM3v1, BSIM3v2 and
+BSIM3v3. Both BSIM3v1 and BSIM3v2 had suffered from many mathematical problems
+and were replaced by BSIM3v3. The latter is the only surviving release and has itself a
+long revision history.
+The following table summarizes the story of this model and their available ngspice versions:
+Release Date Notes Version flag
+BSIM3v3.0 10/30/1995 3.0
+BSIM3v3.1 12/09/1996 3.1
+BSIM3v3.2 06/16/1998 Revisions available: BSIM3v3.2.2,
+BSIM3v3.2.3, and BSIM3v3.2.4
+Parallel processing with OpenMP is
+available for BSIM3v3.2.4.
+3.2, 3.2.2,
+3.2.3, 3.2.4
+BSIM3v3.3 07/29/2005 Parallel processing with OpenMP is
+available for this model.
+3.3.0
+BSIM3v2 and 3v3 models have been proven for accurate use in 0.18 µm technologies. The
+model is publicly available as source code form from University of California, Berkeley.
+A detailed description is given in the user's manual available from here .
+We recommend that you use only the most recent BSIM3 models (version 3.3.0), because
+it contains corrections to all known bugs. To achieve that, change the version parameter
+in your modelcard files to
+VERSION = 3.3.0 .
+If no version number is given in the .model card, this (newest) version is selected as the
+default.
+A basic model card using only the intrinsic default parameters may look like
+.model n1 nmos level=49 version=3.3.0
+.model p1 pmos level=49 version=3.3.0
+Unfortunately, due to historical reasons, these purely intrinsic parameters do not describe
+realistic devices. A better minimum model configuration, roughly describing 0.35 µm
+transistors, is

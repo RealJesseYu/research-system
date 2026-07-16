@@ -1,0 +1,41 @@
+12.4. DIGITAL MODELS 279
+Data_Type: string
+Default_Value: "source.txt"
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+Common parameters: input_load.
+Description: The digital source provides for straightforward descriptions of digital signal
+vectors in a tabular format. The model reads input from the input file and, at the
+times specified in the file, generates the inputs along with the strengths listed. The
+format of the input file is as shown below. Note that comment lines are delineated
+through the use of a single ' *' character in the first column of a line. This is similar
+to the way the SPICE program handles comments.
+* T c n n n . . .
+* i l o o o . . .
+* m o d d d . . .
+* e c e e e . . .
+* k a b c . . .
+0.0000 Uu Uu Us Uu . . .
+1.234e-9 0s 1s 1s 0z . . .
+1.376e-9 0s 0s 1s 0z . . .
+2.5e-7 1s 0s 1s 0z . . .
+2.5006e-7 1s 1s 1s 0z . . .
+5.0e-7 0s 1s 1s 0z . . .
+Note that in the example shown, whitespace (any combination of blanks, tabs, commas)
+is used to separate the time and state/strength tokens. The order of the input columns
+is important; the first column is always interpreted to mean 'time' . The second through
+the N'th columns map to the out[0] through out[N-2] output nodes. A non-commented
+line that does not contain enough tokens to completely define all outputs for the digital
+source will cause an error. Also, time values must increase monotonically or an error will
+result in reading the source file.
+Errors will also occur if a line exists in source.txt that is neither a comment nor vector
+line. The only exception to this is in the case of a line that is completely blank; this is
+treated as a comment (note that such lines often occur at the end of text within a file;
+ignoring these in particular prevents nuisance errors on the part of the simulator).
+Example SPICE Usage:
+a3 [2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17] input_vector
+.model input_vector d_source(input_file = "source_simple.text")
+Note: The file named by the parameter filename in input_file="filename" is sought
+after according to a search list described in 12.1.3.

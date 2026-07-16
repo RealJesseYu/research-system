@@ -1,0 +1,30 @@
+488CHAPTER 19. NGSPICE AS SHARED LIBRARY OR DYNAMIC LINK LIBRARY
+19.3.3.7 typedef int (SendEvtData)(int, double, double, char *, void *, int,
+int, int, void*)
+int node index
+double actual simulation time
+double a real value for specified structure component for plotting purposes
+char* a string value for specified structure component for printing
+void* a binary data structure
+int size of the binary data structure
+int the mode (op, dc, tran) we are in
+int identification number of calling ngspice shared lib
+void* return pointer received from caller
+Upon a time step finished, called per node.
+19.3.3.8 typedef int (SendInitEvtData)(int, int, char*, char*, int, void*)
+int node index
+int maximum node index, number of nodes
+char* node name
+char* udn-name, node type
+int identification number of calling ngspice shared lib
+void* return pointer received from caller
+Upon initialization, called once per event node to build up a dictionary of nodes.
+19.4 General remarks on using the API
+19.4.1 Loading a netlist
+Basically the input to shared ngspice is the same as if you would start a ngspice batch
+job, e.g. you enter a netlist and the simulation command (any .dot analysis command
+like .tran, .op, or .dc etc. as found in Chapt. 15.3), as well as suitable options.
+Typically you should not include a .control section in your input file. Any script
+described in a .control section for standard ngspice should better be emulated by the
+caller and be sent directly to ngspice.dll. Start the simulation according to Chapt. 19.4.2
+in an extra thread.

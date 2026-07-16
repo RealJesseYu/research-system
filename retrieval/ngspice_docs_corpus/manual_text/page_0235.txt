@@ -1,0 +1,48 @@
+12.2. ANALOG MODELS 235
+Parameter_Name: vfwd vrev
+Description: "forward voltage" "reverse breakdown voltage"
+Data_Type: real real
+Default_Value: 0. 1e30
+Limits: [0. -] [0. -]
+Vector: no no
+Vector Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: ilimit revilimit
+Description: "limit of on-current" "limit of breakdown current"
+Data_Type: real real
+Default_Value: 1e30 1e30
+Limits: [1e-15 -] [1e-15 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: epsilon revepsilon
+Description: "width quadrat. reg. 1" "width quadratic region 2"
+Data_Type: real real
+Default_Value: 0. 0.
+Limits: [0. -] [0. -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: rrev
+Description: "resistance in breakdown"
+Data_Type: real
+Default_Value: 0.
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+This is a model for a simple diode. Three regions are modelled as linear I(V) curves:
+Reverse (breakdown) current with Rrev starting at Vrev into the negative direction, Off
+current with Roff between Vrev and Vfwd and an On region with Ron, staring at Vfwd.
+The interface between the regions is described by a quadratic function, the width of the
+interface region is determined by Revepsilon and Epsilon. Current limits in the reverse
+breakdown ( Revilimit) and in the forward (on) state ( Ilimit) may be set. The interface is
+a tanh function. Thus the first derivative of the I(V) curve is continuous. All parameter
+values are entered as positive numbers. A diode capacitance is not modelled.
+Example SPICE Usage:
+a1 a k ds1
+.model ds1 sidiode(Roff=1000 Ron=0.7 Rrev=0.2 Vfwd=1
++ Vrev=10 Revepsilon=0.2 Epsilon=0.2 Ilimit=7 Revilimit=7)

@@ -1,0 +1,39 @@
+40 CHAPTER 1. INTRODUCTION
+Applications that are exclusively analog can make use of all analysis modes with the
+exception of Code Model subsystem that do not implements Pole-Zero, Distortion, Sensi-
+tivity and Noise analyses. Event-driven applications that include digital and User-Defined
+Node types may make use of DC (operating point and DC sweep) and Transient only.
+In order to understand the relationship between the different analyses and the two un-
+derlying simulation algorithms of ngspice, it is important to understand what is meant
+by each analysis type. This is detailed below.
+1.2.1 DC Analysis
+The DC analysis portion of ngspice determines the dc operating point of the circuit with
+inductors shorted and capacitors opened. DC analysis options are specified on the .DC,
+.TF, and .OP control lines.
+DC analysis does not consider any time dependence on any of the sources within the sys-
+tem description. The simulator algorithm subdivides the circuit into those portions that
+require the analog simulator algorithm and those that require the event-driven algorithm.
+Each subsystem block is then iterated to solution, with the interfaces between analog
+nodes and event-driven nodes iterated for consistency across the entire system.
+Once stable values are obtained for all nodes in the system, the analysis halts and the
+results may be displayed or printed out as you request them.
+A dc analysis is automatically performed prior to a transient analysis to determine the
+transient initial conditions, and prior to an ac small-signal analysis to determine the
+linearized, small-signal models for nonlinear devices. If requested, the DC small-signal
+value of a transfer function (ratio of output variable to input source), input resistance,
+and output resistance is also computed as a part of the DC solution. DC analysis can also
+be used to generate DC transfer curves: a specified independent voltage, current source,
+resistor or temperature is stepped over a user-specified range and the DC output variables
+are stored for each sequential source value.
+1.2.2 AC Small-Signal Analysis
+AC analysis is limited to analog nodes and represents the small signal, sinusoidal solution
+of the analog system described at a particular frequency or set of frequencies. This
+analysis is similar to the DC analysis in that it represents the steady-state behavior of
+the described system with a single input node at a given set of stimulus frequencies .
+The program first computes the dc operating point of the circuit and determines linearized,
+small-signal models for all of the nonlinear devices in the circuit. The resultant linear
+circuit is then analyzed over a user-specified range of frequencies. The desired output of
+an ac small-signal analysis is usually a transfer function (voltage gain, transimpedance,
+etc). If the circuit has only one ac input, it is convenient to set that input to unity and
+zero phase, so that output variables have the same value as the transfer function of the
+output variable with respect to the input.

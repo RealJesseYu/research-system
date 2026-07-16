@@ -1,0 +1,26 @@
+344 CHAPTER 16. STARTING NGSPICE
+Code Management (SCM) tool. The Git repository may be browsed on the Git web
+page, also useful for downloading individual files. You may however download (or clone)
+the complete repository including all source code trees from the console window (Linux,
+CYGWIN or MSYS/MINGW) by issuing the command (in a single line)
+git clone git://git.code.sf.net/p/ngspice/ngspice
+You need to have Git installed, which is available for all three OSs. The whole source
+tree is then available in <current directory>/ngspice . Compilation and local installation
+is again described in INSTALL (or Chapt. 32). If you later want to update your files
+and download the recent changes from SourceForge into your local repository, cd into the
+ngspice directory and just type
+git pull
+git pull will not overwrite modified files in your working directory. To drop your local
+changes first, you can run
+git reset --hard
+To learn more about git, which can be both powerful and difficult to master, please consult
+http://git-scm.com/, especially: http://git-scm.com/documentation, which has pointers
+to documentation and tutorials.
+16.3 Command line options for starting ngspice
+Command Synopsis:
+ngspice [ -o logfile ] [ -r rawfile ] [ -b ] [ -i ] [ input files ]
+The oudated, optional ngnutmeg may be called by
+Command Synopsis:
+ngnutmeg [ - ] [ datafile ... ]
+Where data file is the standard ngspice rawfile.
+Options are shown below.

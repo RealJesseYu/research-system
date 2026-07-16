@@ -1,0 +1,31 @@
+474 CHAPTER 18. NGSPICE USER INTERF ACES
+type, solution files have a prefix OP, DC, or TR. There can be many of these files created,
+one per DC sweep value or per TR time step, so it is essential the 'rootfile' subdirectory
+is created prior to running ngspice to generate the solution files. In addition, device
+instances D*, Q*, and M* of Cider models need to have the 'SA VE' parameter set.
+The 2D Cider models are NUMD level 2 (see 30.17), NBJT level 2 (see 30.18), and
+NUMOS (see 30.19). 1D Cider models are level 1 NUMD and NBJT. The solution files
+for 1D models can be plotted as the normal curves using PLOT ( 17.5.53) and GNUPLOT
+(without xycontour, 17.5.35 and 18.7.1).
+18.7.2.1 Example of a 2D jfet
+File jfet1.cir, is run as follows from a bash console window (Linux, or MSYS2):
+mkdir ./j1root
+ngspice -b jfet1.cir
+Filenames will need to be modified appropriately for Windows.
+Notes relating to the jfet1.cir file:
+1. The QJ1 instance line has the 'SA VE' parameter, and the 'rootfile' subdirectory is
+specified on the output statement.
+2. A Cider solution file is loaded after the simulation has run and before the gnuplot
+commands:
+load ./j1root/DC.12.qj1
+The currently active vectors are listed after the load.
+3. The sleep commands (or timeout /t on Windows) give the display time to draw the
+contours. This is only necessary when executing a batch script; for an interactive
+session they are not required.
+4. The contours of a single vector phin are plotted by:
+gnuplot gplot1 xycontour phin
+5. The contours of the electric field magnitude are plotted by:
+gnuplot gplot2 xycontour sqrt((ex * ex) + (ey * ey))
+6. The gnuplot_terminal variable controls the output from gnuplot:
+set gnuplot_terminal=png/quit
+7. Following this, gnuplot commands will send the plot to a .png file.

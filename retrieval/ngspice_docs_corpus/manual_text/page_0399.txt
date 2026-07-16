@@ -1,0 +1,36 @@
+17.5. COMMANDS 399
+There is no straightforward way to initialize a new vector. In general, one might want
+to have let initialize a slice (i.e. name[4:4,21:23] = [ 1 2 3 ]) of a multi-dimensional
+matrix of arbitrary type (i.e. real, complex ..), where all values and indexes are arbitrary
+expressions. This will fail. The procedure is to first allocate a real vector of the appropriate
+size with either vector(), unitvec(), or [ n1 n2 n3 ... ] . The second step is to
+optionally change the type of the new vector (to complex) with the j() function. The
+third step reshapes the dimensions, and the final step (re)initializes the contents, like so:
+let a = j(vector(10))
+reshape a [2][5]
+let a[0][0] = (pi,pi)
+Initialization of real vectors can be done quite efficiently with compose:
+compose a values (pi, pi) (1,1) (2,sqrt(7)) (boltz,e)
+reshape a [2][2]
+See also unlet (17.5.99), compose (17.5.13).
+17.5.43 Linearize*: Interpolate to a linear scale
+General Form:
+linearize vec ...
+Create a new plot with all of the vectors in the current plot, or only those mentioned as
+arguments to the command, all data linearized onto an equidistant time scale.
+How to compute the fft from a transient simulation output:
+ngspice 8 -> setplot tran1
+ngspice 9 -> linearize V (2)
+ngspice 9 -> set specwindow = blackman
+ngspice 10 -> fft V (2)
+ngspice 11 -> plot mag ( V (2)) tstep
+Linearize will redo the vectors vec or renew all vectors of the current plot (e.g. tran3)
+if no arguments are given and store them into a new plot (e.g. tran4). The new vectors
+are interpolated onto a linear time scale, which is determined by the values of tstep,
+tstart, and tstop in the currently active transient analysis. The currently loaded input
+file must include a transient analysis (a tran command may be run interactively before the
+last reset, alternately), and the current plot must be from this transient analysis. The
+length of the new vector is floor((tstop - tstart) / tstep + 1.5) . This command
+is needed for example if you want to do an FFT analysis ( 17.5.30). Please note that the
+parameter tstep of your transient analysis (see Chapt. 15.3.10) has to be small enough
+to get adequate resolution, otherwise the command linearize will do sub-sampling of

@@ -1,0 +1,34 @@
+19.4. GENERAL REMARKS ON USING THE API 489
+As an alternative, only the netlist has to be entered (without analysis command), then you
+may use any interactive command as listed in Chapt. 17.5 (except for the plot command).
+However, for users without direct access to source code commands (e.g. KiCad users), it
+might be advantageous to add a .control section to their netlist simulation dot commands.
+please be careful and check for chapter 19.4.1.4.
+The 'typical usage' examples given below are part of a caller written in C.
+19.4.1.1 Loading from file
+As with interactive ngspice, you may use the ngspice internal command source (17.5.83)
+to load a complete netlist from a file.
+Typical usage:
+n g S p i c e _ C o m m a n d (" source ../ examples / adder_mos . cir ");
+19.4.1.2 Loading line by line
+As with interactive ngspice, you may use the ngspice internal command circbyline (17.5.11)
+to send a netlist line by line to the ngspice circuit parser.
+Typical usage:
+n g S p i c e _ C o m m a n d (" circbyline fail test ");
+n g S p i c e _ C o m m a n d (" circbyline V1 1 0 1");
+n g S p i c e _ C o m m a n d (" circbyline R1 1 0 1");
+n g S p i c e _ C o m m a n d (" circbyline . dc V1 0 1 0.1");
+n g S p i c e _ C o m m a n d (" circbyline . end ");
+The first line is a title line, which will be ignored during circuit parsing. As soon as the
+line .end has been sent to ngspice, circuit parsing commences.
+19.4.1.3 Loading as a string array
+Typical usage:
+circarray = ( char **) malloc ( sizeof ( char *) * 7);
+circarray [0] = strdup (" test array ");
+circarray [1] = strdup (" V1 1 0 1");
+circarray [2] = strdup (" R1 1 2 1");
+circarray [3] = strdup (" C1 2 0 1 ic =0");
+circarray [4] = strdup (". tran 10 u 3 uic ");
+circarray [5] = strdup (". end ");
+circarray [6] = NULL ;
+ng S p i c e _ C i r c ( circarray );

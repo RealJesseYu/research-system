@@ -1,0 +1,29 @@
+470 CHAPTER 18. NGSPICE USER INTERF ACES
+write mysim.raw all
+If not all result vetcors are to be stored in the rawfile, the .save command ( 15.6.1) will
+limit the number of vectors to the ones liste after the command. One also may limit their
+numbers if the vectors are explicitely stated in the write command
+write mysim.raw v(node1) v2#branch
+The rawfile consists of an ascii header, followed by the data, either in ascii or binary
+format.
+filetype This can be either ascii or binary, and determines the format of the raw file
+(compact binary or text editor readable ascii). The default is binary.
+All simulations (e.g. if .tran follow .ac) will be saved consecutively. If using the write
+command, setting variable appendwrite will allow storing several sim outputs in a single
+file.
+appendwrite Append to the file when a write command is issued, if one already exists.
+18.6.2.2 Command wrdata
+wrdata generates a file containing simulation data in a tabular fashion. For details please
+see 17.5.103. The following variables and options are aknowledged:
+appendwrite Append to the file when a write command is issued, if one already exists.
+numdgt The number of digits to use when printing tables of data ( print col ). The de-
+fault precision is 6 digits. On the PC, approximately 16 decimal digits are available
+using double precision, so p should not be more than 16. If the output number is
+negative, one digit less is printed to ensure constant widths in tables.
+wr_singlescale The scale vector will be printed only once, if all scale vectors are of the
+same length.
+wr_vecnames Scale and data vector names are printed on the first row.
+18.6.2.3 Command wrs2p, Touchstone File Format Version 1
+wrs2ps allows to write a file, containing S parameter data, in the Touchstone File Format
+Version 1. For details please see 17.5.106 for the command and 17.9 for generating the
+S-parameters.

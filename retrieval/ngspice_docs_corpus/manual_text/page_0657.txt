@@ -1,0 +1,45 @@
+30.19. NUMOS 657
+30.19.1 DESCRIPTION
+NUMOS is the name for a MOSFET numerical model. In addition, the 2D model can
+be used to simulate other four-terminal structures such as integrated bipolar and JFET
+devices with substrate contacts. However, silicon controlled rectifiers (SCRs) cannot be
+simulated because of the snapback in the transfer characteristic. See the options card
+for more information on how to customize the device type. The LEVEL parameter of
+two- and three-terminal devices is not needed, because only 2D devices are supported.
+However, it will accepted and ignored if provided.
+All numerical four-terminal element names begin with the letter 'M' . If the device is a
+MOSFET, or JFET with a bulk contact, then the nodes are specified in the order: drain
+(n1), gate (n2), source (n3), bulk (n4). If the device is a BJT, the node order is: collector
+(n1), base (n2), emitter (n3), substrate (n4). After this must come the name of the model
+1used for the element. The remaining information can come in any order. The layout
+dimensions of an element are specified relative to the geometry of a default device. The
+default device has a width of lm. However, this default can be overridden on an options
+card. In addition, the element line will accept a length parameter, L, but does not use it
+in any calculations. This is provided to enable somewhat greater compatibility between
+numerical MOSFET models and the standard SPICE3 compact MOSFET models.
+The operating temperature of a device can be set independently from that of the rest of
+the circuit in order to simulate non-isothermal circuit operation. Finally, the name of a file
+containing an initial state for the device can be specified. Remember that if the filename
+contains capital letters, they must be protected by surrounding the filename with double
+quotes. Alternatively, the device can be placed in an OFF state (thermal equilibrium) at
+the beginning of the analysis. For more information on the use of initial conditions, see
+the ngspice User's Manual.
+In addition to the element input parameters, there are output-only parameters that can
+be shown using the SPICE show command or captured using the save/.SAVE command.
+These parameters are the elements of the indefinite conductance (G), capacitance (C), and
+admittance (Y) matrices where Y = G + jωC . By default, the parameters are computed
+at 1 Hz. Each element is accessed using the name of the matrix (g, c or y) followed by
+the node indices of the output terminal and the input terminal (e.g. g11). Beware that
+parameter names are case-sensitive for save/show, so lower-case letters must be used.
+30.19.2 Parameters
+Name Type Description
+Level Integer Dimensionality of numerical model
+Area Real Multiplicative area factor
+W Real Multiplicative width factor
+L Real Unused length factor
+Temp Real Element operating temperature
+IC.File String Initial-conditions filename
+Off Flag Device initially in OFF state
+gIJ Flag Conductance element Gij, ( Ω )
+cIJ Flag Capacitance element Cij, ( F )
+yIJ Flag Admittance element Yij, ( Ω )

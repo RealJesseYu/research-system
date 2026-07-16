@@ -1,0 +1,30 @@
+118CHAPTER 5. NON-LINEAR DEPENDENT SOURCES (BEHA VIORAL SOURCES)
+Example input file with bug (log(-2)):
+B source debugging
+V1 1 0 1
+V2 2 0 -2
+E41 4 0 vol = 'V (1)* log ( V (2)) '
+. control
+tran 1 1
+. endc
+. end
+The input file given above results in an error message:
+Error: -2 out of range for log
+In this trivial example, the reason and location for the bug is obvious. However, if you have
+several equations using behavioral sources, and several occurrences of the log function,
+then debugging is nearly impossible.
+However, if the variable ngdebug (see 17.7) is set (e.g. in file .spiceinit), a more distinctive
+error message is issued that (after some closer investigation) will reveal the location and
+value of the buggy parameter.
+Detailed error message for input file with bug (log(-2)):
+Error : -2 out of range for log
+calling PTeval , tree =
+( v0 ) * ( log ( v1 ))
+d / d v0 : log ( v1 )
+d / d v1 : ( v0 ) * ( (0. 43 429 4) / ( v1 ))
+values : var0 = 1
+var1 = -2
+If variable strict_errorhandling (see 17.7) is set, ngspice exits after this message. If
+not, gmin and source stepping may be started, typically without success.
+5.5 POLY Sources
+Polynomial sources are only available when the XSPICE option (see Chapt. 32) is enabled.

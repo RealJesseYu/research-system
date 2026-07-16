@@ -1,0 +1,42 @@
+17.5. COMMANDS 395
+17.5.37 Help: Print summaries of Ngspice commands
+Prints help. This help information, however, is spice3f5-like, stemming from 1991 and
+thus is outdated. If commands are given, descriptions of those commands are printed.
+Otherwise help for only a few major commands is printed. On Windows, this help
+command only provides a link to documentation. Spice3f5 compatible help may be found
+in the Spice 3 User manual . For ngspice, please use this manual.
+17.5.38 History: Review previous commands
+General Form:
+history [ - r ] [ number ]
+Print out the history of the last (first if -r is specified) number commands typed at the
+keyboard.
+A history substitution enables you to reuse a portion of a previous command as you type
+the current command. History substitutions save typing. This feature is disabled by de-
+fault, as it may interfere with use of '!' in expressions. To enable, set variable histsubst.
+A history substitution normally starts with a '!'. A history substitution has three parts:
+an event that specifies a previous command, a selector that selects one or more words of
+the event, and some modifiers that modify the selected words. The selector and modifiers
+are optional. A history substitution has the form ![event][:]selector[:modifier]
+. . .] The event is required unless it is followed by a selector that does not start with a
+digit. The ':' can be omitted before the selector if this selector does not begin with a
+digit. History substitutions are interpreted before anything else - even before quotations
+and command substitutions. The only way to quote the '!' of a history substitution is
+to escape it with a preceding backslash. A '!' need not be escaped if it is followed by
+whitespace, '=', or '('.
+Ngspice saves each command that you type in a history list, provided that the command
+contains at least one word. The commands in the history list are called events. The
+events are numbered, with the first command that you issue when you start Ngspice
+being number one. The history variable specifies how many events are retained in the
+history list.
+These are the forms of an event in a history substitution:
+!! The preceding event. Typing '!!' is an easy way to reissue the previous
+command.
+!n Event number n.
+!-n The nth previous event. For example, !-1 refers to the immediately preceding
+event and is equivalent to !!.
+!str The unique previous event whose name starts with str.
+!?str[?] The unique previous event containing the string str. The closing '?' can be
+omitted if it is followed by a newline.
+You can modify the words of an event by attaching one or more modifiers. Each modifier
+must be preceded by a colon. The following modifiers assume that the first selected word
+is a file name:

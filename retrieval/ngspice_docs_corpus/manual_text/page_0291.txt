@@ -1,0 +1,26 @@
+Chapter 13
+Verilog-A Compact Device Models
+13.1 Introduction
+New compact device models today are released as Verilog-A code, a analog subset of
+Verilog-AMS. Well-known examples are BSIMBULK, BSIMCMG, PSP, HiSIM or HICUM.
+The Si2 CMC web page list more than 20 device models which are publicly available. The
+models cover state-of-the-art MOS devices like SOI, FinFet, multi-gate and high voltage
+transistors, high speed SiGe bipolar transistors, HEMTs as well as complex diodes and
+resistors. ngspice makes all of these models available by its integrated OSDI interface and
+the OpenV AFcompiler, which translates Verilog-A device models into dynamically load-
+able libraries. User-defined Verilog-A models may be compiled and loaded into ngspice
+as well. Currently Linux and MS Windows are supported, OSDI/OpenV AF for macOS is
+not yet available. We are thankful to SemiMod GmbH for these excellent contributions.
+13.2 OSDI/OpenV AF
+OSDI is a simulator independent interface for device models. Since release 39 ngspice
+contains an integrated adapter to serve this interface and communicate with the compiled
+shared library device models. The shared library models are linked into ngspice dynami-
+cally at runtime with the osdi or pre_osdi (see 17.5.55) .control language commands.
+OpenV AF compiles Verilog-A compact device model files into shared libraries that con-
+form to the OSDI interface. The model descriptions have to comply with the standard
+Verilog-AMS LRM 2.x . Since ngspice-42, the small signal noise simulation ( 15.3.4) is im-
+plemented. Noise simulation , however, is only available with the Sparse 1.3 matrix solver,
+not with KLU (see 15.1.1). Other restrictions may apply. Please consult the OpenV AF
+web pages for further information. QA actions are not possible due to CMC refusing to
+provide data.
+291

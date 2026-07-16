@@ -1,0 +1,35 @@
+414 CHAPTER 17. INTERACTIVE INTERPRETER
+With the input text file
+infile.txt:
+* testing set input from file
+3
+NeXt
+4
+5 and 7
+you will get the output from echo
+3 NeXt 4 5 and 7
+NeXt
+and
+Lines starting with '*' are comment lines and will be ignored. Lines with multiple tokens
+are stored as list vectors, lines with a single token as string.
+Another option to set a variable from outside is the I/O redirection by backquotes or
+backticks (see 17.10), if you run ngspice as a console application.
+17.5.71 Setcs: Set the value of a variable, case preserved
+General Form:
+setcs [ word ]
+setcs [ word = value ] ...
+Set the value of word to value, if it is present. You can set any word to be any value,
+numeric or string. If no value is given then the value is the Boolean 'true' . If you enter a
+string, you have to enclose it in double quotes. Setcs keeps the case of a word string.
+The value of word may be inserted into a command by writing $word. If a variable is set
+to a list of values that are enclosed in parentheses (which must be separated from their
+values by white space), the value of the variable is the list.
+The variables used by ngspice are listed in section 17.7.
+Setcs entered without any parameter will list all variables set, and their values, if appli-
+cable.
+Setcs automatically tries to distinguish between values given as numbers, strings or lists.
+If a string starts with a numerical value, like 2N5401_C and is not enclosed in double
+quotes, it is interpreted as a real number 2n, i.e. 2e-9. The rest of the string is discarded.
+17.5.72 Setcirc*: Change the current circuit
+General Form:
+setcirc [ circuit number ]

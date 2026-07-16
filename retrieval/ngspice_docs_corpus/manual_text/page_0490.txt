@@ -1,0 +1,40 @@
+490CHAPTER 19. NGSPICE AS SHARED LIBRARY OR DYNAMIC LINK LIBRARY
+An array of char pointers is malloc'd, each netlist line is then copied to the array. strdup
+will care for the memory allocation. The first entry to the array is a title line, the last
+entry has to contain NULL. ngSpice_Circ(circarray); sends the array to ngspice, where
+circuit parsing is started immediately. Don't forget to free the array after sending it, to
+avoid a memory leak.
+For the latter two options to load a netlist, there is some caveat though. When sending
+the netlist from caller to shared ngspice, ngspice will not get any automatic notion of a
+potential input directory, as is possible and useed with standard ngspice. You will either
+have to set the environmental variable NGSPICE_INPUT_DIR to the input file path,
+especially when in the netlist other .include ./nextinput.inc commands with relative
+paths are used or you are using XSPICE code models that require loading an input file.
+Or you may set the variable sourcepath (17.7) in .spiceinit. The command
+set sourcepath = ( D:/mypath/input $sourcepath )
+will add D:/mypath/input to the front of the path list, only this leading path entry is
+sent to the code models.
+19.4.1.4 Using a .control section
+If the simulation is started with the background thread (command bg_run), the .control
+section commands are executed immediately after bg_run has been given, i.e. typically
+before the simulation has finished. This often is not very useful because you want to
+evaluate the simulation results. If the predefined variable controlswait is set in .spiceinit
+or spice.rc, the command execution is delayed until the background thread has returned
+(aka the simulation has finished). If set controlswait is given inside of the .control
+section, only the commands following this statement are delayed.
+19.4.2 Running the simulation
+The following commands are used to start the simulator in its own thread, halt the
+simulation and resume it again. The extra (background) thread enables the caller to
+continue with other tasks in the main thread, e.g. watching its own event loop. Of course
+you have to take care that the caller will not exit before ngspice is finished, otherwise
+you immediately will lose all data. After having halted the simulator by suspending the
+background thread, you may assess data, change ngspice parameters, or read output data
+using the caller's main thread, before you resume simulation using a background thread
+again. While the background thread is running, ngspice will reject any other command
+sent by ngSpice_Command.
+Typical usage:
+n g S p i c e _ C o m m a n d (" bg_run ");
+...
+n g S p i c e _ C o m m a n d (" bg_halt ");
+...
+n g S p i c e _ C o m m a n d (" bg_resume ");

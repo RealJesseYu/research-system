@@ -1,0 +1,38 @@
+444 CHAPTER 17. INTERACTIVE INTERPRETER
+17.8.2 Vectors
+Ngspice data is in the form of vectors: time, voltage, etc. Each vector has a type, and
+vectors can be operated on and combined algebraically in ways consistent with their types.
+Vectors are normally created as a result of a transient or dc simulation. They are also
+established when a data file is read in (see the load command 17.5.45), or they are created
+with the let command 17.5.42 inside a script. If a variable x is assigned something of the
+form $&word, then word has to be a vector, and the numeric value of word is transferred
+into the variable x.
+17.8.3 Assessing vectors in subcircuits
+Node voltages and branch currents from within a subcircuit may be read with a special
+syntax. After circuit parsing, subcircuits are expanded, their names have become part of
+each node name.
+Input file example with nested subcircuits:
+* test node names from sub cir cui ts
+Xsub1 a b sub1
+. subckt sub1 n11 n12
+Xsub2 n11 n12 sub2
+R11 n11 int1 1 k
+R12 n12 int1 1 k
+. ends
+. subckt sub2 n21 n22
+R21 n21 int2 1 k
+R22 n22 int2 1 k
+. ends
+. end
+Subcircuit instance Xsub1 calls subcircuit sub1 which contains a subcircuit instance
+Xsub2 calling sub2 which contains node int2.
+Internal circuit resulting from subcircuit expansion:
+r . xsub1 . xsub2 . r21 a xsub1 . xsub2 . int2 1 k
+r . xsub1 . xsub2 . r22 b xsub1 . xsub2 . int2 1 k
+r . xsub1 . r11 a xsub1 . int1 1 k
+r . xsub1 . r12 b xsub1 . int1 1 k
+After expansion the subcircuits have disappeared. We now have extended node (aka
+vector) names like xsub1.int1 or xsub1.xsub2.int2. The top level subcircuit call name
+is followed by node name, separated by a dot. Or the top level subcircuit call name
+is followed second level subciruit call name, then followed by node name, each again
+separated by a dot. You may now assess the node int2 values in a script by

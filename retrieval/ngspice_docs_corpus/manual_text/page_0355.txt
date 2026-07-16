@@ -1,0 +1,38 @@
+16.11. SER VER MODE OPTION -S 355
+16.10.4 Usage
+To state it clearly: OpenMP is installed inside the model equations of a particular model.
+It is available in BSIM3 versions 3.3.0 and 3.2.4, but not in any other BSIM3 model,
+in BSIM4 versions 4.5, 4.6.5, 4.7 or 4.8, but not in any other BSIM4 model, and in
+B4SOI, version 4.4 , not in any other SOI model. Older parameter files of version 4.6.x
+(x any number up to 5) are accepted, you have to check for compatibility.
+Under Linux you may run
+./autogen.sh
+./configure ... --enable-openmp
+make install
+The same has been tested under MS Windows with CYGWIN and MINGW as well
+and delivers similar results.
+Under MS Windows with Visual Studio Professional the preprocessor flag USE_OMP,
+and the /openmp flag in Visual Studio are enabled by default. Visual Studio 2015 and
+later offer OpenMP support inherently.
+The number of threads has to be set manually by placing
+set num_threads=4
+into spinit or .spiceinit or in the control section of the SPICE input file. If OpenMP is
+enabled, but num_threads not set, a default value num_threads=2 is set internally.
+If you simulate a circuit, please keep in mind to select BSIM3 (levels 8, 49) version 3.2.4 or
+3.3.0 (11.2.10), by placing this version number into your parameter files, BSIM4 (levels 14,
+54) version 4.5, 4.6.5, 4.7 or 4.8 ( 11.2.11), or B4SOI (levels 10, 58) version 4.4 ( 11.2.12).
+All other transistor models run as usual (without multithreading support).
+If you run ./configure without --enable-openmp (or without USE_OMP preprocessor flag
+under MS Windows), you will get only the standard, not paralleled BSIM3 and BSIM4
+models, as has been available from Berkeley. If OpenMP is selected and the number
+of threads set to 1, there will be only a very slight CPU time disadvantage (typ. 3%)
+compared to the old, non OpenMP build.
+16.10.5 Literature
+[1] R.K. Perng, T.-H. Weng, and K.-C. Li: "On Performance Enhancement of Circuit
+Simulation Using Multithreaded Techniques", IEEE International Conference on Compu-
+tational Science and Engineering, 2009, pp. 158-165
+16.11 Server mode option -s
+A program may write the SPICE input to the console. This output is redirected to ngspice
+via ' |' . ngspice called with the -s option writes its output to the console, which again is
+redirected to a receiving program by ' |' . In the following simple example cat reads the
+input file and prints it content to the console, which is redirected to ngspice by a first

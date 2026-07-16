@@ -1,0 +1,47 @@
+12.2. ANALOG MODELS 227
+Description: "output fall time" "output rise time"
+Data_Type: real real
+Default_Value: 1.0e-9 1.0e-9
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: rise_delay
+Description: "output delay from trigger"
+Data_Type: real
+Default_Value: 1.0e-9
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: fall_delay
+Description: "output delay from pw"
+Data_Type: real
+Default_Value: 1.0e-9
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: This function is a controlled oneshot with parametrizable values of low and
+high peak output, input trigger value level, delay, and output rise and fall times.
+It takes an input voltage or current value. This value is used as the independent
+variable in the piecewise linear curve described by the coordinate points of the
+cntl_array and pw_array pairs. From the curve, a pulse width value is determined.
+The one-shot will output a pulse of that width, triggered by the clock signal (rising
+or falling edge), delayed by the delay value, and with specified rise and fall times. A
+positive slope on the clear input will immediately terminate the pulse, which resets
+with its fall time.
+From the above, it is easy to see that array sizes of 2 for both the cntl_array and the
+pw_array will yield a linear variation of the pulse width with respect to the control
+input. Any sizes greater than 2 will yield a piecewise linear transfer characteristic.
+For more detail, refer to the description of the piecewise linear controlled source,
+which uses a similar method to derive an output value given a control input.
+Example SPICE Usage:
+ain 1 2 3 4 pulse2
+.model pulse2 oneshot(cntl_array = [-1 0 10 11]
++ pw_array=[1e-6 1e-6 1e-4 1e-4]
++ clk_trig = 0.9 pos_edge_trig = FALSE
++ out_low = 0.0 out_high = 4.5
++ rise_delay = 20.0e-9 fall_delay = 35.0e-9)

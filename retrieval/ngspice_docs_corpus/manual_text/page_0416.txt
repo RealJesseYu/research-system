@@ -1,0 +1,40 @@
+416 CHAPTER 17. INTERACTIVE INTERPRETER
+When this command is given, the seed value for the random number generator is set to
+number. Number has to be an integer greater than 0. The random numbers retrieved after
+this command are a sequence of pseudo random numbers with a huge period. Setting
+the seed value will provide a reproducible sequence of random numbers, i.e. the same
+seed results in the same sequence. See also the options SEED and SEEDINFO in chapt.
+15.1.1and chapt. 22 on statistical circuit analysis..
+17.5.76 Settype: Set the type of a vector
+General Form:
+settype type vector ...
+Change the type of the named vectors to type. Type names can be found in the following
+table.
+Type Unit Type Unit
+notype - pole -
+time s zero -
+frequency Hz s-param -
+voltage V temp-sweep Celsius
+current A res-sweep Ohms
+voltage-density V/
+√
+Hz impedance Ohms
+current-density A/
+√
+Hz admittance S
+voltage^2-density V/Hz power W
+current^2-density A/Hz phase Degree
+temperature Celsius decibel dB
+charge C capacitance F
+17.5.77 Shell: Call the command interpreter
+General Form:
+shell [ command ]
+Call the operating system's command interpreter; execute the specified command or
+call for interactive use. The status returned by the command is stored in variable
+shellstatus.
+17.5.78 Shift: Alter a list variable
+General Form:
+shift [ varname ] [ number ]
+If varname is the name of a list variable, it is shifted to the left by number elements (i.e,
+the number leftmost elements are removed). The default varname is argv, and the default
+number is 1.

@@ -1,0 +1,8 @@
+19.6. NGSPICE PARALLEL 497
+19.6.4 Parallel ngspice example
+A first example is available as a compacted 7z archive. It contains the source code of a
+controlling application, as well as its compiled executable and ngspice.dll (for MS Win-
+dows). As the input circuit an inverter chain has been divided into three parts. Three
+ngspice shared libraries are loaded, each simulates one partition of the circuit. Intercon-
+nections between the partitions are provided via a callback function. The simulation time
+is synchronized among the three ngspice invocations by another callback function.

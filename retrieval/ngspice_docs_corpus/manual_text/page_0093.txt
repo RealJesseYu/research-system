@@ -1,0 +1,30 @@
+Chapter 4
+Voltage and Current Sources
+4.1 Independent Sources for Voltage or Current
+General form:
+VXXXXXXX N + N - <<DC > DC / TRAN VALUE > < AC < ACMAG < ACPHASE > > >
++ < DISTOF1 < F1MAG < F1PHASE > > > < DISTOF2 < F2MAG < F2PHASE > > >
+IYYYYYYY N + N - <<DC > DC / TRAN VALUE > < AC < ACMAG < ACPHASE > > >
++ < DISTOF1 < F1MAG < F1PHASE > > > < DISTOF2 < F2MAG < F2PHASE > > >
+Examples:
+VCC 10 0 DC 6
+VIN 13 2 0.001 AC 1 SIN (0 1 1 MEG )
+ISRC 23 21 AC 0.333 45.0 SFFM (0 1 10 K 5 1 K )
+VMEAS 12 9
+VCARRIER 1 0 DISTOF1 0.1 -90.0
+VMODULATOR 2 0 DISTOF2 0.01
+IIN1 1 5 AC 1 DISTOF1 DISTOF2 0.001
+n+ and n- are the positive and negative nodes, respectively. Note that voltage sources
+need not be grounded. Positive current is assumed to flow from the positive node, through
+the source, to the negative node. A current source of positive value forces current to flow
+out of the n+ node, through the source, and into the n- node. Voltage sources, in addition
+to being used for circuit excitation, are the 'ammeters' for ngspice, that is, zero valued
+voltage sources may be inserted into the circuit for the purpose of measuring current.
+They of course have no effect on circuit operation since they represent short-circuits.
+DC/TRAN is the dc and transient analysis value of the source. If the source value is zero
+both for dc and transient analyses, this value may be omitted. If the source value is
+time-invariant (e.g., a power supply), then the value may optionally be preceded by the
+letters DC.
+The keyword AC together with its value ACMAG (and optional value ACPHASE) are required
+when the voltage or current source is intended to become the small signal source in an
+93

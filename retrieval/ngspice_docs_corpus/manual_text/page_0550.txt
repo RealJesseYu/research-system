@@ -1,0 +1,22 @@
+550 CHAPTER 25. XSPICE BASICS
+The ngspice simulator at the core of XSPICE includes built-in models for discrete com-
+ponents commonly found within integrated circuits. These 'model primitives' include
+components such as resistors, capacitors, diodes, and transistors. The XSPICE Code
+Model Subsystem extends this set of primitives in two ways. First, it provides a library
+of over 40 additional primitives, including summers, integrators, digital gates, controlled
+oscillators, s-domain transfer functions, and digital state machines. See Chapt. 12 for a
+description of the library entries. Second, it adds a code model generator to ngspice that
+provides a set of programming utilities to make it easy for you to create your own models
+by writing them in the C programming language.
+The code models are generated upon compiling ngspice. They are stored in shared li-
+braries, which may be distributed independently from the ngspice sources. During run-
+time initialization, ngspice will load the code model libraries and make the code model
+instances available for simulation.
+25.3 XSPICE Top-Level Diagram
+A top-level diagram of the XSPICE system integrated into ngspice is shown in Fig. 25.1.
+The XSPICE Simulator is made up of the ngspice core, the event-driven algorithm, circuit
+description syntax parser extensions, a loading routine for code models, and the ngspice
+control language user interface. The XSPICE Code Model Subsystem consists of the Code
+Model Generator, 5 standard code model library sources with more than 40 code models,
+the sources for Node Type Libraries, and all the interfaces to User-Defined Code Models
+and to User-Defined Node Types.

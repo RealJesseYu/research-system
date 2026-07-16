@@ -1,0 +1,41 @@
+74 CHAPTER 3. CIRCUIT ELEMENTS AND MODELS
+First letter Element description
+C Capacitor
+D Diode
+F Current-controlled current source (CCCs)
+G Voltage-controlled current source (VCCS)
+I Current source
+J Junction field effect transistor (JFET)
+L Inductor
+M Metal oxide field effect transistor (MOSFET)
+Q Bipolar junction transistor (BJT)
+R Resistor
+X Subcircuit (for details see below)
+Z Metal semiconductor field effect transistor (MESFET)
+Table 3.1: ngspice elements supporting multiplier 'm'
+When the X line (e.g. x1 a b sub1 m=5 ) contains the token m=value (as shown) or
+m=expression, subcircuit invocation is done in a special way. If an instance line of the
+subcircuit sub1 contains any of the elements shown in table 3.1, then these elements are
+instantiated with the additional parameter m (in this example having the value 5). If such
+an element already has an m multiplier parameter, the element m is multiplied with the
+m derived from the X line. This works recursively, meaning that if a subcircuit contains
+another subcircuit (a nested X line), then the latter m parameter will be multiplied by the
+former one, and so on.
+Example 1:
+. param madd = 6
+X1 a b sub1 m =5
+. subckt sub1 a1 b1
+Cs1 a1 b1 C =5 p m = ' madd -2 '
+. ends
+In example 1, the capacitance between nodes a and b will be C = 5pF*(madd-2)*5 =
+100pF.
+Example 2:
+. param madd = 4
+X1 a b sub1 m =3
+. subckt sub1 a1 b1
+X2 a1 b1 sub2 m = ' madd -2 '
+. ends
+. subckt sub2 a2 b2
+Cs2 a2 b2 3 p m =2
+. ends
+In example 2, the capacitance between nodes a and b is C = 3pF*2*(madd-2)*3 = 36pF .

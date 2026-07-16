@@ -1,0 +1,46 @@
+282CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+model also posts independent input load values per input pin (in farads) based on
+the parameter input_load. The parameter input_delay provides a way to specify
+additional delay between each input pin and the output. This delay is added to the
+rise- or fall-time of the output. The output of this model does not respond to the
+total loading it sees on the output; it will always drive the output strongly with the
+specified delays.
+Example SPICE Usage:
+* LUT encoding 3-bit parity function
+a4 [1 2 3] [5] lut_pty3_1
+.model lut_pty3_1 d_genlut(table_values = "01101001"
++ input_load [2.0e-12])
+* LUT encoding a tristate inverter function (en in out)
+a2 [1 2] [3] lut_triinv_1
+.model lut_triinv_1 d_genlut(table_values = "Z1Z0")
+* LUT encoding a half-adder function (A B Carry Sum)
+a8 [1 2] [3 4] lut_halfadd_1
+.model lut_halfadd_1 d_genlut(table_values = "00010110"
++ rise_delay [ 1.5e-9 1.0e-9 ] fall_delay [ 1.5e-9 1.0e-9 ])
+12.4.24 D_process
+NAME_TABLE:
+C_Function_Name: cm_d_process
+Spice_Model_Name: d_process
+Description: "digital process"
+PORT_TABLE:
+Port_Name: in clk
+Description: "input" "clock"
+Direction: in in
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: yes no
+Vector_Bounds: - -
+Null_Allowed: yes no
+PORT_TABLE:
+Port_Name: reset out
+Description: "reset" "output"
+Direction: in out
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: no yes
+Vector_Bounds: - [1 -]
+Null_Allowed: yes no
+PARAMETER_TABLE:
+Parameter_Name: clk_delay
+Description: "delay from CLK"
+Data_Type: real

@@ -1,0 +1,30 @@
+Chapter 16
+Starting ngspice
+16.1 Introduction
+Ngspice consists of the simulator and a front-end for data analysis and plotting. Input to
+the simulator is a netlist file, including commands for circuit analysis and output control.
+Interactive ngspice can plot data from a simulation on a PC or a workstation display.
+The usual way to run ngspice is by a console command, passing options and at least one
+netlist file as a parameter. Multiple netlists are concatenated and treated as one, except
+when the first file is a pure script with parameters ( 17.8).
+Ngspice on Linux (and OSs like MacOS, Cygwin, BSD, Solaris ...) uses the X Window
+System for plotting (see Chapt. 18.3) if the environment variable DISPLAY is available.
+(An X11 server must first be installed on MacOS.) Otherwise, a console mode (non-
+graphical) interface is used. If you are using X on a workstation, the DISPLAY variable
+should already be set; if you want to display graphics on a system different from the one
+you are running ngspice or ngutmeg on, DISPLAY should be of the form machine:0.0. See
+the appropriate documentation on the X Window System for more details.
+The MS Windows GUI version of ngspice has a native graphics interface (see Chapt.
+18.1).
+The front-end may be run as a separate 'stand-alone' program under the name ngnutmeg.
+ngnutmeg is a subset of ngspice dedicated to data evaluation, still optionally compilable
+(Linux, Mingw) for historical reasons. Ngnutmeg will read in the 'raw' data output file
+created by ngspice -r or by the write command during an interactive ngspice session.
+16.2 Where to obtain ngspice
+The actual distribution of ngspice may be downloaded from the ngspice download web
+page. The installation for Linux or MS Windows is described in the file INSTALL to be
+found in the top level directory. You may also have a look at Chapt. 32 of this manual
+for compiling instructions.
+If you want to check out the source code that is actually under development, you may
+have a look at the ngspice source code repository, which is stored using the Git Source
+343

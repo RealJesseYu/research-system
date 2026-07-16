@@ -1,0 +1,40 @@
+3.3. ELEMENTARY DEVICES 79
+Rnom = rsh l − SHORT
+w − NARROW (3.3)
+DEFW is used to supply a default value for w if one is not specified for the device. If either
+rsh or l is not specified, then the standard default resistance value of 1 mOhm is used.
+TNOM is used to override the circuit-wide value given on the .options control line where
+the parameters of this model have been measured at a different temperature. After the
+nominal resistance is calculated, it is adjusted for temperature by the formula:
+R(T ) = R(TNOM)
+
+1 + T C1(T − TNOM) + T C2(T − TNOM)2
+
+(3.4)
+where R(TNOM) = Rnom|Racnom. In the above formula, ' T ' represents the instance
+temperature, which can be explicitly set using the temp keyword or calculated using the
+circuit temperature and dtemp, if present. If both temp and dtemp are specified, the latter
+is ignored. Ngspice improves SPICE's resistors noise model, adding flicker noise ( 1/f) to
+it and the noisy (or noise) keyword to simulate noiseless resistors. The thermal noise
+in resistors is modeled according to the equation:
+¯i2
+R = 4kT
+R ∆f (3.5)
+where ' k' is the Boltzmann's constant, and ' T ' the instance temperature.
+Flicker noise model is:
+¯i2
+Rf n = KFI AF
+R
+W W F LLF f EF ∆f (3.6)
+A small list of sheet resistances (in Ω/) for conductors is shown below. The table repre-
+sents typical values for MOS processes in the 0.5 - 1 um
+range. The table is taken from: N. Weste, K. Eshraghian - Principles of CMOS VLSI
+Design 2nd Edition, Addison Wesley .
+Material Min. Typ. Max.
+Inter-metal (metal1 - metal2) 0.005 0.007 0.1
+Top-metal (metal3) 0.003 0.004 0.05
+Polysilicon (poly) 15 20 30
+Silicide 2 3 6
+Diffusion (n+, p+) 10 25 100
+Silicided diffusion 2 4 10
+n-well 1000 2000 5000

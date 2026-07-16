@@ -1,0 +1,46 @@
+218CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+modulated by whatever the lcouple is connected to) is then used by the lcouple to
+calculate a voltage 'seen' at the l port. The voltage is a function of the derivative
+with respect to time of the current value seen at mmf_out.
+The most common use for lcouples will be as a building block in the construction
+of transformer models. To create a transformer with a single input and a single
+output, you would require two lcouple models plus one core model. The process
+of building up such a transformer is described under the description of the core
+model, below.
+Example SPICE Usage:
+a150 (7 0) (9 10) lcouple1
+.model lcouple1 lcouple(num_turns=10.0)
+12.2.22 Magnetic Core
+NAME_TABLE:
+C_Function_Name: cm_core
+Spice_Model_Name: core
+Description: "magnetic core"
+PORT_TABLE:
+Port_Name: mc
+Description: "magnetic core"
+Direction: inout
+Default_Type: gd
+Allowed_Types: [g,gd]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: H_array B_array
+Description: "magnetic field array" "flux density array"
+Data_Type: real real
+Default_Value: - -
+Limits: - -
+Vector: yes yes
+Vector_Bounds: [2 -] [2 -]
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: area length
+Description: "cross-sectional area" "core length"
+Data_Type: real real
+Default_Value: - -
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: input_domain

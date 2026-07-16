@@ -1,0 +1,22 @@
+712 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+capbd Out real Diode capacitance
+capbs Out real Diode capacitance
+qg Out real Gate charge
+qb Out real Bulk charge
+qd Out real Drain charge
+qs Out real
+qinv Out real
+qdef Out real
+gcrg Out real
+gtau Out real
+The parameters are available in all BSIM4 models (level=14 or level=54) version=4.2.1
+to version=4.8.
+Negative capacitance values may occur, depending on the internal calculation. To compare
+with measured data, please just use the absolute values of the capacitance data. For an
+explanation of negative values and the basics on how capacitance values are evaluated in
+a BSIM model, please refer to the book BSIM4 and MOSFET Modeling for IC Simulation
+by Liu and Hu , Chapt. 5.2.
+31.6.9.2 BSIM4 manual
+Detailed descriptions will not be given here. Unfortunately the details on these parameters
+are not documented, even not in the otherwise excellent pdf manual issued by University
+of California at Berkeley.

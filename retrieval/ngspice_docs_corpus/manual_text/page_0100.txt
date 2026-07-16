@@ -1,0 +1,35 @@
+100 CHAPTER 4. VOLTAGE AND CURRENT SOURCES
+4.1.9 External voltage or current input
+General form:
+EXTERNAL
+Examples:
+Vex 1 0 dc 0 external
+Iex i1 i2 dc 0 external <m = xx >
+Voltages or currents may be set from the calling process, if ngspice is compiled as a shared
+library and loaded by the process. See Chapt. 19.6.3 for an explanation.
+4.1.10 Arbitrary Phase Sources
+ngspice supports arbitrary phase independent sources that output at TIME=0.0 a value
+corresponding to some specified phase shift. Other versions of SPICE use the TD (delay
+time) parameter to set phase-shifted sources to their time-zero value until the delay time
+has elapsed. The ngspice phase parameter is specified in degrees and is included after the
+SPICE3 parameters normally used to specify an independent source. Partial examples of
+usage for pulse and sine waveforms are shown below:
+* Phase shift is specified as final parameter
+* on the independent source cards. Phase shift for both of the
+* following is specified as +45 degrees
+*
+v1 1 0 0.0 sin(0 1 1k 0 0 45.0)
+r1 1 0 1k
+*
+v2 2 0 0.0 pulse(-1 1 0 1e-5 1e-5 5e-4 1e-3 45.0)
+r2 2 0 1k
+*
+4.1.11 RF Port
+A voltage source VSRC may be defined as RF Port. To do so, there are at least two
+more parameters required. The first is portnum (integer) which defines the VSRC as a
+RF Port. Portnum of all VSRCs defined as RF ports must start from 1 and count up to
+the number of RF ports. You cannot have duplicate portnums. Then you have Z0 (real)
+which defines the internal impedance. If not provided, its default value is 50Ohm. When
+declaring a RF ports, the VSRC now become a VSRC with Z0 Ohm in series. This extra
+resistor affects all simulations.
+General form:

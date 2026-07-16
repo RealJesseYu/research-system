@@ -1,0 +1,35 @@
+684 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+179 eais InOut real Activation energy for IBCIP
+180 eane InOut real Activation energy for IBEN
+181 eanc InOut real Activation energy for IBCN/IBENP
+182 eans InOut real Activation energy for IBCNP
+183 xis InOut real Temperature exponent of IS
+184 xii InOut real Temperature exponent of IBEI,IBCI,IBEIP,IBCIP
+185 xin InOut real Temperature exponent of IBEN,IBCN,IBENP,IBCNP
+186 tnf InOut real Temperature exponent of NF
+187 tavc InOut real Temperature exponent of A VC2
+188 rth InOut real Thermal resistance
+189 cth InOut real Thermal capacitance
+190 vrt InOut real Punch-through voltage of internal B-C junction
+191 art InOut real Smoothing parameter for reach-through
+192 ccso InOut real Fixed C-S capacitance
+193 qbm InOut real Select SGP qb formulation
+194 nkf InOut real High current beta rolloff
+195 xikf InOut real Temperature exponent of IKF
+196 xrcx InOut real Temperature exponent of RCX
+197 xrbx InOut real Temperature exponent of RBX
+198 xrbp InOut real Temperature exponent of RBP
+199 isrr InOut real Separate IS for fwd and rev
+200 xisr InOut real Temperature exponent of ISR
+201 dear InOut real Delta activation energy for ISRR
+202 eap InOut real Exitivation energy for ISP
+203 vbbe InOut real B-E breakdown voltage
+204 nbbe InOut real B-E breakdown emission coefficient
+205 ibbe InOut real B-E breakdown current
+206 tvbbe1 InOut real Linear temperature coefficient of VBBE
+207 tvbbe2 InOut real Quadratic temperature coefficient of VBBE
+208 tnbbe InOut real Temperature coefficient of NBBE
+209 ebbe InOut real exp(-VBBE/(NBBE*Vtv))
+210 dtemp InOut real Locale Temperature difference
+211 vers InOut real Revision Version
+212 vref InOut real Reference Version

@@ -1,0 +1,28 @@
+Chapter 31
+Model and Device Parameters
+The following tables summarize the parameters available on each of the devices and models
+in ngspice. There are two tables for each type of device supported by ngspice. Input
+parameters to instances and models are parameters that can occur on an instance or
+model definition line in the form keyword=value where keyword is the parameter name
+as given in the tables. Default input parameters (such as the resistance of a resistor or
+the capacitance of a capacitor) obviously do not need the keyword specified.
+31.1 Accessing internal device parameters
+Output parameters are those additional parameters that are available for many types of
+instances for the output of operating point and debugging information. These parameters
+are specified as @device[keyword] and are available for the most recent point computed
+or, if specified in a .save statement, for an entire simulation as a normal output vector.
+Thus, to monitor the gate-to-source capacitance of a MOSFET, a command
+save @m1 [ cgs ]
+given before a transient simulation causes the specified capacitance value to be saved at
+each time-point, and a subsequent command such as
+plot @m1 [ cgs ]
+produces the desired plot. (Note that the show command does not use this format).
+Some variables are listed as both input and output, and their output simply returns
+the previously input value, or the default value after the simulation has been run. Some
+parameters are input only because the output system can not handle variables of the given
+type yet, or the need for them as output variables has not been apparent. Many such
+input variables are available as output variables in a different format, such as the initial
+condition vectors that can be retrieved as individual initial condition values. Finally,
+internally derived values are output only and are provided for debugging and operating
+point output purposes.
+661

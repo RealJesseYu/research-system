@@ -1,0 +1,42 @@
+17.8. SCRIPTS 449
+Control structure examples (continued):
+* test goto in while loop
+let loop = 0
+if 1 $ outer loop to allow nested forward label ' endlabel '
+while loop < 10
+if loop > 5
+echo jump
+goto endlabel
+end
+let loop = loop + 1
+end
+echo before $ never reached
+label endlabel
+echo after " $ & loop "
+end
+* test for using variables , simple test for label , goto
+set loop = 0
+label starthe
+echo start $loop
+let loop = $loop + 1 $ expression needs vector at lhs
+set loop = " $ & loop " $ convert vector contents to variable
+if $loop < 3
+goto starthe
+end
+echo end $loop
+. endc
+17.8.6 Example script 'spectrum'
+A typical example script named spectrum is delivered with the ngspice distribution.
+Even if it is made obsolete by the internal spec command (see 17.5.85), and especially by
+the much faster fft command (see 17.5.30), it is a good example for getting acquainted
+with the ngspice control (and post-processor) language.
+As a suitable input for spectrum you may run a ring-oscillator, delivered with ngspice in
+e.g. test/bsim3soi/ring51_41.cir. For an adequate resolution a simulation time of 1 µs is
+needed. A small control script starts ngspice by loading the R.O. simulation data and
+executing spectrum.
+Small script to start ngspice, read the simulation data and start spectrum:
+* test for script ' spectrum '
+. control
+load ring51_41 . out
+spectrum 10 MEG 2500 MEG 1 MEG v ( out25 ) v ( out50 )
+. endc

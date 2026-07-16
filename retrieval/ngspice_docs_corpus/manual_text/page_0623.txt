@@ -1,0 +1,33 @@
+29.3. CODE MODEL ERROR MESSAGES 623
+29.3.10 Code Model sine
+allocation_error:
+**** Error ****
+SINE: Error allocating sine block storage
+Generic storage allocation error.
+sine_freq_clamp:
+**** Warning ****
+SINE: Extrapolated frequency limited to 1e-16 Hz
+This error occurs whenever the controlling input value is such that the output frequency
+ordinarily would be set to a negative value. Consequently, the output frequency has been
+clamped to a near-zero value.
+array_error:
+**** Error ****
+SINE: Size of control array different than frequency array
+This error message normally occurs whenever the controlling input array and the fre-
+quency array are different sizes.
+29.3.11 Code Model square
+square_allocation_error:
+**** Error ****
+SQUARE: Error allocating square block storage
+Generic storage allocation error.
+square_freq_clamp:
+**** WARNING ****
+SQUARE: Frequency extrapolation limited to 1e-16
+This error occurs whenever the controlling input value is such that the output frequency
+ordinarily would be set to a negative value. Consequently, the output frequency has been
+clamped to a near-zero value.
+square_array_error:
+**** Error ****
+SQUARE: Size of control array different than frequency array
+This error message normally occurs whenever the controlling input array and the fre-
+quency array are different sizes.

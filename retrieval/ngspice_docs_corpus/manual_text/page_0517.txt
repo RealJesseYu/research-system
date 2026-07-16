@@ -1,0 +1,38 @@
+21.2. DIFFERENTIAL PAIR 517
+21.2 Differential Pair
+The following deck determines the dc operating point of a simple differential pair. In addi-
+tion, the ac small-signal response is computed over the frequency range 1Hz to 100MEGHz.
+Example:
+SIMPLE D I F F E R E N T I A L PAIR
+VCC 7 0 12
+VEE 8 0 -12
+VIN 1 0 AC 1
+RS1 1 2 1 K
+RS2 6 0 1 K
+Q1 3 2 4 MOD1
+Q2 5 6 4 MOD1
+RC1 7 3 10 K
+RC2 7 5 10 K
+RE 4 8 10 K
+. MODEL MOD1 NPN BF =50 VAF =50 IS =1. E -12 RB =100 CJC =.5 PF TF =.6 NS
+. TF V (5) VIN
+. AC DEC 10 1 100 MEG
+. END
+21.3 MOSFET Characterization
+The following deck computes the output characteristics of a MOSFET device over the
+range 0-10V for VDS and 0-5V for VGS.
+Example:
+MOS OUTPUT C H A R A C T E R I S T I C S
+. OPTIONS NODE NOPAGE
+VDS 3 0
+VGS 2 0
+M1 1 2 0 0 MOD1 L =4 U W =6 U AD =10 P AS =10 P
+* VIDS MEASURES ID , WE COULD HAVE USED VDS ,
+* BUT ID WOULD BE NEGATIVE
+VIDS 3 1
+. MODEL MOD1 NMOS VTO = -2 NSUB =1.0 E15 UO =550
+. DC VDS 0 10 .5 VGS 0 5 1
+. END
+21.4 RTL Inverter
+The following deck determines the dc transfer curve and the transient pulse response of
+a simple RTL inverter. The input is a pulse from 0 to 5 Volts with delay, rise, and fall

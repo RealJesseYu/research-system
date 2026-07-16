@@ -1,0 +1,35 @@
+17.6. CONTROL STRUCTURES 433
+Example:
+foreach val -40 -20 0 20 40
+if $val < 0
+echo variable $val is less than 0
+else
+echo variable $val is greater than or equal to 0
+end
+end
+echo
+let vec = 1
+if vec = 1 ; if $ & vec = 1 is possible as well
+echo vec is $ & vec
+end
+Comment: The condition may be evaluated by numbers or vectors. Variables have to be
+parsed to numbers like $val.
+17.6.6 Label
+General Form:
+label word
+If a statement of the form goto word is encountered, control is transferred to this point,
+otherwise this is a no-op.
+17.6.7 Goto
+General Form:
+goto word
+If a statement of the form label word is present in the block or an enclosing block,
+control is transferred there. Note that if the label is at the top level, it must be before
+the goto statement (i.e, a forward goto may occur only within a block). A block to just
+include goto on the top level may look like the following example.
+Example noop block to include forward goto on top level:
+if (1)
+...
+goto gohere
+...
+label gohere
+end

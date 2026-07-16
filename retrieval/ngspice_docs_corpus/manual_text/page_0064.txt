@@ -1,0 +1,45 @@
+64 CHAPTER 2. CIRCUIT DESCRIPTION
+Built-in function Notes
+sqrt(x) y = sqrt(x)
+sin(x), cos(x), tan(x)
+sinh(x), cosh(x), tanh(x)
+asin(x), acos(x), atan(x)
+asinh(x), acosh(x), atanh(x)
+arctan(x) atan(x), kept for compatibility
+exp(x)
+ln(x), log(x)
+abs(x)
+nint(x) Nearest integer, half integers towards even
+int(x) Nearest integer rounded towards 0
+floor(x) Nearest integer rounded towards -∞
+ceil(x) Nearest integer rounded towards +∞
+pow(x,y) x raised to the power of y (pow from C runtime library)
+pwr(x,y) pow(fabs(x), y)
+min(x, y)
+max(x, y)
+sgn(x) 1.0 for x > 0, 0.0 for x == 0, -1.0 for x < 0
+ternary_fcn(x, y, z) x ? y : z
+gauss(nom, rvar, sigma) nominal value plus variation drawn from Gaussian
+distribution with mean 0 and standard deviation rvar
+(relative to nominal), divided by sigma
+agauss(nom, avar, sigma) nominal value plus variation drawn from Gaussian
+distribution with mean 0 and standard deviation avar
+(absolute), divided by sigma
+unif(nom, rvar) nominal value plus relative variation (to nominal)
+uniformly distributed between +/-rvar
+aunif(nom, avar) nominal value plus absolute variation uniformly
+distributed between +/-avar
+limit(nom, avar) nominal value +/-avar, depending on random number
+in [-1, 1[ being > 0 or < 0
+The scaling suffixes (any decorative alphanumeric string may follow):
+suffix value
+g 1e9
+meg 1e6
+k 1e3
+m 1e-3
+u 1e-6
+n 1e-9
+p 1e-12
+f 1e-15
+Note: there are intentional redundancies in expression syntax, e.g. x^y , x**y and
+pwr(x,y) all have nearly the same result.

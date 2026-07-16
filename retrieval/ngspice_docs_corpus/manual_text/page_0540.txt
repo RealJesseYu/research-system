@@ -1,0 +1,31 @@
+540 CHAPTER 24. NOTES
+subcircuit A 'device' within an ngspice deck that is defined in terms of a group of
+element cards and that can be referenced in other parts of the ngspice deck through
+element cards.
+24.2 Acronyms and Abbreviations
+ATE Automatic Test Equipment
+CAE Computer-Aided Engineering
+CCCS Current Controlled Current Source.
+CCVS Current Controlled Voltage Source.
+FET Field Effect Transistor
+IDD Interface Design Document
+IFS Refers to the Interface Specification File. The abbreviation reflects the file name of
+the Interface Specification File: ifspec.ifs.
+MNA Modified Nodal Analysis
+MOSFET Metal Oxide Semiconductor Field Effect Transistor
+PWL Piece-Wise Linear
+RAM Random Access Memory
+ROM Read Only Memory
+SDD Software Design Document
+SI Simulator Interface
+SPICE Simulation Program with Integrated Circuit Emphasis. This program was de-
+veloped at the University of California at Berkeley and is the origin of ngspice.
+SPICE3 Version 3 of SPICE.
+SRS Software Requirements Specification
+SUM Software User's Manual
+UCB University of California at Berkeley
+UDN User-Defined Node(s)
+VCCS Voltage Controlled Current Source.
+VCVS Voltage Controlled Voltage Source
+XSPICE Extended SPICE; option to ngspice, integrating predefined or user defined code
+models for event-driven mixed-signal simulation.

@@ -1,0 +1,37 @@
+492CHAPTER 19. NGSPICE AS SHARED LIBRARY OR DYNAMIC LINK LIBRARY
+then node name and node type follow. You may set up an array to store name and type,
+indexed by the node number.
+During simulation, after each time step ngspice checks if a node has changed. If so,
+SendEvtData is called for each node that changed, returning the simulation time, the
+node number, and the node value as a char* string, consisting of one out of 0s, 1s, Us, 0r,
+1r, Ur, 0z, 1z, Uz, 0u, 1u, Uu (see 12.5.1). The double real value and the void* binary
+data structure arguments are for future enhancements of the data interface. The int mode
+returns 0 for op, 1 for dc, 2 for ac , and 3 for tran simulation. The final int is useful to
+identify the ngspice lib by number if you run several in parallel (see 19.6). The final *void
+just returns the pointer received from caller. e.g. to identify the calling object.
+19.4.4 Altering model or device parameters
+After halting ngspice by stopping the background thread ( 19.4.2), nearly all ngspice com-
+mands are available. Especially alter (17.5.3) and altermod (17.5.4) may be used to
+change device or model parameters. After the modification, the simulation may be re-
+sumed immediately. Changes to a circuit netlist, however, are not possible. You would
+need to load a complete new netlist ( 19.4.1) and restart the simulation from the beginning.
+19.4.5 Output
+After the simulation is finished, use the ngspice commands write (17.5.104) or wrdata
+(17.5.103) to output data to a file as usual, use the print command ( 17.5.56) to retrieve
+data via callback SendChar (19.3.3.1), or refer to accessing the data as described in
+Chapt. 19.4.3.
+Typical usage:
+n g S p i c e _ C o m m a n d (" write testout . raw V (2)");
+n g S p i c e _ C o m m a n d (" print V (2)");
+19.4.6 Error handling
+There are several occasions where standard ngspice suffers from an error, cannot recover
+internally and then exits. If this is happening to the shared module this would mean that
+the parent application, the caller, is also forced to exit. Therefore (if not suffering from
+a segfault) ngspice.dll will call the function controlled_exit as usual, this now calls the
+callback function 'ControlledExit' ( 19.3.3.3), which hands over the request for exiting to
+the caller. The caller now has the task to handle the exit code for ngspice.
+If ngspice has been linked at runtime by dlopen/LoadLibrary (see 19.2.2), the callback may
+close all threads, and then detach ngspice.dll by invoking dlclose/FreeLibrary. The caller
+may then restart ngspice by another loading and initialization ( 19.3.2.1).
+If ngspice is included during linking the caller (see 19.2.1), there is not yet a good and
+general solution to error handling, if the error is non-recoverable from inside ngspice.

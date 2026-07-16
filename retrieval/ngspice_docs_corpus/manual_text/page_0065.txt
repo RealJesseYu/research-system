@@ -1,0 +1,36 @@
+2.10. .FUNC 65
+2.9.6 Reserved words
+In addition to the above function names and to the verbose operators ( not and or div
+mod ), other words are reserved and cannot be used as parameter names: or, defined,
+sqr, sqrt, sin, cos, exp, ln, log, log10, arctan , abs, pwr, time, temper, hertz.
+2.9.7 A word of caution on the three ngspice expression parsers
+The historical parameter notation using & as the first character of a line as equivalence
+to .param. is deprecated and will be removed in a coming release.
+Confusion may arise in ngspice because of its multiple numerical expression features. The
+.param lines and the brace expressions (see Chapt. 2.10) are evaluated in the front-
+end, that is, just after the subcircuit expansion. (Technically, the X lines are kept as
+comments in the expanded circuit so that the actual parameters can be correctly sub-
+stituted). Therefore, after the netlist expansion and before the internal data setup, all
+number attributes in the circuit are known constants. However, there are circuit elements
+in Spice that accept arithmetic expressions not evaluated at this point, but only later
+during circuit analysis. These are the arbitrary current and voltage sources (B-sources,
+5), as well as E- and G-sources and R-, L-, or C-devices. The syntactic difference is that
+'compile-time' expressions are within braces, but 'run-time' expressions have no braces.
+To make things more complicated, the back-end ngspice scripting language accepts arith-
+metic/logic expressions that operate only on its own scalar or vector data sets ( 17.2).
+Please see Chapt. 2.14.
+It would be desirable to have the same expression syntax, operator and function set,
+and precedence rules, for the three contexts mentioned above. In the current Numparam
+implementation, that goal is not achieved.
+2.10 .FUNC
+This keyword defines a function. The syntax of the expression is the same as for a .param
+(2.9.5).
+General form:
+. func < ident > { < expr > }
+. func < ident > = { < expr > }
+Examples:
+. func icos ( x ) { cos ( x ) - 1}
+. func f (x , y ) { x * y }
+. func foo (a , b ) = { a + b }
+.func will initiate a replacement operation. After reading the input files, and before
+parameters are evaluated, all occurrences of the icos(x) function will be replaced by

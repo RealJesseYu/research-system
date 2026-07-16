@@ -1,0 +1,47 @@
+12.4. DIGITAL MODELS 275
+12.4.19 Frequency Divider
+NAME_TABLE:
+C_Function_Name: cm_d_fdiv
+Spice_Model_Name: d_fdiv
+Description: "digital frequency divider"
+PORT_TABLE:
+Port Name: freq_in freq_out
+Description: "frequency input" "frequency output"
+Direction: in out
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: div_factor high_cycles
+Description: "divide factor" "# of cycles for high out"
+Data_Type: int int
+Default_Value: 2 1
+Limits: [1 -] [1 div_factor-1]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: i_count
+Description: "divider initial count value"
+Data_Type: int
+Default_Value: 0
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: freq_in_load
+Description: "freq_in load value (F)"
+Data_Type: real
+Default_Value: 1.0e-12
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Common parameters: rise_delay, fall_delay.
+Description: The digital frequency divider is a programmable step-down divider that
+accepts an arbitrary divisor (div_factor), a duty-cycle term (high_cycles), and an
+initial count value (i_count). The generated output is synchronized to the rising
+edges of the input signal.

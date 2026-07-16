@@ -1,0 +1,36 @@
+112CHAPTER 5. NON-LINEAR DEPENDENT SOURCES (BEHA VIORAL SOURCES)
+One characteristic to note: What happens when the controlling input ( V(1) or −2∗i(Vin))
+is outside of the given limits, e.g. smaller than x0 or larger than x3 in the example given
+above? New y values outside of the given range will be determined by adding x,y pairs
+calculated by extending the slope of the output curve, e.g. with (y3 − y2)/(x3 − x2), as
+seen with v(2) from example Btest2. If you want to limit the function, keeping the last
+y value, e.g. y3, you have to add another point (x,y pair) with slightly extended x and y
+kept constant, e.g. x3 + 1,y3.
+This gets important when we are for example using a behavioral resistor with pwl. In
+the example below, RR1 quickly moves towards (and beyond) 0, which is unphysical and
+leads the transient simulation to fail, because the current through RR1 is unbounded.
+RR2 with its limit given by the 15.1ms,1 couple avoids such malfunctioning.
+Example: pwl function in behavioral resistor
+* pwl for behavioral R , transient sim
+VU1 3 0 DC 9
+RR1 3 0 R = pwl ( time , 0 ,1 , 7m ,1 , 8m ,1.19 , 14 m ,1.19 , 15 m ,1)
+RR2 3 0 R = pwl ( time , 0 ,1 , 7m ,1 , 8m ,1.19 , 14 m ,1.19 , 15 m ,1 ,
++ 15.1 m ,1)
+. tran 100 u 20 m 0
+. probe alli
+. control
+option noinit
+run
+display
+set xb rus hwi dth =2
+plot rr1 # branch rr2 # branch ylimit 7 17
+. endc
+. end
+5.2 Exxxx: non-linear voltage source
+5.2.1 VOL
+General form:
+EXXXXXXX n + n - vol = ' expr '
+Examples:
+E41 4 0 vol = 'V (3)* V (3) - Offs '
+Expression may be an equation or an expression containing node voltages or branch
+currents (in the form of i(vm)) and any other terms as given for the B source and described

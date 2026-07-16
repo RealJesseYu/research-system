@@ -1,0 +1,38 @@
+724 CHAPTER 32. COMPILATION NOTES
+C:\Spice\
+bin\
+ngspice.exe
+vcomp14xx.dll
+lib\
+ngspice\
+analog.cm
+digital.cm
+spice2poly.cm
+extradev.cm
+extravt.cm
+table.cm
+share\
+ngspice\
+scripts\
+spinit
+Table 32.2: ngspice Visual Studio installation tree under MS Windows
+The exact directory names depend on the configuration and platform you have selected
+(C:\Spice, C:\Spice64, C:\Spiced, C:\Spice64d). If you intend to install ngspice into an-
+other directory, e.g. D:\MySpice, you may simply copy the contents from C:\Spice to the
+new location. This becomes possible because the paths to the code models or spinit are
+set relative to ngspice.exe. As an alternative, you may edit make-install-vngspice.bat and
+alter the following entries from:
+set dst=c:\Spice
+set dst=c:\Spice64
+to
+set dst=D:\MySpice
+set dst=D:\MySpice64
+To use the FFTW-3 library for a 'calibrated' fast Fourier analysis with the fft command
+(see 17.5.30), download the precompiled MS Windows FFTW distribution (either 32
+bit or 64 bit) from http://www.fftw.org/install/windows.html. Extract at least the files
+fftw3.h, libfftw3-3.def, and libfftw3-3.dll to directory ../../fftw-3.3-dll32 (from 32 bit fftw3
+for ngspice 32 bit), or to directory ../../fftw-3.3-dll64 (from 64 bit fftw3 for ngspice 64 bit).
+So both directories are at the same level as the ngspice directory. Then select the MS
+VC++ project file visualc/vngspice-fftw.vcxproj for starting VC++, select the appropriate
+configuration and platform, and off you go. This is how the installed directory tree looks
+like:

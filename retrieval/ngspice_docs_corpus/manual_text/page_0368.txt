@@ -1,0 +1,37 @@
+368 CHAPTER 16. STARTING NGSPICE
+16.16.3 set ngdebug
+The command set ngdebug , if set in .spiceinit (spice.rc) provides some additional warn-
+ing messages. If ngspice has write access to the current directory, 3 or 4 files are saved to
+that directory, showing the netlist at specific stages during parsing. Each file contain two
+parts, the netlist without comment lines, followed by the same netlist including all com-
+ment lines. debug-out.txt is available after pre-processing the netlist. debug-out2.txt
+shows the netlist after parameter and subcircuit expansion. debug-out3.txt lists the
+final netlist. debug-out-mc.txt is issued, when the netlist is reloaded after a reset or
+mc_source command.
+During a transient simulation a vector 'speedcheck' is generated in the current tran plot.
+The independent variable is the scale vector 'time', the dependent variable is the wall clock
+time with a resolution of about 100 ms. So you may monitor the simulation progress of a
+(lengthy) transient simulation and detect critical (simulated) times where the simulation
+may be slowed down.
+16.16.4 miscellaneous
+Debugging the equations of a B source are described in chapt. 5.4.
+Compiling ngspice with the ./configure flag --enable-ftedebug or (for MS Visual Studio:
+adding a preprocessor flag FTEDEBUG) will enable some additional warning messages.
+Compiling ngspice with the ./configure flag --enable-stepdebug or (for MS Visual Stu-
+dio: adding a preprocessor flag STEPDEBUG) yields a very powerful tool for analysing the
+steps of a transient simulation. The amount of messages printed however is overwhelming
+and may be interpreted by an insider only.
+16.17 Reporting bugs and errors
+Ngspice is a complex piece of software. The source code contains over 1500 files. Various
+models and simulation procedures are provided, some of them not used and tested inten-
+sively. Therefore errors may be found, some still evolving from the original spice3f5 code,
+others introduced during the ongoing code enhancements.
+If you happen to experience an error during the usage of ngspice, please send a report to
+the development team. Ngspice is hosted on SourceForge, the preferred place to post a
+bug report is the ngspice bug tracker. We would prefer to have your bug tested against the
+actual source code available at Git, but of course a report using the most recent ngspice
+release is welcome! Please provide the following information with your report:
+Ngspice version
+Operating system
+Small input file to reproduce the bug
+Actual output versus the expected output

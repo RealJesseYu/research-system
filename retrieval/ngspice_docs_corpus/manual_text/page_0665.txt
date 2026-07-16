@@ -1,0 +1,39 @@
+31.2. ELEMENTARY DEVICES 665
+31.2.2 Capacitor - Fixed capacitor
+31.2.2.1 Capacitor instance parameters
+# Name Direction Type Description
+1 capacitance InOut real Device capacitance
+1 cap InOut real Device capacitance
+1 c InOut real Device capacitance
+2 ic InOut real Initial capacitor voltage
+8 temp InOut real Instance operating temperature
+9 dtemp InOut real Instance temperature difference
+from the rest of the circuit
+3 w InOut real Device width
+4 l InOut real Device length
+11 m InOut real Parallel multiplier
+10 scale InOut real Scale factor
+5 sens_cap In flag flag to request sens. WRT cap.
+6 i Out real Device current
+7 p Out real Instantaneous device power
+206 sens_dc Out real dc sensitivity
+201 sens_real Out real real part of ac sensitivity
+202 sens_imag Out real dc sens. & imag part of ac sens.
+203 sens_mag Out real sensitivity of ac magnitude
+204 sens_ph Out real sensitivity of ac phase
+205 sens_cplx Out complex ac sensitivity
+31.2.2.2 Capacitor model parameters
+# Name Direction Type Description
+112 cap InOut real Model capacitance
+101 cj InOut real Bottom Capacitance per area
+102 cjsw InOut real Sidewall capacitance per meter
+103 defw InOut real Default width
+113 defl InOut real Default length
+105 narrow InOut real width correction factor
+106 short InOut real length correction factor
+107 tc1 InOut real First order temp. coefficient
+108 tc2 InOut real Second order temp. coefficient
+109 tnom InOut real Parameter measurement temperature
+110 di InOut real Relative dielectric constant
+111 thick InOut real Insulator thickness
+104 c In flag Capacitor model

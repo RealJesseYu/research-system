@@ -1,0 +1,29 @@
+Chapter 11
+MOSFETs
+Ngspice supports all the original MOSFET models present in SPICE3f5 and almost all
+the newer ones that have been published and made open-source. Both bulk and SOI
+(Silicon on Insulator) models are available. When compiled with the cider option, ngspice
+implements the four terminals numerical model that can be used to simulate a MOS-
+FET (please refer to numerical modeling documentation for additional information and
+examples).
+11.1 MOSFET devices
+General form:
+MXXXXXXX nd ng ns nb mname <m = val > <l = val > <w = val >
++ < ad = val > < as = val > < pd = val > < ps = val > < nrd = val >
++ < nrs = val > < off > < ic = vds , vgs , vbs > < temp =t >
+Examples:
+M1 24 2 0 20 TYPE1
+M31 2 17 6 10 MOSN L =5 U W =2 U
+M1 2 9 3 0 MOSP L =10 U W =5 U AD =100 P AS =100 P PD =40 U PS =40 U
+Note the suffixes in the example: the suffix 'u' specifies microns (1e-6 m) and 'p' sq-
+microns (1e-12 m2).
+The instance card for MOS devices starts with the letter ' M' .nd, ng, ns, and nb are the
+drain, gate, source, and bulk (substrate) nodes, respectively. mname is the model name and
+m is the multiplicity parameter, which simulates ' m' paralleled devices. All MOS models
+support the ' m' multiplier parameter. Instance parameters l and w, channel length and
+width respectively, are expressed in meters. The drain and source diffusion areas are ad
+and as, in square meters ( m2).
+If any of l, w, ad, or as are not specified, default values are used. The use of defaults
+simplifies input file preparation, as well as the editing required if device geometries are to
+be changed. pd and ps are the perimeters of the drain and source junctions, in meters. nrd
+161

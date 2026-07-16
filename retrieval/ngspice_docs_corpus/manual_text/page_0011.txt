@@ -1,0 +1,36 @@
+CONTENTS 11
+12.2.9 Filesource (PWL sourced from file) . . . . . . . . . . . . . . . . . . 197
+12.2.10 Multi_input_PWL_block . . . . . . . . . . . . . . . . . . . . . . . 199
+12.2.11 Analog Switch . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 200
+12.2.12 Alternative Analog Switch . . . . . . . . . . . . . . . . . . . . . . . 201
+12.2.13 Zener Diode . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 202
+12.2.14 Current Limiter . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 204
+12.2.15 Hysteresis Block . . . . . . . . . . . . . . . . . . . . . . . . . . . . 206
+12.2.16 Differentiator . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 208
+12.2.17 Integrator . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 209
+12.2.18 S-Domain Transfer Function . . . . . . . . . . . . . . . . . . . . . . 211
+12.2.19 PWL Transfer Function . . . . . . . . . . . . . . . . . . . . . . . . 214
+12.2.20 Slew Rate Block . . . . . . . . . . . . . . . . . . . . . . . . . . . . 216
+12.2.21 Inductive Coupling . . . . . . . . . . . . . . . . . . . . . . . . . . . 217
+12.2.22 Magnetic Core . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 218
+12.2.23 Controlled Sine Wave Oscillator . . . . . . . . . . . . . . . . . . . . 221
+12.2.24 Controlled Triangle Wave Oscillator . . . . . . . . . . . . . . . . . . 222
+12.2.25 Controlled Square Wave Oscillator . . . . . . . . . . . . . . . . . . 224
+12.2.26 Controlled One-Shot . . . . . . . . . . . . . . . . . . . . . . . . . . 225
+12.2.27 Capacitance Meter . . . . . . . . . . . . . . . . . . . . . . . . . . . 228
+12.2.28 Inductance Meter . . . . . . . . . . . . . . . . . . . . . . . . . . . . 228
+12.2.29 Memristor . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 229
+12.2.30 2D table model . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 230
+12.2.31 3D table model . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 232
+12.2.32 Simple Diode Model . . . . . . . . . . . . . . . . . . . . . . . . . . 234
+12.2.33 Analog delay . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 236
+12.2.34 Potentiometer . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 237
+12.3 Hybrid Models . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 238
+12.3.1 Digital-to-Analog Node Bridge . . . . . . . . . . . . . . . . . . . . . 238
+12.3.2 Analog-to-Digital Node Bridge . . . . . . . . . . . . . . . . . . . . . 240
+12.3.3 Bidirectional Analog/Digital Node Bridge . . . . . . . . . . . . . . 241
+12.3.4 Controlled Digital Oscillator . . . . . . . . . . . . . . . . . . . . . . 245
+12.3.5 Node bridge from digital to real with enable . . . . . . . . . . . . . 246
+12.3.6 A Z**-1 block working on real data . . . . . . . . . . . . . . . . . . 246
+12.3.7 A gain block for event-driven real data . . . . . . . . . . . . . . . . 247
+12.3.8 Node bridge from real to analog voltage . . . . . . . . . . . . . . . 248

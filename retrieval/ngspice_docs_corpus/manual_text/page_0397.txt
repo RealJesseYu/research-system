@@ -1,0 +1,43 @@
+17.5. COMMANDS 397
+• You can enclose a history substitution in braces to prevent it from absorbing the
+following characters. In this case the entire substitution except for the starting
+'!' must be within the braces. For example, suppose that you previously issued
+the command cp accounts ../money . Then the command !cps looks for a previous
+command starting with cps while the command !{cp}s turns into a command cp
+accounts ../moneys .
+Some characters are handled specially as follows:
+~ Expands to the home directory
+* Matches any string of characters in a filename
+? Matches any single character in a filename
+[] Matches any of the characters enclosed in a filename
+- Used within [] to specify a range of characters. For example, [b-k] matches on any
+character between and including 'b' through to 'k'.
+^ If the ^ is included within [] as the first character, then it negates the following
+characters matching on anything but those. For example, [^agm] would match on
+anything other than 'a', 'g' and 'm'. [^a-zA-Z] would match on anything other
+than an alphabetic character.
+The wildcard characters *, ?, [, and ] can be used, but only if you unset noglob first. This
+makes them rather useless for typing algebraic expressions, so you should set noglob again
+after you are done with wildcard expansion.
+When the environment variable HOME exists (on Unix, Linux, or CYGWIN), history
+permanently stores previous command lines in the file $HOME/._ngspice_history. When
+this variable does not exist (typically on Windows when the readline library is not officially
+installed), the history file is called .history and put in the current working directory.
+The history command is part of the readline or editline package. The readline pro-
+gram provides a command line editor that is configurable through the file .inputrc.
+The path to this configuration file is either found in the shell variable INPUTRC, or
+it is (on Unix/Linux/CYGWIN) the file ~/.inputrc in the user's home directory. On
+Windows systems, the configuration file is /Users/<username>/.inputrc, unless the read-
+line library was officially installed. In that case the filename is taken from the Win-
+dows registry and points to a location that the user specified during installation. See
+https://web.archive.org/web/20190527085247/https://tiswww.case.edu/php/chet/readline/rltop.html
+for detailed documentation. Some useful commands are below.
+Left/Right arrow Move one character to the left or right
+Home/End Move to beginning or end of line
+Up/Down arrow Cycle through the history buffer
+C-_- Undo last editing command
+C-r Incremental search backward
+TAB completion of a file name
+C-ak Erase the command line (kill)
+C-y Retrieve last kill (yank)
+C-u Erase from cursor to start of line

@@ -1,0 +1,42 @@
+62 CHAPTER 2. CIRCUIT DESCRIPTION
+2.9.4 Symbol scope
+All subcircuit and model names are considered global and must be unique. The .param
+symbols that are defined outside of any .subckt ... .ends section are global. Inside such
+a section, the pertaining params: symbols and any .param assignments are considered
+local: they mask any global identical names, until the .ends line is encountered. You
+cannot reassign to a global number inside a .subckt, a local copy is created instead.
+Scope nesting works up to a level of 10. For example, if the main circuit calls A that has
+a formal parameter xx, A calls B that has a param. xx, and B calls C that also has a
+formal param. xx, there will be three versions of 'xx' in the symbol table but only the
+most local one - belonging to C - is visible.
+2.9.5 Syntax of expressions
+<expr> ( optional parts within [...] )
+An expression may be one of:
+< atom > where < atom > is either a spice number or an identifier
+< unary - operator > < atom >
+< function - name > ( < expr > [ , < expr > ...] )
+< atom > < binary - operator > < expr >
+( < expr > )
+As expected, atoms, built-in function calls and stuff within parentheses are evaluated
+before the other operators. The operators are evaluated following a list of precedence
+close to the one of the C language. For equal precedence binary ops, evaluation goes left
+to right. Functions operate on real values only!
+Operator Alias Precedence Description
+- 1 unary -
+! 1 unary not
+** ^ 2 power, like pwr
+* 3 multiply
+/ 3 divide
+% 3 modulo
+\ 3 integer divide
++ 4 add
+- 4 subtract
+== 5 equality
+!= <> 5 non-equal
+<= 5 less or equal
+>= 5 greater or equal
+< 5 less than
+> 5 greater than
+&& 6 boolean and
+|| 7 boolean or
+c?x:y 8 ternary operator

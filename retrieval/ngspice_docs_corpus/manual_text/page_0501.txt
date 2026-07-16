@@ -1,0 +1,30 @@
+20.5. EXAMPLES 501
+20.5 examples
+20.5.1 Active capacitor measurement
+This is a crude implementation of a circuit described by Marc Kodrnja, in his PhD thesis
+that was found on the Internet. The simulation outputs a graph representing virtual
+capacitance versus a control voltage. The function C = f (V ) is calculated point by
+point. For each control voltage value, the virtual capacitance is calculated in a frequency
+simulation. A control value that should be as close to zero as possible is calculated to
+assess simulation success.
+20.5.1.1 Invocation:
+This script can be invoked by typing wish testbench1.tcl
+20.5.1.2 testbench1.tcl
+This line loads the simulator capabilities
+package require spice
+This is a comment (Quite useful if you intend to live with other Human beings)
+# Test of virtual capacitor circuit
+# Vary the control voltage and log the resulting ca pac ita nce
+A good example of the calling of a SPICE command: precede it with spice::
+spice :: source " testCapa . cir "
+This reminds that any regular TCL command is of course possible
+set n 30 set dv 0.2
+set vmax [ expr $dv /2]
+set vmin [ expr -1 * $dv /2]
+set pas [ expr $dv / $n ]
+BLT vector is the structure used to manipulate data. Instantiate the vectors
+blt :: vector create Ctmp
+blt :: vector create Cim
+blt :: vector create check
+blt :: vector create Vcmd
+Data is, in my coding style, plotted into graph objects. Instantiate the graph

@@ -1,0 +1,45 @@
+12.2. ANALOG MODELS 237
+the input terminal cntrl. Parameter delay is ignored. If has_delay_cnt has
+been set to FALSE, then the signal is delayed by the time value given by delay .
+Example SPICE Usage:
+adelay1 in out cntrl mydel1
+.model mydel1 delay(delay=2m buffer_size=2048)
+adelay2 in out cntrl mydel2
+.model mydel2 delay(has_delay_cnt=TRUE delmin=5u delmax=8u)
+Due to the fact that time steps are not constant during a transient simulation, but op-
+timized by the simulator, the delayed values are sometimes slightly deviating from the
+original, depending on the number of steps. So in a sinusoidal wave we will see a distortion
+< 0.3% for 1000 steps per sin cycle.
+12.2.34 Potentiometer
+NAME_TABLE:
+Spice_Model_Name: potentiometer
+C_Function_Name: cm_potentiometer
+Description: "potentiometer"
+PORT_TABLE:
+Port_Name: r0 wiper
+Description: "pot connection 0" "wiper contact"
+Direction: inout inout
+Default_Type: g g
+Allowed_Types: [g] [g]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PORT_TABLE:
+Port_Name: r1
+Description: "pot connection 1"
+Direction: inout
+Default_Type: g
+Allowed_Types: [g]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: position
+Description: "position of wiper connection (0.0 to 1.0)"
+Data_Type: real
+Default_Value: 0.5
+Limits: [0.0 1.0]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:

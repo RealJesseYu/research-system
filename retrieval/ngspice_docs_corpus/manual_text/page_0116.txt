@@ -1,0 +1,30 @@
+116CHAPTER 5. NON-LINEAR DEPENDENT SOURCES (BEHA VIORAL SOURCES)
+Expression may be an equation or an expression containing node voltages or branch
+currents (in the form of i(vm)) and any other terms as given for the B source and described
+in Chapt. 5.1. It may contain parameters ( 2.9.1) and special variables ( 5.1.2). m is an
+optional multiplier to the output current. val may be a numerical value or an expression
+according to 2.9.5 containing only references to other parameters (no node voltages or
+branch currents!), because it is evaluated before the simulation commences.
+5.3.2 V ALUE
+Optional syntax:
+GXXXXXXX n + n - value = ' expr ' <m = val >
+Examples:
+G51 55 225 value = 'V (3)* V (3) - Offs '
+The '=' sign is optional.
+5.3.3 TABLE
+A data entry by a tabulated listing is available with syntax similar to the E-Source (see
+Chapt. 5.2.3).
+Syntax for data entry from table:
+Gxxx n1 n2 TABLE { expression } =
++ ( x0 , y0 ) ( x1 , y1 ) ( x2 , y2 ) <m = val >
+Example (simple comparator with current output and voltage control):
+GCMP 0 11 TABLE { V (10 ,9)} = ( -5 MV , 0 V ) (5 MV , 5 V )
+R 11 0 1 k
+m is an optional multiplier to the output current. val may be a numerical value or an
+expression according to 2.9.5 containing only references to other parameters (no node
+voltages or branch currents!), because it is evaluated before the simulation commences.
+An '=' sign may follow the keyword TABLE.
+5.3.4 POLY
+see E-Source at Chapt. 5.5.
+5.3.5 LAPLACE
+See E-Source, Chapt. 5.2.5 , for an equivalent code model replacement.

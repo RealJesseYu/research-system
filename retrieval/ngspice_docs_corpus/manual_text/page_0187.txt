@@ -1,0 +1,42 @@
+12.2. ANALOG MODELS 187
+12.2.3 Multiplier
+NAME_TABLE:
+C_Function_Name: cm_mult
+Spice_Model_Name: mult
+Description: "multiplier block"
+PORT_TABLE:
+Port_Name: in out
+Description: "input vector" "output"
+Direction: in out
+Default_Type: v v
+Allowed_Types: [v,vd,i,id,vnam] [v,vd,i,id]
+Vector: yes no
+Vector_Bounds: [2 -] -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: in_offset in_gain
+Description: "input offset vector" "input gain vector"
+Data_Type: real real
+Default_Value: 0.0 1.0
+Limits: - -
+Vector: yes yes
+Vector_Bounds: in in
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: out_gain out_offset
+Description: "output gain" "output offset"
+Data_Type: real real
+Default_Value: 1.0 0.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Description: This function is a multiplier block with 2-to-N input ports. Individual
+gains and offsets can be applied to each input and to the output. Each input
+is added to its respective offset and then multiplied by its gain. The results are
+multiplied along with the output gain and are added to the output offset. This
+model will operate in DC, AC, and Transient analysis modes. However, in ac
+analysis it is important to remember that results are invalid unless only one input
+of the multiplier is connected to a node that i connected to an AC signal (this is
+exemplified by the use of a multiplier to perform a potentiometer function: one
+input is DC, the other carries the AC signal).

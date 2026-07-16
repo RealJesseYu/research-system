@@ -1,0 +1,8 @@
+120CHAPTER 5. NON-LINEAR DEPENDENT SOURCES (BEHA VIORAL SOURCES)
+POLY(ND) Specifies the number of dimensions of the polynomial. The number of con-
+trolling sources must be equal to the number of dimensions.
+(N+) and (N-) nodes are output nodes. Positive current flows from the (+) node through
+the source to the (-) node.
+V1 (V2 V3 ...) are the controlling voltage sources. Control variable is the current through
+these sources.
+P0 (P1...) are the coefficients, as have been described in 5.5.1.

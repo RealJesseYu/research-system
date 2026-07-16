@@ -1,0 +1,26 @@
+58 CHAPTER 2. CIRCUIT DESCRIPTION
+2.5.3 Subcircuit Calls
+General form:
+XYYYYYYY N1 < N2 N3 ... > SUBNAM
+Examples:
+X1 2 4 17 3 1 MULTI
+Subcircuits are used in ngspice by specifying pseudo-elements beginning with the letter
+X, followed by the circuit nodes to be used in expanding the subcircuit. If you use
+parameters, the subcircuit call will be modified (see 2.9.3).
+2.6 .GLOBAL
+General form:
+. GLOBAL nodename1 [ nodename2 ... ]
+Examples:
+. GLOBAL gnd vcc
+Nodes defined in the .GLOBAL statement are available to all circuit and subcircuit blocks
+independently from any circuit hierarchy. After parsing the circuit, these nodes are ac-
+cessible from top level.
+2.7 .INCLUDE
+General form:
+. INCLUDE filename
+Examples:
+. INCLUDE / users / spice / common / bsim3 - param . mod
+Frequently, portions of circuit descriptions will be reused in several input files, particularly
+with common models and subcircuits. In any ngspice input file, the .INCLUDE line may
+be used to copy some other file as if that second file appeared in place of the .INCLUDE
+line in the original file.

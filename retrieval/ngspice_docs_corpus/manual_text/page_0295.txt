@@ -1,0 +1,15 @@
+Chapter 14
+Digital Device Models
+14.1 U devices (basic digital building blocks)
+If PS compatibility mode is set, ngspice supports .subckt statements which contain entirely
+U* instances of digital gates, flip-flops, latches, LOGICEXP and PINDLY behavioral
+primitives (see chapter 14.1.2 for the list), and timing models. Typical rise/fall delays are
+estimated from the timing models and PINDLY statements. CONSTRAINT primitives
+and io models are ignored. Other U* instances (such as RAM, ROM, STIM and PLAs)
+in a .subckt are not supported, and such .subckt will not be converted to XSPICE digital
+primitives.
+These U devices are not meant to immediately describe digital circuits like the 74xx or
+40xx series. However they are used in subcircuits to generate models for such circuits
+(see chapter 14.2). Their syntax is mostly compatible to the Micro-Cap and PSPICE
+simulators.
+295

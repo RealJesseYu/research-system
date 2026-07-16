@@ -1,0 +1,35 @@
+342 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+vmeas#branch
+after simulation.
+15.7.3 Using option 'savecurrents'
+Current measurement by reading internal current data
+* measure current through R1 and R2
+V1 1 0 1
+R1 1 0 5
+R2 1 0 10
+. options s a v e c u r r e n t s
+The option savecurrents will add .save lines ( 15.6.1) like
+.save @r1[i]
+.save @r2[i]
+to your input file information read during circuit parsing. These newly created vectors
+contain the terminal currents of the devices R1 and R2.
+You will find information of the nomenclature in Chapt. 31, also how to plot these vectors.
+The following devices are supported: M, J, Q, D, R, C, L, B, F, G, W, S, I (see 2.1.3).
+For MOSFETdevices only a subset of MOS1 to MOS9 current parameters are included
+per default (but see options below). Devices in subcircuits are supported as well. The
+advantage of the data obtained by .options savecurrents is that no extra nodes are
+required, because the data are retrieved from internal nodes already existing.
+This option however cannot be used in AC simulations, because complex data are not
+supported. Vectors thus created will be empty after an AC simulation. So for AC you
+might use one of the two methods (.probe or series voltage source) as previously described.
+Be careful when choosing savecurrents in larger circuits, because 1 to 4 additional
+output vectors are created per device and this may consume lots of memory.
+Also note that the data thus retrieved may be delayed by on time step after a transient
+simulation.
+For MOS1, BSIM3 and BSIM4 three special options are available, listing all currents as
+described in chapters 31.6.1, 31.6.8 and 31.6.9 of the ngspice manual:
+Current measurement for MOS transistors with BSIM3 or BSIM4 models:
+* measure all currents of MOS1 , BSIM3 and BSIM4 tra nsi sto rs
+. options s a v e c u r r e n t s _ m o s 1
+. options s a v e c u r r e n t s _ b s i m 3
+. options s a v e c u r r e n t s _ b s i m 4

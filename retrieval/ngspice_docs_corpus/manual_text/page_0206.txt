@@ -1,0 +1,46 @@
+206CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Data_Type: real
+Default_Value: 1.0e-9
+Limits: [1.0e-15 -]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: The Current Limiter models the behavior of an operational amplifier or
+comparator device at a high level of abstraction. All of its pins act as inputs; three
+of the four also act as outputs. The model takes as input a voltage value from the
+in connector. It then applies an offset and a gain, and derives from it an equivalent
+internal voltage ( veq), which it limits to fall between pos_pwr and neg_pwr. If veq
+is greater than the output voltage seen on the out connector, a sourcing current
+will flow from the output pin. Conversely, if the voltage is less than vout, a sinking
+current will flow into the output pin.
+Depending on the polarity of the current flow, either a sourcing or a sinking re-
+sistance value ( r_out_source, r_out_sink) is applied to govern the vout/i_out
+relationship. The chosen resistance will continue to control the output current until
+it reaches a maximum value specified by either i_limit_source or i_limit_sink.
+The latter mimics the current limiting behavior of many operational amplifier out-
+put stages.
+During all operation, the output current is reflected either in the pos_pwr connector
+current or the neg_pwr current, depending on the polarity of i_out. Thus, realistic
+power consumption as seen in the supply rails is included in the model.
+The user-specified smoothing parameters relate to model operation as follows: v_pwr_range
+controls the voltage below vpos_pwr and above vneg_pwr inputs beyond which
+veq = gain (vin + vof f set) is smoothed; i_source_range specifies the current be-
+low i_limit_source at which smoothing begins, as well as specifying the cur-
+rent increment above i_out=0.0 at which i_pos_pwr begins to transition to zero;
+i_sink_range serves the same purpose with respect to i_limit_sink and i_neg_pwr
+that i_source_range serves for i_limit_source and i_pos_pwr; r_out_domain
+specifies the incremental value above and below ( veq-vout)=0.0 at which r_out will
+be set to r_out_source and r_out_sink, respectively. For values of ( veq-vout)
+less than r_out_domain and greater than -r_out_domain, r_out is interpolated
+smoothly between r_out_source and r_out_sink.
+Example SPICE Usage:
+a10 3 10 20 4 amp3
+.
+.
+.model amp3 ilimit(in_offset=0.0 gain=16.0 r_out_source=1.0
++ r_out_sink=1.0 i_limit_source=1e-3
++ i_limit_sink=10e-3 v_pwr_range=0.2
++ i_source_range=1e-6 i_sink_range=1e-6
++ r_out_domain=1e-6)
+12.2.15 Hysteresis Block
+NAME_TABLE:

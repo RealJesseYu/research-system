@@ -1,0 +1,38 @@
+11.2. MOSFET MODELS (NMOS/PMOS) 171
+.model n1 nmos level=49 version=3.3.0 tox=10n nch=1e17 nsub=5e16
+.model p1 pmos level=49 version=3.3.0 tox=10n nch=1e17 nsub=5e16
+BSIM3v3.2.4 supports the extra model parameter lmlt on channel length scaling and is
+still used by many foundries today.
+The older BSIM3 models will not be supported, they are made available for reference
+only.
+11.2.11 BSIM4 model (levels 14, 54)
+This is the newest class of the BSIM family and introduces noise modeling and extrinsic
+parasitics. BSIM4, as the extension of BSIM3 model, addresses the MOSFET physi-
+cal effects into sub-100nm regime. It is a physics-based, accurate, scalable, robust and
+predictive MOSFET SPICE model for circuit simulation and CMOS technology devel-
+opment. It is developed by the BSIM Research Group in the Department of Electrical
+Engineering and Computer Sciences (EECS) at the University of California, Berkeley (see
+BSIM4 home page ). BSIM4 has a long revision history. The models offered by ngspice
+are summarized below.
+Release Date Notes Version flag
+BSIM4.5.0 07/29/2005 ** 4.5.0
+BSIM4.6.5 22/09/2009 ** 4.6.5
+BSIM4.7.0 04/08/2011 ** 4.7
+BSIM4.8.2 10/01/2020 ** 4.8
+**) Parallel processing using OpenMP support is available for this model.
+Details of any revision are to be found in the Berkeley user's manuals, a pdf download of
+the most recent edition is to be found here.
+We recommend that you use only the most recent BSIM4 model (version 4.8.2), because
+it contains corrections to all known bugs. To achieve that, change the version parameter
+in your modelcard files to
+VERSION = 4.8.2
+If no version number is given in the .model card, this (newest) version is selected as the
+default. The older models will typically not be supported, they are made available for
+reference only.
+The basic model card, using only the intrinsic default parameters, already delivers rea-
+sonable device characteristics.
+.model n1 nmos level=54 version=4.8.2
+.model p1 pmos level=54 version=4.8.2
+11.2.12 BSIMSOI models (levels 10, 58, 55, 56, 57)
+BSIMSOI is a SPICE compact model for SOI (Silicon-On-Insulator) circuit design, created
+by University of California at Berkeley . This model is formulated on top of the BSIM3

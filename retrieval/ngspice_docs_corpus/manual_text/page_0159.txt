@@ -1,0 +1,7 @@
+10.2. MESFET MODELS (NMF/PMF) 159
+10.2.5 hfet2
+level6
+The HFET level 2 model is a simplified version of the level 1 model. The model is
+optimized for speed and is suitable for simulation of digital circuits. To increase the
+speed, some of the features included in the level 1 model is not implemented for the level
+2 model.

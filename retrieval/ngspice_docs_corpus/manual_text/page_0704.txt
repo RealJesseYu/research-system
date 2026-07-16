@@ -1,0 +1,47 @@
+704 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+124 muz InOut real Zero field mobility at VDS=0 VGS=VTH
+125 x2mz InOut real VBS dependence of muz
+126 lx2mz InOut real Length dependence of x2mz
+127 wx2mz InOut real Width dependence of x2mz
+128 mus InOut real Mobility at VDS=VDD VGS=VTH, channel length modulation
+129 lmus InOut real Length dependence of mus
+130 wmus InOut real Width dependence of mus
+131 x2ms InOut real VBS dependence of mus
+132 lx2ms InOut real Length dependence of x2ms
+133 wx2ms InOut real Width dependence of x2ms
+134 x3ms InOut real VDS dependence of mus
+135 lx3ms InOut real Length dependence of x3ms
+136 wx3ms InOut real Width dependence of x3ms
+137 u0 InOut real VGS dependence of mobility
+138 lu0 InOut real Length dependence of u0
+139 wu0 InOut real Width dependence of u0
+140 x2u0 InOut real VBS dependence of u0
+141 lx2u0 InOut real Length dependence of x2u0
+142 wx2u0 InOut real Width dependence of x2u0
+143 u1 InOut real VDS depence of mobility, velocity saturation
+144 lu1 InOut real Length dependence of u1
+145 wu1 InOut real Width dependence of u1
+146 x2u1 InOut real VBS depence of u1
+147 lx2u1 InOut real Length depence of x2u1
+148 wx2u1 InOut real Width depence of x2u1
+149 x3u1 InOut real VDS depence of u1
+150 lx3u1 InOut real Length dependence of x3u1
+151 wx3u1 InOut real Width depence of x3u1
+152 n0 InOut real Subthreshold slope
+153 ln0 InOut real Length dependence of n0
+154 wn0 InOut real Width dependence of n0
+155 nb InOut real VBS dependence of subthreshold slope
+156 lnb InOut real Length dependence of nb
+157 wnb InOut real Width dependence of nb
+158 nd InOut real VDS dependence of subthreshold slope
+159 lnd InOut real Length dependence of nd
+160 wnd InOut real Width dependence of nd
+161 tox InOut real Gate oxide thickness in um
+162 temp InOut real Temperature in degree Celcius
+163 vdd InOut real Supply voltage to specify mus
+164 cgso InOut real Gate source overlap capacitance per unit channel width(m)
+165 cgdo InOut real Gate drain overlap capacitance per unit channel width(m)
+166 cgbo InOut real Gate bulk overlap capacitance per unit channel length(m)
+167 xpart InOut real Flag for channel charge partitioning
+168 rsh InOut real Source drain diffusion sheet resistance in ohm per square
+169 js InOut real Source drain junction saturation current per unit area

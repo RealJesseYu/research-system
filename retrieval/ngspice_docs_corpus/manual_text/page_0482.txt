@@ -1,0 +1,38 @@
+482CHAPTER 19. NGSPICE AS SHARED LIBRARY OR DYNAMIC LINK LIBRARY
+vecinfoall
+typedef struct vecinfoall
+{
+/* the plot */
+char * name ;
+char * title ;
+char * date ;
+char * type ;
+int veccount ;
+/* the data as an array of vecinfo with
+length equal to the number of vectors
+in the plot */
+pvecinfo * vecs ;
+} vecinfoall , * p vec in foa ll ;
+The next two structures are used by the callback function SendData (see 19.3.3.4). Each
+time a new data point (e.g. time value and simulation output value(s)) is added to
+the vector structure of the current plot, the function SendData is called by ngspice,
+among its parameters the actual pointer pvecvaluesall, which contains an array of pointers
+to pvecvalues, one for each vector. Logic return values are of type NG_BOOL, which is
+typedefed to int.
+vecvalues
+typedef struct vecvalues {
+char * name ; /* name of a specific vector */
+double creal ; /* actual data value */
+double cimag ; /* actual data value */
+NG_BOOL is_scale ; /* if ' name ' is the scale vector */
+NG_BOOL is_complex ; /* if the data are complex numbers */
+} vecvalues , * pvecvalues ;
+Pointer vecvaluesall to be found as parameter to callback function SendData.
+vecvaluesall
+typedef struct v e c v a l u e s a l l {
+int veccount ; /* number of vectors in plot */
+int vecindex ; /* index of actual set of vectors , i . e .
+the number of accepted data points */
+pvecvalues * vecsa ; /* values of actual set of vectors ,
+indexed from 0 to veccount - 1 */
+} vecvaluesall , * p v e c v a l u e s a l l ;

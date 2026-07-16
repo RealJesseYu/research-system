@@ -1,0 +1,45 @@
+600 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+double cm_ramp_factor()
+cm_analog_integrate() takes as input the integrand (the input to the integrator)
+and produces as output the integral value and the partial of the integral with respect
+to the integrand. The integration itself is with respect to time, and the pointer to
+the integral value must have been previously allocated using cm_analog_alloc() and
+*cm_analog_get_ptr(). This is required because of the need for the integrate routine
+itself to have access to previously-computed values of the integral.
+cm_analog_converge() takes as an input the address of a state variable that was pre-
+viously allocated using cm_analog_alloc() and *cm_analog_get_ptr(). The function
+itself serves to notify the simulator that for each time-step taken, that variable must be
+iterated upon until it converges.
+cm_analog_not_converged() is a function that can and should be called by an analog
+model whenever it performs internal limiting of one or more of its inputs to aid in reaching
+convergence. This causes the simulator to call the model again at the current time-point
+and continue solving the circuit matrix. A new time-point will not be attempted until
+the code model returns without calling the cm_analog_not_converged() function. For
+circuits that have trouble reaching a converged state (often due to multiple inputs changing
+too quickly for the model to react in a reasonable fashion), the use of this function is
+virtually mandatory.
+cm_analog_auto_partial() may be called at the end of a code model function in lieu of
+calculating the values of partial derivatives explicitly in the function. When this function
+is called, no values should be assigned to the PARTIAL macro since these values will be
+computed automatically by the simulator. The automatic calculation of partial derivatives
+can save considerable time in designing and coding a model, since manual computation of
+partial derivatives can become very complex and error-prone for some models. However,
+the automatic evaluation may also increase simulation run time significantly. Function
+cm_analog_auto_partial() causes the model to be called N additional times (for a
+model with N inputs) with each input varied by a small amount (1e-6 for voltage inputs
+and 1e-12 for current inputs). The values of the partial derivatives of the outputs with
+respect to the inputs are then approximated by the simulator through divided difference
+calculations.
+cm_analog_ramp_factor() will then return a value from 0.0 to 1.0 that indicates whether
+or not a ramp time value requested in the SPICE analysis deck (with the use of .option
+ramptime=<duration>) has elapsed. If the RAMPTIME option is used, then cm_analog_ramp_factor
+returns a 0.0 value during the DC operating point solution and a value that is between 0.0
+and 1.0 during the ramp. A 1.0 value is returned after the ramp is over or if the RAMP-
+TIME option is not used. This value is intended as a multiplication factor to be used with
+all model outputs that would ordinarily experience a 'power-up' transition. Currently, all
+sources within the simulator are automatically ramped to the 'final' time-zero value if a
+RAMPTIME option is specified.
+28.7.2.5 Message Handling Functions
+char *cm_message_get_errmsg()
+int cm_message_send(char *msg)
+char *msg; /* The message to output. */

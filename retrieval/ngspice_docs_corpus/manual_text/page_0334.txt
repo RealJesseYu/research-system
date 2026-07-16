@@ -1,0 +1,41 @@
+334 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+For more discussion on internal device data, e.g. @m1[id], see Appendix, Chapt. 31.1. If
+you want to save internal data in addition to the default vector set, add the parameter
+all to the additional vectors to be saved. If the command .save vm(out) is given, and
+you store the data in a rawfile, only the original data v(out) are stored. The request for
+storing the magnitude is ignored, because this may be added later during rawfile data
+evaluation with ngspice. See also the section on the interactive command interpreter
+(Chapt. 17.5) for information on how to use the rawfile.
+15.6.2 .PRINT Lines
+General form:
+. print prtype ov1 < ov2 ... ov8 >
+Examples:
+. print tran v (4) i ( vin )
+. print dc v (2) i ( vsrc ) v (23 , 17)
+. print ac vm (4 , 2) vr (7) vp (8 , 3)
+The .print line defines the contents of a tabular listing of one to eight output variables.
+prtype is the type of the analysis ( DC, AC, TRAN, NOISE, or DISTO) for which the specified
+outputs are desired. The form for voltage or current output variables is the same as given
+in the previous section for the print command; Spice2 restricts the output variable to
+the following forms (though this restriction is not enforced by ngspice):
+V(N1<,N2>) specifies the voltage difference between nodes N1 and
+N2. If N2 (and the preceding comma) is omitted,
+ground (0) is assumed. See the print command in the
+previous section for more details. For compatibility
+with SPICE2, the following five additional values can
+be accessed for the ac analysis by replacing the 'V' in
+V(N1,N2) with:
+VR Real part
+VI Imaginary part
+VM Magnitude
+VP Phase
+VDB 20log10(magnitude)
+I(VXXXXXXX) specifies the current flowing in the independent voltage
+source named VXXXXXXX. Positive current flows
+from the positive node, through the source, to the
+negative node. (Not yet implemented: For the ac
+analysis, the corresponding replacements for the letter
+I may be made in the same way as described for
+voltage outputs.)
+Output variables for the noise and distortion analyses have a different general form from
+that of the other analyses. There is no limit on the number of .print lines for each type

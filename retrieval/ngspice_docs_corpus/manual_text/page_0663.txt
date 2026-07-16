@@ -1,0 +1,30 @@
+31.2. ELEMENTARY DEVICES 663
+31.2 Elementary Devices
+31.2.1 Resistor
+31.2.1.1 Resistor instance parameters
+# Name Direction Type Description
+1 resistance (r) InOut real Resistance
+10 ac InOut real AC resistance value
+8 temp InOut real Instance operating temperature
+14 dtemp InOut real Instance temperature difference
+with the rest of the circuit
+3 l InOut real Length
+2 w InOut real Width
+12 m InOut real Multiplication factor
+16 tc InOut real First order temp. coefficient
+16 tc1 InOut real First order temp. coefficient
+17 tc2 InOut real Second order temp. coefficient
+13 scale InOut real Scale factor
+15 noisy (noise) InOut integer Resistor generate noise
+5 sens_resist In flag flag to request sensitivity WRT
+resistance
+6 i Out real Current
+7 p Out real Power
+206 sens_dc Out real dc sensitivity
+201 sens_real Out real dc sensitivity and real part of ac
+sensitivity
+202 sens_imag Out real dc sensitivity and imag part of
+ac sensitivity
+203 sens_mag Out real ac sensitivity of magnitude
+204 sens_ph Out real ac sensitivity of phase
+205 sens_cplx Out complex ac sensitivity

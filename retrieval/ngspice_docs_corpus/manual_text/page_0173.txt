@@ -1,0 +1,30 @@
+11.3. POWER MOSFET MODEL (VDMOS) 173
+The source/drain junction model, c.q. the JUNCAP2 model, is fully integrated in PSP.
+Detailes information and the most recent version of the model documentation are available
+on the the CEA-Leti web site , see also the PSP Summary .
+11.2.15.2 BSIM-BULK model
+BSIM-BULK is the successor to BSIM4, with high accuracy compared to measured data
+in all regions of operation. It features model symmetry valued for analog and RF appli-
+cations.
+11.2.15.3 BSIM-CMG model
+BSIM-CMG (Common Multi-Gate) is a compact model for the class of common multi-gate
+FETs, namely FinFETs, Nanowire and Gate-All-Around transistors.
+11.3 Power MOSFET model (VDMOS)
+The VDMOS model is a relativly simple power MOS model with 3 terminals drain, gate
+and source. Its current equations are partly based on a modified MOS1 model. The
+gate-source capacitance is set to a constant value by parameter Cgs. The drain-source
+capacitance is evaluated from parameters Cgdmax, Cgdmin, and A. The drain-source ca-
+pacitance is that of a parallel pn diode and calculated by Cjo, fc, and m. Leakage and
+breakdown are modeled by the parallel pn diodes as well, using is and other param-
+eters. A subthreshold current model is available, using a single parameter ksubthres.
+Quasi-saturation is modelled with parameters rq and vq. Mtriode may be used here as
+well.
+The thermal network of the VDMOS model is shown in Fig. 11.1.
+This model does not have a level parameter. It is invoked by the VDMOS token preceding
+the parameters on the .model line. P-channel or n-channel are selected by the model
+parameter PCHAN and NCHAN. If no flag is given, n-channel is the default. Standard
+MOS instance parameters W and L are not acknowledged because they are no design
+parameters and are not provided by the device manufacturers.
+The following 'parameters' in the .model line are no model parameters, but serve in-
+formation purposes for the user: mfg=..., Vds=..., Ron=..., and Qg=... They are
+ignored by ngspice.

@@ -1,0 +1,40 @@
+17.7. INTERNALLY PREDEFINED V ARIABLES 437
+hcopydevtype This variable specifies the type of the printer output to use in the hardcopy
+command. If hcopydevtype is not set, Postscript format is assumed. plot (5)
+is recognized as an alternative output format. When used in conjunction with
+hcopydev, hcopydevtype should specify a format supported by the printer.
+hcopyscale This is a scaling factor for the font used in hardcopy plots (between 0 and
+10).
+hcopywidth Sets width of the hardcopy plot.
+hcopyheight Sets height of the hardcopy plot.
+hcopypscolor Sets the color of the hardcopy output. If not set, black & white plotting
+is assumed with different linestyles for each output vector. A valid color integer
+value yields a colored plot background (0: black 1: white, others see below). and
+colored solid lines. This is valid for Postscript only.
+hcopypstxcolor This variable sets the color of the text in the Postscript hardcopy out-
+put. If not set, black on white background is assumed, else it will be white on black
+background. Valid colors are 0: black 1: white 2: red 3: blue 4: orange 5: green 6:
+pink 7: brown 8: khaki 9: plum 10: orchid 11: violet 12: maroon 13: turquoise 14:
+sienna 15: coral 16: cyan 17: magenta 18: gray (for smith grid) 19: gray (for smith
+grid) 20: gray (for normal grid).
+height The length of the page for asciiplot and print col .
+history The number of events to save in the history list.
+histsubst Set to enable history substitution in the command interpreter ( 17.5.38).
+inputdir The directory path of the last input file. It may be used to direct outputs
+into a directory relative to the input (even the into the same directory) by e.g. the
+command write $inputdir/outfile.raw vec1 vec2 .
+interactive If interactive is set, numparam error handling may be done manually
+with user input from the console. If not, ngspice will exit upon a numparam error.
+keep#branch If keep#branch is set, the rawfile output for branch currents is 1 v1#branch
+current for example, not 1 i(v1) current . This retains compatibility with soft-
+ware like ICCAP.
+lprplot5 This is a printf(3s) style format string used to specify the command to use
+for sending plot(5)-style plots to a printer or plotter. The first parameter supplied
+is the printer name, the second parameter is a file name containing the plot. Both
+parameters are strings.
+lprps This is a printf(3s) style format string used to specify the command to use for
+sending Postscript plots to a printer or plotter. The first parameter supplied is
+the printer name, the second parameter is the file name containing the plot. Both
+parameters are strings.
+measoutfile Add command set measoutfile=<path/filename> to .spiceinit or to a
+.control section in the netlist to save .measure results from batch mode in a file.

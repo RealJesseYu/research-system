@@ -1,0 +1,37 @@
+7.2. DIODE MODEL (D) 131
+Junction DC parameters
+Name Parameter Units Default Example Scale factor
+IS (JS) Saturation current A 1.0e-14 1.0e-16 area
+JSW Sidewall saturation current A 0.0 1.0e-15 perimeter
+N Emission coefficient - 1 1.5
+RS Ohmic resistance Ω 0.0 100 1/area
+BV Reverse breakdown voltage V ∞ 40
+IBV Current at breakdown
+voltage
+A 1.0e-3 1.0e-4
+NBV Breakdown Emission
+Coefficient
+- N 1.2
+IKF (IK) Forward knee current A 0.0 1.0e-3
+IKR Reverse knee current A 0.0 1.0e-3
+JTUN Tunneling saturation
+current
+A 0.0 area
+JTUNSW Tunneling sidewall
+saturation current
+A 0.0 perimeter
+NTUN Tunneling emission
+coefficient
+- 30
+XTITUN Tunneling saturation
+current exponential
+- 3
+KEG EG correction factor for
+tunneling
+- 1.0
+ISR Recombination saturation
+current
+A 1e-14 1pA area
+NR Recombination current
+emission coefficient
+- 1 2

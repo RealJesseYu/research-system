@@ -1,0 +1,29 @@
+21.7. TRANSMISSION-LINE INVERTER 521
+Continue 4 Bit adder MOS:
+*** POWER
+VCC 99 0 DC 3.3 V
+*** INPUTS
+VIN1A 1 0 DC 0 PULSE (0 3 0 5 NS 5 NS 20 NS 50 NS )
+VIN1B 2 0 DC 0 PULSE (0 3 0 5 NS 5 NS 30 NS 100 NS )
+VIN2A 3 0 DC 0 PULSE (0 3 0 5 NS 5 NS 50 NS 200 NS )
+VIN2B 4 0 DC 0 PULSE (0 3 0 5 NS 5 NS 90 NS 400 NS )
+VIN3A 5 0 DC 0 PULSE (0 3 0 5 NS 5 NS 170 NS 800 NS )
+VIN3B 6 0 DC 0 PULSE (0 3 0 5 NS 5 NS 330 NS 1600 NS )
+VIN4A 7 0 DC 0 PULSE (0 3 0 5 NS 5 NS 650 NS 3200 NS )
+VIN4B 8 0 DC 0 PULSE (0 3 0 5 NS 5 NS 1290 NS 6400 NS )
+*** DEFINE NOMINAL CIRCUIT
+X1 1 2 3 4 5 6 7 8 9 10 11 12
+0 13 99 FOURBIT
+. option acct
+. save V (1) V (2) V (3) V (4) V (5) V (6) V (7) V (8) $ INPUTS
+. save V (9) V (10) V (11) V (12) V (13) $ OUTPUTS
+. TRAN 1 NS 6400 NS
+* use BSIM3 model with default parameters
+. model n1 nmos level =49 version =3.3.0
+. model p1 pmos level =49 version =3.3.0
+. END
+21.7 Transmission-Line Inverter
+The following deck simulates a transmission-line inverter. Two transmission-line elements
+are required since two propagation modes are excited. In the case of a coaxial line, the
+first line (T1) models the inner conductor with respect to the shield, and the second line
+(T2) models the shield with respect to the outside world.

@@ -1,0 +1,30 @@
+154 CHAPTER 9. JFETS
+• VTOTC is given:
+V T O(T emp) = V T O + V T OT C ∗ (T emp − T N OM) (9.8)
+• VTOTC not given:
+V T O(T emp) = V T O − T CV ∗ (T emp − T N OM) (9.9)
+• BETATCE is given:
+BET A(T emp) = BET A ∗ 1.01BET AT CE ∗(T emp−T N OM) (9.10)
+• BETATCE not given:
+BET A(T emp) = BET A ∗
+ T emp
+T N OM
+BEX
+(9.11)
+9.2.3 JFET level 2 Parker Skellern model
+The level 2 model is an improvement to level 1. Details are available in a pdf originating
+from Macquarie University. Some important items are
+• The description maintains strict continuity in its high-order derivatives, which is
+essential for prediction of distortion and intermodulation.
+• Frequency dependence of output conductance and transconductance is described as
+a function of bias.
+• Both drain-gate and source-gate potentials modulate the pinch-off potential, which
+is consistent with S-parameter and pulsed-bias measurements.
+• Self-heating varies with frequency.
+• Extreme operating regions - subthreshold, forward gate bias, controlled resistance,
+and breakdown regions - are included.
+• Parameters provide independent fitting to all operating regions. It is not necessary
+to compromise one region in favor of another.
+• Strict drain-source symmetry is maintained. The transition during drain-source
+potential reversal is smooth and continuous.
+The model equations are described in this pdf document and in [ 19].

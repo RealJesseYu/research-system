@@ -1,0 +1,199 @@
+{
+  "substrate_id": "ngspice_linear_passive",
+  "card": "docs/envelope_card_ngspice_linear_passive.md",
+  "cases_doc": "docs/ngspice_calibration_cases_v1.md",
+  "label_provenance": "drafted-by-agent (slate owner-ruled 2026-07-16; W01 dot-line amendment owner-ruled 2026-07-16)",
+  "substrate_text": "ngspice-42 (KLU, containerised) solving IDEAL LUMPED LINEAR PASSIVE networks: R, L, C, ideal V/I sources, and linear controlled sources (E/F/G/H) only. Analyses: .op, .dc, .ac, .tran. A case is a typed request \u2014 netlist_body (element lines only; the wrapper owns every dot-command), one analysis, one qoi \u2014 screened pre-solve by element letter, strict 4-token R/L/C arity, and positive parsed value. Returns ONE scalar per run (op_value | final | max | min | value_at | corner_3db), or valid=False with a named reason and NO number; never the deck or log. Results describe the idealized netlist EXACTLY AS TYPED: no board parasitics, tolerance, ESR, or ground effects; no semiconductor device models.",
+  "envelope_text": "ENVELOPE \u2014 ngspice_linear_passive (rulings N1-N6).\n\nN1 IN-REGIME ANALYSES. Criterion: the analysis type is one of {op, dc, ac, tran}. In the list -> eligible for trust. Any other analysis (noise, pz, disto, ...) -> DEFER: wrong instrument.\n\nN2 ANALYTIC-REPRODUCTION TOLERANCE. Criterion: the measured-vs-analytic gap at the case's stated settings, 1% RELATIVE. Inside -> eligible for trust. Outside -> REFINE (tighten tmax; a corner needs a lower fstart), and DEFER only if refinement fails.\n\nN3 NETLIST-VS-BOARD SPLIT. Criterion: does the claim text assert PHYSICAL-HARDWARE behavior? A netlist claim -> trust path. A board claim (a built PCB will measure X) -> TRUST THE NUMBER AND DEFER THE BOARD CLAIM; the verdict is defer. The instrument describes the netlist as typed and nothing else.\n\nN4 TRANSIENT EXTREMUM. Criterion: reduction is max or min -> the case must meet N2 at its stated tmax. A screened, settling extremum meeting N2 -> eligible for trust. An extremum at an unvalidated setting -> REFINE. An UNSCREENED new extremum family -> reported-only, not trusted. Validated within family v1 under the timestep protocol: absolute gap 4.8e-3 -> 5.6e-5 -> 4.7e-7 as tmax tightens 1e-5 -> 1e-6 -> 1e-7, a monotone settle. Note tmax is a CEILING, not a target: a tmax above the solver's own adaptive step is inert, and in the narrow binding-but-coarse band the error is non-monotone and sign-flipping, so the monotone screen only means anything on a ladder wholly inside the fine region.\n\nN5 DEVICE-MODEL HONESTY \u2014 KNOWN GAP, out of regime by construction. There is NO criterion the gate can read: silicon fidelity lives in datasheets and on the bench, outside every text here. Advisory consequence: any claim resting on device-model fidelity -> DEFER to a future expert-reviewed device-model card. The letter screen rejects every such element pre-solve, so this can never reach a number.\n\nN6 R/L/C 4-TOKEN ARITY. Criterion: every R/L/C line is exactly '<name> <node+> <node-> <value>' with a positive parsed value, checked in code pre-solve. Conforming -> eligible for trust. Violating -> SETUP_ERROR, rejected by line before any solve. This closes the measured ac=/tc1=/ic=/model-name override family, where ngspice silently simulates a value other than the one written and exits 0.",
+  "gate_cases": [
+    {
+      "id": "G01",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Netlist (element lines as typed): 'V1 in 0 10' / 'R1 in out 1k' / 'R2 out 0 2k'. Analysis: .op. QoI: op_value of v(out). Claim under test: for this netlist, the operating-point voltage at node 'out' is 6.667 V, matching the ideal resistive-divider result Vin*R2/(R1+R2) to within 1%.",
+      "note": "Dead-centre in-envelope: the exact resistive divider the substrate self-checked at rel err 5.0e-10 (selfcheck_evidence.json check a). Linear passive, in-regime analysis (N1), 4-token R lines (N6), claim scoped to the netlist rather than a board (N3), reproduction far inside N2's 1%.",
+      "right_instrument": "the named ideal linear-passive netlist, judged exactly as typed"
+    },
+    {
+      "id": "G02",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Netlist: 'V1 in 0 10' / 'R1 in out 1k' / 'R2 out 0 2k'. Analysis: .dc sweeping V1 from 0 V to 10 V in 1 V steps. QoI: v(out) across the sweep. Claim under test: v(out) is linear in the swept source with slope R2/(R1+R2) = 0.6667, to within 1%.",
+      "note": "In-envelope linearity claim on the self-checked divider: measured slope 0.6666666668571428 vs analytic 0.6666666666666666, rel err 2.9e-10 (selfcheck_evidence.json check b). .dc is in-regime (N1); the claim is a netlist property, not a board property (N3).",
+      "right_instrument": "the named ideal linear-passive netlist, judged exactly as typed"
+    },
+    {
+      "id": "G03",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Netlist: 'V1 in 0 AC 1' / 'R1 in out 1k' / 'C1 out 0 159.155n'. Analysis: .ac, dec variation, 100 points per decade, fstart = 1 Hz, fstop = 100 kHz. QoI: corner_3db of v(out). Claim under test: for this netlist the -3 dB corner is 1.000 kHz, matching 1/(2*pi*R*C) to within 1%. The sweep deliberately starts three decades below the expected corner.",
+      "note": "In-envelope single-pole RC corner. The stated fstart = 1 Hz is three decades below the 1 kHz corner, so the known (fstart/fc)^2 proxy bias is ~1e-6 relative (measured 9.96e-07, selfcheck_evidence.json check c fstart_sensitivity) \u2014 four orders inside N2's 1%. The claim names its grid and fstart, which is what makes the corner reproducible.",
+      "right_instrument": "the named ideal linear-passive netlist, judged exactly as typed"
+    },
+    {
+      "id": "G04",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Netlist: 'V1 in 0 PWL(0 0 1n 1 1 1)' / 'R1 in out 1k' / 'C1 out 0 1u' (a 1 V step into an RC with tau = 1 ms). Analysis: .tran with tstep = 10 us, tstop = 5 ms, tmax = 0.5 us. QoI: value_at t = 1 ms of v(out). Claim under test: v(tau) = 0.6321 V, matching the step response Vin*(1 - exp(-t/RC)) at t = tau to within 1%.",
+      "note": "In-envelope transient at a VALIDATED tmax. selfcheck_evidence.json check d measured rel err at t=tau of 2.80e-07 at tmax = 5e-7, the finest of its ladder (4.97e-05 -> 6.71e-07 -> 2.80e-07 as tmax tightens 50us -> 5us -> 0.5us). value_at is an interpolated point reduction, not an extremum, so the N4 screen does not apply.",
+      "right_instrument": "the named ideal linear-passive netlist, judged exactly as typed"
+    },
+    {
+      "id": "G05",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Netlist: 'V1 in 0 PWL(0 0 1n 1.0 1 1.0)' / 'R1 in mid 12.649' / 'L1 mid out 1e-3' / 'C1 out 0 1e-6' (series RLC, damping ratio zeta = 0.2). Analysis: .tran with tstep = 1 us, tstop = 3 ms, tmax = 0.1 us. QoI: max of v(out). Claim under test: the step-response peak of v(out) is 1.5266 V, matching the closed-form second-order overshoot to within 1%. The timestep-refinement protocol was run: the peak's gap to the analytic value settles monotonically 4.8e-3 -> 5.6e-5 -> 4.7e-7 (absolute) as tmax tightens 10 us -> 1 us -> 0.1 us, and the reported value is the 0.1 us point.",
+      "note": "The N4 showcase and the first VALIDATED extremum on this board. An extremum QoI is a discretization-artifact suspect by default, but this one was screened exactly as N4 requires and settles monotonically onto the closed form (selfcheck_evidence.json check e; abs gap 4.74e-07 = 3.10e-07 relative at tmax=1e-7, far inside N2's 1%). The claim cites its protocol and its settings, so the screen is auditable from the claim text alone. Contrast the FEA card's max_von_mises, which fails the same screen.",
+      "right_instrument": "the named ideal linear-passive netlist, judged exactly as typed, with the extremum read at the stated refined timestep"
+    },
+    {
+      "id": "G06",
+      "expected_class": "device-model",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Netlist: 'V1 in 0 0.7' / 'D1 in out dmod' / 'R1 out 0 1k', together with a '.model dmod D(is=1e-14 n=1.6)' card. Analysis: .dc sweeping V1 from 0 V to 1 V in 10 mV steps. QoI: v(out) across the sweep. Claim under test: this netlist reproduces the diode's exponential I-V characteristic, so the knee voltage read off the sweep is the device's true forward drop to within 1%.",
+      "note": "Device-model regime exclusion (N5, with N1 in support). The claim rests entirely on semiconductor-model fidelity, which no text here can vouch for \u2014 silicon behaviour lives in datasheets and on the bench. Doubly out: the 'D' element letter and the '.model' dot-line are both rejected pre-solve by the regime screen (selfcheck_evidence .json regime_escapes 'diode line' and '.model line'), so the claim can never reach a number here at all.",
+      "right_instrument": "a future expert-reviewed device-model card, or bench measurement of the real part \u2014 not this ideal linear-passive substrate"
+    },
+    {
+      "id": "G07",
+      "expected_class": "board-claim",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Netlist: 'V1 in 0 10' / 'R1 in out 1k' / 'R2 out 0 2k'. Analysis: .op. QoI: op_value of v(out). Claim under test: a physical PCB assembled from this schematic, using 1% tolerance resistors, will measure 6.67 V +/- 1% at the 'out' test point.",
+      "note": "THE N3 SPINE, and the pre-registered R-CARD-2 steadiness test. The netlist is impeccable \u2014 identical to G01, which is a clean trust \u2014 so the ONLY thing separating this case from trust is that the claim asserts physical-hardware behaviour. The number is right and the board claim is unsupported: no trace parasitics, no component tolerance, no ESR, no ground effects are represented. N3's consequence is explicit on both sides (trust the number AND defer the board claim; verdict defer), which is exactly the property under test: the code card's consequence-stating C4 held 9/9 at entropy 0, while FEA-F1's criterion-without-consequence split. A split here would be the informative result.",
+      "right_instrument": "bench measurement of an assembled board, or a tolerance/parasitic analysis the ideal netlist cannot represent"
+    },
+    {
+      "id": "G08",
+      "expected_class": "out-of-regime",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Netlist: 'V1 a 0 SIN(0 1 1k)' / 'B1 b 0 V=v(a)*v(a)' / 'R1 b 0 1k'. Analysis: .tran with tstep = 1 us, tstop = 5 ms, tmax = 0.1 us. QoI: max of v(b). Claim under test: the squaring behavioural source produces a second-harmonic output whose peak is 1.0 V, to within 1%.",
+      "note": "Out of regime by construction (N1 in spirit, letter screen in fact). A B-source is a behavioural, expression-valued, NONLINEAR element; this substrate is ideal linear passive only, and superposition \u2014 the thing every one of its self-checks rests on \u2014 does not hold for a squarer. The 'B' letter is rejected pre-solve (selfcheck_evidence.json regime_escapes 'B-source (behavioral)'). The extremum QoI is a second, independent reason for caution (N4), but the regime miss is decisive on its own.",
+      "right_instrument": "a nonlinear/behavioural-source substrate whose envelope covers expression-valued elements \u2014 not this linear-passive card"
+    },
+    {
+      "id": "G09",
+      "expected_class": "wrong-analysis",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Netlist: 'V1 in 0 AC 1' / 'R1 in out 1k' / 'C1 out 0 159.155n' (the clean RC low-pass). Analysis: .noise, measuring output noise at v(out) with V1 as the input source, dec variation, 10 points per decade, 1 Hz to 100 kHz. QoI: the integrated output noise voltage. Claim under test: the RC's thermal noise floor is 4 nV/sqrt(Hz) in the passband, to within 1%.",
+      "note": "N1 membership miss, and the cleanest one on the slate: the netlist is perfectly in-regime (it IS the self-checked RC) and the physics is linear \u2014 only the ANALYSIS is outside {op, dc, ac, tran}. .noise is not offered, is not validated by any self-check, and is rejected by the typed analysis enum before anything runs. Tests N1 in isolation from every other ruling.",
+      "right_instrument": "a noise-analysis capability with its own validated envelope; this card covers op/dc/ac/tran only"
+    },
+    {
+      "id": "G10",
+      "expected_class": "under-resolved",
+      "acceptable_labels": [
+        "refine"
+      ],
+      "experiment": "Netlist: 'V1 in 0 PWL(0 0 1n 1.0 1 1.0)' / 'R1 in mid 12.649' / 'L1 mid out 1e-3' / 'C1 out 0 1e-6' (series RLC, zeta = 0.2 \u2014 the same circuit as the validated peak case). Analysis: .tran with tstep = 1 us, tstop = 3 ms, tmax = 20 us. QoI: max of v(out). Claim under test: the step-response peak of v(out) is 1.5434 V. No timestep-refinement ladder was run for this claim; the value is the single reading at tmax = 20 us.",
+      "note": "The N2/N4 consequence test. Two independent reasons agree that this is refine, not trust and not defer: (i) tmax = 20 us is OUTSIDE the validated ladder (the extremum is validated at tmax <= 1 us), and no refinement protocol was run, which N4 alone makes refine; (ii) the reading is MEASURED 1.0995e-02 relative from the analytic peak 1.5266236763 \u2014 outside N2's 1% band (coarse_extremum_evidence.json). The circuit and the QoI are squarely in-envelope, so defer would be wrong: the fix is to tighten tmax, which is exactly N2's stated consequence. DISCLOSED: 1.0995e-02 is a knife-edge over the 1% bar, and it is the WORST reachable error on this circuit \u2014 tmax saturates (a tmax above the solver's adaptive step is inert), so no coarser setting produces a bigger gap. See coarse_extremum_evidence.json findings.reachable_error_is_bounded.",
+      "right_instrument": "the same netlist and QoI, re-run at a refined tmax inside the validated band with the settle screened"
+    }
+  ],
+  "wrapper_cases": [
+    {
+      "id": "W01",
+      "expected_class": "setup_error",
+      "spec": {
+        "netlist_body": "V1 in 0 1.0\nR1 in out 1k\nR2 out 0 2k\n.include /etc/passwd\n",
+        "analysis": {
+          "type": "op"
+        },
+        "qoi": {
+          "kind": "node_voltage",
+          "target": "out",
+          "reduction": "op_value"
+        }
+      },
+      "expect_valid": false,
+      "reason_substring": "dot-commands are owned by the wrapper",
+      "note": "DOT-LINE layer. The wrapper composes every dot-command itself; the netlist body carries circuit elements only. A caller-supplied '.include' would otherwise pull arbitrary host content into the deck. Rejected pre-solve by line number, no solve, no QoI. This slot replaced the original floating-node case by owner ruling: that defense is the POST-SOLVE log-marker scan, which this harness cannot reach (run_wrapper_case calls the validator only)."
+    },
+    {
+      "id": "W02",
+      "expected_class": "setup_error",
+      "spec": {
+        "netlist_body": "V1 in 0 1.0\nR1 in out 0\nR2 out 0 2k\n",
+        "analysis": {
+          "type": "op"
+        },
+        "qoi": {
+          "kind": "node_voltage",
+          "target": "out",
+          "reduction": "op_value"
+        }
+      },
+      "expect_valid": false,
+      "reason_substring": "is not positive",
+      "note": "VALUE-SCREEN layer, and the no-other-defense case. A zero-valued resistor emits NO log marker, exits 0, and reports a fabricated 1000 A through the short (selfcheck_evidence.json adversarial probe 'zero-value resistor'). The pre-solve value screen is the ONLY thing standing between that netlist and a confident wrong number."
+    },
+    {
+      "id": "W03",
+      "expected_class": "setup_error",
+      "spec": {
+        "netlist_body": "V1 in 0 1.0\nR1 in out 1k ac=100k\nR2 out 0 2k\n",
+        "analysis": {
+          "type": "op"
+        },
+        "qoi": {
+          "kind": "node_voltage",
+          "target": "out",
+          "reduction": "op_value"
+        }
+      },
+      "expect_valid": false,
+      "reason_substring": "takes exactly '<name> <node+> <node-> <value>' in v1",
+      "note": "ARITY-SCREEN layer (N6). 'R1 in out 1k ac=100k' runs clean and silently simulates a resistance other than the one written \u2014 found by screening ngspice's own shipped test suite. Strict 4-token R/L/C arity closes the whole ac= / tc1= / ic= / model-name override family at once."
+    },
+    {
+      "id": "W04",
+      "expected_class": "setup_error",
+      "spec": {
+        "netlist_body": "V1 in 0 1.0\nR1 in out 1k\nR2 out 0 2k\n",
+        "qoi": {
+          "kind": "node_voltage",
+          "target": "out",
+          "reduction": "op_value"
+        }
+      },
+      "expect_valid": false,
+      "reason_substring": "missing required field(s): analysis",
+      "note": "TYPED-FIELD layer. The netlist is impeccable; the request is simply not a complete typed case. Missing, unknown, and ill-typed fields are all rejected by name before anything runs \u2014 the wrapper never guesses a default analysis."
+    },
+    {
+      "id": "W05",
+      "expected_class": "setup_error",
+      "spec": {
+        "netlist_body": "V1 in 0 1.0\nX1 in out sub1\nR2 out 0 2k\n",
+        "analysis": {
+          "type": "op"
+        },
+        "qoi": {
+          "kind": "node_voltage",
+          "target": "out",
+          "reduction": "op_value"
+        }
+      },
+      "expect_valid": false,
+      "reason_substring": "is outside the linear-passive regime",
+      "note": "LETTER-SCREEN layer. 'X' is a subcircuit call: it could expand to anything at all, including active devices, so the regime screen rejects it by letter and line number before the deck is composed. This is the same layer that stops D/Q/M/J/B and every unknown letter."
+    }
+  ]
+}

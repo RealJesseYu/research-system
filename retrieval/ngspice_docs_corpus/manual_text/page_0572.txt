@@ -1,0 +1,30 @@
+572 CHAPTER 27. EXAMPLE CIRCUITS
+Figure 27.3: Plot of Subcircuit Internal Node
+ngspice 4 -> eprint xfilter.x1a
+**** Results Data ****
+Time or Step
+xfilter.x1a
+0.000000000e+000 0.000000e+000 1.010030000e-004 2.000000e+000
+1.010040000e-004 2.562500e+000 1.210020000e-004 2.812500e+000
+1.210030000e-004 4.253906e+000 1.410020000e-004 2.332031e+000
+1.410030000e-004 3.283447e+000 1.610020000e-004 2.014893e+000
+1.610030000e-004 1.469009e+000 1.810020000e-004 2.196854e+000
+1.810030000e-004 1.176232e+000
+...
+9.610030000e-004 3.006294e-001 9.810020000e-004 2.304755e+000
+9.810030000e-004 9.506230e-001 9.810090000e-004 -3.049377e+000
+9.810100000e-004 -4.174377e+000
+**** Messages ****
+**** Statistics ****
+Operating point analog/event alternations: 1
+Operating point load calls: 37
+Operating point event passes: 2
+Transient analysis load calls: 4299
+Transient analysis timestep backups: 87
+This command produces a tabular listing of event-times in the first column and node
+values in the second column. The 1 ns delays can be clearly seen in the fifth decimal place
+of the event times.
+Note that the eprint command also gives statistics from the event-driven algorithm por-
+tion of XSPICE. For this example, the simulator alternated between the analog solution
+algorithm and the event-driven algorithm one time while performing the initial DC operat-
+ing point solution prior to the start of the transient analysis. During this operating point
