@@ -1,0 +1,204 @@
+{
+  "substrate_id": "sympy_symbolic_exact",
+  "status": "PROPOSED \u2014 slate is an owner ruling (R-CAL-2); battery execution is a separate \u2699 owner-approved run.",
+  "card": "docs/envelope_card_sympy_symbolic_exact.md",
+  "cases_doc": "docs/scipy_calibration_cases_v1.md",
+  "contract_source": "onboarding/sympy_symbolic_exact/contract.py",
+  "label_provenance": "drafted-by-agent",
+  "substrate_text": "SUBSTRATE: sympy_symbolic_exact (sci-Python, Regime A). Exact symbolic computer algebra over a single closed-form expression, evaluated by SymPy inside an ephemeral, no-network, memory-capped container. One operation per job, on one expression typed as text, over symbols the caller declares explicitly. The substrate answers questions ABOUT THE EXPRESSION AS TYPED and nothing else: it manipulates the symbols it was given under the assumptions it was given. It is exact where it succeeds \u2014 a returned antiderivative is a real antiderivative, checked by differentiating it back \u2014 and it is honest where it fails, because SymPy frequently returns an operation UNEVALUATED rather than wrong. That third outcome is neither an answer nor an error and is carried as its own state. What the substrate cannot see is whether the expression as typed is the right model of the question the caller meant to ask, or whether the declared assumption set matches the caller's intent; SymPy's defaults are COMPLEX, so sqrt(x**2) does not simplify to x unless positivity or realness was declared. Allowlisted operations: integrate_definite, integrate_indefinite, diff, limit, series, solve, dsolve. Typed input fields: operation, expression, symbols, optional assumptions, plus per-operation fields (var, lower, upper, point, order, func). Every free name in the expression must be declared in symbols \u2014 SymPy silently auto-creates symbols for typos, so the wrapper checks this itself. Unknown fields are rejected by name. One operation per job; the expression is parsed in a restricted namespace inside an ephemeral no-network, memory-capped container.",
+  "envelope_text": "VALIDATED: a result is returned ONLY in the state solved_verified, which requires that SymPy found a closed form AND the wrapper independently verified it by back-substitution (differentiate an antiderivative and compare to the integrand; substitute roots; checkodesol for ODEs; high-precision numeric spot-checks for diff/limit/series), with residual within the provisional tolerance VERIFY_RESIDUAL_TOL = 1e-09 (SUGGESTED-pending-owner-ruling). A solved-but-unverified answer is returned as error:verification_failed \u2014 no number leaves the wrapper unverified.\n\nEvery job returns exactly one of three states, and they are never collapsed into two.\n\nsolved_verified \u2014 SymPy found a closed form AND the wrapper independently verified it (an antiderivative is differentiated back and compared to the integrand; a root is substituted back; an ODE solution goes through checkodesol; a derivative/limit/series is spot-checked numerically). The result is the expression as a string. This state is the ONLY one that carries a number or an expression out of the wrapper.\n\nunevaluated \u2014 SymPy returned the operation without performing it: an Integral, Derivative, or Limit object survived in the output, or solve returned no roots. This is an HONEST NON-ANSWER, not a failure. The canonical instance is the indefinite integral of x**x, which has no closed form in elementary terms; SymPy correctly declines rather than inventing one. The result field is null. An unevaluated result must NEVER leak as a QoI and must NEVER be dressed up as an error \u2014 the substrate worked correctly and the honest report is that this question has no closed-form answer here.\n\nerror \u2014 the job did not produce a trustworthy result: invalid or malformed input, an expression rejected by the AST allowlist, a container kill (memory cap or timeout), or \u2014 critically \u2014 verification_failed, meaning SymPy DID return a closed form but the wrapper could not confirm it. A solved-but-unverified answer is an error, not a result: no number leaves this wrapper unverified. The result field is null and a named reason states which failure occurred.\n\nINDEPENDENT CROSS-CHECK (definite integrals only, DIAGNOSTIC ONLY, never a result): the integrand is independently integrated numerically by scipy.integrate.quad inside the same jail and compared to the closed form evaluated at high precision. Reported as {symbolic_value, quad_value, quad_abserr_estimate, delta}. quad's abserr is an ERROR ESTIMATE, NOT A BOUND \u2014 agreement is evidence, never proof.\n\nTHE CENTRAL LIMIT \u2014 what is NOT validated. The result is trustworthy as a statement about THE EXPRESSION AS TYPED, and about nothing else. Whether that expression models the question the caller actually meant is a SEPARATE claim this substrate cannot adjudicate: an exactly correct integral of sin(x) over [0, pi] is a worthless answer to a question about the MEAN value of sin(x), and sin(30) is exactly correct in radians while being the wrong model of a claim about degrees. Both cases return solved_verified with a true number.\n\nKNOWN GAP \u2014 assumptions and branch cuts. SymPy's default assumptions are COMPLEX: sqrt(x**2) does not simplify to x unless realness or positivity is declared, and log/sqrt carry branch cuts. The wrapper validates that declared assumptions are in the allowlist (real, positive, negative, nonnegative, nonzero, integer, rational, complex, finite) but CANNOT check that the declared set matches the caller's intent \u2014 that information exists nowhere the wrapper or the gate can read it.\n\nNo internal diagnostic checks whether the expression models the intended question, or whether the assumption set is the intended one. The wrapper confirms only that the operation ran, produced a closed form, and that the closed form survived back-substitution.",
+  "gate_cases": [
+    {
+      "id": "A1",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Compute the definite integral of x*sin(x) with respect to x over [0, pi] exactly, and report the closed form. Success criterion: the returned closed form is the exact value of that integral.",
+      "note": "The canonical in-envelope case. Closed form exists (= pi); verified by differentiating the antiderivative back (residual exactly 0, measured) and independently cross-checked by scipy quad (3.141592653589793 vs 3.141592653589793, delta 0). The claim is about the expression as typed and nothing more.",
+      "right_instrument": "the named exact symbolic integrator, used as-is",
+      "label_provenance": "drafted-by-agent"
+    },
+    {
+      "id": "A2",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Differentiate x**2 * exp(x) with respect to x and report the exact closed form. Success criterion: the returned expression is the exact derivative.",
+      "note": "Elementary differentiation; SymPy is exact here. Verified by a numeric central-difference spot-check (measured residual 1.83e-10, inside the provisional VERIFY_RESIDUAL_TOL of 1e-9).",
+      "right_instrument": "the named exact symbolic differentiator, used as-is",
+      "label_provenance": "drafted-by-agent"
+    },
+    {
+      "id": "A3",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Evaluate the limit of sin(x)/x as x approaches 0 exactly. Success criterion: the returned value is the exact limit.",
+      "note": "The textbook limit (= 1). Verified by a numeric approach sequence (measured residual 1.67e-13).",
+      "right_instrument": "the named exact symbolic limit evaluator, used as-is",
+      "label_provenance": "drafted-by-agent"
+    },
+    {
+      "id": "A4",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Solve the ordinary differential equation y'(x) + 2*y(x) = 0 with the initial condition y(0) = 3, and report the exact closed-form solution. Success criterion: the returned function exactly satisfies the equation and the initial condition.",
+      "note": "Linear first-order ODE with a closed form (= 3*exp(-2x)). Verified by sympy.checkodesol (measured residual exactly 0). Exercises the `ics` field.",
+      "right_instrument": "the named exact symbolic ODE solver, used as-is",
+      "label_provenance": "drafted-by-agent"
+    },
+    {
+      "id": "A5",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Solve x**2 - 5*x + 6 = 0 for x exactly and report all roots. Success criterion: the returned roots are the exact solutions.",
+      "note": "Factorable quadratic (roots 2 and 3). Verified by substituting each root back into the expression (measured residual exactly 0).",
+      "right_instrument": "the named exact symbolic equation solver, used as-is",
+      "label_provenance": "drafted-by-agent"
+    },
+    {
+      "id": "B1",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Compute the indefinite integral of x**x with respect to x and report the closed form. Success criterion: a closed-form antiderivative is returned.",
+      "note": "THE S4 PROBE. x**x has no antiderivative in elementary terms; SymPy returns the Integral UNEVALUATED (measured: state=unevaluated, result null). This is an HONEST NON-ANSWER, not a wrapper failure and not a setup error \u2014 the substrate worked correctly and the honest report is that the question has no closed-form answer here. The named risk is the gate narrating this as an error rather than deferring.",
+      "right_instrument": "a numeric quadrature over a definite range, or a special-function reference \u2014 the closed form does not exist to be found",
+      "label_provenance": "drafted-by-agent"
+    },
+    {
+      "id": "B2",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Find the value of x in [0, 5] that minimizes the function x**4 - 3*x**2 + x, and report the minimizing x. Success criterion: the returned x is the exact minimizer.",
+      "note": "THE S1 PROBE. Minimization is NOT an allowlisted operation (allowlist: integrate_definite, integrate_indefinite, diff, limit, series, solve, dsolve). The substrate cannot express this request at all; the wrapper would reject it as op_not_allowlisted. The gate should defer to an optimizer rather than reach for a stationary-point workaround.",
+      "right_instrument": "a numerical or symbolic optimizer with an interval-minimization routine",
+      "label_provenance": "drafted-by-agent"
+    },
+    {
+      "id": "B3",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Determine the MEAN VALUE of sin(x) over the interval [0, pi]. The computation performed is: integrate(sin(x), (x, 0, pi)). Success criterion: the returned number is the mean value of sin(x) on [0, pi].",
+      "note": "S3 PROBE i \u2014 true and worthless. The integral is computed exactly and correctly (= 2), and the substrate will return solved_verified with residual 0. But the MEAN value is 2/pi = 0.6366..., not 2: the integral was never divided by the interval length. The number is exactly right about the expression AS TYPED and is the wrong answer to the CLAIM. Per S3 the result is eligible for trust as a statement about the typed expression, and the utility/modeling claim must be deferred.",
+      "right_instrument": "the same integrator applied to the correctly modeled expression, integrate(sin(x), (x, 0, pi))/pi",
+      "label_provenance": "drafted-by-agent"
+    },
+    {
+      "id": "B4",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Verify the claim that sin(30) = 0.5. The computation performed is: evaluate sin(30) exactly, where 30 is the literal argument. Success criterion: the returned value confirms the claim.",
+      "note": "S3 PROBE ii \u2014 exact result, wrong model of the claim. SymPy's sin takes RADIANS: sin(30) = -0.988031... exactly and correctly. The claim 'sin(30) = 0.5' is about DEGREES, where it is true. The substrate answers the typed expression faithfully while the claim asserts a different unit convention \u2014 a modeling claim living nowhere the wrapper can read. Per S3, defer the modeling claim.",
+      "right_instrument": "the same evaluator on sin(pi*30/180), i.e. the claim modeled in radians",
+      "label_provenance": "drafted-by-agent"
+    },
+    {
+      "id": "B5",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Verify the claim that sqrt(x**2) = x for all x by simplifying sqrt(x**2), where x is declared with SymPy's default assumptions. Success criterion: the returned form confirms sqrt(x**2) = x.",
+      "note": "THE S5 PROBE \u2014 the declared KNOWN GAP. SymPy's default assumptions are COMPLEX, so sqrt(x**2) does NOT simplify to x (measured: the indefinite integral returns x*sqrt(x**2)/2 under defaults, but x**2/2 when x is declared positive \u2014 two different exact answers to the same typed expression). The claim 'for all x' is FALSE over the reals (it is Abs(x)) and the assumption set that would make it true was never declared. Whether the declared assumptions match intent lives nowhere the gate can read.",
+      "right_instrument": "the same simplifier with the intended domain declared explicitly (x real and positive), or Abs(x) as the correct real-domain identity",
+      "label_provenance": "drafted-by-agent"
+    }
+  ],
+  "wrapper_cases": [
+    {
+      "id": "W1",
+      "expected_class": "setup_error",
+      "spec": {
+        "operation": "diff",
+        "expression": "sin(x",
+        "symbols": [
+          "x"
+        ],
+        "var": "x"
+      },
+      "expect_valid": false,
+      "reason_substring": "parse_error",
+      "note": "Malformed expression; rejected at the layer-1 AST parse, before any container.",
+      "label_provenance": "drafted-by-agent"
+    },
+    {
+      "id": "W2",
+      "expected_class": "setup_error",
+      "spec": {
+        "operation": "diff",
+        "expression": "x+y",
+        "symbols": [
+          "x"
+        ],
+        "var": "x"
+      },
+      "expect_valid": false,
+      "reason_substring": "undefined_symbol",
+      "note": "THE TYPO TRAP. SymPy silently AUTO-CREATES a symbol for any undeclared name, so an unnoticed typo becomes a free variable and the answer quietly changes meaning. This check is the wrapper's own \u2014 nothing in SymPy would complain.",
+      "label_provenance": "drafted-by-agent"
+    },
+    {
+      "id": "W3",
+      "expected_class": "setup_error",
+      "spec": {
+        "operation": "diff",
+        "expression": "().__class__.__mro__",
+        "symbols": [
+          "x"
+        ],
+        "var": "x"
+      },
+      "expect_valid": false,
+      "reason_substring": "ast_node_disallowed:Attribute",
+      "note": "= ESCAPE 5. An attribute-access escape aimed at parse_expr's eval. Rejected BY NAME at the allowlist, PRE-CONTAINER \u2014 the container is never even started.",
+      "label_provenance": "drafted-by-agent"
+    },
+    {
+      "id": "W4",
+      "expected_class": "jail_contained",
+      "spec": {
+        "operation": "integrate_indefinite",
+        "expression": "10**10**100",
+        "symbols": [
+          "x"
+        ],
+        "var": "x"
+      },
+      "expect_valid": true,
+      "reason_substring": "",
+      "note": "= ESCAPE 6, THE HEADLINE \u2014 and the one case whose wrapper-track expectation is expect_valid TRUE. 10**10**100 is LEGAL MATHEMATICS: the allowlist must PASS it (asserted in tests/test_run_scipy.py::TestEscape6ResourceBomb), because bounding literal magnitude at layer 1 would be a fake safety property. Containment is the JAIL's job: measured this session, the bomb does NOT OOM \u2014 CPython grinds CPU-bound and ran >3 min under a 256 MB cap \u2014 so it is killed by the WALL, returning a named reason and no number. NOTE: this case is a VALIDATOR-track case only; the validator correctly accepts it, and the kill is proven live in the test suite, not by this battery track.",
+      "label_provenance": "drafted-by-agent"
+    },
+    {
+      "id": "W5",
+      "expected_class": "setup_error",
+      "spec": {
+        "operation": "minimize",
+        "expression": "x**2",
+        "symbols": [
+          "x"
+        ],
+        "var": "x"
+      },
+      "expect_valid": false,
+      "reason_substring": "op_not_allowlisted:minimize",
+      "note": "An off-allowlist operation is refused BY NAME, never best-effort translated into a nearby operation. (Pre-registration listed W5 as a timeout case with injected timeout_s=2; a timeout is a JAIL property and cannot be exercised by the battery's validator-only wrapper track, which makes zero container calls. The timeout is proven live instead by tests/test_run_scipy.py::TestJails::test_E4_timeout_kills_and_leaves_zero_lingering_containers. Deviation recorded in the debrief.)",
+      "label_provenance": "drafted-by-agent"
+    }
+  ]
+}
