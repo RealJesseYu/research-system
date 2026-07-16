@@ -25,8 +25,9 @@ retrieval-provisional class outside the routable ladder).
         routable=False,
         cost_tier="low",
         notes=(
-            "sci-Python Regime A (exact symbolic CAS); card drafted, S1-S6 all "
-            "TODO-HUMAN; battery pending owner OK. Regime B "
+            "sci-Python Regime A (exact symbolic CAS); card provisionally "
+            "signed (owner, 2026-07-16), S1-S6 + S2a/S4a/S4b all RULED (owner, "
+            "2026-07-16); battery pending owner OK. Regime B "
             "(scipy_numeric_quad) is QUEUED and has no row."
         ),
     ),
@@ -36,7 +37,7 @@ retrieval-provisional class outside the routable ladder).
 |---|---|---|
 | `substrate_id` | `sympy_symbolic_exact` | The **(substrate, regime)** pair is the card unit, and sci-Python is two regimes — so the id names the **regime**, not the image. `scipy-img` would be the wrong id: Regime B will ship its own row from the same image. |
 | `wrapper` | `tools/run_scipy.py` | — |
-| `card_path` | `docs/envelope_card_sympy_symbolic_exact.md` | Regime A only. |
+| `card_path` | `docs/envelope_card_sympy_symbolic_exact.md` | Regime A only. **Provenance state `provisionally-signed`** (owner, 2026-07-16); S1–S6 + S2a/S4a/S4b **RULED** — the card and `onboarding/sympy_symbolic_exact/contract.py` are the sources, not this row. |
 | `maturity` | `CALIBRATING` | **Everything enters at `calibrating` = unroutable.** Promotion is a separate owner ruling. |
 | `routable` | `False` | Ditto. Keeps `sole_routable_id()` returning exactly `cavity_2d_cfd` — see §3. |
 | `cost_tier` | `low` | **Measured**, not guessed: 0.617–1.403 s/job across 8 live jobs this session (n=8), container-startup-dominated. Same tier as FEA/code, both `low`. See `router_entry.md`. |

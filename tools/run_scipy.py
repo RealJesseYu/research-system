@@ -368,16 +368,31 @@ class OperationDeclined(Exception):
     honest non-answer as an `Integral` surviving in the output; the only
     difference is that SymPy signals it by RAISING instead of by RETURNING.
 
-    THE DECLINE SET IS EXACTLY THAT AND NOTHING WIDER: only NotImplementedError,
-    and only when raised by the operation call itself (`call_op`). A
-    NotImplementedError from a VERIFICATION arm is not a decline — the operation
+    Card ruling S4b (owner, 2026-07-16) ADDS EXACTLY ONE TYPE: sympy.PoleError.
+    S4a drew the decline line at the exception TYPE, and that line did not track
+    the semantic one — `series(gamma(x), x, oo)` raises PoleError whose message
+    reads "Asymptotic expansion of gamma around [oo] is not implemented", which
+    is a decline in every sense except its class. PoleError is NOT a subclass of
+    NotImplementedError (its MRO is PoleError -> Exception), so admitting it
+    takes a second, equally strict TYPE test. It is emphatically NOT a widening
+    by message text: matching on "is not implemented" in a string would be far
+    worse than the narrow type test, because any exception could carry that text.
+
+    THE DECLINE SET IS EXACTLY {NotImplementedError, PoleError} AND NOTHING
+    WIDER, and only when raised by the operation call itself (`call_op`). A
+    decline exception from a VERIFICATION arm is not a decline — the operation
     did answer, and an unverifiable answer is an error (S2), not a non-answer.
     Every other exception type keeps its named `error` reason.
     """
 
 
+# The RULED decline set. A tuple, so the ruling is one greppable object rather
+# than a condition spread across except clauses.
+DECLINE_EXCEPTIONS = (NotImplementedError, sympy.PoleError)
+
+
 def call_op(fn, *args, **kwargs):
-    """Invoke the primary SymPy operation, mapping its declines to S4a.
+    """Invoke the primary SymPy operation, mapping its declines to S4a/S4b.
 
     This wraps ONLY the operation call. Verification arms are deliberately
     outside it: the three-state discipline used to be enforced for RETURNS and
@@ -385,8 +400,8 @@ def call_op(fn, *args, **kwargs):
     """
     try:
         return fn(*args, **kwargs)
-    except NotImplementedError as exc:
-        raise OperationDeclined(str(exc))
+    except DECLINE_EXCEPTIONS as exc:
+        raise OperationDeclined("%s: %s" % (type(exc).__name__, exc))
 
 # The allowlisted math names, bound to real SymPy objects. This dict IS the
 # restricted namespace: SymPy's default global_dict is `from sympy import *`,
@@ -657,6 +672,161 @@ def series_residual_numpy(expr, truncated, var, pt):
     return worst, "numeric_truncation_comparison_lambdify_numpy"
 
 
+# --- S2a: the residual must verify the RETURNED OBJECT ----------------------
+# Owner ruling S2a (2026-07-16), closing card watch 13. Two arms verified a
+# DIFFERENT OBJECT than the one they returned, and fault injection measured both:
+# integrate_definite's residual came from a FRESHLY-COMPUTED antiderivative and
+# never from `out`, so a job made to return 2*pi for an integral equal to pi
+# measured residual 0.0 and reported solved_verified; dsolve's checkodesol
+# verifies the EQUATION and not the declared ics, so doubling the solution of
+# y'+2y=0 still "verified" while violating y(0)=3. Both are now checked against
+# the returned object, and THE RESIDUAL REPORTED IS THE WORSE OF THE TWO CHECKS.
+#
+# These arms DECLINE rather than guess on shapes they cannot read (the pattern
+# the solve_ivp arm already uses), and every decline is named in the reported
+# method — a skipped check must never be indistinguishable from a passed one.
+
+def worse(r1, m1, r2, m2):
+    """The worse of two residuals, with a method naming BOTH checks.
+
+    None is worse than any number: a check that could not close leaves the
+    result unverified, and the host gate reads a null residual as
+    verification_failed. So None propagates rather than being skipped over.
+
+    NaN IS TREATED AS None, and this guard is load-bearing rather than
+    defensive-by-habit: EVERY comparison with NaN is False, so a bare `r2 > r1`
+    would silently pick r1 and DISCARD a check that produced NaN — a check
+    that failed to produce a number would read exactly like a check that
+    passed. Measured during this session's S2a work: a divergent integral
+    returning `oo` drove the bounds arm to inf/inf = NaN and the max() quietly
+    reported the other arm's 0.0. A check that cannot fail is not a proof, and
+    a check that can be erased by NaN is the same thing wearing a number.
+    """
+    method = "%s+%s" % (m1, m2)
+    if r1 is None or r2 is None or r1 != r1 or r2 != r2:   # x != x  <=>  x is NaN
+        return None, method
+    return (r2 if r2 > r1 else r1), method
+
+
+def value_at_bound(anti, var, bound):
+    """The antiderivative's value at `bound` — or None if no usable value.
+
+    Substitution first; a LIMIT where substitution lands on nan/zoo/±oo, which
+    is exactly what an improper bound or a removable singularity means (the
+    antiderivative of exp(-x) at +oo has no substitution value but a perfectly
+    good limit of 0). Returning None means THE CHECK DECLINES — never that the
+    job failed.
+    """
+    for get in (lambda: anti.subs(var, bound), lambda: sympy.limit(anti, var, bound)):
+        try:
+            val = get()
+        except Exception:
+            continue
+        if val is None:
+            continue
+        try:
+            if val.has(sympy.nan, sympy.zoo) or val.is_finite is False:
+                continue
+            if val.has(sympy.Integral, sympy.Limit, sympy.Derivative):
+                continue
+        except AttributeError:
+            continue
+        return val
+    return None
+
+
+def bounds_residual(anti, out, var, lo, hi):
+    """S2a for integrate_definite: does the RETURNED value equal the VERIFIED
+    antiderivative evaluated across the bounds? (residual, method), or None when
+    the check declines.
+
+    This is the half the diff-back check cannot see. Differentiating `anti` back
+    to the integrand proves `anti` is an antiderivative; it says NOTHING about
+    whether `out` is F(hi) - F(lo). Only this check ties the returned number to
+    the verified object.
+
+    Scaled by max(1, |out|) — the house convention already used by the diff and
+    solve arms — so a large-magnitude integral is not failed for float noise.
+
+    DECLINES on a non-finite returned value (`oo`, `-oo`, `nan`, `zoo`). SymPy
+    returns those for genuinely divergent integrals and is RIGHT to — the
+    integral of sec(x)**2 over [0, pi] really does diverge — but `oo` is not a
+    number this arm can difference against F(hi) - F(lo), and forcing one out of
+    it yields NaN, not a verdict. Declining by name is the honest report; the
+    divergent-result question is card watch 14, not this arm's to decide.
+    """
+    try:
+        if out.has(sympy.nan, sympy.zoo) or out.is_finite is False:
+            return None
+    except AttributeError:
+        return None
+    hi_val = value_at_bound(anti, var, hi)
+    lo_val = value_at_bound(anti, var, lo)
+    if hi_val is None or lo_val is None:
+        return None
+    try:
+        diff = sympy.simplify(out - (hi_val - lo_val))
+    except Exception:
+        return None
+    if diff == 0:
+        return 0.0, "returned_value_vs_antiderivative_at_bounds_symbolic"
+    try:
+        num = abs(complex(diff.evalf(SPEC["_dps"])))
+    except (TypeError, ValueError, AttributeError):
+        return None
+    try:
+        scale = max(1.0, abs(complex(out.evalf(SPEC["_dps"]))))
+    except (TypeError, ValueError, AttributeError):
+        scale = 1.0
+    return num / scale, "returned_value_vs_antiderivative_at_bounds_numeric"
+
+
+def ics_residual(sol, fn, var, ns):
+    """S2a for dsolve: does the RETURNED solution satisfy the DECLARED ics?
+    (residual, method), or None when the check does not apply.
+
+    checkodesol verifies the EQUATION. The declared initial condition is a
+    SECOND claim it never looks at, which is why doubling the solution of
+    y'+2y=0 passed it while violating y(0)=3. Residual is |y(x0) - y0| relative
+    to max(1, |y0|).
+
+    No ics declared -> None, and behavior is unchanged: the general solution is
+    equation-verified only, exactly as the card says.
+
+    THE TWO FAILURE DIRECTIONS ARE DELIBERATELY DIFFERENT. A shape this arm
+    cannot READ (a solution that is not an explicit y(x) = ..., a condition that
+    is not a value at a point) DECLINES — failing there would withhold correct
+    answers, the false-negative disease the limit arm already carries. A shape it
+    CAN read but whose arithmetic will not close returns a null residual and
+    FAILS CLOSED — there the check applies and could not confirm the answer.
+    """
+    ics_spec = SPEC.get("ics")
+    if not ics_spec:
+        return None
+    if not (isinstance(sol, sympy.Eq) and sol.lhs == fn):
+        return None
+    worst = 0.0
+    for key, y0 in ics_spec.items():
+        try:
+            kexpr = parse(key, ns)
+        except Exception:
+            return None
+        if not (isinstance(kexpr, AppliedUndef) and len(kexpr.args) == 1):
+            return None
+        try:
+            got = sympy.simplify(sol.rhs.subs(var, kexpr.args[0]) - sympy.sympify(y0))
+        except Exception:
+            return None, "ics_back_substitution_did_not_close"
+        if got == 0:
+            continue
+        try:
+            num = abs(complex(got.evalf(SPEC["_dps"])))
+        except (TypeError, ValueError, AttributeError):
+            return None, "ics_back_substitution_did_not_close"
+        worst = max(worst, num / max(1.0, abs(float(y0))))
+    return worst, "ics_back_substitution"
+
+
 def crosscheck_definite(integrand, var, lo, hi, symbolic_value):
     """The RULED-IN independent arm: scipy.integrate.quad, DIAGNOSTIC ONLY.
 
@@ -837,12 +1007,23 @@ def main():
             # OWN high-precision numeric integration (still SymPy-internal).
             anti = sympy.integrate(expr, var)
             if is_unevaluated(anti):
+                # This path ALREADY compares the RETURNED value against an
+                # independently computed reference, so it satisfies S2a as it
+                # stands and needs no second arm.
                 ref = sympy.Integral(expr, (var, lo, hi)).evalf(SPEC["_dps"])
                 residual = abs(complex(out.evalf(SPEC["_dps"]) - ref))
                 method = "numeric_reference_integration"
             else:
                 residual, method = symbolic_or_numeric_residual(
                     sympy.diff(anti, var) - expr, var)
+                # S2a: the check above verifies the ANTIDERIVATIVE. It cannot see
+                # a wrong RETURNED value — that is card watch 13, measured. Tie
+                # `out` to the verified antiderivative and report THE WORSE.
+                got = bounds_residual(anti, out, var, lo, hi)
+                if got is None:
+                    method += "+returned_value_check_declined"
+                else:
+                    residual, method = worse(residual, method, got[0], got[1])
             crosscheck = crosscheck_definite(expr, var, lo, hi, out)
 
         elif op == "diff":
@@ -940,19 +1121,28 @@ def main():
                 except (TypeError, ValueError, AttributeError):
                     residual = None
                 method = "checkodesol_numeric_fallback"
+            # S2a: checkodesol verified the EQUATION. The declared ics is a
+            # SECOND claim it never looks at (card watch 13, measured). Report
+            # THE WORSE of the two. `None` = the arm declined (no ics, or a shape
+            # it cannot read) and behavior is unchanged; `(None, method)` = the
+            # arm applied and could not close, which fails closed through worse().
+            got = ics_residual(sol, fn, var, ns)
+            if got is not None:
+                residual, method = worse(residual, method, got[0], got[1])
         else:
             fail("op_not_allowlisted:%s" % op)
 
     except SystemExit:
         raise
     except OperationDeclined as exc:
-        # S4a (owner ruling, 2026-07-16). SymPy declined BY RAISING rather than
-        # by returning an unperformed object. Same state, same honesty: no
+        # S4a/S4b (owner rulings, 2026-07-16). SymPy declined BY RAISING rather
+        # than by returning an unperformed object. Same state, same honesty: no
         # result, no reason, and never an error. Must precede `except Exception`.
+        # `exc` already carries the raising type's name, so the decline message
+        # is summarized rather than reclassified.
         write({"ok": True, "state_hint": "unevaluated", "result": None,
                "declined": True,
-               "note": "SymPy declined the operation (NotImplementedError): %s"
-                       % str(exc)[:300]})
+               "note": "SymPy DECLINED the operation — %s" % str(exc)[:300]})
     except MemoryError:
         fail("container_killed:MemoryError", "the job exhausted memory inside the jail")
     except Exception as exc:
@@ -1079,6 +1269,45 @@ def _err(reason: str, diagnostics: str, started: float) -> dict:
             "runtime_s": round(time.time() - started, 3)}
 
 
+def _annotate_crosscheck(crosscheck: "dict | None") -> tuple:
+    """Add S6's RULED agreement verdict to an attempted cross-check. Returns
+    (crosscheck, summary_note).
+
+    Applied wherever an arm actually ran — INCLUDING the verification_failed
+    path. The arms are diagnostic by S6 and gate nothing, but a job whose
+    residual gate rejected it is exactly a job whose diagnostics a human is
+    about to read, and `agrees` is the field the card tells that human to read.
+    Leaving the verdict uncomputed there would have shipped the evidence without
+    the reading of it.
+    """
+    if not crosscheck or not crosscheck.get("attempted"):
+        return crosscheck, ""
+    # Both independent arms report against S6's RULED tolerance; only the
+    # deviation they measure differs.
+    if "solve_ivp" in crosscheck.get("arm", ""):
+        dev = crosscheck["max_relative_deviation"]
+        crosscheck["agrees"] = bool(dev <= CROSSCHECK_AGREE_TOL)
+        crosscheck["agree_tol"] = CROSSCHECK_AGREE_TOL
+        crosscheck["note"] = ("solve_ivp re-integrates the ODE from the declared "
+                              "initial condition without consulting the closed form "
+                              "— an INDEPENDENT ALGORITHM, though the right-hand side "
+                              "still reaches it through SymPy's lambdify. rtol/atol "
+                              "are error CONTROLS, NOT A BOUND; agreement is evidence, "
+                              "never proof. Diagnostic only — Regime B "
+                              "(scipy_numeric_quad) is QUEUED.")
+        return crosscheck, (f"; crosscheck solve_ivp max_rel_dev={dev:.3g} "
+                            f"agrees={crosscheck['agrees']}")
+    delta = crosscheck["delta"]
+    scale = max(1.0, abs(crosscheck["symbolic_value"]))
+    crosscheck["agrees"] = bool(delta / scale <= CROSSCHECK_AGREE_TOL)
+    crosscheck["agree_tol"] = CROSSCHECK_AGREE_TOL
+    crosscheck["note"] = ("quad_abserr_estimate is an ERROR ESTIMATE, NOT A BOUND; "
+                          "agreement is evidence, never proof. Diagnostic only — "
+                          "Regime B (scipy_numeric_quad) is QUEUED.")
+    return crosscheck, (f"; crosscheck quad={crosscheck['quad_value']:.12g} "
+                        f"delta={delta:.3g} agrees={crosscheck['agrees']}")
+
+
 def run_scipy(spec: dict, timeout_s: int = DEFAULT_TIMEOUT_S,
               mem_mb: int = DEFAULT_MEM_MB,
               _fault_injection: "Callable[[str], str] | None" = None) -> dict:
@@ -1164,10 +1393,12 @@ def run_scipy(spec: dict, timeout_s: int = DEFAULT_TIMEOUT_S,
     # NotImplementedError from the operation call, i.e. declined by name.
     if data.get("state_hint") == "unevaluated":
         if data.get("declined"):
-            diagnostics = (f"{clean['operation']}: SymPy DECLINED to perform the "
-                           f"operation — {data.get('note', '')}. Per ruling S4a "
-                           f"(owner, 2026-07-16) a NotImplementedError raised by the "
-                           f"operation is a DECLINE, not a failure: the substrate "
+            # The note already carries the raising type's name, so the ruling is
+            # cited generically: S4a admitted NotImplementedError, S4b added
+            # PoleError, and the diagnostics must not miscite one as the other.
+            diagnostics = (f"{clean['operation']}: {data.get('note', '')}. Per rulings "
+                           f"S4a/S4b (owner, 2026-07-16) a decline raised by the "
+                           f"operation call is a DECLINE, not a failure: the substrate "
                            f"worked correctly and this question has no closed-form "
                            f"answer here. An honest non-answer, not an error.")
         else:
@@ -1183,9 +1414,10 @@ def run_scipy(spec: dict, timeout_s: int = DEFAULT_TIMEOUT_S,
     # --- verification gate: no number leaves unverified --------------------
     residual = data.get("residual")
     method = data.get("residual_method", "unknown")
+    crosscheck, cc_note = _annotate_crosscheck(data.get("crosscheck"))
     if residual is None or not (residual <= VERIFY_RESIDUAL_TOL):
         return {"valid": False, "state": STATE_ERROR, "result": None,
-                "residual": residual, "crosscheck": data.get("crosscheck"),
+                "residual": residual, "crosscheck": crosscheck,
                 "reason": "verification_failed",
                 "diagnostics": (f"{clean['operation']}: SymPy returned a closed form but "
                                 f"verification did not close — residual={residual} via "
@@ -1196,35 +1428,6 @@ def run_scipy(spec: dict, timeout_s: int = DEFAULT_TIMEOUT_S,
                 "runtime_s": runtime_s}
 
     # --- STATE 1: solved_verified -----------------------------------------
-    crosscheck = data.get("crosscheck")
-    cc_note = ""
-    if crosscheck and crosscheck.get("attempted"):
-        # Both independent arms report against S6's RULED tolerance; only the
-        # deviation they measure differs.
-        if "solve_ivp" in crosscheck.get("arm", ""):
-            dev = crosscheck["max_relative_deviation"]
-            crosscheck["agrees"] = bool(dev <= CROSSCHECK_AGREE_TOL)
-            crosscheck["agree_tol"] = CROSSCHECK_AGREE_TOL
-            crosscheck["note"] = ("solve_ivp re-integrates the ODE from the declared "
-                                  "initial condition without consulting the closed form "
-                                  "— an INDEPENDENT ALGORITHM, though the right-hand side "
-                                  "still reaches it through SymPy's lambdify. rtol/atol "
-                                  "are error CONTROLS, NOT A BOUND; agreement is evidence, "
-                                  "never proof. Diagnostic only — Regime B "
-                                  "(scipy_numeric_quad) is QUEUED.")
-            cc_note = (f"; crosscheck solve_ivp max_rel_dev={dev:.3g} "
-                       f"agrees={crosscheck['agrees']}")
-        else:
-            delta = crosscheck["delta"]
-            scale = max(1.0, abs(crosscheck["symbolic_value"]))
-            crosscheck["agrees"] = bool(delta / scale <= CROSSCHECK_AGREE_TOL)
-            crosscheck["agree_tol"] = CROSSCHECK_AGREE_TOL
-            crosscheck["note"] = ("quad_abserr_estimate is an ERROR ESTIMATE, NOT A BOUND; "
-                                  "agreement is evidence, never proof. Diagnostic only — "
-                                  "Regime B (scipy_numeric_quad) is QUEUED.")
-            cc_note = (f"; crosscheck quad={crosscheck['quad_value']:.12g} "
-                       f"delta={delta:.3g} agrees={crosscheck['agrees']}")
-
     return {"valid": True, "state": STATE_SOLVED, "result": data["result"],
             "residual": float(residual), "crosscheck": crosscheck, "reason": None,
             "diagnostics": (f"{clean['operation']} on {clean['expression']!r}: verified via "

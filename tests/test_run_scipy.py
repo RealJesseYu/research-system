@@ -814,16 +814,53 @@ class TestS4aDeclineIsUnevaluated(unittest.TestCase):
         self.assertEqual(r["reason"], "evaluation_error")
         self.assertIsNone(r["result"])
 
-    def test_PoleError_is_NOT_in_the_decline_set(self):
-        """THE RULED BOUNDARY, pinned because it is uncomfortable. The decline
-        set is defined by exception TYPE. sympy's PoleError is not a
-        NotImplementedError, so this stays an `error` even though its MESSAGE
-        reads 'Asymptotic expansion of gamma around [oo] is not implemented' —
-        semantically a decline. S4a as ruled draws the line at the type; this
-        test states where that line currently falls (debrief item 6)."""
+    def test_S4b_PoleError_IS_in_the_decline_set(self):
+        """S4b (owner, 2026-07-16). THE INVERSION OF A PREVIOUSLY-PINNED EDGE.
+
+        S4a drew the decline line at the exception TYPE, and session 1c recorded
+        that the line did not track the semantic one: PoleError is not a
+        NotImplementedError, so `series(gamma(x), x, oo)` stayed an `error` while
+        its message read 'Asymptotic expansion of gamma around [oo] is not
+        implemented'. That is a decline in every sense except its class, and the
+        owner has now ruled it in.
+
+        This test asserted the OPPOSITE until S4b. It is inverted rather than
+        deleted so the ruling's effect is legible in the diff — the previous
+        assertion was correct for its ruling, and is now wrong for this one."""
         r = run_job({"operation": "series", "expression": "gamma(x)", "symbols": ["x"],
                      "var": "x", "point": "oo"}, timeout_s=120)
+        self.assertEqual(r["state"], "unevaluated")
+        self.assertTrue(r["valid"])
+        self.assertIsNone(r["result"], "an unevaluated result is null by construction")
+        self.assertIsNone(r["reason"], "a decline has no failure reason")
+        self.assertIn("PoleError", r["diagnostics"],
+                      "the decline message names the type that raised it")
+
+    def test_S4b_stays_a_TYPE_test_never_a_message_test(self):
+        """The narrowness proof for S4b specifically. The decline set admits
+        PoleError BY TYPE. An exception of any other class must keep its named
+        error reason EVEN WHEN ITS MESSAGE SAYS 'is not implemented' — widening
+        by message text would let any failure anywhere claim to be a decline,
+        which is far worse than the narrow type test the card warns about."""
+        r = run_job({"operation": "diff", "expression": "x**2*exp(x)",
+                     "symbols": ["x"], "var": "x"}, timeout_s=120,
+                    _fault_injection=_inject(
+                        "out = call_op(sympy.diff, expr, var, order)",
+                        "raise ValueError('Asymptotic expansion is not implemented')"))
         self.assertEqual(r["state"], "error")
+        self.assertEqual(r["reason"], "evaluation_error")
+
+    def test_a_PoleError_from_a_VERIFICATION_arm_is_not_a_decline(self):
+        """S4b's own narrowness edge: PoleError declines ONLY from the operation
+        call. Raised by a verification arm, the operation DID answer and the
+        answer is merely unverified — an error (S2), not a non-answer."""
+        r = run_job({"operation": "series", "expression": "exp(x)", "symbols": ["x"],
+                     "var": "x", "point": "0"}, timeout_s=120,
+                    _fault_injection=_inject(
+                        "got = series_residual_numpy(expr, out, var, pt)",
+                        "raise sympy.PoleError('verification arm exploded')"))
+        self.assertEqual(r["state"], "error",
+                         "a decline must never be inferred from a verification failure")
         self.assertEqual(r["reason"], "evaluation_error")
 
     def test_a_NotImplementedError_from_a_VERIFICATION_arm_is_not_a_decline(self):
@@ -964,48 +1001,123 @@ class TestFaultInjectionArmsCanFail(unittest.TestCase):
         self.assertEqual(r["reason"], "verification_failed",
                          "SymPy's answer (1) is exactly right; the ARM cannot confirm it")
 
-    # --- what the residual gate does NOT verify (found by injection) --------
+    # --- S2a: the residual verifies the RETURNED OBJECT ---------------------
+    # These two tests asserted the OPPOSITE until S2a (owner, 2026-07-16). They
+    # are inverted rather than deleted: each was a true characterization of a
+    # measured defect (card watch 13), and the diff is the ruling's effect.
 
-    def test_integrate_definite_residual_does_NOT_verify_the_RETURNED_value(self):
-        """CHARACTERIZATION OF A DEFECT FOUND THIS SESSION (card watch 13).
+    def test_S2a_integrate_definite_residual_VERIFIES_the_RETURNED_value(self):
+        """S2a, closing half of card watch 13.
 
-        The residual for integrate_definite is computed from a FRESHLY-COMPUTED
-        antiderivative, never from `out`. So a wrong returned value is certified:
-        this job returns 2*pi for an integral equal to pi, with residual 0.0 and
-        state solved_verified. The quad arm measures delta=3.14 and sets
-        agrees=false — it catches what the gate misses — but S6 ruled the arm
-        DIAGNOSTIC ONLY, so it flags without gating, exactly as ruled.
+        BEFORE: the residual came from a FRESHLY-COMPUTED antiderivative and
+        never from `out`, so this job — returning 2*pi for an integral equal to
+        pi — measured residual 0.0 and reported `solved_verified`. Only the
+        diagnostic quad arm saw it (delta 3.14, agrees=false), and by S6 it flags
+        without gating, so a wrong number left the wrapper certified.
 
-        Asserted here so the reachable combination `solved_verified` +
-        `agrees == false` can never become a silent surprise."""
+        AFTER: the returned value is tied to the verified antiderivative
+        evaluated across the bounds, and S2's own arm rejects it. The quad arm
+        STILL flags — S6 is untouched — but the gate no longer depends on anyone
+        reading it."""
         r = self._injected(
             {"operation": "integrate_definite", "expression": "x*sin(x)", "symbols": ["x"],
              "var": "x", "lower": "0", "upper": "pi"},
             "out = call_op(sympy.integrate, expr, (var, lo, hi))",
             "out = call_op(sympy.integrate, expr, (var, lo, hi)) * 2")
-        self.assertEqual(r["state"], "solved_verified")
-        self.assertEqual(r["residual"], 0.0)
-        self.assertEqual(r["result"], "2*pi")
+        self.assertEqual(r["state"], "error")
+        self.assertEqual(r["reason"], "verification_failed")
+        self.assertIsNone(r["result"], "a rejected result never leaves the wrapper")
+        self.assertGreater(r["residual"], 1e-9)
+        self.assertIn("returned_value_vs_antiderivative_at_bounds", r["diagnostics"],
+                      "the reported method must name the arm that caught it")
         self.assertFalse(r["crosscheck"]["agrees"],
-                         "the diagnostic arm sees the error the gate does not")
+                         "S6's diagnostic verdict is still computed on the rejected path")
 
-    def test_dsolve_checkodesol_does_NOT_verify_the_declared_ics(self):
-        """CHARACTERIZATION OF A DEFECT FOUND THIS SESSION (card watch 13).
+    def test_S2a_dsolve_residual_VERIFIES_the_declared_ics(self):
+        """S2a, closing the other half of card watch 13.
 
-        Doubling the solution of y' + 2y = 0 leaves a function that STILL solves
-        the ODE, so checkodesol closes at residual 0.0 — but it violates the
-        declared y(0)=3. checkodesol verifies the equation, not the initial
-        condition. The solve_ivp arm integrates FROM the ics and so catches it
-        (agrees=false, deviation 0.5) — and, being diagnostic by S6, flags
-        without gating."""
+        BEFORE: doubling the solution of y' + 2y = 0 leaves a function that STILL
+        solves the ODE, so checkodesol closed at residual 0.0 and certified a
+        solution violating the declared y(0)=3 — checkodesol verifies the
+        EQUATION, never the initial condition.
+
+        AFTER: the declared ics is checked against the returned solution and S2's
+        own arm rejects it. The solve_ivp arm still flags diagnostically."""
         r = self._injected(
             {"operation": "dsolve", "expression": "Derivative(y(x), x) + 2*y(x)",
              "symbols": ["x"], "var": "x", "func": "y", "ics": {"y(0)": 3}},
             "            out = sol",
             "            sol = sympy.Eq(sol.lhs, sol.rhs * 2)\n            out = sol")
+        self.assertEqual(r["state"], "error")
+        self.assertEqual(r["reason"], "verification_failed")
+        self.assertIsNone(r["result"])
+        self.assertGreater(r["residual"], 1e-9)
+        self.assertIn("ics_back_substitution", r["diagnostics"])
+        self.assertFalse(r["crosscheck"]["agrees"])
+
+    def test_S2a_general_solution_without_ics_is_unchanged(self):
+        """THE SCOPE BOUND on the dsolve half. No ics declared -> the arm does
+        not apply and behavior is exactly as before: the general solution is
+        equation-verified only, which is precisely what the card claims. S2a must
+        not invent an initial condition nobody declared."""
+        r = run_job({"operation": "dsolve", "expression": "Derivative(y(x), x) + 2*y(x)",
+                     "symbols": ["x"], "var": "x", "func": "y"}, timeout_s=120)
         self.assertEqual(r["state"], "solved_verified")
         self.assertEqual(r["residual"], 0.0)
-        self.assertFalse(r["crosscheck"]["agrees"])
+        self.assertIn("C1", r["result"], "the general solution still carries its constant")
+        self.assertNotIn("ics_back_substitution", r["diagnostics"])
+
+    def test_S2a_a_NaN_from_an_arm_FAILS_CLOSED_and_is_never_swallowed(self):
+        """THE NaN GUARD IN `worse`, pinned because it is invisible by nature.
+
+        Every comparison with NaN is False, so a bare `max()` over two residuals
+        SILENTLY DISCARDS a NaN one and reports the other — a check that failed
+        to produce a number reads exactly like a check that passed. This was a
+        live hazard in the first cut of S2a, found by measuring a divergent
+        integral (`oo` drove the bounds arm to inf/inf = NaN and the max quietly
+        reported the diff-back arm's 0.0). `worse` now treats NaN as None."""
+        r = self._injected(
+            {"operation": "integrate_definite", "expression": "x*sin(x)", "symbols": ["x"],
+             "var": "x", "lower": "0", "upper": "pi"},
+            "got = bounds_residual(anti, out, var, lo, hi)",
+            "got = (float('nan'), 'nan_injected_arm')")
+        self.assertEqual(r["state"], "error")
+        self.assertEqual(r["reason"], "verification_failed",
+                         "a NaN residual means the check produced no verdict — it must "
+                         "never be silently outvoted by a passing arm")
+
+    def test_S2a_declines_BY_NAME_on_a_divergent_integral(self):
+        """THE DECLINE IS LEGIBLE, which is the whole contract of declining.
+
+        SymPy returns `oo` for the integral of sec(x)**2 over [0, pi] and is
+        RIGHT — it genuinely diverges. But `oo` is not a number this arm can
+        difference against F(hi) - F(lo), so it declines. The point of this test
+        is that the decline is NAMED in residual_method: a skipped check must
+        never be indistinguishable from a passed one. Card watch 14 carries the
+        separate question of whether `oo`/`nan` should be a solved_verified
+        result at all — that is pre-existing behavior, not S2a's to decide."""
+        r = run_job({"operation": "integrate_definite", "expression": "sec(x)**2",
+                     "symbols": ["x"], "var": "x", "lower": "0", "upper": "pi"},
+                    timeout_s=180)
+        self.assertEqual(r["state"], "solved_verified", "unchanged from before S2a")
+        self.assertIn("returned_value_check_declined", r["diagnostics"],
+                      "the decline must be named, not silent")
+        self.assertNotIn("_at_bounds_", r["diagnostics"],
+                         "no bounds verdict may be claimed when the arm declined")
+
+    def test_S2a_does_not_reject_a_correct_improper_integral(self):
+        """THE FALSE-NEGATIVE GUARD on the integrate half, and the reason
+        value_at_bound falls back to a LIMIT. exp(-x) on [0, oo) has no
+        SUBSTITUTION value at the upper bound — F(oo) is a limit, not a subs —
+        so a naive bounds check would reject a perfectly correct integral. The
+        limit fallback is what keeps S2a from becoming the limit arm's disease."""
+        r = run_job({"operation": "integrate_definite", "expression": "exp(-x)",
+                     "symbols": ["x"], "var": "x", "lower": "0", "upper": "oo"},
+                    timeout_s=120)
+        self.assertEqual(r["state"], "solved_verified")
+        self.assertEqual(r["result"], "1")
+        self.assertLess(r["residual"], 1e-9)
+        self.assertIn("returned_value_vs_antiderivative_at_bounds", r["diagnostics"])
 
     @staticmethod
     def _injected(spec, old, new):

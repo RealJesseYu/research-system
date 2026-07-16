@@ -21,7 +21,7 @@
 | Substrate | `sympy_symbolic_exact` |
 | Physics regime | Regime A — **exact symbolic manipulation of one closed-form expression**. Not a simulation; not numerics. There is no discretization, no mesh, and therefore **no discretization-artifact family** — the disease that dominates the CFD and FEA cards is structurally absent here. |
 | Envelope card | `docs/envelope_card_sympy_symbolic_exact.md` |
-| Provenance state (from envelope card §2) | **`drafted-by-agent`** — the lowest rung. S1–S6 all TODO-HUMAN. |
+| Provenance state (from envelope card §2) | **`provisionally-signed`** (owner, 2026-07-16; history: `drafted-by-agent` → `provisionally-signed`). **S1–S6 + S2a/S4a/S4b are RULED (owner, 2026-07-16)** — see `docs/envelope_card_sympy_symbolic_exact.md` §3B and `onboarding/sympy_symbolic_exact/contract.py`, which are the sources for every bound named here. A provisional signature grants **interim authority**; it does **not** grant routability — see §4. |
 
 ## 2. Capability summary (abstract — no solver names)
 
@@ -30,7 +30,7 @@
 | Physics served | Hypotheses reducible to **one closed-form expression in declared symbols** and **one** of: definite/indefinite integration, differentiation, limits, series expansion, algebraic root-finding, ODE solution. |
 | QoIs servable | **Exact symbolic results** — an expression, or an exact scalar — each independently verified by back-substitution before it is returned. |
 | QoIs NOT servable | Anything requiring: numeric quadrature as the *answer* (that is a **queued** separate regime); optimization/minimization; multi-expression systems; field data; time series; statistical quantities; anything about a physical apparatus. **Also: any claim beyond the expression as typed** (see §5). |
-| Validated-envelope summary | Envelope card §3A — 7 operations exercised live, residuals **0.0 to 1.83e-10**; §3B **all six bounds TODO-HUMAN**. |
+| Validated-envelope summary | Envelope card §3A — 7 operations exercised live, worst verified residual **4.05e-10** across 33 jobs (`diff` of `sin(10*x)`, the binding arm; only **2.47×** inside the ruled 1e-9); §3B **all six bounds RULED (owner, 2026-07-16)**, plus S2a (the residual verifies the RETURNED object) and S4a/S4b (a decline raised by the operation call is `unevaluated`). |
 
 ## 3. Cost tier
 
@@ -52,7 +52,7 @@ expressible, not whether it is affordable.*
 | Field | Value |
 |---|---|
 | Maturity rung | **`calibrating`** — the entry rung. **Unroutable.** |
-| Human-at-trust-calls? | **YES — unconditionally.** The substrate is unroutable, uncalibrated, and every §3B bound is an unruled suggestion. |
+| Human-at-trust-calls? | **YES — unconditionally**, and the ruling+signature do **not** change this. The §3B bounds are now decided and the card carries interim authority, but the substrate remains **unroutable and uncalibrated** (no battery has run), and it would enter at `calibrating` even if registered. |
 | Override history | **None** — the substrate has never run under the supervisor and has no ledger entries. |
 | Calibration | Slate **PROPOSED** (`docs/scipy_calibration_cases_v1.md`), **unexecuted**, and **not yet loadable** by the battery (see `registry_row.md` §4). |
 
