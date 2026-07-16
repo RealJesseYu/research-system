@@ -258,5 +258,160 @@ class TestWrapperBehaviorTrack(unittest.TestCase):
             self.assertTrue(r["passed"], wc["id"])
 
 
+class TestEntropyBits(unittest.TestCase):
+    """The small-N spread measure. At N=3 only three distributions exist."""
+
+    def test_unanimous_is_zero(self):
+        self.assertEqual(cb._entropy_bits({"trust": 3}), 0.0)
+
+    def test_two_one_split(self):
+        # 2/1 over two labels: -(2/3)log2(2/3) - (1/3)log2(1/3) = 0.9183
+        self.assertAlmostEqual(cb._entropy_bits({"trust": 2, "defer": 1}), 0.9183, places=3)
+
+    def test_maximal_three_way(self):
+        # 1/1/1 = log2(3) = 1.585, the ceiling for the 3-label vocabulary.
+        self.assertAlmostEqual(cb._entropy_bits({"trust": 1, "refine": 1, "defer": 1}),
+                               1.585, places=3)
+
+    def test_empty_is_zero(self):
+        self.assertEqual(cb._entropy_bits({}), 0.0)
+
+
+class TestAggregateCaseRepeats(unittest.TestCase):
+    """The pure per-case distribution aggregator (R-REP-1). Holds the
+    'do not collapse' line: raw_verdicts and every draw survive."""
+
+    def _draw(self, cid, raw, accept):
+        return {
+            "case_id": cid, "track": "gate", "expected_class": "in",
+            "acceptable_labels": accept, "raw_verdict": raw,
+            "routed_outcome": "defer", "hook_fired": raw in ("trust", "refine"),
+            "signoff_substrates": [], "passed": raw in accept, "rationale": f"r-{raw}",
+            "right_instrument": "i", "wall_time_seconds": 1.0, "reask_attempts": 1,
+        }
+
+    def test_split_distribution_preserved(self):
+        accept = ["trust", "refine"]
+        draws = [self._draw("C1", "trust", accept),
+                 self._draw("C1", "defer", accept),
+                 self._draw("C1", "refine", accept)]
+        agg = cb.aggregate_case_repeats(draws)
+        self.assertEqual(agg["raw_verdicts"], ["trust", "defer", "refine"])
+        self.assertEqual(agg["distribution"], {"trust": 1, "defer": 1, "refine": 1})
+        self.assertFalse(agg["unanimous"])
+        self.assertEqual(agg["n_in_band"], 2)          # trust + refine in band
+        self.assertEqual(agg["in_band_fraction"], round(2 / 3, 4))
+        self.assertEqual(agg["draws"], draws)          # every draw survives
+        self.assertEqual(agg["n_repeats"], 3)
+
+    def test_unanimous_case(self):
+        accept = ["defer"]
+        draws = [self._draw("C6", "defer", accept) for _ in range(3)]
+        agg = cb.aggregate_case_repeats(draws)
+        self.assertTrue(agg["unanimous"])
+        self.assertEqual(agg["distribution"], {"defer": 3})
+        self.assertEqual(agg["entropy_bits"], 0.0)
+        self.assertEqual(agg["in_band_fraction"], 1.0)
+
+    def test_modal_tiebreak_is_canonical_order(self):
+        # 1 trust / 1 refine tie -> canonical VALID_LABELS order picks 'trust'
+        # (index 0), deterministically. NOT a claim trust is 'the' verdict.
+        accept = ["trust", "refine"]
+        draws = [self._draw("C1", "refine", accept), self._draw("C1", "trust", accept)]
+        agg = cb.aggregate_case_repeats(draws)
+        self.assertEqual(agg["modal_verdict"], "trust")
+
+
+def _fake_gate_record(case_id, expected_class, acceptable_labels, raw):
+    return {
+        "case_id": case_id, "track": "gate", "expected_class": expected_class,
+        "acceptable_labels": list(acceptable_labels), "raw_verdict": raw,
+        "routed_outcome": "defer", "hook_fired": raw in ("trust", "refine"),
+        "signoff_substrates": [], "passed": raw in acceptable_labels,
+        "rationale": f"r-{raw}", "right_instrument": "i",
+        "wall_time_seconds": 0.01, "reask_attempts": 1,
+    }
+
+
+class TestRepeatsBattery(unittest.TestCase):
+    """run_battery under --repeats, with run_gate_case FAKED (NO model calls).
+    Proves backward-compat at repeats=1, distribution shape at repeats>1,
+    independent draws, and wrapper-case EXCLUSION from repetition."""
+
+    def _run(self, repeats, cycle=("trust", "defer", "refine")):
+        import itertools
+        import tempfile
+        gate_calls = []
+        wrapper_calls = []
+
+        def fake_gate(data, gc, mode):
+            # A distinct raw verdict each call so repeats produce a real split;
+            # each call records itself, proving draws are separate invocations.
+            raw = cycle[len(gate_calls) % len(cycle)]
+            gate_calls.append((gc["id"], raw))
+            return _fake_gate_record(gc["id"], gc["expected_class"],
+                                     gc["acceptable_labels"], raw)
+
+        real_wrapper = cb.run_wrapper_case
+
+        def spy_wrapper(sid, wc):
+            wrapper_calls.append(wc["id"])
+            return real_wrapper(sid, wc)
+
+        report_path = Path(tempfile.mkdtemp()) / "rep.json"
+        with mock.patch.object(cb, "run_gate_case", fake_gate), \
+                mock.patch.object(cb, "run_wrapper_case", spy_wrapper):
+            rc = cb.run_battery(CODE, "auto", report_path=report_path, repeats=repeats)
+        report = json.loads(report_path.read_text())
+        return rc, report, gate_calls, wrapper_calls
+
+    def test_repeats1_report_shape_is_backward_compatible(self):
+        # repeats=1 reproduces the pre-R-REP-1 report shape EXACTLY: no top-level
+        # n_repeats, gate block has the original 5 keys, cases ARE draw records.
+        _, report, gate_calls, _ = self._run(1)
+        self.assertNotIn("n_repeats", report)
+        self.assertEqual(set(report["gate"]),
+                         {"n_cases", "n_passed", "confusion", "hook_witness", "cases"})
+        n_gate = len(cb.load_cases(CODE)["gate_cases"])
+        self.assertEqual(len(gate_calls), n_gate)          # one draw per case
+        for c in report["gate"]["cases"]:
+            self.assertIn("raw_verdict", c)                # a single draw record
+            self.assertNotIn("draws", c)
+            self.assertNotIn("distribution", c)
+
+    def test_repeats3_is_independent_draws_per_gate_case(self):
+        _, report, gate_calls, _ = self._run(3)
+        cases = cb.load_cases(CODE)
+        n_gate = len(cases["gate_cases"])
+        # Exactly 3 INDEPENDENT run_gate_case invocations per gate case.
+        self.assertEqual(len(gate_calls), 3 * n_gate)
+        self.assertEqual(report["n_repeats"], 3)
+        self.assertEqual(report["gate"]["n_draws"], 3 * n_gate)
+        for c in report["gate"]["cases"]:
+            self.assertEqual(len(c["draws"]), 3)
+            self.assertEqual(sum(c["distribution"].values()), 3)
+            self.assertEqual(c["raw_verdicts"], [d["raw_verdict"] for d in c["draws"]])
+
+    def test_confusion_sums_over_all_draws_at_repeats3(self):
+        _, report, _, _ = self._run(3)
+        n_gate = len(cb.load_cases(CODE)["gate_cases"])
+        total = sum(sum(row.values()) for row in report["gate"]["confusion"].values())
+        self.assertEqual(total, 3 * n_gate)               # every draw counted
+
+    def test_wrapper_cases_run_once_regardless_of_repeats(self):
+        # EXCLUSION PROOF: wrapper-behavior cases are deterministic zero-model
+        # validation; repeating measures nothing, so they run ONCE at any N.
+        cases = cb.load_cases(CODE)
+        n_wrap = len(cases["wrapper_cases"])
+        for repeats in (1, 5):
+            _, report, _, wrapper_calls = self._run(repeats)
+            self.assertEqual(len(wrapper_calls), n_wrap, f"repeats={repeats}")
+            self.assertEqual(report["wrapper_behavior"]["n_cases"], n_wrap)
+
+    def test_repeats_below_one_rejected(self):
+        with self.assertRaises(ValueError):
+            cb.run_battery(CODE, "auto", repeats=0)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

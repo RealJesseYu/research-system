@@ -17,12 +17,22 @@ ledger (memory/fidelity_ledger.jsonl):
     or override ledger paths — it cannot write there even by mistake. A test
     asserts the path is neither production ledger.
 
-Each entry is one gate verdict (calibration battery case OR probe repeat):
+Each entry is one gate DRAW (R-REP-1 decision: the atomic ledger entry is ONE
+DRAW, never a case-with-a-distribution — a draw is the observation; a
+distribution is derived by a reader):
   {source, batch_id, substrate_id, case_id, cell, repeat, expected_class,
    acceptable_labels, raw_verdict, routed_outcome, hook_fired, passed,
    rationale, timestamp}
-`cell`/`repeat` are null for battery cases (one verdict per case) and set for
-probe repeats (P-0..P-C x repeat index).
+`cell` is null for battery entries, set for probe repeats (P-0..P-C). `repeat`
+distinguishes the draw within a (batch_id, case_id):
+  * probe entries: repeat = 0..N-1 (one row per draw).
+  * battery entries seeded from a repeats>1 report: repeat = 0..N-1.
+  * battery entries seeded from a repeats==1 (pre-R-REP-1 shape) report:
+    repeat = null — the legacy single-draw convention, kept so the pre-R-REP-1
+    entries stay byte-identical and commensurable.
+A future reader tells a repeats=1 batch from a repeats=3 batch by grouping on
+(source, batch_id, case_id) and counting rows: 1 row (repeat null or 0) = a
+single draw; 3 rows (repeat 0,1,2) = a 3-repeat batch.
 """
 
 from __future__ import annotations
@@ -110,9 +120,16 @@ def read_all(path: Optional[Path] = None) -> list:
 
 
 def seed_from_battery_report(report_path: Path, path: Optional[Path] = None) -> int:
-    """Append every gate-case verdict from a calibration-battery report JSON.
+    """Append every gate DRAW from a calibration-battery report JSON.
 
-    IDEMPOTENT per (source='battery', batch_id, case_id): a batch already
+    Handles BOTH report shapes (R-REP-1):
+      * repeats==1 (pre-R-REP-1 shape): each gate case IS a single draw record.
+        Emitted as ONE entry with repeat=None — byte-identical to the legacy
+        seeding, so the pre-R-REP-1 entries stay commensurable.
+      * repeats>1: each gate case carries a `draws` list. Emitted as ONE entry
+        PER DRAW, repeat=0..N-1 (the atomic ledger entry is one draw).
+
+    IDEMPOTENT per (source='battery', batch_id, case_id, repeat): a draw already
     present is skipped, so re-running the seeder never double-writes. Returns the
     number of entries newly appended. Wrapper-behavior cases are NOT recorded —
     they carry no gate verdict.
@@ -121,28 +138,37 @@ def seed_from_battery_report(report_path: Path, path: Optional[Path] = None) -> 
     batch_id = report.get("batch_id")
     substrate_id = report.get("substrate_id")
     existing = {
-        (e["batch_id"], e["case_id"])
+        (e["batch_id"], e["case_id"], e.get("repeat"))
         for e in read_all(path)
         if e.get("source") == "battery"
     }
     appended = 0
     for c in report["gate"]["cases"]:
-        key = (batch_id, c["case_id"])
-        if key in existing:
-            continue
-        append_entry(
-            source="battery",
-            batch_id=batch_id,
-            substrate_id=substrate_id,
-            case_id=c["case_id"],
-            expected_class=c["expected_class"],
-            acceptable_labels=c["acceptable_labels"],
-            raw_verdict=c["raw_verdict"],
-            routed_outcome=c["routed_outcome"],
-            hook_fired=c["hook_fired"],
-            passed=c["passed"],
-            rationale=c.get("rationale", ""),
-            path=path,
+        case_id = c["case_id"]
+        expected_class = c["expected_class"]
+        acceptable_labels = c["acceptable_labels"]
+        # Old shape -> [(None, case)]; new shape -> [(0, draw0), (1, draw1), ...].
+        draw_rows = (
+            list(enumerate(c["draws"])) if "draws" in c else [(None, c)]
         )
-        appended += 1
+        for repeat, d in draw_rows:
+            key = (batch_id, case_id, repeat)
+            if key in existing:
+                continue
+            append_entry(
+                source="battery",
+                batch_id=batch_id,
+                substrate_id=substrate_id,
+                case_id=case_id,
+                expected_class=expected_class,
+                acceptable_labels=acceptable_labels,
+                raw_verdict=d["raw_verdict"],
+                routed_outcome=d["routed_outcome"],
+                hook_fired=d["hook_fired"],
+                passed=d["passed"],
+                rationale=d.get("rationale", ""),
+                repeat=repeat,
+                path=path,
+            )
+            appended += 1
     return appended

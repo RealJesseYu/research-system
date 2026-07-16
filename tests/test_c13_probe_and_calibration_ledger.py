@@ -221,6 +221,64 @@ class TestCalibrationLedgerIO(unittest.TestCase):
         self.assertEqual(c13["expected_class"], "leakage-suspect")
         self.assertFalse(c13["passed"])
 
+    def test_old_shape_seeds_repeat_none(self):
+        # BACKWARD COMPAT: a repeats=1 (pre-R-REP-1) report seeds one row per case
+        # with repeat=None — the legacy single-draw convention, unchanged.
+        p = self._tmp()
+        report = ROOT / "harness" / "calibration_code_sklearn_eval_20260716T013014Z.json"
+        cl.seed_from_battery_report(report, path=p)
+        self.assertTrue(all(e["repeat"] is None for e in cl.read_all(p)))
+
+    def _repeats_report(self, batch_id="R3", n_cases=2, n_repeats=3):
+        # A synthetic repeats>1 battery report: each gate case carries a `draws`
+        # list of full draw records (the shape run_battery emits at repeats>1).
+        verdicts = ["trust", "defer", "refine"]
+        cases = []
+        for i in range(n_cases):
+            draws = [{
+                "case_id": f"C{i:02d}", "raw_verdict": verdicts[j % 3],
+                "routed_outcome": "defer", "hook_fired": verdicts[j % 3] != "defer",
+                "passed": True, "rationale": f"r{j}",
+            } for j in range(n_repeats)]
+            cases.append({
+                "case_id": f"C{i:02d}", "expected_class": "in",
+                "acceptable_labels": ["trust", "refine", "defer"],
+                "draws": draws,
+            })
+        return {"batch_id": batch_id, "substrate_id": "code_sklearn_eval",
+                "n_repeats": n_repeats, "gate": {"cases": cases}}
+
+    def test_repeats_report_seeds_one_row_per_draw(self):
+        # R-REP-1: the atomic ledger entry is one DRAW — a repeats=3 report emits
+        # 3 rows per case with repeat=0,1,2, and is idempotent per draw.
+        import tempfile
+        p = self._tmp()
+        rpt = Path(tempfile.mkdtemp()) / "r3.json"
+        rpt.write_text(json.dumps(self._repeats_report(n_cases=2, n_repeats=3)))
+        n1 = cl.seed_from_battery_report(rpt, path=p)
+        self.assertEqual(n1, 6)                                   # 2 cases x 3 draws
+        entries = cl.read_all(p)
+        c00 = sorted(e["repeat"] for e in entries if e["case_id"] == "C00")
+        self.assertEqual(c00, [0, 1, 2])                          # one row per draw
+        self.assertEqual(cl.seed_from_battery_report(rpt, path=p), 0)  # idempotent
+
+    def test_reader_tells_repeats1_from_repeats3(self):
+        # The stated discriminator: group on (batch_id, case_id), count rows.
+        import collections
+        import tempfile
+        p = self._tmp()
+        old = ROOT / "harness" / "calibration_code_sklearn_eval_20260716T013014Z.json"
+        cl.seed_from_battery_report(old, path=p)                  # repeats=1 batch
+        rpt = Path(tempfile.mkdtemp()) / "r3.json"
+        rpt.write_text(json.dumps(self._repeats_report(batch_id="R3", n_cases=2)))
+        cl.seed_from_battery_report(rpt, path=p)                  # repeats=3 batch
+        rows = collections.Counter(
+            (e["batch_id"], e["case_id"]) for e in cl.read_all(p)
+        )
+        old_batch = json.loads(old.read_text())["batch_id"]
+        self.assertTrue(all(v == 1 for k, v in rows.items() if k[0] == old_batch))
+        self.assertTrue(all(v == 3 for k, v in rows.items() if k[0] == "R3"))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

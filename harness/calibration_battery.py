@@ -41,9 +41,17 @@ never modified), asserting valid=False with the pre-registered reason. These
 reject before any solver/container, so they need no docker.
 
 This is a separate --mode calibration (with --substrate); it is NOT part of FAST's
-hard gate. It SPENDS MODEL CALLS (one Opus fidelity call per gate case) and must
-be launched from a plain Terminal per the run-venue rule — never a builder-session
-background task.
+hard gate. It SPENDS MODEL CALLS (one Opus fidelity call per gate case per repeat)
+and must be launched from a plain Terminal per the run-venue rule — never a
+builder-session background task.
+
+R-REP-1 (--repeats N): because the gate is STOCHASTIC (the C13 probe returned
+trust/defer/refine on byte-identical input — verdict entropy on n=1), each gate
+case may be drawn N INDEPENDENT times. Repeats apply to GATE CASES ONLY — wrapper
+cases are deterministic zero-model-call validation and run once. Every repeat is a
+fresh isolated call (no shared context; see call_stage_model); a split verdict is
+DATA, reported as a per-case distribution, never collapsed to a point. --repeats
+defaults to 1 and reproduces the pre-R-REP-1 report shape byte-for-byte.
 """
 
 from __future__ import annotations
@@ -51,6 +59,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import math
 import sys
 import time
 from datetime import datetime, timezone
@@ -265,6 +274,69 @@ def build_confusion(gate_records: list[dict]) -> dict:
     return matrix
 
 
+def _entropy_bits(distribution: dict[str, int]) -> float:
+    """Shannon entropy (base 2) of a verdict-count distribution.
+
+    Base-2 so the unit is BITS and the numbers read against the label space:
+    0.0 = unanimous, 1.0 = an even trust/refine split, log2(3)=1.585 = a
+    perfectly even three-way split — the ceiling for this gate's vocabulary.
+    HONEST SMALL-N CAVEAT: at N=3 the estimator is coarse. Only four
+    distributions are reachable — 3/0/0 -> 0.0, 2/1/0 -> 0.918, and the maximal
+    1/1/1 -> 1.585 — so entropy here is an ORDINAL spread flag (unanimous vs
+    partial vs maximal), not a calibrated bit-rate. Reported with the raw
+    distribution beside it, never in place of it."""
+    total = sum(distribution.values())
+    if total == 0:
+        return 0.0
+    h = 0.0
+    for count in distribution.values():
+        if count:
+            p = count / total
+            h -= p * math.log2(p)
+    return round(h, 4)
+
+
+def aggregate_case_repeats(draws: list[dict]) -> dict:
+    """Aggregate N INDEPENDENT draw-records for ONE gate case (R-REP-1).
+
+    Each element of `draws` is a full run_gate_case record from an independent
+    call (fresh isolated session — no shared context between repeats; see
+    call_stage_model). The answer-key fields (expected_class, acceptable_labels)
+    are identical across a case's draws and copied through from the first.
+
+    Pure: no I/O, no model call. HOLDS THE 'DO NOT COLLAPSE' LINE — the full
+    ordered raw_verdicts list AND every draw record survive in the return; the
+    distribution/modal/entropy are DERIVED conveniences beside them, never a
+    replacement. A split verdict is DATA, reported as its distribution."""
+    first = draws[0]
+    n = len(draws)
+    verdicts = [d["raw_verdict"] for d in draws]
+    distribution: dict[str, int] = {}
+    for v in verdicts:
+        distribution[v] = distribution.get(v, 0) + 1
+    accept = list(first["acceptable_labels"])
+    n_in_band = sum(1 for v in verdicts if v in accept)
+    # Modal verdict: highest count, ties broken by VALID_LABELS canonical order
+    # so the field is reader-stable and deterministic. NOT a claim the mode is
+    # 'the' verdict — the distribution beside it is the actual finding.
+    modal = min(distribution, key=lambda v: (-distribution[v], VALID_LABELS.index(v)))
+    return {
+        "case_id": first["case_id"],
+        "track": "gate",
+        "expected_class": first["expected_class"],
+        "acceptable_labels": accept,
+        "n_repeats": n,
+        "raw_verdicts": verdicts,
+        "distribution": distribution,
+        "unanimous": len(distribution) == 1,
+        "modal_verdict": modal,
+        "n_in_band": n_in_band,
+        "in_band_fraction": round(n_in_band / n, 4),
+        "entropy_bits": _entropy_bits(distribution),
+        "draws": draws,
+    }
+
+
 def hook_summary(gate_records: list[dict], mode: str) -> dict:
     """The safety-hook witness product. The standing invariant is ZERO SILENT
     TRUSTS: no gate case is left with a routed 'trust' on a non-mature substrate.
@@ -307,7 +379,16 @@ def hook_summary(gate_records: list[dict], mode: str) -> dict:
 
 
 def run_battery(substrate_id: str, mode: str = "auto",
-                report_path: Path | None = None) -> int:
+                report_path: Path | None = None, repeats: int = 1) -> int:
+    """Run the battery. `repeats` (R-REP-1) is the number of INDEPENDENT gate
+    draws per gate case; wrapper-behavior cases are deterministic zero-model-call
+    validation and run ONCE regardless (repeating them measures nothing). All
+    repeats land in ONE per-launch report (no per-repeat files). At repeats==1
+    the report is byte-shape-identical to the pre-R-REP-1 report; at repeats>1
+    the gate block carries per-case distributions and confusion/hook counts are
+    over ALL draws."""
+    if repeats < 1:
+        raise ValueError(f"repeats must be >= 1, got {repeats}")
     data = load_cases(substrate_id)
     batch_ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     report_path = Path(report_path) if report_path is not None else (
@@ -321,12 +402,54 @@ def run_battery(substrate_id: str, mode: str = "auto",
     override_before = ledgers.count_entries(ledgers.OVERRIDE_LEDGER_PATH)
 
     start = time.perf_counter()
-    gate_records = [run_gate_case(data, gc, mode) for gc in data["gate_cases"]]
+    # Each gate case: `repeats` independent draws. run_gate_case is UNCHANGED
+    # (the probe imports it); each call builds a fresh stage_input and goes
+    # through call_stage_model's fresh isolated session, so no draw shares
+    # context with another.
+    per_case_draws = [
+        [run_gate_case(data, gc, mode) for _ in range(repeats)]
+        for gc in data["gate_cases"]
+    ]
+    flat_draws = [d for draws in per_case_draws for d in draws]
+    # Wrapper-behavior cases: ZERO model calls, run ONCE (never repeated).
     wrapper_records = [
         run_wrapper_case(substrate_id, wc) for wc in data["wrapper_cases"]
     ]
     wall = time.perf_counter() - start
     meter = cost_meter.read()
+
+    if repeats == 1:
+        # Byte-shape-identical to the pre-R-REP-1 report: one draw per case,
+        # cases ARE the draw records, gate block keys/order unchanged.
+        gate_records = flat_draws
+        gate_block = {
+            "n_cases": len(gate_records),
+            "n_passed": sum(1 for r in gate_records if r["passed"]),
+            "confusion": build_confusion(gate_records),
+            "hook_witness": hook_summary(gate_records, mode),
+            "cases": gate_records,
+        }
+    else:
+        case_summaries = [aggregate_case_repeats(draws) for draws in per_case_draws]
+        n_in_band_draws = sum(s["n_in_band"] for s in case_summaries)
+        gate_block = {
+            "n_cases": len(case_summaries),
+            "n_draws": len(flat_draws),
+            "n_repeats": repeats,
+            # Confusion + hook witness are over ALL draws (every draw is an
+            # observation); rows sum to n_draws, not n_cases.
+            "confusion": build_confusion(flat_draws),
+            "confusion_note": "counts over ALL draws (repeats per case); "
+                              "rows sum to n_draws, not n_cases",
+            "hook_witness": hook_summary(flat_draws, mode),
+            "aggregate_in_band": {
+                "n_in_band_draws": n_in_band_draws,
+                "n_draws": len(flat_draws),
+                "fraction": round(n_in_band_draws / len(flat_draws), 4),
+            },
+            "n_unanimous_cases": sum(1 for s in case_summaries if s["unanimous"]),
+            "cases": case_summaries,
+        }
 
     report = {
         "mode_arg": mode,
@@ -335,13 +458,10 @@ def run_battery(substrate_id: str, mode: str = "auto",
         "routable_at_run": registry.get(substrate_id).routable,
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "batch_id": batch_ts,
-        "gate": {
-            "n_cases": len(gate_records),
-            "n_passed": sum(1 for r in gate_records if r["passed"]),
-            "confusion": build_confusion(gate_records),
-            "hook_witness": hook_summary(gate_records, mode),
-            "cases": gate_records,
-        },
+        # Top-level n_repeats appears ONLY at repeats>1 so repeats==1 stays
+        # byte-shape-identical to the pre-R-REP-1 report.
+        **({"n_repeats": repeats} if repeats > 1 else {}),
+        "gate": gate_block,
         "wrapper_behavior": {
             "n_cases": len(wrapper_records),
             "n_passed": sum(1 for r in wrapper_records if r["passed"]),
@@ -391,19 +511,37 @@ def print_report(report: dict) -> None:
         f"mode={report['mode_arg']}"
     )
     print()
-    print("-- PRODUCT 1: GATE CALIBRATION (raw pre-hook verdict vs label) --")
-    for r in g["cases"]:
-        mark = "OK " if r["passed"] else "XX "
-        print(
-            f"  {mark}{r['case_id']:>4} [{r['expected_class']:<16}] "
-            f"raw={r['raw_verdict']:<6} routed={r['routed_outcome']:<6} "
-            f"hook={'fired' if r['hook_fired'] else 'no-op':<5} "
-            f"accept={r['acceptable_labels']}  {r['wall_time_seconds']}s"
-        )
-    print(f"  gate cases scored-in-band: {g['n_passed']}/{g['n_cases']} "
-          "(band membership, NOT a pass/fail gate)")
+    repeats = report.get("n_repeats", 1)
+    if repeats == 1:
+        print("-- PRODUCT 1: GATE CALIBRATION (raw pre-hook verdict vs label) --")
+        for r in g["cases"]:
+            mark = "OK " if r["passed"] else "XX "
+            print(
+                f"  {mark}{r['case_id']:>4} [{r['expected_class']:<16}] "
+                f"raw={r['raw_verdict']:<6} routed={r['routed_outcome']:<6} "
+                f"hook={'fired' if r['hook_fired'] else 'no-op':<5} "
+                f"accept={r['acceptable_labels']}  {r['wall_time_seconds']}s"
+            )
+        print(f"  gate cases scored-in-band: {g['n_passed']}/{g['n_cases']} "
+              "(band membership, NOT a pass/fail gate)")
+    else:
+        print(f"-- PRODUCT 1: GATE CALIBRATION UNDER REPEATS "
+              f"(N={repeats} INDEPENDENT draws/case; distributions, NOT points) --")
+        for c in g["cases"]:
+            flag = "UNANIMOUS" if c["unanimous"] else "SPLIT    "
+            print(
+                f"  {flag} {c['case_id']:>4} [{c['expected_class']:<16}] "
+                f"draws={c['raw_verdicts']} dist={c['distribution']} "
+                f"modal={c['modal_verdict']:<6} in-band={c['n_in_band']}/{repeats} "
+                f"H={c['entropy_bits']} bits  accept={c['acceptable_labels']}"
+            )
+        ab = g["aggregate_in_band"]
+        print(f"  aggregate in-band draws: {ab['n_in_band_draws']}/{ab['n_draws']} "
+              f"({ab['fraction']}); unanimous cases: {g['n_unanimous_cases']}/{g['n_cases']} "
+              "(distributions are DATA, NOT a pass/fail gate)")
     print()
-    print("  CONFUSION (expected_class -> raw verdict counts):")
+    conf_over = "raw verdict counts over ALL draws" if repeats > 1 else "raw verdict counts"
+    print(f"  CONFUSION (expected_class -> {conf_over}):")
     header = "    " + " " * 18 + "".join(f"{lbl:>8}" for lbl in VALID_LABELS)
     print(header)
     for cls, row in g["confusion"].items():
@@ -444,8 +582,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--report-path", default=None,
                         help="per-launch report file (default: "
                              "calibration_<substrate>_<UTC>.json)")
+    parser.add_argument("--repeats", type=int, default=1,
+                        help="R-REP-1: independent gate draws per gate case "
+                             "(default 1 = pre-R-REP-1 report shape). Wrapper "
+                             "cases run once regardless. All draws in ONE report.")
     args = parser.parse_args(argv)
-    return run_battery(args.substrate, args.mode, args.report_path)
+    if args.repeats < 1:
+        parser.error("--repeats must be >= 1")
+    return run_battery(args.substrate, args.mode, args.report_path, args.repeats)
 
 
 if __name__ == "__main__":

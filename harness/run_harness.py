@@ -328,8 +328,9 @@ def main() -> int:
         "--repeats",
         type=int,
         default=None,
-        help="killrate mode only: ideation repeats per domain "
-        "(default: the proving size, 2 x 2 domains = 4 runs)",
+        help="killrate mode: ideation repeats per domain (default: the "
+        "proving size, 2 x 2 domains = 4 runs). calibration mode (R-REP-1): "
+        "independent gate draws per gate case (default 1 = pre-R-REP-1 shape).",
     )
     parser.add_argument(
         "--rounds",
@@ -366,7 +367,8 @@ def main() -> int:
         if (args.repeats is not None or args.dry_run or args.rounds is not None
                 or args.report_path is not None):
             parser.error(
-                "--repeats/--dry-run/--rounds/--report-path apply only to --mode killrate"
+                "--repeats applies to --mode killrate/calibration; "
+                "--dry-run/--rounds/--report-path apply only to --mode killrate"
             )
         if args.run_id is None:
             parser.error("--mode paperlint requires --run-id")
@@ -393,14 +395,20 @@ def main() -> int:
         # the FAST hard gate; lazy import per the killrate/triage pattern.
         from harness import calibration_battery
 
-        if (args.repeats is not None or args.dry_run or args.rounds is not None
-                or args.report_path is not None):
+        # R-REP-1: --repeats now applies to calibration too (independent gate
+        # draws per gate case). --dry-run/--rounds/--report-path stay killrate-only.
+        if args.dry_run or args.rounds is not None or args.report_path is not None:
             parser.error(
-                "--repeats/--dry-run/--rounds/--report-path apply only to --mode killrate"
+                "--dry-run/--rounds/--report-path apply only to --mode killrate"
             )
         if args.substrate is None:
             parser.error("--mode calibration requires --substrate")
-        return calibration_battery.run_battery(args.substrate, args.hook_mode)
+        repeats = args.repeats if args.repeats is not None else 1
+        if repeats < 1:
+            parser.error("--repeats must be >= 1")
+        return calibration_battery.run_battery(
+            args.substrate, args.hook_mode, repeats=repeats
+        )
     if args.substrate is not None or args.hook_mode != "auto":
         parser.error("--substrate/--hook-mode apply only to --mode calibration")
     if args.mode == "triage":
@@ -413,7 +421,8 @@ def main() -> int:
         if (args.repeats is not None or args.dry_run or args.rounds is not None
                 or args.report_path is not None):
             parser.error(
-                "--repeats/--dry-run/--rounds/--report-path apply only to --mode killrate"
+                "--repeats applies to --mode killrate/calibration; "
+                "--dry-run/--rounds/--report-path apply only to --mode killrate"
             )
         return triage_battery.run_battery()
     if args.mode == "killrate":
@@ -431,7 +440,8 @@ def main() -> int:
     if (args.repeats is not None or args.dry_run or args.rounds is not None
             or args.report_path is not None):
         parser.error(
-            "--repeats/--dry-run/--rounds/--report-path apply only to --mode killrate"
+            "--repeats applies to --mode killrate/calibration; "
+            "--dry-run/--rounds/--report-path apply only to --mode killrate"
         )
     return run_harness(args.mode)
 

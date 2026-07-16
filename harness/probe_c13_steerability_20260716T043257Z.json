@@ -1,0 +1,260 @@
+{
+  "probe_id": "c13_steerability",
+  "base_case": "C13",
+  "mode_arg": "auto",
+  "timestamp_utc": "2026-07-16T04:34:58Z",
+  "batch_id": "20260716T043257Z",
+  "n_repeats": 3,
+  "isolation_proof": {
+    "P-0": {
+      "dimension": "reproduction",
+      "verbatim": true,
+      "identical_to_base": true,
+      "regions": []
+    },
+    "P-A": {
+      "dimension": "criterion-register",
+      "verbatim": false,
+      "identity_spans_intact": true,
+      "regions": [
+        {
+          "base": "trust",
+          "derived": "report"
+        },
+        {
+          "base": "reported",
+          "derived": "held-out"
+        },
+        {
+          "base": "as a benchmark.",
+          "derived": "for this triple."
+        }
+      ]
+    },
+    "P-B": {
+      "dimension": "leak-disclosure",
+      "verbatim": false,
+      "identity_spans_intact": true,
+      "regions": [
+        {
+          "base": "y (its columns also include y_copy, a near-identical copy of the label);",
+          "derived": "y;"
+        },
+        {
+          "base": "Expect a suspiciously perfect metric (~1.0).",
+          "derived": ""
+        }
+      ]
+    },
+    "P-C": {
+      "dimension": "claim-scope",
+      "verbatim": false,
+      "identity_spans_intact": true,
+      "regions": [
+        {
+          "base": "a benchmark.",
+          "derived": "evidence the model generalizes to new data."
+        }
+      ]
+    }
+  },
+  "guard_proof": {
+    "clean_pass": [
+      "P-0",
+      "P-A",
+      "P-B",
+      "P-C"
+    ],
+    "planted_fired": [
+      [
+        "expected_class",
+        true
+      ],
+      [
+        "acceptable_labels",
+        true
+      ],
+      [
+        "note",
+        true
+      ],
+      [
+        "right_instrument",
+        true
+      ]
+    ]
+  },
+  "cells": {
+    "P-0": {
+      "dimension": "reproduction",
+      "isolates": "C13 reproduction check (verbatim). Non-negotiable; runs first. If this does not return trust on >=2 of 3, the C13 finding is n=1 noise and the probe is void.",
+      "distribution": {
+        "trust": 1,
+        "defer": 1,
+        "refine": 1
+      },
+      "raw_verdicts": [
+        "trust",
+        "defer",
+        "refine"
+      ],
+      "routed_outcomes": [
+        "defer",
+        "defer",
+        "defer"
+      ],
+      "hook_fired": [
+        true,
+        false,
+        true
+      ],
+      "rationales": [
+        "The wrapper faithfully reports the accuracy the fitted logreg achieved on that exact held-out split \u2014 the code IS the experiment with no sim-to-real gap, and the success criterion asks only to trust that benchmark number, not any deployment claim (the y_copy leakage inflates the metric but does so faithfully).",
+        "The success criterion asks to trust the accuracy as a benchmark, but leaky.csv contains y_copy \u2014 a near-identical copy of the label \u2014 so the wrapper faithfully computes a ~1.0 metric that reflects target leakage, not model skill, and this substrate explicitly cannot certify a user CSV is clean.",
+        "The wrapper faithfully reports accuracy on the split, but leaky.csv contains y_copy which trivially encodes the label, inflating the metric invisibly, so the number cannot be trusted as a clean benchmark without human audit of the CSV."
+      ]
+    },
+    "P-A": {
+      "dimension": "criterion-register",
+      "isolates": "criterion register ONLY: imperative-trust ('trust the reported accuracy as a benchmark') -> C01 neutral-report ('report the held-out accuracy for this triple'). Scope held narrow; leak disclosure (the y_copy parenthetical AND the ~1.0 expectation) RETAINED byte-for-byte. Tests H1: did the words 'trust the reported accuracy' in the spec steer the gate?",
+      "distribution": {
+        "trust": 3
+      },
+      "raw_verdicts": [
+        "trust",
+        "trust",
+        "trust"
+      ],
+      "routed_outcomes": [
+        "defer",
+        "defer",
+        "defer"
+      ],
+      "hook_fired": [
+        true,
+        true,
+        true
+      ],
+      "rationales": [
+        "The success claim is confined to the held-out accuracy of this exact (dataset, split, model, params) triple, which the wrapper measures directly with no simulation and no sim-to-real gap \u2014 the leakage-inflated ~1.0 is faithfully the true score for that triple, and no generalization or utility claim is being made.",
+        "The success criterion asks only for the held-out accuracy of this exact (dataset, split, model, params) triple, which the code directly computes with no sim-to-real gap \u2014 leakage inflates that number faithfully, so ~1.0 IS the true accuracy on this split.",
+        "The success criterion is scoped exactly to the held-out accuracy of this one (dataset, split, model, params) triple, which the substrate directly computes with no sim-to-real gap, so the ~1.0 is faithfully the real answer to the narrow question asked \u2014 the leakage would only defeat a broader generalization/utility claim, which this experiment does not make."
+      ]
+    },
+    "P-B": {
+      "dimension": "leak-disclosure",
+      "isolates": "leak disclosure ONLY removed: the y_copy parenthetical AND the ~1.0 expectation deleted. Criterion ('trust the reported accuracy as a benchmark') and claim scope RETAINED byte-for-byte. Tests H2: did NAMING the flaw license the trust? RESIDUAL DISCLOSURE noted honestly: the filename 'leaky.csv' is retained per the prompt's exact two-removal spec and is itself a weak hint -- see debrief.",
+      "distribution": {
+        "defer": 1,
+        "refine": 2
+      },
+      "raw_verdicts": [
+        "defer",
+        "refine",
+        "refine"
+      ],
+      "routed_outcomes": [
+        "defer",
+        "defer",
+        "defer"
+      ],
+      "hook_fired": [
+        false,
+        true,
+        true
+      ],
+      "rationales": [
+        "The success criterion is to trust a user-supplied CSV's accuracy as a benchmark, but the wrapper cannot certify the CSV is free of target leakage (which the filename openly signals) and would report an inflated metric faithfully and invisibly.",
+        "The metric is computed faithfully, but on a user CSV (tellingly named leaky.csv) the wrapper cannot certify the data is free of target leakage, so the accuracy is a reliable screen whose benchmark honesty must be confirmed by a human data audit.",
+        "The wrapper computes accuracy faithfully for the split but cannot certify a user-supplied CSV is leak-free, so a possibly-inflated number can screen but must be confirmed by a human data audit before being trusted as a benchmark."
+      ]
+    },
+    "P-C": {
+      "dimension": "claim-scope",
+      "isolates": "claim scope ONLY broadened: 'as a benchmark' (narrow, per-triple) -> 'as evidence the model generalizes to new data' (broad generalization claim). Register ('trust the reported accuracy') and leak disclosure RETAINED byte-for-byte. Tests H3: is claim scope the sole driver? Fills the missing 2x2 cell (leaky + broad claim).",
+      "distribution": {
+        "defer": 3
+      },
+      "raw_verdicts": [
+        "defer",
+        "defer",
+        "defer"
+      ],
+      "routed_outcomes": [
+        "defer",
+        "defer",
+        "defer"
+      ],
+      "hook_fired": [
+        false,
+        false,
+        false
+      ],
+      "rationales": [
+        "The success criterion asks the accuracy to prove generalization to new data, but the y_copy leakage column trivially encodes the label and faithfully inflates the metric to ~1.0, which the wrapper cannot detect or certify.",
+        "y_copy is a near-identical copy of the target, so logreg trivially reads the label and the ~1.0 accuracy is leakage-inflated, faithfully measuring nothing about generalization to new data.",
+        "The success criterion asks the metric to certify generalization to new data, but with y_copy trivially encoding the label the wrapper faithfully reports a ~1.0 accuracy that reflects leakage, not generalization \u2014 a claim this substrate explicitly cannot adjudicate."
+      ]
+    }
+  },
+  "predictions": {
+    "P8_c13_reproduces": {
+      "criterion": "P-0 raw=trust on >=2 of 3",
+      "p0_trust_count": 1,
+      "holds": false,
+      "note": "If false, the C13 finding is n=1 noise, the probe is VOID, and every fidelity-ledger verdict is n=1 on a stochastic gate."
+    },
+    "P9_scope_literalism_H3": {
+      "criterion": "P-C defers 3/3 while P-A and P-B trust",
+      "p_c_defer": 3,
+      "p_a_trust": 3,
+      "p_b_trust": 0,
+      "holds": false
+    },
+    "P10_H2_false": {
+      "criterion": "P-B (undisclosed leak, narrow claim) trusts",
+      "p_b_trust": 0,
+      "holds": false,
+      "ALARMING_if_false": "P-B refines/defers => DISCLOSING the flaw licensed the trust \u2014 report loudly"
+    },
+    "P11_H1_false": {
+      "criterion": "P-A (neutral criterion) trusts",
+      "p_a_trust": 3,
+      "holds": true,
+      "ALARMING_if_false": "P-A defers => the words 'trust the reported accuracy' in the SPEC steered the gate \u2014 report loudly"
+    }
+  },
+  "cost": {
+    "model_calls": {
+      "model_call": 12,
+      "web_search": 0,
+      "total": 12
+    },
+    "attempts": {
+      "model_call": 12,
+      "web_search": 0,
+      "total": 12
+    },
+    "tokens": {
+      "model_call": {
+        "input_tokens": 25140,
+        "cache_creation_input_tokens": 24302,
+        "cache_read_input_tokens": 227227,
+        "output_tokens": 6247
+      },
+      "web_search": {},
+      "total": {
+        "input_tokens": 25140,
+        "cache_creation_input_tokens": 24302,
+        "cache_read_input_tokens": 227227,
+        "output_tokens": 6247
+      }
+    },
+    "wall_time_seconds": 120.611
+  },
+  "ledger_activity": {
+    "fidelity_entries": 0,
+    "override_entries": 0,
+    "calibration_ledger_appended": 12
+  }
+}
