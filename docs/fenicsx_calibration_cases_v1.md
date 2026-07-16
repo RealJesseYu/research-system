@@ -1,14 +1,17 @@
 # FEniCSx Calibration Cases — v1 (fenicsx_cantilever_elastic, family-v1 typed input)
 
-> **SPECS ONLY — NO EXECUTION.** This document is the human-readable
-> pre-registration of the labeled calibration slate for the FEniCSx
-> linear-elastic cantilever substrate. Running the battery is a **later ⚙ task
-> that needs owner OK** — nothing here has been executed against the gate. The
-> substrate is UNREGISTERED and UNROUTABLE; these cases pre-register what a
-> correct verdict should look like so the calibration run has an answer key.
+> **SLATE RULED (owner, 2026-07-16). SPECS ONLY — NO EXECUTION.** This document
+> is the human-readable pre-registration of the labeled calibration slate for the
+> FEniCSx linear-elastic cantilever substrate. Running the battery is **still a
+> later ⚙ task that needs owner OK** — the slate ruling authorizes the LABELS, not
+> the spend; nothing here has been executed against the gate. The substrate is
+> UNREGISTERED and UNROUTABLE; these cases pre-register what a correct verdict
+> should look like so the calibration run has an answer key.
 >
-> **THE SLATE IS AN OWNER RULING BEFORE ANY BATTERY FIRES** (precedent R-CAL-2).
-> Every label below is `drafted-by-agent` and carries a one-line rationale.
+> **Precedent R-CAL-2 is satisfied:** the owner ruled the slate before any battery
+> fires. Every label carries `label_provenance: ruled-by-owner (2026-07-16)` and
+> its one-line rationale (the rationale is the agent's drafting note, retained as
+> the reason the ruled label reads as it does).
 >
 > **The cases are not authored here.** They live in
 > `onboarding/fenicsx_cantilever_elastic/contract.py` — the one runtime source of
@@ -32,10 +35,10 @@
 | **Total** | **15** | |
 
 Gate track 10 (in 5 / out 5), wrapper track 5 — matching the sibling FEA slate's
-shape. The bounds referenced below are the card's **SUGGESTED** values (G1
-slenderness L/h ≥ 10; G2 linearity δ/L ≤ 0.10; G3 mesh reproduction ≤ 2%; G4
-`max_von_mises` reported-only; G5 element_degree ≥ 2). They are TODO-HUMAN and
-may move; the labels here follow the suggestions.
+shape. The bounds referenced below are the card's **RULED** values (owner,
+2026-07-16): G1 slenderness L/h ≥ 10; G2 linearity δ/L ≤ 0.10; G3 mesh
+reproduction ≤ 2%; G4 `max_von_mises` reported-only; G5 element_degree ≥ 2. The
+labels follow those ruled bounds.
 
 ---
 

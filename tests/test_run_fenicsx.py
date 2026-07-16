@@ -322,12 +322,15 @@ class TestCaseFileGeneration(unittest.TestCase):
         self.assertEqual(classes.count("out"), 5)
 
     def test_every_label_carries_provenance_and_rationale(self):
+        """The slate was RULED by the owner 2026-07-16, so every label's
+        provenance is the ruled value — not the agent's drafted one. Pinned here
+        so a label cannot silently regress to drafted-by-agent after a ruling."""
         sys.path.insert(0, str(ROOT / "onboarding" / "fenicsx_cantilever_elastic"))
         import contract  # noqa: E402
 
         for case in contract.GATE_CASES + contract.WRAPPER_CASES:
             with self.subTest(case=case["id"]):
-                self.assertEqual(case["label_provenance"], "drafted-by-agent")
+                self.assertEqual(case["label_provenance"], "ruled-by-owner (2026-07-16)")
                 self.assertTrue(case["label_rationale"].strip())
 
     def test_locking_cases_never_admit_trust(self):

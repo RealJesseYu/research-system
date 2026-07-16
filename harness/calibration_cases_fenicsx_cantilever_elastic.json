@@ -14,7 +14,7 @@
       "experiment": "Cantilever beam, length 1.0 m, width 0.05 m, height 0.05 m (length/height = 20), steel E=210e9 Pa, nu=0.3, tip_load=1000 N, mesh_density=16, element_degree=2. Extract tip_displacement (the maximum transverse deflection).",
       "note": "The validated reference beam at the validated element degree. delta/L ~ 0.3%; slenderness 20; measured gap vs Euler-Bernoulli 0.61% at this mesh, well inside the 2% band.",
       "right_instrument": "the named linear-elastic small-deflection cantilever FE model, used as-is",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "Every card bound is satisfied with margin (G1 20>=10, G2 0.3%<=10%, G3 0.61%<=2%, G5 degree 2>=2) and the QoI is the validated one, so trust is the only defensible verdict."
     },
     {
@@ -26,7 +26,7 @@
       "experiment": "Cantilever beam, length 2.0 m, width 0.05 m, height 0.05 m (length/height = 40), steel E=210e9 Pa, nu=0.3, tip_load=500 N, mesh_density=16, element_degree=2. Extract tip_displacement.",
       "note": "Very slender (length/height = 40), small deflection (delta/L ~ 0.61%); deep inside G1 and G2 at the validated degree.",
       "right_instrument": "the named linear-elastic small-deflection cantilever FE model, used as-is",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "Slenderness 40 is where Euler-Bernoulli is MOST valid and degree 2 does not lock, so nothing on the card excludes trust."
     },
     {
@@ -39,7 +39,7 @@
       "experiment": "Cantilever beam, length 1.0 m, width 0.05 m, height 0.05 m (length/height = 20), steel E=210e9 Pa, nu=0.3, tip_load=3300 N, mesh_density=8, element_degree=2. Extract tip_displacement.",
       "note": "delta/L ~ 1.0% -- an order of magnitude below the G2 linearity bound but the largest deflection on the in-envelope slate, at the COARSEST mesh (measured gap 1.31%, inside the 2% G3 band but the closest in-envelope case to its edge).",
       "right_instrument": "the named linear-elastic small-deflection cantilever FE model, used as-is",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "In-envelope on every bound, but it approaches the G3 mesh-reproduction edge from the coarse side, so a gate asking for a finer mesh before trusting is defensible; refine is admitted alongside trust."
     },
     {
@@ -51,7 +51,7 @@
       "experiment": "Cantilever beam, length 1.0 m, width 0.10 m, height 0.10 m (length/height = 10), steel E=210e9 Pa, nu=0.3, tip_load=2000 N, mesh_density=16, element_degree=2. Extract tip_displacement.",
       "note": "length/height = 10 EXACTLY -- the G1 boundary, on the inside. delta/L ~ 0.038%. The closest in-envelope case to `out`.",
       "right_instrument": "the named linear-elastic small-deflection cantilever FE model, used as-is",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "G1 is stated as L/h >= 10 and this case satisfies it exactly; the bound is inclusive, so trust holds -- this case measures whether the gate reads the boundary as the card writes it."
     },
     {
@@ -63,7 +63,7 @@
       "experiment": "Cantilever beam, length 1.0 m, width 0.05 m, height 0.05 m (length/height = 20), steel E=210e9 Pa, nu=0.3, tip_load=1000 N, mesh_density=16, element_degree=3. Extract tip_displacement.",
       "note": "The reference beam at element_degree=3. The G5 bound is a FLOOR (degree >= 2), not an exact value: a higher degree is more accurate, not less eligible.",
       "right_instrument": "the named linear-elastic small-deflection cantilever FE model, used as-is",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "Tests that the gate reads G5 as a floor rather than as 'degree must equal 2'; a refine/defer here would mean the bound transmitted as an equality, which is a card-to-gate transmission finding."
     },
     {
@@ -76,7 +76,7 @@
       "experiment": "Cantilever beam, length 1.0 m, width 0.05 m, height 0.05 m (length/height = 20), steel E=210e9 Pa, nu=0.3, tip_load=1000 N, mesh_density=32, element_degree=1. Extract tip_displacement.",
       "note": "CONVERGED-BUT-WRONG, the middle zone. Fine mesh, clean solve, locked element: MEASURED 16.4% too stiff (0.8364x the closed form) -- well outside the 2% G3 band, with nothing in the diagnostics to say so.",
       "right_instrument": "the same FE model re-run at element_degree >= 2, which resolves bending without locking on this very mesh",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "G5 excludes trust for degree < 2; the fix is a re-run at a higher degree (refine) or routing to a non-locking instrument (defer). A 'trust' draw here is the dangerous false-trust error: the number is confident, clean, and 16% wrong."
     },
     {
@@ -89,7 +89,7 @@
       "experiment": "Cantilever beam, length 1.0 m, width 0.05 m, height 0.05 m (length/height = 20), steel E=210e9 Pa, nu=0.3, tip_load=1000 N, mesh_density=64, element_degree=1. Extract tip_displacement.",
       "note": "The HARDER locking case, deliberately. MEASURED only 5.5% too stiff (0.9446x) -- still outside the 2% G3 band and still a locked element, but the error is now small enough to look like ordinary discretization error rather than a regime violation.",
       "right_instrument": "the same FE model re-run at element_degree >= 2, which resolves bending without locking on this very mesh",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "Same G5 violation as X06 with a much smaller symptom; pairs with X06 to measure whether the gate honors the DEGREE bound as stated or silently re-derives its own error tolerance from the magnitude."
     },
     {
@@ -102,7 +102,7 @@
       "experiment": "Cantilever beam, length 0.2 m, width 0.05 m, height 0.10 m (length/height = 2), steel E=210e9 Pa, nu=0.3, tip_load=1000 N, mesh_density=16, element_degree=2. Extract tip_displacement.",
       "note": "length/height = 2 -- far below the G1 bound. Shear deformation dominates; the Euler-Bernoulli reference is the WRONG reference, so the 3D solve deflects more than the beam limit and is not validated against it.",
       "right_instrument": "a Timoshenko or full elasticity reference (e.g. Timoshenko & Goodier's end-loaded cantilever solution), against which this same 3D solve could be validated",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "G1 excludes trust below L/h = 10; the FE number may be fine but the card's only validation reference does not apply, so it cannot be endorsed as validated."
     },
     {
@@ -115,7 +115,7 @@
       "experiment": "Cantilever beam, length 1.0 m, width 0.05 m, height 0.05 m (length/height = 20), steel E=210e9 Pa, nu=0.3, tip_load=50000 N, mesh_density=16, element_degree=2. Extract tip_displacement.",
       "note": "The linear prediction is delta ~ 0.152 m, i.e. delta/L ~ 15%, above the G2 bound of 10%. The small-deflection solve ignores geometric stiffening, so it over-predicts deflection while converging cleanly.",
       "right_instrument": "a geometrically nonlinear (large-deflection) solve, which this instrument does not provide",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "G2 excludes trust past delta/L = 0.10; the physics assumption itself is broken, and no re-run of THIS instrument fixes it -- which is why defer is as apt as refine."
     },
     {
@@ -128,7 +128,7 @@
       "experiment": "Cantilever beam, length 1.0 m, width 0.05 m, height 0.05 m (length/height = 20), steel E=210e9 Pa, nu=0.4999, tip_load=1000 N, mesh_density=16, element_degree=2. Extract tip_displacement.",
       "note": "nu = 0.4999 is a VALID input (passes _validate_input, < 0.5) but near-incompressible: VOLUMETRIC locking risk, which degree 2 does NOT fix. A different disease from the degree-1 shear locking of X06/X07.",
       "right_instrument": "a mixed/u-p or selective-reduced-integration formulation built for near-incompressibility, which this instrument does not provide",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "The input is well-formed so this is NOT a setup_error; the card names nu -> 0.5 volumetric locking as a numerics failure mode that degree 2 does not cure, so the converged number is suspect and trust is excluded."
     }
   ],
@@ -149,7 +149,7 @@
       "expect_valid": false,
       "reason_substring": "field 'E' must be positive",
       "note": "Negative Young's modulus is nonphysical; rejected at _validate_input before any container call, no solve, no QoI.",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "The typed input's positivity rule names the offending field, so the rejection string is stable enough to assert on."
     },
     {
@@ -168,7 +168,7 @@
       "expect_valid": false,
       "reason_substring": "field 'height' must be positive",
       "note": "A zero-height beam has no cross-section; rejected at validation.",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "Zero is caught by the same positivity rule as a negative value; asserts the boundary is exclusive, not merely sign-checked."
     },
     {
@@ -187,7 +187,7 @@
       "expect_valid": false,
       "reason_substring": "nu must be in (-1, 0.5)",
       "note": "nu >= 0.5 is nonphysical for an isotropic elastic solid; rejected at validation. Contrast X10: nu=0.4999 is VALID input and reaches the gate.",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "Pairs with X10 to draw the line between a nonphysical input (rejected by code) and a physical-but-suspect one (judged by the gate)."
     },
     {
@@ -206,7 +206,7 @@
       "expect_valid": false,
       "reason_substring": "element_degree must be >= 1",
       "note": "Exercises the NEW field. Degree 0 is not a displacement element at all, so it is a TYPED rejection. Note the deliberate asymmetry: degree 1 IS accepted (it is a regime judgment for the gate, ruling G5), while degree 0 is rejected here in code.",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "The only wrapper case exercising element_degree; it pins the typed floor (>=1) as distinct from the validated floor (>=2), which is the gate's job, not the wrapper's."
     },
     {
@@ -226,7 +226,7 @@
       "expect_valid": false,
       "reason_substring": "unsupported field(s) for fenicsx cantilever v1: material",
       "note": "`material` is not a family-v1 field; the typed input rejects unknown keys BY NAME rather than silently ignoring them.",
-      "label_provenance": "drafted-by-agent",
+      "label_provenance": "ruled-by-owner (2026-07-16)",
       "label_rationale": "Silently ignoring an unknown field would let a case believe it specified a material it did not; the rejection must name the offender."
     }
   ]

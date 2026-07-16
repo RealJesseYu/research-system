@@ -1,9 +1,10 @@
 # Envelope Card — (fenicsx_cantilever_elastic, linear-elastic small-deflection static)
 
-> **STATUS: DRAFT — not yet reviewed.** Provenance: `drafted-by-agent` (§2).
-> §3B judgment slots (G1–G5) are agent-SUGGESTED, **none decided**. This card is
-> **HUMAN-FACING ONLY** (R-20.5-1): no code reads it, no model sees it. The
-> substrate is **UNREGISTERED** — nothing in `stages/`, the supervisor,
+> **STATUS: PROVISIONALLY SIGNED 2026-07-16 (owner). External review pending.**
+> Provenance: `provisionally-signed` (§2). The judgment slots **G0–G5 are
+> owner-RULED and filled** (§1, §3B); external reviewer sign-off is pending.
+> This card is **HUMAN-FACING ONLY** (R-20.5-1): no code reads it, no model sees
+> it. The substrate is **UNREGISTERED** — nothing in `stages/`, the supervisor,
 > `substrates.py`, or any schema imports `tools/run_fenicsx.py`.
 
 ---
@@ -16,7 +17,7 @@
 | Substrate | `fenicsx_cantilever_elastic` (family-v1 typed input; **UNREGISTERED**, enters at `calibrating` = unroutable) |
 | Physics regime | linear-elastic **isotropic small-deflection static** cantilever; single tip load, one clamped end |
 | Solver | FEniCSx / DOLFINx **`0.11.0.post0`** — **as printed by the container**, not from docs |
-| **(G0) Project choice** | **FEniCSx (`import dolfinx`), NOT legacy FEniCS.** Two projects share the name; legacy (`from dolfin import *`) last released **2019**, is absent from this image, and is what most open-web cantilever tutorials use — choosing it would ground the build in code that cannot run here. |
+| **(G0) Project choice** | `RULED (owner, 2026-07-16)` — **FEniCSx (`import dolfinx`), NOT legacy FEniCS.** Two projects share the name; legacy (`from dolfin import *`) last released **2019**, is absent from this image, and is what most open-web cantilever tutorials use — choosing it would ground the build in code that cannot run here. |
 | Container | `dolfinx-prod`, image `dolfinx/dolfinx:stable`, digest `sha256:2ae4bfbc0d9077268880faf04c72750528bee986c94ab223a2c159969bd56fa8` (arm64, native under colima) |
 | **Real-mode pin** | `float64` **asserted in code** at solve startup; a complex build raises and refuses to solve. **Proven by failing the escape**: under `dolfinx-complex-mode` the pin fires (`complex128`); same input in real mode solves. Fixture: `tests/fixtures/fenicsx_realmode_pin_failure.out` |
 | Element | Lagrange, degree = **typed input** (`element_degree`). Validated at **degree 2**. **No `C3D8I` analog exists** — see G5 |
@@ -33,13 +34,16 @@
 |---|---|
 | Drafted by | agent (Claude Code, `build-fenicsx` session) |
 | Drafted date | 2026-07-16 |
-| Sources | this session's run evidence (§3A, §3B, all disk-cited); `tools/fenicsx_env/vv_sources.md` (V&V references — **literature, LOCATED not applied**) |
-| Signature | `unsigned` |
-| Reviewer sign-off | `pending` |
-| **Provenance state** | `drafted-by-agent` |
+| Sources | this session's run evidence (§3A, §3B, all disk-cited); `tools/fenicsx_env/vv_sources.md` (V&V references — **literature, LOCATED not applied**, and **outside the docs index**: those references are books whose text is not on disk, so indexing the list would return citations with no content) |
+| Signature | `provisionally signed — owner, 2026-07-16` (was `unsigned`). **A provisional signature grants interim authority; a human sits at every trust call on this substrate regardless — it is UNREGISTERED and entered at `calibrating` maturity.** |
+| Reviewer sign-off | `pending — external expert review` |
+| **Provenance state** | `provisionally-signed` (2026-07-16) — history: `drafted-by-agent` → `provisionally-signed` |
 
-*Provenance state sets how much grounding authority the card carries. This card
-carries none yet — every §3B bound is a suggestion.*
+*Provenance state is the load-bearing field: it sets how much grounding authority
+the card carries. It has advanced from `drafted-by-agent` to `provisionally-signed`
+(owner, 2026-07-16): the §3B slots G1–G5 (and G0 in §1) are now owner-RULED bounds,
+not suggestions. The provisional signature grants interim authority only — final
+grounding authority awaits external reviewer sign-off.*
 
 **License watch (does NOT block).** FEniCSx is **LGPL**; this wrapper makes an
 **out-of-process container call** — no linking, no redistribution of the library.
@@ -75,13 +79,13 @@ Values are byte-identical across repeat runs and a container rebuild.
 > **Contrast — `max_von_mises` does NOT converge:** it *rises* with refinement
 > (4.246e7 → 4.670e7), tracking the clamped-corner singularity. See §6.
 
-### 3B. Envelope bounds — TODO-HUMAN judgment slots
+### 3B. Envelope bounds — RULED (owner, 2026-07-16)
 
-Agent-SUGGESTED. **None is a decided bound.** G1–G4 **transplant** the sibling
-card's F1–F4 (same beam, closed form, regime), F-reasons quoted verbatim below;
-**G5 is this substrate's own.**
+`RULED (owner, 2026-07-16)` — every bound below is a **decided bound**, ruled at
+the value drafted. G1–G4 **transplant** the sibling card's F1–F4 (same beam, closed
+form, regime), F-reasons quoted verbatim below; **G5 is this substrate's own.**
 
-| Ruling | Suggested value | Class | Criterion (what the gate evaluates, and where it reads it) | Consequence (verdict/action on each side) |
+| Ruling | Ruled value (owner, 2026-07-16) | Class | Criterion (what the gate evaluates, and where it reads it) | Consequence (verdict/action on each side) |
 |---|---|---|---|---|
 | **G1** slenderness | **L/h ≥ 10** | CHECKABLE:numeric | `length / height` from the spec's typed fields, vs 10 | inside → eligible for trust (other gates permitting); outside → **defer** — the EB reference does not apply; route to a Timoshenko/elasticity reference |
 | **G2** linearity | **δ_tip / L ≤ 0.10** | CHECKABLE:numeric | δ predicted from the spec by the closed form ÷ `length`, vs 0.10 | inside → eligible for trust; outside → **defer** — small-deflection physics is broken; no re-run of THIS instrument fixes it |
@@ -95,7 +99,8 @@ card's F1–F4 (same beam, closed form, regime), F-reasons quoted verbatim below
 - **F3→G3:** *"mirrors the CFD card's standing rule that a new resolution must reproduce a benchmark point before its numbers are trusted."*
 - **F4→G4:** *"the pointwise maximum sits at the clamped-corner stress concentration/singularity and rises with refinement (mesh-suspect); it cannot be validated until a benchmark or a masked/sampled alternative clears it."* — **independently reproduced here** (§3A) on a different solver; G4 is suggested from this session's measurement, not inherited on faith.
 
-**G5's reason (this substrate's own, measured this session).** DOLFINx has no
+**G5's reason** `RULED (owner, 2026-07-16)` **(this substrate's own, measured this
+session).** DOLFINx has no
 incompatible-modes element; a fully-integrated degree-1 Lagrange hex **shear-locks**
 in bending. On the reference beam: **0.2800×** the closed form at 8×1×1, still
 **0.9446× (5.5% too stiff) at mesh_density 64**, vs **0.9870× for degree 2 on the
@@ -240,12 +245,19 @@ material law; distributed/multiple loads; non-rectangular sections; anisotropy,
 temperature dependence, composites; geometric **nonlinearity**; **plasticity**;
 **dynamics**; **contact**; **buckling**.
 
+**The docs corpus deliberately contains excluded-regime material as negative
+space:** `retrieval/fenicsx_docs_corpus/pages/comet_hyperelasticity.html` (14 of
+325 chunks) documents a regime this card explicitly excludes. Retrieval can
+surface it; the correct reading is **"that is a different card"**, never "the
+substrate does this".
+
 **Open watches:**
 
-1. **G1–G5 (§3B) are undecided.** Each needs an owner ruling before this card
-   advances past `drafted-by-agent`. **G5 is the consequential one** — the only
-   bound with no sibling precedent, and what stands between a caller and a clean,
-   converged, 16%-wrong number.
+1. **G0–G5 are RULED (owner, 2026-07-16)** at the drafted values; the card is
+   `provisionally-signed`. **G5 remains the consequential one** — the only bound
+   with no sibling precedent, and what stands between a caller and a clean,
+   converged, 16%-wrong number. It is now enforced-by-ruling, not suggested; what
+   it still lacks is a *gate* that reads it (the battery is unexecuted, watch 6).
 2. **Should `element_degree = 1` become a hard reject?** The wrapper accepts it and
    the card rules it out-of-envelope — a deliberate split between the **typed floor
    (≥ 1)** and the **validated floor (≥ 2)**. **Owner ruling:** enforcing a physics

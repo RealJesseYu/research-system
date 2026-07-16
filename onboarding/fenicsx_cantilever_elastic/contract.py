@@ -192,10 +192,13 @@ REFERENCE_BEAM = {
 # ---------------------------------------------------------------------------
 # The 15 calibration cases.
 #
-# EVERY label is `drafted-by-agent` and carries a one-line rationale. THE SLATE
-# IS AN OWNER RULING BEFORE ANY BATTERY FIRES (precedent R-CAL-2). Nothing here
-# has been executed against the gate; these pre-register what a correct verdict
-# should look like so the calibration run has an answer key.
+# THE SLATE IS RULED (owner, 2026-07-16) — precedent R-CAL-2 satisfied: the owner
+# ruled the slate before any battery fires. Every label therefore carries
+# label_provenance "ruled-by-owner (2026-07-16)" and its one-line rationale (the
+# rationale is the agent's drafting note, retained as the reason the ruled label
+# reads as it does). Nothing here has been executed against the gate; these
+# pre-register what a correct verdict should look like so the calibration run has
+# an answer key.
 #
 # Gate track (X01-X10): scored on the gate's raw verdict vs acceptable_labels,
 # run at --repeats N because the gate is stochastic.
@@ -204,7 +207,7 @@ REFERENCE_BEAM = {
 # The two tracks are NEVER averaged together.
 # ---------------------------------------------------------------------------
 
-_PROV = "drafted-by-agent"
+_PROV = "ruled-by-owner (2026-07-16)"
 
 
 def _beam(**overrides) -> dict:
