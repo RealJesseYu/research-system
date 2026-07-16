@@ -1,0 +1,952 @@
+{
+  "mode_arg": "auto",
+  "substrate_id": "calculix_cantilever_fea",
+  "maturity_at_run": "calibrating",
+  "routable_at_run": false,
+  "timestamp_utc": "2026-07-16T05:43:51Z",
+  "batch_id": "20260716T053643Z",
+  "n_repeats": 3,
+  "gate": {
+    "n_cases": 10,
+    "n_draws": 30,
+    "n_repeats": 3,
+    "confusion": {
+      "in": {
+        "trust": 15,
+        "refine": 0,
+        "defer": 0
+      },
+      "out": {
+        "trust": 0,
+        "refine": 1,
+        "defer": 14
+      }
+    },
+    "confusion_note": "counts over ALL draws (repeats per case); rows sum to n_draws, not n_cases",
+    "hook_witness": {
+      "mode": "auto",
+      "n_gate_cases": 30,
+      "n_raw_trust_or_refine": 16,
+      "n_hook_fired": 16,
+      "hook_fired_matches_raw_trust_refine": true,
+      "routed_trust_case_ids": [],
+      "silent_trust_case_ids": [],
+      "zero_silent_trusts": true,
+      "note": "The hook fires on raw trust/refine only (defer routes nowhere). It is keyed to the registry routable set (currently ['cavity_2d_cfd'], all non-mature), NOT to the substrate under calibration, which is UNROUTABLE \u2014 see debrief."
+    },
+    "aggregate_in_band": {
+      "n_in_band_draws": 30,
+      "n_draws": 30,
+      "fraction": 1.0
+    },
+    "n_unanimous_cases": 9,
+    "cases": [
+      {
+        "case_id": "C01",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "C01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "All three validity gates hold (L/h=20\u226510, tip deflection/L\u22480.003\u226a0.10, nu=0.3 no locking, mesh_density=8 within the convergence band under 2%), so the fully-resolved linear-elastic small-deflection physics makes the tip_displacement output effectively the real answer validated against the Euler-Bernoulli closed form.",
+            "right_instrument": "CalculiX linear-elastic small-deflection cantilever solver extracting tip_displacement",
+            "wall_time_seconds": 19.738,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Every validated gate is satisfied (L/h=20\u226510, tip_deflection/L\u22480.003\u22640.10, nu=0.3 so no locking, mesh_density=8 inside the 8\u201332 band), and within this regime the FEM directly resolves the governing linear-elastic physics and has been mesh-converged and validated against the Euler-Bernoulli closed form to within ~1\u20132%, so the number is the real answer for the modeled beam.",
+            "right_instrument": "CalculiX 2.17 linear-elastic small-deflection static cantilever (the named instrument fits)",
+            "wall_time_seconds": 23.928,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "All validity gates hold (slenderness 20\u226510, deflection/length \u22480.003\u22640.10, nu=0.3 far from locking, mesh_density 8 in-range) and the validated tip_displacement directly resolves fully-understood linear-elastic beam physics, converging to the exact closed form within ~1%.",
+            "right_instrument": "CalculiX 2.17 linear-elastic small-deflection static cantilever (C3D8I), tip_displacement QoI",
+            "wall_time_seconds": 22.711,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "C02",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "C02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Slenderness (L/h=20), linearity (tip deflection \u22480.01% of length), and nu=0.3 all sit safely inside the validated envelope where the QoI converges to the analytic Euler-Bernoulli answer within ~1 percent.",
+            "right_instrument": "CalculiX 2.17 linear-elastic small-deflection static cantilever, tip_displacement QoI",
+            "wall_time_seconds": 5.791,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Every validity condition is met (slenderness 20\u226510, deflection/length \u22480.006\u22640.10, nu=0.3 so no locking) and for this regime the solver fully resolves the governing linear-elastic physics, converging to the analytic closed form within ~1%, so the in-range tip_displacement effectively is the real beam deflection.",
+            "right_instrument": "CalculiX 2.17 linear-elastic small-deflection static cantilever (C3D8I), tip_displacement QoI",
+            "wall_time_seconds": 36.394,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "tip_displacement is an explicitly validated QoI and every envelope condition is satisfied (slenderness 20 \u2265 10, tip_deflection/length \u2248 5e-6 \u226a 0.10, nu=0.3 away from locking, mesh_density 16 inside the 8\u201332 convergence band matching the closed form to ~1%), so the linear-elastic solve fully resolves the governing physics and its output is the real answer for this beam.",
+            "right_instrument": "CalculiX 2.17 linear-elastic small-deflection cantilever (C3D8I), tip_displacement QoI",
+            "wall_time_seconds": 16.796,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "C03",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "C03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Every validity condition is met (slenderness 40\u226510, deflection\u22480.5% of length \u226a10%, nu=0.3 avoids locking, mesh_density 16 within the converged 8\u201332 range) and for a slender linear-elastic beam the FEM fully resolves the governing physics, converging to the analytic closed form so the tip_displacement output effectively is the real answer.",
+            "right_instrument": "CalculiX 2.17 linear-elastic small-deflection C3D8I cantilever solve extracting tip_displacement",
+            "wall_time_seconds": 13.405,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Slenderness (40) and linearity (tip deflection ~5mm/2m \u2248 0.25%) are well inside the validated envelope, nu=0.3 avoids locking, and the validated tip_displacement QoI converges to the analytic Euler-Bernoulli answer within ~1%, so the in-range output is the real answer.",
+            "right_instrument": "CalculiX 2.17 linear-elastic C3D8I cantilever tip_displacement solve",
+            "wall_time_seconds": 5.271,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The validated QoI (tip_displacement) is requested squarely inside all three envelope conditions \u2014 slenderness 40\u226510, tip_deflection/length \u22480.006\u22640.10, nu=0.3 (no locking) \u2014 and the instrument fully resolves the governing linear-elastic small-deflection physics, converging to the exact closed-form solution within ~1%.",
+            "right_instrument": "CalculiX 2.17 linear-elastic C3D8I cantilever solver extracting tip_displacement",
+            "wall_time_seconds": 27.586,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "C04",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust",
+          "refine"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "C04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust",
+              "refine"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Slenderness (L/h=10) and linearity (tip deflection ~2e-5 m, ratio ~2e-5 \u00ab 0.10) are both in-envelope, nu=0.3 avoids locking, and tip_displacement is the validated QoI that converges to the analytic Euler-Bernoulli answer within ~1%.",
+            "right_instrument": "CalculiX 2.17 linear-elastic small-deflection static cantilever with C3D8I elements, tip_displacement QoI",
+            "wall_time_seconds": 5.744,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust",
+              "refine"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Slenderness (L/h=10), linearity (delta\u2248P\u00b7L\u00b3/3EI\u22481.3mm, ~0.13% of length), and nu=0.3 are all in-envelope, and tip_displacement is directly validated against the Euler-Bernoulli closed form to under 2%, closing the model-to-reality gap for this QoI.",
+            "right_instrument": "CalculiX linear-elastic C3D8I cantilever tip_displacement solve (the named instrument fits)",
+            "wall_time_seconds": 8.619,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust",
+              "refine"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Slenderness (L/h=10), linearity (\u03b4\u2248P L\u00b3/3EI \u2248 3e-5 m, ratio ~3e-5 \u00ab0.10), and nu=0.3 all sit inside the validated envelope where tip_displacement converges to the analytic beam solution within ~1%, so the measured number is the real answer.",
+            "right_instrument": "CalculiX 2.17 linear-elastic small-deflection cantilever with C3D8I elements, tip_displacement QoI",
+            "wall_time_seconds": 5.617,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "C05",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "C05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "All validity conditions hold (slenderness 20 \u2265 10, deflection/length \u2248 0.011 \u2264 0.10, nu=0.33 away from locking, mesh_density 8 in the converged 0.55\u20131.47% band), and the FEM directly resolves the linear-elastic small-deflection physics so the in-envelope tip_displacement is the real answer.",
+            "right_instrument": "CalculiX 2.17 linear-elastic C3D8I cantilever, tip_displacement QoI",
+            "wall_time_seconds": 12.247,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "All validity conditions hold (L/h=20\u226510, deflection ratio \u22481.1%\u22640.10, nu=0.33 no locking, mesh_density=8 within the validated <2% convergence band), and the validated tip_displacement QoI directly reproduces the Euler-Bernoulli analytic truth that governs this slender linear-elastic regime.",
+            "right_instrument": "CalculiX 2.17 linear-elastic small-deflection static cantilever with C3D8I elements extracting tip_displacement",
+            "wall_time_seconds": 19.019,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Slenderness (L/h=20), linearity (~0.05% deflection/length), and nu=0.33 are all comfortably in-envelope, and tip_displacement is a directly measured QoI validated to sub-2% against the analytic beam solution\u2014so the solver output effectively is the real answer.",
+            "right_instrument": "CalculiX 2.17 linear-elastic C3D8I cantilever model (as named)",
+            "wall_time_seconds": 5.123,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "C06",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "C06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Slenderness ratio length/height = 2 is far below the validated envelope floor of 10, so shear deformation dominates and the Euler-Bernoulli-calibrated tip_displacement is out of regime.",
+            "right_instrument": "A 3D solid FEM (e.g., Timoshenko/shear-deformable or full elasticity solve) validated for stubby, non-slender beams \u2014 not this Euler-Bernoulli-referenced wrapper",
+            "wall_time_seconds": 5.259,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Slenderness ratio length/height = 2 is far below the validated minimum of 10, so shear deformation dominates and the tip_displacement is outside the instrument's validated regime entirely.",
+            "right_instrument": "3D Timoshenko/shear-deformable or full continuum FEA solve with a converged mesh and no Euler-Bernoulli reference \u2014 for this stubby beam, route to that or a real experiment",
+            "wall_time_seconds": 4.858,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Slenderness ratio length/height = 2 is far below the validated floor of 10, so shear deformation dominates and the tip_displacement measurement falls entirely outside the instrument's validated envelope.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.25,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "C07",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "refine"
+        ],
+        "distribution": {
+          "defer": 2,
+          "refine": 1
+        },
+        "unanimous": false,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.9183,
+        "draws": [
+          {
+            "case_id": "C07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Slenderness length/height = 2 is far below the validated floor of 10, so shear deformation dominates and the Euler-Bernoulli reference the instrument was validated against is simply wrong for this stubby block.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 7.958,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Slenderness length/height = 2 is far below the validated threshold of 10, so shear deformation dominates, the Euler-Bernoulli reference used to validate tip_displacement is invalid, and the instrument has no validated basis for this regime.",
+            "right_instrument": "none \u2014 route to human/real experiment (a 3D elasticity FEM validated for low-slenderness/thick beams, since the named instrument's envelope only covers L/h >= 10)",
+            "wall_time_seconds": 19.065,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Slenderness L/h=2 is far below the validated \u226510 floor, so the Euler-Bernoulli validation no longer applies and the 3D solve returns a physically reasonable but unvalidated shear-dominated displacement estimate that must be confirmed rather than trusted.",
+            "right_instrument": "CalculiX 3D linear-elastic C3D8I FE solve (the named instrument is physically appropriate for a stubby beam, but requires a non-Euler-Bernoulli reference to re-validate tip_displacement at low slenderness)",
+            "wall_time_seconds": 98.133,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "C08",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "C08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment's tip_deflection/length \u2248 15 percent violates the envelope's linearity limit (\u22640.10), so the linear small-deflection solve ignores geometric stiffening and returns a physically wrong displacement.",
+            "right_instrument": "a geometrically nonlinear (large-deflection) finite-element solve, or route to human/real experiment",
+            "wall_time_seconds": 4.769,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "tip_deflection/length \u2248 15 percent violates the \u22640.10 linearity bound, so the linear small-deflection solve ignores geometric stiffening and returns a physically wrong deflection.",
+            "right_instrument": "none \u2014 route to human/real experiment (a geometrically nonlinear large-deflection FE solve)",
+            "wall_time_seconds": 4.201,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment's tip_deflection/length ~15% exceeds the validated linearity limit of 0.10, so the linear small-deflection solve ignores geometric stiffening and is physically wrong despite converging.",
+            "right_instrument": "a geometrically nonlinear (large-deflection) finite-element solver",
+            "wall_time_seconds": 4.297,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "C09",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "C09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "At nu=0.4999 the C3D8I elements are prone to volumetric locking, which the envelope flags as numerically suspect and which no internal diagnostic checks, so the returned displacement cannot be trusted as the modeled beam's true deflection.",
+            "right_instrument": "a near-incompressible-capable solve using hybrid/mixed u-p formulation elements (e.g., CalculiX C3D8H) instead of C3D8I",
+            "wall_time_seconds": 11.92,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "nu=0.4999 is near-incompressible, triggering C3D8I volumetric locking that makes the tip_displacement numerically suspect despite valid slenderness (20) and linearity, so the instrument cannot faithfully model this experiment.",
+            "right_instrument": "CalculiX with locking-resistant elements (e.g. C3D20 quadratic or hybrid/F-bar formulation) validated for near-incompressible nu approaching 0.5",
+            "wall_time_seconds": 5.616,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "nu=0.4999 is near-incompressible, triggering C3D8I volumetric locking that the wrapper never checks, so even a converged tip_displacement is numerically corrupted and not a faithful measurement of the modeled beam.",
+            "right_instrument": "a mixed/hybrid near-incompressible formulation (e.g. CalculiX C3D8H hybrid or selectively/reduced-integration elements) that resolves volumetric locking at nu approaching 0.5",
+            "wall_time_seconds": 10.177,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "C15",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "C15",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The requested QoI (max_von_mises) is explicitly unvalidated and sits at a clamped-corner stress singularity that diverges with mesh refinement, so the instrument's number is a meshing artifact rather than a physical stress.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 7.939,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C15",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "max_von_mises is an explicitly non-validated QoI whose pointwise maximum sits at the clamped-corner stress singularity and rises without bound under mesh refinement, so the instrument returns a mesh-artifact rather than a physical stress.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.202,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "C15",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The requested QoI (max_von_mises) is explicitly non-validated: its pointwise maximum sits at the clamped-corner stress singularity and diverges with mesh refinement rather than converging, so the number reflects a boundary singularity, not physical stress.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 7.903,
+            "reask_attempts": 1
+          }
+        ]
+      }
+    ]
+  },
+  "wrapper_behavior": {
+    "n_cases": 5,
+    "n_passed": 5,
+    "cases": [
+      {
+        "case_id": "C10",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "field 'E' must be positive, got -210000000000.0",
+        "reason_substring": "field 'E' must be positive",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "C11",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "field 'height' must be positive, got 0.0",
+        "reason_substring": "field 'height' must be positive",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "C12",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "nu must be in (-1, 0.5), got 0.6",
+        "reason_substring": "nu must be in (-1, 0.5)",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "C13",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "mesh_density must be >= 1, got 0",
+        "reason_substring": "mesh_density must be >= 1",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "C14",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "unsupported field(s) for cantilever v1: material",
+        "reason_substring": "unsupported field(s) for cantilever v1: material",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      }
+    ],
+    "note": "scored separately from gate cases; never averaged together"
+  },
+  "cost": {
+    "model_calls": {
+      "model_call": 30,
+      "web_search": 0,
+      "total": 30
+    },
+    "attempts": {
+      "model_call": 30,
+      "web_search": 0,
+      "total": 30
+    },
+    "tokens": {
+      "model_call": {
+        "input_tokens": 62850,
+        "cache_creation_input_tokens": 29532,
+        "cache_read_input_tokens": 594933,
+        "output_tokens": 24005
+      },
+      "web_search": {},
+      "total": {
+        "input_tokens": 62850,
+        "cache_creation_input_tokens": 29532,
+        "cache_read_input_tokens": 594933,
+        "output_tokens": 24005
+      }
+    },
+    "wall_time_seconds": 428.551
+  },
+  "ledger_activity": {
+    "fidelity_entries": 0,
+    "override_entries": 0
+  }
+}

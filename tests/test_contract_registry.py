@@ -1,0 +1,117 @@
+"""
+test_contract_registry.py — R-S3-1 Part A. Call-free: no model calls, no
+network. Proves (1) contract selection is un-pinned from the module constant to
+the registry, (2) cavity's model-visible contract text is BYTE-IDENTICAL before
+and after (era 862531b holds), and (3) the fail-loud escape: a substrate with no
+wired contract RAISES and NEVER falls back to cavity.
+
+Run directly: venv/bin/python3 tests/test_contract_registry.py
+"""
+
+from __future__ import annotations
+
+import sys
+import unittest
+from pathlib import Path
+from unittest import mock
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+import substrates
+from stages import stage3_fidelity_gate
+from tools import substrate_registry as registry
+
+
+class TestContractSelection(unittest.TestCase):
+    def test_sole_routable_is_cavity(self):
+        # Structural read: the single-node pipeline's one routable substrate.
+        self.assertEqual(registry.sole_routable_id(), "cavity_2d_cfd")
+        self.assertEqual(registry.sole_routable_id(), registry.routable_ids()[0])
+
+    def test_cavity_contract_is_the_imported_constant(self):
+        # Single source of truth: contract_for returns the SAME object
+        # substrates.py exports — never a pasted copy.
+        self.assertIs(
+            registry.contract_for("cavity_2d_cfd"), substrates.CAVITY_2D_CONTRACT
+        )
+
+    def test_sole_routable_raises_when_not_exactly_one(self):
+        # The seam's fail-loud: promoting a second substrate routable without
+        # building selection must land loudly, not silently pick one.
+        with mock.patch.object(
+            registry, "routable_ids", return_value=("cavity_2d_cfd", "other")
+        ):
+            with self.assertRaises(RuntimeError):
+                registry.sole_routable_id()
+        with mock.patch.object(registry, "routable_ids", return_value=()):
+            with self.assertRaises(RuntimeError):
+                registry.sole_routable_id()
+
+
+class TestEraByteIdentity(unittest.TestCase):
+    """THE CENTRAL CLAIM. The old code set stage3's model-visible
+    substrate_contract to exactly substrates.CAVITY_2D_CONTRACT. The new path
+    derives it from the registry. Byte-equality to that constant IS byte-equality
+    to the pre-change model-visible text — era 862531b survives. Could fail: if
+    selection returned a different substrate, or contract_for mutated the text,
+    or the constant drifted, these assertions break."""
+
+    def test_stage3_selected_contract_byte_identical(self):
+        substrate_id, contract_text = stage3_fidelity_gate._selected_contract()
+        self.assertEqual(substrate_id, "cavity_2d_cfd")
+        # byte-for-byte identical to the constant the gate used before R-S3-1
+        self.assertEqual(contract_text, substrates.CAVITY_2D_CONTRACT)
+        self.assertEqual(
+            len(contract_text.encode("utf-8")),
+            len(substrates.CAVITY_2D_CONTRACT.encode("utf-8")),
+        )
+
+    def test_selected_contract_carries_the_cavity_header(self):
+        # Sanity that the text is the cavity contract, not an empty stand-in.
+        _sid, contract_text = stage3_fidelity_gate._selected_contract()
+        self.assertIn("SUBSTRATE CONTRACT: cavity_2d", contract_text)
+
+
+class TestFailLoudEscape(unittest.TestCase):
+    """R-S3-1 fail-loud: a substrate with no wired contract RAISES and the gate
+    never falls back to cavity. This is the failing-escape proof — a check that
+    cannot fail is not a proof, so we request contract-less substrates and assert
+    the raise, then assert cavity's text was NOT returned."""
+
+    def test_fea_has_no_contract_and_raises(self):
+        with self.assertRaises(LookupError):
+            registry.contract_for("calculix_cantilever_fea")
+
+    def test_code_has_no_contract_and_raises(self):
+        with self.assertRaises(LookupError):
+            registry.contract_for("code_sklearn_eval")
+
+    def test_web_search_has_no_contract_and_raises(self):
+        with self.assertRaises(LookupError):
+            registry.contract_for("web_search")
+
+    def test_unknown_substrate_raises_keyerror(self):
+        # Unknown (unenrolled) id fails even earlier, via get().
+        with self.assertRaises(KeyError):
+            registry.contract_for("no_such_substrate")
+
+    def test_never_falls_back_to_cavity_for_a_contractless_substrate(self):
+        # The heart of "never fall back": for every enrolled substrate that has
+        # NO wired contract, contract_for must raise — it must never quietly
+        # return cavity's text.
+        contractless = [
+            r.substrate_id
+            for r in registry.all_substrates()
+            if r.substrate_id != "cavity_2d_cfd"
+        ]
+        self.assertTrue(contractless)  # the test would be vacuous with none
+        for sid in contractless:
+            with self.assertRaises((LookupError, KeyError), msg=sid):
+                got = registry.contract_for(sid)
+                # If it somehow returned, prove it was NOT a cavity fallback.
+                self.assertNotEqual(got, substrates.CAVITY_2D_CONTRACT, sid)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

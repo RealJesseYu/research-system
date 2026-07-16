@@ -35,7 +35,7 @@ from pathlib import Path
 from baton import Baton
 from memory.ledgers import fidelity_append
 from model_call import call_stage_model, log_stage_call
-from substrates import CAVITY_2D_CONTRACT
+from tools import substrate_registry as registry
 
 OPUS_MODEL = "claude-opus-4-8"
 
@@ -109,6 +109,19 @@ def _contract_substrate_name(contract_text: str) -> str | None:
     return None
 
 
+def _selected_contract() -> tuple[str, str]:
+    """R-S3-1: the substrate this gate judges against, chosen STRUCTURALLY from
+    the registry (never the old hardcoded module constant, never parsed from a
+    payload). Returns (substrate_id, contract_text). Today the registry's sole
+    routable substrate is cavity_2d_cfd, so contract_text is byte-identical to
+    the substrates.CAVITY_2D_CONTRACT the gate used before — era 862531b holds.
+    A missing contract RAISES (registry.contract_for); the gate never falls back
+    to cavity. Extracted so the byte-identity proof exercises the exact text the
+    model will see without spending a model call."""
+    substrate_id = registry.sole_routable_id()
+    return substrate_id, registry.contract_for(substrate_id)
+
+
 def _log_line(run_id: str, line: str) -> None:
     """Append one line to runs/<run_id>/log.txt (same path rule as log_stage_call)."""
     print(line)
@@ -117,10 +130,11 @@ def _log_line(run_id: str, line: str) -> None:
 
 
 def run(baton: Baton) -> Baton:
+    _substrate_id, substrate_contract = _selected_contract()
     stage_input = {
         "run_id": baton.run_id,
         "spec": baton.payload["experiment_spec"],
-        "substrate_contract": CAVITY_2D_CONTRACT,
+        "substrate_contract": substrate_contract,
     }
     data, timing = call_stage_model(
         "stage3_fidelity_gate",
@@ -154,7 +168,7 @@ def run(baton: Baton) -> Baton:
     fidelity_append(
         run_id=baton.run_id,
         verdict=verdict["label"],
-        substrate=_contract_substrate_name(CAVITY_2D_CONTRACT),
+        substrate=_contract_substrate_name(substrate_contract),
         rationale=verdict["rationale"],
     )
 

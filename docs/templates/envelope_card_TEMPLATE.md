@@ -58,13 +58,25 @@ not asserted>`
 
 **R-CARD-1 (STRUCTURAL — every ruling states whether the gate can check it).**
 Adopted 2026-07-16 (see `docs/r_card_1_audit.md`). Each §3B ruling MUST carry,
-inline, all three columns below — a ruling with an empty **Class** or **Criterion**
-does not sign. The point: a ruling the gate cannot evaluate is not enforcement,
-it is a hope, and it must be *marked a known gap*, not left to read as a rule.
+inline, all columns below — a ruling with an empty **Class**, **Criterion**, or
+**Consequence** does not sign. The point: a ruling the gate cannot evaluate is not
+enforcement, it is a hope, and it must be *marked a known gap*, not left to read
+as a rule.
 
-| Ruling | Ruled value | **Class** | **Criterion (what the gate evaluates, and where it reads it)** |
-|---|---|---|---|
-| `<Fn/Cn>` | `<the bound>` | `<CHECKABLE:numeric \| CHECKABLE:membership \| CHECKABLE:semantic \| JUDGMENT>` | `<the exact threshold/list/named condition + the source it reads: spec field / success-criterion text / wrapper structural fact — OR, if JUDGMENT, "KNOWN GAP: <what is missing and why it cannot yet be made checkable>">` |
+**R-CARD-2 (STRUCTURAL — every ruling states its CONSEQUENCE as well as its
+criterion).** Adopted 2026-07-16. A criterion tells the gate *what to read*; the
+consequence tells it *what verdict/action follows* when the criterion is met and
+when it is not. A criterion with no stated consequence transmits as a boundary
+with no teeth: the gate reads the number but nothing tells it what to DO, so the
+verdict splits. Measured evidence (2026-07-16 calibration battery): the code
+card's C4 states its consequence (*trust the number AND defer the utility claim*)
+→ C05/C06/C07 went 9/9 defer, entropy 0; FEA-F1 states its criterion (`L/h ≥ 10`)
+but never its consequence → C07 split, entropy 0.9183 bits. Same criterion
+strength, opposite steadiness — the missing consequence is the difference.
+
+| Ruling | Ruled value | **Class** | **Criterion (what the gate evaluates, and where it reads it)** | **Consequence (the verdict/action when the criterion holds — and when it fails)** |
+|---|---|---|---|---|
+| `<Fn/Cn>` | `<the bound>` | `<CHECKABLE:numeric \| CHECKABLE:membership \| CHECKABLE:semantic \| JUDGMENT>` | `<the exact threshold/list/named condition + the source it reads: spec field / success-criterion text / wrapper structural fact — OR, if JUDGMENT, "KNOWN GAP: <what is missing and why it cannot yet be made checkable>">` | `<what the gate should DO on each side of the bound, in verdict vocabulary: e.g. "inside → eligible for trust; outside → defer (route to the right instrument)"; a JUDGMENT ruling states the advisory consequence it can transmit, not an enforced one>` |
 
 - **CHECKABLE:numeric** — a stated threshold on a spec-derivable number (e.g. `L/h ≥ 10`).
 - **CHECKABLE:membership** — a set/allowlist/QoI-name test (e.g. `QoI == max_von_mises`).
