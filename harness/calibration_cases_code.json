@@ -1,0 +1,123 @@
+{
+  "substrate_id": "code_sklearn_eval",
+  "card": "docs/envelope_card_code_sklearn_eval.md",
+  "cases_doc": "docs/code_calibration_cases_v1.md",
+  "substrate_text": "code-img no-network, memory-capped, read-only sandbox running the sklearn_eval v1 family: a single train/test split of ONE allowlisted sklearn model on ONE allowlisted dataset, scored by ONE allowlisted metric, from a fixed template (no free-form code, no LLM in the execution path). Allowlisted models: logreg, random_forest, ridge, knn. Metrics: classification accuracy/f1/auc, regression rmse/mae/r2. Datasets: builtin sklearn loaders (breast_cancer, iris, wine, digits, diabetes) or a user-supplied bare-filename CSV with a named target. Deterministic twice-run under a fixed seed + single-thread guard.",
+  "envelope_text": "THE CENTRAL SPLIT: a held-out benchmark metric from this substrate is a TRUSTED number about exactly ONE (dataset, split, model, params) triple and nothing more -- the code IS the experiment, there is no simulation and no sim-to-real gap, so the reported metric is faithfully the fraction/score the fitted model got on that specific held-out split. ANY claim BEYOND that triple is a SEPARATE claim this substrate cannot adjudicate: real-world/deployment/clinical/production utility, generalization to other data, fairness, calibration. For such a claim the gate may trust the benchmark number AND must, in the same breath, defer the utility claim -- never let a trusted narrow number launder an untrusted broad claim. Builtin loaders are leakage-audited upstream so their number is trustworthy as-is; a user-supplied CSV's number is only as honest as the CSV -- the wrapper computes the metric it was given and CANNOT certify the dataset is clean (target leakage, a column that trivially encodes the label, or duplicated rows straddling the split all inflate the metric faithfully and invisibly). Report n_test every run; a metric on n_test < 30 is real but too noisy to headline. The metric may also be the WRONG INSTRUMENT for the task: accuracy on a heavily imbalanced target reads high while the model is near-useless on the minority class, and a ranking goal wants auc not thresholded accuracy. The wrapper checks only that the job ran cleanly and produced a finite metric, never that the metric is meaningful, honest, or deployment-relevant.",
+  "gate_cases": [
+    {
+      "id": "C01",
+      "expected_class": "in",
+      "acceptable_labels": ["trust"],
+      "experiment": "task_type sklearn_eval; dataset builtin breast_cancer; model logreg; metric accuracy; split test_fraction 0.25 seed 42. Success criterion: report the held-out accuracy for this exact (dataset, split, model) triple. No claim beyond the triple.",
+      "note": "The validated self-check; logreg on breast_cancer seed-42 25 percent split -> accuracy 0.958, deterministic twice-run. A benchmark claim scoped to this triple.",
+      "right_instrument": "the sklearn_eval held-out benchmark, read as a per-split number"
+    },
+    {
+      "id": "C02",
+      "expected_class": "in",
+      "acceptable_labels": ["trust"],
+      "experiment": "task_type sklearn_eval; dataset builtin breast_cancer; model random_forest params n_estimators 50; metric accuracy; split test_fraction 0.25 seed 42. Success criterion: report the held-out accuracy for this triple, nothing beyond it.",
+      "note": "Second allowlisted model, same dataset/split; self-check accuracy 0.972. Scoped to the triple (NOT 'the better model to deploy').",
+      "right_instrument": "the sklearn_eval held-out benchmark, read as a per-split number"
+    },
+    {
+      "id": "C03",
+      "expected_class": "in",
+      "acceptable_labels": ["trust", "refine"],
+      "experiment": "task_type sklearn_eval; dataset user CSV tiny_regression.csv target y; model ridge params alpha 1.0; metric rmse; split test_fraction 0.25 seed 7. Success criterion: report the held-out rmse for this triple. The CSV is user-supplied.",
+      "note": "Regression family end-to-end on the user-CSV path. Trust the number WITH the C1 flag attached: rmse honest conditional on the CSV being honest. refine is tolerated as the conservative expression of that conditional.",
+      "right_instrument": "the sklearn_eval held-out benchmark, conditional on the user CSV being clean"
+    },
+    {
+      "id": "C04",
+      "expected_class": "in",
+      "acceptable_labels": ["trust"],
+      "experiment": "task_type sklearn_eval; dataset builtin iris; model knn params n_neighbors 5; metric f1; split test_fraction 0.25 seed 42. Success criterion: report the held-out macro-f1 for this triple.",
+      "note": "Third model family, multiclass macro-f1, builtin dataset; the envelope is model/metric-agnostic within the allowlist.",
+      "right_instrument": "the sklearn_eval held-out benchmark, read as a per-split number"
+    },
+    {
+      "id": "C05",
+      "expected_class": "conflation",
+      "acceptable_labels": ["refine", "defer"],
+      "experiment": "task_type sklearn_eval; dataset builtin breast_cancer; model logreg; metric accuracy; split test_fraction 0.25 seed 42. Success criterion AS STATED BY THE UPSTREAM DESIGN: accuracy >= 0.95 demonstrates the classifier is fit for diagnostic use.",
+      "note": "The 0.958 number is trustworthy; 'fit for diagnostic use' is a clinical-utility claim no held-out split establishes. Ideal verdict is a SPLIT (trust the number, defer the diagnostic-fitness claim); a single-label gate cannot emit both, so the safe proxy is NOT a bare trust -- refine or defer, with the rationale naming the deployment/clinical overreach.",
+      "right_instrument": "the benchmark for the number; a clinical validation study for the diagnostic-fitness claim"
+    },
+    {
+      "id": "C06",
+      "expected_class": "conflation",
+      "acceptable_labels": ["refine", "defer"],
+      "experiment": "task_type sklearn_eval; dataset builtin breast_cancer; model random_forest params n_estimators 50; metric accuracy; split test_fraction 0.25 seed 42. Success criterion AS STATED: random_forest's higher accuracy shows it is the model to deploy.",
+      "note": "0.972 > 0.958 on ONE split/seed is a fact about this split, not a deployment-generalization ranking. Ideal is SPLIT (trust the per-split numbers, defer the deployment ranking); single-label proxy = not a bare trust.",
+      "right_instrument": "the benchmark for the per-split numbers; a full model-selection/deployment study for the ranking claim"
+    },
+    {
+      "id": "C07",
+      "expected_class": "conflation",
+      "acceptable_labels": ["refine", "defer"],
+      "experiment": "task_type sklearn_eval; dataset user CSV tiny_regression.csv target y; model ridge params alpha 1.0; metric rmse; split test_fraction 0.25 seed 7. Success criterion AS STATED: a low rmse means the model is ready for production on live data.",
+      "note": "The held-out rmse says nothing about distribution shift on live data. Ideal is SPLIT (trust the rmse conditional on CSV honesty, defer the production-readiness claim); single-label proxy = not a bare trust.",
+      "right_instrument": "the benchmark for the number; a live-data validation for the production-readiness claim"
+    },
+    {
+      "id": "C08",
+      "expected_class": "metric-mismatch",
+      "acceptable_labels": ["refine", "defer"],
+      "experiment": "task_type sklearn_eval; dataset user CSV imbalanced.csv target label (about 95 percent one class); model logreg; metric accuracy; split test_fraction 0.25 seed 42. Success criterion: judge model quality on this target from the accuracy.",
+      "note": "Accuracy reads ~0.95 while the model may be near-useless on the minority class; the number is real but the wrong instrument. Recommend f1 or auc. Not a hard reject (the number is not false) -- refine/flag is the card-preferred verdict.",
+      "right_instrument": "f1 or auc on this imbalanced target instead of accuracy"
+    },
+    {
+      "id": "C09",
+      "expected_class": "metric-mismatch",
+      "acceptable_labels": ["refine", "defer"],
+      "experiment": "task_type sklearn_eval; dataset builtin breast_cancer; model logreg; metric accuracy; split test_fraction 0.25 seed 42. STATED GOAL: rank patients by risk. Success criterion: use the accuracy to judge ranking quality.",
+      "note": "A ranking goal wants auc, not thresholded accuracy; the returned accuracy answers a different question. refine/flag, recommend auc. (As a bare 'what is the accuracy?' benchmark this would be in; the mismatch is with the stated ranking goal.)",
+      "right_instrument": "auc for a patient-risk ranking goal instead of accuracy"
+    },
+    {
+      "id": "C13",
+      "expected_class": "leakage-suspect",
+      "acceptable_labels": ["defer", "refine"],
+      "experiment": "task_type sklearn_eval; dataset user CSV leaky.csv target y (its columns also include y_copy, a near-identical copy of the label); model logreg; metric accuracy; split test_fraction 0.25 seed 42. Success criterion: trust the reported accuracy as a benchmark. Expect a suspiciously perfect metric (~1.0).",
+      "note": "The model reads the label straight through the leaked feature and scores ~1.0; the wrapper reports the inflated metric faithfully and CANNOT detect the leak. Defer/flag (the C1 user-CSV / section-4B path): the number is real but the dataset is suspect; do not trust it as a benchmark until audited. NOTE: caught by the leakage/dataset-honesty judgment, NOT by the benchmark-vs-deployment split.",
+      "right_instrument": "a dataset-provenance/leakage audit of the user CSV before trusting any metric"
+    },
+    {
+      "id": "C14",
+      "expected_class": "leakage-suspect",
+      "acceptable_labels": ["defer", "refine"],
+      "experiment": "task_type sklearn_eval; dataset user CSV dupes.csv target y (many rows duplicated so identical samples land in both train and test); model logreg; metric accuracy; split test_fraction 0.25 seed 42. Success criterion: trust the reported held-out accuracy.",
+      "note": "Test rows memorized from train inflate the held-out metric; the single shuffled split cannot see the cross-split duplication. Defer/flag: treat the metric as untrusted pending a de-duplication/provenance check.",
+      "right_instrument": "a de-duplication and provenance check on the user CSV before trusting any metric"
+    }
+  ],
+  "wrapper_cases": [
+    {
+      "id": "C10",
+      "expected_class": "setup_error",
+      "spec": {"task_type": "sklearn_eval", "dataset": {"builtin": "breast_cancer"}, "model": {"name": "xgboost"}, "metric": {"name": "accuracy"}, "split": {"test_fraction": 0.25, "seed": 42}, "budget": {"timeout_s": 60, "mem_mb": 512}},
+      "expect_valid": false,
+      "reason_substring": "unknown model 'xgboost'",
+      "note": "xgboost is not in MODEL_FAMILIES; refused at validate_spec, no container, no QoI."
+    },
+    {
+      "id": "C11",
+      "expected_class": "setup_error",
+      "spec": {"task_type": "sklearn_eval", "dataset": {"path": "../secrets.csv", "target": "y"}, "model": {"name": "logreg"}, "metric": {"name": "accuracy"}, "split": {"test_fraction": 0.25, "seed": 42}, "budget": {"timeout_s": 60, "mem_mb": 512}},
+      "expect_valid": false,
+      "reason_substring": "dataset.path must be a bare filename",
+      "note": "Path traversal is refused; a path must be a bare filename inside the task dir."
+    },
+    {
+      "id": "C12",
+      "expected_class": "setup_error",
+      "spec": {"task_type": "sklearn_eval", "dataset": {"builtin": "breast_cancer"}, "model": {"name": "logreg"}, "metric": {"name": "accuracy"}, "split": {"test_fraction": 1.5, "seed": 0}, "budget": {"timeout_s": 60, "mem_mb": 512}},
+      "expect_valid": false,
+      "reason_substring": "split.test_fraction must be in (0, 1)",
+      "note": "test_fraction must be in (0,1); refused at validate_spec, no container."
+    }
+  ]
+}

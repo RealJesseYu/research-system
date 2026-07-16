@@ -307,7 +307,22 @@ def run_harness(mode: str) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Measurement-rails harness (Step 16.6).")
     parser.add_argument(
-        "--mode", choices=["fast", "heavy", "killrate", "paperlint", "triage"], required=True
+        "--mode",
+        choices=["fast", "heavy", "killrate", "paperlint", "triage", "calibration"],
+        required=True,
+    )
+    parser.add_argument(
+        "--substrate",
+        default=None,
+        help="calibration mode only: the substrate id to score "
+        "(calculix_cantilever_fea | code_sklearn_eval)",
+    )
+    parser.add_argument(
+        "--hook-mode",
+        default="auto",
+        choices=["auto", "human"],
+        help="calibration mode only: the maturity-hook mode to witness "
+        "(auto downgrades trust/refine in place; human leaves the verdict untouched)",
     )
     parser.add_argument(
         "--repeats",
@@ -371,6 +386,23 @@ def main() -> int:
         return 0
     if args.run_id is not None:
         parser.error("--run-id applies only to --mode paperlint")
+    if args.mode == "calibration":
+        # Step 26: the substrate calibration battery — planted labeled cases
+        # through the REAL frozen stage-3 path, scoring the gate's RAW pre-hook
+        # verdict AND witnessing the Step-28 maturity hook. Separate mode, NOT
+        # the FAST hard gate; lazy import per the killrate/triage pattern.
+        from harness import calibration_battery
+
+        if (args.repeats is not None or args.dry_run or args.rounds is not None
+                or args.report_path is not None):
+            parser.error(
+                "--repeats/--dry-run/--rounds/--report-path apply only to --mode killrate"
+            )
+        if args.substrate is None:
+            parser.error("--mode calibration requires --substrate")
+        return calibration_battery.run_battery(args.substrate, args.hook_mode)
+    if args.substrate is not None or args.hook_mode != "auto":
+        parser.error("--substrate/--hook-mode apply only to --mode calibration")
     if args.mode == "triage":
         # Step 20.7: the Stage-5 triage battery — four planted known-diagnosis
         # cases run through the real stage-5 path. Separate mode, NOT the FAST

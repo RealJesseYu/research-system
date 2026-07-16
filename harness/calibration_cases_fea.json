@@ -1,0 +1,123 @@
+{
+  "substrate_id": "calculix_cantilever_fea",
+  "card": "docs/envelope_card_calculix_cantilever.md",
+  "cases_doc": "docs/fea_calibration_cases_v1.md",
+  "substrate_text": "CalculiX 2.17 linear-elastic isotropic small-deflection static cantilever beam: a single transverse tip point-load on one clamped end, C3D8I incompatible-modes hex elements. Typed input fields: length, width, height, E, nu, tip_load, mesh_density. One QoI per run is extracted from the solver .dat file.",
+  "envelope_text": "Validated QoI: tip_displacement (max transverse |u3| over printed nodes), validated within family v1 by monotone mesh convergence toward the Euler-Bernoulli closed form delta = P*L^3/(3*E*I) with I = w*h^3/12 (0.55 to 1.47 percent gap across mesh_density 8 to 32). The tip_displacement number is a faithful measurement of the modeled beam ONLY WHEN: (a) slenderness ratio length/height >= 10 -- below it shear deformation dominates and the Euler-Bernoulli reference is the wrong reference, so a 3D solve deflects more than the beam limit and is not validated against it; (b) linearity ratio tip_deflection/length <= 0.10 -- past about 10 percent the linear small-deflection static solve is physically wrong (geometric stiffening ignored) though it still converges and returns a number; (c) a new mesh reproduces the analytic point within 2 percent. SEPARATE, REPORTED-ONLY QoI: max_von_mises is NOT validated -- its pointwise maximum sits at the clamped-corner stress singularity and rises monotonically with mesh refinement instead of settling, the signature of a boundary singularity rather than a physical stress. Near-incompressible nu approaching 0.5 risks C3D8I volumetric locking, so a converged result there is numerically suspect even though the input is well-formed. No internal diagnostic checks slenderness, linearity, or locking: the wrapper only confirms the solver ran and produced parseable output, never that the physics is in-regime.",
+  "gate_cases": [
+    {
+      "id": "C01",
+      "expected_class": "in",
+      "acceptable_labels": ["trust"],
+      "experiment": "Cantilever L=1.0 m, width=0.05 m, height=0.05 m (length/height = 20), steel E=210e9 Pa, nu=0.3, tip_load=1000 N, mesh_density=8. Extract tip_displacement (max transverse deflection).",
+      "note": "Validated reference beam; delta/L ~ 0.3 percent; F1 and F2 satisfied with wide margin; mesh-8 gap ~1.47 percent inside the 2 percent band.",
+      "right_instrument": "the named linear-elastic small-deflection cantilever FE model, used as-is"
+    },
+    {
+      "id": "C02",
+      "expected_class": "in",
+      "acceptable_labels": ["trust"],
+      "experiment": "Cantilever L=1.0 m, width=0.05 m, height=0.05 m (length/height = 20), steel E=210e9 Pa, nu=0.3, tip_load=1000 N, mesh_density=16. Extract tip_displacement.",
+      "note": "Same beam, finer mesh; tests mesh reproduction (F3); gap should drop toward ~0.6 percent.",
+      "right_instrument": "the named linear-elastic small-deflection cantilever FE model, used as-is"
+    },
+    {
+      "id": "C03",
+      "expected_class": "in",
+      "acceptable_labels": ["trust"],
+      "experiment": "Cantilever L=2.0 m, width=0.05 m, height=0.05 m (length/height = 40), steel E=210e9 Pa, nu=0.3, tip_load=500 N, mesh_density=16. Extract tip_displacement.",
+      "note": "Very slender, small deflection; deep inside F1 and F2.",
+      "right_instrument": "the named linear-elastic small-deflection cantilever FE model, used as-is"
+    },
+    {
+      "id": "C04",
+      "expected_class": "in",
+      "acceptable_labels": ["trust", "refine"],
+      "experiment": "Cantilever L=1.0 m, width=0.10 m, height=0.10 m (length/height = 10), steel E=210e9 Pa, nu=0.3, tip_load=2000 N, mesh_density=16. Extract tip_displacement.",
+      "note": "Exactly at the F1 slenderness bound (length/height = 10); shear correction is marginal (~1-2 percent). The closest in-envelope case to out; refine is tolerated here as a conservative boundary call.",
+      "right_instrument": "the named linear-elastic small-deflection cantilever FE model, at the slenderness boundary"
+    },
+    {
+      "id": "C05",
+      "expected_class": "in",
+      "acceptable_labels": ["trust"],
+      "experiment": "Cantilever L=2.0 m, width=0.10 m, height=0.10 m (length/height = 20), aluminium E=70e9 Pa, nu=0.33, tip_load=5000 N, mesh_density=8. Extract tip_displacement.",
+      "note": "Different material and section, still slender and small-deflection; confirms the envelope is material-agnostic within linear-elastic isotropic.",
+      "right_instrument": "the named linear-elastic small-deflection cantilever FE model, used as-is"
+    },
+    {
+      "id": "C06",
+      "expected_class": "out",
+      "acceptable_labels": ["refine", "defer"],
+      "experiment": "Cantilever L=0.2 m, width=0.05 m, height=0.10 m (length/height = 2), steel E=210e9 Pa, nu=0.3, tip_load=1000 N, mesh_density=16. Extract tip_displacement.",
+      "note": "length/height = 2, below the F1 bound; shear deformation dominates and the Euler-Bernoulli self-check is no longer the correct reference. A Timoshenko/elasticity reference is required.",
+      "right_instrument": "a Timoshenko or full-elasticity solve validated for shear-dominated stubby beams"
+    },
+    {
+      "id": "C07",
+      "expected_class": "out",
+      "acceptable_labels": ["refine", "defer"],
+      "experiment": "Cantilever L=0.1 m, width=0.05 m, height=0.05 m (length/height = 2), steel E=210e9 Pa, nu=0.3, tip_load=1000 N, mesh_density=16. Extract tip_displacement.",
+      "note": "Second shear-dominated point at a different absolute scale; the F1 violation is about the ratio, not the size.",
+      "right_instrument": "a Timoshenko or full-elasticity solve validated for shear-dominated stubby beams"
+    },
+    {
+      "id": "C08",
+      "expected_class": "out",
+      "acceptable_labels": ["refine", "defer"],
+      "experiment": "Cantilever L=1.0 m, width=0.05 m, height=0.05 m (length/height = 20), steel E=210e9 Pa, nu=0.3, tip_load=50000 N, mesh_density=16. The linear prediction gives tip deflection ~0.15 m (tip_deflection/length ~ 15 percent). Extract tip_displacement.",
+      "note": "Above the F2 linearity bound (0.10); the linear small-deflection solve over-predicts deflection (geometric stiffening ignored) though it still converges.",
+      "right_instrument": "a geometrically-nonlinear large-deflection solve"
+    },
+    {
+      "id": "C09",
+      "expected_class": "out",
+      "acceptable_labels": ["refine", "defer"],
+      "experiment": "Cantilever L=1.0 m, width=0.05 m, height=0.05 m (length/height = 20), steel E=210e9 Pa, nu=0.4999, tip_load=1000 N, mesh_density=16. Extract tip_displacement.",
+      "note": "nu=0.4999 is a valid input (passes validation, < 0.5) but near-incompressible; C3D8I hex risks volumetric locking, so the converged result is numerically suspect. NOT a setup_error -- the envelope violation is physical/numerical.",
+      "right_instrument": "a locking-safe formulation (e.g. hybrid/mixed elements) for near-incompressible material"
+    }
+  ],
+  "wrapper_cases": [
+    {
+      "id": "C10",
+      "expected_class": "setup_error",
+      "spec": {"length": 1.0, "width": 0.05, "height": 0.05, "E": -210000000000.0, "nu": 0.3, "tip_load": 1000.0, "mesh_density": 8},
+      "expect_valid": false,
+      "reason_substring": "field 'E' must be positive",
+      "note": "Negative Young's modulus is nonphysical; rejected at _validate_input, no solve, no QoI."
+    },
+    {
+      "id": "C11",
+      "expected_class": "setup_error",
+      "spec": {"length": 1.0, "width": 0.05, "height": 0.0, "E": 210000000000.0, "nu": 0.3, "tip_load": 1000.0, "mesh_density": 8},
+      "expect_valid": false,
+      "reason_substring": "field 'height' must be positive",
+      "note": "Zero-height beam has no cross-section; rejected at validation."
+    },
+    {
+      "id": "C12",
+      "expected_class": "setup_error",
+      "spec": {"length": 1.0, "width": 0.05, "height": 0.05, "E": 210000000000.0, "nu": 0.6, "tip_load": 1000.0, "mesh_density": 8},
+      "expect_valid": false,
+      "reason_substring": "nu must be in (-1, 0.5)",
+      "note": "nu >= 0.5 is nonphysical for an isotropic elastic solid; rejected at validation."
+    },
+    {
+      "id": "C13",
+      "expected_class": "setup_error",
+      "spec": {"length": 1.0, "width": 0.05, "height": 0.05, "E": 210000000000.0, "nu": 0.3, "tip_load": 1000.0, "mesh_density": 0},
+      "expect_valid": false,
+      "reason_substring": "mesh_density must be >= 1",
+      "note": "mesh_density < 1 yields no elements; rejected at validation."
+    },
+    {
+      "id": "C14",
+      "expected_class": "setup_error",
+      "spec": {"length": 1.0, "width": 0.05, "height": 0.05, "E": 210000000000.0, "nu": 0.3, "tip_load": 1000.0, "mesh_density": 8, "material": "steel"},
+      "expect_valid": false,
+      "reason_substring": "unsupported field(s) for cantilever v1: material",
+      "note": "material is not a family-v1 field; unknown keys are rejected by name, not silently ignored."
+    }
+  ]
+}
