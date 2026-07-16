@@ -113,7 +113,30 @@ class TestSchemaMatchesTheDriver(unittest.TestCase):
             self.assertEqual(by_id[cid]["acceptable_labels"], ["trust"], cid)
         for cid in ("G06", "G07", "G08", "G09"):
             self.assertEqual(by_id[cid]["acceptable_labels"], ["defer"], cid)
-        self.assertEqual(by_id["G10"]["acceptable_labels"], ["refine"])
+        # G10 amendment (owner-ruled 2026-07-16, pre-battery): banded `edge`,
+        # accepting either cautious verdict. See test_g10_is_banded_edge.
+        self.assertEqual(by_id["G10"]["acceptable_labels"], ["refine", "defer"])
+
+    def test_g10_is_banded_edge_and_only_trust_fails(self):
+        # The amendment's substance, not just its letter: G10's gap sits ON the
+        # ruled 1% bound and ~1.1% is the circuit's achievable-error ceiling, so
+        # no setting moves it decisively off the boundary. Both cautious
+        # verdicts are correct; ONLY trust scores as a failure.
+        g10 = {g["id"]: g for g in self.doc["gate_cases"]}["G10"]
+        self.assertEqual(g10["expected_class"], "edge")
+        self.assertEqual(set(g10["acceptable_labels"]), {"refine", "defer"})
+        self.assertNotIn("trust", g10["acceptable_labels"])
+
+    def test_only_g10_is_banded(self):
+        # A band is a claim that the boundary is genuinely ambiguous. Every
+        # other gate case is a single-label commitment, and widening one to
+        # dodge a miss would quietly gut the slate — so assert the band is
+        # exactly where it was ruled.
+        for g in self.doc["gate_cases"]:
+            if g["id"] == "G10":
+                continue
+            self.assertEqual(len(g["acceptable_labels"]), 1,
+                             f"{g['id']} is banded but only G10 was ruled edge")
 
     def test_every_wrapper_case_is_a_setup_error_expecting_rejection(self):
         for w in self.doc["wrapper_cases"]:

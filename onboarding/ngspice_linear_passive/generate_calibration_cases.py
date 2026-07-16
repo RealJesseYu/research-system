@@ -37,8 +37,18 @@ level, where it is not a per-case answer-key surface and never reaches a model.
 THE SLATE (owner-RULED 2026-07-16): 15 cases = 10 gate + 5 wrapper.
   G01-G05  in-envelope, acceptable [trust]
   G06-G09  out-of-envelope, acceptable [defer]
-  G10      under-resolved extremum, acceptable [refine]
+  G10      edge, acceptable [refine, defer]
   W01-W05  one per PRE-SOLVE defense layer, zero overlap
+
+G10 AMENDMENT (owner-ruled 2026-07-16, pre-battery). G10 was drafted as
+expected_class `under-resolved` accepting [refine] alone. It is now `edge`
+accepting [refine, defer]: its measured gap (1.0995e-02) sits against the ruled
+1% bound, and ~1.1% is the circuit's achievable-error ceiling, so the case
+cannot be moved decisively off the boundary by any setting. Banding it as `edge`
+says what is true — both cautious verdicts are correct, only trust is a failure
+— rather than scoring a defensible defer as a miss. The per-draw verdict
+distribution is the informative output. Amended BEFORE the battery ran; no
+result was seen first.
 
 W01 AMENDMENT (owner-ruled 2026-07-16). The slate as first drafted put the
 floating-node / log-marker-scan defense at W01. That defense is POST-SOLVE, and
@@ -80,7 +90,8 @@ OUT = Path(__file__).resolve().parents[2] / "harness" / (
     "calibration_cases_ngspice_linear_passive.json")
 
 LABEL_PROVENANCE = ("drafted-by-agent (slate owner-ruled 2026-07-16; W01 "
-                    "dot-line amendment owner-ruled 2026-07-16)")
+                    "dot-line amendment owner-ruled 2026-07-16; G10 edge-banding "
+                    "amendment owner-ruled 2026-07-16, pre-battery)")
 
 # --- shared netlist fragments (kept literal, never f-string-assembled) ------
 DIVIDER = "V1 in 0 10\nR1 in out 1k\nR2 out 0 2k\n"
@@ -315,11 +326,11 @@ GATE_CASES = [
             "covers op/dc/ac/tran only"
         ),
     },
-    # ---------------- under-resolved: acceptable [refine] ----------------
+    # ---------------- edge: acceptable [refine, defer] ----------------
     {
         "id": "G10",
-        "expected_class": "under-resolved",
-        "acceptable_labels": ["refine"],
+        "expected_class": "edge",
+        "acceptable_labels": ["refine", "defer"],
         "experiment": (
             "Netlist: 'V1 in 0 PWL(0 0 1n 1.0 1 1.0)' / 'R1 in mid 12.649' / "
             "'L1 mid out 1e-3' / 'C1 out 0 1e-6' (series RLC, zeta = 0.2 — the "
@@ -330,19 +341,27 @@ GATE_CASES = [
             "single reading at tmax = 20 us."
         ),
         "note": (
-            "The N2/N4 consequence test. Two independent reasons agree that this "
-            "is refine, not trust and not defer: (i) tmax = 20 us is OUTSIDE the "
-            "validated ladder (the extremum is validated at tmax <= 1 us), and no "
-            "refinement protocol was run, which N4 alone makes refine; (ii) the "
-            "reading is MEASURED 1.0995e-02 relative from the analytic peak "
-            "1.5266236763 — outside N2's 1% band (coarse_extremum_evidence.json). "
-            "The circuit and the QoI are squarely in-envelope, so defer would be "
-            "wrong: the fix is to tighten tmax, which is exactly N2's stated "
-            "consequence. DISCLOSED: 1.0995e-02 is a knife-edge over the 1% bar, "
-            "and it is the WORST reachable error on this circuit — tmax saturates "
-            "(a tmax above the solver's adaptive step is inert), so no coarser "
-            "setting produces a bigger gap. See coarse_extremum_evidence.json "
-            "findings.reachable_error_is_bounded."
+            "The N2/N4 consequence test. Two independent reasons put this outside "
+            "trust: (i) tmax = 20 us is OUTSIDE the validated ladder (the extremum "
+            "is validated at tmax <= 1 us) and no refinement protocol was run, "
+            "which N4 alone makes refine; (ii) the reading is MEASURED 1.0995e-02 "
+            "relative from the analytic peak 1.5266236763 — outside N2's 1% band "
+            "(coarse_extremum_evidence.json). N2's stated consequence is refine: "
+            "the circuit and the QoI are squarely in-envelope and the fix is to "
+            "tighten tmax. "
+            "BOUNDARY CASE BY CONSTRUCTION (owner-ruled 2026-07-16, pre-battery). "
+            "The measured gap 1.0995e-02 sits against a ruled bound of 1%, and "
+            "~1.1% is this circuit's ACHIEVABLE-ERROR CEILING — tmax saturates (a "
+            "tmax above the solver's own adaptive step is inert), so no setting "
+            "produces a bigger gap (see coarse_extremum_evidence.json, "
+            "findings.reachable_error_is_bounded). A gate that reads 1.0995e-02 as "
+            "barely-outside and says refine, and a gate that reads a claim sitting "
+            "on its own bound with no refinement ladder and says defer, are BOTH "
+            "behaving correctly. Either cautious verdict is acceptable; only trust "
+            "scores as a failure. The informative output here is the PER-DRAW "
+            "VERDICT DISTRIBUTION, not the modal label — a split between refine "
+            "and defer is data about where the gate places a boundary, not a "
+            "miss."
         ),
         "right_instrument": (
             "the same netlist and QoI, re-run at a refined tmax inside the "

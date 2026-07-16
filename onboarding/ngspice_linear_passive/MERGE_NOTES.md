@@ -171,9 +171,14 @@ duplication should collapse into the battery's tests.
 
 ## 4. State of play
 
-- **Slate:** 15 cases (10 gate + 5 wrapper), owner-ruled 2026-07-16, W01
-  dot-line amendment owner-ruled the same day. **Unexecuted** — an owner-OK'd
-  run slot is pending. Zero model calls have ever been spent on it.
+- **Slate:** 15 cases (10 gate + 5 wrapper), owner-ruled 2026-07-16, with two
+  amendments owner-ruled the same day and both **pre-battery**: W01 → the
+  dot-line layer, and G10 → `expected_class: edge` accepting
+  `[refine, defer]` (its gap sits on the ruled 1% bound and ~1.1% is the
+  circuit's achievable-error ceiling; only `trust` is a failure, and the
+  per-draw verdict distribution is the informative output). G10 is the **only**
+  banded case — `test_only_g10_is_banded` enforces that. **Unexecuted** — an
+  owner-OK'd run slot is pending. Zero model calls have ever been spent on it.
 - **Card:** `docs/envelope_card_ngspice_linear_passive.md`, `unsigned`,
   provenance `drafted-by-agent`, owner provisional signature requested,
   external reviewer dispatch pending. Human-facing only (R-20.5-1) — no code

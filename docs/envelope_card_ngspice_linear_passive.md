@@ -198,14 +198,16 @@ its evidence.
   expression interpolation, `X` subcircuit, `K` coupled inductors, negative
   values. *Evidence: `regime_escapes` probes 0–7; slate cases W01, W05, G06,
   G08.*
-- **4E. Under-resolved extremum → converged-but-wrong.** → `refine`.
-  **`CHECKABLE:numeric` (N2 + N4) — but only if the claim states its `tmax`.**
-  An extremum read at a `tmax` outside the validated ladder can be off by up to
-  ~1.1% on the exercised circuit while the solve itself is perfectly healthy.
-  **No internal diagnostic flags it.** Worse, in the binding-but-coarse band the
-  error is **non-monotone and sign-flipping**, so a two-point check can show
-  "improvement" that is coincidence. *Evidence: `coarse_extremum_evidence.json`;
-  slate case G10.*
+- **4E. Under-resolved extremum → converged-but-wrong.** → `refine` (or `defer`
+  at the bound — see §8 item 10). **`CHECKABLE:numeric` (N2 + N4) — but only if
+  the claim states its `tmax`.** An extremum read at a `tmax` outside the
+  validated ladder can be off by up to ~1.1% on the exercised circuit while the
+  solve itself is perfectly healthy. **No internal diagnostic flags it.** Worse,
+  in the binding-but-coarse band the error is **non-monotone and
+  sign-flipping**, so a two-point check can show "improvement" that is
+  coincidence. *Evidence: `coarse_extremum_evidence.json`; slate case G10, which
+  is banded `edge` `[refine, defer]` precisely because ~1.1% is this circuit's
+  achievable-error ceiling.*
 - **4F. `corner_3db` contaminated by fstart bias** (the **§4G artifact class**).
   → `refine`. **`CHECKABLE:numeric`, and now SELF-REPORTED.** The corner reads
   HIGH by (fstart/f_c)², a bias that **dominates grid density ~26×**. The
@@ -398,8 +400,16 @@ board**.
    Nothing blocks today (ngspice is unroutable and Stage 2 never authors an
    ngspice spec), but routing would require dispatch-by-substrate. See
    `schema_fragment.py`.
-10. **G10 is a knife-edge (1.0995e-02 vs a 1% bar), and that is structural.**
-    Because `tmax` saturates, ~1.1% is the **worst reachable** extremum error on
-    that circuit — no setting produces a decisively-over-tolerance reading. If
-    the battery needs a more decisive `refine` case, it needs a **different
-    circuit** (a higher-Q resonance), not a coarser setting.
+10. **G10 sits ON its bound (1.0995e-02 vs a ruled 1%), and that is
+    structural — so the case is BANDED.** Because `tmax` saturates, **~1.1% is
+    the achievable-error ceiling** on that circuit: no setting produces a
+    decisively-over-tolerance reading. *Amended owner-ruled 2026-07-16,
+    pre-battery* (was `under-resolved` / `[refine]`): G10 is now
+    `expected_class: edge`, `acceptable_labels: [refine, defer]`. **Either
+    cautious verdict is correct; only `trust` scores as a failure**, and the
+    **per-draw verdict distribution is the informative output**, not the modal
+    label. Scoring a defensible `defer` as a miss would be scoring the slate's
+    construction rather than the gate. If the battery ever needs a *decisive*
+    `refine` case, it needs a **different circuit** (a higher-Q resonance), not
+    a coarser setting. G10 is the **only** banded case on the slate, enforced by
+    `tests/test_calibration_cases_ngspice.py::test_only_g10_is_banded`.

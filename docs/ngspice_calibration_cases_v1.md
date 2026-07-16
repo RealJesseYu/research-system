@@ -80,23 +80,42 @@ Transcribed in full, with class and both-sided consequence, in
 | **G08** | `out-of-regime` | `[defer]` | behavioural B-source (`V=v(a)*v(a)`), `.tran`, `max` of `v(b)`; claim: 2nd-harmonic peak = 1.0 V | A B-source is expression-valued and **nonlinear**; superposition — which every self-check rests on — does not hold for a squarer. The `B` letter is rejected pre-solve. The extremum QoI is a second, independent caution (N4), but the regime miss is decisive alone. |
 | **G09** | `wrong-analysis` | `[defer]` | the **clean, self-checked RC**; `.noise` analysis; claim: thermal noise floor = 4 nV/√Hz to 1% | **N1 in isolation, and the cleanest miss on the slate.** The netlist is perfectly in-regime and the physics is linear — only the *analysis* is outside {op, dc, ac, tran}. `.noise` is offered by ngspice, validated by nothing here, and rejected by the typed enum before anything runs. |
 
-## Gate track — under-resolved (expect `refine`)
+## Gate track — edge (expect `refine` **or** `defer`)
 
-| id | class | labels | the case | why this label |
+| id | class | labels | the case | why this band |
 |---|---|---|---|---|
-| **G10** | `under-resolved` | `[refine]` | the **same** ζ = 0.2 RLC as G05, `.tran` **tmax = 20 µs**, `max` of `v(out)`; claim: peak = 1.5434 V, **no refinement ladder run** | **The N2/N4 consequence test.** Two independent reasons agree on `refine`: (i) tmax = 20 µs is outside the validated ladder (extremum validated at tmax ≤ 1 µs) and no protocol was run — N4 alone makes this refine; (ii) the reading is **measured 1.0995e-02 relative** from the analytic peak — outside N2's 1% band. The circuit and QoI are squarely in-envelope, so `defer` would be wrong: the fix is to tighten tmax, which is exactly N2's stated consequence. |
+| **G10** | `edge` | `[refine, defer]` | the **same** ζ = 0.2 RLC as G05, `.tran` **tmax = 20 µs**, `max` of `v(out)`; claim: peak = 1.5434 V, **no refinement ladder run** | **The N2/N4 consequence test — and a boundary case by construction.** Two independent reasons put this outside `trust`: (i) tmax = 20 µs is outside the validated ladder (extremum validated at tmax ≤ 1 µs) and no protocol was run — N4 alone makes this refine; (ii) the reading is **measured 1.0995e-02 relative** from the analytic peak — outside N2's 1% band. N2's stated consequence is `refine`: the circuit and QoI are squarely in-envelope and the fix is to tighten tmax. But the gap sits **on** the ruled bound, so a gate that reads a boundary claim with no refinement ladder and says `defer` is also behaving correctly. **Only `trust` scores as a failure.** |
 
-> **G10 disclosure — read before scoring it.** `1.0995e-02` is a knife-edge over
-> the 1% bar, and it is the **worst reachable error on this circuit**. The
-> strategist's pre-registration ("tmax = 1e-4 lands between 10% and 50%") is
-> **falsified by one to two orders of magnitude**, because `tmax` is a *ceiling
-> on the solver's step, not a target*: ngspice's adaptive error control already
-> steps at ~2e-5 here, so every tmax from 4e-5 to 2e-4 is **inert** — identical
-> peak `1.52415539`, identical 144 data rows. A `.tran` cannot be coarsened past
-> its adaptive floor, only refined. Inside the narrow band where tmax *does*
-> bind (≈3e-5 … 1e-5) the peak error is **non-monotone and sign-flipping** — the
-> textbook signature of an extremum tracking the grid. Full sweep and mechanism:
-> `onboarding/ngspice_linear_passive/coarse_extremum_evidence.json`.
+> **G10 is BANDED — read before scoring it.** *(Amendment owner-ruled
+> 2026-07-16, **pre-battery**: G10 was drafted as `under-resolved` accepting
+> `[refine]` alone. No battery result was seen before the amendment.)*
+>
+> The measured gap `1.0995e-02` sits against a **ruled bound of 1%**, and
+> **~1.1% is this circuit's achievable-error ceiling** — so the case cannot be
+> moved decisively off the boundary by *any* setting. Banding it `edge` says
+> what is true: **either cautious verdict is acceptable, and only `trust` is a
+> miss.** Scoring a defensible `defer` as a failure would be scoring the slate's
+> own construction, not the gate.
+>
+> **The informative output here is the per-draw verdict distribution, not the
+> modal label.** A refine/defer split is *data about where the gate places a
+> boundary* — exactly what `--repeats` and the per-case distributions exist to
+> capture. Read it alongside G07's entropy, not as a pass/fail.
+>
+> **Why the ceiling is structural.** The strategist's pre-registration ("tmax =
+> 1e-4 lands between 10% and 50%") is **falsified by one to two orders of
+> magnitude**, because `tmax` is a *ceiling on the solver's step, not a target*:
+> ngspice's adaptive error control already steps at ~2e-5 here, so every tmax
+> from 4e-5 to 2e-4 is **inert** — identical peak `1.52415539`, identical 144
+> data rows. A `.tran` cannot be coarsened past its adaptive floor, only
+> refined. Inside the narrow band where tmax *does* bind (≈3e-5 … 1e-5) the peak
+> error is **non-monotone and sign-flipping** — the textbook signature of an
+> extremum tracking the grid. Full sweep and mechanism:
+> `onboarding/ngspice_linear_passive/coarse_extremum_evidence.json`
+> (`findings.reachable_error_is_bounded`).
+>
+> **A more decisive `refine` case needs a different circuit** (a higher-Q
+> resonance), not a coarser setting. See card §8 item 10.
 
 ---
 
@@ -152,11 +171,18 @@ proposed; see card §8.
 - **`expected_class` is a per-substrate vocabulary**, as it is for the siblings
   (FEA uses `in`/`out`; code uses `in`/`conflation`/`metric-mismatch`/
   `leakage-suspect`). This slate uses `in`, `device-model`, `board-claim`,
-  `out-of-regime`, `wrong-analysis`, `under-resolved`, `setup_error` — chosen so
-  the confusion matrix says *which* boundary moved, not merely that one did.
+  `out-of-regime`, `wrong-analysis`, `edge`, `setup_error` — chosen so the
+  confusion matrix says *which* boundary moved, not merely that one did.
 - **A gate case passes** iff the raw verdict is in its `acceptable_labels`. The
   maturity hook's downgrade is witnessed separately and never scored as the
   model's answer.
+- **Exactly one case is banded: G10 (`edge`, `[refine, defer]`).** Every other
+  gate case is a single-label commitment. A band is a claim that the boundary is
+  *genuinely* ambiguous — G10's gap sits on its ruled bound and cannot be moved
+  off it by any setting — and it is pre-registered as such, not widened after a
+  result. `tests/test_calibration_cases_ngspice.py::test_only_g10_is_banded`
+  enforces that: widening any other case to dodge a miss fails the suite.
+  For G10, read the **per-draw verdict distribution**, not the modal label.
 - **The battery cannot run this slate yet.** `calibration_battery._CASE_FILES`
   and `_wrapper_validator` have no ngspice entry, so `load_cases` raises
   `KeyError` today. See
