@@ -20,7 +20,7 @@
 | Substrate | `fenicsx_cantilever_elastic` |
 | Physics regime | linear-elastic isotropic small-deflection static cantilever; single tip load, one clamped end |
 | Envelope card | `docs/envelope_card_fenicsx_cantilever_elastic.md` |
-| Provenance state (from envelope card §2) | `drafted-by-agent` |
+| Provenance state (from envelope card §2) | `provisionally-signed (owner, 2026-07-16)` (copied from card §2 at commit 4800a93 — the card is the source of truth; re-verify at merge) |
 
 ## 2. Capability summary (abstract — no solver names above the wrapper)
 | Property | Value |
@@ -50,7 +50,9 @@ on the family-v1 ladder (envelope §7), 600 s hard kill. The cold/warm spread is
 kernel compilation on first use and is published as a **range**, never a rate.
 
 ## 6. Confidence
-**Lowest rung.** Maturity `calibrating`; provenance `drafted-by-agent`; the
+**Lowest rung.** Maturity `calibrating`; provenance
+`provisionally-signed (owner, 2026-07-16)` (copied from card §2 at commit
+4800a93 — the card is the source of truth; re-verify at merge); the
 calibration battery is **drafted but unexecuted** and the slate is an owner ruling
 first. A human sits at every trust call on this substrate — and it is unroutable,
 so there are none to sit at yet.
