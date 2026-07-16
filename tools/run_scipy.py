@@ -78,8 +78,13 @@ from contract import (  # noqa: E402  (staged onboarding module, path-injected)
     ALLOWED_CONSTANTS,
     ALLOWED_FUNCTIONS,
     CROSSCHECK_AGREE_TOL,
+    NUMERIC_DIFF_STEP,
     NUMERIC_PRECISION_DPS,
     NUMERIC_SAMPLE_POINTS,
+    ODE_CROSSCHECK_ATOL,
+    ODE_CROSSCHECK_RTOL,
+    ODE_CROSSCHECK_SAMPLES,
+    ODE_CROSSCHECK_SPAN,
     OP_FIELDS,
     OPERATIONS,
     UNIVERSAL_OPTIONAL_FIELDS,
@@ -347,6 +352,7 @@ import json
 
 import sympy
 from sympy import Float, Integer, Rational, Symbol
+from sympy.core.function import AppliedUndef
 from sympy.parsing.sympy_parser import parse_expr, standard_transformations
 
 SPEC = json.loads(r"""__SPEC_JSON__""")
@@ -412,7 +418,13 @@ def is_unevaluated(obj):
 
 
 def numeric_residual(diff_expr, var):
-    """High-precision sampling fallback when simplify will not close to zero."""
+    """High-precision sampling fallback when simplify will not close to zero.
+
+    SYMBOLIC-INTERNAL: this is .evalf(), SymPy's own evaluator. It is reached
+    only by the two integrate ops, whose numeric fallback was deliberately left
+    on evalf (the lambdify+numpy move covers diff/limit/series/solve). Card 5
+    records that.
+    """
     worst = 0.0
     for pt in SPEC["_sample_points"]:
         try:
@@ -428,7 +440,163 @@ def symbolic_or_numeric_residual(diff_expr, var):
     simplified = sympy.simplify(diff_expr)
     if simplified == 0:
         return 0.0, "symbolic_simplify_to_zero"
-    return numeric_residual(simplified, var), "numeric_sampling"
+    return numeric_residual(simplified, var), "numeric_sampling_evalf"
+
+
+# --- the lambdify+numpy spot-check arm -------------------------------------
+# PARTIAL independence, and the label is exact in both directions: the
+# ARITHMETIC is numpy's (a genuinely different evaluator from .evalf()), but the
+# TRANSLATION from the SymPy expression tree to a numpy callable is SymPy's own
+# lambdify. A bug in lambdify's translation is therefore invisible to these
+# checks, exactly as a bug in .evalf() was invisible to the checks they replace.
+# The step gained is evaluation-independence; translation-independence remains
+# unbuilt (card 8).
+
+def lambdify_numpy(args, expr):
+    """A numpy callable for `expr`, or None if SymPy cannot translate it."""
+    try:
+        return sympy.lambdify(args, expr, "numpy")
+    except Exception:
+        return None
+
+
+def _num(f, *vals):
+    """Evaluate a lambdified callable to a python complex."""
+    return complex(f(*vals))
+
+
+def _to_float(expr):
+    """Convert a SYMBOLIC CONSTANT (a sample point, a limit value) to float.
+
+    This is evalf on a NUMBER, never on the expression under test: the points
+    are built exactly and then converted, while the EXPRESSION's evaluation at
+    those points is numpy's. Keeping the two apart is what makes the
+    'numeric-partial' label honest rather than decorative.
+    """
+    return float(expr.evalf(30))
+
+
+def diff_residual_numpy(base, closed_form, var):
+    """Central differences on numpy floats: (residual, method), or None.
+
+    `base` is the (order-1)-th derivative, so one central difference of it is
+    compared against the closed form of the order-th derivative.
+    """
+    fb = lambdify_numpy(var, base)
+    fc = lambdify_numpy(var, closed_form)
+    if fb is None or fc is None:
+        return None
+    h = SPEC["_diff_step"]
+    worst, seen = 0.0, False
+    for pt in SPEC["_sample_points"]:
+        try:
+            approx = (_num(fb, pt + h) - _num(fb, pt - h)) / (2 * h)
+            exact = _num(fc, pt)
+        except Exception:
+            continue
+        seen = True
+        worst = max(worst, abs(approx - exact) / max(1.0, abs(exact)))
+    if not seen:
+        return None
+    return worst, "numeric_central_difference_lambdify_numpy"
+
+
+def diff_residual_evalf(base, closed_form, var):
+    """The pre-existing evalf central difference. FALLBACK only — used when
+    SymPy cannot lambdify the expression, and LABELLED so the card's
+    independence claim is never overstated for a job that silently fell back."""
+    h = Rational(1, 10 ** 6)
+    worst = 0.0
+    for pt in SPEC["_sample_points"]:
+        p = Float(pt)
+        try:
+            fd = (base.subs(var, p + h) - base.subs(var, p - h)) / (2 * h)
+            approx = complex(fd.evalf(SPEC["_dps"]))
+            exact = complex(closed_form.subs(var, p).evalf(SPEC["_dps"]))
+        except (TypeError, ValueError, AttributeError):
+            continue
+        worst = max(worst, abs(approx - exact) / max(1.0, abs(exact)))
+    return worst, "numeric_central_difference_evalf_fallback"
+
+
+def _approach_probes(pt, ks):
+    """The probe points approaching `pt`, built EXACTLY (symbolically).
+
+    An infinite point is approached from the correct SIDE: +oo probes with
+    +10**k and -oo with -10**k. (The implementation this replaces used +10**k
+    for either infinity — corrected here, disclosed in the debrief.)
+    """
+    out = []
+    for k in ks:
+        try:
+            if pt.is_infinite:
+                sign = -1 if pt.could_extract_minus_sign() else 1
+                out.append(sign * Integer(10) ** k)
+            else:
+                out.append(pt + Rational(1, 10 ** k))
+        except (TypeError, ValueError, AttributeError):
+            continue
+    return out
+
+
+def limit_residual_evalf(expr, closed_form, var, pt):
+    """Approach sequence at ARBITRARY PRECISION: (residual, method), or None.
+
+    SYMBOLIC-INTERNAL, AND DELIBERATELY LEFT SO — this is the one spot-check the
+    lambdify+numpy move was tried on and MEASURED to make worse, so it stayed on
+    evalf.
+
+    Why, precisely: a limit spot-check evaluates an indeterminate form
+    arbitrarily close to its singularity, which is exactly where catastrophic
+    cancellation is the rule rather than the exception. Measured this session:
+    (1 - cos(x))/x**2 probed at x=1e-6 loses ~11 of float64's ~16 digits to the
+    1 - cos(x) subtraction, and the residual jumps from 4.169e-14 (evalf, 50 dps)
+    to 4.445e-05 (float64) — four orders of magnitude OUTSIDE S2, rejecting a
+    CORRECT limit. No probe distance rescues it: cancellation grows as the probe
+    shrinks and truncation grows as it widens, and float64's best case for that
+    expression is ~1e-8, still outside S2. Only arbitrary precision holds a 1e-9
+    gate here, and the only arbitrary-precision evaluator available is SymPy's
+    own evalf. Independence lost to correctness; the gap is recorded in the
+    card's section 5 rather than papered over.
+    """
+    try:
+        lim = complex(closed_form.evalf(SPEC["_dps"]))
+    except (TypeError, ValueError, AttributeError):
+        return None
+    worst = None
+    for probe in _approach_probes(pt, (3, 4, 5, 6)):
+        try:
+            v = complex(expr.subs(var, probe).evalf(SPEC["_dps"]))
+        except (TypeError, ValueError, AttributeError):
+            continue
+        worst = abs(v - lim)          # the LAST (closest) probe wins
+    if worst is None:
+        return None
+    return worst, "numeric_approach_sequence_evalf"
+
+
+def series_residual_numpy(expr, truncated, var, pt):
+    """Truncation comparison evaluated by numpy: (residual, method), or None.
+
+    The probe points are built exactly and then converted; the EXPRESSION's
+    evaluation at them is numpy's, which is what the numeric-partial label
+    claims and all it claims.
+    """
+    f = lambdify_numpy(var, expr)
+    g = lambdify_numpy(var, truncated)
+    if f is None or g is None:
+        return None
+    worst = None
+    for p in _approach_probes(pt, (3, 4, 5)):
+        try:
+            probe = _to_float(p)
+            a, b = _num(f, probe), _num(g, probe)
+        except Exception:
+            continue
+        worst = abs(a - b)            # the LAST (closest) probe wins
+    if worst is None:
+        return None
+    return worst, "numeric_truncation_comparison_lambdify_numpy"
 
 
 def crosscheck_definite(integrand, var, lo, hi, symbolic_value):
@@ -456,11 +624,127 @@ def crosscheck_definite(integrand, var, lo, hi, symbolic_value):
         return {"attempted": False, "note": "symbolic value is not a finite number"}
     return {
         "attempted": True,
+        "arm": "scipy.integrate.quad",
         "symbolic_value": sym_f,
         "quad_value": float(quad_value),
         # NAMED an estimate on purpose: quad returns an error ESTIMATE, not a bound.
         "quad_abserr_estimate": float(quad_abserr),
         "delta": abs(sym_f - float(quad_value)),
+    }
+
+
+def crosscheck_ode(ode_expr, sol, fn, var, ns):
+    """The dsolve INDEPENDENT arm: scipy.integrate.solve_ivp, DIAGNOSTIC ONLY.
+
+    Independence, stated precisely. solve_ivp integrates the ODE numerically
+    from the DECLARED initial condition using an explicit Runge-Kutta stepper
+    that is scipy's, not SymPy's, and it never looks at the closed form — it
+    re-derives the trajectory from y' alone, so agreement is a real check of
+    SymPy's dsolve rather than SymPy re-reading its own answer. What it is NOT
+    independent of: the right-hand side reaches scipy through sympy.lambdify,
+    and the closed form is lambdified too, so a translation bug is invisible
+    here exactly as it is to the numeric-partial arms (card 5 / 8).
+
+    COVERAGE, honestly bounded: explicit FIRST-ORDER ODEs with a single
+    value-at-a-point initial condition. Anything else returns attempted=False
+    with a named note rather than a number — the arm never guesses.
+
+    rtol/atol are error CONTROLS, NOT guaranteed bounds. Reported as
+    max_relative_deviation over sampled points across a STATED interval; the
+    host adds the agreement verdict against S6's tolerance.
+    """
+    from scipy.integrate import solve_ivp
+
+    ics_spec = SPEC.get("ics")
+    if not ics_spec:
+        return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                "note": "no initial condition declared; the solve_ivp arm needs one"}
+    if len(ics_spec) != 1:
+        return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                "note": "the solve_ivp arm covers a single initial condition only"}
+
+    # --- put the ODE in explicit form y' = rhs ----------------------------
+    try:
+        solved = sympy.solve(ode_expr, sympy.Derivative(fn, var))
+    except Exception as exc:
+        return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                "note": "could not solve for y': %s" % type(exc).__name__}
+    if len(solved) != 1:
+        return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                "note": "not explicitly solvable for a single first-order y'"}
+
+    ydum = Symbol("_y")
+    rhs = solved[0].subs(fn, ydum)
+    if rhs.has(sympy.Derivative) or rhs.atoms(AppliedUndef):
+        return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                "note": "higher-order or implicit ODE; the arm covers explicit first-order only"}
+    if rhs.free_symbols - {var, ydum}:
+        return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                "note": "the right-hand side carries undetermined symbols"}
+
+    # --- the initial condition: a value at a point ------------------------
+    (ic_key, ic_value), = ics_spec.items()
+    try:
+        kexpr = parse(ic_key, ns)
+    except Exception:
+        return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                "note": "the initial condition did not parse"}
+    if not (isinstance(kexpr, AppliedUndef) and len(kexpr.args) == 1):
+        return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                "note": "the arm covers a value-at-a-point initial condition only"}
+    try:
+        x0, y0 = _to_float(kexpr.args[0]), float(ic_value)
+    except (TypeError, ValueError, AttributeError):
+        return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                "note": "the initial condition is not a single numeric point"}
+
+    # --- the closed form must be an explicit y(x) = ... -------------------
+    if not (isinstance(sol, sympy.Eq) and sol.lhs == fn):
+        return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                "note": "the symbolic solution is not an explicit y(x) = ... equation"}
+    closed = sol.rhs
+    if closed.free_symbols - {var}:
+        return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                "note": "the closed form carries undetermined constants"}
+
+    f = lambdify_numpy((var, ydum), rhs)
+    g = lambdify_numpy(var, closed)
+    if f is None or g is None:
+        return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                "note": "SymPy could not translate the ODE to a numpy callable"}
+
+    span, n = SPEC["_ode_span"], SPEC["_ode_samples"]
+    ts = [x0 + span * (i + 1) / n for i in range(n)]
+    try:
+        num = solve_ivp(lambda t, y: [float(f(t, y[0]))], (x0, x0 + span), [y0],
+                        t_eval=ts, rtol=SPEC["_ode_rtol"], atol=SPEC["_ode_atol"],
+                        method="RK45")
+    except Exception as exc:
+        return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                "note": "solve_ivp failed: %s" % type(exc).__name__}
+    if not num.success:
+        return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                "note": "solve_ivp did not converge: %s" % str(num.message)[:120]}
+
+    worst, samples = 0.0, []
+    for t, y_num in zip(num.t, num.y[0]):
+        try:
+            y_sym = _num(g, float(t)).real
+        except Exception:
+            return {"attempted": False, "arm": "scipy.integrate.solve_ivp",
+                    "note": "the closed form did not evaluate numerically"}
+        worst = max(worst, abs(float(y_num) - y_sym) / max(1.0, abs(y_sym)))
+        samples.append({"x": float(t), "closed_form": y_sym, "solve_ivp": float(y_num)})
+
+    return {
+        "attempted": True,
+        "arm": "scipy.integrate.solve_ivp (RK45)",
+        "interval": [x0, x0 + span],
+        "samples": samples,
+        "max_relative_deviation": worst,
+        # NAMED controls on purpose: rtol/atol steer the stepper, they do not bound it.
+        "rtol_control": SPEC["_ode_rtol"],
+        "atol_control": SPEC["_ode_atol"],
     }
 
 
@@ -509,25 +793,14 @@ def main():
             if is_unevaluated(out):
                 write({"ok": True, "state_hint": "unevaluated", "result": str(out),
                        "note": "SymPy returned the derivative unevaluated"})
-            # Honest NUMERIC spot-check: central differences against the closed
-            # form. Labeled numeric — it is a spot-check, not a proof.
-            h = Rational(1, 10 ** 6)
-            worst = 0.0
-            for pt in SPEC["_sample_points"]:
-                p = Float(pt)
-                try:
-                    if order == 1:
-                        fd = (expr.subs(var, p + h) - expr.subs(var, p - h)) / (2 * h)
-                    else:
-                        fd = sympy.diff(expr, var, order - 1)
-                        fd = (fd.subs(var, p + h) - fd.subs(var, p - h)) / (2 * h)
-                    approx = complex(fd.evalf(SPEC["_dps"]))
-                    exact = complex(out.subs(var, p).evalf(SPEC["_dps"]))
-                except (TypeError, ValueError, AttributeError):
-                    continue
-                denom = max(1.0, abs(exact))
-                worst = max(worst, abs(approx - exact) / denom)
-            residual, method = worst, "numeric_central_difference"
+            # NUMERIC-PARTIAL spot-check: central differences against the closed
+            # form, evaluated by numpy through lambdify. A spot-check, not a
+            # proof — and not independent of SymPy's translation.
+            base = expr if order == 1 else sympy.diff(expr, var, order - 1)
+            got = diff_residual_numpy(base, out, var)
+            if got is None:
+                got = diff_residual_evalf(base, out, var)
+            residual, method = got
 
         elif op == "limit":
             pt = parse(SPEC["point"], ns)
@@ -535,36 +808,20 @@ def main():
             if is_unevaluated(out):
                 write({"ok": True, "state_hint": "unevaluated", "result": str(out),
                        "note": "SymPy returned the limit unevaluated"})
-            # Honest NUMERIC spot-check: an approach sequence toward the point.
-            worst = 0.0
-            try:
-                lim = complex(out.evalf(SPEC["_dps"]))
-                for k in (3, 4, 5, 6):
-                    if pt.is_infinite:
-                        probe = Integer(10) ** k
-                    else:
-                        probe = pt + Rational(1, 10 ** k)
-                    v = complex(expr.subs(var, probe).evalf(SPEC["_dps"]))
-                    worst = abs(v - lim)      # the LAST (closest) probe wins
-            except (TypeError, ValueError, AttributeError):
-                worst = None
-            residual, method = worst, "numeric_approach_sequence"
+            # SYMBOLIC-INTERNAL, deliberately: the numpy move was measured to
+            # reject correct limits (see limit_residual_evalf). Arbitrary
+            # precision is load-bearing here, not a leftover.
+            got = limit_residual_evalf(expr, out, var, pt)
+            residual, method = got if got else (None, "numeric_approach_sequence_failed")
 
         elif op == "series":
             pt = parse(SPEC["point"], ns)
             order = SPEC.get("order", 6)
             out = sympy.series(expr, var, pt, order).removeO()
-            # Honest NUMERIC spot-check: truncation comparison NEAR the point.
-            worst = 0.0
-            try:
-                for k in (3, 4, 5):
-                    probe = pt + Rational(1, 10 ** k)
-                    a = complex(expr.subs(var, probe).evalf(SPEC["_dps"]))
-                    b = complex(out.subs(var, probe).evalf(SPEC["_dps"]))
-                    worst = abs(a - b)        # the LAST (closest) probe wins
-            except (TypeError, ValueError, AttributeError):
-                worst = None
-            residual, method = worst, "numeric_truncation_comparison"
+            # NUMERIC-PARTIAL spot-check: truncation comparison NEAR the point,
+            # evaluated by numpy through lambdify.
+            got = series_residual_numpy(expr, out, var, pt)
+            residual, method = got if got else (None, "numeric_truncation_comparison_failed")
 
         elif op == "solve":
             roots = sympy.solve(expr, var, dict=False)
@@ -573,16 +830,33 @@ def main():
                        "note": "SymPy returned no roots"})
             out = roots
             # Verification: substitute each root back into the expression.
-            worst = 0.0
+            # SYMBOLIC-INTERNAL where simplify closes to exactly zero; where it
+            # will not, the expression is evaluated at the root by numpy through
+            # lambdify (NUMERIC-PARTIAL). The method name records which ran, so a
+            # job that fell back is never reported as an exact symbolic check.
+            worst, numeric_used, f = 0.0, False, None
             for r in roots:
                 val = sympy.simplify(expr.subs(var, r))
                 if val == 0:
                     continue
-                try:
-                    worst = max(worst, abs(complex(val.evalf(SPEC["_dps"]))))
-                except (TypeError, ValueError):
-                    worst = float("inf")
-            residual, method = worst, "root_back_substitution"
+                if f is None:
+                    f = lambdify_numpy(var, expr)
+                done = False
+                if f is not None:
+                    try:
+                        worst = max(worst, abs(_num(f, complex(r.evalf(30)))))
+                        numeric_used, done = True, True
+                    except Exception:
+                        done = False
+                if not done:
+                    try:
+                        worst = max(worst, abs(complex(val.evalf(SPEC["_dps"]))))
+                        numeric_used = True
+                    except (TypeError, ValueError):
+                        worst = float("inf")
+            residual = worst
+            method = ("root_back_substitution_lambdify_numpy" if numeric_used
+                      else "root_back_substitution")
 
         elif op == "dsolve":
             fn = ns[SPEC["func"]](var)
@@ -593,6 +867,10 @@ def main():
             else:
                 sol = sympy.dsolve(expr, fn)
             out = sol
+            # The INDEPENDENT arm: re-integrate the ODE numerically from the
+            # declared ics and compare to the closed form. Diagnostic only — it
+            # is reported beside checkodesol's verdict and gates nothing.
+            crosscheck = crosscheck_ode(expr, sol, fn, var, ns)
             check = sympy.checkodesol(expr, sol, func=fn)
             ok = check[0] if isinstance(check, tuple) else False
             if ok:
@@ -635,6 +913,11 @@ def generate_runner(spec: dict) -> str:
     payload = dict(clean)
     payload["_sample_points"] = list(NUMERIC_SAMPLE_POINTS)
     payload["_dps"] = NUMERIC_PRECISION_DPS
+    payload["_diff_step"] = NUMERIC_DIFF_STEP
+    payload["_ode_span"] = ODE_CROSSCHECK_SPAN
+    payload["_ode_samples"] = ODE_CROSSCHECK_SAMPLES
+    payload["_ode_rtol"] = ODE_CROSSCHECK_RTOL
+    payload["_ode_atol"] = ODE_CROSSCHECK_ATOL
     spec_json = json.dumps(payload, sort_keys=True)
     # Belt-and-suspenders against breaking out of the r"""...""" data block.
     if '"""' in spec_json or "\\" in spec_json:
@@ -825,15 +1108,31 @@ def run_scipy(spec: dict, timeout_s: int = DEFAULT_TIMEOUT_S,
     crosscheck = data.get("crosscheck")
     cc_note = ""
     if crosscheck and crosscheck.get("attempted"):
-        delta = crosscheck["delta"]
-        scale = max(1.0, abs(crosscheck["symbolic_value"]))
-        crosscheck["agrees"] = bool(delta / scale <= CROSSCHECK_AGREE_TOL)
-        crosscheck["agree_tol"] = CROSSCHECK_AGREE_TOL
-        crosscheck["note"] = ("quad_abserr_estimate is an ERROR ESTIMATE, NOT A BOUND; "
-                              "agreement is evidence, never proof. Diagnostic only — "
-                              "Regime B (scipy_numeric_quad) is QUEUED.")
-        cc_note = (f"; crosscheck quad={crosscheck['quad_value']:.12g} "
-                   f"delta={delta:.3g} agrees={crosscheck['agrees']}")
+        # Both independent arms report against S6's provisional tolerance; only
+        # the deviation they measure differs.
+        if "solve_ivp" in crosscheck.get("arm", ""):
+            dev = crosscheck["max_relative_deviation"]
+            crosscheck["agrees"] = bool(dev <= CROSSCHECK_AGREE_TOL)
+            crosscheck["agree_tol"] = CROSSCHECK_AGREE_TOL
+            crosscheck["note"] = ("solve_ivp re-integrates the ODE from the declared "
+                                  "initial condition without consulting the closed form "
+                                  "— an INDEPENDENT ALGORITHM, though the right-hand side "
+                                  "still reaches it through SymPy's lambdify. rtol/atol "
+                                  "are error CONTROLS, NOT A BOUND; agreement is evidence, "
+                                  "never proof. Diagnostic only — Regime B "
+                                  "(scipy_numeric_quad) is QUEUED.")
+            cc_note = (f"; crosscheck solve_ivp max_rel_dev={dev:.3g} "
+                       f"agrees={crosscheck['agrees']}")
+        else:
+            delta = crosscheck["delta"]
+            scale = max(1.0, abs(crosscheck["symbolic_value"]))
+            crosscheck["agrees"] = bool(delta / scale <= CROSSCHECK_AGREE_TOL)
+            crosscheck["agree_tol"] = CROSSCHECK_AGREE_TOL
+            crosscheck["note"] = ("quad_abserr_estimate is an ERROR ESTIMATE, NOT A BOUND; "
+                                  "agreement is evidence, never proof. Diagnostic only — "
+                                  "Regime B (scipy_numeric_quad) is QUEUED.")
+            cc_note = (f"; crosscheck quad={crosscheck['quad_value']:.12g} "
+                       f"delta={delta:.3g} agrees={crosscheck['agrees']}")
 
     return {"valid": True, "state": STATE_SOLVED, "result": data["result"],
             "residual": float(residual), "crosscheck": crosscheck, "reason": None,

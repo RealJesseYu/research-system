@@ -520,6 +520,140 @@ class TestSelfChecksAndCrosscheck(unittest.TestCase):
 
 
 # ===========================================================================
+# The verification ARMS and how independent each one actually is.
+# ===========================================================================
+
+class TestArmSelectionIsPure(unittest.TestCase):
+    """No docker: the arm wiring is visible in the generated runner."""
+
+    def test_the_ode_arm_and_its_knobs_are_shipped_in_the_spec(self):
+        runner = generate_runner({"operation": "dsolve",
+                                  "expression": "Derivative(y(x), x) + 2*y(x)",
+                                  "symbols": ["x"], "var": "x", "func": "y",
+                                  "ics": {"y(0)": 3}})
+        self.assertIn("crosscheck_ode", runner)
+        self.assertIn("solve_ivp", runner)
+        for knob in ("_ode_span", "_ode_samples", "_ode_rtol", "_ode_atol", "_diff_step"):
+            self.assertIn(knob, runner, f"{knob} must reach the jail as DATA")
+
+    def test_the_interval_is_stated_not_implicit(self):
+        """The ODE arm's comparison interval is a contract constant, not a
+        number invented inside the runner."""
+        from contract import ODE_CROSSCHECK_SAMPLES, ODE_CROSSCHECK_SPAN
+        self.assertGreater(ODE_CROSSCHECK_SPAN, 0)
+        self.assertGreaterEqual(ODE_CROSSCHECK_SAMPLES, 1)
+
+
+@unittest.skipUnless(DOCKER, "docker/colima + scipy-img not available")
+class TestIndependentOdeArm(unittest.TestCase):
+    """dsolve's INDEPENDENT arm: solve_ivp re-integrates from the ics and never
+    consults the closed form."""
+
+    def test_solve_ivp_arm_agrees_with_the_closed_form(self):
+        r = run_job({"operation": "dsolve", "expression": "Derivative(y(x), x) + 2*y(x)",
+                     "symbols": ["x"], "var": "x", "func": "y", "ics": {"y(0)": 3}},
+                    timeout_s=120)
+        self.assertEqual(r["state"], "solved_verified")
+        cc = r["crosscheck"]
+        self.assertTrue(cc["attempted"])
+        self.assertIn("solve_ivp", cc["arm"])
+        self.assertTrue(cc["agrees"])
+        self.assertEqual(len(cc["samples"]), 5)
+        self.assertEqual(cc["interval"], [0.0, 1.0], "the interval must be STATED")
+        # y' = -2y, y(0)=3  ->  y(1) = 3*exp(-2)
+        import math
+        last = cc["samples"][-1]
+        self.assertAlmostEqual(last["closed_form"], 3 * math.exp(-2), places=9)
+        self.assertAlmostEqual(last["solve_ivp"], 3 * math.exp(-2), places=7)
+        self.assertLess(cc["max_relative_deviation"], 1e-8)
+
+    def test_rtol_atol_are_named_controls_never_a_bound(self):
+        """The honest-limit twin of quad's abserr ESTIMATE."""
+        r = run_job({"operation": "dsolve", "expression": "Derivative(y(x), x) - y(x)",
+                     "symbols": ["x"], "var": "x", "func": "y", "ics": {"y(0)": 1}},
+                    timeout_s=120)
+        cc = r["crosscheck"]
+        self.assertIn("rtol_control", cc)
+        self.assertIn("atol_control", cc)
+        self.assertIn("NOT A BOUND", cc["note"])
+        self.assertIn("INDEPENDENT ALGORITHM", cc["note"])
+
+    def test_the_arm_declines_rather_than_guessing_without_an_ics(self):
+        """No initial condition -> no trajectory to integrate. The arm must say
+        so by name and report NO number, never invent one."""
+        r = run_job({"operation": "dsolve", "expression": "Derivative(y(x), x) + 2*y(x)",
+                     "symbols": ["x"], "var": "x", "func": "y"}, timeout_s=120)
+        self.assertEqual(r["state"], "solved_verified", "the symbolic answer still stands")
+        cc = r["crosscheck"]
+        self.assertFalse(cc["attempted"])
+        self.assertIn("initial condition", cc["note"])
+        self.assertNotIn("max_relative_deviation", cc, "a declining arm reports no number")
+
+
+@unittest.skipUnless(DOCKER, "docker/colima + scipy-img not available")
+class TestNumericPartialArms(unittest.TestCase):
+    """diff/series/solve evaluate through lambdify onto numpy: the ARITHMETIC is
+    numpy's, the TRANSLATION is still SymPy's. The method name must say which
+    arm actually ran, so a fallback can never be read as the stronger claim."""
+
+    def _method(self, spec):
+        r = run_job(spec, timeout_s=120)
+        self.assertEqual(r["state"], "solved_verified", r["diagnostics"])
+        return r["diagnostics"].split("verified via ")[1].split(",")[0].strip(), r
+
+    def test_diff_runs_on_lambdify_numpy(self):
+        m, r = self._method({"operation": "diff", "expression": "x**2*exp(x)",
+                             "symbols": ["x"], "var": "x"})
+        self.assertEqual(m, "numeric_central_difference_lambdify_numpy")
+        self.assertLess(r["residual"], 1e-9)
+
+    def test_series_runs_on_lambdify_numpy(self):
+        m, _ = self._method({"operation": "series", "expression": "exp(x)",
+                             "symbols": ["x"], "var": "x", "point": "0"})
+        self.assertEqual(m, "numeric_truncation_comparison_lambdify_numpy")
+
+    def test_solve_stays_symbolic_when_simplify_closes_to_zero(self):
+        """The lambdify arm is a FALLBACK for solve, not a replacement: an exact
+        symbolic zero must still be reported as the symbolic check it was."""
+        m, r = self._method({"operation": "solve", "expression": "x**2 - 5*x + 6",
+                             "symbols": ["x"], "var": "x"})
+        self.assertEqual(m, "root_back_substitution")
+        self.assertEqual(r["residual"], 0.0)
+
+
+@unittest.skipUnless(DOCKER, "docker/colima + scipy-img not available")
+class TestLimitArmStaysOnArbitraryPrecision(unittest.TestCase):
+    """THE MEASURED REGRESSION GUARD.
+
+    Moving the limit spot-check onto float64 was tried and reverted: a limit
+    probes an indeterminate form next to its singularity, where cancellation is
+    the rule. (1-cos(x))/x**2 at x=1e-6 loses ~11 of float64's ~16 digits, and
+    the residual measured 4.445e-05 on numpy versus 4.169e-14 on evalf —
+    rejecting a CORRECT limit. This test fails if anyone moves it back.
+    """
+
+    def test_a_cancellation_prone_limit_still_verifies(self):
+        r = run_job({"operation": "limit", "expression": "(1 - cos(x))/x**2",
+                     "symbols": ["x"], "var": "x", "point": "0"}, timeout_s=120)
+        self.assertEqual(r["state"], "solved_verified",
+                         "float64 cancellation would reject this correct limit")
+        self.assertEqual(r["result"], "1/2")
+        self.assertLess(r["residual"], 1e-9)
+        self.assertIn("numeric_approach_sequence_evalf", r["diagnostics"])
+
+    def test_an_infinite_point_is_approached_from_the_correct_side(self):
+        """The probe side was wrong for -oo (it used +10**k for either
+        infinity), which measured |atan(+1e6) - (-pi/2)| ~ pi at HEAD. The two
+        infinities must now measure the same distance for an odd function."""
+        plus = run_job({"operation": "limit", "expression": "atan(x)", "symbols": ["x"],
+                        "var": "x", "point": "oo"}, timeout_s=120)
+        minus = run_job({"operation": "limit", "expression": "atan(x)", "symbols": ["x"],
+                         "var": "x", "point": "-oo"}, timeout_s=120)
+        self.assertAlmostEqual(plus["residual"], minus["residual"], places=12)
+        self.assertLess(minus["residual"], 1e-5, "a pi-sized residual means the wrong side")
+
+
+# ===========================================================================
 # Verification gating + retry semantics.
 # ===========================================================================
 

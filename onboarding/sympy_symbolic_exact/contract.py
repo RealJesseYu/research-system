@@ -186,9 +186,34 @@ CROSSCHECK_AGREE_TOL: float = 1e-8
 CROSSCHECK_AGREE_TOL_STATUS = "SUGGESTED-pending-owner-ruling"
 
 # Numeric-fallback sampling: when `simplify` will not close a symbolic residual
-# to zero, the wrapper samples the difference at these points at high precision.
+# to zero, the wrapper samples the difference at these points.
 NUMERIC_SAMPLE_POINTS: tuple[float, ...] = (0.37, 1.13, 2.71, 4.19, 6.53)
 NUMERIC_PRECISION_DPS: int = 50
+
+# ---------------------------------------------------------------------------
+# The dsolve INDEPENDENT arm (scipy.integrate.solve_ivp). Mechanics only — this
+# arm is DIAGNOSTIC, exactly like the quad arm, and gates nothing. Its agreement
+# verdict is reported against CROSSCHECK_AGREE_TOL (card slot S6), which is why
+# no new provisional constant is introduced here.
+#
+# The interval is STATED, not implicit: the ODE is integrated numerically from
+# the declared initial point x0 across [x0, x0 + ODE_CROSSCHECK_SPAN] and the
+# numeric trajectory is compared to the closed form at ODE_CROSSCHECK_SAMPLES
+# equally-spaced points.
+#
+# rtol/atol are solve_ivp's error CONTROLS, NOT guaranteed bounds — the same
+# honest limit quad's abserr carries, stated where the constants live.
+# ---------------------------------------------------------------------------
+ODE_CROSSCHECK_SPAN: float = 1.0
+ODE_CROSSCHECK_SAMPLES: int = 5
+ODE_CROSSCHECK_RTOL: float = 1e-10
+ODE_CROSSCHECK_ATOL: float = 1e-12
+
+# The finite-difference step for the lambdify+numpy derivative spot-check.
+# 1e-6 sits near the float64 central-difference optimum (~eps**(1/3)): large
+# enough that the 1/h roundoff amplification stays small, small enough that the
+# O(h**2) truncation term stays small.
+NUMERIC_DIFF_STEP: float = 1e-6
 
 # ---------------------------------------------------------------------------
 # Rejection-reason taxonomy — machine-greppable, stable strings. The wrapper
@@ -224,6 +249,14 @@ SYMPY_SYMBOLIC_EXACT_CONTRACT: dict = {
     "allowed_assumptions": ALLOWED_ASSUMPTIONS,
     "three_state_semantics": THREE_STATE_SEMANTICS,
     "rejection_reasons": REJECTION_REASONS,
+    "ode_crosscheck": {
+        "arm": "scipy.integrate.solve_ivp (RK45)",
+        "span": ODE_CROSSCHECK_SPAN,
+        "samples": ODE_CROSSCHECK_SAMPLES,
+        "rtol": ODE_CROSSCHECK_RTOL,
+        "atol": ODE_CROSSCHECK_ATOL,
+        "agreement_slot": "S6 (CROSSCHECK_AGREE_TOL)",
+    },
     "provisional_constants": {
         "VERIFY_RESIDUAL_TOL": {
             "value": VERIFY_RESIDUAL_TOL,
@@ -275,20 +308,51 @@ def envelope_text() -> str:
         "which requires that SymPy found a closed form AND the wrapper "
         "independently verified it by back-substitution (differentiate an "
         "antiderivative and compare to the integrand; substitute roots; "
-        "checkodesol for ODEs; high-precision numeric spot-checks for "
-        "diff/limit/series), with residual within the provisional tolerance "
+        "checkodesol for ODEs; numeric spot-checks evaluated by numpy for "
+        "diff/series and at arbitrary precision for limit), with residual "
+        "within the provisional tolerance "
         f"VERIFY_RESIDUAL_TOL = {VERIFY_RESIDUAL_TOL:g} "
         f"({VERIFY_RESIDUAL_TOL_STATUS}). "
         "A solved-but-unverified answer is returned as error:verification_failed "
         "— no number leaves the wrapper unverified.\n\n"
         + THREE_STATE_SEMANTICS
-        + "\n\nINDEPENDENT CROSS-CHECK (definite integrals only, DIAGNOSTIC "
-        "ONLY, never a result): the integrand is independently integrated "
-        "numerically by scipy.integrate.quad inside the same jail and compared "
-        "to the closed form evaluated at high precision. Reported as "
-        "{symbolic_value, quad_value, quad_abserr_estimate, delta}. quad's "
-        "abserr is an ERROR ESTIMATE, NOT A BOUND — agreement is evidence, "
-        "never proof.\n\n"
+        + "\n\nHOW INDEPENDENT THE VERIFICATION ACTUALLY IS — three tiers, and "
+        "the difference matters. (1) SYMBOLIC-INTERNAL: back-substitution, "
+        "checkodesol and the limit approach-sequence are SymPy checking SymPy's "
+        "own work with SymPy's own evaluator; a shared bug is invisible to "
+        "them. (2) NUMERIC-PARTIAL: the diff and series spot-checks — and "
+        "solve's fallback when an exact symbolic zero does not close — evaluate "
+        "the expression through sympy.lambdify onto numpy, so the ARITHMETIC is "
+        "numpy's while the TRANSLATION from the SymPy tree to a numpy callable "
+        "is still SymPy's; independence is PARTIAL. (3) INDEPENDENT ALGORITHM: "
+        "definite integrals are re-computed by scipy.integrate.quad, and ODEs "
+        "with a declared initial condition are re-integrated by "
+        "scipy.integrate.solve_ivp (RK45) from that condition and compared to "
+        "the closed form at sampled points across a stated interval. These two "
+        "arms run a genuinely different ALGORITHM that never consults the "
+        "symbolic answer — but they too reach numpy through SymPy's lambdify, "
+        "so NO arm is independent of SymPy's translation layer. Both are "
+        "DIAGNOSTIC ONLY and never a result: quad's abserr is an ERROR ESTIMATE "
+        "and solve_ivp's rtol/atol are error CONTROLS — neither is a BOUND, so "
+        "agreement is evidence, never proof. diff, limit, series and solve have "
+        "NO independent-algorithm arm.\n\n"
+        "WHY limit IS NOT ON THE NUMPY ARM (measured, not assumed): a limit "
+        "spot-check evaluates an indeterminate form arbitrarily close to its "
+        "singularity, where catastrophic cancellation is the rule. Moving it to "
+        "float64 was tried and reverted — (1-cos(x))/x**2 probed at x=1e-6 "
+        "measured residual 4.445e-05 on numpy against 4.169e-14 at 50-digit "
+        "precision, which would REJECT a correct limit. Arbitrary precision is "
+        "load-bearing there, so that arm stays symbolic-internal.\n\n"
+        "A KNOWN WEAKNESS OF THE limit ARM, stated plainly: its residual is the "
+        "distance |f(probe) - L| at a FINITE probe, which is not a verification "
+        "error but the function's genuine remaining distance from its limit. It "
+        "therefore only closes for limits that converge quadratically or "
+        "faster: sin(x)/x verifies (residual 1.7e-13) while (exp(x)-1)/x and "
+        "atan(x) as x -> oo are REJECTED as verification_failed at ~5e-07 and "
+        "~1e-06 despite SymPy being exactly right. This fails CLOSED — it "
+        "withholds correct answers rather than certifying wrong ones — but a "
+        "limit reported as verification_failed may mean the arm is too weak to "
+        "confirm it, not that the answer is wrong.\n\n"
         "THE CENTRAL LIMIT — what is NOT validated. The result is trustworthy "
         "as a statement about THE EXPRESSION AS TYPED, and about nothing else. "
         "Whether that expression models the question the caller actually meant "

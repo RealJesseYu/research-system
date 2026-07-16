@@ -86,8 +86,12 @@ GATE_CASES = [
         ),
         "note": (
             "Elementary differentiation; SymPy is exact here. Verified by a "
-            "numeric central-difference spot-check (measured residual 1.83e-10, "
-            "inside the provisional VERIFY_RESIDUAL_TOL of 1e-9)."
+            "numeric central-difference spot-check evaluated by numpy through "
+            "lambdify — NUMERIC-PARTIAL independence (measured residual "
+            "1.8276e-10, inside the provisional VERIFY_RESIDUAL_TOL of 1e-9). "
+            "The diff arm is what BINDS S2: its residual is truncation-dominated "
+            "and the measured worst case across 16 sampled derivatives is "
+            "4.05e-10 (sin(10*x)), only 2.47x inside the tolerance."
         ),
         "right_instrument": "the named exact symbolic differentiator, used as-is",
     },
@@ -101,7 +105,14 @@ GATE_CASES = [
         ),
         "note": (
             "The textbook limit (= 1). Verified by a numeric approach sequence "
-            "(measured residual 1.67e-13)."
+            "at 50-digit precision — SYMBOLIC-INTERNAL (measured residual "
+            "1.67e-13). CAVEAT ON THIS CASE'S REPRESENTATIVENESS: sin(x)/x "
+            "converges QUADRATICALLY, which is the only reason the arm closes on "
+            "it. The arm's residual is the distance from the limit at a finite "
+            "probe, so slower-converging limits are rejected despite being "
+            "exactly right — (exp(x)-1)/x measures ~5e-07 and atan(x) at oo "
+            "~1e-06, both verification_failed. A3 is therefore a FAVOURABLE "
+            "sample of the limit op, not a typical one."
         ),
         "right_instrument": "the named exact symbolic limit evaluator, used as-is",
     },
@@ -117,8 +128,12 @@ GATE_CASES = [
         ),
         "note": (
             "Linear first-order ODE with a closed form (= 3*exp(-2x)). Verified "
-            "by sympy.checkodesol (measured residual exactly 0). Exercises the "
-            "`ics` field."
+            "by sympy.checkodesol (measured residual exactly 0) and, since the "
+            "`ics` field is exercised, independently re-integrated from y(0)=3 "
+            "by scipy.integrate.solve_ivp (RK45) across [0, 1] — an INDEPENDENT "
+            "ALGORITHM that never consults the closed form (measured max "
+            "relative deviation 2.31e-11, agrees). This is the only op besides "
+            "integrate_definite carrying an independent arm."
         ),
         "right_instrument": "the named exact symbolic ODE solver, used as-is",
     },
