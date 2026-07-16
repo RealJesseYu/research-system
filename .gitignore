@@ -15,3 +15,4 @@ harness/killrate_18_*.json
 harness/validation_batch_18.json
 /cases_fea/
 /cases_code/
+/cases_scipy/
