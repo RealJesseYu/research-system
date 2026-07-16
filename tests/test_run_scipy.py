@@ -58,6 +58,20 @@ def _docker_ready() -> bool:
 
 DOCKER = _docker_ready()
 
+
+def _inject(old: str, new: str):
+    """Build a fault injector for run_scipy's `_fault_injection` seam.
+
+    It rewrites ONE occurrence of `old` in the generated runner source, and
+    asserts the target exists — so a refactor that moves the target fails the
+    test loudly instead of silently injecting nothing and "passing".
+    """
+    def transform(src: str) -> str:
+        if old not in src:
+            raise AssertionError(f"fault-injection target vanished from the runner: {old!r}")
+        return src.replace(old, new, 1)
+    return transform
+
 A_GOOD_INTEGRAL = {
     "operation": "integrate_definite", "expression": "x*sin(x)",
     "symbols": ["x"], "var": "x", "lower": "0", "upper": "pi",
@@ -753,6 +767,249 @@ class TestRetrySemantics(unittest.TestCase):
             rs.run_in_jail, rs.RUNS_HOST = real_run_in_jail, real_root
         self.assertEqual(len(calls), 1, "a jail trip must not be retried")
         self.assertEqual(out["reason"], "timeout")
+
+
+# ===========================================================================
+# S4a (owner ruling, 2026-07-16) — a decline is `unevaluated`, never an error.
+# ===========================================================================
+
+@unittest.skipUnless(DOCKER, "docker/colima + scipy-img not available")
+class TestS4aDeclineIsUnevaluated(unittest.TestCase):
+    """SymPy declines in two ways: by RETURNING the operation unperformed, and
+    by RAISING NotImplementedError. Both are the same honest non-answer. Before
+    S4a the three-state discipline was enforced for returns and not for raises
+    (card watch 9), so `solve(cos(x) - x)` — SymPy saying, by name, that it has
+    no algorithm — was reported as `error:evaluation_error`: an honest
+    non-answer dressed as a failure, which is failure mode 4B occurring inside
+    the wrapper.
+
+    The decline set is NARROW by ruling: exactly NotImplementedError, exactly
+    from the operation call. These tests pin both the ruling and its edges.
+    """
+
+    def test_a_transcendental_solve_is_a_DECLINE_not_an_error(self):
+        r = run_job({"operation": "solve", "expression": "cos(x) - x",
+                     "symbols": ["x"], "var": "x"}, timeout_s=120)
+        self.assertEqual(r["state"], "unevaluated")
+        self.assertTrue(r["valid"])
+        self.assertIsNone(r["result"], "an unevaluated result is null by construction")
+        self.assertIsNone(r["reason"], "a decline has no failure reason")
+        self.assertIn("DECLINED", r["diagnostics"])
+        self.assertNotIn("evaluation_error", r["diagnostics"])
+
+    def test_the_decline_generalizes_across_operations(self):
+        """Not a solve-shaped special case: `limit` declines by name too."""
+        r = run_job({"operation": "limit", "expression": "gamma(x)", "symbols": ["x"],
+                     "var": "x", "point": "zoo"}, timeout_s=120)
+        self.assertEqual(r["state"], "unevaluated")
+        self.assertIsNone(r["reason"])
+
+    def test_a_genuine_failure_is_STILL_an_error(self):
+        """The counterexample that keeps S4a from swallowing real breakage: a
+        dsolve whose expression is not an ODE raises IndexError, not
+        NotImplementedError, and must keep its named error reason."""
+        r = run_job({"operation": "dsolve", "expression": "x**2", "symbols": ["x"],
+                     "var": "x", "func": "y"}, timeout_s=120)
+        self.assertEqual(r["state"], "error")
+        self.assertEqual(r["reason"], "evaluation_error")
+        self.assertIsNone(r["result"])
+
+    def test_PoleError_is_NOT_in_the_decline_set(self):
+        """THE RULED BOUNDARY, pinned because it is uncomfortable. The decline
+        set is defined by exception TYPE. sympy's PoleError is not a
+        NotImplementedError, so this stays an `error` even though its MESSAGE
+        reads 'Asymptotic expansion of gamma around [oo] is not implemented' —
+        semantically a decline. S4a as ruled draws the line at the type; this
+        test states where that line currently falls (debrief item 6)."""
+        r = run_job({"operation": "series", "expression": "gamma(x)", "symbols": ["x"],
+                     "var": "x", "point": "oo"}, timeout_s=120)
+        self.assertEqual(r["state"], "error")
+        self.assertEqual(r["reason"], "evaluation_error")
+
+    def test_a_NotImplementedError_from_a_VERIFICATION_arm_is_not_a_decline(self):
+        """The narrowness proof. Only the OPERATION call declines. If a
+        verification arm raises NotImplementedError, the operation DID answer
+        and the answer is merely unverified — which is an error (S2), not a
+        non-answer. Injected, because it cannot be provoked naturally."""
+        r = run_job({"operation": "diff", "expression": "x**2*exp(x)",
+                     "symbols": ["x"], "var": "x"}, timeout_s=120,
+                    _fault_injection=_inject(
+                        "got = diff_residual_numpy(base, out, var)",
+                        "raise NotImplementedError('verification arm exploded')"))
+        self.assertEqual(r["state"], "error",
+                         "a decline must never be inferred from a verification failure")
+        self.assertNotEqual(r["state"], "unevaluated")
+
+
+# ===========================================================================
+# Fault injection — every verification arm must be shown able to FAIL.
+#
+# THE DOCTRINE: a check that cannot fail is not a proof. Each arm below is fed
+# a deliberately WRONG result and must reject it. Where an arm does NOT reject,
+# that is recorded here as a characterization test naming the blind spot —
+# never quietly dropped.
+# ===========================================================================
+
+@unittest.skipUnless(DOCKER, "docker/colima + scipy-img not available")
+class TestFaultInjectionArmsCanFail(unittest.TestCase):
+
+    def test_integrate_indefinite_arm_catches_a_wrong_antiderivative(self):
+        r = self._injected(
+            {"operation": "integrate_indefinite", "expression": "x*sin(x)",
+             "symbols": ["x"], "var": "x"},
+            "out = call_op(sympy.integrate, expr, var)",
+            "out = call_op(sympy.integrate, expr, var) * 2")
+        self.assertEqual(r["reason"], "verification_failed")
+        self.assertGreater(r["residual"], 1e-9)
+
+    def test_integrate_definite_verification_arm_catches_a_wrong_antiderivative(self):
+        r = self._injected(
+            {"operation": "integrate_definite", "expression": "x*sin(x)", "symbols": ["x"],
+             "var": "x", "lower": "0", "upper": "pi"},
+            "anti = sympy.integrate(expr, var)",
+            "anti = sympy.integrate(expr, var) * 2")
+        self.assertEqual(r["reason"], "verification_failed")
+        self.assertGreater(r["residual"], 1e-9)
+
+    def test_diff_arm_catches_a_wrong_derivative(self):
+        r = self._injected(
+            {"operation": "diff", "expression": "x**2*exp(x)", "symbols": ["x"], "var": "x"},
+            "out = call_op(sympy.diff, expr, var, order)",
+            "out = call_op(sympy.diff, expr, var, order) * 2")
+        self.assertEqual(r["reason"], "verification_failed")
+        self.assertGreater(r["residual"], 1e-9)
+
+    def test_solve_arm_catches_wrong_roots(self):
+        r = self._injected(
+            {"operation": "solve", "expression": "x**2 - 5*x + 6", "symbols": ["x"], "var": "x"},
+            "roots = call_op(sympy.solve, expr, var, dict=False)",
+            "roots = [r + 1 for r in call_op(sympy.solve, expr, var, dict=False)]")
+        self.assertEqual(r["reason"], "verification_failed")
+        self.assertGreater(r["residual"], 1e-9)
+
+    def test_dsolve_arm_catches_a_non_solution(self):
+        r = self._injected(
+            {"operation": "dsolve", "expression": "Derivative(y(x), x) + 2*y(x)",
+             "symbols": ["x"], "var": "x", "func": "y", "ics": {"y(0)": 3}},
+            "            out = sol",
+            "            sol = sympy.Eq(sol.lhs, sol.rhs + 1)\n            out = sol")
+        self.assertEqual(r["reason"], "verification_failed")
+
+    def test_limit_arm_catches_a_wrong_limit_value(self):
+        r = self._injected(
+            {"operation": "limit", "expression": "sin(x)/x", "symbols": ["x"],
+             "var": "x", "point": "0"},
+            "out = call_op(sympy.limit, expr, var, pt)",
+            "out = call_op(sympy.limit, expr, var, pt) + 1")
+        self.assertEqual(r["reason"], "verification_failed")
+        self.assertGreater(r["residual"], 1e-9)
+
+    # --- series: the suspect, and the probe-band move it forced -------------
+
+    def test_series_arm_catches_a_wrong_low_order_coefficient(self):
+        """Before the session-1c probe move this measured 5.0e-11 and PASSED a
+        1e-9 gate — a DOUBLED x**2 coefficient certified as verified. The band
+        now sits a decade out and reports its WORST probe, so it measures
+        5.0e-05. The gate itself (residual <= the ruled 1e-9) is unchanged."""
+        r = self._injected(
+            {"operation": "series", "expression": "exp(x)", "symbols": ["x"],
+             "var": "x", "point": "0"},
+            "out = call_op(sympy.series, expr, var, pt, order).removeO()",
+            "out = call_op(sympy.series, expr, var, pt, order).removeO() + var**2/2")
+        self.assertEqual(r["reason"], "verification_failed")
+        self.assertGreater(r["residual"], 1e-9)
+
+    def test_series_arm_is_BLIND_to_a_wrong_top_order_coefficient(self):
+        """CHARACTERIZATION OF A KNOWN BLIND SPOT — this test asserts what the
+        arm actually does, not what it should do. A doubled x**5 coefficient in
+        exp(x)'s order-6 series is certified `solved_verified`.
+
+        It is not fixable by tuning: catching it needs a probe h > 0.0413, while
+        not REJECTING a correct log(1+x) series needs h < 0.0426. Any h in that
+        1.02x window is fitted to these two expressions rather than a property
+        of the method. Card watch 7. If someone redesigns this arm (a
+        coefficient-wise comparison would do it), this test SHOULD fail — update
+        it then."""
+        r = self._injected(
+            {"operation": "series", "expression": "exp(x)", "symbols": ["x"],
+             "var": "x", "point": "0"},
+            "out = call_op(sympy.series, expr, var, pt, order).removeO()",
+            "out = call_op(sympy.series, expr, var, pt, order).removeO() + var**5/120")
+        self.assertEqual(r["state"], "solved_verified")
+        self.assertLess(r["residual"], 1e-9)
+
+    def test_correct_series_still_verify_after_the_probe_move(self):
+        """The regression guard on the probe move. log(1+x) is the CONSTRAINING
+        correct series — it converges slowly enough to bound how far out the
+        band may sit — so it is measured, not assumed."""
+        for expression in ("exp(x)", "log(1+x)", "sin(x)"):
+            with self.subTest(expression=expression):
+                r = run_job({"operation": "series", "expression": expression,
+                             "symbols": ["x"], "var": "x", "point": "0"}, timeout_s=120)
+                self.assertEqual(r["state"], "solved_verified")
+                self.assertLess(r["residual"], 1e-9)
+
+    # --- limit: the safe-direction test, per the session brief --------------
+
+    def test_limit_safe_direction_a_slow_correct_limit_FAILS_CLOSED(self):
+        """The disclosed blind spot, NOT fixed this session. The limit arm's
+        residual is |f(probe) - L| at a finite probe — the function's genuine
+        remaining distance from its limit, which is not a verification error at
+        all. So a correct but slowly-converging limit is REJECTED. This fails
+        CLOSED (it withholds a right answer rather than certifying a wrong one),
+        which is why it is disclosed rather than urgent. Card watch 6."""
+        r = run_job({"operation": "limit", "expression": "(exp(x)-1)/x",
+                     "symbols": ["x"], "var": "x", "point": "0"}, timeout_s=120)
+        self.assertEqual(r["state"], "error")
+        self.assertEqual(r["reason"], "verification_failed",
+                         "SymPy's answer (1) is exactly right; the ARM cannot confirm it")
+
+    # --- what the residual gate does NOT verify (found by injection) --------
+
+    def test_integrate_definite_residual_does_NOT_verify_the_RETURNED_value(self):
+        """CHARACTERIZATION OF A DEFECT FOUND THIS SESSION (card watch 13).
+
+        The residual for integrate_definite is computed from a FRESHLY-COMPUTED
+        antiderivative, never from `out`. So a wrong returned value is certified:
+        this job returns 2*pi for an integral equal to pi, with residual 0.0 and
+        state solved_verified. The quad arm measures delta=3.14 and sets
+        agrees=false — it catches what the gate misses — but S6 ruled the arm
+        DIAGNOSTIC ONLY, so it flags without gating, exactly as ruled.
+
+        Asserted here so the reachable combination `solved_verified` +
+        `agrees == false` can never become a silent surprise."""
+        r = self._injected(
+            {"operation": "integrate_definite", "expression": "x*sin(x)", "symbols": ["x"],
+             "var": "x", "lower": "0", "upper": "pi"},
+            "out = call_op(sympy.integrate, expr, (var, lo, hi))",
+            "out = call_op(sympy.integrate, expr, (var, lo, hi)) * 2")
+        self.assertEqual(r["state"], "solved_verified")
+        self.assertEqual(r["residual"], 0.0)
+        self.assertEqual(r["result"], "2*pi")
+        self.assertFalse(r["crosscheck"]["agrees"],
+                         "the diagnostic arm sees the error the gate does not")
+
+    def test_dsolve_checkodesol_does_NOT_verify_the_declared_ics(self):
+        """CHARACTERIZATION OF A DEFECT FOUND THIS SESSION (card watch 13).
+
+        Doubling the solution of y' + 2y = 0 leaves a function that STILL solves
+        the ODE, so checkodesol closes at residual 0.0 — but it violates the
+        declared y(0)=3. checkodesol verifies the equation, not the initial
+        condition. The solve_ivp arm integrates FROM the ics and so catches it
+        (agrees=false, deviation 0.5) — and, being diagnostic by S6, flags
+        without gating."""
+        r = self._injected(
+            {"operation": "dsolve", "expression": "Derivative(y(x), x) + 2*y(x)",
+             "symbols": ["x"], "var": "x", "func": "y", "ics": {"y(0)": 3}},
+            "            out = sol",
+            "            sol = sympy.Eq(sol.lhs, sol.rhs * 2)\n            out = sol")
+        self.assertEqual(r["state"], "solved_verified")
+        self.assertEqual(r["residual"], 0.0)
+        self.assertFalse(r["crosscheck"]["agrees"])
+
+    @staticmethod
+    def _injected(spec, old, new):
+        return run_job(spec, timeout_s=120, _fault_injection=_inject(old, new))
 
 
 # ===========================================================================

@@ -19,12 +19,11 @@ UNREGISTERED and UNROUTABLE — nothing in `stages/`, the supervisor,
 `substrates.py`, or any schema imports it. Registration is a separate owner
 ruling; the Wave Guide merges the staged fragments serially.
 
-PROVISIONAL CONSTANTS: `VERIFY_RESIDUAL_TOL` and `CROSSCHECK_AGREE_TOL` are
-labeled SUGGESTED-pending-owner-ruling. They gate the wrapper's
-`solved_verified` state provisionally so the machinery is exercisable now; the
-card marks both TODO-HUMAN (slots S2 and S6). A provisional constant that gates
-behavior is honest only while it is labeled as one — do not quietly promote
-either by deleting its label.
+RULED CONSTANTS: `VERIFY_RESIDUAL_TOL` (card slot S2) and `CROSSCHECK_AGREE_TOL`
+(slot S6) were RULED by the owner on 2026-07-16 and carry that label at their
+definitions. They are no longer provisional and no longer TODO-HUMAN. They are
+still not free to change: a ruled constant moves only by a recorded ruling, the
+same discipline a frozen prompt carries.
 """
 
 from __future__ import annotations
@@ -53,7 +52,9 @@ REGIME_DESCRIPTION = (
 )
 
 # ---------------------------------------------------------------------------
-# S1 (SUGGESTED-pending-owner-ruling) — the operation allowlist.
+# S1 — RULED (owner, 2026-07-16). The operation allowlist, closed.
+# CONSEQUENCE: inside → eligible for trust; outside → defer to the right
+# instrument, never a best-effort translation into a nearby operation.
 # ---------------------------------------------------------------------------
 OPERATIONS: tuple[str, ...] = (
     "integrate_definite",
@@ -142,48 +143,75 @@ THREE_STATE_SEMANTICS = (
     "checkodesol; a derivative/limit/series is spot-checked numerically). The "
     "result is the expression as a string. This state is the ONLY one that "
     "carries a number or an expression out of the wrapper.\n\n"
-    "unevaluated — SymPy returned the operation without performing it: an "
-    "Integral, Derivative, or Limit object survived in the output, or solve "
-    "returned no roots. This is an HONEST NON-ANSWER, not a failure. The "
-    "canonical instance is the indefinite integral of x**x, which has no "
-    "closed form in elementary terms; SymPy correctly declines rather than "
-    "inventing one. The result field is null. An unevaluated result must NEVER "
-    "leak as a QoI and must NEVER be dressed up as an error — the substrate "
-    "worked correctly and the honest report is that this question has no "
-    "closed-form answer here.\n\n"
+    "unevaluated — SymPy DECLINED to perform the operation. This is an HONEST "
+    "NON-ANSWER, not a failure, and it arrives by TWO roads that mean the same "
+    "thing. (1) SymPy RETURNS the operation unperformed: an Integral, "
+    "Derivative or Limit object survives in the output, or solve returns no "
+    "roots. The canonical instance is the indefinite integral of x**x, which "
+    "has no closed form in elementary terms; SymPy correctly declines rather "
+    "than inventing one. (2) SymPy RAISES NotImplementedError from the "
+    "operation call — saying by name that it has no algorithm for this "
+    "question. The canonical instance is solve(cos(x) - x), a transcendental "
+    "equation with no closed-form root: SymPy raises 'No algorithms are "
+    "implemented to solve equation'. Both roads are the same state (ruling "
+    "S4a, owner 2026-07-16); a decline signalled by raising is still a "
+    "decline. The result field is null and there is no failure reason. An "
+    "unevaluated result must NEVER leak as a QoI and must NEVER be dressed up "
+    "as an error — the substrate worked correctly, and the honest report is "
+    "that this question has no closed-form answer here. Reporting it as an "
+    "error would slander a correctly-working instrument.\n\n"
     "error — the job did not produce a trustworthy result: invalid or "
     "malformed input, an expression rejected by the AST allowlist, a container "
     "kill (memory cap or timeout), or — critically — verification_failed, "
     "meaning SymPy DID return a closed form but the wrapper could not confirm "
     "it. A solved-but-unverified answer is an error, not a result: no number "
     "leaves this wrapper unverified. The result field is null and a named "
-    "reason states which failure occurred."
+    "reason states which failure occurred. The decline set of S4a is NARROW and "
+    "deliberately so: only a NotImplementedError, and only from the operation "
+    "call itself, is a decline. Any other exception type keeps its named error "
+    "reason, and a NotImplementedError raised by a VERIFICATION arm is an error "
+    "too — there the operation DID answer, and an unconfirmable answer is a "
+    "failure to verify, not a non-answer."
 )
 
 # ---------------------------------------------------------------------------
-# PROVISIONAL CONSTANTS — SUGGESTED-pending-owner-ruling.
+# RULED CONSTANTS — owner, 2026-07-16. Not provisional; not free to edit.
 # ---------------------------------------------------------------------------
 
-# S2. The residual below which a back-substitution check counts as passing.
-# SUGGESTED-pending-owner-ruling. Justification is empirical, from this
-# session's measured self-checks (see the card §3A): symbolic checks close to
-# EXACTLY zero (simplify returns the zero object), and the numeric fallbacks
-# measured residuals at or below ~1e-10. 1e-9 sits above the measured numeric
-# noise floor and far below any physically meaningful discrepancy. It is a
-# provisional gate on `solved_verified`, and the card marks it TODO-HUMAN.
+# S2 — RULED (owner, 2026-07-16). The residual below which a back-substitution
+# check counts as passing.
+#
+# CRITERION: is the wrapper's back-substitution residual <= 1e-9?
+# CONSEQUENCE: inside -> solved_verified, the result may be returned. Outside,
+# or absent -> error:verification_failed with result null. A solved-but-
+# unverified answer is an error, not a result: no number leaves unverified.
+#
+# MARGIN, MEASURED, and thinner than session 1 claimed: the worst residual over
+# 33 verified jobs across all seven ops is 4.05e-10 (diff of sin(10*x)) — 2.47x
+# inside. `diff` BINDS this tolerance and its error is truncation-dominated, so
+# the floor is a property of the central-difference arm, not of the evaluator; a
+# stiffer derivative could cross it.
 VERIFY_RESIDUAL_TOL: float = 1e-9
-VERIFY_RESIDUAL_TOL_STATUS = "SUGGESTED-pending-owner-ruling"
+VERIFY_RESIDUAL_TOL_STATUS = "RULED (owner, 2026-07-16)"
 
-# S6-adjacent. The relative agreement below which the SciPy `quad` cross-check
-# is reported as agreeing with the symbolic closed form.
-# SUGGESTED-pending-owner-ruling.
-# HONEST LIMIT, stated where the constant lives: quad returns an error
-# ESTIMATE, not a bound. Agreement within this tolerance is EVIDENCE the
-# symbolic answer is right, never a proof. The cross-check is a DIAGNOSTIC
-# ONLY (owner ruling 2026-07-16: Regime B — scipy_numeric_quad — is QUEUED, and
-# no SciPy number may ever surface as a result).
+# S6 — RULED (owner, 2026-07-16). The relative agreement below which an
+# independent arm (quad for definite integrals, solve_ivp for ODEs with a
+# declared ics) is reported as agreeing with the symbolic closed form. ONE
+# constant, BOTH arms.
+#
+# CRITERION: definite integrals — delta / max(1, |symbolic_value|) <= 1e-8;
+# ODEs — max_relative_deviation over the sampled points <= 1e-8.
+# CONSEQUENCE: agreement is CORROBORATING EVIDENCE for the symbolic result and
+# never independent proof. Disagreement is a FLAG that one arm is wrong,
+# resolved by a human — never by preferring the numeric arm. Both arms are
+# DIAGNOSTIC ONLY and gate nothing (Regime B, scipy_numeric_quad, is QUEUED; no
+# SciPy number may ever surface as a result).
+#
+# HONEST LIMIT, stated where the constant lives: quad returns an error ESTIMATE
+# and solve_ivp's rtol/atol are error CONTROLS. Neither is a BOUND — the same
+# honest limit in two costumes.
 CROSSCHECK_AGREE_TOL: float = 1e-8
-CROSSCHECK_AGREE_TOL_STATUS = "SUGGESTED-pending-owner-ruling"
+CROSSCHECK_AGREE_TOL_STATUS = "RULED (owner, 2026-07-16)"
 
 # Numeric-fallback sampling: when `simplify` will not close a symbolic residual
 # to zero, the wrapper samples the difference at these points.
@@ -194,7 +222,7 @@ NUMERIC_PRECISION_DPS: int = 50
 # The dsolve INDEPENDENT arm (scipy.integrate.solve_ivp). Mechanics only — this
 # arm is DIAGNOSTIC, exactly like the quad arm, and gates nothing. Its agreement
 # verdict is reported against CROSSCHECK_AGREE_TOL (card slot S6), which is why
-# no new provisional constant is introduced here.
+# no second constant is introduced here — the owner rules S6 once, for both arms.
 #
 # The interval is STATED, not implicit: the ODE is integrated numerically from
 # the declared initial point x0 across [x0, x0 + ODE_CROSSCHECK_SPAN] and the
@@ -257,7 +285,7 @@ SYMPY_SYMBOLIC_EXACT_CONTRACT: dict = {
         "atol": ODE_CROSSCHECK_ATOL,
         "agreement_slot": "S6 (CROSSCHECK_AGREE_TOL)",
     },
-    "provisional_constants": {
+    "ruled_constants": {
         "VERIFY_RESIDUAL_TOL": {
             "value": VERIFY_RESIDUAL_TOL,
             "status": VERIFY_RESIDUAL_TOL_STATUS,
@@ -300,21 +328,78 @@ def substrate_text() -> str:
 def envelope_text() -> str:
     """The 'what is validated, and what is not' paragraph, for the slate.
 
-    Rendered from THREE_STATE_SEMANTICS plus the declared known gaps, so the
-    envelope the gate is shown is literally the contract the wrapper enforces.
+    Rendered from THREE_STATE_SEMANTICS plus the ruled bounds and the declared
+    known gaps, so the envelope the gate is shown is literally the contract the
+    wrapper enforces.
+
+    R-CARD-2: every ruled bound below states its CONSEQUENCE as well as its
+    CRITERION. A criterion with no stated consequence transmits as a boundary
+    with no teeth, and transmitting the consequence is the entire point.
     """
     return (
-        "VALIDATED: a result is returned ONLY in the state solved_verified, "
-        "which requires that SymPy found a closed form AND the wrapper "
-        "independently verified it by back-substitution (differentiate an "
-        "antiderivative and compare to the integrand; substitute roots; "
-        "checkodesol for ODEs; numeric spot-checks evaluated by numpy for "
-        "diff/series and at arbitrary precision for limit), with residual "
-        "within the provisional tolerance "
-        f"VERIFY_RESIDUAL_TOL = {VERIFY_RESIDUAL_TOL:g} "
-        f"({VERIFY_RESIDUAL_TOL_STATUS}). "
-        "A solved-but-unverified answer is returned as error:verification_failed "
-        "— no number leaves the wrapper unverified.\n\n"
+        "THE RULED ENVELOPE — S1 through S6, ruled by the owner on 2026-07-16. "
+        "Each states what is checked and WHAT FOLLOWS.\n\n"
+
+        "S1 — THE OPERATION ALLOWLIST. CRITERION: is the requested operation a "
+        f"member of ({', '.join(OPERATIONS)})? CONSEQUENCE: inside, the request "
+        "is expressible and eligible for trust. Outside, DEFER to the right "
+        "instrument — the operation set is CLOSED, and a request this substrate "
+        "cannot express is never best-effort translated into a nearby "
+        "operation.\n\n"
+
+        "S2 — THE VERIFICATION RESIDUAL. CRITERION: is the wrapper's "
+        f"back-substitution residual <= {VERIFY_RESIDUAL_TOL:g}? CONSEQUENCE: "
+        "inside, the state is solved_verified and the result may be returned. "
+        "Outside — or absent — the state is error:verification_failed with a "
+        "null result: a solved-but-unverified answer is an error, and NO NUMBER "
+        "LEAVES THIS WRAPPER UNVERIFIED. Measured margin, stated because it is "
+        "thinner than it looks: the worst residual over 33 verified jobs across "
+        "all seven operations is 4.05e-10 (diff of sin(10*x)) — only 2.47x "
+        "inside. The diff arm BINDS this tolerance and its error is "
+        "truncation-dominated, so a stiffer derivative could cross it.\n\n"
+
+        "S3 — THE MODELING-CLAIM RULE, THE SPINE OF THIS ENVELOPE. CRITERION: "
+        "does the success criterion assert anything beyond the expression AS "
+        "TYPED — a mean rather than an integral, a unit convention, a domain, a "
+        "real-world quantity? CONSEQUENCE: the gate MAY trust the symbolic "
+        "result as a statement about exactly the expression as typed, AND MUST, "
+        "in the same breath, DEFER the modeling/utility claim. Both halves, "
+        "both stated explicitly. NEVER a bare trust. The symbolic answer is "
+        "trustworthy AND narrow, and the narrow truth must never be read as the "
+        "broad one.\n\n"
+
+        "S4 — THE unevaluated VERDICT. CRITERION: did the wrapper return "
+        "state=unevaluated, with result null and reason null? CONSEQUENCE: "
+        "DEFER, reported as an HONEST NON-ANSWER — the substrate worked "
+        "correctly and this question has no closed-form answer here. It must "
+        "NEVER be narrated as an error or a setup failure, and never leak as a "
+        "QoI. S4a (same ruling): a decline SymPy signals by RAISING "
+        "NotImplementedError from the operation call is the same state as one "
+        "it signals by RETURNING the operation unperformed. An unevaluated "
+        "result is not a failure to be retried; it is an answer about the "
+        "question.\n\n"
+
+        "S5 — ASSUMPTIONS AND BRANCH CUTS: A KNOWN GAP, NOT A CHECK. CRITERION: "
+        "NONE EXISTS. The wrapper validates that declared assumptions are "
+        "allowlist members, but whether the declared set matches the caller's "
+        "INTENT lives nowhere the wrapper or the gate can read. CONSEQUENCE: "
+        "ADVISORY ONLY. The gate may transmit 'the answer is exact under the "
+        "assumptions AS DECLARED; if the intended domain differs, the answer "
+        "changes.' It may NEVER be signed as though it were a check, and its "
+        "silence is not evidence of agreement.\n\n"
+
+        "S6 — CROSS-CHECK AGREEMENT. CRITERION: for definite integrals, is "
+        f"delta / max(1, |symbolic_value|) <= {CROSSCHECK_AGREE_TOL:g}? For ODEs "
+        "with a declared initial condition, is the max relative deviation over "
+        f"the sampled points <= {CROSSCHECK_AGREE_TOL:g}? One constant, both "
+        "arms. CONSEQUENCE: agreement is CORROBORATING EVIDENCE for the "
+        "symbolic result and NEVER independent proof. Disagreement is a FLAG "
+        "that one arm is wrong, to be resolved BY A HUMAN — never by preferring "
+        "the numeric arm. Both arms are DIAGNOSTIC ONLY and gate nothing: they "
+        "can flag an error the residual gate does not catch, and when they do, "
+        "the wrapper still reports solved_verified. A reader who ignores "
+        "crosscheck.agrees is discarding the only signal that survives that "
+        "case.\n\n"
         + THREE_STATE_SEMANTICS
         + "\n\nHOW INDEPENDENT THE VERIFICATION ACTUALLY IS — three tiers, and "
         "the difference matters. (1) SYMBOLIC-INTERNAL: back-substitution, "
@@ -353,6 +438,31 @@ def envelope_text() -> str:
         "withholds correct answers rather than certifying wrong ones — but a "
         "limit reported as verification_failed may mean the arm is too weak to "
         "confirm it, not that the answer is wrong.\n\n"
+        "WHAT THE RESIDUAL ACTUALLY VERIFIES — measured by FAULT INJECTION, "
+        "because a check that cannot fail is not a proof. Every arm was fed a "
+        "deliberately wrong result. Most reject it. Two do not, and the gap in "
+        "each case is that the arm verifies a DIFFERENT OBJECT than the one "
+        "returned. (1) For a definite integral the residual is computed from a "
+        "freshly-computed ANTIDERIVATIVE, never from the returned value: a job "
+        "made to return 2*pi for an integral equal to pi still measures residual "
+        "0.0 and reports solved_verified. (2) For an ODE, checkodesol verifies "
+        "the EQUATION and not the declared initial condition: doubling the "
+        "solution of y'+2y=0 still solves the ODE, measures residual 0.0, and "
+        "reports solved_verified while violating y(0)=3. In BOTH cases the "
+        "independent arm CAUGHT what the gate missed (quad delta 3.14, "
+        "agrees=false; solve_ivp deviation 0.5, agrees=false) — and, being "
+        "diagnostic by S6, it flagged without gating. THE PRACTICAL RULE: for "
+        "these two operations, solved_verified means 'the closed form survived "
+        "back-substitution', NOT 'the returned value is right', and "
+        "crosscheck.agrees is the field that carries the difference. Read it.\n\n"
+        "A SERIES CAVEAT of the same family: the series truncation check "
+        "discriminates low- and mid-order coefficient errors (a doubled x**2 "
+        "coefficient measures 5.0e-05 and is rejected) and is BLIND to an error "
+        "in the HIGHEST RETAINED coefficient (a doubled x**5 in exp(x)'s order-6 "
+        "series measures 8.3e-13 and passes). That blindness is structural, not "
+        "a tuning oversight: catching it needs a probe farther out than the "
+        "distance at which a correct slowly-converging series would itself be "
+        "rejected.\n\n"
         "THE CENTRAL LIMIT — what is NOT validated. The result is trustworthy "
         "as a statement about THE EXPRESSION AS TYPED, and about nothing else. "
         "Whether that expression models the question the caller actually meant "

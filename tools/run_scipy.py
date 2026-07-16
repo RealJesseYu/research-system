@@ -9,7 +9,7 @@ substrates. UNREGISTERED: nothing in stages/, the supervisor, substrates.py, or
 any schema imports it. It is reachable by tests (and a __main__ CLI) only.
 
 THE SINGLE SOURCE OF TRUTH is onboarding/sympy_symbolic_exact/contract.py — this
-module IMPORTS the allowlists and the provisional constants from there and never
+module IMPORTS the allowlists and the ruled constants from there and never
 restates them. The card points at that file; the calibration slate is generated
 from it.
 
@@ -67,6 +67,7 @@ import sys
 import time
 import uuid
 from pathlib import Path
+from typing import Callable
 
 # --- the single source of truth -------------------------------------------
 _ONBOARDING = Path(__file__).resolve().parent.parent / "onboarding" / "sympy_symbolic_exact"
@@ -358,6 +359,35 @@ from sympy.parsing.sympy_parser import parse_expr, standard_transformations
 SPEC = json.loads(r"""__SPEC_JSON__""")
 RESULT = "/out/result.json"
 
+
+class OperationDeclined(Exception):
+    """SymPy DECLINED to perform the operation — the `unevaluated` state.
+
+    Card ruling S4a (owner, 2026-07-16): a NotImplementedError raised BY THE
+    OPERATION CALL is SymPy declining, not the wrapper failing. It is the same
+    honest non-answer as an `Integral` surviving in the output; the only
+    difference is that SymPy signals it by RAISING instead of by RETURNING.
+
+    THE DECLINE SET IS EXACTLY THAT AND NOTHING WIDER: only NotImplementedError,
+    and only when raised by the operation call itself (`call_op`). A
+    NotImplementedError from a VERIFICATION arm is not a decline — the operation
+    did answer, and an unverifiable answer is an error (S2), not a non-answer.
+    Every other exception type keeps its named `error` reason.
+    """
+
+
+def call_op(fn, *args, **kwargs):
+    """Invoke the primary SymPy operation, mapping its declines to S4a.
+
+    This wraps ONLY the operation call. Verification arms are deliberately
+    outside it: the three-state discipline used to be enforced for RETURNS and
+    not for RAISES (card watch 9), and this closes exactly that hole — no wider.
+    """
+    try:
+        return fn(*args, **kwargs)
+    except NotImplementedError as exc:
+        raise OperationDeclined(str(exc))
+
 # The allowlisted math names, bound to real SymPy objects. This dict IS the
 # restricted namespace: SymPy's default global_dict is `from sympy import *`,
 # which would expose the entire library to the parser's eval.
@@ -581,19 +611,47 @@ def series_residual_numpy(expr, truncated, var, pt):
     The probe points are built exactly and then converted; the EXPRESSION's
     evaluation at them is numpy's, which is what the numeric-partial label
     claims and all it claims.
+
+    PROBE BAND, AND WHY IT MOVED (session 1c, fault-injection measured). This
+    arm used to probe 1e-3/1e-4/1e-5 and let THE CLOSEST probe win, i.e. it
+    reported the difference at 1e-5 — where a correct truncation and a WRONG one
+    are both indistinguishable from zero. Measured: a series whose x**2
+    coefficient had been DOUBLED scored 5.0e-11 and PASSED a 1e-9 gate; a
+    doubled x**5 coefficient scored 0.0 and passed. A check reporting ~0 whether
+    or not the answer is right is not a check.
+
+    Two changes, both method detail — THE GATE SEMANTICS ARE UNCHANGED (the
+    ruled S2 residual tolerance of 1e-9 is untouched; only where this arm looks
+    has moved):
+      * the band moves out one decade to 1e-2/1e-3/1e-4, and
+      * the WORST probe wins, not the closest — a truncation difference GROWS
+        with distance from the expansion point, so the closest probe is the
+        least informative one. (Every other arm already reports its worst.)
+    Measured after: the doubled-x**2 fault scores 5.0e-05 and is CAUGHT, while a
+    correct exp(x) series at the same probe sits at ~1e-15.
+
+    THE BLIND SPOT THAT REMAINS, characterized rather than papered over: a wrong
+    coefficient on the HIGHEST RETAINED term is not detectable at any honest
+    probe distance. Catching a doubled x**5 in exp(x)'s order-6 series needs
+    h > 0.0413; not REJECTING a correct log(1+x) series needs h < 0.0426. That
+    overlap is a factor of 1.02 — any h inside it is fitted to those two
+    expressions, not a property of the method. The arm therefore discriminates
+    low- and mid-order coefficient errors and is BLIND to top-order ones. Card
+    watch 7 records this.
     """
     f = lambdify_numpy(var, expr)
     g = lambdify_numpy(var, truncated)
     if f is None or g is None:
         return None
     worst = None
-    for p in _approach_probes(pt, (3, 4, 5)):
+    for p in _approach_probes(pt, (2, 3, 4)):
         try:
             probe = _to_float(p)
             a, b = _num(f, probe), _num(g, probe)
         except Exception:
             continue
-        worst = abs(a - b)            # the LAST (closest) probe wins
+        d = abs(a - b)
+        worst = d if worst is None else max(worst, d)   # the WORST probe wins
     if worst is None:
         return None
     return worst, "numeric_truncation_comparison_lambdify_numpy"
@@ -761,7 +819,7 @@ def main():
 
     try:
         if op == "integrate_indefinite":
-            out = sympy.integrate(expr, var)
+            out = call_op(sympy.integrate, expr, var)
             if is_unevaluated(out):
                 write({"ok": True, "state_hint": "unevaluated", "result": str(out),
                        "note": "SymPy returned the integral unevaluated"})
@@ -770,7 +828,7 @@ def main():
         elif op == "integrate_definite":
             lo = parse(SPEC["lower"], ns)
             hi = parse(SPEC["upper"], ns)
-            out = sympy.integrate(expr, (var, lo, hi))
+            out = call_op(sympy.integrate, expr, (var, lo, hi))
             if is_unevaluated(out):
                 write({"ok": True, "state_hint": "unevaluated", "result": str(out),
                        "note": "SymPy returned the definite integral unevaluated"})
@@ -789,7 +847,7 @@ def main():
 
         elif op == "diff":
             order = SPEC.get("order", 1)
-            out = sympy.diff(expr, var, order)
+            out = call_op(sympy.diff, expr, var, order)
             if is_unevaluated(out):
                 write({"ok": True, "state_hint": "unevaluated", "result": str(out),
                        "note": "SymPy returned the derivative unevaluated"})
@@ -804,7 +862,7 @@ def main():
 
         elif op == "limit":
             pt = parse(SPEC["point"], ns)
-            out = sympy.limit(expr, var, pt)
+            out = call_op(sympy.limit, expr, var, pt)
             if is_unevaluated(out):
                 write({"ok": True, "state_hint": "unevaluated", "result": str(out),
                        "note": "SymPy returned the limit unevaluated"})
@@ -817,14 +875,14 @@ def main():
         elif op == "series":
             pt = parse(SPEC["point"], ns)
             order = SPEC.get("order", 6)
-            out = sympy.series(expr, var, pt, order).removeO()
+            out = call_op(sympy.series, expr, var, pt, order).removeO()
             # NUMERIC-PARTIAL spot-check: truncation comparison NEAR the point,
             # evaluated by numpy through lambdify.
             got = series_residual_numpy(expr, out, var, pt)
             residual, method = got if got else (None, "numeric_truncation_comparison_failed")
 
         elif op == "solve":
-            roots = sympy.solve(expr, var, dict=False)
+            roots = call_op(sympy.solve, expr, var, dict=False)
             if not roots:
                 write({"ok": True, "state_hint": "unevaluated", "result": str(roots),
                        "note": "SymPy returned no roots"})
@@ -863,9 +921,9 @@ def main():
             ics_spec = SPEC.get("ics")
             if ics_spec:
                 ics = {parse(k, ns): v for k, v in ics_spec.items()}
-                sol = sympy.dsolve(expr, fn, ics=ics)
+                sol = call_op(sympy.dsolve, expr, fn, ics=ics)
             else:
-                sol = sympy.dsolve(expr, fn)
+                sol = call_op(sympy.dsolve, expr, fn)
             out = sol
             # The INDEPENDENT arm: re-integrate the ODE numerically from the
             # declared ics and compare to the closed form. Diagnostic only — it
@@ -887,6 +945,14 @@ def main():
 
     except SystemExit:
         raise
+    except OperationDeclined as exc:
+        # S4a (owner ruling, 2026-07-16). SymPy declined BY RAISING rather than
+        # by returning an unperformed object. Same state, same honesty: no
+        # result, no reason, and never an error. Must precede `except Exception`.
+        write({"ok": True, "state_hint": "unevaluated", "result": None,
+               "declined": True,
+               "note": "SymPy declined the operation (NotImplementedError): %s"
+                       % str(exc)[:300]})
     except MemoryError:
         fail("container_killed:MemoryError", "the job exhausted memory inside the jail")
     except Exception as exc:
@@ -1014,12 +1080,22 @@ def _err(reason: str, diagnostics: str, started: float) -> dict:
 
 
 def run_scipy(spec: dict, timeout_s: int = DEFAULT_TIMEOUT_S,
-              mem_mb: int = DEFAULT_MEM_MB) -> dict:
+              mem_mb: int = DEFAULT_MEM_MB,
+              _fault_injection: "Callable[[str], str] | None" = None) -> dict:
     """Validate, run, and verify one Regime-A job. Returns the small dict
     documented at the top of this module — and nothing else leaves the wrapper.
 
     `timeout_s` is injectable (default 600 s, ceiling MAX_TIMEOUT_S) so tests
     never wait out the real limit.
+
+    `_fault_injection` is a TEST-ONLY SEAM and is None on every production path.
+    It receives the generated runner source and returns a mutated copy, which is
+    how tests corrupt a verification arm's input and prove the arm CATCHES the
+    corruption. It exists because of the standing doctrine that a check which
+    cannot fail is not a proof: without a way to feed each arm a deliberately
+    wrong result, "the residual gate works" would be an assertion rather than a
+    measurement. The underscore prefix and this paragraph are the honesty:
+    nothing but tests may pass it, and it changes no default behavior.
     """
     started = time.time()
     timeout_s = min(int(timeout_s), MAX_TIMEOUT_S)
@@ -1030,6 +1106,9 @@ def run_scipy(spec: dict, timeout_s: int = DEFAULT_TIMEOUT_S,
         runner = generate_runner(spec)
     except ScipyInputError as e:
         return _err(e.reason, f"input rejected: {e}", started)
+
+    if _fault_injection is not None:
+        runner = _fault_injection(runner)
 
     # --- lay out job/ (ro) + out/ (rw) ------------------------------------
     job_id = f"job_{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}_{uuid.uuid4().hex[:8]}"
@@ -1080,13 +1159,25 @@ def run_scipy(spec: dict, timeout_s: int = DEFAULT_TIMEOUT_S,
     runtime_s = round(time.time() - started, 3)
 
     # --- STATE 2: unevaluated — an honest non-answer, never an error -------
+    # Two roads into this one state, and the diagnostics name which was taken:
+    # SymPy RETURNED the operation unperformed, or (S4a) SymPy RAISED a
+    # NotImplementedError from the operation call, i.e. declined by name.
     if data.get("state_hint") == "unevaluated":
+        if data.get("declined"):
+            diagnostics = (f"{clean['operation']}: SymPy DECLINED to perform the "
+                           f"operation — {data.get('note', '')}. Per ruling S4a "
+                           f"(owner, 2026-07-16) a NotImplementedError raised by the "
+                           f"operation is a DECLINE, not a failure: the substrate "
+                           f"worked correctly and this question has no closed-form "
+                           f"answer here. An honest non-answer, not an error.")
+        else:
+            diagnostics = (f"{clean['operation']}: SymPy returned the operation "
+                           f"unevaluated ({data.get('note', '')}); surviving form "
+                           f"{data.get('result', '')!r}. This is an honest "
+                           f"non-answer, not a failure.")
         return {"valid": True, "state": STATE_UNEVALUATED, "result": None,
                 "residual": None, "crosscheck": None, "reason": None,
-                "diagnostics": (f"{clean['operation']}: SymPy returned the operation "
-                                f"unevaluated ({data.get('note', '')}); surviving form "
-                                f"{data.get('result', '')!r}. This is an honest "
-                                f"non-answer, not a failure.")[:MAX_DIAG_CHARS],
+                "diagnostics": diagnostics[:MAX_DIAG_CHARS],
                 "runtime_s": runtime_s}
 
     # --- verification gate: no number leaves unverified --------------------
@@ -1099,7 +1190,7 @@ def run_scipy(spec: dict, timeout_s: int = DEFAULT_TIMEOUT_S,
                 "diagnostics": (f"{clean['operation']}: SymPy returned a closed form but "
                                 f"verification did not close — residual={residual} via "
                                 f"{method}, tolerance={VERIFY_RESIDUAL_TOL:g} "
-                                f"(SUGGESTED-pending-owner-ruling). A solved-but-unverified "
+                                f"(RULED, owner 2026-07-16). A solved-but-unverified "
                                 f"answer is an error; no number leaves unverified."
                                 )[:MAX_DIAG_CHARS],
                 "runtime_s": runtime_s}
@@ -1108,8 +1199,8 @@ def run_scipy(spec: dict, timeout_s: int = DEFAULT_TIMEOUT_S,
     crosscheck = data.get("crosscheck")
     cc_note = ""
     if crosscheck and crosscheck.get("attempted"):
-        # Both independent arms report against S6's provisional tolerance; only
-        # the deviation they measure differs.
+        # Both independent arms report against S6's RULED tolerance; only the
+        # deviation they measure differs.
         if "solve_ivp" in crosscheck.get("arm", ""):
             dev = crosscheck["max_relative_deviation"]
             crosscheck["agrees"] = bool(dev <= CROSSCHECK_AGREE_TOL)

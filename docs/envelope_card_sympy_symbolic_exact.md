@@ -1,10 +1,11 @@
 # Envelope Card — (sci-Python `scipy-img`, `sympy_symbolic_exact` / Regime A)
 
 > **STATUS: DRAFT — not yet reviewed.**
-> Provenance: `drafted-by-agent` (see §2). **Every §3B slot (S1–S6) is
-> TODO-HUMAN** — each carries a SUGGESTED value and a one-line reason, and
-> **none is decided**. An unresolved `TODO-HUMAN` in a load-bearing section
-> (§3, §5, §6) blocks sign-off per `docs/reviewer_rubric.md`.
+> Provenance: `drafted-by-agent` (see §2). **Every §3B slot (S1–S6, plus S4a) is
+> RULED (owner, 2026-07-16)** — no load-bearing `TODO-HUMAN` remains in §3.
+> **The signature is a separate act and has NOT been given**: §2 still reads
+> `unsigned` / `drafted-by-agent`, so the card's grounding authority is
+> unchanged by the rulings.
 > This card is **HUMAN-FACING ONLY** (R-20.5-1 doctrine): no code reads it, no
 > model sees it. The substrate is **UNREGISTERED and UNROUTABLE** — nothing in
 > `stages/`, the supervisor, `substrates.py`, or any schema imports
@@ -23,7 +24,7 @@
 | Card unit | (substrate, physics-regime) pair |
 | Substrate | `scipy-img` sci-Python sandbox — ephemeral, no-network, memory-capped, read-only containers (**UNREGISTERED**: no router / `substrates.py` entry exists) |
 | Physics regime | `sympy_symbolic_exact` **Regime A**: exact symbolic computer algebra over ONE closed-form expression, ONE allowlisted operation per job, over explicitly declared symbols. Not free-form CAS; not numerics. |
-| Allowlisted operations | `integrate_definite`, `integrate_indefinite`, `diff`, `limit`, `series`, `solve`, `dsolve` (**SUGGESTED — see S1**) |
+| Allowlisted operations | `integrate_definite`, `integrate_indefinite`, `diff`, `limit`, `series`, `solve`, `dsolve` (**RULED — see S1**) |
 | Solver | SymPy **1.14.0** (exact CAS), with mpmath **1.3.0** as its arbitrary-precision backend |
 | Cross-check arms | SciPy **1.18.0** `integrate.quad` (definite integrals) and `integrate.solve_ivp` RK45 (ODEs with a declared `ics`) — both **DIAGNOSTIC ONLY**, never a result (owner ruling 2026-07-16; Regime B queued). See §5 for the per-op independence table. |
 | Image | `scipy-img:latest` (`python:3.12-slim` + pinned symbolic stack), colima context |
@@ -32,7 +33,7 @@
 | Wrapper | `tools/run_scipy.py` (deterministic Python, no AI, **no LLM anywhere in the execution path** — it runs a FIXED job template, never writes code) |
 | **Contract text** | **POINTER, never a paste → `onboarding/sympy_symbolic_exact/contract.py`** (constant `SYMPY_SYMBOLIC_EXACT_CONTRACT`). That module is the ONE runtime source of truth: the wrapper imports it, `generate_cases.py` generates the slate from it, this card points at it. |
 | Card drafted against repo HEAD | `07816ba` (branch `build-scipy`) |
-| Maturity | **calibrating** (unroutable; pre-registration — S1–S6 all TODO-HUMAN) |
+| Maturity | **calibrating** (unroutable; pre-registration — S1–S6 + S4a RULED 2026-07-16, battery not yet run, card unsigned) |
 
 ---
 
@@ -43,6 +44,7 @@
 | Drafted by | agent (Claude Code, sci-Python build session 1) |
 | Drafted date | 2026-07-16 |
 | **Amended** | **session 1b, 2026-07-16** — independent verification arms (Task 2). Changed: §1 cross-check arms; §3A (re-measured residual floor over 33 jobs on all seven ops; the `solve_ivp` arm; the `limit` regression tried-and-reverted; a `limit` side-bug fixed); §3B S2 (margin re-measured — CONFIRMED at a thinner margin) and S6 (scope widened to two arms, value unchanged); §5A (new per-op independence table); §8 watches 5–9 (four NEW ⚠ items, three of them defects this session found but did **not** fix). **No §3B value was decided — every slot remains TODO-HUMAN.** |
+| **Amended** | **session 1c, 2026-07-16** — the owner's rulings STAMPED. Changed: the STATUS header and §1 (maturity, allowlist label); **§3B — every slot now `RULED (owner, 2026-07-16)`, and a new S4a row**; the note under §3B (both constants ruled; the lawfulness of editing model-visible envelope text while unregistered); §3A (the S4a decline evidence and the fault-injection table); §5A (`series` probe band); §8 watches 6/7/9 resolved-or-updated and **watch 13 NEW**. Code: `contract.py` (ruled labels, criterion+consequence in `envelope_text()`), `tools/run_scipy.py` (S4a `call_op`; the `series` probe band; a test-only fault-injection seam). **§2's Signature and Provenance state are deliberately UNTOUCHED — the rulings decide the bounds, not the signature, and no signature line was given.** |
 | Sources | wrapper self-check runs captured live this session (the worked integral, diff, limit, solve, dsolve, series, the `x**x` non-answer, the assumptions pair); the six escape proofs in `tests/test_run_scipy.py`; `pip freeze` inside the built image (`tools/scipy_env/RESOLVED_VERSIONS.md`); SymPy 1.14.0 official docs archive |
 | Signature | `unsigned` — S1–S6 await owner ruling |
 | Reviewer sign-off | `pending — no external reviewer scheduled` |
@@ -83,7 +85,8 @@ truth is never read as the broad one.**
 ## 3. Validated envelope
 
 Two sections, deliberately separate. §3A is disk-cited evidence actually run
-**this session**; §3B is the set of envelope bounds, **all six TODO-HUMAN**.
+**live**; §3B is the set of envelope bounds, **all six RULED (owner,
+2026-07-16)**, plus S4a.
 
 ### 3A. Self-check runs (live this session)
 
@@ -168,6 +171,78 @@ for *either* infinity. Measured at HEAD, `atan(x)` as `x → -oo` scored residua
 **3.14159** — it was measuring `|atan(+1e6) − (−π/2)|`, i.e. approaching from the
 wrong side of the number line. Both infinities now measure **9.9999e-07**.
 
+**S4a, MEASURED (session 1c — the ruling, live).** `NotImplementedError` raised
+by the operation call is now the `unevaluated` state. Watch 9 is CLOSED.
+
+| job | before (session 1b) | after (S4a ruled) |
+|---|---|---|
+| `solve(cos(x) - x)` | `error` / `evaluation_error` | **`unevaluated`**, `result: null`, `reason: null` |
+| `limit(gamma(x), x, zoo)` | `error` / `evaluation_error` | **`unevaluated`** — the ruling is not solve-shaped; it generalizes across ops |
+| `dsolve` on `x**2` (not an ODE) | `error` / `evaluation_error` | **`error` / `evaluation_error`** — unchanged. An `IndexError` is not a decline. |
+| `series(gamma(x), x, oo)` | `error` / `evaluation_error` | **`error` / `evaluation_error`** — unchanged. **The disclosed edge:** `PoleError` is *not* a `NotImplementedError`, so it is outside the ruled decline set even though its message reads "Asymptotic expansion of gamma around [oo] **is not implemented**". Semantically a decline; type-wise not one. |
+
+**⚠ FAULT INJECTION — every verification arm, shown able to FAIL (NEW, session
+1c).** *A check that cannot fail is not a proof.* Each arm was fed a
+deliberately wrong result through a test-only injection seam. **The gate
+semantics are unchanged throughout — the RULED S2 residual ≤ 1e-9 was never
+touched; only where the `series` arm looks has moved.**
+
+| arm | injected fault | residual | caught? |
+|---|---|---|---|
+| `integrate_indefinite` | antiderivative doubled | **3.63** | ✅ `verification_failed` |
+| `integrate_definite` (verification path) | antiderivative doubled | **3.63** | ✅ `verification_failed` |
+| `diff` | derivative doubled | **0.500** | ✅ `verification_failed` |
+| `solve` | every root shifted by 1 | **2.00** | ✅ `verification_failed` |
+| `dsolve` | solution `+1` (no longer solves the ODE) | **2.00** | ✅ `verification_failed` |
+| `limit` | limit value shifted by 1 | **1.00** | ✅ `verification_failed` |
+| `series` | `x**2` coefficient doubled | **5.00e-05** *(was **5.0e-11**, PASSING)* | ✅ **after the probe-band move** |
+| `series` | `x**3` coefficient doubled | **1.67e-07** | ✅ |
+| `series` | `x**5` (**top-order**) doubled | **8.32e-13** | ❌ **BLIND — see watch 7** |
+| `limit` **safe-direction** | *(none — a CORRECT slow limit)* `(exp(x)-1)/x` | **5.00e-07** | ✅ fails **CLOSED**: correct answer withheld, watch 6 |
+
+**The `series` probe band moved, and why (method detail, not a gate change).**
+The arm probed `1e-3/1e-4/1e-5` and let **the closest probe win** — reporting
+the difference at `1e-5`, where a correct truncation and a wrong one are both
+indistinguishable from zero. It now probes `1e-2/1e-3/1e-4` and reports **the
+worst** (every other arm already reports its worst; a truncation difference
+*grows* with distance from the expansion point, so the closest probe is the
+least informative one).
+
+| series | before (closest probe, 1e-5) | after (worst probe, 1e-2) |
+|---|---|---|
+| `exp(x)` **correct** | 0.0 | **1.33e-15** ✅ verifies |
+| `log(1+x)` **correct** (the constraining case) | 6.55e-17 | **1.65e-13** ✅ verifies |
+| `exp(x)`, `x**2` coeff doubled | **5.0e-11 → PASSED** ❌ | **5.0e-05 → rejected** ✅ |
+| `exp(x)`, `x**5` coeff doubled | 0.0 → passed | **8.3e-13 → still passes** ❌ |
+
+**Why the top-order blindness was NOT tuned away** (it would have been
+dishonest): catching a doubled `x**5` in `exp(x)`'s order-6 series needs a probe
+`h > 0.0413`; *not rejecting* a correct `log(1+x)` series needs `h < 0.0426`.
+The overlap is **a factor of 1.02** — any `h` inside it is fitted to those two
+expressions rather than a property of the method. **The arm discriminates low-
+and mid-order coefficient errors and is blind to top-order ones.** Fixing it
+needs a coefficient-wise comparison, which is a redesign.
+
+**⚠ THE HEADLINE OF SESSION 1c — two arms verify a DIFFERENT OBJECT than the
+one they return (NEW; watch 13; found by injection, NOT fixed).**
+
+| operation | the injected wrong RESULT | residual | state | what the independent arm saw |
+|---|---|---|---|---|
+| `integrate_definite` | returns **`2*pi`** for an integral equal to `pi` | **0.0** | **`solved_verified`** ❗ | `quad` delta **3.14**, **`agrees: false`** |
+| `dsolve` | solution doubled — **still solves** `y'+2y=0`, but violates `y(0)=3` | **0.0** | **`solved_verified`** ❗ | `solve_ivp` deviation **0.5**, **`agrees: false`** |
+
+The residual for a definite integral is computed from a **freshly-computed
+antiderivative**, never from the returned value; `checkodesol` verifies **the
+equation**, never the declared initial condition. In both cases the independent
+arm **caught exactly what the gate missed** — and, being **DIAGNOSTIC ONLY by
+the ruled S6**, it flagged without gating. **This is the system behaving as
+ruled, not a violation of S6**: S6 says disagreement is a flag resolved by a
+human, and the flag *is* raised. The consequence to carry: **for these two
+operations `solved_verified` means "the closed form survived back-substitution",
+NOT "the returned value is right", and `crosscheck.agrees` is the field that
+carries the difference.** `solved_verified` + `agrees: false` is a **reachable**
+combination.
+
 **The independent cross-check (A1), measured:**
 
 | field | value |
@@ -216,27 +291,43 @@ Also proven: the in-jail parse namespace is restricted — a non-allowlisted Sym
 name (`Poly`) does not resolve inside `parse_expr`'s eval, because the runner
 overrides SymPy's default `global_dict` (which is `from sympy import *`).
 
-### 3B. Envelope bounds — **ALL SIX ARE TODO-HUMAN**
+### 3B. Envelope bounds — **ALL SIX RULED (owner, 2026-07-16)**
 
-Each carries a SUGGESTED value and a one-line reason. **None is decided.**
-Per **R-CARD-1** every ruling states whether the gate can check it; per
-**R-CARD-2** every ruling states its **CONSEQUENCE** as well as its criterion —
-a criterion with no stated consequence transmits as a boundary with no teeth.
+Every slot below is **decided**. Per **R-CARD-1** each states whether the gate
+can check it; per **R-CARD-2** each states its **CONSEQUENCE** as well as its
+criterion — a criterion with no stated consequence transmits as a boundary with
+no teeth.
 
-| Ruling | SUGGESTED value | **Class** | **Criterion (what the gate evaluates, and where it reads it)** | **Consequence (what follows when it holds — and when it fails)** |
-|---|---|---|---|---|
-| **S1** operation allowlist | `integrate_definite, integrate_indefinite, diff, limit, series, solve, dsolve` | `CHECKABLE:membership` | Is the requested operation a member of the allowlist? Read from the spec's `operation` field, checked against `contract.OPERATIONS`. | **Inside → eligible for trust** (the substrate can express the request at all). **Outside → defer**, routing to the right instrument; never a best-effort translation into a nearby operation. *(Probe: B2, a minimization request.)* |
-| **S2** verification residual tolerance | `VERIFY_RESIDUAL_TOL = 1e-9` — **re-measured session 1b and CONFIRMED, on a thinner margin than session 1 claimed** | `CHECKABLE:numeric` | Is the wrapper's back-substitution residual ≤ 1e-9? Read from the wrapper's own `residual` field. | **Inside → `solved_verified`**, the result may be returned. **Outside (or absent) → `error:verification_failed`, result null** — a solved-but-unverified answer is an error; no number leaves unverified. **Margin, measured (§3A): the worst verified residual across 33 jobs on all seven ops is 4.05e-10 (`diff` of `sin(10*x)`) — only 2.47× inside. `diff` is the binding arm and its error is truncation-dominated, so this floor pre-exists the session-1b arm change and is not cured by it. Session 1's "at or below ~1e-10" rested on ONE `diff` sample (1.83e-10); 16 samples put the floor ~4× higher. 1e-9 still holds — but "far below" (§3B's original wording) is not what the measurements say, and a stiffer derivative could cross it.** |
-| **S3** ⭐ **THE SPINE** — the modeling-claim rule | **ANY spec whose success criterion asserts something beyond the expression as typed → the gate MAY trust the symbolic result AND MUST defer the modeling/utility claim — both stated explicitly.** | `CHECKABLE:semantic` | Does the success-criterion text make a claim about anything other than the typed expression itself (a mean vs an integral, a unit convention, a domain, a real-world quantity)? Read from the success-criterion text under judgment. | **Trust the result about exactly the expression as typed; inside → the result is eligible for trust as a statement about the typed expression. Whether that expression models the intended question is a separate claim → always defer the utility/modeling claim.** Never a bare `trust`. *(Probes: B3 mean-vs-integral, B4 degrees-vs-radians.)* |
-| **S4** the `unevaluated` verdict | **`defer` — explicitly NOT a failure** | `CHECKABLE:membership` | Did the wrapper return `state == "unevaluated"` (result null, reason null)? Read from the wrapper's `state` field. | **→ defer**, reported as an honest non-answer: the substrate worked correctly and this question has no closed form here. **It must NEVER be narrated as an error or a setup failure, and never leak as a QoI.** *(Probe: B1, `x**x`.)* |
-| **S5** assumptions / branch cuts | *(no checkable bound exists)* | **JUDGMENT → KNOWN GAP** | **KNOWN GAP: whether the declared assumption set matches the caller's INTENT.** The wrapper validates that declared assumptions are allowlist members, but intent lives nowhere the wrapper or the gate can read. SymPy's defaults are COMPLEX: `sqrt(x**2)` ≠ `x`, and `log`/`sqrt` carry branch cuts. Measured: the same job returns `x*sqrt(x**2)/2` under defaults and `x**2/2` under `positive=True` — both exact. | **Advisory only, NOT enforcement.** The gate can transmit: "the answer is exact under the assumptions AS DECLARED; if the intended domain differs, the answer changes." It **may never be signed as if it were a check.** *(Probe: B5.)* |
-| **S6** cross-check agreement | `CROSSCHECK_AGREE_TOL = 1e-8` (relative) — **scope widened session 1b: now covers TWO arms, value unchanged** | `CHECKABLE:numeric` | **Definite integrals:** is `delta / max(1, \|symbolic_value\|)` ≤ 1e-8? **ODEs with a declared `ics` (new):** is `max_relative_deviation` over the `solve_ivp` sample points ≤ 1e-8? Both read from the wrapper's `crosscheck` diagnostic. **No new provisional constant was introduced — the ODE arm reports against this same slot, so the owner rules once.** | **Agreement → corroborating EVIDENCE for the symbolic result, never independent proof.** Disagreement → a flag that one arm is wrong, resolved by a human, not by preferring the numeric arm. **Row present but bounded: Regime B (`scipy_numeric_quad`) card is QUEUED (owner ruling 2026-07-16); recorded here ONLY as the cross-check diagnostic's provisional agreement constant. quad's abserr ≠ a bound, and `solve_ivp`'s `rtol`/`atol` are error CONTROLS, not bounds — the same honest limit in a second costume.** Measured (§3A): 4 of 4 ODEs agree, worst deviation 2.90e-10. |
+**The ruled text is the wrapper's, not this card's.** S1–S6 live in
+`onboarding/sympy_symbolic_exact/contract.py`, which `envelope_text()` renders
+for the gate; this table is the human-facing view of those same objects. Ruled
+does not mean frozen-by-accident: a ruled bound moves only by a further recorded
+ruling, the same discipline a frozen prompt carries.
 
-> **Both provisional constants (S2, S6) currently GATE the wrapper's behavior**
-> so the machinery is exercisable now. They are labeled
-> `SUGGESTED-pending-owner-ruling` at their definition in `contract.py`. A
-> provisional constant that gates behavior is honest only while it is labeled
-> one — **neither may be promoted by deleting its label.**
+| Ruling | **Status** | RULED value | **Class** | **Criterion (what the gate evaluates, and where it reads it)** | **Consequence (what follows when it holds — and when it fails)** |
+|---|---|---|---|---|---|
+| **S1** operation allowlist | **`RULED (owner, 2026-07-16)`** | `integrate_definite, integrate_indefinite, diff, limit, series, solve, dsolve` | `CHECKABLE:membership` | Is the requested operation a member of the allowlist? Read from the spec's `operation` field, checked against `contract.OPERATIONS`. | **Inside → eligible for trust** (the substrate can express the request at all). **Outside → defer**, routing to the right instrument; never a best-effort translation into a nearby operation. *(Probe: B2, a minimization request.)* |
+| **S2** verification residual tolerance | **`RULED (owner, 2026-07-16)`** | `VERIFY_RESIDUAL_TOL = 1e-9` — re-measured session 1b and confirmed, on a thinner margin than session 1 claimed | `CHECKABLE:numeric` | Is the wrapper's back-substitution residual ≤ 1e-9? Read from the wrapper's own `residual` field. | **Inside → `solved_verified`**, the result may be returned. **Outside (or absent) → `error:verification_failed`, result null** — a solved-but-unverified answer is an error; no number leaves unverified. **Margin, measured (§3A): the worst verified residual across 33 jobs on all seven ops is 4.05e-10 (`diff` of `sin(10*x)`) — only 2.47× inside. `diff` is the binding arm and its error is truncation-dominated, so this floor pre-exists the session-1b arm change and is not cured by it. Session 1's "at or below ~1e-10" rested on ONE `diff` sample (1.83e-10); 16 samples put the floor ~4× higher. 1e-9 still holds — but "far below" (§3B's original wording) is not what the measurements say, and a stiffer derivative could cross it.** |
+| **S3** ⭐ **THE SPINE** — the modeling-claim rule | **`RULED (owner, 2026-07-16)`** — the modeling-claim spine as committed in §3B | **ANY spec whose success criterion asserts something beyond the expression as typed → the gate MAY trust the symbolic result AND MUST defer the modeling/utility claim — both stated explicitly.** | `CHECKABLE:semantic` | Does the success-criterion text make a claim about anything other than the typed expression itself (a mean vs an integral, a unit convention, a domain, a real-world quantity)? Read from the success-criterion text under judgment. | **Trust the result about exactly the expression as typed; inside → the result is eligible for trust as a statement about the typed expression. Whether that expression models the intended question is a separate claim → always defer the utility/modeling claim.** Never a bare `trust`. *(Probes: B3 mean-vs-integral, B4 degrees-vs-radians.)* |
+| **S4** the `unevaluated` verdict | **`RULED (owner, 2026-07-16)`** | **`defer` — explicitly NOT a failure** | `CHECKABLE:membership` | Did the wrapper return `state == "unevaluated"` (result null, reason null)? Read from the wrapper's `state` field. | **→ defer**, reported as an honest non-answer: the substrate worked correctly and this question has no closed form here. **It must NEVER be narrated as an error or a setup failure, and never leak as a QoI.** *(Probe: B1, `x**x`.)* |
+| **S4a** SymPy declining *by exception* | **`RULED (owner, 2026-07-16)`** | **a `NotImplementedError` raised by the operation call maps to `unevaluated`** | `CHECKABLE:membership` | Did the **operation call itself** raise `NotImplementedError`? Decided inside the wrapper (`call_op`), surfaced as `state == "unevaluated"` exactly like a returned decline. **The decline set is exactly that and no wider**: any other exception type, and a `NotImplementedError` raised by a *verification arm*, keep their named `error` reason. | **→ defer**, identically to S4 — a decline signalled by RAISING is still a decline. **Closes card watch 9**: `solve(cos(x) - x)` returned `error:evaluation_error` before this ruling, which is failure mode §4B (an honest non-answer dressed as a failure) *inside the wrapper* — the exact thing S4 exists to prevent. The three-state discipline is now enforced for RAISES as well as RETURNS. *(Evidence: §3A; `tests/…::TestS4aDeclineIsUnevaluated`.)* **Known edge, disclosed:** the line is drawn by exception TYPE, and SymPy's `PoleError` is not a `NotImplementedError` — so `series(gamma(x), x, oo)` stays `error` though its message reads "is not implemented". Semantically a decline; type-wise not one. Recorded, not patched. |
+| **S5** assumptions / branch cuts | **`RULED (owner, 2026-07-16)` — KNOWN GAP, advisory only** | *(no checkable bound exists)* | **JUDGMENT → KNOWN GAP** | **KNOWN GAP: whether the declared assumption set matches the caller's INTENT.** The wrapper validates that declared assumptions are allowlist members, but intent lives nowhere the wrapper or the gate can read. SymPy's defaults are COMPLEX: `sqrt(x**2)` ≠ `x`, and `log`/`sqrt` carry branch cuts. Measured: the same job returns `x*sqrt(x**2)/2` under defaults and `x**2/2` under `positive=True` — both exact. | **Advisory only, NOT enforcement.** The gate can transmit: "the answer is exact under the assumptions AS DECLARED; if the intended domain differs, the answer changes." It **may never be signed as if it were a check.** *(Probe: B5.)* |
+| **S6** cross-check agreement | **`RULED (owner, 2026-07-16)`** — 1e-8 relative, ONE constant, BOTH arms | `CROSSCHECK_AGREE_TOL = 1e-8` (relative) — scope widened session 1b: covers two arms, value unchanged | `CHECKABLE:numeric` | **Definite integrals:** is `delta / max(1, \|symbolic_value\|)` ≤ 1e-8? **ODEs with a declared `ics` (new):** is `max_relative_deviation` over the `solve_ivp` sample points ≤ 1e-8? Both read from the wrapper's `crosscheck` diagnostic. **No new provisional constant was introduced — the ODE arm reports against this same slot, so the owner rules once.** | **Agreement → corroborating EVIDENCE for the symbolic result, never independent proof.** Disagreement → a flag that one arm is wrong, resolved by a human, not by preferring the numeric arm. **Row present but bounded: Regime B (`scipy_numeric_quad`) card is QUEUED (owner ruling 2026-07-16); recorded here ONLY as the cross-check diagnostic's provisional agreement constant. quad's abserr ≠ a bound, and `solve_ivp`'s `rtol`/`atol` are error CONTROLS, not bounds — the same honest limit in a second costume.** Measured (§3A): 4 of 4 ODEs agree, worst deviation 2.90e-10. |
+
+> **Both constants (S2, S6) are now RULED and are labeled
+> `RULED (owner, 2026-07-16)` at their definition in `contract.py`.** S2 gates
+> the wrapper's `solved_verified` state; **S6 gates nothing by ruling** — it
+> labels the diagnostic arms' agreement verdict and no more. Ruled is not
+> frozen-by-accident but it is not free either: **either constant moves only by
+> a further recorded ruling**, the same discipline a frozen prompt carries.
+>
+> **Lawfulness of this session's envelope-text edit, stated rather than
+> assumed.** §3B's ruled criteria and consequences were written into
+> `contract.py`'s `envelope_text()` — *model-visible* text. That is permitted
+> **only because this substrate is UNREGISTERED and UNMEASURED**: no battery has
+> run, so there is no measurement this edit could contaminate. **Once the
+> battery runs, `envelope_text()` becomes a measurement surface under era
+> discipline** and may not be edited without opening a new era.
 
 ---
 
@@ -319,7 +410,7 @@ output), and `runtime_s`.
 | `integrate_indefinite` | differentiate the result back to the integrand | `symbolic_simplify_to_zero`, else `numeric_sampling_evalf` | `symbolic-internal` | **0.0** (2/2 verified) |
 | `diff` | central difference of the (order−1)-th derivative vs the closed form | `numeric_central_difference_lambdify_numpy` (fallback: `..._evalf_fallback`) | **`numeric-partial (lambdify+numpy)`** | **4.48e-11 – 4.05e-10** (16 samples) — **binds S2** |
 | `limit` | approach sequence toward the point at 50-digit precision | `numeric_approach_sequence_evalf` | `symbolic-internal` — **deliberately; the numpy move was measured to reject correct limits (§3A)** | **4.17e-14 – 1.67e-13** verified; **5e-07 / 1e-06 REJECTED though correct** |
-| `series` | truncation comparison near the expansion point | `numeric_truncation_comparison_lambdify_numpy` | **`numeric-partial (lambdify+numpy)`** | **0.0 – 6.55e-17** (3 samples) |
+| `series` | truncation comparison at `1e-2/1e-3/1e-4`, worst probe wins (band moved out one decade, session 1c) | `numeric_truncation_comparison_lambdify_numpy` | **`numeric-partial (lambdify+numpy)`** | **1.33e-15 – 1.65e-13** (3 samples). **Catches a wrong low/mid-order coefficient (5.0e-05 on a doubled `x**2`); BLIND to a wrong top-order one (8.3e-13)** — watch 7 |
 | `solve` | substitute each root back into the expression | `root_back_substitution` (exact zero), else `root_back_substitution_lambdify_numpy` | `symbolic-internal`, **`numeric-partial`** fallback | **0.0** on both verified samples (`x**2-5x+6`, `x**3-2x-5`); **the numpy fallback has never fired live** — every root closed symbolically. A third sample, `cos(x)-x`, returned `error` — see watch 9 |
 | `dsolve` | `checkodesol` on the returned solution | `checkodesol` (fallback: `checkodesol_numeric_fallback`) | `symbolic-internal` | **0.0** (5/5) |
 | ″ (second arm) | re-integrate `y' = f(x,y)` from the declared `ics` over `[x0, x0+1]`, compare to the closed form at 5 points | `scipy.integrate.solve_ivp` (RK45) | **`independent (solve_ivp)`** | max rel dev **3.68e-12 – 2.90e-10**, 4/4 agree; **declines without an `ics`** |
@@ -454,9 +545,13 @@ result costs the same as a solved one — SymPy spends the effort either way.
 
 **Open watches:**
 
-1. **Judgment slots S1–S6 (§3B) — ALL UNDECIDED.** Each needs an owner ruling
-   before this card advances past `drafted-by-agent`. **S3 and S5 are the
-   load-bearing pair.**
+1. **✅ Judgment slots S1–S6 + S4a — ALL RULED (owner, 2026-07-16).** Stamped in
+   §3B and in `contract.py`. **The card does NOT thereby advance past
+   `drafted-by-agent`:** the rulings decide the *bounds*; the *signature* is a
+   separate act and has not been given, so §2 still reads `unsigned`. **S3 and
+   S5 remain the load-bearing pair** — what the battery measures is whether
+   S3's consequence-carrying form transmits (watch 2), and that is now testable
+   because the ruled text reaches the gate.
 2. **The evidence-visibility hypothesis is OPEN — S3/S5 are an experiment on it.**
    R-CARD-2's measured claim is that a ruling stating its **consequence**
    transmits steadily while one stating only a criterion splits (code-C4: 9/9
@@ -494,32 +589,47 @@ result costs the same as a solved one — SymPy spends the effort either way.
    problem, not a safety one — but **A3 (`sin(x)/x`) is a favourable sample, not
    a typical one**, and session 1 measured exactly one limit. A convergence or
    extrapolation test would fix it; that is a redesign, not a re-measurement.
-7. **⚠ The `series` arm has ~7 orders of unused slack** (NEW, session 1b,
-   observation only). It probes within `1e-3…1e-5` of the expansion point, where
-   the truncation difference measures **0.0 – 6.55e-17** against a 1e-9 gate. A
-   check whose signal sits ~7 decades below its threshold cannot discriminate
-   much; whether it would catch a genuinely wrong series is **untested** — that
-   needs fault injection, which this session had no scope for.
+   **Session 1c: still NOT fixed, and now pinned as the arm's SAFE-DIRECTION
+   test** (`tests/…::test_limit_safe_direction_a_slow_correct_limit_FAILS_CLOSED`)
+   — `(exp(x)-1)/x` measures **5.00e-07** and lands `verification_failed` while
+   SymPy is exactly right. **Documented as the known, disclosed blind spot**;
+   the test exists so the failure direction can never silently flip from
+   "withholds a right answer" to "certifies a wrong one".
+7. **⚠ The `series` arm is BLIND to a wrong TOP-ORDER coefficient**
+   (session 1b's "~7 orders of unused slack" watch, now **MEASURED and
+   partially closed**, session 1c). Fault injection answered the open question:
+   the slack was real and the arm was **not discriminating at all** — a doubled
+   `x**2` coefficient scored 5.0e-11 and **passed** the 1e-9 gate. Moving the
+   probe band out one decade and reporting the **worst** probe rather than the
+   closest fixed that (5.0e-05, rejected) at no cost to correct series
+   (`log(1+x)`, the constraining case, 1.65e-13). **What remains is structural,
+   not slack:** a wrong coefficient on the **highest retained** term is
+   undetectable at any honest probe distance — catching `exp(x)`'s doubled
+   `x**5` needs `h > 0.0413` while not rejecting a correct `log(1+x)` needs
+   `h < 0.0426`, a 1.02× window that would be fitted to the test set rather
+   than a property of the method. A coefficient-wise comparison would close it;
+   that is a redesign. **The arm's honest claim is now: low- and mid-order
+   coefficient errors caught, top-order missed.**
 8. **⚠ S2's margin is 2.47×, not "far below"** (NEW, session 1b). The `diff`
    arm's truncation-dominated floor measures 4.05e-10 against `1e-9`. See §3B S2.
-9. **⚠ `solve` on a transcendental equation is classed `error`, not
-   `unevaluated`** (NEW, session 1b; found while re-measuring, **NOT fixed** —
-   out of this session's scope). Measured: `solve(cos(x) - x)` makes SymPy raise
+9. **✅ CLOSED (session 1c) — `solve` on a transcendental equation.** Raised as
+   a hole in session 1b: `solve(cos(x) - x)` makes SymPy raise
    `NotImplementedError: No algorithms are implemented to solve equation
-   -x + cos(x)`, and the wrapper's `except Exception` maps that to
-   `error:evaluation_error`. But that message is SymPy **declining**, which is
-   the definition of the `unevaluated` state — the contract's own wording is
-   "SymPy returned the operation without performing it … or `solve` returned no
-   roots". **This is failure mode §4B — an honest non-answer dressed as a
-   failure — occurring inside the wrapper, which is exactly what S4 exists to
-   prevent.** It errs safely for QoI leakage (no number escapes either way), but
-   it *slanders a correctly-working instrument*, and a gate reading
-   `evaluation_error` would reasonably conclude the substrate broke rather than
-   that the question has no closed-form answer. `x**x` (B1) takes the honest
-   path only because `integrate` **returns** an `Integral` object instead of
-   raising. **The three-state discipline is enforced for returns and not for
-   raises** — a real hole, needing an owner ruling on which exception types are
-   declines.
+   -x + cos(x)`, and the wrapper's `except Exception` mapped that to
+   `error:evaluation_error` — failure mode §4B (an honest non-answer dressed as
+   a failure) occurring **inside the wrapper**, the exact thing S4 exists to
+   prevent. **Resolved by owner ruling S4a (2026-07-16)**: a
+   `NotImplementedError` from the operation call is a **decline** → `state:
+   "unevaluated"`, result null, reason null. Implemented narrowly in `call_op`
+   (§3B S4a); measured live (§3A); pinned by
+   `tests/test_run_scipy.py::TestS4aDeclineIsUnevaluated`. **The three-state
+   discipline is now enforced for RAISES as well as RETURNS.**
+   **The one edge left open, deliberately:** the decline set is defined by
+   exception TYPE, and that line does not perfectly track the semantic one —
+   `PoleError` is not a `NotImplementedError`, so `series(gamma(x), x, oo)`
+   stays `error` while its message says "is not implemented". Watch it; do not
+   widen the set without a ruling, because widening by *message text* would be
+   far worse than the narrow type test.
 10. **Registration.** The substrate stays UNREGISTERED and UNROUTABLE; no code
    reads this card and no model sees it (R-20.5-1). Registration is a separate
    owner ruling. The staged row/schema/router fragments sit in
@@ -532,4 +642,28 @@ result costs the same as a solved one — SymPy spends the effort either way.
    the seam is named, not built. Running the battery is a separate ⚙
    owner-approved run.
 12. **Card length (drives battery cost).** See the debrief §9 for the measured
-   character/token count and the re-predicted battery wall-time.
+   character/token count and the re-predicted battery wall-time. **Session 1c:
+   `envelope_text()` grew 5,867 → 11,429 chars (~2,860 tokens)** — the cost of
+   carrying S1–S6's consequences (R-CARD-2) plus the watch-13 limits into the
+   text the gate actually reads. The growth is deliberate and is itself part of
+   what the battery measures.
+13. **⚠ NEW (session 1c) — two arms verify a DIFFERENT OBJECT than the one they
+   return.** Found by fault injection; **NOT fixed**, and *deliberately* not
+   fixed. Measured: `integrate_definite` made to return `2*pi` for an integral
+   equal to `pi` reports **`solved_verified` with residual 0.0** (the residual
+   comes from a freshly-computed antiderivative, never from the returned
+   value); `dsolve` made to return double the solution of `y'+2y=0` reports
+   **`solved_verified` with residual 0.0** (`checkodesol` verifies the equation,
+   never the declared `ics`). **In both cases the independent arm caught it** —
+   `quad` delta 3.14 / `solve_ivp` deviation 0.5, both `agrees: false`.
+   **Why not fixed:** making either arm gate would contradict the just-ruled S6
+   ("agreement is corroborating evidence, never proof; disagreement is a flag
+   resolved by a human, never by preferring the numeric arm"). The system is
+   behaving exactly as ruled — it flags. **What this costs, stated plainly:**
+   `solved_verified` + `crosscheck.agrees == false` is a **reachable**
+   combination, and for these two operations `solved_verified` means "the closed
+   form survived back-substitution", **not** "the returned value is right". A
+   reader who ignores `crosscheck.agrees` discards the only signal that survives
+   this case. **Whether the residual should verify the returned object is an
+   owner question, not an agent one** — it is the difference between a
+   diagnostic and a check, which S6 just ruled on.

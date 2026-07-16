@@ -131,9 +131,33 @@ Each is verified by back-substitution; A1 additionally by the quad cross-check.
 |---|---|---|---|---|
 | **A1** | `integrate_definite` | `x*sin(x)` on `[0, π]` | `trust` | diff-back → residual **0.0**; quad cross-check delta **0.0** |
 | **A2** | `diff` | `x**2 * exp(x)` | `trust` | central-difference spot-check → **1.83e-10** |
-| **A3** | `limit` | `sin(x)/x` as `x→0` | `trust` | approach sequence → **1.67e-13** |
-| **A4** | `dsolve` | `y' + 2y = 0`, `y(0)=3` | `trust` | `checkodesol` → **0.0** |
+| **A3** | `limit` | `sin(x)/x` as `x→0` | `trust` | approach sequence → **1.67e-13**. **⚠ A FAVOURABLE SAMPLE — see the note below.** |
+| **A4** | `dsolve` | `y' + 2y = 0`, `y(0)=3` | `trust` | `checkodesol` → **0.0**; **independent `solve_ivp` arm: max rel dev 2.31e-11, agrees — 4/4 ODEs agree, worst 2.90e-10** |
 | **A5** | `solve` | `x**2 - 5x + 6 = 0` | `trust` | root substitution → **0.0** |
+
+**A4's independent arm, in full.** A4 is one of only **two** cases in the slate
+whose operation carries an independent-ALGORITHM arm (A1's `quad` is the other).
+Because A4 declares an `ics`, `scipy.integrate.solve_ivp` (RK45) re-integrates
+`y' = -2y` from `y(0)=3` across a stated `[0, 1]` and compares to the closed form
+at 5 points **without ever consulting it**: **max relative deviation 2.31e-11,
+agrees**. Across all four ODEs measured, **4/4 agree**, worst deviation
+**2.90e-10** — and without an `ics` the arm **declines by name**
+(`attempted: false`) rather than guessing. *Honest bound (card watch 13): the arm
+is DIAGNOSTIC ONLY by ruling S6 and gates nothing, and `checkodesol` — which does
+gate — verifies the **equation**, not the declared initial condition. A4's `ics`
+is therefore checked by the arm that flags and not by the arm that gates.*
+
+**A3 is a FAVOURABLE sample of the `limit` op, and the slate should say so.**
+`sin(x)/x` converges **quadratically**, which is the only reason the arm closes
+on it at 1.67e-13. The `limit` arm's residual is `|f(probe) − L|` at a **finite**
+probe — the function's genuine remaining distance from its limit, not a
+verification error — so it only closes for quadratic-or-faster convergence, and
+correct-but-slower limits are **rejected**: `(exp(x)-1)/x` measures **5.00e-07**
+and `atan(x)→∞` **1.00e-06**, both `verification_failed` while SymPy is exactly
+right (card watch 6). **This does not touch A3** — A3's convergence is exactly
+the case the arm handles, so its `trust` expectation stands on its own
+measurement. The caveat is about **generalizing from A3 to the `limit`
+operation**, which the slate must not do: A3 measures the arm at its best.
 
 ### 4.2 Gate / clearly out-of-envelope (5) — expected `defer`
 

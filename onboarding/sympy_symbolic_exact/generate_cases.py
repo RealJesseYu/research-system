@@ -88,7 +88,7 @@ GATE_CASES = [
             "Elementary differentiation; SymPy is exact here. Verified by a "
             "numeric central-difference spot-check evaluated by numpy through "
             "lambdify — NUMERIC-PARTIAL independence (measured residual "
-            "1.8276e-10, inside the provisional VERIFY_RESIDUAL_TOL of 1e-9). "
+            "1.8276e-10, inside the RULED VERIFY_RESIDUAL_TOL of 1e-9). "
             "The diff arm is what BINDS S2: its residual is truncation-dominated "
             "and the measured worst case across 16 sampled derivatives is "
             "4.05e-10 (sin(10*x)), only 2.47x inside the tolerance."
