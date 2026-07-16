@@ -1,0 +1,1 @@
+FENICSX_RESULT {"ok": true, "tip_displacement": 0.0030078565819576172, "max_von_mises": 42457693.08777647, "dolfinx_version": "0.11.0.post0", "scalar_type": "float64", "num_cells": 8, "num_dofs": 459, "vm_space": "DG1", "solve_seconds": 0.04}

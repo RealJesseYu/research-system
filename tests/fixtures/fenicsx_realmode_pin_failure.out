@@ -1,0 +1,1 @@
+FENICSX_RESULT {"ok": false, "error": "real-mode pin FAILED: dolfinx.default_scalar_type is 'complex128' (complex build). Linear elasticity requires the real build \u2014 source /usr/local/bin/dolfinx-real-mode before solving."}

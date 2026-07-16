@@ -1,0 +1,652 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>The equations of linear elasticity &#8212; FEniCSx tutorial</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=3c74b3bc" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-codeautolink.css?v=b2176991" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=b8b12719"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'chapter2/linearelasticity';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Implementation" href="linearelasticity_code.html" />
+    <link rel="prev" title="Implementation" href="nonlinpoisson_code.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+    <meta name="docbuild:last-update" content="Jul 07, 2026"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/fenics_logo.png" class="logo__image only-light" alt="FEniCSx tutorial - Home"/>
+    <img src="../_static/fenics_logo.png" class="logo__image only-dark pst-js-only" alt="FEniCSx tutorial - Home"/>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    The FEniCSx tutorial
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../fem.html">An overview of the FEniCS Project</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="../Changelog.html">Changelog</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Fundamentals</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../chapter1/fundamentals.html">Solving the Poisson equation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../chapter1/fundamentals_code.html">Implementation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter1/complex_mode.html">The Poisson problem with complex numbers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter1/nitsche.html">Weak imposition of Dirichlet conditions for the Poisson problem</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../chapter1/membrane.html">Deflection of a membrane</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../chapter1/membrane_code.html">Implementation</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../chapter1/membrane_paraview.html">Using Paraview for visualization</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">A Gallery of finite element solvers</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">A Gallery of finite element solvers</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="heat_equation.html">The heat equation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="diffusion_code.html">Diffusion of a Gaussian function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="heat_code.html">A known analytical solution</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="singular_poisson.html">Singular Poisson problem</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="nonlinpoisson.html">A nonlinear Poisson equation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="nonlinpoisson_code.html">Implementation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">The equations of linear elasticity</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="linearelasticity_code.html">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elasticity_scaling.html">Scaling</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="navierstokes.html">The Navier-Stokes equations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="ns_code1.html">Test problem 1: Channel flow (Poiseuille flow)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ns_code2.html">Test problem 2: Flow past a cylinder (DFG 2D-3 benchmark)</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="hyperelasticity.html">Hyperelasticity</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="helmholtz.html">The Helmholtz equation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="helmholtz_code.html">Implementation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="amr.html">Adaptive mesh refinement with NetGen and DOLFINx</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Subdomains and boundary conditions</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../chapter3/neumann_dirichlet_code.html">Combining Dirichlet and Neumann conditions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter3/multiple_dirichlet.html">Setting multiple Dirichlet condition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter3/subdomains.html">Defining subdomains for different materials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter3/robin_neumann_dirichlet.html">Setting multiple Dirichlet, Neumann, and Robin conditions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter3/component_bc.html">Component-wise Dirichlet BC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter3/em.html">Electromagnetics example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter3/demo_smoothed_tv_inpainting.html">Smoothed TV image inpainting</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Improving your FEniCSx code</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../chapter4/mixed_poisson.html">Mixed Poisson with a Schur complement pre-conditioner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter4/solvers.html">Solver configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter4/compiler_parameters.html">JIT options and visualization using Pandas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter4/convergence.html">Error control: Computing convergence rates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter4/newton-solver.html">Custom Newton solvers</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/jorgensd/dolfinx-tutorial" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/jorgensd/dolfinx-tutorial/edit/release/./chapter2/linearelasticity.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/jorgensd/dolfinx-tutorial/issues/new?title=Issue%20on%20page%20%2Fchapter2/linearelasticity.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/chapter2/linearelasticity.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>The equations of linear elasticity</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-pde-problem">The PDE problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-variational-formulation">The variational formulation</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="the-equations-of-linear-elasticity">
+<h1>The equations of linear elasticity<a class="headerlink" href="#the-equations-of-linear-elasticity" title="Link to this heading">#</a></h1>
+<p>Authors: Anders Logg and Hans Petter Langtangen</p>
+<p>Analysis of structures is one of the major activities of modern engineering, which likely makes the PDE modelling the deformation of elastic bodies the most popular PDE in the world. It takes just one page of code to solve the equations of 2D or 3D elasticity in DOLFINx, and shown in this section.</p>
+<section id="the-pde-problem">
+<h2>The PDE problem<a class="headerlink" href="#the-pde-problem" title="Link to this heading">#</a></h2>
+<p>The equations governing small elastic deformations of a body <span class="math notranslate nohighlight">\(\Omega\)</span> can be written as</p>
+<div class="math notranslate nohighlight" id="equation-elasticity-pde">
+<span class="eqno">(28)<a class="headerlink" href="#equation-elasticity-pde" title="Link to this equation">#</a></span>\[\begin{split}    -\nabla \cdot \sigma (u) &amp;= f &amp;&amp; \text{in } \Omega\\
+    \sigma(u)&amp;= \lambda \mathrm{tr}(\epsilon(u))I + 2 \mu \epsilon(u)\\
+    \epsilon(u) &amp;= \frac{1}{2}\left(\nabla u + (\nabla u )^T\right)\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\sigma\)</span> is the stress tensor, <span class="math notranslate nohighlight">\(f\)</span> is the body force per unit volume, <span class="math notranslate nohighlight">\(\lambda\)</span> and <span class="math notranslate nohighlight">\(\mu\)</span> are Lamé’s elasticity parameters for the material in <span class="math notranslate nohighlight">\(\Omega\)</span>, <span class="math notranslate nohighlight">\(I\)</span> is the identity tensor, <span class="math notranslate nohighlight">\(\mathrm{tr}\)</span> is the trace operator on a tensor, <span class="math notranslate nohighlight">\(\epsilon\)</span> is the symmetric strain tensor (symmetric gradient), and <span class="math notranslate nohighlight">\(u\)</span> is the displacement vector field. Above we have assumed isotropic elastic conditions.
+By inserting <span class="math notranslate nohighlight">\(\epsilon(u)\)</span> into <span class="math notranslate nohighlight">\(\sigma\)</span> we obtain</p>
+<div class="amsmath math notranslate nohighlight" id="equation-299eb8b7-7eab-4cb7-a8c7-072cf01facba">
+<span class="eqno">(29)<a class="headerlink" href="#equation-299eb8b7-7eab-4cb7-a8c7-072cf01facba" title="Permalink to this equation">#</a></span>\[\begin{align}
+    \sigma(u)&amp;=\lambda(\nabla \cdot u)I + \mu(\nabla u + (\nabla u)^T)
+\end{align}\]</div>
+<p>Note that we could have written the PDE above as a single vector PDE for <span class="math notranslate nohighlight">\(u\)</span>, which is the governing PDE for the unknown <span class="math notranslate nohighlight">\(u\)</span> (Navier’s) equation. However, it is convenient to keep the current representation of the PDE for the derivation of the variational formulation.</p>
+</section>
+<section id="the-variational-formulation">
+<h2>The variational formulation<a class="headerlink" href="#the-variational-formulation" title="Link to this heading">#</a></h2>
+<p>The variational formulation of the PDE consists of forming the inner product of the PDE <a class="reference internal" href="#equation-elasticity-pde">(28)</a> with a <em>vector</em> test function <span class="math notranslate nohighlight">\(v\in\hat{V}\)</span>, where <span class="math notranslate nohighlight">\(\hat{V}\)</span> is a vector-valued test function space, and integrating over the domain <span class="math notranslate nohighlight">\(\Omega\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[    -\int_{\Omega}(\nabla \cdot \sigma)\cdot v ~\mathrm{d} x = \int_{\Omega} f\cdot v ~\mathrm{d} x.\]</div>
+<p>Since <span class="math notranslate nohighlight">\(\nabla \cdot \sigma\)</span> contains second-order derivatives of our unknown <span class="math notranslate nohighlight">\(u\)</span>, we integrate this term by parts</p>
+<div class="math notranslate nohighlight">
+\[    -\int_{\Omega}(\nabla \cdot \sigma)\cdot v ~\mathrm{d} x =\int_{\Omega}\sigma : \nabla v ~\mathrm{d}x - \int_{\partial\Omega} (\sigma \cdot n)\cdot v~\mathrm{d}s,\]</div>
+<p>where the colon operator is the inner product between tensors (summed pairwise product of all elements), and <span class="math notranslate nohighlight">\(n\)</span> is the outward unit normal at the boundary. The quantity <span class="math notranslate nohighlight">\(\sigma \cdot n\)</span> is known as the <em>traction</em> or stress vector at the boundary, and often prescribed as a boundary condition. We here assume that it is prescribed on a part <span class="math notranslate nohighlight">\(\partial \Omega_T\)</span> of the boundary as <span class="math notranslate nohighlight">\(\sigma \cdot n=T\)</span>. On the remaining part of the boundary, we assume that the value of the displacement is given as Dirichlet condition (and hence the boundary integral on those boundaries are <span class="math notranslate nohighlight">\(0\)</span>). We thus obtain</p>
+<div class="math notranslate nohighlight">
+\[    \int_{\Omega} \sigma : \nabla v ~\mathrm{d} x = \int_{\Omega} f\cdot v ~\mathrm{d} x + \int_{\partial\Omega_T}T\cdot v~\mathrm{d} s.\]</div>
+<p>If we now insert for <span class="math notranslate nohighlight">\(\sigma\)</span> its representation with the unknown <span class="math notranslate nohighlight">\(u\)</span>, we can obtain our variational formulation:
+Find <span class="math notranslate nohighlight">\(u\in V\)</span> such that</p>
+<div class="math notranslate nohighlight">
+\[    a(u,v) = L(v)\qquad  \forall v \in \hat{V},\]</div>
+<p>where</p>
+<div class="math notranslate nohighlight" id="equation-elasticity">
+<span class="eqno">(30)<a class="headerlink" href="#equation-elasticity" title="Link to this equation">#</a></span>\[\begin{split}    a(u,v)&amp;=\int_{\Omega}\sigma(u):\nabla v ~\mathrm{d}x\\
+    \sigma(u)&amp;=\lambda(\nabla \cdot u)I+\mu (\nabla u + (\nabla u)^T),\\
+    L(v)&amp;=\int_{\Omega}f\cdot v~\mathrm{d} x + \int_{\partial\Omega_T}T\cdot v~\mathrm{d}s.\end{split}\]</div>
+<p>One can show that the inner product of a symmetric tensor <span class="math notranslate nohighlight">\(A\)</span> and an anti-symmetric tensor <span class="math notranslate nohighlight">\(B\)</span> vanishes. If we express <span class="math notranslate nohighlight">\(\nabla v\)</span> as a sum of its symmetric and anti-symmetric parts, only the symmetric part will survive in the product <span class="math notranslate nohighlight">\(\sigma : \nabla v\)</span> since <span class="math notranslate nohighlight">\(\sigma\)</span> is a symmetric tensor. Thus replacing <span class="math notranslate nohighlight">\(\nabla v\)</span> by the symmetric gradient <span class="math notranslate nohighlight">\(\epsilon(v)\)</span> gives rise to a slightly different variational form</p>
+<div class="math notranslate nohighlight" id="equation-elasticity-alternative">
+<span class="eqno">(31)<a class="headerlink" href="#equation-elasticity-alternative" title="Link to this equation">#</a></span>\[    a(u,v)= \int_{\Omega}\sigma(u):\epsilon(v)~\mathrm{d} x,\]</div>
+<p>where <span class="math notranslate nohighlight">\(\epsilon(v)\)</span> is the symmetric part of <span class="math notranslate nohighlight">\(\nabla v\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[    \epsilon(v)=\frac{1}{2}\left(\nabla v + (\nabla v)^T\right)\]</div>
+<p>The formulation <a class="reference internal" href="#equation-elasticity-alternative">(31)</a> is what naturally arises from minimization of elastic potential energy and is a more popular formulation than <a class="reference internal" href="#equation-elasticity">(30)</a>.</p>
+</section>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./chapter2"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="nonlinpoisson_code.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Implementation</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="linearelasticity_code.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Implementation</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-pde-problem">The PDE problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-variational-formulation">The variational formulation</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Jørgen S. Dokken
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="last-updated">
+  Last updated on Jul 07, 2026.
+  <br/>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+<div class="extra_footer">
+  <div>
+    This webpage is an adaptation of <a href=https://www.springer.com/gp/book/9783319524610>The FEniCS tutorial</a> and
+    is distributed under the terms of the      <a href=http://creativecommons.org/licenses/by/4.0/>Creative Commons Attribution 4.0 International License  </a>
+    which permits use, duplication, adaptation, distribution and reproduction in any medium or format, as long as you give appropriate credit to the original author(s) and the source,
+    provide a link to the Creative Commons license and indicate if changes were made.
+</div>
+
+</div>
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

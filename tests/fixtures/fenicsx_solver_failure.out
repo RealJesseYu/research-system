@@ -1,0 +1,1 @@
+FENICSX_RESULT {"ok": false, "error": "RuntimeError: At least one cell is required."}
