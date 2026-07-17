@@ -1,0 +1,25 @@
+130 CHAPTER 7. DIODES
+effect can be activated by level=3 model parameter or by setting element parameters
+lm, wm, lp and wp. If both are given, element parameters have priority.
+With the (new in ngspice-39) OpenV AF/OSDI approach (see 13), all modern diode mod-
+els, written in Verilog-A, become available, like JUNCAP etc..
+7.2 Diode Model (D)
+Diode models may be described in the netlist input file (or an file included by .inc)
+according to the following example:
+General form:
+. model mname type ( pname1 = pval1 pname2 = pval2 ... )
+Examples:
+. model DIODE1 D ( bv =50 is =1 e -13 n =1.05)
+with a user defined model name mname, and the model type D.
+A basic model statement using only the internal default model parameters is
+Basic model statement:
+. model DMOD D
+The dc characteristics of the diode are determined by the parameters is and n. An
+ohmic resistance, rs, is included. Charge storage effects are modeled by a transit time,
+tt, and a nonlinear depletion layer capacitance that is determined by the parameters
+cjo, vj, and m. The temperature dependence of the saturation current is defined by
+the parameters eg, the energy, and xti, the saturation current temperature exponent.
+The nominal temperature where these parameters were measured is tnom, which defaults
+to the circuit-wide value specified on the .options control line. Reverse breakdown is
+modeled by an exponential increase in the reverse diode current and is determined by the
+parameters bv and ibv (both of which are positive numbers).

@@ -1,0 +1,41 @@
+590 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+to provide a way of referencing each model to all of the remaining macro values. It
+must be present in the argument list of every code model; it must also be the only
+argument present in the argument list of every code model.
+CALL_TYPE is a macro that returns one of two possible symbolic constants. These
+are EVENT and ANALOG. Testing may be performed by a model using CALL
+TYPE to determine whether it is being called by the analog simulator or the event-
+driven simulator. This will, in general, only be of value to a hybrid model such as
+the adc bridge or the dac bridge. Some expected behaviours of the code model, such
+as setting output values, depend on the CALL TYPE. For code models that request
+it (see 28.7.2.7) a third value, STEP_PENDING, is used when the call indicates
+that the simulator is about to complete an analog time step.
+INIT is an integer (int) that takes the value 1 or 0 depending on whether this is the first
+call to the code model instance or not, respectively.
+ANALYSIS is an enumerated integer that takes values of DC, AC, or TRANSIENT.
+FIRST_TIMEPOINT is an integer that takes the value 1 or 0 depending on whether
+this is the first call for this instance at the current analysis step (i.e., time-point) or
+not, respectively.
+TIME is a double representing the current analysis time in a transient analysis. T(n) is a
+double vector giving the analysis time for a specific analog time-point in a transient
+analysis, where n takes the value 0 or 1. T(0) is equal to TIME. T(1) is the last
+accepted time-point. (T(0) - T(1)) is the time-step (i.e., the delta-time value)
+associated with the current time. The T(x) macro is valid only during ANALOG
+calls (CALL TYPE == ANALOG). The difference between the TIME values in
+two successive calls to a code model function may be zero, or even negative if the
+analog simulator reduces the time-step while seeking convergence. TIME will never
+be less than any current or previous valid T(1).
+RAD_FREQ is a double representing the current analysis frequency in an AC analysis
+expressed in units of radians per second.
+TEMPERATURE is a double representing the current analysis temperature.
+CALLBACK is a variable of type Mif_Callback_t, a function pointer defined in the
+header file miftypes.h. A function may be supplied by assigning to CALLBACK
+in the INIT call to the code model. That function will then be called during re-
+set or deletion of instances of the code model. It is expected to release any extra
+resources such as dynamic memory or open files that have been allocated during
+simulation. Most code models will not need this as storage for variables allocated
+through the library are released automatically. When the function is called, the
+first argument is ARGS and the second is a reason code: currently the only value
+is MIF_CB_DESTROY. That should be checked in case new call reasons are in-
+troduced. The set of macros that can be used in the function is restricted to those
+for ports, parameters and static variables.

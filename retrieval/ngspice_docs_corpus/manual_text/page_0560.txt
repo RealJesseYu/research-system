@@ -1,0 +1,29 @@
+560 CHAPTER 26. EXECUTION PROCEDURES
+these features, there exist extensions to the ngspice capabilities that provide much more
+flexibility in describing and simulating a circuit. The following sections describe these
+capabilities, as well as the syntax required to make use of them.
+26.2.1.1 Convergence Debugging Support
+When a simulation is failing to converge, the simulator can be asked to return convergence
+diagnostic information that may be useful in identifying the areas of the circuit in which
+convergence problems are occurring. When running through the interactive user interface,
+these messages are written directly to the terminal.
+26.2.1.2 Digital Nodes
+Support is included for digital nodes that are simulated by an event-driven algorithm.
+Because the event-driven algorithm is faster than the standard SPICE matrix solution
+algorithm, and because all digital, real, int and User-Defined Node types make use of
+the event-driven algorithm, reduced simulation time for circuits that include these models
+can be anticipated compared to simulation of the same circuit using analog code models
+and nodes.
+26.2.1.3 User-Defined Nodes
+Support is provided for User Defined Nodes that operate with the event-driven algorithm.
+These nodes allow the passing of arbitrary data structures among models. The real and
+integer node types supplied with XSPICE are actually predefined User-Defined Node
+types.
+26.2.1.4 Supply Ramping
+A supply ramping function is provided by the simulator as an option to a transient analysis
+to simulate the turn-on of power supplies to a board level circuit. To enable this option, the
+compile time flag XSPICE_EXP has to be set, e.g. by adding CFLAGS="-DXSPICE_EXP"
+to the ./configure command line. The supply ramping function linearly ramps the val-
+ues of all independent sources and the capacitor and inductor code models (code model
+extension) with initial conditions toward their final value at a rate that you define. A
+complete ngspice deck example of usage of the ramptime option is shown below.

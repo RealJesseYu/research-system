@@ -1,0 +1,42 @@
+31.6. MOSFETS 711
+by University of California at Berkeley.
+31.6.9 BSIM4
+The accessible device parameters (see Chapt. 31.1 for the syntax) are listed here.
+31.6.9.1 BSIM4 accessible instance parameters
+# Name Direction Type Description
+gmbs Out real Body effect (Back gate) transconductance
+gm Out real Transconductance
+gds Out real Drain-Source conductance
+vdsat Out real Saturation voltage
+vth Out real Threshold voltage
+id Out real Drain current
+ibd Out real Diode current
+ibs Out real Diode current
+gbd Out real Diode conductance
+gbs Out real Diode conductance
+isub Out real Substrate current
+igidl Out real Gate-Induced Drain Leakage current
+igisl Out real Gate-Induced Source Leakage current
+igs Out real Gate-Source current
+igd Out real Gate-drain current
+igb Out real Gate-Bulk current
+igcs Out real
+vbs Out real Bulk-Source voltage
+vgs Out real Gate-Source voltage
+vds Out real Drain-Source voltage
+cgg Out real
+cgs Out real
+cgd Out real
+cbg Out real
+cbd Out real
+cbs Out real
+cdg Out real
+cdd Out real
+cds Out real
+csg Out real
+csd Out real
+css Out real
+cgb Out real
+cdb Out real
+csb Out real
+cbb Out real

@@ -1,0 +1,35 @@
+18.6. OUTPUT-TO-FILE OPTIONS 467
+Then print the postscript file temp.ps to the screen. This may be done by a ngspice shell
+command, depending on the operating system and the installed viewer tools (like gv or
+others):
+* for MS Windows only
+if $oscompiled = 1 | $oscompiled = 8
+shell Start /B temp.ps
+* for CYGWIN
+else
+shell gv temp.ps &
+end
+You can add color traces to it if you wish:
+.control
+set hcopydevtype=postscript
+* allow color and set background color if set to value >= 0
+set hcopypscolor=1 ; white
+set hcopypstxcolor = 3 ; blue
+* The colors of the graphs are set automatically.
+set xgridwidth=2
+set xbrushwidth=3
+run
+hardcopy temp.ps vcc coll emit
+.endc
+Then print the postscript file temp.ps to a postscript printer.
+You can also direct your output directly to a designated printer (not available in MS
+Windows):
+.control
+set hcopydevtype=postscript
+*send output to the printer kec3112-clr
+set hcopydev=kec3112-clr
+hardcopy out.tmp vcc coll emit
+.endc
+18.6.1.3 PNG
+There is no png driver integrated into ngspice. One may use the gnuplot interface (see
+18.7) to create a png file.

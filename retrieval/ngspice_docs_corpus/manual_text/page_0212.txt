@@ -1,0 +1,45 @@
+212CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Limits: -
+Vector: yes
+Vector_Bounds: [1 -]
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: den_coeff
+Description: "denominator polynomial coefficients"
+Data_Type: real
+Default_Value: -
+Limits: -
+Vector: yes
+Vector_Bounds: [1 -]
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: int_ic
+Description: "integrator stage initial conditions"
+Data_Type: real
+Default_Value: 0.0
+Limits: -
+Vector: yes
+Vector_Bounds: den_coeff
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: denormalized_freq
+Description: "denorm. corner freq.(radians) for 1 rad/s coeffs"
+Data_Type: real
+Default_Value: 1.0
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: The s-domain transfer function is a single input, single output transfer
+function in the Laplace transform variable ' s' that allows for flexible modulation of
+the frequency domain characteristics of a signal. Ac and transient simulations are
+supported. The code model may be configured to produce an arbitrary s-domain
+transfer function with the following restrictions:
+1. The degree of the numerator polynomial cannot exceed that
+of the denominator polynomial in the variable "s".
+2. The coefficients for a polynomial must be stated
+explicitly. That is, if a coefficient is zero, it must be
+included as an input to the num coeff or den coeff vector.
+The order of the coefficient parameters is from that associated with the highest-powered
+term decreasing to that of the lowest. Thus, for the coefficient parameters specified below,
+the equation in ' s' is shown:

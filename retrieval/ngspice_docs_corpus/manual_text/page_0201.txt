@@ -1,0 +1,45 @@
+12.2. ANALOG MODELS 201
+limits to resistance"
+Data_Type: real boolean
+Default_Value: 1.0 false
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Description: The Analog Switch is a resistor that varies either logarithmically or lin-
+early between specified values of a controlling input voltage or current. Note that
+the input is not internally limited when parameter limit is not given. Therefore, if
+the controlling signal exceeds the specified OFF state or ON state value, the resis-
+tance may become excessively large or excessively small (in the case of logarithmic
+dependence), or may become negative (in the case of linear dependence). For the
+experienced user, these excursions may prove valuable for modeling certain devices,
+but in most cases you are advised to add limiting of the controlling input if the
+possibility of excessive control value variation exists. Alternatively you may set
+the parameter limit to TRUE. Then the resulting resistance is limited to r_on or
+r_off if the controlling voltage exceeds the given boundaries cntl_on or cntl_off.
+At these boundaries sharp edges in the R(control) characteristics will occur which
+may lead to convergence problems.
+Example SPICE Usage:
+a8 3 %gd(6 7) switch3
+.
+.
+.model switch3 aswitch(cntl_off=0.0 cntl_on=5.0 r_off=1e6
++ r_on=10.0 log=TRUE limit=TRUE)
+12.2.12 Alternative Analog Switch
+NAME_TABLE:
+C_Function_Name: cm_pswitch
+Spice_Model_Name: pswitch
+Description: "analog switch alternative"
+PORT_TABLE:
+Port Name: cntl_in out
+Description: "input" "resistive output"
+Direction: inout inout
+Default_Type: gd gd
+Allowed_Types: [g,gd] [gd]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: cntl_off cntl_on
+Description: "control 'off' value" "control 'on' value"
+Data_Type: real real

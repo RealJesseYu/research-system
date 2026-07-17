@@ -1,0 +1,37 @@
+30.18. NBJT 655
+area, length of 1 µm and a depth automatically determined from the device doping profile.
+However, all these defaults can be overridden on an options card.
+The operating temperature of a device can be set independently from the rest of that of
+the circuit in order to simulate non-isothermal circuit operation. Finally, the name of a file
+containing an initial state for the device can be specified. Remember that if the filename
+contains capital letters, they must be protected by surrounding the filename with double
+quotes. Alternatively, the device can be placed in an OFF state (thermal equilibrium) at
+the beginning of the analysis. For more information on the use of initial conditions, see
+the ngspice User's Manual.
+In addition to the element input parameters, there are output-only parameters that can
+be shown using the SPICE show command or captured using the save/.SAVE command.
+These parameters are the elements of the indefinite conductance (G), capacitance (C), and
+admittance (Y) matrices where Y = G + jωC . By default, the parameters are computed
+at 1Hz. Each element is accessed using the name of the matrix (g, c or y) followed by
+the node indices of the output terminal and the input terminal (e.g. g11). Beware that
+parameter names are case-sensitive for save/show, so lower-case letters must be used.
+30.18.2 Parameters
+Name Type Description
+Level Integer Dimensionality of numerical model
+Area Real Multiplicative area factor
+W Real Multiplicative width factor
+Temp Real Element operating temperature
+IC.File String Initial-conditions filename
+Off Flag Device initially in OFF state
+gIJ Flag Conductance element Gij, ( Ω )
+cIJ Flag Capacitance element Cij, ( F )
+yIJ Flag Admittance element Yij, ( Ω )
+30.18.3 EXAMPLES
+A one-dimensional numerical bipolar transistor with an emitter stripe 4 times as wide as
+the default device is created using:
+Q2 1 2 3 M_BJT AREA =4
+This example saves the output conductance (go), transconductance (gm) and input con-
+ductance (gpi) of the previous transistor in that order:
+. SAVE @q2 [ g11 ] @q2 [ g12 ] @q2 [ g22 ]
+The second example is for a two-dimensional JFET with a width of 5pm and initial
+conditions obtained from file IC.jfet:

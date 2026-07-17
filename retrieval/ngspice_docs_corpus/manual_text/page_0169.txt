@@ -1,0 +1,55 @@
+11.2. MOSFET MODELS (NMOS/PMOS) 169
+Name Parameter Units l/w
+X2MS Sens. of mobility to substrate bias at
+Vds = Vdd
+cm2
+/V 2sec *
+X3MS Sens. of mobility to drain bias at Vds = Vdd cm2
+/V 2sec *
+X3U1 Sens. of velocity saturation effect on drain
+bias at Vds=Vdd
+µm/V 2 *
+TOX Gate oxide thickness µm
+TEMP Temperature where parameters were
+measured
+◦C
+VDD Measurement bias range V
+CGDO Gate-drain overlap capacitance per meter
+channel width
+F/m
+CGSO Gate-source overlap capacitance per meter
+channel width
+F/m
+CGBO Gate-bulk overlap capacitance per meter
+channel length
+F/m
+XPART Gate-oxide capacitance-charge model flag -
+N0 Zero-bias subthreshold slope coefficient - *
+NB Sens. of subthreshold slope to substrate bias - *
+ND Sens. of subthreshold slope to drain bias - *
+RSH Drain and source diffusion sheet resistance Ω/
+JS Source drain junction current density A/m2
+PB Built in potential of source drain junction V
+MJ Grading coefficient of source drain junction -
+PBSW Built in potential of source, drain junction
+sidewall
+V
+MJSW Grading coefficient of source drain junction
+sidewall
+-
+CJ Source drain junction capacitance per unit
+area
+F/m2
+CJSW source drain junction sidewall capacitance
+per unit length
+F/m
+WDF Source drain junction default width m
+DELL Source drain junction length reduction m
+xpart = 0 selects a 40/60 drain/source charge partition in saturation, while xpart=1
+selects a 0/100 drain/source charge partition. nd, ng, and ns are the drain, gate, and
+source nodes, respectively. mname is the model name, area is the area factor, and off
+indicates an (optional) initial condition on the device for dc analysis. If the area factor
+is omitted, a value of 1.0 is assumed. The (optional) initial condition specification, using
+ic=vds,vgs is intended for use with the uic option on the .tran control line, when a
+transient analysis is desired starting from other than the quiescent operating point. See
+the .ic control line for a better way to set initial conditions.

@@ -1,0 +1,33 @@
+516 CHAPTER 21. EXAMPLE CIRCUITS
+After a moment the ngspice prompt returns. Now issue the print command to examine
+the emitter, base, and collector DC bias voltages.
+ngspice 5 -> print emit base coll
+ngspice responds with:
+emit = 1.293993e+00 base = 2.074610e+00 coll = 7.003393e+00
+To run an AC analysis, enter the following command:
+ngspice 6 -> ac dec 10 0.01 100
+This command runs a small-signal swept AC analysis of the circuit to compute the magni-
+tude and phase responses. In this example, the sweep is logarithmic with 'decade' scaling,
+10 points per decade, and lower and upper frequencies of 0.01 Hz and 100 Hz. Since the
+command sweeps through a range of frequencies, the results are vectors of values and are
+examined with the plot command. Issue to the following command to plot the response
+curve at node 'coll':
+ngspice 7 -> plot coll
+This plot shows the AC gain from input to the collector. (Note that our input source in
+the circuit description 'vin' contained parameters of the form 'AC 1.0' designating that
+a unit-amplitude AC signal was applied at this point.) For plotting data from an AC
+analysis, ngspice chooses automatically a logarithmic scaling for the frequency (x) axis.
+To produce a more traditional 'Bode' gain phase plot (again with automatic logarithmic
+scaling on the frequency axis), we use the expression capability of the plot command and
+the built-in ngspice functions db( ) and ph( ):
+ngspice 8 -> plot db(coll) ph(coll)
+The last analysis supported by ngspice is a swept DC analysis. To perform this analysis,
+issue the following command:
+ngspice 9 -> dc vcc 0 15 0.1
+This command sweeps the supply voltage 'vcc' from 0 to 15 volts in 0.1 volt increments.
+To plot the results, issue the command:
+ngspice 10 -> plot emit base coll
+Finally, to exit the simulator, use the quit command, and you will be returned to the
+operating system prompt.
+ngspice 11 -> quit
+So long.

@@ -1,0 +1,35 @@
+28.8. USER-DEFINED NODE DEFINITION FILE 609
+28.8.2.10 Function udn_XXX_ipc_val
+Use STRUCT_PTR to access the value of the node data. Assign to IPC_V AL a bi-
+nary representation of the data. Typically this can be accomplished by simply assigning
+STRUCT_PTR to IPC_V AL.
+Assign to IPC_V AL_SIZE an integer representing the size of the binary data in bytes.
+28.8.3 Example UDN Definition File
+The following is an example UDN Definition File that is included with the XSPICE sys-
+tem. It illustrates the definition of the functions described above for a User-Defined Node
+type int (for integer node type), to be found in file /ngspice/src/xspice/icm/xtraevt/int/udnfunc.c.
+# include < stdio .h >
+# include " ngspice / cm . h "
+# include " ngspice / evtudn . h "
+void * tmalloc ( size_t );
+# define TMALLOC (t , n ) ( t *) tmalloc ( sizeof ( t )*( size_t )( n ))
+/* macro to ignore unused variables and parameters */
+# define NG_IGNORE ( x ) ( void ) x
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+static void u d n _ i n t _ c r e a t e ( CRE ATE _A RGS )
+{
+/* Malloc space for an int */
+MA L L O C E D _ P T R = TMALLOC ( int , 1);
+}
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+static void u d n _ i n t _ d i s m a n t l e ( D I S M A N T L E _ A R G S )
+{
+NG_IGNORE ( STRUCT_PTR );
+/* Do nothing . There are no internally malloc ' ed
+things to dismantle */
+}
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+static void u d n _ i n t _ i n i t i a l i z e ( I N I T I A L I Z E _ A R G S )
+{
+int * int_struct = ( int *) STRUCT_PTR ;
+/* Initialize to zero */

@@ -1,0 +1,48 @@
+192CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: upper_delta lower_delta
+Description: "output upper delta" "output lower delta"
+Data_Type: real real
+Default_Value: 0.0 0.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: limit_range fraction
+Description: "upper & lower sm. range" "smoothing %/abs switch"
+Data_Type: real boolean
+Default_Value: 1.0e-6 FALSE
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Description: The Controlled Limiter is a single input, single output function similar
+to the Gain Block. However, the output of the Limiter function is restricted to
+the range specified by the output lower and upper limits. This model will oper-
+ate in DC, AC, and Transient analysis modes. Note that the limit range is the
+value below the cntl_upper limit and above the cntl_lower limit at which smooth-
+ing of the output begins (minimum positive value of voltage must exist between the
+cntl_upper input and the cntl_lower input at all times). For this model, then, the
+limit range represents the delta with respect to the output level at which smooth-
+ing occurs. Thus, for an input gain of 2.0 and output limits of 1.0 and -1.0 volts,
+the output will begin to smooth out at ±0.9 volts, which occurs when the input
+value is at ±0.4. Note also that the Controlled Limiter code tests the input val-
+ues of cntl_upper and cntl_lower to make sure that they are spaced far enough
+apart to guarantee the existence of a linear range between them. The range is cal-
+culated as the difference between ( cntl_upper − upper_delta − limit_range) and
+(cntl_lower + lower_delta + limit_range) and must be greater than or equal to
+zero. Note that when the limit range is specified as a fractional value, the limit
+range used in the above is taken as the calculated fraction of the difference between
+cntl_upper and cntl_lower. Still, the potential exists for too great a limit range
+value to be specified for proper operation, in which case the model will return an
+error message.
+Example SPICE Usage:
+a6 3 6 8 4 varlimit
+.
+.
+.model varlimit climit(in_offset=0.1 gain=2.5 upper_delta=0.0
++ lower_delta=0.0 limit_range=0.10 fraction=FALSE)

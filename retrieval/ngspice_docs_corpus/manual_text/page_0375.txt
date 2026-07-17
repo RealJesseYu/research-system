@@ -1,0 +1,29 @@
+17.4. COMMAND INTERPRETATION 375
+will make tran2 the current plot). A sequence name.vector may be used to access the
+vector from a foreign plot.
+You may generate plots by yourself: setplot new will generate a new plot named un-
+known1, set curplottitle="a new plot" will set a title, set curplotname=myplot will
+set its name as a short description, set curplotdate="Sat Aug 28 10:49:42 2010" will
+set its date. Note that strings with spaces have to be given with double quotes.
+Of course the notion 'plot' will be used by this manual also in its more common meaning,
+denoting a graphics plot or being a plot command. Be careful to get the correct meaning.
+17.4 Command Interpretation
+17.4.1 On the console
+On the ngspice console window (or into the Windows GUI) you may directly type in any
+command from 17.5. Within a command sequence, Input/output redirection is available
+(see Chapt. 17.8.9 for an example) - the symbols >, >‌>, >&, >‌>&, and < have the same
+effects as in the C-shell. This I/O-redirection is internal to ngspice commands, and should
+not be mixed up with the 'external' I/O-redirection offered by the usual shells (Linux,
+MSYS etc.), see 17.5.77.
+17.4.2 Scripts
+If a word is typed as a command, and there is no built-in command with that name, the
+directories in the sourcepath list are searched in order for a file with the name given by
+the word. If it is found, it is read in as a input file (as if it were sourced). Such a file will
+often be a pure script containing only interpreter commands. Such files can be written to
+externd the command set. Full details of scripting are in ( 17.8).
+There are various command scripts installed in /usr/local/lib/spice/scripts (or
+whatever the path is on your machine), and the default sourcepath (17.7) includes this
+directory, so you can use these command files (almost) like built-in commands.
+17.4.3 Add-on to circuit file
+Probably the most common way to invoke the commands described in the following Chapt.
+17.5 is to add a .control ... .endc section to the circuit input file (see 16.4.3).

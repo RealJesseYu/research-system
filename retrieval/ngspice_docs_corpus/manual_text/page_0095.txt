@@ -1,0 +1,37 @@
+4.1. INDEPENDENT SOURCES FOR VOLTAGE OR CURRENT 95
+Name Parameter Default Value Units
+V1 Initial value - V , A
+V2 Pulsed value - V , A
+TD Delay time 0.0 sec
+TR Rise time TSTEP sec
+TF Fall time TSTEP sec
+PW Pulse width TSTOP sec
+PER Period TSTOP sec
+NP Number of Pulses *) unlimited -
+A single pulse, without repetition count or phase offset, is described by the following
+table:
+Time Value
+0 V1
+TD V1
+TD+TR V2
+TD+TR+PW V2
+TD+TR+PW+TF V1
+TSTOP V1
+Intermediate points are determined by linear interpolation.
+*) NP set to 0 or omitted denotes unlimited pulses. If compatibility mode (see 16.14.1)
+set ngbehavior=xs is set in .spiceinit, the 8th parameter is the phase of the pulse signal
+(in degrees), which results in forward running (pos. value) or a delay (neg. value) of the
+pulse sequence.
+4.1.2 Sinusoidal
+General form:
+SIN ( VO VA FREQ TD THETA PHASE )
+Examples:
+VIN 3 0 SIN (0 1 100 MEG 1 NS 1 E10 )
+Name Parameter Default Value Units
+VO Offset - V , A
+V A Amplitude - V , A
+FREQ Frequency 1/T ST OP Hz
+TD Delay 0.0 sec
+THETA Damping factor 0.0 1/sec
+PHASE Phase 0.0 degrees
+The shape of the waveform is described by the following formula:

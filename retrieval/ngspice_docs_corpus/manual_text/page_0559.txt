@@ -1,0 +1,38 @@
+26.2. CIRCUIT DESCRIPTION SYNTAX 559
+Subsequent sections of this document detail the steps required to create such a Code
+Model and include it in the XSPICE simulator.
+26.1.1.4 Node Bridge Models
+When a mixed-mode simulator is used, some method must be provided for translating
+data between the different simulation algorithms. XSPICE's Code Model support allows
+you to develop models that work under the analog simulation algorithm, the event-driven
+simulation algorithm, or both at once.
+In XSPICE, models developed for the express purpose of translating between the different
+algorithms or between different User-Defined Node types are called 'Node Bridge' models.
+For translations between the built-in analog and digital types, predefined node bridge
+models are included in the XSPICE Code Model Library.
+26.1.1.5 Practical Model Development
+In practice, developing models often involves using a combination of ngspice passive de-
+vices, device models, subcircuits, and XSPICE Code Models. XSPICE's Code Models
+may be seen as an extension to the set of device models offered in standard ngspice. The
+collection of over 40 predefined Code Models included with XSPICE provides you with
+an enriched set of modeling primitives with which to build subcircuit models. In general,
+you should first attempt to construct your models from these available primitives. This
+is often the quickest and easiest method.
+If you find that you cannot easily design a subcircuit to accomplish your goal using the
+available primitives, then you should turn to the code modeling approach. Because they
+are written in a general purpose programming language (C), code models enable you to
+simulate virtually any behavior for which you can develop a set of equations or algorithms.
+26.2 Circuit Description Syntax
+If you need to debug a simulation, if you are planning to develop your own models, or
+if you are using the XSPICE simulator through the control language user interface, you
+will need to become familiar with the circuit description language.
+The previous sections presented example circuit description input files. The following
+sections provide more detail on XSPICE circuit descriptions with particular emphasis on
+the syntax for creating and using models. First, the language and syntax of the ngspice
+simulator are described and references to additional information are given. Next, XSPICE
+extensions to the ngspice syntax are detailed. Finally, various enhancements to ngspice
+operation are discussed including polynomial sources, arbitrary phase sources, supply
+ramping, matrix conditioning, convergence options, and debugging support.
+26.2.1 XSPICE Syntax Extensions
+In the preceding discussion, ngspice syntax was reviewed, and those features of ngspice
+that are specifically supported by the XSPICE simulator were enumerated. In addition to

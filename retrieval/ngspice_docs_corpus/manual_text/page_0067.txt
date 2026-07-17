@@ -1,0 +1,7 @@
+2.13. .IF CONDITION-CONTROLLED NETLIST 67
+This card overrides the circuit temperature given in an .option line ( 15.1.1).
+2.13 .IF Condition-Controlled Netlist
+A simple .IF-.ELSE(IF) block allows condition-controlling of the netlist. boolean expression
+is any expression according to Chapt. 2.9.5 that evaluates parameters and returns a
+boolean 1 or 0. The netlist block in between the .if ... .endif statements may contain
+device instances or .model cards that are selected according to the logic condition.

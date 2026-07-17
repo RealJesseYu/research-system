@@ -1,0 +1,43 @@
+17.5. COMMANDS 405
+respectively. The xindices arguments determine what range of points are to be plotted
+- everything between the xilo'th point and the xihi'th point is plotted. The xcompress
+argument specifies that only one out of every comp points should be plotted. If an xdelta
+or a ydelta parameter is present, it specifies the spacing between grid lines on the X-
+and Y-axis. These parameter names may be abbreviated to xl, yl, xind, xcomp, xdel,
+and ydel respectively.
+The scal_expr argument(s) are expressions to use as the scale on the x-axis instead
+of the default scale for the plot. If xlog or ylog are present, then the X or Y scale,
+respectively, are logarithmic ( loglog is the same as specifying both). The xlabel and
+ylabel arguments cause the specified labels to be used for the X and Y axes, respectively.
+If samep is given, the values of the other parameters from the previous plot, hardcopy,
+or asciiplot command are used even if they are redefined on the command line.
+The title argument is used in the headline of the plot window and replaces the default
+text, which is 'actual plot: first line of input file' .
+The linear keyword is used to override a default logscale plot (as in the output for an
+AC analysis).
+The keywords linplot, combplot and pointplot select different plot styles. The keyword
+nointerp turns off interpolation of the vector data, nogrid suppresses the drawing of
+gridlines. retraceplot may be required if the scale vector (the x axis) has values which
+do not grow monothonically (e.g. plotting a circle or the hyseresis loop of a memristor).
+Without this keyword retracing values (x values moving forth and back) are suppressed.
+Finally, the keyword polar generates a polar plot. To produce a Smith plot, use the
+keyword smith. Note that the data is transformed, so for Smith plots you will see the
+data a + jb transformed to
+a = (a2 + b2 − 1)/((a + 1)2 + b2) (17.1)
+b = (2 ∗ b)/((a + 1)2 + b2) (17.2)
+To produce a polar plot with a Smith grid but without performing the Smith transform,
+use the keyword smithgrid.
+Keyword retraceplot may be useful if the x-axis values are non-monotonic. Whereas
+time is always growing monotonically, during plotting ynew vs xnew xnew may par-
+tially increase, then decrease again. If this occurs, plotting is suppressed as per default.
+retraceplot will enable plotting all data.
+If you specify plot all , all vectors (including the scale vector) are plotted versus the scale
+vector (see commands display ( 17.5.22) or setscale (17.5.74) on viewing the vectors of
+the current plot). The command plot ally will not plot the scale vector, but all other
+'real' y values. The command plot alli selects all current vectors, the command plot
+allv all voltage vectors.
+If the vector name to be plotted contains - , / or other tokens that may be taken for
+operators of an expression, and plotting fails, try enclosing the name in double quotes,
+e.g. plot "/vout" .
+Plotting of complex vectors, as may occur after an ac simulation, requires special consid-
+erations. Please see Chapt. 17.5.1 for details.

@@ -1,0 +1,40 @@
+298 CHAPTER 14. DIGITAL DEVICE MODELS
+Example: 74L V08A Quad 2-Input And Gate
+* - - - - - - - - - - - - - - - - - - - - - - - - - 74 LV08A - - - - - -
+* Quad 2 - Input And Gate
+*
+* TI PDF File
+* bss 2/21/03
+*
+. SUBCKT 74 LV08A 1 A 1 B 1 Y
++ optional : DPWR_3V = $G_DPWR_3V DGND_3V = $G_DGND_3V
++ params : MNTYMXDLY =0 IO_LEVEL =0
+U1 and (2) DPWR_3V DGND_3V
++ 1 A 1 B 1 Y
++ DLY_LV08 IO_LV - A MNTYMXDLY ={ MNTYMXDLY } IO_LEVEL ={ IO_LEVEL }
+. model DLY_LV08 ugate
++ ( tplhTY =7.5 ns tplhMX =12.3 ns tphlTY =7.5 ns tphlMX =12.3 ns )
+. ENDS 74 LV08A
+The circuit example ex4.cir in ngspice/examples/digital/digital_devices, together with
+the stimulus file ex4.stim presents a fully digital, event based full-adder simulation with
+74xx series ICs. The internal plotting capability of ngspice is used. ex5.cir with the
+stimulus file ex5.stim demonstrates the conversion of a D-Type Flip-Flop. ex283.cir is
+a 74283 4-bit full adder, with stimulus and involving GTKWave for plotting. Also, there
+are several new examples illustrating LOGICEXP and PINDLY.
+A set of such models for the 74xx devices currently supported by ngspice is available from
+the ngspice models as 74xx-models.7z, derived from the Micro-Cap library.
+14.3 Digital devices defined by a Hardware Descrip-
+tion Language
+Ngspice can make a digital device from its description in a Hardware Description Lan-
+guage, such as Verilog or VHDL. There are several ways that can be done, but the current
+Ngspice source code and binary packages have direct support for only one method: HDL
+files may be compiled by Verilator into a shared library or Windows DLL that can be
+loaded into an instance of the d_cosim XSPICE code model ( 12.4.25). (Warning: using
+multiple d_cosim instances in a circuit requires careful planning.)
+The steps for using such a digital device are these: write HDL code whose top-level module
+defines the device behaviour; the HDL file is compiled into a shared library/DLL accept-
+able by d_cosim; and the netlist contains device and model lines to include the new device
+in a circuit. Example netlist and Verilog code can be found at examples/xspice/verilator.
+The compilation step is not straightforward, as "glue code" must be added to the C++
+software created by Verilator so that it can be attached to a d_cosim instance. A script
+is provided to make this step easier:

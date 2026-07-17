@@ -1,0 +1,41 @@
+520 CHAPTER 21. EXAMPLE CIRCUITS
+21.6 Four-Bit Binary Adder (MOS)
+The following deck simulates a four-bit binary adder, using several subcircuits to describe
+various pieces of the overall circuit.
+Example:
+ADDER - 4 BIT ALL - NAND - GATE BINARY ADDER
+*** SUBCIRCUIT DEF INI TIO NS
+. SUBCKT NAND in1 in2 out VDD
+* NODES : INPUT (2) , OUTPUT , VCC
+M1 out in2 Vdd Vdd p1 W =7.5 u L =0.35 u pd =13.5 u ad =22.5 p
++ ps =13.5 u as =22.5 p
+M2 net .1 in2 0 0 n1 W =3 u L =0.35 u pd =9 u ad =9 p
++ ps =9 u as =9 p
+M3 out in1 Vdd Vdd p1 W =7.5 u L =0.35 u pd =13.5 u ad =22.5 p
++ ps =13.5 u as =22.5 p
+M4 out in1 net .1 0 n1 W =3 u L =0.35 u pd =9 u ad =9 p
++ ps =9 u as =9 p
+. ENDS NAND
+. SUBCKT ONEBIT 1 2 3 4 5 6 AND
+X2 1 7 8 6 NAND
+X3 2 7 9 6 NAND
+X4 8 9 10 6 NAND
+X5 3 10 11 6 NAND
+X6 3 11 12 6 NAND
+X7 10 11 13 6 NAND
+X8 12 13 4 6 NAND
+X9 11 7 5 6 NAND
+. ENDS ONEBIT
+. SUBCKT TWOBIT 1 2 3 4 5 6 7 8 9
+* NODES : INPUT - BIT0 (2) / BIT1 (2) , OUTPUT - BIT0 / BIT1 ,
+* CARRY - IN , CARRY - OUT , VCC
+X1 1 2 7 5 10 9 ONEBIT
+X2 3 4 10 6 8 9 ONEBIT
+. ENDS TWOBIT
+. SUBCKT FOURBIT 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+* NODES : INPUT - BIT0 (2) / BIT1 (2) / BIT2 (2) / BIT3 (2) ,
+* OUTPUT - BIT0 / BIT1 / BIT2 / BIT3 , CARRY - IN ,
+* CARRY - OUT , VCC
+X1 1 2 3 4 9 10 13 16 15 TWOBIT
+X2 5 6 7 8 11 12 16 14 15 TWOBIT
+. ENDS FOURBIT

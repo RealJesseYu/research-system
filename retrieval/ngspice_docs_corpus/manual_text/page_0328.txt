@@ -1,0 +1,29 @@
+328 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+General form 10:
+. MEASURE { DC | TRAN | AC | SP } result
++ FIND par ( ' expression ') AT = val
+The measure statement
+.measure tran vtest find par('(v(2)*v(1))') AT=2.3m
+returns the product of the two voltages at time point 2.3 ms.
+Note that a B-source, and therefore the par('...') feature, operates on values of type
+complex in AC analysis mode.
+Both param and par are not available for the meas command (17.5.47) inside of a .control
+section, where meas with par or param may be replaced by let (17.5.42).
+15.4.11 Deriv
+General form:
+. MEASURE { DC | AC | TRAN | SP } result DERIV < ATIVE >
+o u t _ v a r i a b l e
++ AT = val
+. MEASURE { DC | AC | TRAN | SP } result DERIV < ATIVE >
+o u t _ v a r i a b l e
++ WHEN o u t _ v a r i a b l e 2 = val < TD = td >
++ < CROSS =# | CROSS = LAST > < RISE =#| RISE = LAST >
++ < FALL =#| FALL = LAST >
+. MEASURE { DC | AC | TRAN | SP } result DERIV < ATIVE >
+o u t _ v a r i a b l e
++ WHEN o u t _ v a r i a b l e 2 = o u t _ v a r i a b l e 3
++ < TD = td > < CROSS =# | CROSS = LAST >
++ < RISE =#| RISE = LAST > < FALL =#| FALL = LAST >
+15.4.12 More examples
+Some other examples, also showing the use of parameters, are given below. Corresponding
+demonstration input files are distributed with ngspice in folder /examples/measure.

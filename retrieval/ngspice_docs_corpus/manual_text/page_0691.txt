@@ -1,0 +1,8 @@
+31.6. MOSFETS 691
+131 vmax InOut real Maximum carrier drift velocity
+132 xj InOut real Junction depth
+133 neff InOut real Total channel charge coeff.
+128 nfs InOut real Fast surface state density
+137 tnom InOut real Parameter measurement temperature
+139 kf InOut real Flicker noise coefficient
+140 af InOut real Flicker noise exponent

@@ -1,0 +1,51 @@
+6.2. LOSSY TRANSMISSION LINES 123
+Name Parameter Units/Type Default Example
+R resistance/length Ω/unit 0.0 0.2
+L inductance/length H/unit 0.0 9.13e-9
+G conductance/length mhos/unit 0.0 0.0
+C capacitance/length F/unit 0.0 3.65e-12
+LEN length of line unit no default 1.0
+REL breakpoint control arbitrary unit 1 0.5
+ABS breakpoint control 1 5
+NOSTEPLIMIT don't limit time-step to less
+than line delay
+flag not set set
+NO CONTROL don't do complex time-step
+control
+flag not set set
+LININTERP use linear interpolation flag not set set
+MIXEDINTERP use linear when quadratic
+seems bad
+flag not set set
+COMPACTREL special reltol for history
+compaction
+RELTOL 1.0e-3
+COMPACTABS special abstol for history
+compaction
+ABSTOL 1.0e-9
+TRUNCNR use Newton-Raphson
+method for time-step
+control
+flag not set set
+TRUNCDONTCUT don't limit time-step to
+keep impulse-response
+errors low
+flag not set set
+The following types of lines have been implemented so far:
+• RLC (uniform transmission line with series loss only),
+• RC (uniform RC line),
+• LC (lossless transmission line),
+• RG (distributed series resistance and parallel conductance only).
+Any other combination will yield erroneous results and should not be tried. The length
+LEN of the line must be specified. NOSTEPLIMIT is a flag that will remove the default
+restriction of limiting time-steps to less than the line delay in the RLC case. NO CONTROL
+is a flag that prevents the default limiting of the time-step based on convolution error
+criteria in the RLC and RC cases. This speeds up simulation but may in some cases
+reduce the accuracy of results. LININTERP is a flag that, when specified, will use linear
+interpolation instead of the default quadratic interpolation for calculating delayed signals.
+MIXEDINTERP is a flag that, when specified, uses a metric for judging whether quadratic
+interpolation is not applicable and if so uses linear interpolation; otherwise it uses the de-
+fault quadratic interpolation. TRUNCDONTCUT is a flag that removes the default cutting of
+the time-step to limit errors in the actual calculation of impulse-response related quanti-
+ties. COMPACTREL and COMPACTABS are quantities that control the compaction of the past
+history of values stored for convolution. Larger values of these lower accuracy but usually

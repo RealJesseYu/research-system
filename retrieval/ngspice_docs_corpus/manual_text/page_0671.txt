@@ -1,0 +1,35 @@
+31.3. VOLTAGE AND CURRENT SOURCES 671
+31.3.4 Fxxxx: Current-Controlled Current Source (CCCS)
+31.3.4.1 CCCS instance parameters
+# Name Direction Type Description
+1 gain InOut real Gain of source
+2 control InOut instance Name of controlling source
+6 sens_gain In flag flag to request sensitivity WRT gain
+4 neg_node Out integer Negative node of source
+3 pos_node Out integer Positive node of source
+7 i Out real CCCS output current
+9 v Out real CCCS voltage at output
+8 p Out real CCCS power
+206 sens_dc Out real dc sensitivity
+201 sens_real Out real real part of ac sensitivity
+202 sens_imag Out real imag part of ac sensitivity
+203 sens_mag Out real sensitivity of ac magnitude
+204 sens_ph Out real sensitivity of ac phase
+205 sens_cplx Out complex ac sensitivity
+31.3.5 Hxxxx: Current-Controlled Voltage Source (CCVS)
+31.3.5.1 CCVS instance parameters
+# Name Direction Type Description
+1 gain InOut real Transresistance (gain)
+2 control InOut instance Controlling voltage source
+7 sens_trans In flag flag to request sens. WRT transimpedance
+3 pos_node Out integer Positive node of source
+4 neg_node Out integer Negative node of source
+8 i Out real CCVS output current
+10 v Out real CCVS output voltage
+9 p Out real CCVS power
+206 sens_dc Out real dc sensitivity
+201 sens_real Out real real part of ac sensitivity
+202 sens_imag Out real imag part of ac sensitivity
+203 sens_mag Out real sensitivity of ac magnitude
+204 sens_ph Out real sensitivity of ac phase
+205 sens_cplx Out complex ac sensitivity

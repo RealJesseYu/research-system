@@ -1,0 +1,31 @@
+17.5. COMMANDS 401
+17.5.45 Load: Load rawfile data
+General Form:
+load [ filename ] ...
+Loads either binary or ascii format rawfile data from the files named. The default file
+name is rawspice.raw, or the argument to the -r flag if there was one.
+17.5.46 Mc_source*: Reload the circuit netlist from an internal
+storage
+General Form:
+mc_source
+Upon reading a netlist, after its preprocessing is finished, the modified netlist is stored
+internally. This command will reload this netlist and create a new circuit inside ngspice.
+This command is used in conjunction with the alterparam command.
+17.5.47 Meas*: Measurements on simulation data
+General Form (example):
+MEAS { DC | AC | TRAN | SP } result TRIG t r i g _ v a r i a b l e VAL = val < TD = td >
+< CROSS =# | CROSS = LAST > < RISE =#| RISE = LAST > < FALL =#| FALL = LAST >
+< TRIG AT = time > TARG t a r g _ v a r i a b l e VAL = val < TD = td >
+< CROSS =# | CROSS = LAST > < RISE =#| RISE = LAST >
+< FALL =#| FALL = LAST > < TRIG AT = time >
+Most of the input forms found in 15.4 may be used here with the command meas instead of
+.meas(ure). Using meas inside the .control ... .endc section offers additional features
+compared to the .meas use. meas will print the results as usual, but in addition will
+store its measurement result (typically the token result given in the command line)
+in a vector. This vector may be used in following command lines of the script as an
+input value of another command. For details of the command see Chapt. 15.4. The
+measurement type SP is only available here, because a fft command will prepare the
+data for SP measurement. Option autostop (15.1.4) is not available.
+Unfortunately par('expression ') (15.4.10, 15.6.6) and param (15.4.9) will not work here,
+i.e. inside the .control section. You may use an expression by the let command (17.5.42)
+instead, giving let vec_new = expression.

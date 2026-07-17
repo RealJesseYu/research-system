@@ -1,0 +1,45 @@
+698 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+31.6.4.2 MOS6 model parameters
+# Name Direction Type Description
+140 type Out string N-channel or P-channel MOS
+101 vto InOut real Threshold voltage
+101 vt0 InOut real
+102 kv InOut real Saturation voltage factor
+103 nv InOut real Saturation voltage coeff.
+104 kc InOut real Saturation current factor
+105 nc InOut real Saturation current coeff.
+106 nvth InOut real Threshold voltage coeff.
+107 ps InOut real Sat. current modification par.
+108 gamma InOut real Bulk threshold parameter
+109 gamma1 InOut real Bulk threshold parameter 1
+110 sigma InOut real Static feedback effect par.
+111 phi InOut real Surface potential
+112 lambda InOut real Channel length modulation param.
+113 lambda0 InOut real Channel length modulation param. 0
+114 lambda1 InOut real Channel length modulation param. 1
+115 rd InOut real Drain ohmic resistance
+116 rs InOut real Source ohmic resistance
+117 cbd InOut real B-D junction capacitance
+118 cbs InOut real B-S junction capacitance
+119 is InOut real Bulk junction sat. current
+120 pb InOut real Bulk junction potential
+121 cgso InOut real Gate-source overlap cap.
+122 cgdo InOut real Gate-drain overlap cap.
+123 cgbo InOut real Gate-bulk overlap cap.
+131 rsh InOut real Sheet resistance
+124 cj InOut real Bottom junction cap per area
+125 mj InOut real Bottom grading coefficient
+126 cjsw InOut real Side junction cap per area
+127 mjsw InOut real Side grading coefficient
+128 js InOut real Bulk jct. sat. current density
+130 ld InOut real Lateral diffusion
+129 tox InOut real Oxide thickness
+132 u0 InOut real Surface mobility
+132 uo InOut real
+133 fc InOut real Forward bias jct. fit parm.
+137 nmos In flag N type MOSfet model
+138 pmos In flag P type MOSfet model
+135 tpg InOut integer Gate type
+134 nsub InOut real Substrate doping
+136 nss InOut real Surface state density
+139 tnom InOut real Parameter measurement temperature

@@ -1,0 +1,27 @@
+Chapter 19
+ngspice as shared library or dynamic
+link library
+ngspice may be compiled as a shared library. This allows adding ngspice to an application
+that then gains control over the simulator. The shared module offers an interface that
+exports functions controlling the simulator and callback functions for feedback.
+So you may send an input 'file' with a netlist to ngspice, start the simulation in a separate
+thread, read back simulation data at each time point, stop the simulator depending on
+some condition, alter device or model parameters and then resume the simulation.
+Shared ngspice does not have any user interface. The calling process is responsible for this.
+It may offer a graphical user interface, add plotting capability or any other interactive
+element. You may develop and optimize these user interface elements without a need to
+alter the ngspice source code itself, using a console application or GUIs like gtk, Delphi,
+Qt or others.
+19.1 Compile options
+19.1.1 How to get the sources
+Currently (as of ngspice-27 being the actual release), you will have to use the direct
+loading of the sources from the git repository (see Chapt. 32.1.2).
+19.1.2 Linux, MINGW, CYGWIN
+Compilation is done as described in Chapts. 32.1 or 32.2.2. Use the configure option
+--with-ngshared instead of --with-x or --with-wingui. In addition you might add
+(optionally) --enable-relpath to avoid absolute paths when searching for code models.
+For MINGW you may edit compile_min.sh accordingly and compile using this script in
+the MSYS2 window.
+Other operation systems (Mac OS, BSD, ...) have not been tested so far. Your input is
+welcome!
+479

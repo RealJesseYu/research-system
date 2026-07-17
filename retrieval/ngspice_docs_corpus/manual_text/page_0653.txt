@@ -1,0 +1,35 @@
+30.17. NUMD 653
+30.17.2 Parameters
+Name Type Description
+Level Integer Dimensionality of numerical model
+Area Real Multiplicative area factor
+W Real Multiplicative width factor
+Temp Real Element operating temperature
+IC.File String Initial-conditions filename
+Off Flag Device initially in OFF state
+gIJ Flag Conductance element Gij, ( Ω )
+cIJ Flag Capacitance element Cij, ( F )
+yIJ Flag Admittance element Yij, ( Ω )
+30.17.3 EXAMPLES
+A one-dimensional numerical switching-diode element/model pair with an area twice that
+of the default device (which has a size of l µm x 1 µm) can be specified using:
+DSWITCH 1 2 M _ S W I T C H _ D I O D E AREA =2
+. MODEL M _ S W I T C H _ D I O D E NUMD
++ options defa =1 p ...
++ ...
+A two-dimensional two-terminal MOS capacitor with a width of 20 µm and an initial
+condition of 3 V is created by:
+DMOSCAP 11 12 M_MOSCAP W =20 um IC =3 v
+. MODEL M_MOSCAP NUMD LEVEL =2
++ options moscap defw =1 m
++ ...
+The next example shows how both the width and area factors can be used to create a
+power diode with area twice that of a 6 µm-wide device (i.e. a 12 µm-wide device). The
+device is assumed to be operating at a temperature of 100 °C:
+D1 POSN NEGN POWERMOD AREA =2 W =6 um TEMP =100.0
+. MODEL POWERMOD NUMD LEVEL =2
++ ...
+This example saves all the small-signal parameters of the previous diode:
+. SAVE @d1 [ g11 ] @d1 [ g12 ] @d1 [ g21 ] @d1 [ g22 ]
+. SAVE @d1 [ c11 ] @d1 [ c12 ] @d1 [ c21 ] @d1 [ c22 ]
+. SAVE @d1 [ y11 ] @d1 [ y12 ] @d1 [ y21 ] @d1 [ y22 ]

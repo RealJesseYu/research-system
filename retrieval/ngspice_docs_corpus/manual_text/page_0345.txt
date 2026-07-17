@@ -1,0 +1,52 @@
+16.3. COMMAND LINE OPTIONS FOR STARTING NGSPICE 345
+Option Long option Meaning
+- Don't try to load the default data file ("rawspice.raw")
+if no other files are given (ngnutmeg only).
+-n --no-spiceinit Don't try to source the file .spiceinit upon start-up.
+Normally ngspice and ngnutmeg try to find the file in
+the current directory, and if it is not found then in the
+user's home directory (obsolete).
+-t TERM --terminal=TERM The program is being run on a terminal with mfb
+name term (obsolete).
+-b --batch Run in batch mode. Ngspice reads the default input
+source (e.g. keyboard) or reads the given input file and
+performs the analyses specified; output is either
+Spice2-like line-printer plots ("ascii plots") or a ngspice
+rawfile. See the following section for details. Note that
+if the input source is not a terminal (e.g. using the IO
+redirection notation of "<") ngspice defaults to batch
+mode (-i overrides). This option is valid for ngspice
+only.
+-s --server Run in server mode. This is like batch mode, except
+that a temporary rawfile is used and then written to
+the standard output, preceded by a line with a single
+"@", after the simulation is done. This mode is used by
+the ngspice daemon. This option is valid for ngspice
+only.
+Example for using pipes from the console window:
+cat adder.cir|ngspice -s|more
+-i --interactive Run in interactive mode. This is useful if the standard
+input is not a terminal but interactive mode is desired.
+Command completion is not available unless the
+standard input is a terminal, however. This option is
+valid for ngspice only.
+-r FILE --rawfile=FILE Use rawfile as the default file into which the results of
+the simulation are saved. This option is valid for
+ngspice only.
+-p --pipe Allow a program (e.g., xcircuit) to act as a GUI
+frontend for ngspice through a pipe. Thus ngspice will
+assume that the input pipe is a tty and allow running
+in interactive mode.
+-o FILE --output=FILE All logs generated during a batch run (-b) will be saved
+in outfile.
+-h --help A short help statement of the command line syntax.
+-v --version Prints a version information.
+-a --autorun Start simulation immediately, as if a control section
+.control
+run
+.endc
+had been added to the input file.
+--soa-log=FILE output from Safe Operating Area (SOA) check
+-D --define Set a variable ( 17.8.1), to be used in a .control section.
+-D var1 will set a boolean variable named var1,
+-D var2=7 will set a variable with its value.

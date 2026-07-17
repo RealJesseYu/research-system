@@ -1,0 +1,34 @@
+17.5. COMMANDS 407
+17.5.56 Print: Print values
+General Form:
+print [ col ] [ line ] expr ...
+Prints the vector(s) described by the expression expr. If the col argument is present,
+print the vectors named side by side. If line is given, the vectors are printed horizontally.
+col is the default, unless all the vectors named have a length of one, in which case line is
+the default. The options width (default 80) and height (default 24) are effective for this
+command (see asciiplot 17.5.6). The 'more' mode is the standard mode if printing to
+the screen, that is after a number of lines given by height, and after a page break printing
+stops with request for answering the prompt by <return> (print next page), 'c' (print
+rest) or 'q' (quit printing). If everything shall be printed with stopping after each page
+(only useful in interactive mode, because need manual continuation), use the command
+set moremode before printing or put it into .spiceinit 16.6 (or spinit 16.5). If the expression
+is all, all of the vectors available are printed. Thus print col all > filename prints
+everything into the file filename in SPICE2 format. The scale vector (time, frequency)
+is always in the first column unless the variable noprintscale is true. You may use the
+vectors alli, allv, ally with the print command, but then the scale vector will not
+be printed.
+Examples:
+print all
+set width =300
+print v (1) > outfile . out
+17.5.57 Psd: power spectral density of vectors
+General Form:
+psd ave vector1 [ vector2 ] ...
+Calculate the single sided power spectral density of signals (vectors) resulting from a
+transient analysis. Windowing is available as described in the fft command ( 17.5.30).
+The FFT data are squared, summarized, weighted and printed as total noise power up to
+Nyquist frequency, and as noise voltage or current.
+ave is the number of points used for averaging and smoothing in a postprocess, useful
+for noisy data. A new plot vector is created that holds the averaged results of the FFT,
+weighted by the frequency bin. The result can be plotted and has the units V^2/Hz or
+A^2/Hz, depending on the the input vector.

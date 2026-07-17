@@ -1,0 +1,39 @@
+324 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+15.4.5 Trig Targ
+.measure according to general form 1 measures the difference in dc voltage, frequency or
+time between two points selected from one or two output vectors. The current examples
+all are using transient simulation. Measurements for tran analysis start after a delay
+time td. If you run other examples with ac simulation or spectrum analysis, time may
+be replaced by frequency, after a dc simulation the independent variable may become a
+voltage or current.
+General form 1:
+. MEASURE { DC | AC | TRAN | SP } result TRIG t r i g _ v a r i a b l e
+VAL = val
++ < TD = td > < CROSS =# | CROSS = LAST > < RISE =# | RISE = LAST >
++ < FALL =# | FALL = LAST > < TRIG AT = time > TARG
+t a r g _ v a r i a b l e
++ VAL = val < TD = td > < CROSS =# | CROSS = LAST > < RISE =# |
++ RISE = LAST > < FALL =# | FALL = LAST > < TARG AT = time >
+Measure statement example (for use in the input file given above):
+.measure tran tdiff TRIG v(1) VAL=0.5 RISE=1 TARG v(1) VAL=0.5 RISE=2
+measures the time difference between v(1) reaching 0.5 V for the first time on its first
+rising slope (TRIG) versus reaching 0.5 V again on its second rising slope (TARG), i.e.
+it measures the signal period.
+Output:
+tdiff = 1.000000e-003 targ= 1.083343e-003 trig= 8.334295e-005
+Measure statement example:
+.measure tran tdiff TRIG v(1) VAL=0.5 RISE=1 TARG v(1) VAL=0.5 RISE=3
+measures the time difference between v(1) reaching 0.5 V for the first time on its rising
+slope versus reaching 0.5 V on its rising slope for the third time (i.e. two periods).
+Measure statement:
+.measure tran tdiff TRIG v(1) VAL=0.5 RISE=1 TARG v(1) VAL=0.5 FALL=1
+measures the time difference between v(1) reaching 0.5V for the first time on its rising
+slope versus reaching 0.5 V on its first falling slope.
+Measure statement:
+.measure tran tdiff TRIG v(1) VAL=0 FALL=3 TARG v(2) VAL=0 FALL=3
+measures the time difference between v(1) reaching 0V its third falling slope versus v(2)
+reaching 0 V on its third falling slope.
+Measure statement:
+.measure tran tdiff TRIG v(1) VAL=-0.6 CROSS=1 TARG v(2) VAL=-0.8 CROSS=1
+measures the time difference between v(1) crossing -0.6 V for the first time (any slope)
+versus v(2) crossing -0.8 V for the first time (any slope).

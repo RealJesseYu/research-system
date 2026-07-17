@@ -1,0 +1,29 @@
+496CHAPTER 19. NGSPICE AS SHARED LIBRARY OR DYNAMIC LINK LIBRARY
+19.6.3 Additional callback functions
+19.6.3.1 typedef int (GetVSRCData)(double*, double, char*, int, void*)
+double* return voltage value
+double actual time
+char* node name
+int identification number of calling ngspice shared lib
+void* return pointer received from caller
+Ask for a VSRC EXTERNAL voltage value. The independent voltage source (see Chapt.
+4.1) with EXTERNAL option sets a voltage value to the node defined in the netlist and
+named here at the time returned by the simulator.
+19.6.3.2 typedef int (GetISRCData)(double*, double, char*, int, void*)
+double* return current value
+double actual time
+char* node name
+int identification number of calling ngspice shared lib
+void* return pointer received from caller
+Ask for ISRC EXTERNAL value. The independent current source (see Chapt. 4.1) with
+EXTERNAL option allows setting a current value to the node defined by the netlist and
+named here at the time returned by the simulator.
+19.6.3.3 typedef int (GetSyncData)(double, double*, double, int, void*)
+double actual time (ckt->CKTtime)
+double* delta time (ckt->CKTdelta)
+double old delta time (olddelta)
+int identification number of calling ngspice shared lib
+int location of call for synchronization in dctran.c
+void* return pointer received from caller
+Ask for new delta time depending on synchronization requirements. See 19.6.1 for an
+explanation.

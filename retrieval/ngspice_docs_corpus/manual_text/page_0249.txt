@@ -1,0 +1,43 @@
+12.3. HYBRID MODELS 249
+Limits: - [0 1]
+Vector: yes yes
+Vector_Bounds: [2 -] [2 -]
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: frequency init_phase
+Description: "oscillator frequency" "initial phase of output"
+Data_Type: real real
+Default_Value: 1e6 0
+Limits: [1e-6 -] [-180.0 +360.0]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: rise_delay fall_delay
+Description: "rise delay" "fall delay"
+Data_Type: real real
+Default_Value: 1e-9 1e-9
+Limits: [0 -] [0 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Description: The digital pulse-width modulated oscillator is a hybrid model that ac-
+cepts as control input a voltage or current. This input is compared to the voltage-
+to-duty cycle transfer characteristic specified by the cntl_array/dc_array coor-
+dinate pairs, and a duty cycle is obtained that represents a linear interpolation or
+extrapolation based on those pairs. A digital duty cycle-varying signal is then pro-
+duced. The duty cycle is limited between 0 and 1 (excluding the limits).
+The digital output waveform has rise and fall delays that can be specified inde-
+pendently. In addition, the oscillator frequency and the phase of the waveform are
+variable and user selectable.
+Example SPICE Usage:
+a5 cin dout pwm_osc
+.model pwm_osc d_pwm(cntl_array = [-2 -1.99 1.99 2]
++ dc_array = [0.01 0.01 0.99 0.99]
++ frequency = 1.2Meg init_phase = 90.0
++ rise_delay = 10e-9 fall_delay=8e-9)
+Currently there are some limits or bugs: a duty cycle < 1% or larger than 99% may
+generate false output (e.g. a 50% duty cycle signal). Sometimes spurious missing pulses
+occur. To obtain false results by extrapolation during evaluation of the cntl_array, it is
+recommended to force a flat output if input signals are above or below the outer limits of
+the cntl_array data (see the example shown above).

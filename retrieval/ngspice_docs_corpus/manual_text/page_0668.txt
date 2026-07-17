@@ -1,0 +1,11 @@
+668 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+31.3 Voltage and current sources
+31.3.1 Bxxxx - Arbitrary source (ASRC)
+31.3.1.1 ASRC instance parameters
+# Name Direction Type Description
+2 i In parsetree Current source
+1 v In parsetree Voltage source
+7 i Out real Current through source
+6 v Out real Voltage across source
+3 pos_node Out integer Positive Node
+4 neg_node Out integer Negative Node

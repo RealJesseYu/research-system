@@ -1,0 +1,29 @@
+32.3. NGSPICE COMPILATION UNDER MACOS 729
+is an example for TDM mingw, 32 Bit ngspice console. No graphics interface is pro-
+vided. A warning message will be issued upon starting ngspice. However, you may invoke
+Gnuplot for plotting (see 17.5.35).
+32.2.5 ngspice for MS Windows, cross compiled from Linux
+The ngspice main directory contains two scripts that provide cross compiling ngspice.exe
+or ngspice.dll from a Linux setup. For details and prerequisites please have a look at
+cross-compile.sh or cross-compile-shared.sh.
+32.3 Ngspice Compilation under macOS
+Basically compiling for macOS is similar to compiling for Linux. But one has to take
+the many special features of the Apple world into account. The following is just a coarse
+description of a setup and compiling, tested under Big Sur (macOS 11) on an Apple
+MacBook-Air with Intel i5 chip. I reflects my (H. Vogt) setup for achieving a complete
+compile, including all relevant ngspice options. This setup has grown over time. Please
+check, and if something is missing if you do a fresh install and compile, please let me
+know.
+32.3.1 Prerequisites
+Ngspice is written in C and thus a complete C/C++ compilation environment is needed.
+Ngspice is developed with autotools, gcc, and GNU make. The graphics interface is using
+X11. Several additional libraries have to be installed. As a first step install the Xquartz
+system, which enables X11 support. Sevral additional tools and libraries need to by
+downloaded and installed, either from Brew or MacPorts.
+Required tools are autoconf, automake, libtool, bison.
+Libraries are: readline, Xft2, Freetype, ncurses, fftw (optional), and several X11 exten-
+sions: Xaw, Xmu, Xt, Xext, Xrender, SM, ICE.
+The standard gcc provided by Apple Xcode (in fact a link to a clang/llvm compiler) does
+not (yet?) support OpenMP, so you may use gcc-11 from Homebrew.
+The following table lists the libraries required by ngspice. Libs located in /usr/local/opt/
+and the compiler gcc-11 stem from Homebrewrew, the other libs are from macPorts.

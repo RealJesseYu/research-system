@@ -1,0 +1,46 @@
+200CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+and function). In case the model is or, the largest input determines the output
+value (i.e. the or function). The inverse of these functions (i.e. nand and nor) is
+constructed by complementing the y array.
+Example SPICE Usage:
+a82 [1 0 2 0 3 0] 7 0 pwlm
+.
+.
+.model pwlm multi_input_pwl((x=[-2.0 -1.0 2.0 4.0 5.0]
++ y=[-0.2 -0.2 0.1 2.0 10.0]
++ model="and")
+12.2.11 Analog Switch
+NAME_TABLE:
+C_Function_Name: cm_aswitch
+Spice_Model_Name: aswitch
+Description: "analog switch"
+PORT_TABLE:
+Port Name: cntl_in out
+Description: "input" "resistive output"
+Direction: in out
+Default_Type: v gd
+Allowed_Types: [v,vd,i,id] [gd]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: cntl_off cntl_on
+Description: "control 'off' value" "control 'on' value"
+Data_Type: real real
+Default_Value: 0.0 1.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: r_off log
+Description: "off resistance" "log/linear switch"
+Data_Type: real boolean
+Default_Value: 1.0e12 TRUE
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: r_on limit
+Description: "on resistance" "set upper and lower

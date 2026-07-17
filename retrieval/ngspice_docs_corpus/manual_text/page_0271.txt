@@ -1,0 +1,42 @@
+12.4. DIGITAL MODELS 271
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: sr_load enable_load
+Description: "s & r input loads (F)" "enable load value (F)"
+Data_Type: real real
+Default_Value: 1.0e-12 1.0e-12
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: set_load reset_load
+Description: "set load value (F)" "reset load (F)"
+Data_Type: real real
+Default_Value: 1.0e-12 1.0e-12
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Common parameters: rise_delay, fall_delay.
+Description: The digital sr-type latch is a one-bit, level-sensitive storage element that
+will output the value dictated by the state of the s and r pins whenever the enable
+input line is high (ONE). This value is stored (i.e., held on the out line) whenever
+the enable line is low (ZERO). The particular value chosen is as shown below:
+s=ZERO, r=ZERO => out=current value (i.e., not change in output)
+s=ZERO, r=ONE => out=ZERO
+s=ONE, r=ZERO => out=ONE
+s=ONE, r=ONE => out=UNKNOWN
+Asynchronous set and reset signals exist, and each of the four methods of changing the
+stored output of the d srlatch (i.e., s/r combination changing with enable=ONE, enable
+changing to ONE from ZERO with an output-changing combination of s and r, raising
+set and raising reset) have separate delays associated with them. You may also specify
+separate rise and fall delay values that are added to those specified for the input lines;
+these allow for more faithful reproduction of the output characteristics of different IC
+fabrication technologies.
+Note that any UNKNOWN inputs other than on the s and r lines when enable=ZERO
+immediately cause the output to go UNKNOWN.
+Example SPICE Usage:
+a4 12 4 5 6 3 14 16 latch2

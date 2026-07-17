@@ -1,0 +1,28 @@
+644 CHAPTER 30. CIDER USER'S MANUAL
+mobility mat = l init elec major fieldmodel = sg
+mobility mat = l init hole major fieldmodel = sg
+mobility mat = l fieldmodel = ga
+30.11.4 SEE ALSO
+material
+30.11.5 BUGS
+The surface mobility model does not include temperature-dependence for the transverse-
+field parameters. Those parameters will need to be adjusted by hand.
+30.12 MODELS
+Specify which physical models should be simulated
+SYNOPSIS
+models [ model flags ]
+30.12.1 DESCRIPTION
+The models card indicates which physical effects should be modeled during a simulation.
+Initially, none of the effects are included. A flag can be set false by preceding by a caret.
+30.12.2 Parameters
+Name Type Description
+BGN Flag Bandgap narrowing
+SRH Flag Shockley-Reed-Hall recombination
+ConcTau Flag Concentration-dependent SRH lifetimes
+Auger Flag Auger recombination
+A valanche Flag Local avalanche generation
+TempMob Flag Temperature-dependent mobility
+ConcMob Flag Concentration-dependent mobility
+FieldMob Flag Lateral-field-dependent mobility
+TransMob Flag Transverse-field-dependent surface mobility
+SurfMob Flag Activate surface mobility model

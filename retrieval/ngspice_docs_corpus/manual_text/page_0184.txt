@@ -1,0 +1,37 @@
+184CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+.model xfer_cntl1 pwl(x_array=[-2.0 -1.0 2.0 4.0 5.0]
++ y_array=[-0.2 -0.2 0.1 2.0 10.0]
++ input_domain=0.05 fraction=TRUE)
+a8 3 %gd(6 7) switch3
+.model switch3 aswitch(cntl_off=0.0 cntl_on=5.0 r_off=1e6
++ r_on=10.0 log=TRUE)
+12.1.3 Search path for file input
+Several code models ( filesource 12.2.9, d_source 12.4.21, d_state 12.4.18) call addi-
+tional files for supply of input data. A call to file="path/filename" (or input_file=,
+state_file=) in the .model card will start a search sequence for finding the file. path
+may be an absolute path. If path is omitted or is a relative path, filename is looked for
+according to the following search list:
+Infile_Path/<path/filename> (Infile_Path is the path of the input file *.sp containing
+the netlist)
+NGSPICE_INPUT_DIR/<path/filename> (where an additional path is set by the environ-
+mental variable)
+<path/filename> (where the search is relative to the current directory (OS dependent))
+12.1.4 Code model location and assessment
+To make use of the XSPICE extensions, you have to compile ngspice accordingly (see
+Chapt. 32.1). ngspice then is prepared to load and use the code models. At the same time
+the code models are re-made. They are, however, not linked into ngspice at compile time,
+but reside in extra shared libraries or dlls, with names analog.cm, digital.cm, spice2poly.cm,
+xtradev.cm, xtraevt.cm, and table.cm. At run time, with XSPICE enabled, they are loaded
+dynamically into ngspice by the command codemodel (17.5.12). The sequence to load
+the codemodels is: Upon start-up ngspice locates, reads, and executes spinit, the standard
+initialization file (16.5). Within spinit, you will find the commands to load the codemodels,
+typically with a path for the code models relative to the current working directory (the
+location of ngspice, in case of shared ngspice the location of the caller).
+If you don't want to make use of spinit, you may run a script in ngspice, before loading
+any circuit, which contains the codemodel commands. When using shared ngspice, one
+may issue the codemodel commands directly after initialization, with absolute path or
+path relative to the current working directory.
+In a standard ngspice installation in MS Windows, the codemodels are located in ../lib/ngspice,
+e.g. in C:\Spice64\lib\ngspice (see also 32.2.1).
+In Linux, it depends on the OS invocation. In openSUSE you may find the codemodels
+in /usr/local/lib64/ngspice, while ngspice resides in /usr/local/bin.

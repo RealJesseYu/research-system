@@ -1,0 +1,20 @@
+14.3. DIGITAL DEVICES DEFINED BY A HARDW ARE DESCRIPTION LANGUAGE 299
+ngspice vlnggen source . v
+Ngspice is used to run the script, vlnggen, passing the Verilog source file, source.v, as
+input. The output will be a shared library/DLL called source.so/source.DLL that may
+be used in the netlist as:
+ahdldevice [ inputs ... ] [ outputs ... ] null dmod
+. model dmod d_cosim simulation =" some / path / source . so "
+(Here "null" represents possible "inout" ports that Verilator does not fully support.)
+Additional arguments to vlnggen may be other HDL source files or any Verilator options:
+everything is passed to Verilator. The output file is named from the first Verilog source
+file (*.v) that is listed, or is "verilated.so"/"verilated.DLL" .
+For each port type the connected event nodes are assigned to bits of the Verilog ports
+from left to right, treating ports with multiple bits as big-endian: more significant bits
+are matched first. If the number of bits of each port type do not match, a warning is
+issued and extra input or output bits will be matched with any excess inout bits, in either
+direction.
+14.3.1 Another approach
+A different method to bring HDL code into a netlist is to use Yosys to compile HDL di-
+rectly to a sub-circuit definition using XSPICE elements. It is used here. The d_process
+code model is now included in ngspice, with example netlists at examples/xspice/d_process.

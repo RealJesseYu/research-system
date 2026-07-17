@@ -1,0 +1,35 @@
+630 CHAPTER 30. CIDER USER'S MANUAL
+30.2.2 PARAMETERS
+Name Type Description Units
+Domain Integer ID number of primary domain
+Neighbor Integer ID number of neighboring domain
+X.Low Real Lowest X location of bounding box µm
+: IX.Low Integer Lowest X mesh-index of bounding box
+X.High Real Highest X location of bounding box µm
+: IX.High Integer Highest X mesh-index of bounding box
+Y.Low Real Lowest Y location of bounding box µm
+: IY.Low Integer Lowest Y mesh-index of bounding box
+Y.High Real Highest Y location of bounding box µm
+: IY.High Integer Highest Y mesh-index of bounding box
+Qf Real Fixed interface charge C/cm2
+SN Real Surface recombination velocity - electrons cm/s
+SP Real Surface recombination velocity - holes cm/s
+Layer.Width Real Width of surface layer µm
+30.2.3 EXAMPLES
+The following shows how the surface recombination velocities at an Si-SiO2 interface
+might be set:
+interface dom = l neigh =2 sn = l . Oe4 sp = l . Oe4
+In a MOSFET with a 2.0 µm gate width and 0.1 µm source and drain overlap, the surface
+channel can be restricted to the region between the metallurgical junctions and within
+100 ˙A (0.01 µm) of the interface:
+interface dom = l neigh =2 x . l = l . l x . h =2.9 layer . w =0.01
+The inversion layer width in the previous example can be automatically determined by
+setting the estimate to 0.0:
+interface dom = l neigh =% x . l = l . l x . h =2.9 layer . w =0.0
+30.3 COMMENT
+Add explanatory comments to a device definition.
+SYNOPSIS
+comment [ text ]
+* [ text ]
+$ [ text ]
+# [ text ]

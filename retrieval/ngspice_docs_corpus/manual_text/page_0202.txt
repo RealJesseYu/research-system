@@ -1,0 +1,45 @@
+202CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Default_Value: 0.0 1.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: r_off log
+Description: "off resistance" "log/linear switch"
+Data_Type: real boolean
+Default_Value: 1.0e12 TRUE
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: r_on r_cntl_in
+Description: "on resistance" "input resistance for control terminal"
+Data_Type: real real
+Default_Value: 1.0 1e12
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Description: The Alternative Analog Switch is a resistor that varies either logarithmi-
+cally or linearly between specified values of a controlling input voltage or current.
+An input resistance r_cntl_in may be specified. The output resistance is limited
+to r_on or r_off. At the control boundaries cntl_on or cntl_off the R(control)
+characteristics are slightly rounded. This behaviour is PSPICE-compatible and in-
+stances of this device are generated when parsing PSPICE netlists in compatability
+mode.
+Example SPICE Usage:
+a9 %g 13 %gd(16 17) switch4
+.
+.
+.model switch4 pswitch(cntl_off=0.0 cntl_on=5.0 r_off=1e6
++ r_on=10.0 r_cntl_in=1e11 log=TRUE)
+12.2.13 Zener Diode
+NAME_TABLE:
+C_Function_Name: cm_zener
+Spice_Model_Name: zener
+Description: "zener diode"
+PORT_TABLE:
+Port Name: z
+Description: "zener"

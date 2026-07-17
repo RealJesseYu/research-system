@@ -1,0 +1,35 @@
+582 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+Default Types
+Type Description Valid Directions
+d digital any
+g conductance (VCCS) inout
+gd differential conductance (VCCS) inout
+h resistance (CCVS) inout
+hd differential resistance (CCVS) inout
+i current in or out
+id differential current in or out
+v voltage in or out
+vd differential voltage in or out
+<identifier> user-defined type any
+Table 28.1: Port Types
+28.6.2.2 Description
+The description string is used to describe the purpose and function of the port. It is
+introduced by the Description: keyword followed by a C string literal.
+28.6.2.3 Direction
+The direction of a port specifies the data flow direction through the port. A direction
+must be one of n, out, or inout. It is introduced by the Direction: keyword followed
+by a valid direction value.
+28.6.2.4 Default Type
+The Default_Type field specifies the type of a port. These types are identical to those
+used to define the port types on a SPICE deck instance card (see Table 12.1), but without
+the percent sign (%) preceding them. Table 28.1 summarizes the allowable types.
+28.6.2.5 Allowed Types
+A port must specify the types it is allowed to assume. An allowed type value must be a list
+of type names (a blank or comma separated list of names delimited by square brackets,
+e.g. [v vd i id] or [d]). The type names must be taken from those listed in Table 28.1.
+28.6.2.6 Vector
+A port that is a vector can be thought of as a bus. The Vector field is introduced with
+the Vector: keyword followed by a Boolean value: YES, TRUE, NO or F ALSE.
+The values YES and TRUE are equivalent and specify that this port is a vector. Like-
+wise, NO and F ALSE specify that the port is not a vector. Vector ports must have a
+corresponding vector bounds field that specifies valid sizes of the vector port.

@@ -1,0 +1,39 @@
+1.2. SUPPORTED ANALYSES 41
+1.2.3 Transient Analysis
+Transient analysis is an extension of DC analysis to the time domain. A transient analysis
+first obtains a DC solution to provide a point of departure for simulating time-varying
+behavior. Once the DC solution is obtained, the time-dependent aspects of the system are
+reintroduced, and the two simulator algorithms incrementally solve for the time varying
+behavior of the entire system. Inconsistencies in node values are resolved by the two
+simulation algorithms such that the time-dependent waveforms created by the analysis are
+consistent across the entire simulated time interval. Resulting time-varying descriptions
+of node behavior for the specified time interval are accessible to you.
+All sources that are not time dependent (for example, power supplies) are set to their dc
+value. The transient time interval is specified on a .TRAN control line.
+1.2.4 Pole-Zero Analysis
+Pole-zero analysis in ngspice computes the poles and/or zeros in the small-signal ac trans-
+fer function. Ngspice first computes the dc operating point and then determines the lin-
+earized, small-signal models for all the nonlinear devices in the circuit. The small-signal
+circuit model is then used to find the poles and zeros of the transfer function. Two types
+of transfer functions are allowed: one of the form (output voltage)/(input voltage) and
+the other of the form (output voltage)/(input current). These two types of transfer func-
+tions cover all the cases and one can find the poles/zeros of functions like input/output
+impedance and voltage gain. The input and output ports are specified as two pairs of
+nodes. The pole-zero analysis works with resistors, capacitors, inductors, linear-controlled
+sources, independent sources, BJTs, MOSFETs, JFETs and diodes. Transmission lines
+are not supported.
+The method used in the analysis is a sub-optimal numerical search. For large circuits it
+may take a considerable time or fail to find all poles and zeros. Please note, that for some
+circuits, the method becomes "lost" and may find an excessive number of poles or zeros.
+1.2.5 Small-Signal Distortion Analysis
+Distortion analysis in ngspice computes steady-state harmonic and intermodulation prod-
+ucts for small input signal magnitudes. If signals of a single frequency are specified as
+the input to the circuit, the complex values of the second and third harmonics are deter-
+mined at every point in the circuit. If there are signals of two frequencies input to the
+circuit, the analysis finds out the complex values of the circuit variables at the sum and
+difference of the input frequencies, and at the difference of the smaller frequency from the
+second harmonic of the larger frequency. Distortion analysis is supported for the following
+nonlinear devices:
+• Diodes (DIO),
+• BJT,
+• JFET (level 1),

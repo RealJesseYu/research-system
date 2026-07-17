@@ -1,0 +1,38 @@
+28.7. MODEL DEFINITION FILE 591
+28.7.1.4 Parameter Data
+PARAM(gain)
+PARAM_SIZE(gain)
+PARAM_NULL(gain)
+PARAM(gain) (indexed) resolves to the value of the scalar (i.e., non-vector) parameter
+'gain' that was defined in the Interface Specification File tables. The macro evalu-
+ation has the type given in the ifspec.ifs file and can be used regardless of type. If
+'gain' is a string, then PARAM(gain) resolves to a read-only character pointer.
+PARAM_SIZE(gain) resolves to an integer (int) representing the size of the 'gain' vec-
+tor (which was dynamically determined when the SPICE deck was read). PARAM_SIZE(gain)
+is undefined if 'gain' is a scalar.
+PARAM_NULL(gain) resolves to an integer with value 0 or 1 depending on whether
+a value was specified for gain, or whether the value is defaulted, respectively.
+28.7.1.5 Port Data
+PORT_SIZE(a)
+PORT_NULL(a)
+LOAD(a)
+TOTAL_LOAD(a)
+PORT_SIZE(a) resolves to an integer (int) representing the size of the 'a' vector port
+(which was dynamically determined when the SPICE deck was read). PORT_SIZE(a)
+is undefined if gain is a scalar.
+PORT_NULL(a) resolves to an integer (int) with value 0 or 1 depending on whether
+the SPICE deck has a node specified for this port, or has specified that the port is
+null, respectively.
+LOAD(a) (indexed) is used in a digital model to post a capacitive load value to a
+particular input or output port during the INIT pass of the simulator. All values
+posted for a particular event-driven node using the LOAD() macro are summed,
+producing a total load value.
+TOTAL_LOAD(a) (indexed) returns a double value that represents the total capaci-
+tive load seen on a specified node to which a digital code model is connected. This
+information may be used after the INIT pass by the code model to modify the delays
+it posts with its output states and strengths. Note that this macro can also be used
+by non-digital event-driven code models (see LOAD(), above).
+28.7.1.6 Input Data
+INPUT(a)
+INPUT_STATE(a)
+INPUT_STRENGTH(a)

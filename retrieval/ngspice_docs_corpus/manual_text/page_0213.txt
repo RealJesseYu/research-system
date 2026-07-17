@@ -1,0 +1,44 @@
+12.2. ANALOG MODELS 213
+.model filter s_xfer(gain=0.139713
++ num_coeff=[1.0 0.0 0.7464102]
++ den_coeff=[1.0 0.998942 0.001170077]
++ int_ic=[0 0])
+It specifies a transfer function of the form
+N (s) = 0 .139713 · s2+0.7464102
+s2+0.998942s+0.00117077
+The s-domain transfer function includes gain and in_offset (input offset) parameters to
+allow for tailoring of the required signal. There are no limits on the internal signal values
+or on the output value of the s-domain transfer function, so you are cautioned to specify
+gain and coefficient values that will not cause the model to produce excessively large
+values. In AC analysis, the value returned is equal to the real and imaginary components
+of the total s-domain transfer function at each frequency of interest.
+The denormalized_freq term allows you to specify coefficients for a normalized filter
+(i.e. one in which the frequency of interest is 1 rad/s). Once these coefficients are included,
+specifying the denormalized frequency value 'shifts' the corner frequency to the actual one
+of interest. As an example, the following transfer function describes a Chebyshev low-pass
+filter with a corner (pass-band) frequency of 1 rad/s:
+N (s) = 0 .139713 · 1.0
+s2+1.09773s+1.10251
+In order to define an s_xfer model for the above, but with the corner frequency equal to
+1500 rad/s (239 Hz), the following instance and model lines would be needed:
+a12 node1 node2 cheby1
+.model cheby1 s_xfer(num_coeff=[1] den_coeff=[1 1.09773 1.10251]
++ int_ic=[0 0] denormalized_freq=1500)
+In the above, you add the normalized coefficients and scale the filter through the use of
+the denormalized freq parameter. Similar results could have been achieved by performing
+the denormalization prior to specification of the coefficients, and setting denormalized
+freq to the value 1.0 (or not specifying the frequency, as the default is 1.0 rad/s) Note in
+the above that frequencies are always specified as radians/second .
+Truncation error checking is included in the s-domain transfer block. This should pro-
+vide for more accurate simulations, since the model will inherently request smaller time
+increments between simulation points if truncation errors would otherwise be excessive.
+The int_ic parameter is an array that must be of size one less as the array of values
+specified for the den_coeff parameter. Even if a 0 start value is required, you have to
+add the specific int_ic vector to the set of coefficients (see the examples above and below).
+Example SPICE Usage:
+a14 9 22 cheby_LP_3kHz
+.
+.
+.model cheby_LP_3kHz s_xfer(in_offset=0.0 gain=1.0 int_ic=[0 0]
++ num_coeff=[1.0]
++ den_coeff=[1.0 1.42562 1.51620])

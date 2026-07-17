@@ -1,0 +1,45 @@
+12.2. ANALOG MODELS 229
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: gain
+Description: "gain"
+Data_Type: real
+Default_Value: 1.0
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: The inductance meter is a sensing device that is attached to a circuit node
+and produces as an output a scaled value equal to the total inductance seen on
+its input multiplied by the gain parameter. This model is primarily intended as a
+building block for other models that must sense an inductance value and alter their
+behavior based upon it.
+Example SPICE Usage:
+atest2 1 2 ltest
+.model ltest lmeter(gain=1.0e6)
+12.2.29 Memristor
+NAME_TABLE:
+C_Function_Name: cm_memristor
+Spice_Model_Name: memristor
+Description: "Memristor Interface"
+PORT_TABLE:
+Port_Name: memris
+Description: "memristor terminals"
+Direction: inout
+Default_Type: gd
+Allowed_Types: [gd]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: rmin rmax
+Description: "minimum resistance" "maximum resistance"
+Data_Type: real real
+Default_Value: 10.0 10000.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: rinit vt

@@ -1,0 +1,28 @@
+31.3. VOLTAGE AND CURRENT SOURCES 669
+31.3.2 Isource - Independent current source
+31.3.2.1 Isource instance parameters
+# Name Direction Type Description
+1 dc InOut real DC value of source
+2 acmag InOut real AC magnitude
+3 acphase InOut real AC phase
+5 pulse In real vector Pulse description
+6 sine In real vector Sinusoidal source description
+6 sin In real vector Sinusoidal source description
+7 exp In real vector Exponential source description
+8 pwl In real vector Piecewise linear description
+9 sffm In real vector Single freq. FM description
+21 am In real vector Amplitude modulation description
+10 neg_node Out integer Negative node of source
+11 pos_node Out integer Positive node of source
+12 acreal Out real AC real part
+13 acimag Out real AC imaginary part
+14 function Out integer Function of the source
+15 order Out integer Order of the source function
+16 coeffs Out real vector Coefficients of the source
+20 v Out real Voltage across the supply
+17 p Out real Power supplied by the source
+4 ac In real vector AC magnitude,phase vector
+1 c In real Current through current source
+22 current Out real Current in DC or Transient mode
+18 distof1 In real vector f1 input for distortion
+19 distof2 In real vector f2 input for distortion

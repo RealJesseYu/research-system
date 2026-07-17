@@ -1,0 +1,31 @@
+Chapter 18
+Ngspice User Interfaces
+ngspice offers a variety of user interfaces. For an overview (several screen shots) please
+have a look at the ngspice web page .
+18.1 MS Windows Graphical User Interface
+If compiled properly (e.g. using the --with-wingui flag for ./configure under MINGW),
+ngspice for Windows offers a simple graphical user interface. In fact this interface does
+not offer much more for data input than a console would offer, e.g. command line inputs,
+command history and program text output. First of all it applies the Windows API for
+data plotting. If you run the sample input file given below, you will get an output as
+shown in Fig. 18.1.
+Input file:
+***** Single NMOS Transistor ( Id - Vd ) , BSIM3V3
+*
+*** circuit de scr ipt ion ***
+m1 2 1 3 0 n1 L =0.6 u W =10.0 u
+vgs 1 0 3.5
+vds 2 0 3.5
+vss 3 0 0
+*
+. control
+dc vds 0 3.5 0.05 vgs 0 3.5 0.5
+plot vss # branch
+. endc
+*
+* UCB parameters BSIM3v3 .2
+. include ../ Exam_BSIM3 / Modelcards / modelcard . nmos
+. include ../ Exam_BSIM3 / Modelcards / modelcard . pmos
+*
+. end
+459

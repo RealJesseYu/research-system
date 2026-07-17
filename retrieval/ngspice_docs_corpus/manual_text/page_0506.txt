@@ -1,0 +1,43 @@
+506 CHAPTER 20. TCLSPICE
+This is the cost function optimization algorithm will try to minimize. It is a 2-norm
+(Euclidean norm) of the error across the temperature range [-25:75] °C.
+proc cost { r10 r12 } {
+tref_blt length 0
+spice :: alter r10 = $r10
+spice :: alter r12 = $r12
+foreach point [ t e m p e r a t u r e s _ b l t range 0
++ [ expr " [ t e m p e r a t u r e s _ b l t length ] - 1" ] ]
+{
++ tref_blt append [ iteration $point ]
+}
+set result [ blt :: vector expr " 1000 *
+sum (( tref_blt - e x p e c t e d _ b l t ) ^2 ) " ]
+disp_curve $r10 $r12
+return $result }
+This function displays the expected and effective value of the voltage, as well as the r10
+and r12 resistor values
+proc disp_curve { r10 r12 }
++ { . g configure - title " Valeurs optimales : R10 =
+$r10 R12 = $r12 " }
+Main loop starts here
+#
+# O p t i m i z a t i o n
+# blt :: vector create tref_tmp
+blt :: vector create tref_blt
+blt :: vector create e x p e c t e d _ b l t
+blt :: vector create t e m p e r a t u r e s _ b l t t e m p e r a t u r e s _ b l t
+append [ t e m p e r a t u r e s _ c a l c -25 75 30 ] e x p e c t e d _ b l t
+append [ tref_calc [ t e m p e r a t u r e s _ b l t range 0
++ [ expr " [ t e m p e r a t u r e s _ b l t length ] - 1" ] ]
+]
+blt :: graph . g
+pack . g - side top - fill both - expand true
+. g element create real - pixels 4 - xdata
+t e m p e r a t u r e s _ b l t
++ - ydata tref_blt
+. g element create expected - fill red - pixels 0 -
+dashes
++ dot - xdata t e m p e r a t u r e s _ b l t - ydata
+e x p e c t e d _ b l t
+Source the circuit and optimize it. The result is retrieved in the variable r10r12e and put
+into r10 and r12 with a regular expression. A bit ugly.

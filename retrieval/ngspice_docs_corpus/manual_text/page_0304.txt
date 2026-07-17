@@ -1,0 +1,40 @@
+304 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+NOOPITER Go directly to gmin stepping, skipping the first iteration.
+PIVREL=x resets the relative ratio between the largest column entry and an accept-
+able pivot value. The default value is 1.0e-3. In the numerical pivoting algo-
+rithm the allowed minimum pivot value is determined by EPSREL = AMAX1(PIVREL ·
+MAXVAL, PIVTOL) where MAXV AL is the maximum element in the column where a
+pivot is sought (partial pivoting).
+PIVTOL=x resets the absolute minimum value for a matrix entry to be accepted as a
+pivot. The default value is 1.0e-13.
+RELTOL=x resets the relative error tolerance of the program. The default value is
+0.001 (0.1%).
+RSHUNT=x introduces a resistor from each analog node to ground. The value of the
+resistor should be high enough to not interfere with circuit operations. The XSPICE
+option has to be enabled (see 32.1.8) .
+VNTOL=x resets the absolute voltage error tolerance of the program. The default value
+is 1 µV .
+15.1.2.1 Matrix Conditioning info
+In SPICE-based simulators, specific problems arise with certain circuit topologies. One
+issue is the absence of a DC path to ground at some node. This may happen when two
+capacitors are connected in series with no other connection at the common node, or when
+code models are cascaded. The result is an ill-conditioned or nearly singular matrix that
+prevents the simulation from completing. Configuring with XSPICE introduces the rshunt
+option to help eliminate this problem. The option inserts resistors to ground at all the
+analog nodes in the circuit. In general, the value of rshunt is set to some high resistance
+(e.g. 1000 MΩ or greater) so that the operation of the circuit is essentially unaffected but
+the matrix problems are corrected. If a 'no DC path to ground' or a 'matrix is nearly
+singular' error message is encountered, add the following .option card to the circuit deck:
+.option rshunt = 1.0e12
+Usually a value of 1 TΩ is sufficient to correct the problem. In bad cases one can try
+lowering the value to 10 GΩ or even 1 GΩ.
+A different matrix conditioning problem occurs if an inductor is placed in parallel to a
+voltage source. The AC simulation will fail, because it is preceded by an OP analysis.
+Option NOOPAC (15.1.3) will help if the circuit is linear. However, if the circuit is non-
+linear the OP analysis is essential. In such a case, adding a small resistor (e.g. 0.1mΩ) in
+series to the inductor will help to obtain convergence.
+.option rseries = 1.0e-4
+adds a series resistor to each inductor in the circuit. Be careful when using behavioral
+inductors (see 3.3.13), as the result may become unpredictable.
+.option cshunt = 1.3e-13
+adds a capacitor from each voltage node in the circuit to ground.

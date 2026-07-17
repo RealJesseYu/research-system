@@ -1,0 +1,39 @@
+1.1. SIMULATION ALGORITHMS 37
+suited for simulating behavioral models. Optionally, to speed up the simulation of large
+circuits with thousands of transistors, the KLU matrix solver [ 27, 28] may be selected (see
+chapter 15.1.1).
+1.1.3 Device Models for Analog Simulation
+There are three models for bipolar junction transistors, all based on the integral-charge
+model of Gummel and Poon; however, if the Gummel-Poon parameters are not specified,
+the basic model (BJT) reduces to the simpler Ebers-Moll model. In either case and in
+either model, charge storage effects, ohmic resistances, and a current-dependent output
+conductance may be included. The second bipolar model BJT2 adds dc current compu-
+tation in the substrate diode. The third model (VBIC) contains further enhancements
+for advanced bipolar devices.
+The semiconductor diode model can be used for either junction diodes or Schottky barrier
+diodes. There are two models for JFET: the first (JFET) is based on the model of
+Shichman and Hodges, the second (JFET2) is based on the Parker-Skellern model. All
+the original six MOSFET models are implemented: MOS1 is described by a square-law
+I-V characteristic, MOS2 [ 28] is an analytical model, while MOS3 [ 28] is a semi-empirical
+model; MOS6 [ 2] is a simple analytic model accurate in the short channel region; MOS9,
+is a slightly modified Level 3 MOSFET model - not to confuse with Philips level 9; BSIM
+1 [ 3, 4]; BSIM2 [ 5] are the old BSIM (Berkeley Short-channel IGFET Model) models.
+MOS2, MOS3, and BSIM include second-order effects such as channel-length modulation,
+subthreshold conduction, scattering-limited velocity saturation, small-size effects, and
+charge controlled capacitances. The recent MOS models for submicron devices are the
+BSIM3 ( Berkeley BSIM3 web page ) and BSIM4 ( Berkeley BSIM4 web page ) models.
+Silicon-on-insulator MOS transistors are described by the SOI models from the BSIMSOI
+family ( Berkeley BSIMSOI web page ) and the STAG [ 18] model. There is some support
+for a couple of HFET models and one model for MESA devices. Verilog-A models are
+made available via the OpenV AF/OSDI interface (see chapter 13).
+1.1.4 Digital Simulation
+Digital circuit simulation differs from analog circuit simulation in several respects. A
+primary difference is that a solution of Kirchhoff's laws is not required. Instead, the
+simulator must only determine whether a change in the logic state of a node has occurred
+and propagate this change to connected elements. Such a change is called an 'event' .
+When an event occurs, the simulator examines only those circuit elements that are affected
+by the event. As a result, matrix analysis is not required in digital simulators. By
+comparison, analog simulators must iteratively solve for the behavior of the entire circuit
+because of the forward and reverse transmission properties of analog components. This
+difference results in a considerable computational advantage for digital circuit simulators,
+which is reflected in the significantly greater speed of digital simulations.

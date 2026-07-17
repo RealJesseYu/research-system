@@ -1,0 +1,34 @@
+15.3. ANALYSES 321
+15.3.12 .PSS: Periodic Steady State Analysis
+Experimental code, not yet made publicly available.
+General form:
+. pss gfreq tstab oscnob psspoints harms sciter st ead yco eff < uic >
+Examples:
+. pss 150 200 e -3 2 1024 11 50 5e -3 uic
+. pss 624 e6 1 u v_plus 1024 10 150 5e -3 uic
+. pss 624 e6 500 n bout 1024 10 100 5e -3 uic
+gfreq is guessed frequency of fundamental suggested by user. When performing transient
+analysis the PSS algorithm tries to infer a new rough guess rgfreq on the fundamental.
+If gfreq is out of ±10% with respect to rgfreq then gfreq is discarded.
+tstab is stabilization time before the shooting begin to search for the PSS. It has to be
+noticed that this parameter heavily influence the possibility to reach the PSS. Thus is a
+good practice to ensure a circuit to have a right tstab, e.g. performing a separate TRAN
+analysis before to run PSS analysis.
+oscnob is the node or branch where the oscillation dynamic is expected. PSS analysis
+will give a brief report of harmonic content at this node or branch.
+psspoints is number of step in evaluating predicted period after convergence is reached.
+It is useful only in Time Domain plots. However this number should be higher than 2
+times the requested harms. Otherwise the PSS analysis will properly adjust it.
+harms number of harmonics to be calculated as requested by the user.
+sciter number of allowed shooting cycle iterations. Default is 50.
+steady_coeff is the weighting coefficient for calculating the Global Convergence Error
+(GCE), which is the reference value in order to infer is convergence is reached. The lower
+steady_coeff is set, the higher the accuracy of predicted frequency can be reached but
+at longer analysis time and sciter number. Default is 1e-3.
+uic (use initial conditions) is an optional keyword that indicates that the user does not
+want ngspice to solve for the quiescent operating point before beginning the transient
+analysis. If this keyword is specified, ngspice uses the values specified using IC=... on
+the various elements as the initial transient condition and proceeds with the analysis. If
+the .ic control line has been specified, then the node voltages on the .ic line are used to
+compute the initial conditions for the devices. Look at the description on the .ic control
+line for its interpretation when uic is not specified.

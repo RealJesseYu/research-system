@@ -1,0 +1,27 @@
+29.1. PREPROCESSOR ERROR MESSAGES 615
+The temporary file CMextern.h used in building the XSPICE simulator executable could
+not be created or opened. Check permissions on directory.
+ERROR - Problems opening CMinfo.h for write
+The temporary file CMinfo.h used in building the XSPICE simulator executable could not
+be created or opened. Check permissions on directory.
+ERROR - Problems opening objects.inc file for write
+The temporary file objects.inc used in building the XSPICE simulator executable could
+not be created or opened. Check permissions on directory.
+ERROR - Could not open input .mod file: <filename>
+The Model Definition File that contains the definition of the Code Model's behavior
+(usually cfunc.mod) was not found or could not be read.
+ERROR - Could not open output .c: <filename>
+The indicated C language file that the preprocessor creates could not be created or opened.
+Check permissions on directory.
+Error parsing .mod file: <filename>
+Problems were encountered by the preprocessor in interpreting the indicated Model Def-
+inition File.
+ERROR - File not found: <filename>
+The indicated file was not found or could not be opened.
+Error parsing interface specification file
+Problems were encountered by the preprocessor in interpreting the indicated Interface
+Specification File.
+ERROR - Can't create file: <filename>
+The indicated file could not be created or opened. Check permissions on directory.
+ERROR - write.port.info() - Number of allowed types cannot be zero
+There must be at least one port type specified in the list of allowed types.

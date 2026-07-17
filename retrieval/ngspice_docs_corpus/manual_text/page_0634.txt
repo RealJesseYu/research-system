@@ -1,0 +1,21 @@
+634 CHAPTER 30. CIDER USER'S MANUAL
+Figure 30.1: 1D doping profiles with location > 0.
+Unless otherwise specified, the added impurities are assumes to be N type. However, the
+name of a specific dopant species is needed when extracting concentration information for
+that impurity from a SUPREM3 exported file.
+Several parameters are used to adjust the basic shape of a profile functions so that the
+final, constructed profile, matches the doping profile in the real device. The constant box
+region should coincide with a region of constant concentration in the device. For uniform
+profiles its boundaries default to the mesh boundaries. For the other profiles the constant
+box starts as a point and only acquires width or height if both the appropriate edges are
+specified. The location of the peak of the primary profile can be moved away from the
+edge of the constant box. A positive location places the peak outside the constant box
+(cf. Fig. 30.1), and a negative value puts it inside the constant box (cf. Fig. 30.2).
+The concentration in the constant box is then equal to the value of the profile when it
+intersects the edge of the constant box. The argument of the profile function is a distance
+expressed in terms of the characteristic length (by default equal to 1µm). The longer this
+length, the more gradually the profile will change. For example, in Fig. 30.1 and Fig.
+30.2, the profiles marked (a) have characteristic lengths twice those of the profiles marked
+(b). The location and characteristic length for the lateral profile are multiplied by the
+lateral ratio. This allows the use of different length scales for the primary and lateral
+profiles. For rotated profiles, this scaling is taken into account, and the profile contours

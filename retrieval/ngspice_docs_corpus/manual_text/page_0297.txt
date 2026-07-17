@@ -1,0 +1,40 @@
+14.2. SUPPORT FOR STANDARD DIGITAL DEVICES 297
+INV3 inverter
+AND3 AND gate
+NAND3 NAND gate
+OR3 OR gate
+NOR3 NOR gate
+XOR3 exclusive OR gate
+NXOR3 exclusive NOR gate
+BUF3A buffer array
+INV3A inverter array
+AND3A AND gate array
+NAND3A NAND gate array
+OR3A OR gate array
+NOR3A NOR gate array
+XOR3A exclusive OR gate array
+NXOR3A exclusive NOR gate array
+Flip-flops and latches:
+DFF D-type flip-flop, positive-edge triggered
+JKFF J-K flip-flop, negative-edge triggered
+DLTCH D-type latch
+SRFF S-R flip-flop
+Delay lines:
+DLYLINE Delay line
+Behavioral primitives:
+LOGICEXP Combinational logic expressions
+PINDLY Output buffers and tristate buffers with estimated delays
+14.1.3 URC transmission line versus U devices
+For the first time ngspice may have a naming conflict, in that the reference designator U
+is used for two different devices, the Uniformly distributet RC line and the U devices, our
+digital basic types or primitives.
+U-devices require the compatibility mode flag ( 16.14.1) set to PS. In addition U devices
+are recognized only when they occur inside of a subcircuit. Finally the basic
+type (second token in the U instance line) has to fit to the list of basic types
+given in the table above.
+URC in any other case ngspice will assume an URC (uniformly distributed) trans-
+mission line.
+14.2 Support for standard digital devices
+The digital primitives (U devices) are the basic building blocks of the models for digital
+ICs used in ngspice. An example of a simple subcircuit model for a And Gate is listed
+below:

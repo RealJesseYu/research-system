@@ -1,0 +1,46 @@
+174 CHAPTER 11. MOSFETS
+Figure 11.1: VDMOS model including thermal network
+General form:
+MXXXXXXX nd ng ns mname <m = val > < temp =t > < dtemp =t >
+. model mname VDMOS < Pchan > < parameters >
+Example:
+M1 24 2 0 IXTH48P20P
+. MODEL IXTH48P20P VDMOS Pchan Vds =200 VTO = -4 KP =10 Lambda =5 m
++ Mtriode =0.3 Ksubthres =120 m Rs =10 m Rd =20 m Rds =200 e6
++ Cgdmax =6000 p Cgdmin =100 p A =0.25 Cgs =5000 p Cjo =9000 p
++ Is =2 e -6 Rb =20 m BV =200 IBV =250 e -6 NBV =4 TT =260 e -9
+VDMOS instance parameters
+Name Parameter Units Default Example
+m device multiplier - 1 -
+off Device initially off - 0
+icvds Initial D-S voltage V 0.0
+icvgs Initial G-S voltage V 0.0
+temp device temperature ◦C 27 100
+dtemp device temperature
+difference
+◦C 0.0 50
+ic Vector of D-S, G-S
+voltages
+V 0.0
+thermal Thermal model switch
+on/off
+- -
+VDMOS model parameters
+Name Parameter Units Default Example
+VDMOS select VDMOS model - must given -
+NCHAN nch type transistor - default, if not given -
+PCHAN pch type transistor - required, if PMOS -
+VTO Zero-bias threshold
+voltage ( VT 0)
+V 0.0 4
+KP Transconductance
+parameter
+A/V 2 1.0 5.9
+PHI Surface potential V
+LAMBDA Channel length
+modulation ( λ)
+1/V 0.0 0.001
+THETA Vgs influence on mobility 1/V 0.0 0.015
+RD Drain ohmic resistance Ω 0.0 61m
+RS Source ohmic resistance Ω 0.0 18m
+RG Gate ohmic resistance Ω 0.0 3

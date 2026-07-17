@@ -1,0 +1,45 @@
+2.1. GENERAL STRUCTURE AND CONVENTIONS 49
+First letter Element description Comments, links
+A XSPICE code model
+12
+analog ( 12.2)
+digital ( 12.4)
+mixed signal ( 12.3)
+B Behavioral (arbitrary) source 5.1
+C Capacitor 3.3.6
+D Diode 7
+E Voltage-controlled voltage source (VCVS) linear ( 4.2.2),
+non-linear ( 5.2)
+F Current-controlled current source (CCCs) linear ( 4.2.3)
+G Voltage-controlled current source (VCCS) linear ( 4.2.1),
+non-linear ( 5.3)
+H Current-controlled voltage source (CCVS) linear ( 4.2.4)
+I Current source 4.1
+J Junction field effect transistor (JFET) 9
+K Coupled (Mutual) Inductors 3.3.12
+L Inductor 3.3.10
+M Metal oxide field effect transistor (MOSFET)
+11
+BSIM3 ( 11.2.10)
+BSIM4 ( 11.2.11)
+N Numerical device for GSS 14
+O Lossy transmission line 6.2
+P Coupled multiconductor line (CPL) 6.4.2
+Q Bipolar junction transistor (BJT) 8
+R Resistor 3.3.1
+S Switch (voltage-controlled) 3.3.15
+T Lossless transmission line 6.1
+U Uniformly distributed RC line 6.3*
+U Basic digital building blocks using XSPICE 14*
+V Voltage source 4.1
+W Switch (current-controlled) 3.3.15
+X Subcircuit 2.5.3
+Y Single lossy transmission line (TXL) 6.4.1
+Z Metal semiconductor field effect transistor (MESFET) 10
+Table 2.1: ngspice element types
+*) For a disambiguation see chapter 14.1.3.
+2.1.4 Some naming conventions
+2.1.4.1 Lines
+Fields on a line are separated by one or more blanks, a comma, an equal ( =) sign, or a
+left or right parenthesis; extra spaces are ignored. A line may be continued by entering
+a ' +' (plus) in column 1 of the following line; ngspice continues reading beginning with

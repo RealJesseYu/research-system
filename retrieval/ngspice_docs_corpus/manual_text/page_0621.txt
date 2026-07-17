@@ -1,0 +1,34 @@
+29.3. CODE MODEL ERROR MESSAGES 621
+29.3.5 Code Model d_source
+loading_error:
+***ERROR***
+D_SOURCE: source.txt file was not read successfully.
+This message occurs whenever the d source model has experienced any difficulty in loading
+the source.txt (or user-specified) file. This will occur with any of the following problems:
+• Width of a vector line of the source file is incorrect.
+• A time-point value is duplicated or is otherwise not monotonically increasing.
+• One of the output values was not a valid 12-State value (0s, 1s, Us, 0r, 1r, Ur, 0z,
+1z, Uz, 0u, 1u, Uu).
+29.3.6 Code Model d_state
+loading_error:
+***ERROR***
+D_STATE: state.in file was not read successfully.
+The most common cause of this problem is a trailing
+blank line in the state.in file
+This error occurs when the state.in file (or user-named state machine input file) has not
+been read successfully. This is due to one of the following:
+• The counted number of tokens in one of the file's input lines does not equal that
+required to define either a state header or a continuation line (Note that all comment
+lines are ignored, so these will never cause the error to occur).
+• An output state value was defined using a symbol that was invalid (i.e., it was not
+one of the following: 0s, 1s, Us, 0r, 1r, Ur, 0z, 1z, Uz, 0u, 1u, Uu).
+• An input value was defined using a symbol that was invalid (i.e., it was not one of
+the following: 0, 1, X, or x).
+index_error:
+***ERROR***
+D_STATE: An error exists in the ordering of states values
+in the states->state[] array. This is usually caused
+by non-contiguous state definitions in the state.in file
+This error is caused by the different state definitions in the input file being non-contiguous.
+In general, it will refer to the different states not being defined uniquely, or being 'broken
+up' in some fashion within the state.in file.

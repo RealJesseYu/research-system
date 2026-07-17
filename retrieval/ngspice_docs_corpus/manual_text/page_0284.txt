@@ -1,0 +1,43 @@
+284CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Vector_Bounds: -
+Null_Allowed: no
+Description: The digital d_process model runs an external program, specified by the
+process_file parameter, to read the input signals when the clock changes to ONE
+and then produces the output signals after the clk_delay. There can be zero (null)
+or more inputs, and one or more outputs. The maximum number of inputs or out-
+puts is 255 bits wide. If a reset signal is specified and has the value ONE when
+the clock changes to ONE, the external program is notified of the reset by sending
+it a negative time value. The output signals are initialized to Uz. The strength
+(s, r, z, u) of an input signal is ignored. After time 0.0 initialization, outputs are
+driven with STRONG (s) strength. The input and output states are binary ONE
+or ZERO. If an input value is UNKNOWN (U) then a ONE or ZERO is chosen at
+random.
+The external program is started by fork/exec or spawn, and connections are es-
+tablished using pipes. The external program is written in C, and first of all, in
+main() the argc, argv parameters can be read. These command line parameters are
+those specified in the process_params field of the d_process .model statement. A
+header is sent from ngspice to the external program which acknowledges that the
+number of inputs and outputs match. Thereafter, the external program executes
+a loop: while (read data from the input pipe and if it is OK) { compute output
+data for that input write the output data to the output pipe } In the meantime
+the cm_d_process code in ngspice is writing data to its output pipe at each clock
+change to ONE, then reading on its input pipe the response from the external pro-
+gram.
+Please see examples/xspice/d_process for a simple example and study the source
+code in the .c files. The d_process model was developed by Uros Platise and he has
+provided a non-trivial example and detailed descriptions at:
+https://www.isotel.eu/mixedsim/embedded/motorforce/index.html.
+Example SPICE Usage:
+a1 [d1] clk1 reset1 [o1 o2 o3 o4] proc1
+.model proc1 d_process (process_file="prog1in4out"
++ clk_delay = 2.5e-9)
+12.4.25 d_cosim
+NAME_TABLE:
+Spice_Model_Name: d_cosim
+C_Function_Name: ucm_d_cosim
+Description: "Bridge to an irreversible digital model"
+PORT_TABLE:
+Port_Name: d_in
+Description: "digital input"
+Direction: in
+Default_Type: d

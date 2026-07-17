@@ -1,0 +1,64 @@
+166 CHAPTER 11. MOSFETS
+Name Parameter Units Default Example
+CGDO Gate-drain overlap
+capacitance per meter
+channel width
+F/m 0.0 4.0e-11
+CGBO Gate-bulk overlap
+capacitance per meter
+channel width
+F/m 0.0 2.0e-11
+RSH Drain and source diffusion
+sheet resistance
+Ω/ 0.0 10
+CJ Zero-bias bulk junction
+bottom cap. per sq-meter
+of junction area
+F/m2 0.0 2.0e-4
+MJ Bulk junction bottom
+grading coeff.
+- 0.5 0.5
+CJSW Zero-bias bulk junction
+sidewall cap. per meter of
+junction perimeter
+F/m 0.0 1.0e-9
+MJSW Bulk junction sidewall
+grading coeff.
+- 0.50 (level1)
+0.33 (level2 , 3)
+JS Bulk junction saturation
+current
+TOX Oxide thickness m 1.0e-7 1.0e-7
+NSUB Substrate doping cm−3 0.0 4.0e15
+NSS Surface state density cm−2 0.0 1.0e10
+NFS Fast surface state density cm−2 0.0 1.0e10
+TPG Type of gate material: +1
+opp. to substrate, -1 same
+as substrate, 0 Al gate
+- 1.0
+XJ Metallurgical junction
+depth
+m 0.0 1M
+LD Lateral diffusion m 0.0 0.8M
+UO Surface mobility cm2
+/V ·sec 600 700
+UCRIT Critical field for mobility
+degradation (MOS2 only)
+V/cm 1.0e4 1.0e4
+UEXP Critical field exponent in
+mobility degradation
+(MOS2 only)
+- 0.0 0.1
+UTRA Transverse field coeff.
+(mobility) (deleted for
+MOS2)
+- 0.0 0.3
+VMAX Maximum drift velocity of
+carriers
+m/s 0.0 5.0e4
+NEFF Total channel-charge
+(fixed and mobile)
+coefficient (MOS2 only)
+- 1.0 5.0
+KF Flicker noise coefficient - 0.0 1.0e-26
+AF Flicker noise exponent - 1.0 1.2

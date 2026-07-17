@@ -1,0 +1,36 @@
+440 CHAPTER 17. INTERACTIVE INTERPRETER
+pointchars Set a string as a list of characters to be used as points in a point plot.
+Standard is 'ox*+#abcdefhgijklmnpqrstuvwyz' . Some characters are forbidden.
+polydegree The degree of the polynomial that the plot command should fit to the data.
+If polydegree is N, then ngspice fits a degree N polynomial to every set of N points
+and draws 10 intermediate points in between each end point. If the points aren't
+monotonic, then ngspice tries to rotate the curve and reduce the degree until a fit
+is achieved.
+polysteps The number of points to interpolate between every pair of points available
+when doing curve fitting. The default is 10.
+program The name of the current program ( argv[0]).
+prompt The prompt, with the character ' !' replaced by the current event number. Sin-
+gle quotes ' ' are required around the specified string unless you really want it
+expanded.
+rawfile The default name for created rawfiles.
+remote_shell Overrides the name used for generating rspice runs (default is rsh).
+renumber Renumber input lines when an input file has .includes.
+rndseed Seed value for random number generator (used by sgauss, sunif, and rnd
+functions). It is set by the option command ' option seed=val|random ' .
+rhost The machine to use for remote ngspice runs, instead of the default one (see the
+description of the rspice command, below).
+rprogram The name of the remote program to use in the rspice command.
+sharedmode Variable is set when ngspice runs in its shared mode (from ngspice.dll or
+ngspice_xx.so). May be used in universal input files to suppress plotting because a
+graphics interface is lacking.
+shellstatus Contains the status returned by the last "shell" command.
+silent_fileio If set, the fopen and fread commands do not print error messages. Errors
+are still reported by setting a variable.
+sim_status will bet set to 0 when the simulation starts. If there is an error and the
+simulation fails with 'xx simulation(s) aborted', then sim_status is set to 1. The
+variable can be used in scripted loops within a transient simulation to allow special
+handling e.g. in case of non-convergence.
+skywaterpdk will speed up the loading of large PDKs (tested with Skywater 130) by
+avoiding some checks during library loading. When set, ngspice assumes that all
+MOS devices have exactly 4 terminals. It does not look for unquoted parameters,
+so assumes that all parameters are quoted correctly by { } or ' ' .

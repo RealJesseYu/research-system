@@ -1,0 +1,36 @@
+15.3. ANALYSES 317
+15.3.9 .TF: Transfer Function Analysis
+General form:
+. tf outvar insrc
+Examples:
+. tf v (5 , 3) VIN
+. tf i ( VLOAD ) VIN
+The .tf line defines the small-signal output and input for the dc small-signal analysis.
+outvar is the small signal output variable and insrc is the small-signal input source. If
+this line is included, ngspice computes the dc small-signal value of the transfer function
+(output/input), input resistance, and output resistance. For the first example, ngspice
+would compute the ratio of V(5, 3) to VIN, the small-signal input resistance at VIN, and
+the small signal output resistance measured across nodes 5 and 3.
+15.3.10 .TRAN: Transient Analysis
+General form:
+. tran tstep tstop < tstart < tmax > > < uic >
+Examples:
+. tran 1 ns 100 ns
+. tran 1 ns 1000 ns 500 ns
+. tran 10 ns 1 us
+tstep is the printing or plotting increment for line-printer output. For use with the
+post-processor, tstep is the suggested computing increment. tstop is the final time, and
+tstart is the initial time. If tstart is omitted, it is assumed to be zero. The transient
+analysis always begins at time zero. In the interval [zero, tstart), the circuit is analyzed
+(to reach a steady state), but no outputs are stored. In the interval [ tstart, tstop], the
+circuit is analyzed and outputs are stored. tmax is the maximum stepsize that ngspice
+uses; for default, the program chooses either tstep or (tstop-tstart)/50.0, whichever is
+smaller. tmax is useful when one wishes to guarantee a computing interval that is smaller
+than the printer increment, tstep.
+An initial transient operating point at time zero is calculated according to the following
+procedure: all independent voltages and currents are applied with their time zero values,
+all capacitances are opened, inductances are shorted, the non linear device equations are
+solved iteratively.
+uic (use initial conditions) is an optional keyword that indicates that the user does not
+want ngspice to solve for the quiescent operating point before beginning the transient
+analysis. If this keyword is specified, ngspice uses the values specified using IC=... on the

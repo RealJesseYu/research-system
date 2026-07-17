@@ -1,0 +1,39 @@
+17.5. COMMANDS 429
+First vectors are grouped together by plots, and written out as such (i.e. if the expression
+list contained three vectors from one plot and two from another, then two plots are
+written, one with three vectors and one with two). Additionally, if the scale for a vector
+isn't present it is automatically written out as well.
+The default format is a compact binary, but this can be changed to ASCII with the set
+filetype=ascii command. The default file name is either rawspice.raw or the argument
+of the optional -r flag on the command line, and the default expression list is all.
+If variable appendwrite is set, the data may be added to an existing file.
+17.5.105 Wrnodev: Write node voltage values to a file (.ic=xx
+format)
+General Form:
+wrnodev [ file ]
+Writes out the values of all voltage nodes to file. The format is .ic=xx. Thus the file
+may be included into another simulation of the same circuit and deliver initial conditions
+for all voltage nodes. For example you may start a transient simulation, stop it and use
+the current data to start an ac simulation.
+output example:
+* I n t e r m e d i a t e Transient Solution
+* Circuit : KiCad schematic
+* Recorded at simulation time : 3.9
+. ic v ( net - _d1a1 - pad2_ ) = -31.2016
+. ic v ( -32) = -32
+. ic v ( out ) = -0.267414
+. ic v ( net - _q5 - pad2_ ) = -26.5798
+. ic v ( q5tj ) = 132.521
+. ic v ( q5tc ) = 105.091
+...
+The following control section snippet serves to save node voltage data at time 3.9 s and
+after the end of the transient simulation.
+usage example (write data):
+stop when time =3.9
+tran 20 u 6
+wrnodev $inputdir / F5ic1 . txt
+resume
+wrnodev $inputdir / F5ic2 . txt
+...
+The data may be reused by an .include command: The simulation now starts with the
+initial condition given in the file.

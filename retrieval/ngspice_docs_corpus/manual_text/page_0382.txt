@@ -1,0 +1,35 @@
+382 CHAPTER 17. INTERACTIVE INTERPRETER
+Change the current working directory to directory, or to the user's home directory (Linux:
+HOME, MS Windows: USERPROFILE), if none is given.
+17.5.10 Cdump: Dump the control flow to the screen
+General Form:
+cdump
+Dumps the control sequence to the screen (all statements inside the .control ... .endc
+structure before the line with cdump). Indentations show the structure of the sequence.
+The example below is printed if you add cdump to /examples/Monte_Carlo/MonteCarlo.sp.
+Example (abbreviated):
+let mc_runs =5
+let run =0
+...
+define agauss ( nom , avar , sig ) ( nom + avar / sig * sgauss (0))
+define limit ( nom , avar ) ( nom + (( sgauss (0) >=0) ? avar : - avar ))
+dowhile run < mc_runs
+alter c1 = unif (1 e -09 , 0.1)
+...
+ac oct 100 250 k 10 meg
+meas ac bw trig vdb ( out ) val = -10 rise =1 targ vdb ( out )
++ val = -10 fall =1
+set run =" $ & run "
+...
+let run = run + 1
+end
+plot db ({ $scratch }. allv )
+echo
+print { $scratch }. bwh
+cdump
+17.5.11 Circbyline*: Enter a circuit line by line
+General Form:
+circbyline line
+Enter a circuit line by line. line is any circuit line, as found in the *.cir ngspice input
+files. The first line is a title line. The entry will be finished by entering .end. Circuit
+parsing is then started automatically.

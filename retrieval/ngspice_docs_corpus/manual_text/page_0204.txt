@@ -1,0 +1,46 @@
+204CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+resistance parallel to the zener with value v breakdown / i rev.
+Note that the limit switch parameter engages an internal limiting function for the
+zener. This can, in some cases, prevent the simulator from converging to an unre-
+alistic solution if the voltage across or current into the device is excessive. If use
+of this feature fails to yield acceptable results, the convlimit option should be tried
+(add the following statement to the SPICE input deck: .options convlimit)
+Example SPICE Usage:
+a9 3 4 vref10
+.
+.
+.model vref10 zener(v_breakdown=10.0 i_breakdown=0.02
++ r_breakdown=1.0 i_rev=1e-6 i_sat=1e-12)
+12.2.14 Current Limiter
+NAME_TABLE:
+C_Function_Name: cm_ilimit
+Spice_Model_Name: ilimit
+Description: "current limiter block"
+PORT_TABLE:
+Port Name: in pos_pwr
+Description: "input" "positive power supply"
+Direction: in inout
+Default_Type: v g
+Allowed_Types: [v,vd] [g,gd]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no yes
+PORT_TABLE:
+Port Name: neg_pwr out
+Description: "negative power supply" "output"
+Direction: inout inout
+Default_Type: g g
+Allowed_Types: [g,gd] [g,gd]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes no
+PARAMETER_TABLE:
+Parameter_Name: in_offset gain
+Description: "input offset" "gain"
+Data_Type: real real
+Default_Value: 0.0 1.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:

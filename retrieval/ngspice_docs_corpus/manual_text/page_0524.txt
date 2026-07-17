@@ -1,0 +1,47 @@
+524 CHAPTER 22. STATISTICAL CIRCUIT ANALYSIS
+Built-in function Notes
+gauss(nom, rvar, sigma) nominal value plus variation drawn from Gaussian
+distribution with mean 0 and standard deviation rvar
+(relative to nominal), divided by sigma
+agauss(nom, avar, sigma) nominal value plus variation drawn from Gaussian
+distribution with mean 0 and standard deviation avar
+(absolute), divided by sigma
+unif(nom, rvar) nominal value plus relative variation (to nominal)
+uniformly distributed between +/-rvar
+aunif(nom, avar) nominal value plus absolute variation uniformly
+distributed between +/-avar
+limit(nom, avar) nominal value +/-avar, depending on random number
+in [-1, 1] being > 0 or < 0
+The frontend parser evaluates all .param or .func statements upon start-up of ngspice, be-
+fore the circuit is evaluated. The parameters aga, aga2, lim obtain their numerical values
+once. If the random function appears in a device card (e.g. v11 11 0 'agauss(1,2,3)' ),
+a new random number is generated.
+Random number example using parameters:
+* random number tests
+. param aga = agauss (1 ,2 ,3)
+. param aga2 = '2* aga '
+. param lim = limit (0 ,1.2)
+. func rgauss (a ,b , c ) '5* agauss (a ,b , c ) '
+* always same value as defined above
+v1 1 0 ' lim '
+v2 2 0 ' lim '
+* may be a different value
+v3 3 0 ' limit (0 ,1.2) '
+* always new random values
+v11 11 0 ' agauss (1 ,2 ,3) '
+v12 12 0 ' agauss (1 ,2 ,3) '
+v13 13 0 ' agauss (1 ,2 ,3) '
+* same value as defined above
+v14 14 0 ' aga '
+v15 15 0 ' aga '
+v16 16 0 ' aga2 '
+* using . func , new random values
+v17 17 0 ' rgauss (0 ,2 ,3) '
+v18 18 0 ' rgauss (0 ,2 ,3) '
+. op
+. control
+run
+print v (1) v (2) v (3) v (11) v (12) v (13)
+print v (14) v (15) v (16) v (17) v (18)
+. endc
+. end

@@ -1,0 +1,30 @@
+424 CHAPTER 17. INTERACTIVE INTERPRETER
+Example input file:
+* Tf test circuit
+vs 1 0 dc 5
+r1 1 2 100
+r2 2 3 50
+r3 3 0 150
+r4 2 0 200
+. control
+tf v (3 ,5) vs
+print all
+. endc
+. end
+will yield the following output:
+transfer_function = 3.750000e-001
+output_impedance_at_v(3,5) = 6.662500e+001
+vs#input_impedance = 2.000000e+002
+17.5.94 Trace*: Trace nodes
+General Form:
+trace [ node ...]
+For every step of an analysis, the value of the node is printed. Several traces may be
+active at once. Tracing is not applicable for all analyses. To remove a trace, use the
+delete (17.5.18) command.
+17.5.95 Tran*: Perform a transient analysis
+General Form:
+tran Tstep Tstop [ Tstart [ Tmax ] ] [ UIC ]
+Perform a transient analysis. See Chapt. 15.3.10 of this manual for more details.
+An interactive transient analysis may be interrupted by issuing a ctrl-c (control-C) com-
+mand. The analysis then can be resumed by the resume command ( 17.5.64). Several
+options may be set to control the simulation ( 15.1.4).

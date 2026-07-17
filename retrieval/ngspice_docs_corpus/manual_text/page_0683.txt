@@ -1,0 +1,47 @@
+31.5. BJTS 683
+133 ajs InOut real S-C capacitance smoothing factor
+134 ibei InOut real Ideal B-E saturation current
+135 wbe InOut real Portion of IBEI from Vbei, 1-WBE from Vbex
+136 nei InOut real Ideal B-E emission coefficient
+137 iben InOut real Non-ideal B-E saturation current
+138 nen InOut real Non-ideal B-E emission coefficient
+139 ibci InOut real Ideal B-C saturation current
+140 nci InOut real Ideal B-C emission coefficient
+141 ibcn InOut real Non-ideal B-C saturation current
+142 ncn InOut real Non-ideal B-C emission coefficient
+143 avc1 InOut real B-C weak avalanche parameter 1
+144 avc2 InOut real B-C weak avalanche parameter 2
+145 isp InOut real Parasitic transport saturation current
+146 wsp InOut real Portion of ICCP
+147 nfp InOut real Parasitic fwd emission coefficient
+148 ibeip InOut real Ideal parasitic B-E saturation current
+149 ibenp InOut real Non-ideal parasitic B-E saturation current
+150 ibcip InOut real Ideal parasitic B-C saturation current
+151 ncip InOut real Ideal parasitic B-C emission coefficient
+152 ibcnp InOut real Nonideal parasitic B-C saturation current
+153 ncnp InOut real Nonideal parasitic B-C emission coefficient
+154 vef InOut real Forward Early voltage
+155 ver InOut real Reverse Early voltage
+156 ikf InOut real Forward knee current
+157 ikr InOut real Reverse knee current
+158 ikp InOut real Parasitic knee current
+159 tf InOut real Ideal forward transit time
+160 qtf InOut real Variation of TF with base-width modulation
+161 xtf InOut real Coefficient for bias dependence of TF
+162 vtf InOut real Voltage giving VBC dependence of TF
+163 itf InOut real High current dependence of TF
+164 tr InOut real Ideal reverse transit time
+165 td InOut real Forward excess-phase delay time
+166 kfn InOut real B-E Flicker Noise Coefficient
+167 afn InOut real B-E Flicker Noise Exponent
+168 bfn InOut real B-E Flicker Noise 1/f dependence
+169 xre InOut real Temperature exponent of RE
+170 xrb InOut real Temperature exponent of RB
+171 xrbi InOut real Temperature exponent of RBI
+172 xrc InOut real Temperature exponent of RC
+173 xrci InOut real Temperature exponent of RCI
+174 xrs InOut real Temperature exponent of RS
+175 xvo InOut real Temperature exponent of VO
+176 ea InOut real Activation energy for IS
+177 eaie InOut real Activation energy for IBEI
+179 eaic InOut real Activation energy for IBCI/IBEIP

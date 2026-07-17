@@ -1,0 +1,53 @@
+8.2. BJT MODELS (NPN/PNP) 141
+temperature dependence of the saturation currents, IS and ISS, is determined by the
+energy-gap, EG, and the saturation current temperature exponent, XTI.
+In the new model, additional base current temperature dependence is modeled by the beta
+temperature exponent XTB. The values specified are assumed to have been measured at
+the temperature TNOM, which can be specified on the .options control line or overridden
+by a specification on the .model line.
+The BJT parameters used in the modified Gummel-Poon model are listed below. The
+parameter names used in earlier versions of SPICE2 are still accepted.
+Gummel-Poon BJT Parameters (incl. model extensions)
+Name Parameters Units Default Example Scale factor
+SUBS Substrate connection: 1 for
+vertical geometry, -1 for lateral
+geometry
+1
+IS Transport saturation current A 1.0e-16 1.0e-15 area
+IBE Base-Emitter saturation current A 0.0 1.0e-16 area
+IBC Base-Collector saturation current A 0.0 1.0e-16 areab,areac
+ISS Reverse saturation current,
+substrate-to-collector for vertical
+device or substrate-to-base for
+lateral
+A 0.0 1.0e-15 area
+BF Ideal maximum forward beta. - 100 100
+NF Forward current emission
+coefficient
+- 1.0 1
+V AF (V A) Forward Early voltage V ∞ 200
+IKF Corner for forward beta current
+roll-off
+A ∞ 0.01 area
+NKF(NK) High current Beta rolloff
+exponent
+- 0.5 0.9
+ISE B-E leakage saturation current. A 0.0 1e-13 area
+NE B-E leakage emission coefficient - 1.5 2
+BR Ideal maximum reverse beta - 1 0.1
+NR Reverse current emission
+coefficient
+- 1 1
+V AR (VB) Reverse Early voltage V ∞ 200
+IKR Corner for reverse beta high
+current roll-off
+A ∞ 0.01 area
+ISC B-C leakage saturation current
+(scale is 'areab' for vertical
+devices and 'areac' for lateral)
+A 0.0 1e-13 areab,areac
+NC B-C leakage emission coefficient - 2 1.5
+RB Zero bias base resistance Ω 0 100 1/area
+IRB Current where base resistance
+falls halfway to its min value
+A ∞ 0.1 area

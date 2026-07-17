@@ -1,0 +1,40 @@
+56 CHAPTER 2. CIRCUIT DESCRIPTION
+Code Model Type
+R Semiconductor resistor model
+C Semiconductor capacitor model
+L Inductor model
+SW Voltage controlled switch
+CSW Current controlled switch
+URC Uniform distributed RC model
+LTRA Lossy transmission line model
+D Diode model
+NPN NPN BJT model
+PNP PNP BJT model
+NJF N-channel JFET model
+PJF P-channel JFET model
+NMOS N-channel MOSFET model
+PMOS P-channel MOSFET model
+NMF N-channel MESFET model
+PMF P-channel MESFET model
+VDMOS Power MOS model
+Table 2.3: Ngspice model types
+options (see 17.7)); the program then automatically inserts the defined group of elements
+wherever the subcircuit is referenced. Instances of subcircuits within a larger circuit are
+defined through the use of an instance card that begins with the letter ' X' . A complete
+example of all three of these cards follows:
+Example:
+* The following is the instance card :
+*
+xdiv1 10 7 0 vdivide
+* The following are the subcircuit definition cards :
+*
+. subckt vdivide 1 2 3
+r1 1 2 10 K
+r2 2 3 5 K
+. ends
+The above specifies a subcircuit with ports numbered '1', '2' and '3':
+• Resistor 'R1' is connected from port '1' to port '2', and has value 10 kOhms.
+• Resistor 'R2' is connected from port '2' to port '3', and has value 5 kOhms.
+The instance card, when placed in an ngspice deck, will cause subcircuit port '1' to be
+equated to circuit node '10', while port '2' will be equated to node '7' and port '3' will
+equated to node ' 0' .

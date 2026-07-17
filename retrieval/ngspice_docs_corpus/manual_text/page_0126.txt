@@ -1,0 +1,35 @@
+126 CHAPTER 6. TRANSMISSION LINES
+6.4.1 Single Lossy Transmission Line (TXL)
+General form:
+YXXXXXXX N1 0 N2 0 mname < LEN = LENGTH >
+Example:
+Y1 1 0 2 0 ymod LEN =2
+. MODEL ymod txl R =12.45 L =8.972 e -9 G =0 C =0.468 e -12 length =16
+n1 and n2 are the nodes of the two ports. The optional instance parameter len is the
+length of the line and may be expressed in multiples of [ unit]. Typically unit is given in
+meters. len will override the model parameter length for the specific instance only.
+The TXL model takes a number of parameters:
+Name Parameter Units/Type Default Example
+R resistance/length Ω/unit 0.0 0.2
+L inductance/length H/unit 0.0 9.13e-9
+G conductance/length mhos/unit 0.0 0.0
+C capacitance/length F/unit 0.0 3.65e-12
+LENGTH length of line unit no default 1.0
+Model parameter length must be specified as a multiple of unit. Typically unit is given
+in [m]. For transient simulation only.
+6.4.2 Coupled Multiconductor Line (CPL)
+The CPL multiconductor line model is in theory similar to the RLGC model, but without
+frequency dependent loss (neither skin effect nor frequency-dependent dielectric loss). Up
+to 8 coupled lines are supported in ngspice.
+General form:
+PXXXXXXX NI1 NI2 ... NIX GND1 NO1 NO2 ... NOX GND2 mname < LEN = LENGTH >
+Example:
+P1 in1 in2 0 b1 b2 0 PLINE
+. model PLINE CPL length ={ Len }
++ R =1 0 1
++ L ={ L11 } { L12 } { L22 }
++ G =0 0 0
++ C ={ C11 } { C12 } { C22 }
+. param Len =1 Rs =0
++ C11 =9.143579 E -11 C12 = -9.78265 E -12 C22 =9.143578 E -11
++ L11 =3.83572 E -7 L12 =8.26253 E -8 L22 =3.83572 E -7

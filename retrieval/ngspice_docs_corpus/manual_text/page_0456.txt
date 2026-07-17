@@ -1,0 +1,36 @@
+456 CHAPTER 17. INTERACTIVE INTERPRETER
+Equations 17.16 and 17.18 now tell us how to measure s11 and s21: Measure U1 at the
+input port, multiply by 2 using an E source, subtracting U0, which for simplicity is set
+to 1, and divide by U0. At the same time measure U2 at the output port, multiply by 2
+and divide by U0. Biasing and measuring is done by subcircuit S_PARAM. To obtain s22
+and s12, you have to exchange the input and output ports of your two-port and do the
+same measurement again. This is achieved by switching resistors from low ( 1mΩ) to high
+(1T Ω) and thus switching the input and output ports.
+17.9.3 Usage of .sp and sp
+Please have a look at the intrinsic commands ( .sp, see 15.3.8 and sp, see 17.5.84) for
+generating S-parameters versus frequency.
+17.9.4 Usage of the script
+Copy and then edit s-param.cir. You will find this file in directory /examples/control_structs
+of the ngspice distribution.
+The reference resistance (often called characteristic impedance) for the measurements is
+added as a parameter
+.param Rbase=50
+The bias voltages at the input and output ports of the circuit are set as parameters as
+well:
+.param Vbias_in=1 Vbias_out=2
+Place your circuit at the appropriate place in the input file, e.g. replacing the existing
+example circuits. The input port of your circuit has two nodes in, 0 . The output port has
+the two nodes out, 0 . The bias voltages are connected to your circuit via the resistances
+of value Rbase at the input and output respectively. This may be of importance for the
+operating point calculations if your circuit draws a large dc current.
+Now edit the ac commands (see 17.5.1) according to the circuit provided, e.g.
+ac lin 100 2.5MEG 250MEG $ use for Tschebyschef
+Be careful to keep both ac lines in the .control ... .endc section the same and only
+change both in equal measure!
+Select the plot commands ( lin/log, or smithgrid) or the 'write to file' commands
+(write, wrdata, or wrs2p) according to your needs.
+Run ngspice in interactive mode
+ngspice s-param.cir
+17.10 Using shell variables
+You may use the shell command (17.5.77) to execute a command in the shell. Its return
+value is printed at the ngspice prompt.

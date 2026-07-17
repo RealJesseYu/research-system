@@ -1,0 +1,48 @@
+12.2. ANALOG MODELS 193
+12.2.7 PWL Controlled Source
+NAME_TABLE:
+C_Function_Name: cm_pwl
+Spice_Model_Name: pwl
+Description: "piecewise linear controlled source"
+PORT_TABLE:
+Port_Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: v v
+Allowed_Types: [v,vd,i,id,vnam] [v,vd,i,id]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: x_array y_array
+Description: "x-element array" "y-element array"
+Data_Type: real real
+Default_Value: - -
+Limits: - -
+Vector: yes yes
+Vector_Bounds: [2 -] [2 -]
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: input_domain fraction
+Description: "input sm. domain" "smoothing %/abs switch"
+Data_Type: real boolean
+Default_Value: 0.01 TRUE
+Limits: [1e-12 0.5] -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+STATIC_VAR_TABLE:
+Static_Var_Name: last_x_value
+Data_Type: pointer
+Description: "iteration holding variable for limiting"
+Description: The Piece-Wise Linear Controlled Source is a single input, single output
+function similar to the Gain Block. However, the output of the PWL Source is
+not necessarily linear for all values of input. Instead, it follows an I/O relationship
+specified by you via the x_array and y_array coordinates. This is detailed below.
+The x_array and y_array values represent vectors of coordinate points on the x
+and y axes, respectively. The x_array values are progressively increasing input co-
+ordinate points, and the associated y_array values represent the outputs at those
+points. There may be as few as two ( x_array[n], y_array[n]) pairs specified, or
+as many as memory and simulation speed allow. This permits you to very finely
+approximate a non-linear function by capturing multiple input-output coordinate
+points.

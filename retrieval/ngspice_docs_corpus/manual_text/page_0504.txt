@@ -1,0 +1,32 @@
+504 CHAPTER 20. TCLSPICE
+• During optimization loop, graphical display of the current temperature response is
+not yet possible and I don't know why. Each time a simulation is performed, some
+memory is allocated for it.
+• The simulation result remains in memory until the libspice library is unloaded (typ-
+ically: when the tcl script ends) or when a spice::clean command is performed. In
+this kind of simulation, not cleaning the memory space will freeze your computer
+and you'll have to restart it. Be aware of that.
+20.5.2.2 testbench3.tcl
+This calls the shell sh who then runs wish with the file itself.
+#!/ bin / sh
+# WishFix \
+exec wish " $0 " $ {1+" $@ "}
+#
+#
+#
+Regular package for simulation
+package require spice
+Here the important line is source differentiate.tcl that contains the optimization library
+source d i f f e r e n t i a t e . tcl
+Generates a temperature vector
+proc t e m p e r a t u r e s _ c a l c { temp_inf temp_sup points } {
+set tstep [ expr " ( $temp_sup - $temp_inf ) / $points " ]
+set t $temp_inf
+set t e m p e r a t u r e s ""
+for { set i 0 } { $i < $points } { incr i } {
+set t [ expr { $t + $tstep } ]
+set t e m p e r a t u r e s " $ t e m p e r a t u r e s $t "
+}
+return $ t e m p e r a t u r e s }
+generates thermistor resistivity as a vector, typically run: thermistance_calc res B [
+temperatures_calc temp_inf temp_sup points ]

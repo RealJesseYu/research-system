@@ -1,0 +1,49 @@
+12.3. HYBRID MODELS 243
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: in_high
+Description: "minimum 1-valued analog input"
+Data_Type: real
+Default_Value: 0.9
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+/* Analog maximum and minimum output voltages. */
+Parameter_Name: out_low
+Description: "minimum analog output voltage for 'ZERO' digital input"
+Data_Type: real
+Default_Value: 0.0
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: out_high
+Description: "maximum analog output voltage for 'ONE' digital input"
+Data_Type: real
+Default_Value: 3.3
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+/* Analog maximum current. */
+PARAMETER_TABLE:
+Parameter_Name: drive_low drive_high
+Description: "max current to ground" "max current from supply"
+Data_Type: real real
+Default_Value: 0.02 0.02
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+/* Strong analog output cuts off smoothly at the voltage limits.
+* Let vth = out_high - r_sth * drive_high.
+* Then for input voltage v, with drive_high > v > vth,
+* the maximum output current is (drive_high - v) / r_sth
+*/
+PARAMETER_TABLE:
+Parameter_Name: r_stl r_sth
+Description: "low taper resistance" "high taper resistance"
+Data_Type: real real

@@ -1,0 +1,33 @@
+17.5. COMMANDS 409
+Throw out any intermediate data in the circuit (e.g, after a breakpoint or after one or
+more analyses have been done), and re-parse the input file. The circuit can then be re-run
+from it's initial state, overriding the effect of any set or alter commands. These two
+need to be repeated after the reset command.
+Reset may be required in simulation loops preceding any run (or tran ...) command.
+Reset is required after an alterparam command (17.5.5) for making the parameter change
+effective.
+17.5.63 Reshape: Alter the dimensionality or dimensions of a
+vector
+General Form:
+reshape vector vector ...
+or
+reshape vector vector ... [ dimension , dimension , ... ]
+or
+reshape vector vector ... [ dimension ][ dimension ] ...
+This command changes the dimensions of a vector or a set of vectors. The final dimension
+may be left off and it will be filled in automatically. If no dimensions are specified, then
+the dimensions of the first vector are copied to the other vectors. An error message of the
+form 'dimensions of x were inconsistent' can be ignored.
+Example:
+* generate vector with all ( here 30) elements
+let newvec = vector (30)
+* reshape vector to format 3 x 10
+reshape newvec [3][10]
+* access elements of the reshaped vector
+print newvec [0][9]
+print newvec [1][5]
+let newt = newvec [2][4]
+17.5.64 Resume*: Continue a simulation after a stop
+General Form:
+resume
+Resume a simulation after a stop or interruption (control-C).

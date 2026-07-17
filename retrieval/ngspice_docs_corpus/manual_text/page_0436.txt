@@ -1,0 +1,37 @@
+436 CHAPTER 17. INTERACTIVE INTERPRETER
+curplottitle Sets the title (a short description) of the current plot.
+debug If set then a lot of debugging information is printed.
+device The name ( /dev/tty??) of the graphics device. If this variable isn't set then the
+user's terminal is used. To do plotting on another monitor you probably have to set
+both the device and term variables. (If device is set to the name of a file, nutmeg
+dumps the graphics control codes into this file - this is useful for saving plots.)
+diff_abstol The relative tolerance used by the diff command (default is 1e-12).
+diff_reltol The relative tolerance used by the diff command (default is 0.001).
+diff_vntol The absolute tolerance for voltage type vectors used by the diff command
+(default is 1e-6).
+digital_delay_type Controls the behaviour of XSPICE digital elements that support
+the inertial_delay parameter.
+echo Print out each command before it is executed.
+editor The editor to use for the edit command.
+enable_noisy_r A user definable variable (for .spiceinit) to enable noise calculation for
+all behavioral resistors. May locally be switched off by instance parameter noisy=0.
+If enable_noisy_r is not set, noise simulation may locally be enabled by instance
+parameter noisy=1.
+filetype This can be either ascii or binary, and determines the format of the raw
+file (compact binary or text editor readable ascii). The default is binary. CIDER
+output ( 30.14) may be binary or ascii as well.
+fourgridsize How many points to use for interpolating into when doing Fourier analysis.
+gridsize If this variable is set to an integer, this number is used as the number of equally
+spaced points to use for the Y axis when plotting. Otherwise the current scale is
+used (which may not have equally spaced points). If the current scale isn't strictly
+monotonic, then this option has no effect.
+gridstyle Sets the grid during plotting with the plot command. Will be overridden by
+direct entry of gridstyle in the plot command. A linear grid is standard for both
+x and y axis. Allowed values are lingrid loglog xlog ylog smith smithgrid
+polar nogrid .
+hcopydev If this is set, when the hardcopy command is run the resulting file is automat-
+ically printed on the printer named hcopydev with the command lpr -Phcopydev
+-g file .
+hcopyfont This variable specifies the font name for hardcopy output plots. The value is
+device dependent.
+hcopyfontsize This is a scaling factor for the font used in hardcopy plots.

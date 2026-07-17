@@ -1,0 +1,36 @@
+18.6. OUTPUT-TO-FILE OPTIONS 465
+"#DA70D6" (orchid), "#EE82EE" (violet), "#B03060" (maroon); "#40E0D0" (turqoise),
+"#A0522D" (sienna), "#FF7F50" (coral), "cyan", "magenta", "#666" (gray for smith
+grid), "#949494" (gray for smith grid), "#888" (gray for normal grid). Examples
+are set color3=blue or set color3="#EE82EE" . If no color id is set, then the
+above mentioned, predefined set of colors is applied automatically.
+xbrushwidth Linewidth for graph (see xgridwidth for border and grid). Valid for MS
+Windows GUI, X11, gnuplot and Postscript.
+xgridwidth Linewidth for border and grid. Valid for MS Windows GUI, X11, gnuplot
+and Postscript.
+The plot-to-file command
+hardcopy file vector <vectors> <title text> <xlabel text> <ylabel text>
+Usage
+. control
+* simulation commands here
+set h c o p y d e v t y p e = svg
+set sv g_i nto pts = ( 512 384 20 0 1 2 0 )
+setcs s vg_ str opt s = ( yellow Arial Arial )
+set color1 = blue
+set color2 = green
+hardcopy plot_1 . svg vss # branch title ' Plot no . 4 '
++ xlabel ' Drain voltage ' ylabel ' Drain current '
+* plot to screen commands here
+. endc
+Plot-to-screen
+The file contents may be plotted to the screen. For MS Windows you may use the Internet
+Explorer or EDGE, linked to the .svg file extension. Under Cygwin or Linux you may
+install the program feh for plotting with the following commands:
+Plot to screen commands
+* for MS Windows only
+if $os com pil ed = 1 | $os com pil ed = 8
+shell Start plot_1 . svg
+else
+* for CYGWIN , Linux
+shell feh -- magick - timeout 1 plot_1 . svg &
+end

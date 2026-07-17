@@ -1,0 +1,12 @@
+612 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+udn_int_create ,
+udn_int_dismantle ,
+udn_int_initialize ,
+udn_int_invert ,
+udn_int_copy ,
+udn_int_resolve ,
+udn_int_compare ,
+udn_int_plot_val ,
+udn_int_print_val ,
+u d n _ i n t _ i p c _ v a l
+};

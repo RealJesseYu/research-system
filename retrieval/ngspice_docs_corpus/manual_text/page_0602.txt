@@ -1,0 +1,45 @@
+602 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+passed time value. The simulator may choose as the next time-point a value less than the
+input, but not greater. In addition, once the next time-step is chosen, the posted value is
+removed regardless of whether it caused the break at the given time-point. This function
+is useful in the event that a time-point needs to be retracted after its first posting in
+order to recalculate a new breakpoint based on new input data (for controlled oscillators,
+controlled one-shots, etc), since temporary breakpoints automatically 'go away' if not
+reposted each time-step. Note that a breakpoint may also be set for a time prior to the
+current time, but this will result in an error if the posted breakpoint is prior to the last
+accepted time (i.e., T(1)).
+It is not certain that a future call will be made with TIME exactly equal to the function
+argument, but there will be a close match. Arithmetic rounding may occur and the
+simulator may make only one call when requests are very closely spaced. The closeness
+depends on the minimum timestep of the simulation.
+cm_event_queue() is similar to cm_analog_set_perm_bkpt(), but functions with event-
+driven models. When invoked, this function causes the model to be queued for calling
+at the specified time, with CALL_TYPE == EVENT. There is no combining of closly-
+spaced events. All other details applicable to cm_analog_set_perm_bkpt() apply to this
+function as well.
+28.7.2.7 Special Purpose Functions
+void
+cm_climit_fcn(in, in_offset, cntl_upper, cntl_lower, lower_delta, upper_delta,
+limit_range, gain, fraction, out_final, pout_pin_final,
+pout_pcntl_lower_final, pout_pcntl_upper_final)
+double in; /* The input value */
+double in-offset; /* The input offset */
+double cntl_upper; /* The upper control input value */
+double cntl_lower; /* The lower control input value */
+double lower_delta; /* The delta from control to limit value */
+double upper_delta; /* The delta from control to limit value */
+double limit_range; /* The limiting range */
+double gain; /* The gain from input to output */
+int percent; /* The fraction vs. absolute range flag */
+double *out_final; /* The output value */
+double *pout_pin_final; /* The partial of output wrt input */
+double *pout_pcntl_lower_final; /* The partial of output wrt lower
+control input */
+double *pout_pcntl_upper:final; /* The partial of output wrt upper
+control input */
+double cm_netlist_get_c()
+double cm_netlist_get_l()
+char* cm_get_path()
+CKTcircuit *cm_get_circuit()
+const char *cm_get_node_name(const char *port_name, unsigned int index)
+bool cm_probe_node(conn_index, port_index, value)

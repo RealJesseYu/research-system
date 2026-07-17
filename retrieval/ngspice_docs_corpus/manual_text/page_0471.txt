@@ -1,0 +1,35 @@
+18.6. OUTPUT-TO-FILE OPTIONS 471
+18.6.2.4 Output redirection
+Anything that is printable to the console by a control section command, may be redirected
+into a file. See also 17.4.1.
+Example usage:
+* create a new file and write to it
+echo new file > nfile . txt
+* append line to existing file
+echo second line >> nfile . txt
+The following variable is recognized:
+noclobber Don't overwrite existing files when doing IO redirection.
+18.6.2.5 Command echo
+Echos all text, variables and vectors to the screen or the redirected output location (see
+also 17.5.23).
+Example usage:
+* variable
+setcs myvar = great
+set empty =""
+* vector
+let lineno =1
+* empty line
+echo
+* vectors and variables may be included
+echo This is a $myvar output with $ & lineno line ( s ).
+* no line feed , empty var to allow blank
+echo -n This is still a $myvar output $empty
+echo with $ & lineno line ( s ).
+18.6.2.6 Command print
+General Form:
+print [ col ] [ line ] expr ...
+Prints the vector(s) described by the expression expr. Please see 17.5.56 for details.
+Expression expr. may be a list of vectors, but also a mathematical expression combining
+vectors and constants according to 17.2.
+Example:
+print v (1) 3* v (2)

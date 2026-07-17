@@ -1,0 +1,38 @@
+86 CHAPTER 3. CIRCUIT ELEMENTS AND MODELS
+L1 15 5 indmod1
+L2 2 7 indmod1
+. model indmod1 L ind =3 n
+Both inductors have an inductance of 3nH.
+The nt is used in conjunction with a .model line, and is used to specify the number of
+turns of the inductor. If you want to simulate temperature dependence of an inductor,
+you need to specify its temperature coefficients, using a .model line, like in the example
+below:
+Lload 1 2 1 u ind1 dtemp =5
+. MODEL ind1 L tc1 =0.001
+The (optional) initial condition is the initial (time zero) value of inductor current (in
+Amps) that flows from n+, through the inductor, to n-. Note that the initial conditions
+(if any) apply only if the UIC option is specified on the .tran analysis line.
+Ngspice calculates the nominal inductance as described below:
+Lnom = value scale
+m (3.14)
+3.3.11 Inductor model
+The inductor model contains physical and geometrical information that may be used to
+compute the inductance of some common topologies like solenoids and toroids, wound in
+air or other material with constant magnetic permeability.
+Name Parameter Units Default Example
+IND model inductance H 0.0 1e-3
+CSECT cross section m2 0.0 1e-6
+DIA coil diameter m 0.0 1e-3
+LENGTH length m 0.0 1e-2
+TC1 first order temperature coeff. H/◦C 0.0 0.001
+TC2 second order temperature coeff. H/◦C2 0.0 0.0001
+TNOM parameter measurement temperature ◦C 27 50
+NT number of turns - 0.0 10
+MU relative magnetic permeability - 1.0 -
+The inductor's inductance is computed as follows:
+If value is specified on the instance line then
+Lnom = value scale
+m (3.15)
+If model inductance is specified then
+Lnom = IND scale
+m (3.16)

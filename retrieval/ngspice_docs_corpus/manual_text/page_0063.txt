@@ -1,0 +1,22 @@
+2.9. .PARAM PARAMETRIC NETLISTS 63
+The evaluation of the power functions ** or ^ depends on the compatibility mode ( 16.14.1)
+chosen.
+Power function source code implementation:
+compatmode hs : x >0 pow (x , y ); x <0 pow (x , round ( y )); X =0 0
+compatmode lt : x >0 pow (x , y ); x <0 pow (x , y )
+if y is close to integer ; else 0
+The number zero is used to represent boolean False. Any other number represents boolean
+True. The result of logical operators is 1 or 0. An example input file is shown below:
+Example input file with logical operators:
+* Logical operators
+v1or 1 0 {1 || 0}
+v1and 2 0 {1 && 0}
+v1not 3 0 {! 1}
+v1mod 4 0 {5 % 3}
+v1div 5 0 {5 \ 3}
+v0not 6 0 {! 0}
+. control
+op
+print allv
+. endc
+. end

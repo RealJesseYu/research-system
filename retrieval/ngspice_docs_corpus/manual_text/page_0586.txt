@@ -1,0 +1,36 @@
+586 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+/* pointer variable . */
+local_x = STATIC_VAR ( x );
+/* Assign values to first two members of the array */
+local_x [0] = 1.234;
+local_x [1] = 5.678;
+28.7 Model Definition File
+The Model Definition File is a C source code file that defines a code model's behavior
+given input values that are passed to it by the simulator. The file itself is always given the
+name cfunc.mod. In order to allow for maximum flexibility, passing of input, output, and
+simulator-specific information is handled through accessor macros, which are described
+below. These are not ordinary C preprocesor macros; they are expanded by a dedicated
+program that checks them against the interface specification file. In addition, certain
+predefined library functions (e.g. smoothing interpolators, complex arithmetic routines)
+are included in the simulator in order to ease the burden of the code model programmer.
+These are also described below.
+28.7.1 Macros
+The use of the accessor macros is illustrated in the following example. Note that the
+argument to most accessor macros is the name of a parameter or port as defined in the
+Interface Specification File. Note also that all accessor macros except 'ARGS' resolve to
+an lvalue (C language terminology for something that can be assigned a value). Accessor
+macros do not implement expressions or assignments.
+void code . model ( ARGS ) /* private structure accessed by
+accessor macros
+*/
+{
+/* The following code fragments are intended to show how
+inf orm ati on in the argument list is accessed . The reader
+should not attempt to relate one fragment to another .
+Consider each fragment as a separate example .
+*/
+double p ,/* variable for use in the following code fragments */
+x , /* variable for use in the following code fragments */
+y ; /* variable for use in the following code fragments */
+int i , /* indexing variable for use in the following */
+j ; /* indexing variable for use in the following */

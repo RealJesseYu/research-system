@@ -1,0 +1,35 @@
+CONTENTS 7
+3 Circuit Elements and Models 71
+3.1 About netlists, device instances, models and model parameters . . . . . . . 71
+3.2 General options . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 73
+3.2.1 Paralleling devices with multiplier m . . . . . . . . . . . . . . . . . 73
+3.2.2 Instance and model parameters . . . . . . . . . . . . . . . . . . . . 75
+3.2.3 Model binning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 75
+3.2.4 Initial conditions . . . . . . . . . . . . . . . . . . . . . . . . . . . . 75
+3.3 Elementary Devices . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 76
+3.3.1 Resistors . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 76
+3.3.2 Semiconductor Resistors . . . . . . . . . . . . . . . . . . . . . . . . 78
+3.3.3 Semiconductor Resistor Model (R) . . . . . . . . . . . . . . . . . . 78
+3.3.4 Resistors, dependent on expressions (behavioral resistor) . . . . . . 80
+3.3.5 Resistor with nonlinear r2_cmc model . . . . . . . . . . . . . . . . 80
+3.3.6 Capacitors . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 81
+3.3.7 Semiconductor Capacitors . . . . . . . . . . . . . . . . . . . . . . . 82
+3.3.8 Semiconductor Capacitor Model (C) . . . . . . . . . . . . . . . . . 82
+3.3.9 Capacitors, dependent on expressions (behavioral capacitor) . . . . 84
+3.3.10 Inductors . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 85
+3.3.11 Inductor model . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 86
+3.3.12 Coupled (Mutual) Inductors . . . . . . . . . . . . . . . . . . . . . . 87
+3.3.13 Inductors, dependent on expressions (behavioral inductor) . . . . . 88
+3.3.14 Capacitor or inductor with initial conditions . . . . . . . . . . . . . 89
+3.3.15 Switches . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 90
+3.3.16 Switch Model (SW/CSW) . . . . . . . . . . . . . . . . . . . . . . . 91
+4 Voltage and Current Sources 93
+4.1 Independent Sources for Voltage or Current . . . . . . . . . . . . . . . . . 93
+4.1.1 Pulse . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 94
+4.1.2 Sinusoidal . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 95
+4.1.3 Exponential . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 96
+4.1.4 Piece-Wise Linear . . . . . . . . . . . . . . . . . . . . . . . . . . . . 96
+4.1.5 Single-Frequency FM . . . . . . . . . . . . . . . . . . . . . . . . . . 97
+4.1.6 Amplitude modulated source (AM) . . . . . . . . . . . . . . . . . . 97
+4.1.7 Transient noise source . . . . . . . . . . . . . . . . . . . . . . . . . 98
+4.1.8 Random voltage source . . . . . . . . . . . . . . . . . . . . . . . . . 99

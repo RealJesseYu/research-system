@@ -1,0 +1,40 @@
+3.3. ELEMENTARY DEVICES 89
+Example input file:
+Variable inductor
+. param Ll =0.5 m Lh =5 m It =50 u Vi =2 m
+. ic v ( int21 ) = 0
+* variable inductor depending on control current i ( Vm )
+L1 l2 lll L = 'i ( Vm ) < { It } ? { Ll } : { Lh } '
+* measure current through inductor
+vm lll 0 dc 0
+* voltage on inductor
+V1 l2 0 { Vi }
+* fixed inductor
+L3 33 331 { Ll }
+* measure current through inductor
+vm33 331 0 dc 0
+* voltage on inductor
+V3 33 0 { Vi }
+* non linear inductor ( discrete setup )
+F21 int21 0 B21 -1
+L21 int21 0 1
+B21 n1 n2 V = '( i ( Vm21 ) < { It } ? { Ll } : { Lh }) ' * v ( int21 )
+* measure current through inductor
+vm21 n2 0 dc 0
+V21 n1 0 { Vi }
+. control
+unset askquit
+tran 1 u 100 u uic
+plot i ( Vm ) i ( vm33 )
+plot i ( vm21 ) i ( vm33 )
+plot i ( vm ) - i ( vm21 )
+. endc
+. end
+3.3.14 Capacitor or inductor with initial conditions
+The simulator supports the specification of voltage and current initial conditions on capac-
+itor and inductor models, respectively. These models are not the standard ones supplied
+with SPICE3, but are in fact code models that can be substituted for the SPICE models
+when realistic initial conditions are required . For details please refer to Chapter 12. A
+XSPICE deck example using these models is shown below:
+*
+* This circuit contains a capacitor and an inductor with

@@ -1,0 +1,38 @@
+722 CHAPTER 32. COMPILATION NOTES
+--srcdir=DIR Look for the package's source code in directory DIR. Usually configure can
+determine that directory automatically.
+--version Print the version of Autoconf used to generate the configure script, and exit.
+configure also accepts some other, not widely useful, options.
+32.2 Ngspice Compilation under Windows OS
+32.2.1 Building ngspice with MS Visual Studio 2022
+ngspice may be compiled and linked with MS Visual Studio 2022. Version 2019 is not
+compatible with the new OSDI interface. A free version is offered by Microsoft as the
+Visual Studio Community Edition. XSPICE project files are located in visualc/XSPICE
+and are automatically invoked if you start the build procedure. The projects are in the
+format for Visual Studio 2022, but any later version of Visual Studio can upgrade the
+projects to its version.
+CIDER and XSPICE are included, as well as the code models for XSPICE ( *.cm). Verilog-
+A models compiled with ADMS however are not available.
+After compilation the executable, code models and initialization files are available in
+directory C:\ as C:\Spice, C:\Spice64, C:\Spice64, or C:\Spice64d, depending on 32 or
+64 bit and release or debug. A typical installation tree (64-bit, release) is shown below.
+A true Windows installer is however not yet available. The project's 'home' directory
+for Windows OS ( ngspice/visualc) with its files vngspice.sln (solution) and vngspice.vcxproj
+(project) allows compiling and linking ngspice with MS Visual Studio.
+On Windows 10 with its strict security model, some complications will arise. A normal
+user is not allowed to create directories in C:\. You will need admin access rights. So
+how to cope with this situation? Three different methods are listed below:
+• Open and run Visual Studio as admin.
+• Create the directories C:\Spice, C:\Spiced, C:\Spice64, or C:\Spice64d as admin and
+give them full access rights for the ordinary user.
+• Select another storage place (e.g. D:\) to install the ngspice tree. To allow this, edit
+files make-install-vngspice.bat (for 32 and 64 bit release) or make-install-vngspiced.bat
+(for 32 or 64 bit debug), found in ngspice\visualc, and change lines 10 (set dst=c:\Spice )
+and 40 to the new destination.
+/visualc/src/include/ngspice contains a dedicated config.h file with the preprocessor defi-
+nitions required to properly compile the code.
+Install Microsoft Visual Studio 2022. The MS Visual Studio Community Edition (which
+is available at no cost from https://www.visualstudio.com/) is fully adequate. It will
+generate a 64 bit Release with or without OpenMP support and a Debug version of
+ngspice, using the x64 flag. In addition you may select a console version without graphics
+interface. Making ngspice with 32 bit is still possible, but is not recommended. 32 bit is

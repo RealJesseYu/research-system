@@ -1,0 +1,35 @@
+454 CHAPTER 17. INTERACTIVE INTERPRETER
+17.9 Scattering parameters (S-parameters)
+17.9.1 Intro
+ngspice supports calculating, printing and plotting of the scattering parameters in two
+fashions.
+Intrinsic commands (.sp, see 15.3.8 and sp, see 17.5.84) will generate S-parameters versus
+frequency from any suitable multi-port circuit at varying frequencies. Besides the s matrix
+(with S_1_1, S_2_1, S_1_2, and S_2_2 for a two-port circuit), the Y and T matrix
+vector values are calculated and saved as well.
+A command line script, available from the ngspice distribution at examples/control_structs/s-
+param.cir, creates S-parameters S_1_1, S_2_1, S_1_2, and S_2_2 of any two port
+circuit.
+The printed output using wrs2p (see Chapt. 17.5.106) is a Touchstone® version 1
+format file. The file follows the format according to The Touchstone File Format Specifi-
+cation, Version 2.0, available from here. An example is given as number 13 on page 15 of
+that specification.
+17.9.2 S-parameter measurement basics
+S-parameters allow a two-port description not just by permuting I1, U1, I2, U2, but using
+a superposition, leading to a power view of the port (We only look at two-ports here,
+because multi-ports are not (yet?) implemented.).
+You may start with the effective power, being negative or positive
+P = u · i (17.3)
+The value of P may be the difference of two real numbers, with K being another real
+number.
+ui = P = a2 − b2 = (a + b)(a − b) = ( a + b)(KK −1)(a − b) = {K(a + b)}
+
+K −1(a − b)
+ 
+(17.4)
+Thus you get
+K −1u = a + b (17.5)
+Ki = a − b (17.6)
+and finally
+a = u + K 2i
+2K (17.7)

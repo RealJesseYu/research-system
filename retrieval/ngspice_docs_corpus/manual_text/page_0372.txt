@@ -1,0 +1,41 @@
+372 CHAPTER 17. INTERACTIVE INTERPRETER
+Name Function
+length(vector) The length of vector.
+interpolate(plot.vector) The result of interpolating the named vector onto the
+scale of the current plot. This function uses the
+variable polydegree to determine the degree of
+interpolation.
+integ(vector) Integrates over the given vector (versus the real
+component of the scale vector), using the trapeziodal
+method. The result is another vector, showing the
+integral up to the current scale value. See also 15.4.8
+for measuring the integral sum for a section of a vector,
+and 12.2.17 for integration on the fly during a transient
+simulation.
+deriv(vector) Calculates the derivative of the given vector. This uses
+numeric differentiation by interpolating a polynomial.
+The degree of the polynomal may be set by the
+variable dpolydegree (default is 2). The procedure may
+not produce satisfactory results (particularly with
+iterated differentiation). The implementation only
+calculates the derivative with respect to the real
+component of that vector's scale.
+vecd(vector) Compute the differential of a vector.
+vecmin(vector) Returns the value of the vector element with minimum
+value. Same as minimum.
+minimum(vector) Returns the value of the vector element with minimum
+value. Same as vecmin.
+vecmax(vector) Returns the value of the vector element with maximum
+value. Same as maximum.
+maximum(vector) Returns the value of the vector element with maximum
+value. Same as vecmax.
+fft(vector) fast fourier transform ( 17.5.30)
+ifft(vector) inverse fast fourier transform ( 17.5.30)
+sortorder(vector) Returns a vector with the positions of the elements in
+a real vector after they have been sorted into
+increasing order using a stable method (qsort).
+timer(vector) Returns CPU-time minus the value of the first vector
+element.
+clock(vector) Returns wall-time minus the value of the first vector
+element.
+Several functions offering statistical procedures are listed in the following table:

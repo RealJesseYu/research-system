@@ -1,0 +1,39 @@
+250CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+12.4 Digital Models
+The following digital models are supplied with XSPICE. The descriptions included below
+consist of a (sometimes abbreviated) model Interface Specification File and a description
+of the model's operation. This is followed by an example of a simulator-deck placement
+of the model, including the .MODEL card and the specification of all available parameters.
+Note that these models have not been finalized at this time.
+Some information common to all digital models and/or digital nodes is included here.
+The following are general rules that should make working with digital nodes and models
+more straightforward:
+1. All digital nodes are initialized to ZERO at the start of a simulation (i.e., when
+INIT=TRUE). This means that a model need not post an explicit value to an
+output node upon initialization if its output would normally be a ZERO (although
+posting such would certainly cause no harm).
+2. Digital nodes may have one out of twelve possible node values. See 12.5.1 for details.
+3. Digital models typically have defined their rise and fall delays for their output
+signals. A capacitive input load value may be defined as well to determine a load-
+dependent delay, but is currently not used in any code model (see 28.7.1.5).
+4. Several commands are available for outputting data, e.g. eprint, edisplay, and
+eprvcd. Digital inputs may be read from files. Please see Chapt. 12.5.4 for more
+details.
+5. Hybrid models (see Chapt. 12.3) provide an interface between the digital event
+driven world and the analog world of ngspice to enable true mixed mode simulation.
+There are some common parameters that are used by many of the digital models. To
+avoid repetition they are omitted from the individual Interface Description Files listed
+here and their availabilty is noted at the end of the file for each model. The common
+parameters are:
+inertial_delay When this boolean parameter is set, output pulses that are shorter
+than the current delay time for the port are suppressed, and the output remains
+unchanged until the next state transition that completes its delay period. The de-
+fault value is "false", giving transport delay behavior: all changes reach the output.
+An interpreter variable, digital_delay_type, can be used to override the default.
+A value of 1 changes the default to "true"; 2 forces all relevant XSPICE elements to
+use transport delay; 3 forces inertial delay.
+This parameter is used by PSpice-compatible U-devices ( 14). In ngspice-40 these
+XSPICE digital devices:
+d_and, d_buffer, d_inverter, d_nand, d_nor, d_or, d_tristate, d_xnor, d_xor
+have the inertial_delay parameter. When the circuits in the examples/digital/dig-
+ital_devices directory are run, subcircuits with PSpice U* device instances are

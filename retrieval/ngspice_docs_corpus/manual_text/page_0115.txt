@@ -1,0 +1,31 @@
+5.3. GXXXX: NON-LINEAR CURRENT SOURCE 115
+This E-Source:
+EXFER 1 0 FREQ { V (20 ,21)}= DB
++(1.000000 e +07 Hz , 1.633257 e -07 , -1.859873 e +01)
++(1.025641 e +08 Hz , -4.165672 e +00 , -4.076855 e +02)
++(2.000000 e +08 Hz , -2.798303 e -05 , -7.519027 e +02)
+produces a complex voltage determined by multiplying an input differential voltage (v(20,
+21)) by a complex-valued PWL function of the simulation frequency (transfer function).
+The DB keyword indicates that the second column is gain in db and the third is phase
+in degrees. Alternative keywords are MAG (linear gain), RAD (phase in radians), DEG
+(phase in degrees, already the default) or R_I (real and imaginary parts).
+5.2.7 AND/OR/NAND/NOR
+This form of E-source provides simple behavioural implementations of basic logic gates
+with analog inputs and output. It is implemented by a XSPICE code model called
+multi_input_pwl (see 12.2.10) that is automatically invoked by rewriting the netlist.
+The XSPICE option has to be enabled ( 32.1).
+This E-Source:
+EAND out1 out0 and (2) in1 0 in2 0 (0.5 , 0) (2.8 , 3.3)
+produces a differential output voltage determined by selecting the smallest of any number
+of differential input voltages, and applying a PWL output function. Here "and(2)" deter-
+mines the logic function and number of PWL points: output is zero for minimum input
+voltage less than 0.5 and 3.3 for inputs greater than 2.8, with a linear ramp between.
+The other three functions are similar: "or" selects the maximum input and "nand/nor"
+reverse the order of PWL points. Only two points are supported.
+An example circuit can be found at examples/digital/compare/adder_esource.cir.
+5.3 Gxxxx: non-linear current source
+5.3.1 CUR
+General form:
+GXXXXXXX n + n - cur = ' expr ' <m = val >
+Examples:
+G51 55 225 cur = 'V (3)* V (3) - Offs '

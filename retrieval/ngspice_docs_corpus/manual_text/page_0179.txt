@@ -1,0 +1,31 @@
+Chapter 12
+Mixed-Mode and Behavioral
+Modeling with XSPICE
+Ngspice implements XSPICE extensions for behavioral and mixed-mode (analog and dig-
+ital) modeling. In the XSPICE framework this is referred to as code level modeling.
+Behavioral modeling may benefit dramatically because XSPICE offers a means to add
+analog functionality programmed in C. Many examples (amplifiers, oscillators, filters ...)
+are presented in the following. Even more flexibility is available because you may define
+your own models and use them in addition and in combination with all the already exist-
+ing ngspice functionality. Digital and mixed mode simulation is sped up significantly by
+simulating the digital part in an event driven manner, in that state equations use only a
+few allowed states and are evaluated only during switching, and not continuously in time
+and signal as in a pure analog simulator.
+This chapter describes the predefined models available in ngspice, stemming from the
+original XSPICE simulator or being added to enhance the usability. The instructions for
+writing new code models are given in Chapt. 28.
+To make use of the XSPICE extensions, you need to compile them in. Linux, CYGWIN,
+MINGW and other users may add the flag --enable-xspice to their ./configure com-
+mand and then recompile. The pre-built ngspice for Windows distribution has XSPICE
+already enabled. For detailed compiling instructions see Chapt. 32.1.
+12.1 Code Model Element & .MODEL Cards
+12.1.1 Syntax
+Ngspice includes a library of predefined 'Code Models' that can be placed within any
+circuit description in a manner similar to that used to place standard device models.
+Code model instance cards always begin with the letter 'A', and always make use of a
+.MODEL card to describe the code model desired. Section 28 of this document goes into
+greater detail as to how a code model similar to the predefined models may be developed,
+but once any model is created and linked into the simulator it may be placed using
+one instance card and one .MODEL card (note here we conform to the SPICE custom of
+referring to a single logical line of information as a 'card'). As an example, the following
+179

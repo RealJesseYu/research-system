@@ -1,0 +1,21 @@
+Chapter 21
+Example Circuits
+This section starts with an ngspice example to walk you through the basic features of
+ngspice using its command line user interface. The operation of ngspice will be illustrated
+through several examples (Chapt. 21.1 to 21.7).
+The first example uses the simple one-transistor amplifier circuit illustrated in Fig. 21.1.
+This circuit is constructed entirely with ngspice compatible devices and is used to intro-
+duce basic concepts, including:
+• Invoking the simulator:
+• Running simulations in different analysis modes
+• Printing and plotting analog results
+• Examining status, including execution time and memory usage
+• Exiting the simulator
+The remainder of the section (from Chapt. 21.1 onward) lists several circuits, which
+have been accompanying any ngspice distribution, and may be regarded as the 'classical'
+SPICE circuits.
+21.1 AC coupled transistor amplifier
+The circuit shown in Fig. 21.1 is a simple one-transistor amplifier. The input signal
+is amplified with a gain of approximately -(Rc/Re) = -(3.9K/1K) = -3.9. The circuit
+description file for this example is shown below.
+511

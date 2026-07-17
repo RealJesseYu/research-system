@@ -1,0 +1,41 @@
+710 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+31.6.8 BSIM3
+The accessible device parameters (see Chapt. 31.1 for the syntax) are listed here.
+31.6.8.1 BSIM3 accessible instance parameters
+# Name Direction Type Description
+1 id Out real Drain current
+2 vgs Out real Gate-Source voltage
+3 vds Out real Drain-Source voltage
+4 vbs Out real Bulk-Source voltage
+5 gm Out real Transconductance
+6 gds Out real Drain-Source conductance
+7 gmbs Out real Bulk-Source transconductance
+8 vdsat Out real Saturation voltage
+9 vth Out real Threshold voltage
+10 ibd Out real
+11 ibs Out real
+12 gbd Out real
+13 gbs Out real
+14 qb Out real Qbulk
+15 cqb Out real
+16 qg Out real Qgate
+17 cqg Out real
+18 qd Out real Qdrain
+19 cqd Out real
+20 cgg Out real
+21 cgd Out real
+22 cgs Out real
+23 cdg Out real
+24 cdd Out real
+25 cds Out real
+26 cbg Out real
+27 cbd Out real
+28 cbs Out real
+29 capbd Out real Diode capacitance
+30 capbs Out real Diode capacitance
+The parameters are available in the BSIM3 models (level=8 or level=49) version=3.2.4
+and version=3.3.0 only. Negative capacitance values may occur, depending on the internal
+calculation. Please see the note in Chapt. 31.6.9.1.
+31.6.8.2 BSIM3 manual
+Further detailed descriptions will not be given here. Unfortunately the details on these
+parameters are not documented, even not in the otherwise excellent pdf manual issued

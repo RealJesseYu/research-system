@@ -1,0 +1,38 @@
+442 CHAPTER 17. INTERACTIVE INTERPRETER
+wfont_size The size of the windows font. The default depends on system settings.
+width The width of the page for asciiplot and print col (see also 15.6.7).
+win_console is set when ngspice runs in a console under Windows.
+wr_onespace Command wrdata: Print data with one space only in between, not by
+collumns with fixed width.
+wr_singlescale Command wrdata: The scale vector will be printed only once, if all
+scale vectors are of the same length.
+wr_vecnames Command wrdata: Scale and data vector names are printed on the first
+row.
+x11lineararcs Some X11 implementations have poor arc drawing. If you set this option,
+ngspice will plot using an approximation to the curve using straight lines.
+xbrushwidth Linewidth for graph (see xgridwidth for border and grid). Valid for MS
+Windows GUI, X11, gnuplot and Postscript.
+xgridwidth Linewidth for border and grid. Valid for MS Windows GUI, X11, gnuplot
+and Postscript.
+xfont Set the font for text (x and y labels, axis values) in the graphics plot in X11
+(Linux, Cygwin, macOS etc.). The command fc-list | cut -f2 -d: | sort
+-u | less -r lists the font names that are installed on the computer and are
+suited for this variable. Use xfont with the setcs command to keep lower case and
+upper case characters, e.g. in setcs xfont='Noto Sans CJK JP' . The 'Noto Sans'
+font family is very well suited, covering Western and Asian fonts. Also valid for
+gnuplot and Postscript.
+xfont_size The size of the X11 font. The default depends on system settings.
+xspice_enabled is set by ngspice upon start-up, when the XSPICE option ( II) for using
+code models is compiled in.
+xtrtol Set trtol, e.g. to 7, to avoid the default speed reduction (accuracy increase)
+for XSPICE (see 16.9). Be aware of potential precision degradation or convergence
+issues using this option.
+17.8 Scripts
+Ngspice is started in batch or interactive mode with an input file on the command line.
+Input files may also be sourced later with the source command or by using the script
+name as a command. The ngspice input file contains the usual circuit netlist, model
+cards, and may also contain a command script, enclosed in a .control .. .endc section.
+Expressions, functions, constants, commands, variables, vectors, and control structures
+may be assembled into such scripts.
+Scripting allows automation of any ngspice task: simulations to perform, output data to
+analyze, repeat simulations with modified parameters, assemble output plot vectors. The

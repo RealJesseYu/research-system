@@ -1,0 +1,38 @@
+19.4. GENERAL REMARKS ON USING THE API 491
+Basically you may send the commands 'run' or 'resume' (no prefix bg_), starting ngspice
+within the main thread. The caller then has to wait until ngspice returns from simulation.
+A command 'halt' is not available then.
+After simulation is finished (test with callback 19.3.3.6), you may send other commands
+from Chapt. 17.5, emulating any .control script. These commands are executed in the
+main thread, which should be okay because execution time is typically short.
+19.4.3 Accessing data
+19.4.3.1 Synchronous access
+The callback functions SendInitData (19.3.3.5) and SendData (19.3.3.4) allow access
+to simulator output data synchronized with the simulation progress.
+Each time a new plot is generated during simulation, e.g. when a sequence of op, ac and
+tran is used or commands like linearize or fft are invoked, the callback SendInitData
+is called by ngspice. Immediately after setting up the vector structure of the new plot,
+the function is called once. Its parameter is a pointer to the structure vecinfoall ( 19.3.1),
+which contains an array of structures vecinfo, one for each vector in the actual plot. You
+may simply use vecname to get the name of any vector. This time the vectors are still
+empty, but pointers to the vector structure are available.
+Each time a new data point (e.g. time value and simulation output value(s)) is added to
+the vector structure of the current plot, the function SendData is called by ngspice. This
+allows you to immediately access the simulation output synchronized with the simulation
+time, e.g. to interface it to a runtime plot or to use it for some controlled simulation
+by stopping the simulation based on a condition, altering parameters and resume the
+simulation. SendData returns a structure vecvaluesall as parameter, which contains an
+array of structures vecvalues, one for each vector.
+Some code to demonstrate the callback function usage is referenced below ( 19.5).
+19.4.3.2 Asynchronous access
+During simulation, while the background thread is running, or after it is finished, you
+may use the functions ngSpice_CurPlot (19.3.2.7), ngSpice_AllPlots (19.3.2.8),
+ngSpice_AllVecs (19.3.2.9) to retrieve information about vectors available, and func-
+tion ngGet_Vec_Info (19.3.2.5) to obtain data from a vector and its corresponding
+scale vector. The timing of the caller and the simulation progress are independent from
+each other and not synchronized.
+Again some code to demonstrate the callback function usage is referenced below ( 19.5).
+19.4.3.3 XSPICE event node data
+After starting the simulation, in a first step the callback function SendInitEvtData is
+called once for each event node. All nodes are numbered in ascending order. The first
+function argument is the actual node number, the second sets the total amount of nodes,

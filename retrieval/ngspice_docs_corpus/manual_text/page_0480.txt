@@ -1,0 +1,31 @@
+480CHAPTER 19. NGSPICE AS SHARED LIBRARY OR DYNAMIC LINK LIBRARY
+19.1.3 MS Visual Studio
+Compilation is similar to what has been described in Chapt. 32.2.1. However, there is
+a dedicated project file coming with the source code to generate ngspice.dll. Go to the
+directory visualc and start the project with double clicking on sharedspice.vcxproj.
+19.2 Linking shared ngspice to a calling application
+Basically there are two methods (as with all *.so, *.dll libraries). The caller may link to a
+(small) library file during compiling/linking, and then immediately search for the shared
+library upon being started. It is also possible to dynamically load the ngspice shared
+library at runtime using the dlopen/LoadLibrary mechanisms.
+19.2.1 Linking during creating the caller
+While creating the ngspice shared lib, not only the *.so (*.dll) file is created, but also a
+small library file, which just includes references to the exported symbols. Depending on
+the OS, these may be called libngspice.dll.a, ngspice.lib. Linux and MINGW also allow
+linking to the shared object itself. The shared object is not included into the executable
+component but is tied to the execution.
+19.2.2 Loading at runtime
+dlopen (Linux) or LoadLibrary (MS Windows) will load libngspice.so or ngspice.dll into
+the address space of the caller at runtime. The functions return a handle that may be
+used to acquire the pointers to the functions exported by libngspice.so. Detaching ngspice
+at runtime is equally possible (using dlclose/FreeLibrary), after the background thread
+has been stopped and all callbacks have returned.
+19.3 Shared ngspice API
+The sources for the ngspice shared library API are contained in a single C file (shared-
+spice.c) and a corresponding header file sharedspice.h. The type and function declarations
+are contained in sharedspice.h, which may be directly added to the calling application, if
+written in C or C++.
+19.3.1 structs and types defined for transporting data
+pvector_info is returned by the exported function ngGet_Vec_Info (see 19.3.2.5). Ad-
+dresses of the vector name, type, real or complex data are transferred and may be read
+asynchronously during or after the simulation.

@@ -1,0 +1,32 @@
+632 CHAPTER 30. CIDER USER'S MANUAL
+30.4.4 SEE ALSO
+electrode, material
+30.5 DOMAIN, REGION
+Identify material-type for section of a device
+SYNOPSIS
+domain number material [ position ]
+region number material [ position ]
+30.5.1 DESCRIPTION
+A device is divided into one or more rectilinear domains, each of which has a unique
+identification number and is composed of a particular material.
+Domain (aka region) cards are used to build up domains by associating a material type
+with a box-shaped section of the device. A single domain may be the union of multiple
+boxes. When multiple domain cards overlap in space, the one occurring last in the input
+file will determine the ID number and material type of the overlapped region.
+Each edge of a domain box can be specified in terms of its location or mesh-index in the
+relevant dimension, or defaulted to the respective boundary of the simulation mesh.
+30.5.2 PARAMETERS
+Name Type Description
+Number Integer ID number of this domain
+Material Integer ID number of material used by this domain
+X.Low Real Lowest X location of domain box, ( µm )
+: IX.Low Integer Lowest X mesh-index of domain box
+X.High Real Highest X location of domain box, ( µm )
+: IX-High Integer Highest X mesh-index of domain box
+Y.Low Real Lowest Y location of domain box, ( µm )
+: IY.Low Integer Lowest Y mesh-index of domain box
+Y.High Real Highest Y location of domain box, ( µm )
+: IY.High Integer Highest Y mesh-index of domain box
+30.5.3 EXAMPLES
+Create a 4.0 pm wide by 2.0 pm high domain out of material #1:
+domain num = l material = l x . l = O . O x . h =4.0 y . l = O . O y . h =2.0

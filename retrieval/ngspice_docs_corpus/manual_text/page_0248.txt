@@ -1,0 +1,45 @@
+248CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Vector_Bounds: - -
+Null_Allowed: yes yes
+12.3.8 Node bridge from real to analog voltage
+NAME_TABLE:
+Spice_Model_Name: real_to_v
+C_Function_Name: ucm_real_to_v
+Description: "Node bridge from real to analog voltage"
+PORT_TABLE:
+Port_Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: real v
+Allowed_Types: [real] [v, vd, i, id]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: gain transition_time
+Description: "gain" "output transition time"
+Data_Type: real real
+Default_Value: 1.0 1e-9
+Limits: - [1e-15 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+12.3.9 Controlled PWM Oscillator
+NAME_TABLE:
+Spice_Model_Name: d_pwm
+C_Function_Name: cm_d_pwm
+Description: "duty cycle controlled digital oscillator"
+PORT_TABLE:
+Port_Name: cntl_in out
+Description: "control input" "output"
+Direction: in out
+Default_Type: v d
+Allowed_Types: [v,vd,i,id] [d]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: cntl_array dc_array
+Description: "control array" "duty cycle array"
+Data_Type: real real
+Default_Value: 0.0 0.5

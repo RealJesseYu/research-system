@@ -1,0 +1,29 @@
+332 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+15.5.3.3 VBIC (levels 4 and 9)
+VBIC aknowledges the following parameters:
+1. Vbe_max: If |Vbe| exceeds Vbe_max, SOA warning is issued.
+2. Vbc_max: If |Vbc| exceeds Vbc_max, SOA warning is issued.
+3. Vce_max: If |Vce| exceeds Vce_max, SOA warning is issued.
+4. Vcs_max: If |Vcs| exceeds Vcs_max, SOA warning is issued.
+As an alternative to the above listed parameters bvbe, bvbc, bvce, and bvsub may be
+used.
+If .option warn=2 is set, the following parameters (defaults are set to 0.2 V) may be
+used to determine the current operation point of the device.
+1. vbefwd B-E forward voltage.
+2. vbcfwd B-C forward voltage.
+The following criteria are used:
+op conditions
+off Vbe <= vbefwd and Vbc <= vbcfwd
+saturation Vbe > vbefwd and Vbc > vbcfwd
+forward Vbe > vbefwd and Vbc <= vbcfwd
+reverse Vbe <= vbefwd and Vbc > vbcfwd
+Substrate leakage due to forward conduction of the collector-substrate diode may be
+detected using:
+1. vsubfwd Substrate junction forward voltage.
+15.5.4 MOS SOA model parameters
+1. Vgs_max: If |Vgs| exceeds Vgs_max, SOA warning is issued.
+2. Vgd_max: If |Vgd| exceeds Vgd_max, SOA warning is issued.
+3. Vgb_max: If |Vgb| exceeds Vgb_max, SOA warning is issued.
+4. Vds_max: If |Vds| exceeds Vds_max, SOA warning is issued.
+5. Vbs_max: If |Vbs| exceeds Vbs_max, SOA warning is issued.
+6. Vbd_max: If |Vbd| exceeds Vbd_max, SOA warning is issued.

@@ -1,0 +1,32 @@
+CONTENTS 23
+24 Notes 539
+24.1 Glossary . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 539
+24.2 Acronyms and Abbreviations . . . . . . . . . . . . . . . . . . . . . . . . . . 540
+24.3 To Do . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 541
+II XSPICE Software User's Manual 547
+25 XSPICE Basics 549
+25.1 ngspice with the XSPICE option . . . . . . . . . . . . . . . . . . . . . . . 549
+25.2 The XSPICE Code Model Subsystem . . . . . . . . . . . . . . . . . . . . . 549
+25.3 XSPICE Top-Level Diagram . . . . . . . . . . . . . . . . . . . . . . . . . . 550
+26 Execution Procedures 553
+26.1 Simulation and Modeling Overview . . . . . . . . . . . . . . . . . . . . . . 553
+26.1.1 Describing the Circuit . . . . . . . . . . . . . . . . . . . . . . . . . 553
+26.2 Circuit Description Syntax . . . . . . . . . . . . . . . . . . . . . . . . . . . 559
+26.2.1 XSPICE Syntax Extensions . . . . . . . . . . . . . . . . . . . . . . 559
+26.3 How to create code models . . . . . . . . . . . . . . . . . . . . . . . . . . . 561
+27 Example circuits 565
+27.1 Amplifier with XSPICE model 'gain' . . . . . . . . . . . . . . . . . . . . . 566
+27.2 XSPICE advanced usage . . . . . . . . . . . . . . . . . . . . . . . . . . . . 567
+27.2.1 Circuit example C3 . . . . . . . . . . . . . . . . . . . . . . . . . . . 567
+27.2.2 Running example C3 . . . . . . . . . . . . . . . . . . . . . . . . . . 570
+28 Code Models and User-Defined Nodes 575
+28.1 Code Model Data Type Definitions . . . . . . . . . . . . . . . . . . . . . . 576
+28.2 Creating Code Models . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 577
+28.3 Creating User-Defined Nodes . . . . . . . . . . . . . . . . . . . . . . . . . . 577
+28.4 Adding a new code model library . . . . . . . . . . . . . . . . . . . . . . . 578
+28.5 Compiling and loading the new code model (library) . . . . . . . . . . . . 579
+28.6 Interface Specification File . . . . . . . . . . . . . . . . . . . . . . . . . . 579
+28.6.1 The Name Table . . . . . . . . . . . . . . . . . . . . . . . . . . . . 581
+28.6.2 The Port Table . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 581
+28.6.3 The Parameter Table . . . . . . . . . . . . . . . . . . . . . . . . . . 583
+28.6.4 Static Variable Table . . . . . . . . . . . . . . . . . . . . . . . . . . 585

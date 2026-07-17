@@ -1,0 +1,34 @@
+Chapter 1
+Introduction
+Ngspice is a general-purpose circuit simulation program for nonlinear and linear analyses.
+Circuits may contain resistors, capacitors, inductors, mutual inductors, independent or
+dependent voltage and current sources, loss-less and lossy transmission lines, switches,
+uniform distributed RC lines, and the five most common semiconductor devices: diodes,
+BJTs, JFETs, MESFETs, and MOSFETs.
+The most common way to use Ngspice is to start it from the OS command prompt, passing
+the name of a netlist file: one containing the definition of a circuit. The largest part of
+this manual is the description of such files. For a full description of starting options see
+Chapter 16. Input files may also contain scripts written in Ngspice's command language
+(17). Interactive user interfaces are described in Chapter 18.
+Some introductory remarks on how to use ngspice may be found in Chapter 21.
+Ngspice is an update of Spice3f5, the last Berkeley's release of Spice3 simulator family.
+Ngspice is being developed to include new features to existing Spice3f5 and to fix its bugs.
+Improving a complex software like a circuit simulator is a very hard task and, while some
+improvements have been made, most of the work has been done on bug fixing and code
+refactoring.
+Ngspice has built-in models for the semiconductor devices, and the user need specify only
+the pertinent model parameter values.
+Ngspice supports mixed-level simulation and provides a direct link between technology pa-
+rameters and circuit performance. A mixed-level circuit and device simulator can provide
+greater simulation accuracy than a stand-alone circuit or device simulator by numerically
+modeling the critical devices in a circuit. Compact models can be used for all other de-
+vices. The mixed-level extensions to ngspice is CIDER, a mixed-level circuit and device
+simulator integrated into ngspice code.
+Ngspice supports mixed-signal simulation through the integration of XSPICE code. XSPICE
+software, developed as an extension to Spice3C1 by GeorgiaTech, has been enhanced and
+ported to ngspice to provide 'board' level and mixed-signal simulation.
+The XSPICE extension enables pure digital simulation as well.
+New devices can be added to ngspice by several means: behavioral B-, E- or G-sources,
+the XSPICE code-model interface for C-like device coding, and the ADMS interface based
+on Verilog-A and XML.
+35

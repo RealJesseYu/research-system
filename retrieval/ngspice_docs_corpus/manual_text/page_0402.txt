@@ -1,0 +1,33 @@
+402 CHAPTER 17. INTERACTIVE INTERPRETER
+Replacement for par('expression ') in meas inside the .control section
+let vdiff = v ( n1 ) - v ( n0 )
+meas tran vtest find vdiff at =0.04 e -3
+* the following will not do here :
+* meas tran vtest find par ( ' v ( n1 ) - v ( n0 ) ') at =0.04 e -3
+17.5.48 Mdump*: Dump the matrix values to a file (or to con-
+sole)
+General Form:
+mdump < filename >
+If <filename> is given, the output will be stored in file <filename>, otherwise dumped
+to your console.
+17.5.49 Mrdump*: Dump the matrix right hand side values to
+a file (or to console)
+General Form:
+mrdump < filename >
+If <filename> is given, the output will be appended to file <filename>, otherwise dumped
+to your console.
+Example usage after ngspice has started:
+* Dump matrix and RHS values after 10 and 20 steps
+* of a transient simulation
+source rc . cir
+step 10
+mdump m1 . txt
+mrdump mr1 . txt
+step 10
+mdump m2 . txt
+mrdump mr2 . txt
+* just to continue to the end
+step 10000
+You may create a loop using the control structures (Chapt. 17.6).
+17.5.50 Noise*: Noise analysis
+See the .NOISE analysis ( 15.3.4) for details.

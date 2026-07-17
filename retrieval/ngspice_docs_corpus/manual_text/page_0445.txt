@@ -1,0 +1,10 @@
+17.8. SCRIPTS 445
+print v(xsub1.xsub2.int2)
+Also the device instances have got their subcircuit information added to their names in
+a similar way. In addition the type identifier letter (e.g. R for resistor) has been put in
+front. So the resistor instances now are called r.xsub1.r11 or r.xsub1.xsub2.r22.
+17.8.4 Commands
+Commands have been described in Chapt. 17.5.
+17.8.5 control structures
+Control structures have been described in Chapt. 17.6. Some simple examples will be
+given below.

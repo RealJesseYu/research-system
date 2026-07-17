@@ -1,0 +1,39 @@
+2.14. PARAMETERS, FUNCTIONS, EXPRESSIONS, AND COMMAND SCRIPTS 69
+2.14 Parameters, functions, expressions, and com-
+mand scripts
+In ngspice there are several ways to describe functional dependencies. In fact there are
+three independent function parsers, being active before, during, and after the simulation.
+So it might be due to have a few words on their interdependence.
+2.14.1 Parameters
+Parameters (Chapt. 2.9.1) and functions, either defined within the .param statement or
+with the .func statement (Chapt. 2.10) are evaluated before any simulation is started,
+that is during the setup of the input and the circuit. Therefore these statements may not
+contain any simulation output (voltage or current vectors), because it is simply not yet
+available. The syntax is described in Chapt. 2.9.5. During the circuit setup all functions
+are evaluated, all parameters are replaced by their resulting numerical values. Thus it will
+not be possible to get feedback from a later stage (during or after simulation) to change
+any of the parameters.
+2.14.2 Nonlinear sources
+During the simulation, the B source (Chapt. 5) and their associated E and G sources, as
+well as some devices (R, C, L) may contain expressions. These expressions may contain
+parameters from above (evaluated immediately upon ngspice start up), numerical data,
+predefined functions, but also node voltages and branch currents resulting from the sim-
+ulation. The source or device values are continuously updated during the simulation.
+Therefore the sources are powerful tools to define non-linear behavior, you may even cre-
+ate new 'devices' by yourself. Unfortunately the expression syntax (see Chapt. 5.1) and
+the predefined functions may deviate from the ones for parameters listed in 2.9.1.
+2.14.3 Control commands, Command scripts
+Commands, as described in detail in Chapt. 17.5, may be used interactively, but also
+as a command script enclosed in .control ... .endc lines. The scripts may contain
+expressions (see Chapt. 17.2). The expressions may work upon simulation output vectors
+(of node voltages, branch currents), as well as upon predefined or user defined vectors
+and variables, and are invoked after the simulation. Parameters from 2.9.1 defined by
+the .param statement are not allowed in these expressions. However you may define such
+parameters with .csparam (2.11). Again the expression syntax (see Chapt. 17.2) will
+deviate from the one for parameters or B sources listed in 2.9.1 and 5.1.
+If you want to use parameters from 2.9.1 inside your control script, you may use .csparam
+(2.11) or apply a trick by defining a voltage source with the parameter as its value,
+and then have it available as a vector (e.g. after a transient simulation) with a then
+constant output (the parameter). A feedback from here back into parameters ( 2.14.1)
+is never possible. Also you cannot access non-linear sources of the preceding simulation.
+However you may start a first simulation inside your control script, then evaluate its

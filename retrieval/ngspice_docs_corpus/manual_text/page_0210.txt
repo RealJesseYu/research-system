@@ -1,0 +1,48 @@
+210CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Direction: in out
+Default_Type: v v
+Allowed_Types: [v,vd,i,id] [v,vd,i,id]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: in_offset gain
+Description: "input offset" "gain"
+Data_Type: real real
+Default_Value: 0.0 1.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: out_lower_limit out_upper_limit
+Description: "output lower limit" "output upper limit"
+Data_Type: real real
+Default_Value: - -
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: limit_range
+Description: "upper & lower limit smoothing range"
+Data_Type: real
+Default_Value: 1.0e-6
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: out_ic
+Description: "output initial condition"
+Data_Type: real
+Default_Value: 0.0
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: The Integrator block is a simple integration stage that approximates the
+integral with respect to time of an input signal. The block also includes gain and
+input offset parameters to allow for tailoring of the required signal, and output
+upper and lower limits to prevent convergence errors resulting from excessively
+large output values. Note that these limits specify integrator behavior similar to

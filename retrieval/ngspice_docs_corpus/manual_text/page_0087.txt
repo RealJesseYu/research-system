@@ -1,0 +1,42 @@
+3.3. ELEMENTARY DEVICES 87
+If neither value nor IND are specified, then geometrical and physical parameters are taken
+into account. In the following formulas
+NT refers to both instance and model parameter (instance parameter overrides model
+parameter):
+If LENGTH is not zero:
+(
+Lnom = MU µ0 NT2 π DIA2
+4 LENGTH if DIA is specified ,
+Lnom = MU µ0 NT2 CSECT
+LENGTH otherwise. (3.17)
+with µ0 = 1 .25663706143592 µH
+m . DIA takes preference over CSECT. kl is the geometry
+correction factor according to Lundin (see D. W. Knight , pp. 35-36), which is important
+when inductor length and diameter have the same order of magnitude. After the nominal
+inductance is calculated, it is adjusted for temperature by the formula
+L(T ) = L(TNOM)
+
+1 + T C1(T − TNOM) + T C2(T − TNOM)2
+
+, (3.18)
+where L(TNOM) = Lnom. In the above formula, ' T ' represents the instance tempera-
+ture, which can be explicitly set using the temp keyword or calculated using the circuit
+temperature and dtemp, if present.
+3.3.12 Coupled (Mutual) Inductors
+General form:
+KXXXXXXX LYYYYYYY LZZZZZZZ value
+Examples:
+K43 LAA LBB 0.999
+KXFRMR L1 L2 0.87
+LYYYYYYY and LZZZZZZZ are the names of the two coupled inductors, and value is
+the coefficient of coupling, K, which must be greater than 0 and less than or equal to 1.
+Using the 'dot' convention for drawing the coupled inductors, place a 'dot' on the first
+node of each inductor. If you have more than two inductors interacting, pairwise coupling
+is supported.
+Pairwise coupling of more than two inductors:
+L1 1 0 10 u
+L2 2 0 11 u
+L3 3 0 10 u
+K12 L1 L2 0.99
+K23 L2 L3 0.99
+K13 L1 L3 0.98

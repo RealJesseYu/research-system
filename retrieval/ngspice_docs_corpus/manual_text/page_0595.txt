@@ -1,0 +1,44 @@
+28.7. MODEL DEFINITION FILE 595
+INPUT double, int or void* name[i] Value of analog input port, or
+value of structure pointer for
+User-Defined Node port.
+INPUT_STATE enum name[i] State of a digital input: ZERO,
+ONE, or UNKNOWN.
+INPUT_STRENGTH enum name[i] Strength of digital input:
+STRONG, RESISTIVE, HI
+IMPEDANCE, or
+UNDETERMINED.
+INPUT_TYPE char* name[i] The port type of the input.
+LOAD double name[i] The digital load value placed on
+a port by this model.
+MESSAGE char* name[i] A message output by a model on
+an event-driven node.
+OUTPUT double, int or void* name[i] Value of the analog output port
+or value of structure pointer for
+User-Defined Node port.
+OUTPUT_CHANGED Boolean_t name[i] Has a new value been assigned
+to this event-driven output by
+the model?
+OUTPUT_DELAY double name[i] Delay in seconds for an
+event-driven output.
+OUTPUT_STATE enum name[i] State of a digital output: ZERO,
+ONE, or UNKNOWN.
+OUTPUT_STRENGTH enum name[i] Strength of digital output:
+STRONG, RESISTIVE,
+HI_IMPEDANCE, or
+UNDETERMINED.
+OUTPUT_TYPE char* name[i] The port type of the output.
+PARAM CD name[i] Value of the parameter.
+PARAM_NULL Boolean_t name[i] Was the parameter not included
+on the SPICE .model card ?
+PARAM_SIZE int name Size of parameter vector.
+PARTIAL double y[i],x[i] Partial derivative of output y
+with respect to input x.
+PORT_NULL Mif_Boolean_t name Has this port been specified as
+unconnected?
+PORT_SIZE int name Size of port vector.
+RAD_FREQ double <none> Current analysis frequency in
+radians per second.
+STATIC_V AR CD name Value of a static variable.
+STATIC_V AR_SIZE int name Size of static var vector
+(currently unused).

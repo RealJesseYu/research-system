@@ -1,0 +1,45 @@
+692 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+31.6.3 MOS3 - Level 3 MOSFET model with Meyer capacitance
+model
+31.6.3.1 MOS3 instance parameters
+# Name Direction Type Description
+80 m InOut real Multiplier
+2 l InOut real Length
+1 w InOut real Width
+4 ad InOut real Drain area
+3 as InOut real Source area
+6 pd InOut real Drain perimeter
+5 ps InOut real Source perimeter
+34 id Out real Drain current
+34 cd Out real Drain current
+36 ibd Out real B-D junction current
+35 ibs Out real B-S junction current
+18 is Out real Source current
+17 ig Out real Gate current
+16 ib Out real Bulk current
+50 vgs Out real Gate-Source voltage
+51 vds Out real Drain-Source voltage
+49 vbs Out real Bulk-Source voltage
+48 vbd Out real Bulk-Drain voltage
+8 nrd InOut real Drain squares
+7 nrs InOut real Source squares
+9 off In flag Device initially off
+12 icvds InOut real Initial D-S voltage
+13 icvgs InOut real Initial G-S voltage
+11 icvbs InOut real Initial B-S voltage
+10 ic InOut real vector Vector of D-S, G-S, B-S voltages
+77 temp InOut real Instance operating temperature
+81 dtemp InOut real Instance temperature difference
+15 sens_l In flag flag to request sensitivity WRT length
+14 sens_w In flag flag to request sensitivity WRT width
+22 dnode Out integer Number of drain node
+23 gnode Out integer Number of gate node
+24 snode Out integer Number of source node
+25 bnode Out integer Number of bulk node
+26 dnodeprime Out integer Number of internal drain node
+27 snodeprime Out integer Number of internal source node
+30 von Out real Turn-on voltage
+31 vdsat Out real Saturation drain voltage
+32 sourcevcrit Out real Critical source voltage
+33 drainvcrit Out real Critical drain voltage
+78 rs Out real Source resistance

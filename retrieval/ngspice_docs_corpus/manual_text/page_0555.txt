@@ -1,0 +1,38 @@
+26.1. SIMULATION AND MODELING OVER VIEW 555
+• Nodes may be labeled with any alphanumeric identifier. The only specific labeling
+requirement is that 0 must be used for ground.
+• A line that begins with a dot is a 'control directive' Control directives are used most
+frequently for specifying the type of analysis the simulator is to carry out.
+• An .end statement must be included at the end of the file.
+• With the exception of the Title and .end statements, the order in which the circuit
+file is defined is arbitrary.
+• All identifiers are case insensitive - the identifier 'npn' is equivalent to 'NPN' and
+to 'nPn' .
+• Spaces and parenthesis are treated as white space.
+• Long lines may be continued on a succeeding line by beginning the next line with a
+'+' in the first column.
+In this example, the title of the circuit is 'Small Signal Amplifier' . Three comment lines
+are included before the actual circuit description begins. The first device in the circuit
+is voltage source Vin, which is connected between node Input and ' 0' (ground). The
+parameters after the nodes specify that the source has an initial value of 0, a wave shape
+of SIN, and a DC offset, amplitude, and frequency of 0, .1, and 500 respectively. The next
+device in the circuit is resistor R_Source, which is connected between nodes Input and
+Amp_In, with a value of 100 Ohms. The remaining device lines in the file are interpreted
+similarly.
+The control directive that begins with .tran specifies that the simulator should carry
+out a simulation using the Transient analysis mode. In this example, the parameters to
+the transient analysis control directive specify that the maximum time-step allowed is 1
+microsecond and that the circuit should be simulated for 0.01 seconds of circuit time.
+Other control cards are used for other analysis modes. For example, if a frequency response
+plot is desired, perhaps to determine the effect of the capacitor in the circuit, the following
+statement will instruct the simulator to perform a frequency analysis from 100 Hz to 10
+MHz in decade intervals with ten points per decade.
+.ac dec 10 100 10meg
+To determine the quiescent operating point of the circuit, the following statement may be
+inserted in the file.
+.op
+A fourth analysis type supported by ngspice is swept DC analysis. An example control
+statement for the analysis mode is
+.dc Vin -0.1 0.2 .05
+This statement specifies a DC sweep that varies the source Vin from -100 millivolts to
++200 millivolts in steps of 50 millivolts.

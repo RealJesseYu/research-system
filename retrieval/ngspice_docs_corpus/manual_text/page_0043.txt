@@ -1,0 +1,48 @@
+1.3. ANALYSIS AT DIFFERENT TEMPERATURES 43
+1.3 Analysis at Different Temperatures
+1.3.1 Introduction
+Temperature, in ngspice, is a property associated to the entire circuit, rather than an
+analysis option. Circuit temperature has a default (nominal) value of 27 °C (300.15 K)
+that can be changed using the TEMP option in an .option control line (see 15.1.1) or by
+the .TEMP line (see 2.12), which has precedence over the .option TEMP line. All analyses
+are, thus, performed at circuit temperature, and if you want to simulate circuit behavior
+at different temperatures you should prepare a netlist for each temperature.
+All input data for ngspice is assumed to have been measured at the circuit nominal
+temperature. This value can further be overridden for any device that models temperature
+effects by specifying the TNOM parameter on the .model itself. Individual instances may
+further override the circuit temperature through the specification of TEMP and DTEMP
+parameters on the instance. The two options are not independent even if you can specify
+both on the instance line, the TEMP option overrides DTEMP. The algorithm to compute
+instance temperature is described below:
+Algorithm 1.1 Instance temperature computation
+IF TEMP is specified THEN
+instance_temperature = TEMP
+ELSE
+instance_temperature = circuit_temperature + DTEMP
+END IF
+Temperature dependent support is provided for all devices except voltage and current
+sources (either independent and controlled) and BSIM models. BSIM MOSFETs have an
+alternate temperature dependency scheme that adjusts all of the model parameters before
+input to ngspice.
+For details of the BSIM temperature adjustment, see [ 6] and [ 7]. Temperature appears
+explicitly in the exponential terms of the BJT and diode model equations. In addition,
+saturation currents have a built-in temperature dependence. The temperature dependence
+of the saturation current in the BJT models is determined by:
+IS (T1) = IS (T0)
+ T1
+T0
+XT I
+exp
+ Egq (T1 − T0)
+k (T1T0)
+
+(1.1)
+where k is Boltzmann's constant, q is the electronic charge, Eg is the energy gap model
+parameter, and XT I is the saturation current temperature exponent (also a model pa-
+rameter, and usually equal to 3).
+The temperature dependence of forward and reverse beta is according to the formula:
+B (T1) = B (T0)
+ T1
+T0
+XT B
+(1.2)

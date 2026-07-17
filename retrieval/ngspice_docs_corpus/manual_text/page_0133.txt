@@ -1,0 +1,49 @@
+7.3. DIODE EQUATIONS 133
+Temperature effects
+Name Parameter Units Default Example
+EG Activation energy eV 1.11
+1.11 Si
+0.69 Sbd
+0.67 Ge
+TNOM (TREF) Parameter measurement
+temperature
+◦C 27 50
+TRS1 (TRS) 1st order tempco for RS 1/◦C 0.0 -
+TRS2 2nd order tempco for RS 1/◦C2 0.0 -
+TM1 1st order tempco for MJ 1/◦C 0.0 -
+TM2 2nd order tempco for MJ 1/◦C2 0.0 -
+TTT1 1st order tempco for TT 1/◦C 0.0 -
+TTT2 2nd order tempco for TT 1/◦C2 0.0 -
+XTI Saturation current
+temperature exponent
+- 3.0 3.0 pn
+2.0 Sbd
+TLEV Diode temperature
+equation selector
+- 0
+TLEVC Diode capac. temperature
+equation selector
+- 0
+CTA (CTC) Area junct. cap.
+temperature coefficient
+1/◦C 0.0 -
+CTP Perimeter junct. cap.
+temperature coefficient
+1/◦C 0.0 -
+TCV Breakdown voltage
+temperature coefficient
+1/◦C 0.0 -
+Noise modeling
+Name Parameter Units Default Example Scale factor
+KF Flicker noise coefficient - 0
+AF Flicker noise exponent - 1
+7.3 Diode Equations
+The junction diode is the basic semiconductor device and the simplest one in ngspice,
+but its model is quite complex, even when not all the physical phenomena affecting a pn
+junction are handled. The diode is modeled in three different regions:
+• Forward bias : the anode is more positive than the cathode, the diode is 'on' and
+can conduct large currents. To avoid convergence problems and unrealistic high
+current, it is prudent to specify a series resistance to limit current with the rs
+model parameter.
+• Reverse bias : the cathode is more positive than the anode and the diode is 'off' . A
+reverse bias diode conducts a small leakage current.

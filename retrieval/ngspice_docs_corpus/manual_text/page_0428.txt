@@ -1,0 +1,39 @@
+428 CHAPTER 17. INTERACTIVE INTERPRETER
+17.5.103 Wrdata: Write data to a file (simple table)
+General Form:
+< set wr_singlescale >
+< set wr_vecnames >
+< option numdgt =7 >
+...
+wrdata [ file ] [ vecs ]
+Writes out the vectors to file.
+This is a very simple printout of data in array form. Variables are written in pairs: scale
+vector, value vector. If variable is complex, a triple is printed (scale, real, imag). If more
+than one vector is given, the third column again is the default scale, the fourth the data
+of the second vector. The default format is ASCII. All vectors have to stem from the
+same plot, otherwise a segfault may occur. Setting wr_singlescale as variable, the scale
+vector will be printed only once, if scale vectors are of the same length (you have to take
+care of that yourself). Setting wr_vecnames as variable, scale and data vector names are
+printed on the first row. The number of significant digits is set with option numdgt.
+output example from two vectors:
+0.000000 e +00 -1.845890 e -06 0.000000 e +00
+0.000000 e +00
+7.629471 e +06 4.243518 e -06 7.629471 e +06 -4.930171 e -06
+1.525894 e +07 -5.794628 e -06 1.525894 e +07
+4.769020 e -06
+2.288841 e +07 5.086875 e -06 2.288841 e +07 -3.670687 e -06
+3.051788 e +07 -3.683623 e -06 3.051788 e +07
+1.754215 e -06
+3.814735 e +07 1.330798 e -06 3.814735 e +07 -1.091843 e -06
+4.577682 e +07 -3.804620 e -07 4.577682 e +07
+2.274678 e -06
+5.340630 e +07 9.047444 e -07 5.340630 e +07 -3.815083 e -06
+6.103577 e +07 -2.792511 e -06 6.103577 e +07
+4.766727 e -06
+6.866524 e +07 5.657498 e -06 6.866524 e +07 -2.397679 e -06
+....
+If variable appendwrite is set, the data may be added to an existing file.
+17.5.104 Write: Write data to a file (Spice3f5 format)
+General Form:
+write [ file ] [ exprs ]
+Writes out the expressions to file.

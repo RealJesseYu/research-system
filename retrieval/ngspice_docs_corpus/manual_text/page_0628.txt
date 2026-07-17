@@ -1,0 +1,45 @@
+628 CHAPTER 30. CIDER USER'S MANUAL
+the next line. However, the name and value of a parameter should always appear on the
+same line.
+Several features are provided to make the numerical model format more convenient.
+Blank space can follow the initial ' +' to separate it from the name of a card or the
+card continuation ' +' . Blank lines are also permitted, as long as they also begin with an
+initial ' +' . Parentheses and commas can be used to visually group or separate parameter
+definitions. In addition, while it is common to add an equal sign between a parameter
+and its value, this is not strictly necessary.
+The name of any card can be abbreviated, provided that the abbreviation is unique. Pa-
+rameter name abbreviations can also be used if they are unique in the list of a card's
+parameters. Numeric parameter values are treated identically as in SPICE3, so expo-
+nential notation, engineering scale factors and units can be attached to parameter val-
+ues: tau=10ns, nc=3.0e19cm^-3 . In SPICE3, the value of a FLAG model parameter is
+changed to TRUE simply by listing its name on the model line. In CIDER, the value of
+a numerical model FLAG parameter can be turned back to F ALSE by preceding it by
+a caret ' ^' . This minimizes the amount of input change needed when features such as
+debugging are turned on and off. In certain cases it is necessary to include file names in
+the input description and these names may contain capital letters. If the file name is part
+of an element line, the inout parser will convert these capitals to lowercase letters. To
+protect capitalization at any time, simply enclose the string in double quotes ' "' .
+The remainder of this manual describes how numerically analyzed elements and models
+can be used in CIDER simulations. The manual consists of three parts. First, all of the
+model cards and their parameters are described. This is followed by a section describing
+the three basic types of numerical models and their corresponding element lines. In the
+final section, several complete examples of CIDER simulations are presented.
+Several conventions are used in the card descriptions. In the card synopses, the name of a
+card is followed by a list of parameter classes. Each class is represented by a section in the
+card parameter table, in the same order as it appears in the synopsis line. Classes that
+contain optional parameters are surrounded by brackets: [...]. Sometimes it only makes
+sense for a single parameter to take effect. (For example, a material can not simultaneously
+be both Si and SiO2.) In such cases, the various choices are listed sequentially, separated
+by colons. The same parameter often has a number of different acceptable names, some
+of which are listed in the parameter tables. 1 These aliases are separated by vertical bars:
+'|' . Finally, in the card examples, the model continuation pluses have been removed from
+the card lines for clarity's sake.
+30.1.1 Examples
+The model description for a two-dimensional numerical diode might look something like
+what follows. This example demonstrates many of the features of the input format de-
+1Some of the possibilities are not listed in order to shorten the lengths of the parameter tables.
+This makes the use of parameter abbreviations somewhat troublesome since an unlisted parameter may
+abbreviate to the same name as one that is listed. CIDER will produce a warning when this occurs.
+Many of the undocumented parameter names are the PISCES names for the same parameters. The
+adventurous soul can discover these names by delving through the ' cards' directory of the source code
+distribution looking for the C parameter tables.

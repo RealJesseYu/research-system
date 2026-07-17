@@ -1,0 +1,28 @@
+19.3. SHARED NGSPICE API 487
+19.3.3.3 typedef int (ControlledExit)(int, NG_BOOL, NG_BOOL, int, void*)
+int exit status
+NG_BOOL if true: immediate unloading dll, if false: just set flag, unload is done when
+function has returned
+NG_BOOL if true: exit upon 'quit', if false: exit due to ngspice.dll error
+int identification number of calling ngspice shared lib (default is 0, see Chapt. 19.6)
+void* return pointer received from caller
+asking for a reaction after controlled exit.
+19.3.3.4 typedef int (SendData)(pvecvaluesall, int, int, void*)
+vecvaluesall* pointer to array of structs containing actual values from all vectors
+int number of structs (one per vector)
+int identification number of calling ngspice shared lib (default is 0, see Chapt. 19.6)
+void* return pointer received from caller
+send back actual vector data.
+19.3.3.5 typedef int (SendInitData)(pvecinfoall, int, void*)
+vecinfoall* pointer to array of structs containing data from all vectors right after ini-
+tialization
+int identification number of calling ngspice shared lib (default is 0, see Chapt. 19.6)
+void* return pointer received from caller
+send back initialization vector data.
+19.3.3.6 typedef int (BGThreadRunning)(NG_BOOL, int, void*)
+NG_BOOL false if background thread is running, otherwise true
+int identification number of calling ngspice shared lib (default is 0, see Chapt. 19.6)
+void* return pointer received from caller
+indicate if background thread is running
+Callback functions addresses received from caller with ngSpice_Init_Evt()
+function:

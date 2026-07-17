@@ -1,0 +1,44 @@
+26.3. HOW TO CREATE CODE MODELS 561
+Example:
+Supply ramping option
+*
+* This circuit d e m o n s t r a t e s the use of the option
+* " ramptime " that ramps in dep end ent sources and the
+* capacitor and inductor initial conditions from
+* zero to their final value during the time period
+* specified .
+*
+*
+. tran 0.1 5
+. option ramptime =0.2
+* a1 1 0 cap
+. model cap capacitor ( c =1000 uf ic =1)
+r1 1 0 1 k
+*
+a2 2 0 ind
+. model ind inductor ( l =1 H ic =1)
+r2 2 0 1.0
+*
+v1 3 0 1.0
+r3 3 0 1 k
+*
+i1 4 0 1e -3
+r4 4 0 1 k
+*
+v2 5 0 0.0 sin (0 1 0.3 0 0 45.0)
+r5 5 0 1 k
+*
+. end
+26.3 How to create code models
+The following instruction to create an additional code model uses the ngspice infrastruc-
+ture and some 'intelligent' copy and paste. As an example an extra code model d_xxor is
+created in the xtradev shared library, reusing the existing d_xor model from the digital
+library. More detailed information will be made available in Chapt. 28.
+You should have downloaded ngspice, either the most recent distribution or from the Git
+repository, and compiled and installed it properly according to your operating system and
+the instructions given in Chapt. 32 of the Appendix, especially Chapt. 32.1.4 (for Linux
+users), or Chapt. 32.2.2 for MINGW and MS Windows. (MS Visual Studio will not do,
+because we have not yet integrated the code model generator into this compiler! You
+may however use all code models later with any ngspice executable.) Then change into
+directory ngspice/src/xspice/icm/xtradev.
+Create a new directory

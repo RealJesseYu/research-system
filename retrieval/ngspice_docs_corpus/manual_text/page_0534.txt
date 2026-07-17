@@ -1,0 +1,38 @@
+534 CHAPTER 23. CIRCUIT OPTIMIZATION WITH NGSPICE
+23.2 ngspice optimizer using ngspice scripts
+Friedrich Schmidt (see his web site ) has intensively used circuit optimization during his
+development of Nonlinear loadflow computation with Spice based simulators. He has
+provided an optimizer using the internal ngspice scripting language (see Chapt. 17.8).
+His original scripts are found here. A slightly modified and concentrated set of his scripts
+is available from the ngspice optimizer directory .
+The simple example given in the scripts is OK with current ngspice. Real circuits have
+still to be tested.
+23.3 ngspice optimizer using tclspice
+ngspice offers another scripting capability, namely the tcl/tk based tclspice option (see
+Chapt. 20). An optimization procedure may be written using a tcl script. An example is
+provided in Chapt. 20.5.2.
+23.4 ngspice optimizer using a Python script
+Werner Hoch has developed a ngspice optimization procedure based on the 'differential
+evolution' algorithm [ 21]. On his web page he provides a Python script containing the
+control flow and algorithms.
+23.5 ngspice optimizer using ASCO
+The ASCO optimizer , developed by Joao Ramos, also applies the 'differential evolution'
+algorithm [ 21]. An enhanced version 0.4.7.1, adding ngspice as a simulation engine, may
+be downloaded here (7z archive format). Included are executable files (asco, asco-mpi,
+ngspice-c for MS Windows). The source code should also compile and function under
+Linux (not yet tested).
+ASCO is a standalone executable, which communicates with ngspice via ngspice input
+and output files. Several optimization examples, originally provided by J. Ramos for
+other simulators, are prepared for use with ngspice. Parallel processing on a multi-core
+computer has been tested using MPI ( MPICH2) under MS Windows. A processor network
+will be supported as well. A MS Windows console application ngspice_c.exe is included
+in the archive. Several stand alone tools are provided, but not tested yet.
+Setting up an optimization project with ASCO requires advanced know-how of using
+ngspice. There are several sources of information. First of all the examples provided
+with the distribution give hints how to start with ASCO. The original ASCO manual is
+provided as well, or is available here. It elaborates on the examples, using a commercial
+simulator, and provides a detailed description how to set up ASCO. Installation of ASCO
+and MPI (under Windows) is described in a file INSTALL.
+Some remarks on how to set up ASCO for ngspice are given in the following sections
+(more to be added). These a meant not as a complete description, but are an addition
+the the ASCO manual.

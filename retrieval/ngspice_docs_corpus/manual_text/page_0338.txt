@@ -1,0 +1,9 @@
+338 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+Compared to the approach using command .options savecurrents the resulting vectors
+from a .probe command are available for every simulation type including AC simulation.
+A slight disadvantage may be that new nodes are added to the instance matrix, increasing
+simulation time (typically a little bit only).
+15.6.5.2 (Differential) voltage measurement
+Differential voltage measurements are achieved by placing a voltage controlled voltage
+source (VCVS, E device) with its two inputs connected to the nodes specified by the user
+and gain 1. The output is then saved in a vector with a leading vd_ in its name.

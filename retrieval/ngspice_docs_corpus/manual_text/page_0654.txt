@@ -1,0 +1,32 @@
+654 CHAPTER 30. CIDER USER'S MANUAL
+30.17.4 SEE ALSO
+options, output
+30.17.5 BUGS
+Convergence problems may be experienced when simulating MOS capacitors due to sin-
+gularities in the current-continuity equations.
+30.18 NBJT
+Bipolar / three-terminal numerical models and elements
+SYNOPSIS Model:
+. MODEL model - name NBJT [ level ]
++ ...
+SYNOPSIS Element:
+QXXXXXXX nl n2 n3 model - name [ geometry ]
++ [ tem pe rat ure ] [ initial - conditions ]
+SYNOPSIS Output:
+. SAVE [ small - signal values ]
+30.18.1 DESCRIPTION
+NBJT is the name for a bipolar transistor numerical model. In addition, the 2D model
+can be used to simulate other three-terminal structures such as a JFET or MESFET.
+However, the 1D model is customized with a special base contact, and cannot be used
+for other purposes. See the options card for more information on how to customize the
+device type and setup the 1D base contact.
+Both 1"and 2D devices are supported. These correspond to the LEVEL=l and models,
+respectively. If left unspecified, it is assumed that the device is one-dimensional.
+All numerical three-terminal element names begin with the letter 'Q' . If the device is a
+bipolar transistor, then the nodes are specified in the order: collector (nl), base (n2),
+emitter (n3). For a JFET or MESFET, the node order is: drain (n1), gate (n2), source
+(n3). After this must come the name of the model used for the element. The remaining
+information can come in any order. The layout dimensions of an element are specified
+relative to the geometry of a default device. For the 1D BJT, the default device has an
+area of lm 2, and for 2D devices, the default device has a width of lm. In addition, it
+is assumed that the default 1D BJT has a base contact with area equal to the emitter

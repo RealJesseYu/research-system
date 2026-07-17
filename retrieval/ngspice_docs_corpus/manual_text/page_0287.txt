@@ -1,0 +1,36 @@
+12.5. PREDEFINED NODE TYPES FOR EVENT DRIVEN SIMULATION 287
+12.5 Predefined Node Types for event driven simu-
+lation
+The following predefined node types are included with the XSPICE simulator. These
+should provide you not only with valuable event-driven modeling capabilities, but also
+with examples to use for guidance in creating new UDN (user defined node) types. You
+may access these node data by the plot (17.5.53) or eprint (17.5.26) commands.
+12.5.1 Digital Node Type
+The 'digital' node type is directly built into the simulator. 12 digital node values are
+available. They are described by a two character string (the state/strength token). The
+first character (0, 1, or U) gives the state of the node (logic zero, logic one, or unknown
+logic state). The second character (s, r, z, u) gives the "strength" of the logic state (strong,
+resistive, hi-impedance, or undetermined). So these are the values we have: 0s, 1s, Us,
+0r, 1r, Ur, 0z, 1z, Uz, 0u, 1u, Uu.
+12.5.2 Real Node Type
+The 'real' node type provides for event-driven simulation with double-precision floating
+point data. This type is useful for evaluating sampled-data filters and systems. The
+type implements all optional functions for User-Defined Nodes, including inversion and
+node resolution. For inversion, the sign of the value is reversed. For node resolution,
+the resultant value at a node is the sum of all values output to that node. The node is
+implemented as a user defined node in ngspice/src/xspice/icm/xtraevt/real.
+12.5.3 Int Node Type
+The 'int' node type provides for event-driven simulation with integer data. This type is
+useful for evaluating round-off error effects in sampled-data systems. The type implements
+all optional functions for User-Defined Nodes, including inversion and node resolution. For
+inversion, the sign of the integer value is reversed. For node resolution, the resultant value
+at a node is the sum of all values output to that node. The node is implemented as a user
+defined node in ngspice/src/xspice/icm/xtraevt/int.
+12.5.4 (Digital) Input/Output
+The analog code models use the standard (analog) nodes provided by ngspice and thus
+are using all the commands for sourcing, storing, printing, and plotting data.
+I/O for event nodes (digital, real, int, and UDNs) is offered by the following tools: For out-
+put you may use the plot (17.5.53) or eprint (17.5.26) commands, as well as edisplay
+(17.5.25) and eprvcd (17.5.27). The latter writes all node data to a VCD file (a dig-
+ital standard interface) that may be analyzed by viewers like gtkwave. For input, you
+may create a test bench with existing code models (oscillator ( 12.3.4), frequency divider

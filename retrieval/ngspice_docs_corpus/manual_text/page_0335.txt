@@ -1,0 +1,34 @@
+15.6. BATCH OUTPUT 335
+of analysis. The par('expression ') option ( 15.6.6) allows the use of algebraic expressions
+in the .print lines. .width (15.6.7) selects the maximum number of characters per line.
+15.6.3 .PLOT Lines
+.plot creates a printer plot output.
+General form:
+. plot pltype ov1 <( plo1 , phi1 ) > < ov2 <( plo2 , phi2 ) > ... ov8 >
+Examples:
+. plot dc v (4) v (5) v (1)
+. plot tran v (17 , 5) (2 , 5) i ( vin ) v (17) (1 , 9)
+. plot ac vm (5) vm (31 , 24) vdb (5) vp (5)
+. plot disto hd2 hd3 ( R ) sim2
+. plot tran v (5 , 3) v (4) (0 , 5) v (7) (0 , 10)
+The .plot line defines the contents of one plot of from one to eight output variables.
+pltype is the type of analysis ( DC, AC, TRAN, NOISE, or DISTO) for which the specified
+outputs are desired. The syntax for the ovi is identical to that for the .print line and
+for the plot command in the interactive mode.
+The overlap of two or more traces on any plot is indicated by the letter 'X' . When more
+than one output variable appears on the same plot, the first variable specified is printed
+as well as plotted. If a printout of all variables is desired, then a companion .print line
+should be included. There is no limit on the number of .plot lines specified for each type
+of analysis. The par('expression ') option ( 15.6.6) allows the use of algebraic expressions
+in the .plot lines.
+15.6.4 .FOUR: Fourier Analysis of Transient Analysis Output
+General form:
+. four freq ov1 < ov2 ov3 ... >
+Examples:
+. four 100 K v (5)
+The .four (or Fourier) line controls whether ngspice performs a Fourier analysis as a
+part of the transient analysis. freq is the fundamental frequency, and ov1 is the desired
+vector to be analyzed. The Fourier analysis is performed over the interval <TSTOP-period,
+TSTOP>, where TSTOP is the final time specified for the transient analysis, and period is
+one period of the fundamental frequency. The dc component and the first nine harmonics
+are determined. For maximum accuracy, TMAX (see the .tran line) should be set to

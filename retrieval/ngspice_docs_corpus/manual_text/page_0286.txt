@@ -1,0 +1,40 @@
+286CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Data_Type: int
+Default_Value: 128
+Limits: [1 -]
+Vector: no
+Vector_bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: irreversible
+Description: "Parameter passed to library function cm_irreversible()"
+Data_Type: int
+Default_Value: 1
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+STATIC_VAR_TABLE:
+Static_Var_Name: cosim_instance
+Data_Type: pointer
+Description: "Per-instance structure"
+The d_cosim code model is similar to d_process, as it also requires external software
+to define the behaviour of a code model instance. An important difference is that with
+d_cosim such software runs inside the ngspice process. This code model is intended as a
+container for other types of digital simulation and to provide a simplified programming
+interface for devices whose behaviour is defined purely by conventional software. In par-
+ticular, it is intended to act as a container for sub-simulations that can not discard any
+time steps that fail in the main simulator; that is, they are irreversible.
+The actual behaviour of any d_cosim instance is defined by a shared library or Windows
+DLL that is set by the 'simulation' parameter and dynamically loaded. Input changes are
+relayed to a function in this library and any outputs reported by the library are relayed
+to the simulated circuit. The interface between this code model and the library that it
+hosts is defined in C-language header file cosim.h, included in the Ngspice source code
+and in directory share/ngspice/scripts/src/ngspice in a binary package. This interface is
+simpler than the XSPICE programming interface, but that has a cost: without special
+care only one d_cosim instance should exist in a circuit. For more information, see the
+description of cm_irreversible() in section 28.7.2.7.
+Example SPICE usage:
+adut [ Clk Comp Start] [Sample Valid ~d5 ~d4 ~d3 ~d2 ~d1 ~d0] null dut
+.model dut d_cosim simulation="./adc.so"
+A method for creating a suitable library from HDL code is described in section 14.3.

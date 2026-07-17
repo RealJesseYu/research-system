@@ -1,0 +1,35 @@
+326 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+General form 5:
+. MEASURE { DC | AC | TRAN | SP } result FIND o u t _ v a r i a b l e
++ WHEN o u t _ v a r i a b l e 2 = o u t _ v a r i a b l e 3 < TD = td >
++ < CROSS =# | CROSS = LAST >
++ < RISE =#| RISE = LAST > < FALL =#| FALL = LAST >
+Measure statement:
+.measure tran yeval FIND v(2) WHEN v(1)=v(3) FALL=2
+returns the dependent (y) variable drawn from v(2) at the time point when v(1) crosses
+v(3), v(1) falling for the second time.
+General form 6:
+. MEASURE { DC | AC | TRAN | SP } result FIND o u t _ v a r i a b l e AT =
+val
+Measure statement:
+.measure tran yeval FIND v(2) AT=2m
+returns the dependent (y) variable drawn from v(2) at the time point 2 ms (given by
+AT=time).
+15.4.7 AVG|MIN|MAX|PP|RMS|MIN_AT|MAX_AT
+General form 7:
+. MEASURE { DC | AC | TRAN | SP } result
++ { AVG | MIN | MAX | PP | RMS | MIN_AT | MAX_AT }
++ o u t _ v a r i a b l e < TD = td > < FROM = val > < TO = val >
+Measure statements:
+.measure tran ymax MAX v(2) from=2m to=3m
+returns the maximum value of v(2) inside the time interval between 2 ms and 3 ms.
+.measure tran tymax MAX_AT v(2) from=2m to=3m
+returns the time point of the maximum value of v(2) inside the time interval between 2
+ms and 3 ms.
+.measure tran ypp PP v(1) from=2m to=4m
+returns the peak to peak value of v(1) inside the time interval between 2 ms and 4 ms.
+.measure tran yrms RMS v(1) from=2m to=4m
+returns the root mean square value of v(1) inside the time interval between 2 ms and 4
+ms.
+.measure tran yavg AVG v(1) from=2m to=4m
+returns the average value of v(1) inside the time interval between 2 ms and 4 ms.

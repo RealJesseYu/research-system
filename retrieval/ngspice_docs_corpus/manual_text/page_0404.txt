@@ -1,0 +1,42 @@
+404 CHAPTER 17. INTERACTIVE INTERPRETER
+Command sequence for testing option trtol:
+. control
+set noinit
+option trtol =1
+echo
+echo trtol =1
+run
+rusage traniter trantime
+reset
+option trtol =3
+echo
+echo trtol =3
+run
+rusage traniter trantime
+reset
+option trtol =5
+echo
+echo trtol =5
+run
+rusage traniter trantime
+reset
+option trtol =7
+echo
+echo trtol =7
+run
+rusage traniter trantime
+plot tran1 . v ( out25 ) tran1 . v ( out50 ) v ( out25 ) v ( out50 )
+. endc
+17.5.53 Plot: Plot vectors on the display
+General Form:
+plot expr1 [ vs s cal e_e xpr 1 ] [ expr2 [ vs sc al e_e xpr 2 ]] ...
+[ ylimit ylo yhi ] [ xlimit xlo xhi ] [ xindices xilo xihi ]
+[ xcompress comp ] [ xdelta xdel ] [ ydelta ydel ]
+[ xlog ] [ ylog ] [ loglog ] [ nogrid ]
+[ linplot ] [ combplot ] [ pointplot ] [ nointerp ] [ r etr ace plo t ]
+[ polar ] [ smith ] [ smithgrid ]
+[ xlabel word ] [ ylabel word ] [ title word ]
+[ samep ] [ linear ] [ kicad ] [ plainplot ] [ digitop ]
+[ all ] [ allv ] [ alli ] [ ally ] [ alle ]
+Plot the given vectors or exprs on the screen (if you are on a graphics terminal). The
+xlimit and ylimit arguments determine the high and low x- and y-limits of the axes,

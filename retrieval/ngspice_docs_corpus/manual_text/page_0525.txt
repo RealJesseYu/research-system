@@ -1,0 +1,37 @@
+22.3. BEHA VIORAL SOURCES (B, E, G, R, L, C) WITH RANDOM CONTROL 525
+So v1, v2, and v3 will get the same value, whereas v4 might differ. v11, v12, and v13
+will get different values, v14, v15, and v16 will obtain the values set above in the .param
+statements. .func will start its replacement algorithm, rgauss(a,b,c) will be replaced
+everywhere by 5*agauss(a,b,c).
+Thus device and model parameters may obtain statistically distributed starting values.
+You simply set a model parameter not to a fixed numerical value, but insert a 'parameter'
+instead, which may consist of a token defined in a .param card, by calling .func or
+by using a built-in function, including the statistical functions described above. The
+parameter values will be evaluated once immediately after reading the input file.
+22.3 Behavioral sources (B, E, G, R, L, C) with ran-
+dom control
+All sources listed in the section header may contain parameters, which will be evaluated
+before simulation starts, as described in the previous section ( 22.2). In addition the
+nonlinear voltage or current sources (B-source, Chapt. 5) as well as their derivatives E
+and G, but also the behavioral R, L, and C may be controlled during simulation by a
+random independent voltage source V with TRRANDOM option (Chapt. 4.1.8).
+An example circuit, a Wien bridge oscillator from input file /examples/Monte_Carlo/OpWien.sp
+is distributed with ngspice or available at Git. The two frequency determining pairs of R
+and C are varied statistically using four independent Gaussian voltage sources as the con-
+trolling units. An excerpt of this command sequence is shown below. The total simulation
+time ttime is divided into 100 equally spaced blocks. Each block will get a new set of
+control voltages, e.g. VR2, which is Gaussian distributed, mean 0 and absolute deviation
+1. The resistor value is calculated with ±10% spread, the factor 0.033 will set this 10%
+to be a deviation of 1 sigma from nominal value.
+Examples for control of a behavioral resistor:
+* random resistor
+. param res = 10 k
+. param ttime =12000 m
+. param varia =100
+. param ttime10 = ' ttime / varia '
+* random control voltage ( Gaussian d i s t r i b u t i o n )
+VR2 r2 0 dc 0 trrandom (2 ' ttime10 ' 0 1)
+* behavioral resistor
+R2 4 6 R = ' res + 0.033 * res * V ( r2 ) '
+So within a single simulation run you will obtain 100 different frequency values issued by
+the Wien bridge oscillator. The voltage sequence VR2 is shown below.

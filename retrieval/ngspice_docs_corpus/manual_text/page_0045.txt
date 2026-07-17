@@ -1,0 +1,31 @@
+1.4. CONVERGENCE 45
+will set the overall temperature to 60 °C (15.1.1). Both commands are equivalent, however
+.temp will override .options temp .
+The temperature of an individual device may be determined by the instance parameters
+temp or dtemp.
+M1 d g s b MOSN temp=35
+will set the temperature of the specific MOS device to 35 °C.
+M2 d g s b MOSN dtemp=20
+will set the temperature of device M2 at a delta of 20 ° above the overall temperature.
+The temperatures thus set are static throughout the simulation. It is possible, however,
+to sweep the temperature by a command like
+.dc temp 25 49 2
+starting at 25 °C, stopping at 49 °C with a step of 2 ° (see 15.3.2).
+The current overall temperature may be assessed by the variable TEMPER, which can be
+used as part of an equation in B sources ( 5.1.2) or behavioral E, G, R, L, C sources (e.g.
+5.2). A typical example may look like
+Bt1 1 2 V='5 + TEMPER*TEMPER'
+The nominal temperature, a reference temperature where device model parameters have
+been measured, is called tnom.
+.options tnom=25
+will set the nominal temperature for all devices to 25 °C ( 15.1.1). Tnom sometimes may
+be set as a model parameter in a .model line ( 3.2.2), depending on the specific class of
+devices and its model parameter set.
+1.4 Convergence
+Ngspice uses the Newton-Raphson algorithm to solve nonlinear equations arising from
+circuit description. The NR algorithm is interactive and terminates when both of the
+following conditions hold:
+1. The nonlinear branch currents converge to within a tolerance of 0.1% or 1 picoamp
+(1.0e-12 Amp), whichever is larger.
+2. The node voltages converge to within a tolerance of 0.1% or 1 microvolt (1.0e-6
+Volt), whichever is larger.

@@ -1,0 +1,44 @@
+6.4. KSPICE LOSSY TRANSMISSION LINES 125
+N =
+log
+Fmax
+R
+L
+C
+L 2πL2
+ (K−1)
+K
+
+2
+
+log K (6.1)
+The URC line is made up strictly of resistor and capacitor segments unless the ISPERL
+parameter is given a nonzero value, in which case the capacitors are replaced with reverse
+biased diodes with a zero-bias junction capacitance equivalent to the capacitance replaced,
+and with a saturation current of ISPERL amps per meter of transmission line and an
+optional series resistance equivalent to RSPERL ohms per meter.
+Name Parameter Units Default Example Area
+K Propagation Constant - 1.5 1.2 -
+FMAX Maximum Frequency of interest Hz 1.0 G 6.5 Meg -
+RPERL Resistance per unit length Ω/m 1000 10 -
+CPERL Capacitance per unit length F/m 10e-15 1 p -
+ISPERL Saturation Current per unit length A/m 0 - -
+RSPERL Diode Resistance per unit length Ω/m 0 - -
+6.4 KSPICE Lossy Transmission Lines
+Unlike SPICE3, which uses the state-based approach to simulate lossy transmission lines,
+KSPICE simulates lossy transmission lines and coupled multiconductor line systems using
+the recursive convolution method. The impulse response of an arbitrary transfer function
+can be determined by deriving a recursive convolution from the Pade approximations
+of the function. ngspice is using this approach for simulating each transmission line's
+characteristics and each multiconductor line's modal functions. This method of lossy
+transmission line simulation has shown to give a sigificant speedup. Please note that the
+following two models will support only transient simulation , no ac.
+Additional Documentation A vailable:
+• S. Lin and E. S. Kuh, 'Pade Approximation Applied to Transient Simulation of
+Lossy Coupled Transmission Lines,' Proc. IEEE Multi-Chip Module Conference,
+1992, pp. 52-55.
+• S. Lin, M. Marek-Sadowska, and E. S. Kuh, 'SWEC: A StepWise Equivalent Con-
+ductance Timing Simulator for CMOS VLSI Circuits,' European Design Automation
+Conf., February 1991, pp. 142-148.
+• S. Lin and E. S. Kuh, 'Transient Simulation of Lossy Interconnect,' Proc. Design
+Automation Conference, Anaheim, CA, June 1992, pp. 81-86.

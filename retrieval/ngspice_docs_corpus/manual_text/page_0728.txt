@@ -1,0 +1,38 @@
+728 CHAPTER 32. COMPILATION NOTES
+The ./configure flag --enable-relpath may be useful if the install path (e.g. C:\Spice64)
+is only preliminary, because a Windows installer is preferred. Then all search paths for
+spinit and code models are made relative to the executable (either ngspice.exe or the caller
+to ngspice.dll), see 32.1.8.
+For compiling ngspice as a dll (shared library) use the configure option --with-ngshared
+instead of --with-wingui. In addition you might add (optionally) --enable-relpath
+to avoid absolute paths when searching for code models. You may edit compile_min.sh
+accordingly and compile using this script in the MSYS2 window.
+32.2.3 make ngspice with pure CYGWIN
+The procedure of compiling is the same as with Linux (see Chapt. 32.1). After you have
+moved to the ngspice directory, the following command sequence may do the work for
+you:
+$ ./autogen.sh
+$ mkdir release-cyg
+$ cd release-cyg
+$ ../configure --with-x --disable-debug --with-readline=yes --enable-xspice
+--enable-osdi --enable-pss --enable-cider --enable-openmp
+$ make clean 2>&1 | tee make_clean.log
+$ make 2>&1 -j8 | tee make.log
+$ make install 2>&1 | tee make_install.log
+The (optional) statement -j8 (or -jn, n is the number of logical cores available) will speed
+up compilation considerably.
+The CYGWIN console executable you have been creating is an X11 application. This is
+a not a Windows native environment. So you have to add an X11 graphics interface by
+installing the XServer from the CYGWIN project. Before starting ngspice, you have to
+start the XServer by the following commands within the CYGWIN window:
+$ export DISPLAY=:0.0
+$ xwin -multiwindow -clipboard &
+If you don't have libdl.a you may need to link libcygwin.a to libdl.a symbolically, for
+example:
+$ cd /lib $ ln -s libcygwin.a libdl.a.
+32.2.4 ngspice mingw or cygwin console executable w/o graph-
+ics
+If you omit the configure flag -with-wingui or -with-x, you will obtain a console application
+without graphics interface.
+./configure --enable-xspice --enable-cider --enable-openmp
+--enable-osdi --disable-debug CFLAGS=-m32 LDFLAGS=-m32 prefix=C:/Spice

@@ -1,0 +1,28 @@
+15.2. INITIAL CONDITIONS 307
+15.1.6 Transmission Lines Specific Options
+TRYTOCOMPACT Applicable only to the LTRA model (see 6.2.1). When specified,
+the simulator tries to condense an LTRA transmission line's past history of input
+voltages and currents.
+15.1.7 Precedence of option and .options commands
+There are various ways to set the above mentioned options in Ngspice. If no option
+or .options lines are set by the user, internal default values are given for each of the
+simulator variables.
+You may set options in the init files spinit or .spiceinit via the option command (see
+17.5.52). The values given there will supersede the default values. If you set options via
+the .options line in your input file, their values will supersede the default and init file
+data. Finally, if you set options inside a .control ... .endc section, these values will
+again supersede any simulator variables given so far.
+15.2 Initial Conditions
+15.2.1 .NODESET: Specify Initial Node Voltage Guesses
+General form:
+. nodeset v ( nodnum )= val v ( nodnum )= val ...
+. nodeset all = val
+Examples:
+. nodeset v (12)=4.5 v (4)=2.23
+. nodeset all =1.5
+The .nodeset line helps the program find the DC or initial transient solution by making
+a preliminary pass with the specified nodes held to the given voltages. The restrictions
+are then released and the iteration continues to the true solution. The .nodeset line may
+be necessary for convergence on bistable or astable circuits. .nodeset all=val sets all
+starting node voltages (except for the ground node) to the same value. In general, the
+.nodeset line should not be necessary.

@@ -1,0 +1,25 @@
+308 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+15.2.2 .IC: Set Initial Conditions
+General form:
+. ic v ( nodnum )= val v ( nodnum )= val ...
+Examples:
+. ic v (11)=5 v (4)= -5 v (2)=2.2
+The .ic line is for setting transient initial conditions. It has two different interpretations,
+depending on whether the uic parameter is specified on the .tran control line, or not.
+One should not confuse this line with the .nodeset line. The .nodeset line is only to
+help DC convergence, and does not affect the final bias solution (except for multi-stable
+circuits). The two indicated interpretations of this line are as follows:
+1. When the uic parameter is specified on the .tran line, the node voltages specified
+on the .ic control line are used to compute the capacitor, diode, BJT, JFET, and
+MOSFET initial conditions. This is equivalent to specifying the ic=... parameter
+on each device line, but is much more convenient. The ic=... parameter can still
+be specified and takes precedence over the .ic values. Since no dc bias (initial
+transient) solution is computed before the transient analysis, one should take care
+to specify all dc source voltages on the .ic control line if they are to be used to
+compute device initial conditions.
+2. When the uic parameter is not specified on the .tran control line, the DC bias
+(initial transient) solution is computed before the transient analysis. In this case,
+the node voltages specified on the .ic control lines are forced to the desired initial
+values during the bias solution. During transient analysis, the constraint on these
+node voltages is removed. This is the preferred method since it allows Ngspice to
+compute a consistent dc solution.

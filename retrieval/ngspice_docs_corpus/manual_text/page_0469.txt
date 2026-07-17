@@ -1,0 +1,36 @@
+18.6. OUTPUT-TO-FILE OPTIONS 469
+Example usage:
+eprvcd 1 2 3 4 5 6 7 8 s0 s1 s2 s3 c3 > adder_x . vcd
+Values for analog nodes and expressions (as for plot ) may be included, but expressions
+may not contain spaces. Option "-t" sets the VCD file's time unit; values are rounded to
+a negative power of 10. If not used the unit is chosen to fit the simulation's maximum
+timestep. Analog values are examined only when an XSPICE event values changes unless
+option "-a" is used to dump them at each timestep.
+The file addr_x.vcd may be displayed by the following .control section (gtkwave has to
+be installed):
+Plot to screen commands
+* plotting the vcd file ( e . g . with GTKWave )
+* For Windows : returns control to ngspice
+if $os com pil ed = 1 | $os com pil ed = 8
+shell start gtkwave adder_x . vcd -- script nggtk . tcl
+else
+* for CYGWIN , Linux , others
+shell gtkwave adder_x . vcd -- script nggtk . tcl &
+end
+with the tcl script to control gtkwave
+nggtk.tcl
+# tcl script for gtkwave : show vcd file data created by ngspice
+set nfacs [ gtkwave :: getNumFacs ]
+for { set i 0} { $i < $nfacs } { incr i } {
+set facname [ gtkwave :: getFacName $i ]
+set num_added [ gtkwave :: a d d S i g n a l s F r o m L i s t $facname ]
+}
+gtkwave ::/ Edit / U n H i g h l i g h t _ A l l
+gtkwave ::/ Time / Zoom / Zoom_Full
+18.6.2 Tabulated files
+18.6.2.1 Rawfile
+This is the traditional spice-compatible output file for simulation data. It will be generated
+during simulation if ngspice is started in batch mode ( 16.4.1) like
+ngspice -b -r mysim.raw -o mysim.log myinput.cir
+where mysim.raw, following the -r flag, is the rawfile. It may be created as well from
+inside a control section using the write command ( 17.5.104) like

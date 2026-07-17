@@ -1,0 +1,36 @@
+292 CHAPTER 13. VERILOG-A COMPACT DEVICE MODELS
+13.3 How to create and apply OpenV AF models
+13.3.1 Preparing for simulation
+Using Verilog-A models for simulation in ngspice consists of five steps: Obtain or compile
+ngspice with OSDI interface, compile the V A-model with OpenV AF, prepare a suitable
+model parameter set, load the compiled model into ngspice ... and start the simulation.
+13.3.1.1 Obtaining OpenV AF
+OpenV AF may be downloaded for MS Windows or Linux as a single executable each from
+https://openvaf.semimod.de/download/, and copied into a user defined directory. Com-
+piling OpenV AF yourself is possible, however is not recommended due to its complicated
+procedure.
+13.3.1.2 Verilog-A compact models
+Verilog-A compact device models are available from the si2 CMC standard compact model
+page or directly from device modelling web sites, e.g. BSIM from UC Berkeley , HiSIM
+from Hiroshima University , PSP from CEA-Leti , or HICUM from TU Dresden . Others
+are available. User provided or user defined models may be compiled as well. All models
+have to comply to the LRM 2.x standard of Verilog-AMS. Not all publicly availables
+models do comply (e.g. PSP102, EKV2.6).
+There is a github repository V A-Modelswith most of the public available Verilog-A com-
+pact models. The models are checked against the LRM 2.4.0 and prepared for ngspice
+simulation. A script for generation of the osdi files is provided and each model has more
+or less simple ngspice netlist files to show main capabilities. So this web site should be a
+good starting point for beginners.
+13.3.1.3 Prepare ngspice
+Compile ngspice with the configure flag -enable-osdi to add the OSDI interface to
+ngspice. The MSVC Windows version ngspice.exe from the distribution already con-
+tains this interface.
+13.3.1.4 Compile the models
+A very basic approach is to put the openvaf executable and the Verilog-A model (e.g.
+bsimbulk.va) into a directory, then from a console window cd into that directory and call
+the command openvaf bsimbulk.va . After a few seconds the compiled shared library
+bsimbulk.osdi becomes available, ready to be loaded into ngspice.
+Where to place *.osdi? Basically in any directory of your choice, the osdi or pre-osdi
+commands ( 13.3.1.6) may be prepended by an absolute or relative path to that directory.
+For a permanent location a bulk model install to libs/ngspice is recommended (to the
+folder where you also find the XSPICE code model libs *.cm).

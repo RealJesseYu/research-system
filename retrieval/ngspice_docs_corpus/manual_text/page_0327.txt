@@ -1,0 +1,33 @@
+15.4. MEASUREMENTS AFTER AC, DC AND TRANSIENT ANALYSIS 327
+15.4.8 Integ
+General form 8:
+. MEASURE { DC | AC | TRAN | SP } result INTEG < RAL >
+o u t _ v a r i a b l e
++ < TD = td > < FROM = val > < TO = val >
+Measure statement:
+.measure tran yint INTEG v(2) from=2m to=3m
+returns the area under v(2) inside the time interval between 2 ms and 3 ms.
+15.4.9 param
+General form 9:
+. MEASURE { DC | AC | TRAN | SP } result param = ' expression '
+Measure statement:
+.param fval=5
+.measure tran yadd param='fval + 7'
+will evaluate the given expression fval + 7 and return the value 12.
+'Expression ' is evaluated according to the rules given in Chapt. 2.9.5 during start up
+of ngspice. It may contain parameters defined with the .param statement. It may also
+contain parameters resulting from preceding .meas statements.
+.param vout_diff=50u
+...
+.measure tran tdiff TRIG AT=1m TARG v(2) VAL=-0.8 CROSS=3
+.meas tran bw_chk param='(tdiff < vout_diff) ? 1 : 0'
+will evaluate the given ternary function and return the value 1 in bw_chk, if tdiff mea-
+sured is smaller than parameter vout_diff.
+The expression may not contain vectors like v(10), e.g. anything resulting directly from
+a simulation. This may be handled with the following .meas command option.
+15.4.10 par( 'expression ' )
+The par('expression ') option ( 15.6.6) allows the use of algebraic expressions on the
+.measure lines. Every out_variable may be replaced by par('expression ') using the gen-
+eral forms 1. . . 9 described above. Internally par('expression ') is substituted by a vector
+according to the rules of the B source (Chapt. 5.1). A typical example of the general
+form is shown below:

@@ -1,0 +1,45 @@
+12.4. DIGITAL MODELS 259
+Description: "output"
+Direction: out
+Default_Type: d
+Allowed_Types: [d]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: load
+Description: "load value (F)"
+Data_Type: real
+Default_Value: 1.0e-12
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: The digital pulldown resistor is a device that emulates the behavior of
+an analog resistance value tied to a low voltage level. The pulldown may be used
+in conjunction with tristate buffers to provide open-collector wired or constructs,
+or any other logical constructs that rely on a resistive pulldown common to many
+tristated output devices. The model posts an input load value (in farads) based on
+the parameter load.
+Example SPICE Usage:
+a4 9 pulldown1
+.model pulldown1 d_pulldown(load = 20.0e-12)
+12.4.12 D Flip Flop
+NAME_TABLE:
+C_Function_Name: cm_d_dff
+Spice_Model_Name: d_dff
+Description: "digital d-type flip flop"
+PORT_TABLE:
+Port Name: data clk
+Description: "input data" "clock"
+Direction: in in
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PORT_TABLE:
+Port Name: set reset
+Description: "asynch. set" "asynch. reset"
+Direction: in in
+Default_Type: d d

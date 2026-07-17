@@ -1,0 +1,30 @@
+30.13. OPTIONS 645
+30.12.3 Examples
+Turn on bandgap narrowing, and all of the generation-recombination effects:
+models bgn srh conctau auger aval
+Amend the first card by turning on lateral- and transverse-field-dependent mobility in
+surface charge layers, and lateral-field-dependent mobility in the bulk. Also, this line
+turns avalanche generation modeling off.
+models surfmob transmob fieldmob ^ aval
+30.12.4 See also
+material, mobility
+30.12.5 Bugs
+The local avalanche generation model for 2D devices does not compute the necessary
+contributions to the device-level Jacobian matrix. If this model is used, it may cause
+convergence difficulties and it will cause AC analyses to produce incorrect results.
+30.13 OPTIONS
+Provide optional device-specific information
+SYNOPSIS
+options [ device - type ] [ initial - state ] [ dimensions ]
+[ measurement - t emp era tu re ]
+30.13.1 DESCRIPTION
+The options card functions as a catch-all for various information related to the circuit-
+device interface. The type of a device can be specified here, but will be defaulted if
+none is given. Device type is used primarily to determine how to limit the changes in
+voltage between the terminals of a device. It also helps determine what kind of boundary
+conditions are used as defaults for the device electrodes.
+A previously calculated state, stored in the named initial-conditions file, can be loaded at
+the beginning of an analysis. If it is necessary for each instance of a numerical model to
+start in a different state, then the unique flag can be used to generate unique filenames
+for each instance by appending the instance name to the given filename. This is the same
+method used by CIDER to generate unique filenames when the states are originally saved.

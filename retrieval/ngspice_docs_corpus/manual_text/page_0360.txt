@@ -1,0 +1,33 @@
+360 CHAPTER 16. STARTING NGSPICE
+Flag Ref. Short description
+a complete netlist transformed
+ps 16.14.5 PSPICE compatibility
+hs 16.14.10 HSPICE compatibility
+spe 16.14.9 Spectre compatibility
+lt 16.14.6 LTSPICE compatibility
+s3 Spice3 compatibility
+ll all (currently not used)
+ki 16.14.8 KiCad compatibility
+eg EAGLE compatibility
+mc for ' make check '
+Table 16.2: Compatibility flags
+'s3' will disable some of the advanced ngspice features. 'eg' will enable EAGLE com-
+patible voltage vector output. 'mc' is required when the command 'make check' is to
+be executed. Then all flags are reset, in addition the compatibility status output is sup-
+pressed. Flags 'ps' and 'hs' are mutually exclusive.
+The command 'unset ngbehavior' will remove the variable ngbehavior, thus resetting
+the compatibility mode to the default (no compat mode is set).
+16.14.2 Missing functions
+You may add one or more function definitions to your input file, as listed below.
+.func LIMIT(x,a,b) {min(max(x, a), b)}
+.func PWR(x,a) {abs(x) ** a}
+.func PWRS(x,a) {sgn(x) * PWR(x,a)}
+.func stp(x) {u(x)}
+16.14.3 Devices
+16.14.3.1 E Source with LAPLACE
+see 5.2.5.
+16.14.3.2 VSwitch
+The VSwitch
+S1 2 3 11 0 SW
+.MODEL SW VSWITCH(VON=5V VOFF=0V RON=0.1 ROFF=100K)
+may become

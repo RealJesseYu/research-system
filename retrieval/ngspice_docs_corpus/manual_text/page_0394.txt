@@ -1,0 +1,31 @@
+394 CHAPTER 17. INTERACTIVE INTERPRETER
+of the frequency values.
+17.5.33 Fread: read into a variable from a text file
+General Form:
+fread result handle [ length ]
+This command sets the string variable 'result' by reading one line from the open file
+specified by the integer 'handle' . Terminating characters are stripped and the length
+returned in variable 'length', if given. The handle will usually have been set by the fopen
+command, but any valid file descriptor may be used.
+The length will be -1 if attempting to read at end-of-file or -2 on error. If interpreter
+variable "silent_fileio" is set, no message is printed on error.
+17.5.34 Getcwd: Print the current working directory
+General Form:
+getcwd
+Print the current working directory.
+17.5.35 Gnuplot: Graphics output via gnuplot
+General Form:
+gnuplot file plotargs
+Like plot, but using gnuplot for graphics output and further data manipulation. ngspice
+creates a file called file.plt containing the gnuplot command sequence, a file called file.data
+containing the data to be plotted. On Linux, gnuplot may be called directly or via called
+via xterm, and offers a Gnuplot console to manipulate the data. On Windows, a plot
+window is opened and the command console window is available with a mouse click. Of
+course you have to have gnuplot installed on your system. Please see chapter 18.7 for
+more details.
+17.5.36 Hardcopy: Save a plot to a file for printing
+General Form:
+hardcopy file plotargs
+Just like plot, except that it creates a file called file containing the plot. Various out-
+put formats are available, depending on the variable hcopydevtype. It may be set to
+postscript or svg. See also Chapt. 18.6 for more details (color etc.).

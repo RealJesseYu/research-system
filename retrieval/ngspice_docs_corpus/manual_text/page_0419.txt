@@ -1,0 +1,39 @@
+17.5. COMMANDS 419
+Typical usage:
+Example input file for snsave
+* load a circuit ( including transistor models and . tran command )
+* starts transient simulation until stop point
+* store i n t e r m e d i a t e data to file
+* begin with editing the file location
+* to be run with ' ngspice adder_mos . cir '
+. include a d d e r _ m o s _ c i r c . cir
+. control
+* cd to where all files are located
+cd D :\ S p i c e _ g e n e r a l \ ngspice \ examples \ snapshot
+unset askquit
+set noinit
+* interrupt condition for the simulation
+stop when time > 500 n
+* simulate
+run
+* store snapshot to file
+snsave adder500 . snap
+quit
+. endc
+. END
+adder_mos_circ.cir is a circuit input file, including the netlist, .model and .tran state-
+ments.
+Unfortunately snsave/snload will not work if you have XSPICE devices (or V/I sources
+with polynomial statements) in your input deck.
+17.5.83 Source: Read a ngspice input file
+General Form:
+source infile
+For ngspice: read the ngspice input file infile, containing a circuit netlist. Ngspice control
+commands may be included in the file, and must be enclosed between the lines .control
+and .endc. These commands are executed immediately after the circuit is loaded, so a
+control line of ac ... works the same as the corresponding .ac card. The first line in
+any input file is considered a title line and not parsed but kept as the name of the circuit.
+Thus, a ngspice command script in infile must begin with a blank line and then with a
+.control line. Also, any line starting with the string ' *#' is considered as a control line
+(.control and .endc is placed around this line automatically.). The exception to these
+rules are the files spinit (16.5) and .spiceinit (16.6).

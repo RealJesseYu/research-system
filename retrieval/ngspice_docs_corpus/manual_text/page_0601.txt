@@ -1,0 +1,37 @@
+28.7. MODEL DEFINITION FILE 601
+int cm_message_printf(char *fmt, ...);
+*cm_message_get_errmsg() is a function designed to be used with other library func-
+tions to provide a way for models to handle error situations. More specifically, whenever
+a library function that returns type int is executed from a model, it will return an integer
+value, n. If this value is not equal to zero (0), then an error condition has occurred (like-
+wise, functions that return pointers will return a NULL value if an error has occurred).
+At that point, the model can invoke *cm_message_get_errmsg to obtain a pointer to an
+error message. This can then in turn be displayed to the user or passed to the simulator
+interface through the cm_message_send() function. The C code required for this is as
+follows:
+err = cm_analog_integrate(in, &out, &dout_din);
+if (err) {
+cm_message_send(cm_message_get_errmsg());
+}
+else { ...
+cm_message_send() sends messages to either the standard output screen or to the sim-
+ulator interface, depending on which is in use. The instance name and a new line are
+added to the message.
+cm_message_printf() formats a message like sprintf() and passes it to cm_message_send().
+28.7.2.6 Breakpoint Handling Functions
+int cm_analog_set_perm_bkpt(time)
+double time; /* The time of the breakpoint to be set */
+int cm_analog_set_temp_bkpt(time)
+double time; /* The time of the breakpoint to be set */
+int cm_event_queue(time)
+double time; /* The time of the event to be queued */
+cm_analog_set_perm_bkpt() takes as input a time value. This value is posted to the
+analog simulator algorithm and is used to force the simulator to choose that value as a
+breakpoint at some time in the future. The simulator may choose as the next time-point a
+value less than the input, but not greater. Also, regardless of how many time-points pass
+before the breakpoint is reached, it will not be removed from posting. Thus, a breakpoint
+is guaranteed at the passed time value. Note that a breakpoint may also be set for a time
+prior to the current time, but this will result in an error if the posted breakpoint is prior
+to the last accepted time (i.e., T(1)).
+cm_analog_set_temp_bkpt() takes as input a time value. This value is posted to the
+simulator and is used to force the simulator, for the next time-step only, to not exceed the

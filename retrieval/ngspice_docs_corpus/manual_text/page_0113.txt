@@ -1,0 +1,28 @@
+5.2. EXXXX: NON-LINEAR VOLTAGE SOURCE 113
+in Chapt. 5.1. It may contain parameters ( 2.9.1) and the special variables time, temper,
+hertz (5.1.2). ' or { } may be used to delimit the function.
+5.2.2 V ALUE
+Optional syntax:
+EXXXXXXX n + n - value ={ expr }
+Examples:
+E41 4 0 value = { V (3)* V (3) - Offs }
+The '=' sign is optional.
+5.2.3 TABLE
+Data may be entered from the listings of a data table similar to the pwl B-Source ( 5.1.4).
+Data are grouped into x, y pairs. Expression may be an equation or an expression
+containing node voltages or branch currents (in the form of i(vm)) and any other terms
+as given for the B source and described in Chapt. 5.1. It may contain parameters ( 2.9.1).
+' or { } may be used to delimit the function. Expression delivers the x-value, which
+is used to generate a corresponding y-value according to the tabulated value pairs, using
+linear interpolation. If the x-value is below x0 , y0 is returned, above x2 y2 is returned
+(limiting function). The value pairs have to be real numbers, parameters are not allowed.
+Syntax for data entry from table:
+Exxx n1 n2 TABLE { expression } = ( x0 , y0 ) ( x1 , y1 ) ( x2 , y2 )
+Example (simple comparator):
+ECMP 11 0 TABLE { V (10 ,9)} = ( -5 mV , 0 V ) (5 mV , 5 V )
+An '=' sign may follow the keyword TABLE.
+5.2.4 POLY
+see E-Source at Chapt. 5.5.
+5.2.5 LAPLACE
+Currently ngspice does not offer a direct E-Source element with the LAPLACE option.
+There is however a XSPICE code model equivalent called s_xfer (see Chapt. 12.2.18),

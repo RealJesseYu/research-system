@@ -1,0 +1,40 @@
+19.5. EXAMPLE APPLICATIONS 493
+19.5 Example applications
+Three executables (coming with source code) serve as examples for controlling ngspice.
+These are not meant to be 'production' programs, but just give some commented example
+usages of the interface.
+ng_start.exe is a MS Windows application loading ngspice.dll dynamically. All functions
+and callbacks of the interface are assessed. The source code, generated with Turbo Delphi
+2006, may be found here, the binaries compiled for 32 Bit are here.
+Two console applications, compilable with Linux, CYGWIN, MINGW or MS Visual Stu-
+dio, are available here, demonstrating either linking upon start-up or loading shared
+ngspice dynamically at runtime. A simple feedback loop is shown in tests 3 and 4, where
+a device parameter is changed upon having an output vector value crossing a limit.
+An XSPICE event node example may be assessed at ngspice/visualc/ng_shared_xspice_v,
+currently tested only with MS Windows and compiled with Visual Studio.
+19.6 ngspice parallel
+The following chapter describes an offer to the advanced user and developer community.
+If you are interested in evaluating the parallel and synchronized operation of several
+ngspice instances, this may be one way to go. However, no ready to use implementation
+is available. You will find a toolbox and some hints how to use it. Parallelization and
+synchronization is your task by developing a suitable caller! And of course another major
+input has to come from partitioning the circuit into suitable, loosely coupled pieces,
+each with its own netlist, one netlist per ngspice instance. And you have to define the
+coupling between the circuit blocks. Both are not provided by ngspice, but are again your
+responsibility. Both are under active research, and the toolbox described below is an offer
+to join that research.
+19.6.1 Go parallel!
+A simple way to run several invocations of ngspice in parallel for transient simulation is to
+define a caller that loads two or more ngspice shared libraries. There is one prerequisite
+however to do so: the shared libraries have to have different names. So compile ngspice
+shared lib (see 19.1), then copy and rename the library file, e.g. ngspice.dll may become
+ngspice1.dll, ngspice2.dll etc. Then dynamically load ngspice1.dll, retrieve its address,
+initialize it by calling ngSpice_init() (see 19.3.2.1), then continue initialization by calling
+ngSpice_init_Sync() (see 19.6.2.1). An integer identification number may be sent during
+this step to later uniquely identify each invocation of the shared library, e.g. by having
+any callback use this identifier. Repeat the sequence with ngspice2.dll and so on.
+Inter-process communication and synchronization is now done by using three callback
+functions. To understand their interdependence, it might be useful to have a look at the
+transient simulation sequence as defined in the ngspice source file dctran.c. The following
+listing includes the shared library option (It differs somewhat from standard procedure)
+and disregards XSPICE.

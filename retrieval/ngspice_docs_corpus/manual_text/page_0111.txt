@@ -1,0 +1,43 @@
+5.1. BXXXX: NONLINEAR DEPENDENT SOURCE (ASRC) 111
+Example: pwl function in B source
+De m o n s t r a t e s usage of the pwl function in an B source ( ASRC )
+* Also emulates the TABLE function with limits
+. param x0 = -4 y0 =0
+. param x1 = -2 y1 =2
+. param x2 =2 y2 = -2
+. param x3 =4 y3 =1
+. param xx0 = x0 -1
+. param xx3 = x3 +1
+Vin ctrl 0 DC =0 V
+R1 ctrl 0 2
+* no limits outside of the tabulated x values
+* ( continues linearily )
+Btest2 2 0 I = pwl ( v ( ctrl ) , ' x0 ' , ' y0 ' , ' x1 ' , ' y1 ' , ' x2 ' , ' y2 ' ,
++ 'x3 ' , ' y3 ')
+* like TABLE function with limits :
+Btest3 3 0 I = ( v ( ctrl ) < 'x0 ') ? 'y0 ' : ( v ( ctrl ) < 'x3 ')
++ ? pwl ( v (1) , ' x0 ' , ' y0 ' , ' x1 ' , ' y1 ' , ' x2 ' , ' y2 ' , ' x3 ' , ' y3 ') : 'y3 '
+* more efficient and elegant TABLE function with limits
+*( voltage controlled ):
+Btest4 4 0 I = pwl ( v ( ctrl ) ,
++ ' xx0 ' , ' y0 ' , 'x0 ' , ' y0 ' ,
++ 'x1 ' , ' y1 ' ,
++ 'x2 ' , ' y2 ' ,
++ 'x3 ' , ' y3 ' , ' xx3 ' , ' y3 ')
+*
+* more efficient and elegant TABLE function with limits
+* ( controlled by current ):
+Btest5 5 0 I = pwl ( -2* i ( Vin ) ,
++ ' xx0 ' , ' y0 ' , 'x0 ' , ' y0 ' ,
++ 'x1 ' , ' y1 ' ,
++ 'x2 ' , ' y2 ' ,
++ 'x3 ' , ' y3 ' , ' xx3 ' , ' y3 ')
+Rint2 2 0 1
+Rint3 3 0 1
+Rint4 4 0 1
+Rint5 5 0 1
+. control
+dc Vin -6 6 0.2
+plot v (2) v (3) v (4) -0.5 v (5)+0.5
+. endc
+. end

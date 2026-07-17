@@ -1,0 +1,41 @@
+296 CHAPTER 14. DIGITAL DEVICE MODELS
+14.1.1 General format
+General form:
+U < name > < basic type > [( < parameter value >*)]
++ < digital power node > < digital ground node > < node >*
++ < timing model name > <I / O model name >
++[ MNTYMXDLY = < delay select value >]
++[ IO_LEVEL = < interface subcircuit select value >]
+Example:
+U2 AND (2) $G_DPWR $G_DGND 4 5 6
++ M2 IOM2 IO_LEVEL =0 MNTYMXDLY =2
+. MODEL M2 UGATE ()
+. MODEL IOM2 UIO ( INLD =0 OUTLD =0 DRVH =50 DRVL =50
++ ATOD1 =" ATOD1 " DTOA1 =" DTOD1 " ATOD2 =" ATOD2 " DTOA2 =" DTOD2 "
++ ATOD3 =" ATOD3 " DTOA3 =" DTOD3 " ATOD4 =" ATOD4 " DTOA4 =" DTOD4 "
++ TSWLH1 =0 TSWLH2 =0 TSWLH3 =0 TSWLH4 =0
++ TSWHL1 =0 TSWHL2 =0 TSWHL3 =0 TSWHL4 =0 DIGPOWER =" DIGPOWER ")
+14.1.2 List of devices available in ngspice (basic types)
+Standard gates:
+BUF buffer
+INV inverter
+AND AND gate
+NAND NAND gate
+OR OR gate
+NOR NOR gate
+XOR exclusive OR gate
+NXOR exclusive NOR gate
+BUFA buffer array
+INVA inverter array
+ANDA AND gate array
+NANDA NAND gate array
+ORA OR gate array
+NORA NOR gate array
+XORA exclusive OR gate array
+NXORA exclusive NOR gate array
+AO AND-OR compound gate
+OA OR-AND compound gate
+AOI AND-NOR compound gate
+OAI OR-NAND compound gate
+Tristate gates:
+BUF3 buffer

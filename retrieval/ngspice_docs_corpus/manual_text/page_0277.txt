@@ -1,0 +1,48 @@
+12.4. DIGITAL MODELS 277
+PARAMETER_TABLE:
+Parameter_Name: ic
+Description: "initial bit state @ dc"
+Data_Type: int
+Default_Value: 2
+Limits: [0 2]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: read_delay
+Description: "read delay from address/select/write.en active"
+Data_Type: real
+Default_Value: 100.0e-9
+Limits: [1.0e-12 -]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: data_load address_load
+Description: "data_in load value (F)" "addr. load value (F)"
+Data_Type: real real
+Default_Value: 1.0e-12 1.0e-12
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: select_load
+Description: "select load value (F)"
+Data_Type: real
+Default_Value: 1.0e-12
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: enable_load
+Description: "enable line load value (F)"
+Data_Type: real
+Default_Value: 1.0e-12
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: The digital RAM is an M-wide, N-deep random access memory element
+with programmable select lines, tristated data out lines, and a single write/~read

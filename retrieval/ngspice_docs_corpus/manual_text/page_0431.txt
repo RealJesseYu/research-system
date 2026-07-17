@@ -1,0 +1,31 @@
+17.6. CONTROL STRUCTURES 431
+Example:
+let loopindex = 0
+while loopindex < 5
+echo index is $ & loopindex
+let loopindex = loopindex + 1
+end
+Comment: let creates a vector. Convert vector loopindex to number (as required by
+echo) by $&loopindex. The condition statement compares vectors.
+17.6.2 Repeat - End
+General Form:
+repeat [ number ]
+statement
+...
+end
+Execute the statements number times, or forever if no argument is given.
+Example:
+set loops = 7
+repeat $loops
+echo How many loops ? $loops
+end
+Comment:
+set creates a variable. repeat requires a number as parameter, either a plain number
+or converted from vector by $&loopvec or converted from variable by $loops.
+17.6.3 Dowhile - End
+General Form:
+dowhile condition
+statement
+...
+end
+The same as while, except that the condition is tested after the statements are executed.

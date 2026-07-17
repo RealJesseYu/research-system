@@ -1,0 +1,40 @@
+466 CHAPTER 18. NGSPICE USER INTERF ACES
+18.6.1.2 PostScript
+How to prepare a plot
+Variables to modify the PostScript plot are listed below. Background and text colors
+may be set. The colors of the graphs are then chosen automatically, starting with red.
+Valid colors are 0: black 1: white 2: red 3: blue 4: orange 5: green 6: pink 7: brown 8:
+khaki 9: plum 10: orchid 11: violet 12: maroon 13: turquoise 14: sienna 15: coral 16:
+cyan 17: magenta 18: gray (for smith grid) 19: gray (for smith grid) 20: gray (for normal
+grid).
+hcopypscolor Sets the color of the hardcopy output byselecting a integer number. If
+not set, black & white plotting is assumed with different linestyles for each output
+vector. A valid color integer value yields a colored plot background (0: black 1:
+white, others see above). and colored solid lines.
+hcopypstxcolor This variable sets the color of the text in the Postscript hardcopy out-
+put. If not set, black on white background is assumed, if the background is colored
+or black, white text is printed.
+hcopyfont This variable specifies the font name for hardcopy output plots. The value is
+device dependent.
+hcopyfontsize This is a scaling factor for the font used in hardcopy plots.
+hcopydevtype The variable specifies the type of the printer output to use in the hardcopy
+command. It has to be set to set hcopydevtype=svg .
+hcopyscale This is a scaling factor for the font used in hardcopy plots (between 0 and
+10).
+hcopywidth Sets width of the hardcopy plot.
+hcopyheight Sets height of the hardcopy plot.
+xbrushwidth Linewidth for graph (see xgridwidth for border and grid). Valid for MS
+Windows GUI, X11, gnuplot and Postscript.
+xgridwidth Linewidth for border and grid. Valid for MS Windows GUI, X11, gnuplot
+and Postscript.
+The corresponding input file for the examples given below is listed in Chapt. 21.1. Just
+add the .control section to this file and run in interactive mode by
+$ ngspice xspice_c1_print.cir
+One way is to setup your printing like this will yield a black&white plot:
+.control
+set hcopydevtype=postscript
+op
+run
+plot vcc coll emit
+hardcopy temp.ps vcc coll emit
+.endc

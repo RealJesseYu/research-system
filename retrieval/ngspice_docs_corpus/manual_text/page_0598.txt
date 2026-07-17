@@ -1,0 +1,39 @@
+598 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+double x_input; /* The x input value */
+double *x; /* The vector of x values */
+double *y; /* The vector of y values */
+int size; /* The size of the xy vectors */
+double input_domain; /* The smoothing domain */
+double *dout_din; /* The partial of the output wrt the input */
+cm_smooth_corner() automates smoothing between two arbitrarily-sloped lines that meet
+at a single center point. You specify the center point ( x_center, y_center), plus a do-
+main (x-valued delta) above and below x_center. This defines a smoothing region about
+the center point. Then, the slopes of the meeting lines outside of this smoothing region
+are specified ( lower_slope, upper_slope). The function then interpolates a smoothly-
+varying output ( *y_output) and its derivative ( *dy_dx) for the x_input value. This
+function helps to automate the smoothing of piecewise-linear functions, for example. Such
+smoothing aids the simulator in achieving convergence.
+cm_smooth_discontinuity() allows you to obtain a smoothly-transitioning output ( *y_output)
+that varies between two static values ( y_lower, y_upper) as an independent variable
+(x_input) transitions between two values ( x_lower, x_upper). This function is useful
+in interpolating between resistances or voltage levels that change abruptly between two
+values.
+cm_smooth_pwl() duplicates much of the functionality of the predefined pwl code model.
+The cm smooth pwl() takes an input value plus x-coordinate and y-coordinate vector
+values along with the total number of coordinate points used to describe the piecewise
+linear transfer function and returns the interpolated or extrapolated value of the output
+based on that transfer function. More detail is available by looking at the description of
+the pwl code model. Note that the output value is the function's returned value.
+28.7.2.3 Model State Storage Functions
+void cm_analog_alloc(tag, size)
+int tag; /* The user-specified tag for this block of memory */
+int size; /* The number of bytes to allocate */
+void cm_event_alloc(tag, size)
+int tag; /* The user-specified tag for the memory block */
+int size; /* The number of bytes to be allocated */
+void *cm_analog_get_ptr(tag, timepoint
+int tag; /* The user-specified tag for this block of memory */
+int timepoint; /* The timepoint of interest - 0=current 1=previous */
+void *cm_event_get_ptr(tag, timepoint)
+int tag; /* The user-specified tag for the memory block */
+int timepoint; /* The timepoint - 0=current, 1=previous */

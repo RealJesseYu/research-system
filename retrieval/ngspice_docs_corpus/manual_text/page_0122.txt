@@ -1,0 +1,25 @@
+122 CHAPTER 6. TRANSMISSION LINES
+two transmission-line elements are required. (see the example in Chapt. 21.7 for further
+clarification.) The (optional) initial condition specification consists of the voltage and
+current at each of the transmission line ports. Note that the initial conditions (if any)
+apply only if the UIC option is specified on the .TRAN control line.
+Note that a lossy transmission line (see below) with zero loss may be more accurate than
+the lossless transmission line due to implementation details.
+6.2 Lossy Transmission Lines
+General form:
+OXXXXXXX n1 n2 n3 n4 mname
+Examples:
+O23 1 0 2 0 LOSSYMOD
+OCONNECT 10 5 20 5 I N T E R C O N N E C T
+This is a two-port convolution model for single conductor lossy transmission lines. n1
+and n2 are the nodes at port 1; n3 and n4 are the nodes at port 2. Note that a lossy
+transmission line with zero loss may be more accurate than the lossless transmission line
+due to implementation details.
+6.2.1 Lossy Transmission Line Model (LTRA)
+The uniform RLC/RC/LC/RG transmission line model (referred to as the LTRA model
+henceforth) models a uniform constant-parameter distributed transmission line. The RC
+and LC cases may also be modeled using the URC and TRA models; however, the newer
+LTRA model is usually faster and more accurate than the others. The operation of the
+LTRA model is based on the convolution of the transmission line's impulse responses with
+its inputs (see [8]). The LTRA model takes a number of parameters, some of which must
+be given and some of which are optional.

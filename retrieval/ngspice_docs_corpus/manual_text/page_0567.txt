@@ -1,0 +1,35 @@
+27.2. XSPICE ADV ANCED USAGE 567
+$ ngspice xspice_c2.cir
+After a few moments, you should see the ngspice prompt:
+ngspice 1 ->
+Now issue the run command and when the prompt returns, issue the plot command to
+examine the voltage at the node 'coll' .
+ngspice 1 -> run
+ngspice 2 -> plot coll
+The resulting waveform closely matches that from the original transistor amplifier circuit
+simulated in Example 1.
+When you are done, enter the quit command to leave the simulator and return to the
+command line.
+ngspice 3 -> quit
+Using the rusage command, you can verify that this abstract model of the transistor
+amplifier runs somewhat faster than the full circuit of Example 1. This is because the
+code model is less complex computationally. This demonstrates one important use of
+XSPICE code models - to reduce run time by modeling circuits at a higher level of
+abstraction. Speed improvements vary and are most pronounced when a large amount
+of low-level circuitry can be replaced by a small number of code models and additional
+components.
+27.2 XSPICE advanced usage
+27.2.1 Circuit example C3
+An equally important use of code models is in creating models for circuits and systems
+that do not easily lend themselves to synthesis using standard ngspice primitives (resistors,
+capacitors, diodes, transistors, etc.). This occurs often when trying to create models of
+ICs for use in simulating board-level designs. Creating models of operational amplifiers
+such as an LM741 or timer ICs such as an LM555 is greatly simplified through the use of
+XSPICE code models. Another example of code model use is shown in the next example
+where a complete sampled-data system is simulated using XSPICE analog, digital, and
+User-Defined Node types simultaneously.
+The circuit shown in Fig. 27.1 is designed to demonstrate several of the more advanced
+features of XSPICE. In this example, you will be introduced to the process of creating
+code models and linking them into ngspice. You will also learn how to print and plot the
+results of event-driven analysis data. The ngspice/XSPICE circuit description for this
+example is shown below.

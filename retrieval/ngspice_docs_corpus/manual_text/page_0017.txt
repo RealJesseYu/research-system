@@ -1,0 +1,36 @@
+CONTENTS 17
+17.5.19 Destroy: Delete an output data set . . . . . . . . . . . . . . . . . . 387
+17.5.20 Devhelp: information on available devices . . . . . . . . . . . . . . 387
+17.5.21 Diff: Compare vectors . . . . . . . . . . . . . . . . . . . . . . . . . 388
+17.5.22 Display: List known vectors and types . . . . . . . . . . . . . . . . 388
+17.5.23 Echo: Print text . . . . . . . . . . . . . . . . . . . . . . . . . . . . 389
+17.5.24 Edit*: Edit the current circuit . . . . . . . . . . . . . . . . . . . . . 389
+17.5.25 Edisplay: Print a list of all the event nodes . . . . . . . . . . . . . 389
+17.5.26 Eprint: Print an event driven node . . . . . . . . . . . . . . . . . . 389
+17.5.27 Eprvcd: Dump nodes in VCD format . . . . . . . . . . . . . . . . 390
+17.5.28 Esave: Save a set of event node outputs . . . . . . . . . . . . . . . 390
+17.5.29 Fclose: close an open file handle . . . . . . . . . . . . . . . . . . . . 390
+17.5.30 FFT: fast Fourier transform of vectors . . . . . . . . . . . . . . . . 391
+17.5.31 Fopen: open a text file . . . . . . . . . . . . . . . . . . . . . . . . . 392
+17.5.32 Fourier: Perform a Fourier transform . . . . . . . . . . . . . . . . . 393
+17.5.33 Fread: read into a variable from a text file . . . . . . . . . . . . . . 394
+17.5.34 Getcwd: Print the current working directory . . . . . . . . . . . . . 394
+17.5.35 Gnuplot: Graphics output via gnuplot . . . . . . . . . . . . . . . . 394
+17.5.36 Hardcopy: Save a plot to a file for printing . . . . . . . . . . . . . . 394
+17.5.37 Help: Print summaries of Ngspice commands . . . . . . . . . . . . . 395
+17.5.38 History: Review previous commands . . . . . . . . . . . . . . . . . 395
+17.5.39 Inventory: Print circuit inventory . . . . . . . . . . . . . . . . . . . 398
+17.5.40 Iplot*: Incremental plot . . . . . . . . . . . . . . . . . . . . . . . . 398
+17.5.41 Jobs*: List active asynchronous ngspice runs . . . . . . . . . . . . . 398
+17.5.42 Let: Assign a value to a vector . . . . . . . . . . . . . . . . . . . . 398
+17.5.43 Linearize*: Interpolate to a linear scale . . . . . . . . . . . . . . . . 399
+17.5.44 Listing*: Print a listing of the current circuit . . . . . . . . . . . . . 400
+17.5.45 Load: Load rawfile data . . . . . . . . . . . . . . . . . . . . . . . . 401
+17.5.46 Mc_source*: Reload the circuit netlist from an internal storage . . 401
+17.5.47 Meas*: Measurements on simulation data . . . . . . . . . . . . . . 401
+17.5.48 Mdump*: Dump the matrix values to a file (or to console) . . . . . 402
+17.5.49 Mrdump*: Dump the matrix right hand side values to a file (or to
+console) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 402
+17.5.50 Noise*: Noise analysis . . . . . . . . . . . . . . . . . . . . . . . . . 402
+17.5.51 Op*: Perform an operating point analysis . . . . . . . . . . . . . . 403
+17.5.52 Option*: Set a ngspice option . . . . . . . . . . . . . . . . . . . . . 403

@@ -1,0 +1,57 @@
+7.3. DIODE EQUATIONS 135
+Algorithm 7.1 Diode breakdown current calculation
+if IBV ef f < I bdwn then
+IBV ef f = Ibdwn
+BVef f = BV
+else
+BVef f = BV − NVt ln( IBV ef f
+Ibdwn
+)
+Most real diodes shows a current increase that, at high current levels, does not follow
+the exponential relationship given above. This behavior is due to high level of carriers
+injected into the junction. High injection effects (as they are called) are modeled with ik
+and ikr.
+IDef f =
+8
+>><
+>>:
+ID
+1+
+√
+ID
+IKef f
+, if VD ≥ −3 N kT
+q
+ID
+1+
+√
+ID
+IKR ef f
+, otherwise. (7.3)
+Diode capacitance is divided into two different terms:
+• Depletion capacitance
+• Diffusion capacitance
+Depletion capacitance is composed by two different contributes, one associated to the
+bottom of the junction (bottom-wall depletion capacitance) and the other to the periphery
+(sidewall depletion capacitance). The basic equations are
+CDiode = Cdif f usion + Cdepletion
+Where the depletion capacitance is defined as:
+Cdepletion = Cdeplbw + Cdeplsw
+The diffusion capacitance, due to the injected minority carriers, is modeled with the
+transit time tt:
+Cdif f usion = TT ∂IDef f
+∂VD
+The depletion capacitance is more complex to model, since the function used to ap-
+proximate it diverges when the diode voltage become greater than the junction built-in
+potential. To avoid function divergence, the capacitance function is approximated with
+a linear extrapolation for applied voltage greater than a fraction of the junction built-in
+potential.
+Cdeplbw =
+(
+CJ ef f(1 − VD
+VJ )−MJ, if VD < FC · VJ
+CJ ef f
+1−FC(1+MJ)+MJ VD
+VJ
+(1−FC)(1+MJ) , otherwise.
+(7.4)

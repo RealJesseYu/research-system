@@ -1,0 +1,36 @@
+432 CHAPTER 17. INTERACTIVE INTERPRETER
+Example:
+let loopindex = 0
+dowhile loopindex <> 5
+echo index is $ & loopindex
+let loopindex = loopindex + 1
+end
+17.6.4 Foreach - End
+General Form:
+foreach var value ...
+statement
+...
+end
+The statements are executed once for each of the values, each time with the variable var
+set to the current value. ( var can be accessed by the $var notation - see below).
+Examples:
+foreach val -40 -20 0 20 40
+echo var is $val
+end
+echo
+set myvariable = ( -4 -2 0 2 4 )
+foreach var $m yva ria bl e
+echo var is $var
+end
+Comment: The values themselves may be set by a variable like myvariable.
+17.6.5 If - Then - Else
+General Form:
+if condition
+statement
+...
+else
+statement
+...
+end
+If the condition is non-zero then the first set of statements are executed, otherwise the
+second set. The else and the second set of statements may be omitted.

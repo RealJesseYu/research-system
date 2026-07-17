@@ -1,0 +1,29 @@
+4.2. LINEAR DEPENDENT SOURCES 101
+DC 0 AC 1 portnum n1 < z0 n2 >
+Examples:
+V1 in 0 dc 0 ac 1 portnum 1 z0 100
+At least two ports are required for the S-parameter simulation with the command .sp
+(15.3.8). If portnum is not provided, the voltage source VRSC behaves as normal.
+4.2 Linear Dependent Sources
+Ngspice allows circuits to contain linear dependent sources characterized by any of the
+four equations
+i = gv v = ev i = f i v = hi
+where g, e, f , and h are constants representing transconductance, voltage gain, current
+gain, and transresistance, respectively. Non-linear dependent sources for voltages or cur-
+rents (B, E, G) are described in Chapt. 5.
+4.2.1 Gxxxx: Linear Voltage-Controlled Current Sources (VCCS)
+General form:
+GXXXXXXX N + N - NC + NC - VALUE <m = val >
+Examples:
+G1 2 0 5 0 0.1
+n+ and n- are the positive and negative nodes, respectively. Current flow is from the
+positive node, through the source, to the negative
+node. nc+ and nc- are the positive and negative controlling nodes, respectively. value
+is the transconductance (in mhos). m is an optional multiplier to the output current. val
+may be a numerical value or an expression according to 2.9.5 containing references to
+other parameters. Instance parameters are listed in chapt. 31.3.6.
+4.2.2 Exxxx: Linear Voltage-Controlled Voltage Sources (VCVS)
+General form:
+EXXXXXXX N + N - NC + NC - VALUE
+Examples:
+E1 2 3 14 1 2.0

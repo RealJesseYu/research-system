@@ -1,0 +1,17 @@
+624 CHAPTER 29. ERROR MESSAGES
+29.3.12 Code Model triangle
+triangle_allocation_error:
+**** Error ****
+TRIANGLE: Error allocating triangle block storage
+Generic storage allocation error.
+triangle_freq_clamp:
+**** Warning ****
+TRIANGLE: Extrapolated Minimum Frequency Set to 1e-16 Hz
+This error occurs whenever the controlling input value is such that the output frequency
+ordinarily would be set to a negative value. Consequently, the output frequency has been
+clamped to a near-zero value.
+triangle_array_error:
+**** Error ****
+TRIANGLE: Size of control array different than frequency array
+This error message normally occurs whenever the controlling input array and the fre-
+quency array are different sizes.

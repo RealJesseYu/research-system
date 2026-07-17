@@ -1,0 +1,39 @@
+17.7. INTERNALLY PREDEFINED V ARIABLES 441
+sourcepath A list of the directories to search when a source command is given, or .include
+or .lib is processed. The default is the current directory and the standard ngspice
+library ( /usr/local/lib/ngspice, or whatever LIBPATH is #defined to in the
+ngspice source). The command
+setcs sourcepath = ( e:/ D:/ . c:/Spice/Examples )
+will overwrite the default. setcs is used to keep upper case letters. The search
+sequence now is: current directory, e:/, D:/, current directory (again due to .),
+c:/Spice/Examples. 'Current directory' is depending on the OS. The command
+setcs sourcepath = ( D:/mypath/input $sourcepath )
+will add another path entry in front of the already existing list of paths. This feature
+may be used with shared ngspice ( 19) to send a input path to code models which
+require file input, like d_source. Only the first entry in the sourcepath list is sent
+to the code models, however.
+specwindow Windowing for commands spec (17.5.85) or fft (17.5.30). May be one of
+the following: bartlet blackman cosine gaussian hamming hanning none rectangular
+triangle.
+specwindoworder Integer value 2 - 8 (default 2), used by commands spec or fft.
+spicepath The program to use for the aspice command. The default is /cad/bin/spice.
+sqrnoise If set, noise data outputs will be given as V 2/Hz or A2/Hz , otherwise as the
+usual V /√Hz or A/√Hz .
+strict_errorhandling If set by the user, an error detected during circuit parsing will
+immediately lead ngspice to exit with exit code 1 (see 18.5). May be set in files
+spinit (16.5) or .spiceinit (16.6) only.
+subend The card to end subcircuits (normally .ends).
+subinvoke The prefix to invoke subcircuits (normally X).
+substart The card to begin subcircuits (normally .subckt).
+term The mfb name of the current terminal.
+ticchar A character applied as a tic mark (replaces the default 'x').
+ticmarks An integer value n, every n data points a tic (default: a small 'x') will be set
+on your graph.
+ticlist A list of integers, e.g. ( 4 14 24 ), selects data points to set tics (small 'x') on
+your graph.
+units If this is degrees, then all the trig functions will use degrees instead of radians.
+unixcom If a command isn't defined, try to execute it as a UNIX command. Setting this
+option has the effect of giving a rehash command, below. This is useful for people
+who want to use ngspice as a login shell.
+wfont Set the font for the graphics plot in MS Windows. Typical fonts are courier,
+times, arial and all others found on your machine. Default is courier.

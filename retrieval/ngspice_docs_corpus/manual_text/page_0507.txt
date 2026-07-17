@@ -1,0 +1,31 @@
+20.5. EXAMPLES 507
+spice :: source FB14 . cir
+set r10r12 [ :: math :: optimize :: m i n i m u m S t e e p e s t D e s c e n t
++ cost { 10000 10000 } 0.1 50 ]
+regexp {([0 -9.]*) ([0 -9.]*) } $r10r12 r10r12 r10 r12
+Outputs optimization result
+#
+# Results
+# spice :: alter r10 = $r10
+spice :: alter r12 = $r12
+foreach point [ t e m p e r a t u r e s _ b l t range 0
++ [ expr " [ t e m p e r a t u r e s _ b l t length ] - 1" ] ] {
+tref_blt append [ iteration $point ]
+}
+disp_curve $r10 $r12
+20.5.3 Progressive display
+This example is quite simple but it is very interesting. It displays a transient simulation
+result on the fly. You may now be familiar with most of the lines of this script. It uses
+the ability of BLT objects to automatically update. When the vector data is modified,
+the strip-chart display is modified accordingly.
+20.5.3.1 testbench2.tcl
+#!/ bin / sh
+# WishFix \
+exec wish -f " $0 " $ {1+" $@ "}
+###
+package require BLT package require spice
+this avoids to type blt:: before the blt class commands
+namespace import blt ::*
+wm title . " Vector Test script "
+wm geometry . 800 x600 +40+40 pack propagate . false
+A strip chart with labels but without data is created and displayed (packed)

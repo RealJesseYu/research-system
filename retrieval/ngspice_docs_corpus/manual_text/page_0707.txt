@@ -1,0 +1,47 @@
+31.6. MOSFETS 707
+124 wmu0b InOut real Width dependence of mu0b
+125 mus0 InOut real Mobility at VDS=VDD VGS=VTH
+126 lmus0 InOut real Length dependence of mus0
+127 wmus0 InOut real Width dependence of mus
+128 musb InOut real VBS dependence of mus
+129 lmusb InOut real Length dependence of musb
+130 wmusb InOut real Width dependence of musb
+131 mu20 InOut real VDS dependence of mu in tanh term
+132 lmu20 InOut real Length dependence of mu20
+133 wmu20 InOut real Width dependence of mu20
+134 mu2b InOut real VBS dependence of mu2
+135 lmu2b InOut real Length dependence of mu2b
+136 wmu2b InOut real Width dependence of mu2b
+137 mu2g InOut real VGS dependence of mu2
+138 lmu2g InOut real Length dependence of mu2g
+139 wmu2g InOut real Width dependence of mu2g
+140 mu30 InOut real VDS dependence of mu in linear term
+141 lmu30 InOut real Length dependence of mu30
+142 wmu30 InOut real Width dependence of mu30
+143 mu3b InOut real VBS dependence of mu3
+144 lmu3b InOut real Length dependence of mu3b
+145 wmu3b InOut real Width dependence of mu3b
+146 mu3g InOut real VGS dependence of mu3
+147 lmu3g InOut real Length dependence of mu3g
+148 wmu3g InOut real Width dependence of mu3g
+149 mu40 InOut real VDS dependence of mu in linear term
+150 lmu40 InOut real Length dependence of mu40
+151 wmu40 InOut real Width dependence of mu40
+152 mu4b InOut real VBS dependence of mu4
+153 lmu4b InOut real Length dependence of mu4b
+154 wmu4b InOut real Width dependence of mu4b
+155 mu4g InOut real VGS dependence of mu4
+156 lmu4g InOut real Length dependence of mu4g
+157 wmu4g InOut real Width dependence of mu4g
+158 ua0 InOut real Linear VGS dependence of mobility
+159 lua0 InOut real Length dependence of ua0
+160 wua0 InOut real Width dependence of ua0
+161 uab InOut real VBS dependence of ua
+162 luab InOut real Length dependence of uab
+163 wuab InOut real Width dependence of uab
+164 ub0 InOut real Quadratic VGS dependence of mobility
+165 lub0 InOut real Length dependence of ub0
+166 wub0 InOut real Width dependence of ub0
+167 ubb InOut real VBS dependence of ub
+168 lubb InOut real Length dependence of ubb
+169 wubb InOut real Width dependence of ubb

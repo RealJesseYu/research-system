@@ -1,0 +1,41 @@
+238CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Parameter_Name: log r
+Description: "log-linear switch" "total resistance"
+Data_Type: boolean real
+Default_Value: FALSE 1.0e5
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: log_multiplier
+Description: "multiplier constant for log resistance"
+Data_Type: real
+Default_Value: 1.0
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: A resistance potentiometer with three connections: r0, wiper , and r1.
+Parameter position determines the lower and upper portions of the resistance.
+Rlower is located between r0 and wiper, Rupper between wiper and r1. If log is
+set to F ALSE, Rlower = position ∗ r. If log is set to TRUE, then
+Rlower = r ∗ 10−position∗log_multiplier. For Rupper we always have
+Rupper = r − Rlower. position <= 0 is resolved to position = 1e − 9,
+position >= 1 is resolved to position = 0.999999999.
+Example SPICE Usage:
+Apot r0 w r1 potmod
+.model potmod potentiometer(position=0.45 r=1k log=FALSE log_multiplier=1)
+12.3 Hybrid Models
+The following hybrid models are supplied with XSPICE. The descriptions included below
+consist of the model Interface Specification File and a description of the model's operation.
+This is followed by an example of a simulator-deck placement of the model, including the
+.MODEL card and the specification of all available parameters.
+A note should be made with respect to the use of hybrid models for other than simple
+digital-to-analog and analog-to-digital translations. The hybrid models represented in
+this section address that specific need, but in the development of user-defined nodes you
+may find a need to translate not only between digital and analog nodes, but also between
+real and digital, real and int, etc. In most cases such translations will not need to be as
+involved or as detailed as shown in the following.
+12.3.1 Digital-to-Analog Node Bridge
+NAME_TABLE:

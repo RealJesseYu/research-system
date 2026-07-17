@@ -1,0 +1,37 @@
+15.6. BATCH OUTPUT 337
+General form for current measurements on all devices:
+. probe alli
+General form for current measurements on a 2- and multi-terminal device:
+. probe I ( device )
+General form for current measurements on a multi-terminal device (one command per
+terminal):
+. probe I ( device , node )
+Examples:
+* measure current at every node of each device in the circuit
+. probe < alli >
+* measure current at node 1 of a two - terminal device
+. probe I ( R1 )
+* measure current at all nodes of a subcircuit invocation
+. probe I ( XU1 )
+* measure current at node 3 of a multi - terminal device M4
+. probe I ( MQ4 ,3)
+Resulting output vectors:
+r1 # branch
+mq4 : s # branch
+Resulting output vectors for .probe all (excerpt only, example file 555-timer-2.cir):
+...
+ra # branch : current , real , 14579 long
+rb # branch : current , real , 14579 long
+rl # branch : current , real , 14579 long
+time : time , real , 14579 long [ default scale ]
+xu1 : cont # branch : current , real , 14579 long
+xu1 : disc # branch : current , real , 14579 long
+xu1 : gnd # branch : current , real , 14579 long
+xu1 : out # branch : current , real , 14579 long
+xu1 : reset # branch : current , real , 14579 long
+xu1 : thres # branch : current , real , 14579 long
+xu1 : trig # branch : current , real , 14579 long
+xu1 : vcc # branch : current , real , 14579 long
+xu2 :1# branch : current , real , 14579 long
+xu2 :19# branch : current , real , 14579 long
+...

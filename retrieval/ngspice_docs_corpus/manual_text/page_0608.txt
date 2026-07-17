@@ -1,0 +1,33 @@
+608 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+28.8.2.3 Function udn_XXX_compare
+Assign STRUCT_PTR_1 and STRUCT_PTR_2 to pointer variables of the defined type.
+Compare the two structures and assign either TRUE or F ALSE to EQUAL.
+28.8.2.4 Function udn_XXX_copy
+Assign INPUT_STRUCT_PTR and OUTPUT_STRUCT_PTR to pointer variables of
+the defined type and then copy the elements of the input structure to the output structure.
+28.8.2.5 Function udn_XXX_dismantle
+Assign STRUCT_PTR to a pointer variable of defined type and then free any allocated
+substructures (but not the structure itself!). If there are no substructures, the body of
+this function may be left null.
+28.8.2.6 Function udn_XXX_invert
+Assign STRUCT_PTR to a pointer variable of the defined type, and then invert the
+logical value of the structure.
+28.8.2.7 Function udn_XXX_resolve
+Assign INPUT_STRUCT_PTR_ARRAY to a variable declared as an array of pointers
+of the defined type - e.g.:
+<type> **struct_array;
+struct_array = INPUT_STRUCT_PTR_ARRAY;
+Then, the number of elements in the array may be determined from the integer valued
+INPUT_STRUCT_PTR_ARRAY_SIZE macro.
+Assign OUTPUT_STRUCT_PTR to a pointer variable of the defined type. Scan through
+the array of structures, compute the resolved value, and assign it into the output structure.
+28.8.2.8 Function udn_XXX_plot_val
+Assign STRUCT_PTR to a pointer variable of the defined type. Then, access the member
+of the structure specified by the string in STRUCT_MEMBER_ID and assign some real
+valued quantity for this member to PLOT_V ALUE.
+28.8.2.9 Function udn_XXX_print_val
+Assign STRUCT_PTR to a pointer variable of the defined type. Then, access the member
+of the structure specified by the string in STRUCT_MEMBER_ID and assign some string
+valued quantity for this member to PRINT_V ALUE.
+If the string is not static, a new string should be allocated on each call. Do not free the
+allocated strings.

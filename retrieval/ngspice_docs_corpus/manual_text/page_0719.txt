@@ -1,0 +1,38 @@
+32.1. NGSPICE INSTALLATION UNDER LINUX (AND OTHER 'UNIXES') 719
+--enable-capbypass Bypass calculation of cbd/cbs in the mosfets if the vbs/vbd volt-
+ages are unchanged.
+--enable-capzerobypass Bypass all the cbd/cbs calculations if Czero is zero. This is
+enabled by default since rework-18.
+--enable-cluster Clustering code for distributed simulation. This is a contribution
+never tested. This code comes from TCLspice implementation and is implemented for
+transient analysis only.
+--enable-expdevices Enable experimental devices. This option is used by developers
+to mask devices under development. Almost useless for users.
+--enable-experimental This may be used to enable some experimental code. The
+code has to be encapsuated into #ifdef EXPERIMENTAL_CODE ... #endif constructs.
+Currently there is no such code available.
+--enable-help Force building nghelp. This is deprecated.
+--enable-newpred Enable the NEWPRED symbol in the code.
+--enable-newtrunc Enable the newtrunc option
+--enable-nodelimiting Experimental damping scheme
+--enable-nobypass Don't bypass recalculations of slowly changing variables
+--enable-nosqrt Use always log/exp for non-linear capacitances --enable-predictor
+Enable a predictor method for convergence
+--enable-sense2 Use spice2 sensitivity analysis
+32.1.8.3 Options useful only for debugging specific issues in ngspice
+The following options are seldom used today, not tested, some may even no longer be
+implemented. Only experienced users should switch on these options, often they are
+effective only in conjunction with looking at the respective source code.
+--enable-ansi Configure will try to find an option for your compiler so that it expects
+ansi-C.
+--enable-asdebug Debug sensitivity code *ASDEBUG*.
+--enable-blktmsdebug Debug distortion code *BLOCKTIMES*
+--enable-checkergcc Option for compilation with checkergcc.
+--enable-cpdebug Enable ngspice shell code debug.
+--enable-ftedebug Enable ngspice frontend debug.
+--enable-gc Enable the Boehm-Weiser Conservative Garbage Collector.
+--enable-pzdebug Debug pole/zero code.
+--enable-sensdebug Debug sensitivity code *SENSDEBUG*.
+--enable-smltmsdebug Debug distortion code *SMALLTIMES*
+--enable-smoketest Enable smoketest compile.
+--enable-stepdebug Turns on debugging of convergence steps in transient analysis

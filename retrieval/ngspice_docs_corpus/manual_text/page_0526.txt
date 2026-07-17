@@ -1,0 +1,12 @@
+526 CHAPTER 22. STATISTICAL CIRCUIT ANALYSIS
+22.4 ngspice scripting language
+The ngspice scripting language is described in detail in Chapt. 17.8. All commands listed
+in Chapt. 17.5 are available, as well as the built-in functions described in Chapt. 17.2, the
+control structures listed in Chapt. 17.6, and the predefined variables from Chapt. 17.7.
+Variables and functions are typically evaluated after a simulation run. You may created
+loops with several simulation runs and change device and model parameters with the
+alter (17.5.3) or altermod (17.5.4) commands, as shown in the next section 22.5. You
+may even interrupt a simulation run by proper usage of the stop (17.5.88) and resume
+(17.5.64) commands. After stop you may change device or model parameters and then
+go on with resume, continuing the simulation with the new parameter values.
+The statistical functions provided for scripting are listed in the following table:

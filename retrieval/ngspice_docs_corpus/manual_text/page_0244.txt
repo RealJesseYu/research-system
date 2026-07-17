@@ -1,0 +1,48 @@
+244CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Default_Value: 20 20
+Limits: [1e-6 -] [1e-6 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+/* Resistive analog drive. */
+PARAMETER_TABLE:
+Parameter_Name: r_low r_high
+Description: "drive resistor to ground" "drive resistor to out_high"
+Data_Type: real real
+Default_Value: 10000 10000
+Limits: [1e-6 -] [1e-6 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+/* Analog rise and fall times. */
+PARAMETER_TABLE:
+Parameter_Name: t_rise t_fall
+Description: "rise time 0 -> 1" "fall time 1 -> 0"
+Data_Type: real real
+Default_Value: 1.0e-9 1.0e-9
+Limits: [1e-12 -] [1e-12 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+/* Digital rise and fall delays. */
+PARAMETER_TABLE:
+Parameter_Name: rise_delay fall_delay
+Description: "rise delay 0 -> 1" "fall delay 1 -> 0"
+Data_Type: real real
+Default_Value: 1.0e-9 1.0e-9
+Limits: [1e-12 -] [1e-12 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Description: The bidi_bridge is the third and most complex of three analog/digital
+node bridges. It is capable of effectively simultaneous output to both analog and
+digital ports, depending on the state of the other side. That requires the use of an
+analog transconductance port, which may cause convergence problems when there
+is high impedance on a connected analog node. Non-zero values for the smooth
+parameter may be helpful if such problems occur. For digital nodes that are al-
+ways strongly driven but also have digital inputs, the simpler dac_bridge may be
+preferred. Otherwise, bidi_bridge has some additional features that may make it
+preferable to the other bridges. The analog output characteristics change with the
+digital drive strength, with strong output behaving similarly to a very crude model
+of a CMOS output driver. The low input threshold may be higher than the high
+threshold, producing Schmitt Trigger behavior.

@@ -1,0 +1,39 @@
+36 CHAPTER 1. INTRODUCTION
+Finally, numerous small bugs have been discovered and fixed, and the program has been
+ported to a wider variety of computing platforms.
+1.1 Simulation Algorithms
+Computer-based circuit simulation is often used as a tool by designers, test engineers,
+and others who want to analyze the operation of a design without examining the physical
+circuit. Simulation allows you to change quickly the parameters of many of the circuit ele-
+ments to determine how they affect the circuit response. Often it is difficult or impossible
+to change these parameters in a physical circuit.
+However, to be practical, a simulator must execute in a reasonable amount of time.
+The key to efficient execution is choosing the proper level of modeling abstraction for
+a given problem. To support a given modeling abstraction, the simulator must provide
+appropriate algorithms.
+Historically, circuit simulators have supported either an analog simulation algorithm or a
+digital simulation algorithm. Ngspice inherits the XSPICE framework and supports both
+analog and digital algorithms and is a 'mixed-mode' simulator.
+1.1.1 Analog Simulation
+Analog simulation focuses on the linear and non-linear behavior of a circuit over a con-
+tinuous time or frequency interval. The circuit response is obtained by iteratively solving
+Kirchhoff's Laws for the circuit at time steps selected to ensure the solution has converged
+to a stable value and that numerical approximations of integrations are sufficiently accu-
+rate. Since Kirchhoff's laws form a set of simultaneous equations, the simulator operates
+by solving a matrix of equations at each time point. This matrix processing generally
+results in slower simulation times when compared to digital circuit simulators.
+The response of a circuit is a function of the applied sources. Ngspice offers a variety
+of source types including DC, sine-wave, and pulse. In addition to specifying sources,
+the user must define the type of simulation to be run. This is termed the 'mode of
+analysis' . Analysis modes include DC analysis, AC analysis, and transient analysis. For
+DC analysis, the time-varying behavior of reactive elements is neglected and the simulator
+calculates the DC solution of the circuit. Swept DC analysis may also be accomplished
+with ngspice. This is simply the repeated application of DC analysis over a range of
+DC levels for the input sources. For AC analysis, the simulator determines the response
+of the circuit, including reactive elements to small-signal sinusoidal inputs over a range
+of frequencies. The simulator output in this case includes amplitudes and phases as
+a function of frequency. For transient analysis, the circuit response, including reactive
+elements, is analyzed to calculate the behavior of the circuit as a function of time.
+1.1.2 Matrix solvers
+Since version 42 ngspice offers two matrix solvers. Already spice3f5 offerd the solver
+Sparse 1.3, which has proven to be robust for all simulation tasks [ 26]. It is especially

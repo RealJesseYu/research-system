@@ -1,0 +1,38 @@
+726 CHAPTER 32. COMPILATION NOTES
+--disable-debug (-O2 optimization, no debug information)
+An option to make is
+-j8
+If you have a processor with 4 real (or 8 logical) cores, this will speed up compilation
+considerably.
+A complete ngspice (release version, no debug info, 64-bit optimized executable) may be
+made available just by
+$ cd ngspice
+$ ./compile_min.sh
+A debug version without optimization will be available by
+$ ./compile_min.sh d
+Options used in the script:
+CIDER, XSPICE, and OpenMP may be selected at will.
+-disable-debug will give O2 optimization (versus O0 for debug) and removes all debugging
+info.
+-adms and -enable-adms ADMS is a deprecated model compiler that translates Verilog-
+A compact models into C code that can be compiled into ngspice. This is replaced by
+OSDI/OpenV AF (see chapter .
+The install script will copy all files to C:\Spice or C:\Spice64, the code models for XSPICE
+will be stored in C:\Spice\lib\spice or C:\Spice64\lib\spice respectively.
+If you don't use the tarball, you may download the ngspice source code from the ngspice
+Git distribution as described on the sourceforge ngspice Git page . Define and enter a
+directory of your choice, e.g. /d/spice/. Download the complete ngspice repository from
+Git, for example by anonymous access issuing the command
+git clone git://git.code.sf.net/p/ngspice/ngspice
+You will find the sources in directory /d/spice/ngspice/. Now enter the ngspice top
+level directory ngspice. For compilation using
+$ ./compile_min.sh
+you have to edit this script and uncomment the two lines enabling ./autogen.sh. If you
+want to compile ngspice manually, follow the procedure described below:
+$ cd ngspice
+$ ./autogen.sh
+$ mkdir release
+$ cd release
+$ ../configure --with-wingui ...and other options ( 32.1.8.1)
+$ make -j8
+$ make install

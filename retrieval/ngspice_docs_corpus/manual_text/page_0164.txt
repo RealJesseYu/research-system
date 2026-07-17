@@ -1,0 +1,37 @@
+164 CHAPTER 11. MOSFETS
+11.2.1 MOS Level 1
+This model is also known as the 'Shichman-Hodges' model. This is the first model written
+and the one often described in the introductory textbooks for electronics. This model is
+applicable only to long channel devices. The use of Meyer's model for the C-V part makes
+it non charge conserving.
+11.2.2 MOS Level 2
+This model tries to overcome the limitations of the Level 1 model addressing several short-
+channel effects, like velocity saturation. The implementation of this model is complicated
+and this leads to many convergence problems. C-V calculations can be done with the
+original Meyer model (non charge conserving).
+11.2.3 MOS Level 3
+This is a semi-empirical model derived from the Level 2 model. In the 80s this model
+has often been used for digital design and, over the years, has proved to be robust. A
+discontinuity in the model with respect to the KAPPA parameter has been detected (see
+[10]). The supplied fix has been implemented in Spice3f2 and later. Since this fix may
+affect parameter fitting, the option badmos3 may be set to use the old implementation (see
+the section on simulation variables and the .options line). Ngspice level 3 implementation
+takes into account length and width mask adjustments ( xl and xw) and device width
+narrowing due to diffusion ( wd).
+11.2.4 MOS Level 6
+This model is described in [ 26]. The model can express the current characteristics of short-
+channel MOSFETs at least down to 0.25 µm channel-length, GaAs FET, and resistance
+inserted MOSFETs. The model evaluation time is about 1/3 of the evaluation time of
+the SPICE3 mos level 3 model. The model also enables analytical treatments of circuits
+in short-channel region and makes up for a missing link between a complicated MOSFET
+current characteristics and circuit behaviors in the deep submicron region.
+11.2.5 Notes on Level 1-6 models
+The dc characteristics of the level 1 through level 3 MOSFETs are defined by the device
+parameters vto, kp, lambda, phi and gamma. These parameters are computed by ngspice if
+process parameters ( nsub, tox, ...) are given, but users specified values always override.
+vto is positive (negative) for enhancement mode and negative (positive) for depletion
+mode N-channel (P-channel) devices.
+Charge storage is modeled by three constant capacitors, cgso, cgdo, and cgbo, which
+represent overlap capacitances, by the nonlinear thin-oxide capacitance that is distributed
+among the gate, source, drain, and bulk regions, and by the nonlinear depletion-layer
+capacitances for both substrate junctions divided into bottom and periphery, which vary

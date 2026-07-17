@@ -1,0 +1,25 @@
+Chapter 2
+Circuit Description
+2.1 General Structure and Conventions
+2.1.1 Input file structure
+The circuit to be analyzed is described to ngspice by a set of element instance lines, which
+define the circuit topology and element instance values, and a set of control lines, which
+define the model parameters and the run controls. All lines are assembled in an input file
+to be read by ngspice. Two lines are essential:
+• The first line in the input file must be the title, which is the only comment line that
+does not need any special character in the first place.
+• The last line must be .end, plus a newline delimiter.
+The order of the remaining lines is alomost arbitrary (except, of course, that continuation
+lines must immediately follow the line being continued, .subckt ... .ends, .if ... .endif,
+or .control ... .endc have to enclose their specific lines). Leading white spaces in a
+line are ignored, as well as empty lines.
+The lines described in sections 2.1 to 2.12 are typically used in the core of the input file,
+outside of a .control section (see 16.4.3). An exception is the .include includefile
+line ( 2.7) that may be placed anywhere in the input file. The contents of includefile
+will be inserted exactly in place of the .include line.
+2.1.2 Syntax check
+A very preliminary syntax check has been added to the input parser.
+2.1.2.1 Valid utf-8 characters
+The input file will be scanned for valid utf-8 characters. If non-valid characters are found,
+reading the input is stopped.
+47

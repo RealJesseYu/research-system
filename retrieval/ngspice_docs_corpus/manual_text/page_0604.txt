@@ -1,0 +1,43 @@
+604 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+cm_probe_node() performs a speculative resolution of a node attached to a port. Given
+a port and an event value, it returns what the value on the attached node would be, if
+the port was attempting to output the original value. It is used by the bidi_bridge to
+discover how the node is being driven by the other attached digital ports.
+cm_schedule_output() queues an output event for a port, with the same effect as as-
+signing to the OUTPUT_DELAY and OUPUT macros, but without returning from the
+code model function. It allows more than one event to be queued to a port in a single
+call. To prevent one event overriding another on the same port they should be queued
+with increasing delays.
+cm_getvar() obtains the value of a command interpreter variable. It has the same inter-
+face as the internal function cp_getvar() as defined in the header file src/include/ngspice/cpex-
+tern.h.
+cm_cexit() calls function controlled_exit(), which exits the simulator gracefully.
+A call to cm_irreversible()has several effects that work together to support code mod-
+els that contain a sub-simulation. Such a sub-simulation will usually be irreversible: in
+transient analysis it will not store enough data to allow a completed time step to be
+abandoned. However, analog simulation in Ngspice frequently abandons time steps so
+that they can be retried with a shorter period to achieve convergence. If the inputs to
+the sub-simulation are different in the final analog solution and the original attempt, the
+sub-simulation may be permanently left in an incorrect state.
+A solution to this problem is to delay advancing time in the sub-simulation until Ngspice
+is committed to the current timestep. This can work fully only for a single instance, but
+under some conditions it may be possible to support several irreversible sub-simulations
+in one circuit.
+The effects of a call are: the code model instance is added to the hybrids list if it is not
+already a member; its position in the list is adjusted using the passed priority; and just
+before a time step is accepted a special call is made to the code model. The hybrids
+list initially contains all code model instances that have both analog and event ports.
+Code models instances on the list receive an event call just before a time step is accepted.
+Setting priority to 1 ensures that an instance will be called last, an instance with priority
+2 will be called just before that, and so on. Each instance must use a separate priority
+value, but the values used need not be consecutive. The final effect of cm_irreversible() is
+that when the call is made, CALL_TYPE will have the special value STEP_PENDING,
+not the usual value, EVENT.
+A code model using cm_irreversible() may schedule an analog breakpoint in such calls, so
+that the current time step does not proceed, although it was acceptable to the simulator
+core. In that case no futher STEP_PENDING calls are made for the step.
+28.7.2.8 Complex Math Functions
+Complex_t cm_complex_set (real_part, imag_part)
+double real_part; /* The real part of the complex number */
+double imag_part; /* The imaginary part of the complex number */
+Complex_t cm_complex_add (x, y)

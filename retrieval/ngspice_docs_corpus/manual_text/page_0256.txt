@@ -1,0 +1,39 @@
+256CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Common parameters: inertial_delay, family, rise_delay, fall_delay, input_load.
+Description: The digital xor gate is an n-input, single-output xor gate that produces
+an active ' 1' value if an odd number of its inputs are also ' 1' values. The delays
+associated with an output rise and those associated with an output fall may be
+specified independently. Note also that to maintain the technology-independence of
+the model, any UNKNOWN input, or any floating input causes the output to also
+go UNKNOWN.
+Example SPICE Usage:
+a9 [1 2] 8 xor3
+.model xor3 d_xor(rise_delay = 0.5e-9 fall_delay = 0.3e-9
++ input_load = 0.5e-12)
+12.4.8 Xnor
+NAME_TABLE:
+C_Function_Name: cm_d_xnor
+Spice_Model_Name: d_xnor
+Description: "digital exclusive-nor gate"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: yes no
+Vector_Bounds: [2 -] -
+Null_Allowed: no no
+Common parameters: inertial_delay, family, rise_delay, fall_delay, input_load.
+Description: The digital xnor gate is an n-input, single-output xnor gate that produces
+an active ' 0' value if an odd number of its inputs are also ' 1' values. It produces a
+'1' output when an even number of ' 1' values occurs on its inputs. Note also that
+to maintain the technology-independence of the model, any UNKNOWN input, or
+any floating input causes the output to also go UNKNOWN.
+Example SPICE Usage:
+a9 [1 2] 8 xnor3
+.model xnor3 d_xnor(rise_delay = 0.5e-9 fall_delay = 0.3e-9
++ input_load = 0.5e-12)
+12.4.9 Tristate
+NAME_TABLE:
+C_Function_Name: cm_d_tristate

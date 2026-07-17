@@ -1,0 +1,46 @@
+12.4. DIGITAL MODELS 257
+Spice_Model_Name: d_tristate
+Description: "digital tristate buffer"
+PORT_TABLE:
+Port Name: in enable out
+Description: "input" "enable" "output"
+Direction: in in out
+Default_Type: d d d
+Allowed_Types: [d] [d] [d]
+Vector: no no no
+Vector_Bounds: - - -
+Null_Allowed: no no no
+PARAMETER_TABLE:
+Parameter_Name: delay
+Description: "delay"
+Data_Type: real
+Default_Value: 1.0e-9
+Limits: [1.0e-12 -]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: enable_load
+Description: "enable load value (F)"
+Data_Type: real
+Default_Value: 1.0e-12
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Common parameters: inertial_delay, family, input_load.
+Description: The digital tristate is a simple tristate gate that can be configured to
+allow for open-collector behavior, as well as standard tristate behavior. The state
+seen on the input line is reflected in the output. The state seen on the enable line
+determines the strength of the output. Thus, a ONE forces the output to its state
+with a STRONG strength. A ZERO forces the output to go to a HI_IMPEDANCE
+strength. The delays associated with an output state or strength change cannot
+be specified independently, nor may they be specified independently for rise or fall
+conditions; other gate models may be used to provide such delays if needed. The
+model posts input and enable load values (in farads) based on the parameters input
+load and enable. Note also that to maintain the technology-independence of the
+model, any UNKNOWN input, or any floating input causes the output to also go
+UNKNOWN. Likewise, any UNKNOWN input on the enable line causes the output
+to go to an UNDETERMINED strength value.
+Example SPICE Usage:
+a9 1 2 8 tri7

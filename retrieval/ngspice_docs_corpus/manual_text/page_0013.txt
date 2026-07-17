@@ -1,0 +1,35 @@
+CONTENTS 13
+13 Verilog-A Compact Device Models 291
+13.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 291
+13.2 OSDI/OpenV AF . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 291
+13.3 How to create and apply OpenV AF models . . . . . . . . . . . . . . . . . . 292
+13.3.1 Preparing for simulation . . . . . . . . . . . . . . . . . . . . . . . . 292
+13.3.2 OSDI/OpenV AF examples distributed with ngspice . . . . . . . . . 294
+14 Digital Device Models 295
+14.1 U devices (basic digital building blocks) . . . . . . . . . . . . . . . . . . . 295
+14.1.1 General format . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 296
+14.1.2 List of devices available in ngspice (basic types) . . . . . . . . . . . 296
+14.1.3 URC transmission line versus U devices . . . . . . . . . . . . . . . . 297
+14.2 Support for standard digital devices . . . . . . . . . . . . . . . . . . . . . . 297
+14.3 Digital devices defined by a Hardware Description Language . . . . . . . . 298
+14.3.1 Another approach . . . . . . . . . . . . . . . . . . . . . . . . . . . . 299
+15 Analyses and Output Control (batch mode) 301
+15.1 Simulator Variables (.options) . . . . . . . . . . . . . . . . . . . . . . . . . 301
+15.1.1 General Options . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 302
+15.1.2 OP and DC Solution Options . . . . . . . . . . . . . . . . . . . . . 303
+15.1.3 AC Solution Options . . . . . . . . . . . . . . . . . . . . . . . . . . 305
+15.1.4 Transient Analysis Options . . . . . . . . . . . . . . . . . . . . . . . 305
+15.1.5 ELEMENT Specific options . . . . . . . . . . . . . . . . . . . . . . 306
+15.1.6 Transmission Lines Specific Options . . . . . . . . . . . . . . . . . . 307
+15.1.7 Precedence of option and .options commands . . . . . . . . . . . . . 307
+15.2 Initial Conditions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 307
+15.2.1 .NODESET: Specify Initial Node Voltage Guesses . . . . . . . . . . 307
+15.2.2 .IC: Set Initial Conditions . . . . . . . . . . . . . . . . . . . . . . . 308
+15.3 Analyses . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 309
+15.3.1 .AC: Small-Signal AC Analysis . . . . . . . . . . . . . . . . . . . . 309
+15.3.2 .DC: DC Transfer Function . . . . . . . . . . . . . . . . . . . . . . 310
+15.3.3 .DISTO: Distortion Analysis . . . . . . . . . . . . . . . . . . . . . . 310
+15.3.4 .NOISE: Noise Analysis . . . . . . . . . . . . . . . . . . . . . . . . 312
+15.3.5 .OP: Operating Point Analysis . . . . . . . . . . . . . . . . . . . . . 313
+15.3.6 .PZ: Pole-Zero Analysis . . . . . . . . . . . . . . . . . . . . . . . . . 315
+15.3.7 .SENS: DC or Small-Signal AC Sensitivity Analysis . . . . . . . . . 315

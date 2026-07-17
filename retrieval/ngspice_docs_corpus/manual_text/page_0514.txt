@@ -1,0 +1,18 @@
+514 CHAPTER 21. EXAMPLE CIRCUITS
+ngspice 1 -> run
+The simulator will run the simulation and when execution is completed, will return with
+the ngspice prompt. When the prompt returns, issue the rusage command again to see
+how much time and memory has been used now.
+To examine the results of this transient analysis, we can use the plot command. First we
+will plot the nodes labeled ' 1' and 'base' .
+ngspice 2 -> plot v(1) base
+The simulator responds by displaying an X Window System plot similar to that shown in
+Fig. 21.2.
+Figure 21.2: node 1 and node 'base' versus time
+Notice that we have named one of the nodes in the circuit description with a number (' 1'),
+while the others are words ('base'). This was done to illustrate ngspice's special require-
+ments for plotting nodes labeled with numbers. Numeric labels are allowed in ngspice for
+backwards compatibility with SPICE2. However, they require special treatment in some
+commands such as plot. The plot command is designed to allow expressions in its argu-
+ment list in addition to names of results data to be plotted. For example, the expression
+plot (base - 1) would plot the result of subtracting 1 from the value of node 'base' .

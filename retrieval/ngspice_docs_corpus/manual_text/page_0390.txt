@@ -1,0 +1,31 @@
+390 CHAPTER 17. INTERACTIVE INTERPRETER
+Print an event driven node generated or used by an XSPICE 'A' device. These nodes are
+vectors not organized in plots. See edisplay, eprvcd, and Chapt. 27.2.2 for an example.
+Output redirection into a file is available.
+17.5.27 Eprvcd: Dump nodes in VCD format
+General Form:
+eprvcd [ - t unit ][ - a ] node1 node2 .. noden [ > filename ]
+Dump the data of the specified event driven nodes and others to a .vcd file (see also
+18.6.1.4). Such files may be viewed with an vcd viewer, for example gtkwave. Values
+for analog nodes and expressions (as for plot ) may be included, but expressions may
+not contain spaces. Option "-t" sets the VCD file's time unit; values are rounded to a
+negative power of 10. If not used the unit is chosen to fit the simulation's maximum
+timestep. Analog values are examined only when an XSPICE event values changes unless
+option "-a" is used to dump them at each timestep. Also see edisplay, eprint.
+17.5.28 Esave: Save a set of event node outputs
+General Form:
+esave all | none | node ...
+Save a set of event node outputs, discarding the rest (if keyword all is not given). May be
+used to dramatically reduce memory (RAM) requirements when only a few useful nodes'
+events are saved.
+For backward compatibility, if there are no esave commands given, all outputs are saved.
+If you want to eprint (17.5.26) or eprvcd (17.5.27) a node, you have to save it explicitly,
+except for all given or no save command at all.
+Don't save anything:
+esave none
+Useful if you do not need to examine the event data separately from the normal plot.
+17.5.29 Fclose: close an open file handle
+General Form:
+fclose handle
+This command closes an open file identified by the integer 'handle' . It ignores values less
+than 3 and any file that was not opened by fopen or read by fread.

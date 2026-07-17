@@ -1,0 +1,28 @@
+26.1. SIMULATION AND MODELING OVER VIEW 557
+Figure 26.2: Example Circuit 2
+necessary electrical specifications for the device ('1n4148' is the part number for the type
+of diode the model is meant to simulate).
+The model statement that provides this information is:
+. model 1 n4148 D ( is =2.495 e -09 rs =4.755 e -01 n =1.679 e +00
++ tt =3.030 e -09 cjo =1.700 e -12 vj =1 m =1.959 e -01
++ bv =1.000 e +02 ibv =1.000 e -04)
+The model statement always begins with the string .model followed by an identifier and
+the model type (D for diode, NPN for NPN transistors, etc).
+The optional parameters (' is', ' rs', ' n', . . . ) shown in this example configure the simula-
+tor's mathematical model of the diode to match the specific behavior of a particular part
+(e.g. a ' 1n4148').
+Subcircuits In some applications, describing a device by embedding the required ele-
+ments in the main circuit file, as is done for the amplifier in Fig. 26.1, is not desirable.
+A hierarchical approach may be taken by using subcircuits. An example of a subcircuit
+statement is shown in the second circuit file:
+X1 Amp_In 0 Amp_Out
+Amplifier Subcircuits are always identified by a device label beginning with 'X' . Just as
+with other devices, all of the connected nodes are specified. Notice, in this example, that
+three nodes are used. Finally, the name of the subcircuit is specified. Elsewhere in the
+circuit file, the simulator looks for a statement of the form:
+. subckt < Name > < Node1 > < Node2 > < Node3 > ...
+This statement specifies that the lines that follow are part of the Amplifier subcircuit,
+and that the three nodes listed are to be treated wherever they occur in the subcircuit
+definition as referring, respectively, to the nodes on the main circuit from which the
+subcircuit was called. Normal device, model, and comment statements may then follow.
+The subcircuit definition is concluded with a statement of the form:

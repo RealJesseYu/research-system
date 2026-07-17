@@ -1,0 +1,42 @@
+592 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+The input data macros are all indexed.
+INPUT(a) resolves to the value of the scalar input a that was defined in the Interface
+Specification File tables. The macro evaluates to a real (double) value for analog
+ports and a pointer to the internal representation for event ports (digital, integer,
+real or user-defined). The same accessor macro can be used regardless of type.
+INPUT_STATE(a) resolves to the state value defined for digital node types. These
+will be one of the symbolic constants ZERO, ONE, or UNKNOWN.
+INPUT_STRENGTH(a) resolves to the strength with which a digital input node is
+being driven. This is determined by a resolution algorithm that looks at all outputs
+to a node and determines its final driven strength. This value in turn is passed to
+a code model when requested by this macro. Possible strength values are
+1. STRONG
+2. RESISTIVE
+3. HI_IMPEDANCE
+4. UNDETERMINED
+28.7.1.7 Output Data
+OUTPUT(y)
+OUTPUT_CHANGED(a)
+OUTPUT_DELAY(y)
+OUTPUT_STATE(a)
+OUTPUT_STRENGTH(a)
+The output data macros are all indexed.
+OUTPUT(y) resolves to the value of the scalar output 'y' that was defined in the In-
+terface Specification File tables. The macro evaluates to a real l-value (it can be
+assigned to) for analog ports and a pointer to the internal representation (derefer-
+ence before assigning a value) for event ports (digital, integer, real or user-defined).
+The same accessor macro can be used regardless of type. Event simulator port values
+must only be set in EVENT calls. All analog simulator ports should be set in ANA-
+LOG calls, otherwise the value reverts to zero. Setting analog ports in an EVENT
+call does nothing. To handle the case where a new output for the"other" simula-
+tor is produced, schedule a re-entry to that simulator using cm_event_queue() or
+cm_analog_set_temp_breakpoint(), as appropriate, passing TIME as the argu-
+ment.
+OUTPUT_CHANGED(a) may be assigned one of two values for any particular out-
+put to an event simulator port. If assigned the value TRUE (the default), then an
+output state, strength (if digital) and delay must be posted by the model during
+the call. If, on the other hand, no change has occurred during that pass, the OUT-
+PUT_CHANGED(a) value for an output can be set to F ALSE. In this case, no
+state, strength or delay values need be posted by the model. Remember that this
+macro applies to a single output port. If a model has multiple outputs that have
+not changed, OUTPUT_CHANGED(a) must be set to F ALSE for each of them.

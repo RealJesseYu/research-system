@@ -1,0 +1,39 @@
+594 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+AC_GAIN(y,a) (indexed) resolves to the value of the AC analysis gain of scalar output
+'y' from scalar input 'a' . The type is always a structure ( Complex_t) defined in the
+standard code model header file:
+typedef struct Complex_s {
+double real; /* The real part of the complex number */
+double imag; /* The imaginary part of the complex number */
+} Complex_t;
+The remaining uses of AC_GAIN are shown for the cases in which either the output, the
+input, or both are vectors.
+28.7.1.10 Static Variables
+STATIC_VAR(x)
+STATIC_V AR(x)resolves to an lvalue for a scalar or pointer as defined in the Interface
+Specification File. Unlike C language static and global variables, these values are
+local to a specific instance of the code model. The type of 'x' is that given in the
+Interface Specification File. The same accessor macro can be used regardless of type
+since it simply resolves to an lvalue. To store a C structure or vector, the declared
+type should be 'pointer' and the code model is responsible for allocating storage and
+assigning the pointer to the allocated storage to STATIC_V AR(x). That is usually
+done in the INIT call. The code model is also responsible for freeing the storage, in
+a function that is declared by the CALLBACK macro.
+28.7.1.11 Accessor Macros
+Table 28.3 describes the accessor macros available to the Model Definition File program-
+mer and their C types. The PARAM and STATIC_V AR macros, whose types are labeled
+CD (context dependent), return the type defined in the Interface Specification File. Argu-
+ments listed with '[i]' take an optional square bracket delimited index if the corresponding
+port or parameter is a vector. The index may be any C expression - possibly involving
+calls to other accessor macros (e.g.," OUTPUT(out[PORT_SIZE(out)-1])")
+Name Type Args Description
+AC_GAIN Complex_t y[i],x[i] AC gain of output y with respect
+to input x.
+ANALYSIS enum <none> Type of analysis: DC, AC,
+TRANSIENT.
+ARGS Mif_Private_t <none> Standard argument to all code
+model function.
+CALLBACK Mif_Callback_t <none> Pointer to callback function
+CALL_TYPE enum <none> Type of model evaluation call:
+ANALOG or EVENT.
+INIT Boolean_t <none> Is this the first call to the model?

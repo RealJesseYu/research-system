@@ -1,0 +1,41 @@
+90 CHAPTER 3. CIRCUIT ELEMENTS AND MODELS
+* initial conditions on them. Each of the components
+* has a parallel resistor so that an exponential decay
+* of the initial condition occurs with a time constant of
+* 1 second.
+*
+a1 1 0 cap
+.model cap capacitoric (c=1000uf ic=1)
+r1 1 0 1k
+*
+a2 2 0 ind
+.model ind inductoric (l=1H ic=1)
+r2 2 0 1.0
+*
+.control
+tran 0.01 3
+plot v(1) v(2)
+.endc
+.end
+3.3.15 Switches
+Two types of switches are available: a voltage controlled switch (type SXXXXXX, model
+SW) and a current controlled switch (type WXXXXXXX, model CSW). A switching
+hysteresis may be defined, as well as on- and off-resistances ( 0 < R < ∞).
+General form:
+SXXXXXXX N + N - NC + NC - MODEL <ON > < OFF >
+WYYYYYYY N + N - VNAM MODEL <ON > < OFF >
+Examples:
+s1 1 2 3 4 switch1 ON
+s2 5 6 3 0 sm2 off
+Switch1 1 2 10 0 smodel1
+w1 1 2 vclock switchmod1
+W2 3 0 vramp sm1 ON
+wreset 5 6 vclck l oss ysw itc h OFF
+Nodes 1 and 2 are the nodes between which the switch terminals are connected. The model
+name is mandatory while the initial conditions are optional. For the voltage controlled
+switch, nodes 3 and 4 are the positive and negative controlling nodes respectively. For
+the current controlled switch, the controlling current is that through the specified voltage
+source. The direction of positive controlling current flow is from the positive node, through
+the source, to the negative node.
+The instance parameters ON or OFF are required, when the controlling voltage (cur-
+rent) starts inside the range of the hysteresis loop (different outputs during forward vs.

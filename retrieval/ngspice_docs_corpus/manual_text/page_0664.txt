@@ -1,0 +1,22 @@
+664 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+31.2.1.2 Resistor model parameters
+# Name Direction Type Description
+103 rsh InOut real Sheet resistance
+106 narrow InOut real Narrowing of resistor
+106 dw InOut real
+109 short InOut real Shortening of resistor
+109 dlr InOut real
+101 tc1 InOut real First order temp. coefficient
+102 tc2 InOut real Second order temp. coefficient
+104 defw InOut real Default device width
+104 w InOut real Default device width
+105 l InOut real Default device length
+110 kf InOut real Flicker noise coefficient
+111 af InOut real Flicker noise exponent
+108 tnom InOut real Parameter measurement temperature
+107 r InOut real Resistance
+107 res InOut real Resistance
+wf InOut real Flicker noise width exponent
+lf InOut real Flicker noise length exponent
+ef InOut real Flicker noise frequency exponent
+r In flag Device is a resistor model

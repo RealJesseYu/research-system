@@ -1,0 +1,38 @@
+584 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+28.6.3.4 Null Allowed
+The Null_Allowed field is introduced by the ' Null_Allowed:' keyword and is followed by
+a boolean literal. A value of 'TRUE' or 'YES' specify that it is valid for the corresponding
+SPICE .MODEL card to omit a value for this parameter. If the parameter is omitted, the
+default value is used. If there is no default value, an undefined value is passed to the code
+model, and the PARAM_NULL( ) macro will return a value of 'TRUE' so that defaulting
+can be handled within the model itself. If the value of Null_Allowed is 'F ALSE' or 'NO',
+then the simulator will flag an error if the SPICE .MODEL card omits a value for this
+parameter.
+28.6.3.5 Default Value
+If the Null_Allowed field specifies 'TRUE' for this parameter, then a default value may
+be specified. This value is supplied for the parameter in the event that the SPICE .MODEL
+card does not supply a value for the parameter. The default value must be of the correct
+type. The Default Value field is introduced by the ' Default_Value:' keyword and is
+followed by a numeric, boolean, complex, or string literal, as appropriate.
+28.6.3.6 Limits
+Integer and real parameters may be constrained to accept a limited range of values. The
+following range syntax is used whenever such a range of values is required. A range is
+specified by a square bracket followed by a value representing a lower bound separated
+by space from another value representing an upper bound and terminated with a closing
+square bracket (e.g. "[0 10]"). The lower and upper bounds are inclusive. Either the lower
+or the upper bound may be replaced by a hyphen (' -') to indicate that the bound is
+unconstrained (e.g. ' [10 -] ' is read as 'the range of values greater than or equal to 10').
+For a totally unconstrained range, a single hyphen with no surrounding brackets may be
+used. The parameter value limit is introduced by the ' Limits:' keyword and is followed
+by a range.
+28.6.3.7 Vector
+The Vector field is used to specify whether a parameter is a vector or a scalar. Like the
+PORT TABLE Vector field, it is introduced by the ' Vector:' keyword and followed by a
+boolean value. 'TRUE' or 'YES' specify that the parameter is a vector. 'F ALSE' or 'NO'
+specify that it is a scalar.
+28.6.3.8 Vector Bounds
+The valid sizes for a vector parameter are specified in the same manner as are port sizes
+(see Section 28.6.2.7). However, in place of using a numeric range to specify valid vector
+bounds it is also possible to specify the name of a port. When a parameter's vector
+bounds are specified in this way, the size of the vector parameter must be the same as
+the associated vector port.

@@ -1,0 +1,36 @@
+20.5. EXAMPLES 503
+spice :: let err = real ( mean ( sqrt (( Vex # branch -
+(2* Pi * i * frequency * Cim * V (5) - V (6)))^2)))
+spice :: vectoblt err Ctmp check
+append $Ctmp (0: end )
+Build abscissa vector
+FALTA ALGO ... Vcmd append $v }
+Plot
+pack . cimvd
+. cimvd element create line1 - xdata Vcmd - ydata Cim
+pack . checkvd
+. checkvd element create line1 - xdata Vcmd - ydata check
+20.5.2 Optimization of a linearization circuit for a Thermistor
+This example is both the first and the last optimization program written for an electronic
+circuit. It is far from perfect.
+The temperature response of a CTN is exponential. It is thus nonlinear. In a battery
+charger application floating voltage varies linearly with temperature. A TL431 voltage
+reference sees its output voltage controlled by two resistors (r10, r12) and a thermistor
+(r11). The simulation is run at a given temperature. The thermistor is modeled in
+SPICE by a regular resistor. Its resistivity is assessed by the TCL script. It is set
+with a spice::alter command before running the simulation. This script uses an iterative
+optimization approach to try to converge to a set of two resistor values that minimizes
+the error between the expected floating voltage and the TL431 output.
+20.5.2.1 Invocation:
+This script can be executed by the user by simply executing the file in a terminal.
+./ testbench3 . tcl
+Two issues2 are important to point out:
+2For those who are really interested in optimizing circuits: Some parameters are very important for
+quick and correct convergence. The optimizer walks step by step to a local minimum of the cost function
+you define. Starting from an initial vector you provide, it converges step by step. Consider trying another
+start vector if the result is not the one you expected.
+The optimizer will carry on walking until it reaches a vector whose resulting cost is smaller than the
+target cost you provided. You must also provide a maximum iteration count in case the target can not
+be achieved. Balance time, specifications, and every other parameter. For a balance between quick and
+accurate convergence adjust the 'factor' variable, at the beginning of minimumSteepestDescent in the file
+differentiate.tcl.

@@ -1,0 +1,38 @@
+3.3. ELEMENTARY DEVICES 91
+backward voltage or current ramp). Then ON or OFF determine the initial state of the
+switch.
+3.3.16 Switch Model (SW/CSW)
+The switch model allows an almost ideal switch to be described in ngspice. The switch is
+not quite ideal, in that the resistance can not change from 0 to infinity, but must always
+have a finite positive value. By proper selection of the on and off resistances, they can
+be effectively zero and infinity in comparison to other circuit elements. The parameters
+available are shown below.
+Name Parameter Units Default Switch model
+VT threshold voltage V 0.0 SW
+IT threshold current A 0.0 CSW
+VH hysteresis voltage V 0.0 SW
+IH hysteresis current A 0.0 CSW
+RON on resistance Ω 1.0 SW,CSW
+ROFF off resistance Ω 1.0e+12 (*) SW,CSW
+(*) Or 1/GM IN, if you have set GM IN to any other value, see the .OPTIONS control
+line ( 15.1.2) for a description of GM IN, its default value results in an off-resistance of
+1.0e+12 ohms.
+The use of an ideal element that is highly nonlinear such as a switch can cause large
+discontinuities to occur in the circuit node voltages. A rapid change such as that associated
+with a switch changing state can cause numerical round-off or tolerance problems leading
+to erroneous results or time step difficulties. The user of switches can improve the situation
+by taking the following steps:
+• First, it is wise to set the ideal switch impedance just high or low enough to be
+negligible with respect to other circuit elements. Using switch impedances that
+are close to 'ideal' in all cases aggravates the problem of discontinuities mentioned
+above. Of course, when modeling real devices such as MOSFETS, the on resistance
+should be adjusted to a realistic level depending on the size of the device being
+modeled.
+• If a wide range of ON to OFF resistance must be used in the switches (ROFF/RON
+> 1e+12 ), then the tolerance on errors allowed during transient analysis should be
+decreased by using the .OPTIONS control line and specifying TRTOL to be less than
+the default value of 7.0.
+• When switches are placed around capacitors, then the option CHGTOL should also
+be reduced. Suggested values for these two options are 1.0 and 1e-16 respectively.
+These changes inform ngspice to be more careful around the switch points so that
+no errors are made due to the rapid change in the circuit.

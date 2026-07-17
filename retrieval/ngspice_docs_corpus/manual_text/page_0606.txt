@@ -1,0 +1,42 @@
+606 CHAPTER 28. CODE MODELS AND USER-DEFINED NODES
+28.8.1 Macros
+Name Type Description
+MALLOCED_PTR void * Assign pointer to allocated
+structure to this macro
+STRUCT_PTR void * A pointer to a structure of the
+defined type
+STRUCT_PTR_1 void * A pointer to a structure of the
+defined type
+STRUCT_PTR_2 void * A pointer to a structure of the
+defined type
+EQUAL Mif_Boolean_t Assign TRUE or F ALSE to this
+macro according to the results of
+structure comparison
+INPUT_STRUCT_PTR void * A pointer to a structure of the
+defined type
+OUTPUT_STRUCT_PTR void * A pointer to a structure of the
+defined type
+INPUT_STRUCT_PTR_ARRAY void ** An array of pointers to structures
+of the defined type
+INPUT_STRUCT_PTR_ARRAY_SIZE int The size of the array
+STRUCT_MEMBER_ID char * A string naming some part of the
+structure
+PLOT_V AL double The value of the specified structure
+member for plotting purposes
+PRINT_V AL char * The value of the specified structure
+member for printing purposes
+Table 28.4: User-Defined Node Macros
+You must code the functions described in the following section using the macros appro-
+priate for the particular function. You may elect whether not to provide the optional
+functions.
+It is an error to use a macro not defined for a function. Note that a review of the sample
+directories for the real and int UDN types will make the function usage clearer.
+The macros used in the User-Defined Node Definition File to access and assign data
+values are defined in Table 28.4. The translations of the macros and of macros used in
+the function argument lists are defined in the Interface Design Document for the XSPICE
+Simulator.
+28.8.2 Function Library
+The functions (required and optional) that define a User-Defined Node are listed below.
+For optional functions not used, the pointer in the Evt_Udn_Info_t structure can be
+changed to NULL.
+Required functions:

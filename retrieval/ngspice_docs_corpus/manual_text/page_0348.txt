@@ -1,0 +1,22 @@
+348 CHAPTER 16. STARTING NGSPICE
+only after the circuit has been read in and parsed. If you want to have a command being
+executed before circuit parsing, you may use the prefix pre_ ( 17.5.54) to the command.
+A warning is due however: If your circuit file contains such a control section ( .control ...
+.endc), you should not start ngspice in batch mode (with -b as parameter). The outcome
+may be unpredictable!
+16.5 Standard configuration file spinit
+At startup ngspice reads its configuration file spinit. spinit may be found in a path relative
+to the location of the ngspice executable
+..\share\ngspice\scripts. The path may be overridden by setting the environmental vari-
+able SPICE_SCRIPTS to a path where spinit is located. Ngspice for Windows will addi-
+tionally search for spinit in the directory where ngspice.exe resides. If spinit is not found
+a warning message is issued, but ngspice continues.
+spinit contains a script, made of commands from Chapt. 17.5, that is run upon start up
+of ngspice. Aliases (name equivalences) can be set. The asterisk ' *' comments out a line.
+If used by ngspice, spinit will then load the XSPICE code models from a path relative to
+the current directory where the ngspice executable resides, as well as OpenV AF compiled
+compact devices models. You may also define absolute paths.
+If the standard path for the libraries (see standard spinit above or /usr/local/lib/spice
+under CYGWIN and Linux) is not adequate, you can add the ./configure options --prefix=/usr
+--libdir=/usr/lib64 to set the codemodel search path to /usr/lib64/spice. Besides
+the standard lib only lib64 is acknowledged.

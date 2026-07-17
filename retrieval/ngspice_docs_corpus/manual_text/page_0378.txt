@@ -1,0 +1,28 @@
+378 CHAPTER 17. INTERACTIVE INTERPRETER
+Old style (pre 3f4):
+alter device value
+alter device parameter value [ parameter value ]
+Using the old style, its first form is used by simple devices that have one principal value
+(resistors, capacitors, etc.) where the second form is for more complex devices (bjt's,
+etc.). Model parameters can be changed with the second form if the name contains a ' #' .
+For specifying a list of parameters as values, start it with ' [', followed by the values in
+the list, and end with ' ]' . Be sure to place a space between each of the values and before
+and after the ' [' and ' ]' .
+Some examples are given below:
+Examples (Spice3f4 style):
+alter vd = 0.1
+alter vg dc = 0.6
+alter @m1 [ w ]= 15 e -06
+alter @vg [ sin ] [ -1 1.5 2 MEG ]
+alter @Vi [ pwl ] = [ 0 1.2 100 p 0 ]
+alter may have vectors ( 17.8.2) or variables ( 17.8.1) as parameters.
+Examples (vector or variable in parameter list):
+let newfreq = 10 k
+alter @vg [ sin ] [ -1 1.5 $ & newfreq ] $ vector
+set newperiod = 150 u
+alter @Vi [ pwl ] = [ 0 1.2 $newperiod 0 ] $ variable
+You may change a parameter of a device residing in a subcircuit, e.g. of MOS transistor
+msub1 in subcircuit xm1 (see also Chapt. 31.1).
+Examples (parameter of device in subcircuit):
+alter m . xm1 . msub1 w = 20 u
+alter @m . xm1 . msub1 [ w ] = 20 u

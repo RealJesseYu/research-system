@@ -1,0 +1,32 @@
+5.5. POLY SOURCES 119
+5.5.1 E voltage source, G current source
+General form:
+EXXXX N + N - POLY ( ND ) NC1 + NC1 - ( NC2 + NC2 -...) P0 ( P1 ...)
+Example:
+ENONLIN 100 101 POLY (2) 3 0 4 0 0.0 13.6 0.2 0.005
+POLY(ND) Specifies the number of dimensions of the polynomial. The number of pairs
+of controlling nodes must be equal to the number of dimensions.
+(N+) and (N-) nodes are output nodes. Positive current flows from the (+) node through
+the source to the (-) node.
+The <NC1+> and <NC1-> are in pairs and define a set of controlling voltages. A particular
+node can appear more than once, and the output and controlling nodes need not be
+different.
+The example yields a voltage output controlled by two input voltages v(3,0) and v(4,0).
+Four polynomial coefficients are given. The equivalent function to generate the output is:
+0 + 13.6 * v(3) + 0.2 * v(4) + 0.005 * v(3) * v(3)
+Generally you will set the equation according to
+POLY(1) y = p0 + p1*X1 + p2*X1*X1 + p3*X1*X1*X1 + ...
+POLY(2) y = p0 + p1*X1 + p2*X2 +
++ p3*X1*X1 + p4*X2*X1 + p5*X2*X2 +
++ p6*X1*X1*X1 + p7*X2*X1*X1 + p8*X2*X2*X1 +
++ p9*X2*X2*X2 + ...
+POLY(3) y = p0 + p1*X1 + p2*X2 + p3*X3 +
++ p4*X1*X1 + p5*X2*X1 + p6*X3*X1 +
++ p7*X2*X2 + p8*X2*X3 + p9*X3*X3 + ...
+where X1 is the voltage difference of the first input node pair, X2 of the second pair and
+so on. Keeping track of all polynomial coefficient is rather tedious for large polynomials.
+5.5.2 F voltage source, H current source
+General form:
+FXXXX N + N - POLY ( ND ) V1 ( V2 V3 ...) P0 ( P1 ...)
+Example:
+FNONLIN 100 101 POLY (2) VDD Vxx 0 0.0 13.6 0.2 0.005

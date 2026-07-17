@@ -1,0 +1,37 @@
+28.6. INTERF ACE SPECIFICATION FILE 585
+28.6.4 Static Variable Table
+The Static Variable table is introduced by the ' Static_Var_Table:' keyword. It defines
+the set of valid static variables available to the code model. These are variables whose
+values are retained between successive invocations of the code model by the simulator.
+The following sections define the valid fields that may be specified in the Static Variable
+Table.
+28.6.4.1 Name
+The Static variable name is a valid C identifier that will be used in the code model to refer
+to this static variable. It is introduced by the ' Static_Var_Name:' keyword followed by
+a valid C identifier.
+28.6.4.2 Description
+The description string is used to describe the purpose and function of the static variable.
+It is introduced by the ' Description:' keyword followed by a string literal.
+28.6.4.3 Data Type
+The static variable's data type is specified by the Data Type field. The Data Type field is
+introduced by the keyword Data_Type: and is followed by a valid data type. Valid data
+types include boolean, complex, int, real, string and pointer.
+Note that pointer types are used to specify vector values; in such cases, the allocation of
+memory for vectors must be handled by the code model through the use of the malloc()
+or calloc() C function. Such allocation must only occur during the initialization cycle of
+the model (which is identified in the code model by testing the INIT macro for a value of
+TRUE). Otherwise, memory will be unnecessarily allocated each time the model is called.
+Following is an example of the method used to allocate memory to be referenced by
+a static pointer variable 'x' and subsequently use the allocated memory. The example
+assumes that the value of 'size' is at least 2, else an error would result. The references to
+STATIC_VAR(x) that appear in the example illustrate how to set the value of, and then
+access, a static variable named 'x' . In order to use the variable 'x' in this manner, it must
+be declared in the Static Variable Table of the code model's Interface Specification File.
+/* Define local pointer variable */
+double * local . x ;
+/* Allocate storage to be referenced by the static variable x . */
+/* Do this only if this is the initial call of the code model . */
+if ( INIT == TRUE ) {
+STATIC_VAR ( x ) = calloc ( size , sizeof ( double ));
+}
+/* Assign the value from the static pointer value to the local */

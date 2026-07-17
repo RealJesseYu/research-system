@@ -1,0 +1,32 @@
+4.1. INDEPENDENT SOURCES FOR VOLTAGE OR CURRENT 99
+alter @vrts[trnoise] = [ 0 0 0 0 0 0 0] $ no noise
+See Chapt. 17.5.3 for the alter command.
+You may switch off all TRNOISE noise sources by setting
+set notrnoise
+to your .spiceinit file (for all your simulations) or into your control section in front of the
+next run or tran command (for this specific and all following simulations). The command
+unset notrnoise
+will reinstate all noise sources.
+The noise generators are implemented into the independent voltage (vsrc) and current
+(isrc) sources.
+4.1.8 Random voltage source
+The TRRANDOM option yields statistically distributed voltage values, derived from the
+ngspice random number generator. These values may be used in the transient simula-
+tion directly within a circuit, e.g. for generating a specific noise voltage, but especially
+they may be used in the control of behavioral sources (B, E, G sources 5, voltage control-
+lable A sources 12, capacitors 3.3.9, inductors 3.3.13, or resistors 3.3.4) to simulate the
+circuit dependence on statistically varying device parameters. A Monte-Carlo simulation
+may thus be handled in a single simulation run.
+General form:
+TRRANDOM ( TYPE TS < TD < PARAM1 < PARAM2 > > >)
+Examples:
+VR1 r1 0 dc 0 trrandom (2 10 m 0 1) $ Gaussian
+TYPE determines the random variates generated: 1 is uniformly distributed, 2 Gaussian,
+3 exponential, 4 Poisson. TS is the duration of an individual voltage value. TD is a time
+delay with 0 V output before the random voltage values start up. PARAM1 and PARAM2
+depend on the type selected.
+TYPE description PARAM1 default PARAM2 default
+1 Uniform Range 1 Offset 0
+2 Gaussian Standard Dev. 1 Mean 0
+3 Exponential Mean 1 Offset 0
+4 Poisson Lambda 1 Offset 0

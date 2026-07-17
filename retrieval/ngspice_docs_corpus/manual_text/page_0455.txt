@@ -1,0 +1,63 @@
+17.9. SCATTERING PARAMETERS (S-PARAMETERS) 455
+b = u − K 2i
+2K (17.8)
+By introducing the reference resistance Z0 := K 2 > 0 we get finally the Heaviside trans-
+formation
+a = u + Z0i
+2√Z0
+, b = u − Z0i
+2√Z0
+(17.9)
+In case of our two-port we subject our variables to a Heaviside transformation
+a1 = U1 + Z0I1
+2√Z0
+b1 = U1 − Z0I1
+2√Z0
+(17.10)
+a2 = U2 + Z0I2
+2√Z0
+b2 = U2 − Z0I2
+2√Z0
+(17.11)
+The s-matrix for a two-port then is
+ b1
+b2
+
+=
+ s11 s12
+s21 s22
+  a1
+a2
+
+(17.12)
+Two obtain s11 we have to set a2 = 0 . This is accomplished by loading the output port
+exactly with the reference resistance Z0, which sinks a current I2 = −U2/Z0 from the
+port.
+s11 =
+ b1
+a1
+
+a2=0
+(17.13)
+s11 = U1 − Z0I1
+U1 + Z0I1
+(17.14)
+Loading the input port from an ac source U0 via a resistor with resistance value Z0, we
+obtain the relation
+U0 = Z0I1 + U1 (17.15)
+Entering this into 17.14, we get
+s11 = 2U1 − U0
+U0
+(17.16)
+For s21 we obtain similarly
+s21 =
+ b2
+a1
+
+a2=0
+(17.17)
+s21 = U2 − Z0I2
+U1 + Z0I1
+= 2U2
+U0
+(17.18)

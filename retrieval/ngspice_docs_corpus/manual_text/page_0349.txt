@@ -1,0 +1,40 @@
+16.5. STANDARD CONFIGURATION FILE SPINIT 349
+Standard spinit contents:
+* Standard ngspice init file
+alias exit quit
+alias acct rusage all
+** set the number of threads in openmp
+** ( to the number of physical cores )
+** default ( if compiled with -- enable - openmp ) is : 2
+set nu m_t hre ads =8
+if $ ? sharedmode
+unset i nte rac tiv e
+unset moremode
+else
+set in ter act ive
+set x 1 1 l i n e a r a r c s
+end
+* comment out if central osdi management is set up
+* unset o s d i _ e n a b l e d
+* Load the codemodels
+if $ ? x s p i c e _ e n a b l e d
+codemodel ../ lib / spice / spice2poly . cm
+codemodel ../ lib / spice / analog . cm
+codemodel ../ lib / spice / digital . cm
+codemodel ../ lib / spice / xtradev . cm
+codemodel ../ lib / spice / xtraevt . cm
+codemodel ../ lib / spice / table . cm
+end
+* Load the OpenVAF / OSDI models
+if $ ? o s d i _ e n a b l e d
+osdi ../ lib / ngspice / BSI MBU LK1 07 . osdi
+osdi ../ lib / ngspice / BSIMCMG . osdi
+osdi ../ lib / ngspice / psp103_nqs . osdi
+osdi ../ lib / ngspice / v b i c _ 4 T _ e t _ c f . osdi
+end
+Special care has to be taken when using the ngspice shared library. If you use ngspice.dll
+under Windows OS, the standard is to use relative paths for the code models as shown
+above. However, the path is relative to the calling program, not to the dll. This is fine
+when ngspice.dll and the calling program reside in the same directory. If ngspice.dll is
+placed in a different directory, please check Chapt. 32.2.
+The Linux shared library ... t.b.d.

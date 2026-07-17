@@ -1,0 +1,70 @@
+8.2. BJT MODELS (NPN/PNP) 143
+TLEV BJT temperature equation
+selector
+- 0
+TLEVC BJT capac. temperature
+equation selector
+- 0
+TRE1 1st order temperature coefficient
+for RE
+1/◦C 0.0 1e-3
+TRE2 2nd order temperature coefficient
+for RE
+1/◦C2 0.0 1e-5
+TRC1 1st order temperature coefficient
+for RC
+1/◦C 0.0 1e-3
+TRC2 2nd order temperature coefficient
+for RC
+1/◦C2 0.0 1e-5
+TRB1 1st order temperature coefficient
+for RB
+1/◦C 0.0 1e-3
+TRB2 2nd order temperature coefficient
+for RB
+1/◦C2 0.0 1e-5
+TRBM1 1st order temperature coefficient
+for RBM
+1/◦C 0.0 1e-3
+TRBM2 2nd order temperature coefficient
+for RBM
+1/◦C2 0.0 1e-5
+TBF1 1st order temperature coefficient
+for BF
+1/◦C 0.0 1e-3
+TBF2 2nd order temperature coefficient
+for BF
+1/◦C2 0.0 1e-5
+TBR1 1st order temperature coefficient
+for BR
+1/◦C 0.0 1e-3
+TBR2 2nd order temperature coefficient
+for BR
+1/◦C2 0.0 1e-5
+TIKF1 1st order temperature coefficient
+for IKF
+1/◦C 0.0 1e-3
+TIKF2 2nd order temperature coefficient
+for IKF
+1/◦C2 0.0 1e-5
+TIKR1 1st order temperature coefficient
+for IKR
+1/◦C 0.0 1e-3
+TIKR2 2nd order temperature coefficient
+for IKR
+1/◦C2 0.0 1e-5
+TIRB1 1st order temperature coefficient
+for IRB
+1/◦C 0.0 1e-3
+TIRB2 2nd order temperature coefficient
+for IRB
+1/◦C2 0.0 1e-5
+TNC1 1st order temperature coefficient
+for NC
+1/◦C 0.0 1e-3
+TNC2 2nd order temperature coefficient
+for NC
+1/◦C2 0.0 1e-5
+TNE1 1st order temperature coefficient
+for NE
+1/◦C 0.0 1e-3

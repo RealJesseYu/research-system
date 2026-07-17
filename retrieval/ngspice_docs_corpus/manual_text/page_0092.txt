@@ -1,0 +1,41 @@
+92 CHAPTER 3. CIRCUIT ELEMENTS AND MODELS
+Example input file:
+Switch test
+. tran 2 us 5 ms
+* switch control voltage
+v1 1 0 DC 0.0 PWL (0 0 2e -3 2 4e -3 0)
+* switch control voltage starting inside hysteresis window
+* please note influence of instance parameters ON , OFF
+v2 2 0 DC 0.0 PWL (0 0.9 2e -3 2 4e -3 0.4)
+* switch control current
+i3 3 0 DC 0.0 PWL (0 0 2e -3 2 m 4e -3 0) $ <--- switch control current
+* load voltage
+v4 4 0 DC 2.0
+* input load for current source i3
+r3 3 33 10 k
+vm3 33 0 dc 0 $ <--- measure the current
+* ouput load resistors
+r10 4 10 10 k
+r20 4 20 10 k
+r30 4 30 10 k
+r40 4 40 10 k
+*
+s1 10 0 1 0 switch1 OFF
+s2 20 0 2 0 switch1 OFF
+s3 30 0 2 0 switch1 ON
+. model switch1 sw vt =1 vh =0.2 ron =1 roff =10 k
+*
+w1 40 0 vm3 wswitch1 off
+. model wswitch1 csw it =1 m ih =0.2 m ron =1 roff =10 k
+*
+. control
+run
+plot v (1) v (10)
+plot v (10) vs v (1) $ <-- get hysteresis loop
+plot v (2) v (20) $ <--- different initial values
+plot v (20) vs v (2) $ <-- get hysteresis loop
+plot v (2) v (30) $ <--- different initial values
+plot v (30) vs v (2) $ <-- get hysteresis loop
+plot v (40) vs vm3 # branch $ <--- current controlled switch hysteresis
+. endc
+. end

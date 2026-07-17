@@ -1,0 +1,23 @@
+336 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+period/100.0 (or less for very high-Q circuits). The par('expression ') option ( 15.6.6)
+allows the use of algebraic expressions in the .four lines.
+As .four is available only when ngspice is executed in batch mode ( 16.4.1), and no rawfile
+selected, you may consider the spec (17.5.84) or fft (17.5.30) commands, when using
+ngspice in .control mode (with a .control section, 16.4.3).
+15.6.5 .PROBE: Save device node currents, device power dissi-
+pation, or differential voltages between arbitrary nodes
+Command .probe enables current measurement at user specified device nodes, as well as
+(differential) voltage measurements between device nodes.
+15.6.5.1 Current measurement
+Current measurement at a device node is achieved by automatically placing a Zero volt
+voltage source (VSRC, 4.1) between the selected (or all) device node and the net attached
+to that node. The positive pole of the VSRC is pointing out towards the net, the negative
+pole towards the device. The resulting output vectors are using the xx#branch notation
+(see examples below). Only top level devices are accessible, so device inside of subcircuits
+are not considered.
+Besides standard devices you may also measure currents at X instance lines (subcircuit
+calls). If the subcircuit definition (.subckt line) uses named nodes, these are used instead
+of node numbers (see device u1 in the example below).
+Be careful when .probe alli is given, because the many output vectors generated au-
+tomatically may require a large amount of memory to store all the current measurement
+vectors.

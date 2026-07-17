@@ -1,0 +1,44 @@
+9.2. JFET MODELS (NJF/PJF) 155
+Name Description Units Default
+ID Device IDText Text PF1
+ACGAM Capacitance modulation - 0
+BETA Linear-region transconductance scale - 10−4
+CGD Zero-bias gate-source capacitance F 0
+CGS Zero-bias gate-drain capacitance F 0
+DELTA Thermal reduction coefficient 1/W 0
+FC Forward bias capacitance parameter - 0.5
+HFETA High-frequency VGS feedback parameter - 0
+HFE1 HFGAM modulation by VGD 1/V 0
+HFE2 HFGAM modulation by VGS 1/V 0
+HFGAM High-frequency VGD feedback parameter - 0
+HFG1 HFGAM modulation by VSG 1/V 0
+HFG2 HFGAM modulation by VDG 1/V 0
+IBD Gate-junction breakdown current A 0
+IS Gate-junction saturation current A 10−14
+LFGAM Low-frequency feedback parameter - 0
+LFG1 LFGAM modulation by VSG 1/V 0
+LFG2 LFGAM modulation by VDG 1/V 0
+MVST Subthreshold modulation 1/V 0
+N Gate-junction ideality factor - 1
+P Linear-region power-law exponent - 2
+Q Saturated-region power-law exponent - 2
+RS Source ohmic resistance Ω 0
+RD Drain ohmic resistance Ω 0
+TAUD Relaxation time for thermal reduction s 0
+TAUG Relaxation time for gamma feedback s 0
+VBD Gate-junction breakdown potential V 1
+VBI Gate-junction potential V 1
+VST Subthreshold potential V 0
+VTO Threshold voltage V -2.0
+XC Capacitance pinch-off reduction factor - 0
+XI Saturation-knee potential factor - 1000
+Z Knee transition parameter - 0.5
+RG Gate ohmic resistance Ω 0
+LG Gate inductance H 0
+LS Source inductance H 0
+LD Drain inductance H 0
+CDSS Fixed Drain-source capacitance F 0
+AF AC Gate-width scale factor - 1
+NFING Number of gate fingers scale factor - 1
+TNOM Nominal Temperature (Not implemented) K 300 K
+TEMP Temperature K 300 K

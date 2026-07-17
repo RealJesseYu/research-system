@@ -1,0 +1,35 @@
+17.5. COMMANDS 415
+The current circuit is the one that is used for the simulation commands below. When
+a circuit is loaded with the source command (see below, 17.5.83) it becomes the current
+circuit.
+Setcirc followed by 'return' without any parameters lists all circuits loaded.
+17.5.73 Setplot: Switch the current set of vectors
+General Form:
+setplot
+setplot [ plotname ]
+setplot previous
+setplot next
+setplot new
+Set the current plot to the plot with the given name, or if no name is given, prompt the
+user with a list of all plots generated so far. (Note that the plots are named as they
+are loaded, with names like tran1 or op2. These names are shown by the setplot and
+display commands and are used by diff, below.) If the ' New' item is selected, a new plot
+is generated that has no vectors defined.
+Note that here the word plot refers to a group of vectors that are the result of one ngspice
+run. When more than one file is loaded in, or more than one plot is present in one file,
+ngspice keeps them separate and only shows you the vectors in the current plot with the
+display (17.5.22) command. setplot previous will show the previous plot in the plot list, if
+available, setplot next the next plot. If not available, a warning is issued and the current
+plot stays active. Setplot will also allow selecting the digital event nodes that have been
+created during the simulation that made the analog plot.
+17.5.74 Setscale: Set the scale vector for the current plot
+General Form:
+setscale [ vector1 ] [ vector2 ]
+The scale vector provides the values for the x-axis in a 2D plot. If no argument is given,
+the current scale vector is printed. With one argument, defines the default scale vector
+for the current plot. With two arguments, sets the specific scale vector of vector1 to be
+vector2. If vector2 is "none" the scale vector for vector1 reverts to the plot's default.
+17.5.75 Setseed: Set the seed value for the random number gen-
+erator
+General Form:
+setseed [ number ]

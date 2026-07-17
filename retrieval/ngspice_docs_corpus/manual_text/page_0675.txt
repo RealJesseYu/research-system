@@ -1,0 +1,21 @@
+31.4. TRANSMISSION LINES 675
+31.4.3 Tranline - Lossless transmission line
+31.4.3.1 Tranline instance parameters
+# Name Direction Type Description
+1 z0 InOut real Characteristic impedance
+1 zo InOut real
+4 f InOut real Frequency
+2 td InOut real Transmission delay
+3 nl InOut real Normalized length at frequency given
+5 v1 InOut real Initial voltage at end 1
+7 v2 InOut real Initial voltage at end 2
+6 i1 InOut real Initial current at end 1
+8 i2 InOut real Initial current at end 2
+9 ic In real vector Initial condition vector:v1,i1,v2,i2
+10 rel Out real Rel. rate of change of deriv. for bkpt
+11 abs Out real Abs. rate of change of deriv. for bkpt
+12 pos_node1 Out integer Positive node of end 1 of t. line
+13 neg_node1 Out integer Negative node of end 1 of t. line
+14 pos_node2 Out integer Positive node of end 2 of t. line
+15 neg_node2 Out integer Negative node of end 2 of t. line
+18 delays Out real vector Delayed values of excitation

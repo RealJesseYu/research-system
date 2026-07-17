@@ -1,0 +1,33 @@
+17.5. COMMANDS 385
+start Value of name[0] (default: 0)
+stop Last value of name
+step Difference between successive elements of the linearly spaced vector (default: 1)
+lin Number of points, linearly spaced
+log Number of points, logarithmically spaced
+dec Number of points per decade, logarithmically spaced
+oct Number of points per octave, logarithmically spaced
+center Where to center the range of points
+span Size of the range of points (default for uniform distribution: 1)
+gauss Number of points, Gaussian distributed
+mean Mean value of the Gaussian (default 0) or uniform distribution (default 0.5)
+sd Standard deviation for the Gaussian distribution (default 1)
+unif Number of points, uniformly distributed
+Form 6 creates a vector fron the saved history of an XSPICE event node with similar
+results to plotting or printing an event node.
+17.5.14 Cutout: Cut out a section of all vectors in a tran plot
+General Form:
+let cut - tstart = time1
+let cut - tstop = time2
+cutout
+Cut out part of each vector of the current tran plot, from times cut-tstart to cut-tstop
+and copy these into a new tran plot. A new scale vector 'time' will be generated as well.
+Vectors that are shorter than the new scale vector will not be copied. If cut-start or
+cut-stop are not given, the starting or end times of the current plot are used.
+So the simple command cutout may be used to get rid of 0-length vectors in a new tran
+plot that may occur if for example something like generating m1[id] is not served in an
+AC simulation.
+17.5.15 Dc*: Perform a DC-sweep analysis
+General Form:
+dc Source Vstart Vstop Vincr [ Source2 Vstart2 Vstop2 Vincr2 ]
+Do a dc transfer curve analysis. See the previous Chapt. 15.3.2 for more details. Several
+options may be set ( 15.1.2).

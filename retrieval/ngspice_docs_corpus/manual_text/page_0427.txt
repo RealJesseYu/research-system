@@ -1,0 +1,35 @@
+17.5. COMMANDS 427
+Use of the version command:
+ngspice 10 -> version
+******
+** ngspice -39 : Circuit level simulation program
+** The U . C . Berkeley CAD Group
+** Copyright 1985 -1994 , Regents of the University
+of California .
+** Copyright 2001 -2023 , The ngspice team .
+** Please get your ngspice manual from
+https :// ngspice . so urc efo rge . io / docs . html
+** Please file your bug - reports at
+https :// ngspice . so urc efo rge . io / bugrep . html
+** Creation Date : Mar 7 2023 17:25:48
+******
+ngspice 2 ->
+ngspice 11 -> version 14
+Note : rawfile is version 14 ( current version is 39)
+ngspice 12 -> version 39
+ngspice 13 ->
+Note for developers: The option listing returned when version is called with
+the -f flag is built at compile time using #ifdef blocks. When new compile
+switches are added, if you want them to appear on the list, you have to modify
+the code in misccoms.c.
+17.5.102 Where*: Identify troublesome node or device
+General Form:
+where
+When performing a transient or operating point analysis, the name of the last node or
+device to cause non-convergence is saved. The where command prints out this information
+so that you can examine the circuit and either correct the problem or generate a bug
+report. You may do this either in the middle of a run or after the simulator has given
+up on the analysis. For transient simulation, the iplot command can be used to monitor
+the progress of the analysis. When the analysis slows down severely or hangs, interrupt
+the simulator (with control-C) and issue the where command. Note that only one node
+or device is printed; there may be problems with more than one node.

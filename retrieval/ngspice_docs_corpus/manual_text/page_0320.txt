@@ -1,0 +1,33 @@
+320 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+All three sources (white, 1/f, and RTS) may be combined in a single command line.
+RTS noise example:
+* white noise , 1/ f noise , RTS noise
+* voltage source
+VRTS2 13 12 DC 0 trnoise (0 0 0 0 5 m 18 u 30 u )
+VRTS3 11 0 DC 0 trnoise (0 0 0 0 10 m 20 u 40 u )
+VALL 12 11 DC 0 trnoise (1 m 1 u 1.0 0.1 m 15 m 22 u 50 u )
+VW1of 21 0 DC trnoise (1 m 1 u 1.0 0.1 m )
+* current source
+IRTS2 10 0 DC 0 trnoise (0 0 0 0 5 m 18 u 30 u )
+IRTS3 10 0 DC 0 trnoise (0 0 0 0 10 m 20 u 40 u )
+IALL 10 0 DC 0 trnoise (1 m 1 u 1.0 0.1 m 15 m 22 u 50 u )
+R10 10 0 1
+IW1of 9 0 DC trnoise (1 m 1 u 1.0 0.1 m )
+Rall 9 0 1
+* sample points
+. tran 1 u 500 u
+. control
+run
+plot v (13) v (21)
+plot v (10) v (9)
+. endc
+. end
+Some details on RTS noise modeling are available in a recent article [ 20], available here.
+This transient noise feature is still experimental.
+The following questions (among others) are to be solved:
+• clarify the theoretical background
+• noise limit of plain ngspice (numerical solver, fft etc.)
+• time step ( NT) selection
+• calibration of noise spectral density
+• how to generate noise from a transistor model
+• application benefits and limits

@@ -1,0 +1,32 @@
+Bibliography
+[1] A. Vladimirescu and S. Liu, 'The Simulation of MOS Integrated Circuits Using
+SPICE2' ERL Memo No. ERL M80/7, Electronics Research Laboratory University
+of California, Berkeley, October 1980
+[2] T. Sakurai and A. R. Newton, 'A Simple MOSFET Model for Circuit Analysis and
+its application to CMOS gate delay analysis and series-connected MOSFET Struc-
+ture' ERL Memo No. ERL M90/19 , Electronics Research Laboratory, University of
+California, Berkeley, March 1990
+[3] B. J. Sheu, D. L. Scharfetter, and P. K. Ko, ' SPICE2 Implementation of BSIM' ERL
+Memo No. ERL M85/42, Electronics Research Laboratory University of California,
+Berkeley, May 1985
+[4] J. R. Pierret, 'A MOS Parameter Extraction Program for the BSIM Model' ERL
+Memo Nos. ERL M84/99 and M84/100, Electronics Research Laboratory University
+of California, Berkeley, November 1984
+[5] Min-Chie Jeng, ' Design and Modeling of Deep Submicrometer MOSFETSs' ERL
+Memo Nos. ERL M90/90 , Electronics Research Laboratory, University of California,
+Berkeley, October 1990
+[6] Soyeon Park, ' Analysis and SPICE implementation of High Temperature Effects on
+MOSFET ', Master's thesis, University of California, Berkeley, December 1986.
+[7] Clement Szeto, ' Simulation of Temperature Effects in MOSFETs (STEIM) ', Master's
+thesis, University of California, Berkeley, May 1988.
+[8] J.S. Roychowdhury and D.O. Pederson, 'Efficient Transient Simulation of Lossy In-
+terconnect', Proc. of the 28th ACM/IEEE Design Automation Conference, June 17-21
+1991, San Francisco
+[9] A. E. Parker and D. J. Skellern, ' An Improved FET Model for Computer Simulators ',
+IEEE Trans CAD, vol. 9, no. 5, pp. 551-553, May 1990.
+[10] R. Saleh and A. Yang, Editors, ' Simulation and Modeling ', IEEE Circuits and De-
+vices, vol. 8, no. 3, pp. 7-8 and 49, May 1992.
+[11] H.Statz et al., ' GaAs FET Device and Circuit Simulation in SPICE ', IEEE Trans-
+actions on Electron Devices, V34, Number 2, February 1987, pp160-169.
+[12] Weidong Liu et al.: ' BSIM3v3.2.2 MOSFET Model User's Manual ', BSIM3v3.2.2
+543

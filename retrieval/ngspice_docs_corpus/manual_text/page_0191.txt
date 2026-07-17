@@ -1,0 +1,45 @@
+12.2. ANALOG MODELS 191
+Vector_Bounds: -
+Null_Allowed: yes
+Description: The Limiter is a single input, single output function similar to the Gain
+Block. However, the output of the Limiter function is restricted to the range speci-
+fied by the output lower and upper limits. This model will operate in DC, AC and
+Transient analysis modes. Note that the limit range is the value below the upper
+limit and above the lower limit at which smoothing of the output begins. For this
+model, then, the limit range represents the delta with respect to the output level at
+which smoothing occurs. Thus, for an input gain of 2.0 and output limits of 1.0 and
+-1.0 volts, the output will begin to smooth out at ±0.9 volts, which occurs when
+the input value is at ±0.4.
+Example SPICE Usage:
+a5 1 2 limit5
+.model limit5 limit(in_offset=0.1 gain=2.5 out_lower_limit=-5.0
++ out_upper_limit=5.0 limit_range=0.10 fraction=FALSE)
+12.2.6 Controlled Limiter
+NAME_TABLE:
+C_Function_Name: cm_climit
+Spice_Model_Name: climit
+Description: "controlled limiter block"
+PORT_TABLE:
+Port_Name: in cntl_upper
+Description: "input" "upper lim. control input"
+Direction: in in
+Default_Type: v v
+Allowed_Types: [v,vd,i,id,vnam] [v,vd,i,id,vnam]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PORT_TABLE:
+Port_Name: cntl_lower out
+Description: "lower limit control input" "output"
+Direction: in out
+Default_Type: v v
+Allowed_Types: [v,vd,i,id,vnam] [v,vd,i,id]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: in_offset gain
+Description: "input offset" "gain"
+Data_Type: real real
+Default_Value: 0.0 1.0
+Limits: - -

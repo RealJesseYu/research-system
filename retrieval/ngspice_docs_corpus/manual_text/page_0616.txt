@@ -1,0 +1,25 @@
+616 CHAPTER 29. ERROR MESSAGES
+illegal quoted character in string (expected "\" or "\\")
+A string was found with an illegal quoted character in it.
+unterminated string literal
+A string was found that was not terminated.
+Unterminated comment
+A comment was found that was not terminated.
+Port '<port name>' not found
+The indicated port name was not found in the Interface Specification File.
+Port type 'vnam' is only valid for 'in' ports
+The port type vnam was used for a port with direction out or inout. This type is only
+allowed on in ports.
+Port types 'g', 'gd', 'h', 'hd' are only valid for 'inout' ports
+Port type g, gd, h, or hd was used for a port with direction out or in. These types are
+only allowed on inout ports.
+Invalid parameter type - POINTER type valid only for STATIC_VARs
+The type POINTER was used in a section of the Interface Specification file other than
+the STATIC_V AR section.
+Port default type is not an allowed type
+A default type was specified that is not one of the allowed types for the port.
+Incompatible port types in 'allowed_types' clause
+Port types listed under 'Allowed_Types' in the Interface Specification File must all have
+the same underlying data type. It is illegal to mix analog and event driven types in a list
+of allowed types.
+Invalid parameter type (saw <parameter type 1> - expected <parameter type 2>)

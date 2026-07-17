@@ -1,0 +1,22 @@
+30.15. TITLE 649
+output psi n . conc p . conc ^ e . f ^ jn ^ jp ^ jd
+30.14.4 SEE ALSO
+options, numd, nbjt, numos
+30.15 TITLE
+Provide a label for this device's output
+SYNOPSIS
+title [ text ]
+30.15.1 DESCRIPTION
+The title card provides a label for use as a heading in various output files. The text can
+be any length, but titles that fit on a single line will produce more aesthetically pleasing
+output.
+30.15.2 EXAMPLES
+Set the title for a minimum gate length NMOSFET in a 1.0 µm BiCMOS process
+title L =1.0 um NMOS Device , 1.0 um BiCMOS Process
+30.15.3 BUGS
+The title is currently treated like a comment.
+30.16 X.MESH, Y.MESH
+Define locations of lines and nodes in a mesh
+SYNOPSIS
+x . mesh position numbering - method [ spacing - parameters ]
+y . mesh position numbering - method [ spacing - parameters ]

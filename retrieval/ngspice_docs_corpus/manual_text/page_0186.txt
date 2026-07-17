@@ -1,0 +1,42 @@
+186CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+12.2.2 Summer
+NAME_TABLE:
+C_Function_Name: cm_summer
+Spice_Model_Name: summer
+Description: "A summer block"
+PORT_TABLE:
+Port Name: in out
+Description: "input vector" "output"
+Direction: in out
+Default_Type: v v
+Allowed_Types: [v,vd,i,id,vnam] [v,vd,i,id]
+Vector: yes no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: in_offset in_gain
+Description: "input offset vector" "input gain vector"
+Data_Type: real real
+Default_Value: 0.0 1.0
+Limits: - -
+Vector: yes yes
+Vector_Bounds: in in
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: out_gain out_offset
+Description: "output gain" "output offset"
+Data_Type: real real
+Default_Value: 1.0 0.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Description: This function is a summer block with 2-to-N input ports. Individual gains
+and offsets can be applied to each input and to the output. Each input is added to
+its respective offset and then multiplied by its gain. The results are then summed,
+multiplied by the output gain and added to the output offset. This model will
+operate in DC, AC, and Transient analysis modes.
+Example usage:
+a2 [1 2] 3 sum1
+. model sum1 summer ( in_offset =[0.1 -0.2] in_gain =[2.0 1.0]
++ out_gain =5.0 out_offset = -0.01)

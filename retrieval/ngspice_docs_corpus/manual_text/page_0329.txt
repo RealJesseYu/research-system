@@ -1,0 +1,45 @@
+15.5. SAFE OPERATING AREA (SOA) W ARNING MESSAGES 329
+Other examples:
+. meas tran inv_delay2 trig v ( in ) val = ' vp /2 ' td =1 n
+fall =1
++ targ v ( out ) val = ' vp /2 ' rise =1
+. meas tran test_data1 trig AT = 1 n targ v ( out )
++ val = ' vp /2 ' rise =3
+. meas tran out_slew trig v ( out ) val = '0.2* vp ' rise =2
++ targ v ( out ) val = '0.8* vp ' rise =2
+. meas tran delay_chk param = '( inv_delay < 100 ps ) ? 1 :
+0 '
+. meas tran skew when v ( out ) =0.6
+. meas tran skew2 when v ( out ) = skew_meas
+. meas tran skew3 when v ( out ) = skew_meas fall =2
+. meas tran skew4 when v ( out ) = skew_meas fall = LAST
+. meas tran skew5 FIND v ( out ) AT =2 n
+. meas tran v0_min min i ( v0 )
++ from = ' dfall ' to = ' dfall + period '
+. meas tran v0_avg avg i ( v0 )
++ from = ' dfall ' to = ' dfall + period '
+. meas tran v0_integ integ i ( v0 )
++ from = ' dfall ' to = ' dfall + period '
+. meas tran v0_rms rms i ( v0 )
++ from = ' dfall ' to = ' dfall + period '
+. meas dc is_at FIND i ( vs ) AT =1
+. meas dc is_max max i ( vs ) from =0 to =3.5
+. meas dc vds_at when i ( vs ) =0.01
+. meas ac vout_at FIND v ( out ) AT =1 MEG
+. meas ac vout_atd FIND vdb ( out ) AT =1 MEG
+. meas ac vout_max max v ( out ) from =1 k to =10 MEG
+. meas ac freq_at when v ( out ) =0.1
+. meas ac vout_diff trig v ( out ) val =0.1 rise =1 targ v (
+out )
++ val =0.1 fall =1
+. meas ac fixed_diff trig AT = 10 k targ v ( out )
++ val =0.1 rise =1
+. meas ac vout_avg avg v ( out ) from =10 k to =1 MEG
+. meas ac vout_integ integ v ( out ) from =20 k to =500 k
+. meas ac freq_at2 when v ( out ) =0.1 fall = LAST
+. meas ac bw_chk param = '( vout_diff < 100 k ) ? 1 : 0 '
+. meas ac vout_rms rms v ( out ) from =10 to =1 G
+15.5 Safe Operating Area (SOA) warning messages
+By setting .option warn=1, the Safe Operation Area check algorithm is enabled. In
+this case for .op, .dc and .tran analysis warning messages are issued if the branch
+voltages of devices (Resistors, Capacitors, Diodes, BJTs and MOSFETs), or the currents

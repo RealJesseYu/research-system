@@ -1,0 +1,34 @@
+12.6. AUTOMATIC INSERTION OF BRIDGING DEVICES 289
+The variable name is formed from a fixed part (auto_bridge_), the type of the event
+node (d is the internal name for "digital") and the bridging direction (in, out or inout).
+The first string is the model definition and the second is expanded into an instance of
+the bridging device. Note that the pre_set command is used so that the variable is set
+before the circuit is parsed.
+Bridges may be defined by subcircuits as well as single devices:
+pre_set auto_bridge_d_out = ( ".include test_sub.subcir"
++ "xauto_buf%d %s %s auto_buf vcc=%g"
++ 1 )
+Here the constant "1" is required to specify that a separate instance of the subcircuit is
+needed for each bridged node.
+The included file might be:
+* DAC with internal resistance.
+.subckt auto_buf dig ana vcc=5
+.model auto_dac dac_bridge(out_low = 0 out_high = {vcc})
+auto_dac [ dig ] [ internal ] auto_dac
+rint internal ana 100
+.ends
+An additional method for controlling automatic bridging is to set the parameter family
+on individual XSPICE devices or on subcircuits. When the parameter is found a specific
+interpreter variable is used to control bridges attached to the device, or as the default
+within the subcircuit. In this example all output bridges connected to or inside the
+subcircuit are specified.
+Xmpx_gate [in0 in1 in2 in3] [sel1 sel0] out multiplexor
++ family="lsttl"
+.control
+pre_set auto_bridge_lsttl_d_out =
++ ( ".model auto_dac dac_bridge(out_low = 0.2 out_high = 3.6)"
++ "auto_bridge%d [ %s ] [ %s ] auto_dac" )
+.endc
+More details of controls on automatic bridging can found as a comment in the source
+file src/xspice/evt/evtcheck.c. Some examples of automatic bridging with various control
+options are included in the source directory examples/digital/auto_bridge.

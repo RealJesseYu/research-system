@@ -1,0 +1,46 @@
+12.2. ANALOG MODELS 199
+# name: sine.m
+# two output ports
+# column 1: time
+# columns 2, 3: values
+0 0 1
+3.90625e-09 0.02454122852291229 0.9996988186962042
+7.8125e-09 0.04906767432741801 0.9987954562051724
+1.171875e-08 0.07356456359966743 0.9972904566786902
+...
+12.2.10 Multi_input_PWL_block
+NAME_TABLE:
+C_Function_Name: cm_multi_input_pwl
+Spice_Model_Name: multi_input_pwl
+Description: "multi_input_pwl block"
+PORT_TABLE:
+Port_Name: in out
+Description: "input array" "output"
+Direction: in out
+Default_Type: vd vd
+Allowed_Types: [vd,id] [vd,id]
+Vector: yes no
+Vector_Bounds: [2 -] -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: x y
+Description: "x array" "y array"
+Data_Type: real real
+Default_Value: 0.0 0.0
+Limits: - -
+Vector: yes yes
+Vector_Bounds: [2 -] [2 -]
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: model
+Description: "model type"
+Data_Type: string
+Default_Value: "and"
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: Multi-input gate voltage controlled voltage source that supports and or
+or gating. The x's and y's represent the piecewise linear variation of output (y)
+as a function of input (x). The type of gate is selectable by the parameter model.
+In case the model is and, the smallest input determines the output value (i.e. the

@@ -1,0 +1,46 @@
+208CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Description: The Hysteresis block is a simple buffer stage that provides hysteresis of the
+output with respect to the input. The in low and in high parameter values specify
+the center voltage or current inputs about which the hysteresis effect operates. The
+output values are limited to out lower limit and out upper limit. The value of hyst
+is added to the in low and in high points in order to specify the points at which
+the slope of the hysteresis function would normally change abruptly as the input
+transitions from a low to a high value. Likewise, the value of hyst is subtracted from
+the in high and in low values in order to specify the points at which the slope of the
+hysteresis function would normally change abruptly as the input transitions from
+a high to a low value. In fact, the slope of the hysteresis function is never allowed
+to change abruptly but is smoothly varied whenever the input domain smoothing
+parameter is set greater than zero.
+Example SPICE Usage:
+a11 1 2 schmitt1
+.
+.
+.model schmitt1 hyst(in_low=0.7 in_high=2.4 hyst=0.5
++ out_lower_limit=0.5 out_upper_limit=3.0
++ input_domain=0.01 fraction=TRUE)
+12.2.16 Differentiator
+NAME_TABLE:
+C_Function_Name: cm_d_dt
+Spice_Model_Name: d_dt
+Description: "time-derivative block"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: v v
+Allowed_Types: [v,vd,i,id] [v,vd,i,id]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: gain out_offset
+Description: "gain" "output offset"
+Data_Type: real real
+Default_Value: 1.0 0.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: out_lower_limit out_upper_limit
+Description: "output lower limit" "output upper limit"

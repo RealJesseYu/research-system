@@ -1,0 +1,40 @@
+640 CHAPTER 30. CIDER USER'S MANUAL
+30.9.2 PARAMETERS
+Name Type Description
+Number Integer ID number of this material
+Semiconductor : Silicon Flag Type of this material
+: Polysilicon : GaAs
+: Insulator : Oxide
+: Nitride
+Affinity Real Electron affinity (eV)
+Permittivity Real Dielectric permittivity ( F/cm)
+Nc Real Conduction band density ( cm−3)
+Nv Real Valence band density ( cm−3)
+Eg Real Energy band gap (eV)
+dEg.dT Real Bandgap narrowing with temperature ( eV/◦K)
+Eg.Tref Real Bandgap reference temperature, ( °K )
+dEg.dN Real Bandgap narrowing with N doping, ( eV/cm−3)
+Eg.Nref Real Bandgap reference concentration - N type, ( cm−3)
+dEg.dP Real Bandgap narrowing with P doping, ( eV/cm−3)
+Eg.Pref Real Bandgap reference concentration - P type, ( cm−3)
+TN Real SRH lifetime - electrons, (sec)
+SRH.Nref Real SRH reference concentration - electrons ( cm−3)
+TP Real SRH lifetime - holes, (sec)
+SRH.Pref Real SRH reference concentration - holes ( cm−3)
+CN Real Auger coefficient - electrons ( cm6
+/sec)
+CP Real Auger coefficient - holes ( cm6
+/sec)
+ARichN Real Richardson constant - electrons, ( A/ cm2
+◦K2 )
+ARichP Real Richardson constant - holes, ( A/ cm2
+◦K2 )
+30.9.3 EXAMPLES
+Set the type of material #1 to silicon, then adjust the values of the temperature-dependent
+bandgap model parameters:
+material num =1 silicon eg =1.12 deg . dt =4.7 e -4 eg . tref =640.0
+The recombination lifetimes can be set to extremely short values to simulate imperfect
+semiconductor material:
+material num =2 silicon tn =1 ps tp =1 ps
+30.9.4 SEE ALSO
+domain, mobility, contact, boundary

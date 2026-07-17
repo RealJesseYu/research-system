@@ -1,0 +1,37 @@
+12.1. CODE MODEL ELEMENT & .MODEL CARDS 181
+Example:
+AXXXXXXX <%v ,% i ,% vd ,% id ,% g ,% gd ,% h ,% hd , or %d >
++ <[ > <~ > <%v ,% i ,% vd ,% id ,% g ,% gd ,% h ,% hd , or %d >
++ < NIN1 or + NIN1 - NIN1 or " null " >
++ <~ >... < NIN2 .. <] > >
++ <%v ,% i ,% vd ,% id ,% g ,% gd ,% h ,% hd ,% d or % vnam >
++ <[ > <~ > <%v ,% i ,% vd ,% id ,% g ,% gd ,% h ,% hd ,
+or %d > < NOUT1 or + NOUT1 - NOUT1 >
++ <~ >... < NOUT2 .. <] > >
++ MODELNAME
+. MODEL MODELNAME MODELTYPE
++ <( PARAMNAME1 = <[ > VAL1 < VAL2 ... <] > > PARAMNAME2 .. >) >
+Square brackets ([ ]) are used to enclose vector input nodes. In addition, these brackets
+are used to delineate vectors of parameters.
+The literal string 'null', when included in a node list, is interpreted as no connection at
+that input to the model. 'Null' is not allowed as the name of a model's input or output if
+the model only has one input or one output. Also, 'null' should only be used to indicate a
+missing connection for a code model; use on other XSPICE component is not interpreted
+as a missing connection, but will be interpreted as an actual node name.
+The tilde, ' ~', when prepended to a digital node name, specifies that the logical value of
+that node be inverted prior to being passed to the code model. This allows for simple
+inversion of input and output polarities of a digital model in order to handle logically
+equivalent cases and others that frequently arise in digital system design. The following
+example defines a NAND gate, one input of which is inverted:
+a1 [~1 2] 3 nand1
+. model nand1 d_nand ( rise_delay =0.1 fall_delay =0.2)
+The optional symbols %v, %i, %vd, etc. specify the type of port the simulator is to expect
+for the subsequent port or port vector. The meaning of each symbol is given in Table
+12.1.
+The symbols described in Table 12.1 may be omitted if the default port type for the model
+is desired. Note that non-default port types for multi-input or multi-output (vector) ports
+must be specified by placing one of the symbols in front of EACH vector port. On the
+other hand, if all ports of a vector port are to be declared as having the same non-default
+type, then a symbol may be specified immediately prior to the opening bracket of the
+vector. The following examples should make this clear:
+Example 1: - Specifies two differential voltage connections, one

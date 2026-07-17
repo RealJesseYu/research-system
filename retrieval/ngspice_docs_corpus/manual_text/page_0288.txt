@@ -1,0 +1,36 @@
+288CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+(12.4.19), state machine ( 12.4.18) etc.). Reading data from a file is offered by d_source
+(12.4.21). Some comments and hints have been provided by Sdaau. You may also use
+the analog input from file, (filesource 12.2.9) and convert its analog input to the digital
+type by the adc_bridge (12.3.2). If you want reading data from a VCD file, please have
+a look at ngspice tips and examples forum and apply a python script provided by Sdaau
+to translate the VCD data to d_source or filesource input.
+12.6 Automatic insertion of bridging devices
+Within ngspice, event nodes such as digital are quite different objects to analog nodes,
+but in real circuits analog and digital devices may interconnect. Ngspice requires bridging
+devices to interconnect its analog and digital domains.
+Bridges are inserted automatically whenever an analog and a digital node have the same
+name, so they are not required to be included in the netlist. To examine the inserted
+bridging devices, use the command " listing e " . The extra devices appear at the end
+of the netlist. Automatic bridging may be disabled by setting the interpreter variable
+auto_bridge to zero.
+The code models used for analog/digital bridges are described in section 12.3. The default
+models are:
+* Model for bridging digital node with inputs only.
+.model auto_adc adc_bridge(in_low = 1.65 in_high = 1.65)
+* Model for bridging digital node with outputs only.
+.model auto_dac dac_bridge(out_low = 0 out_high = 3.3)
+* Model for bridging digital node with either an inout connection or
+* both inputs and outputs.
+.model auto_bidi bidi_bridge(out_high=3.3 in_low=1.65 in_high=1.65)
+A 3.3 volt supply has been assumed. That may be overriden by setting a parameter, vcc,
+to the supply voltage. When bridges are inserted in a subcircuit the local value of the pa-
+rameter is used, so subcircuits may have differing supply voltages. An alternative name for
+the parameter may be set as the value of the interpreter variable auto_bridge_parm_d.
+If the defaults are unsatisfactory, they may be overridden by setting interpreter variables:
+* Override the default DAC bridge for TTL levels
+.control
+pre_set auto_bridge_d_out =
++ ( ".model auto_dac dac_bridge(out_low = 0.4 out_high = 3.6)"
++ "auto_bridge%d [ %s ] [ %s ] auto_dac" )
+.endc

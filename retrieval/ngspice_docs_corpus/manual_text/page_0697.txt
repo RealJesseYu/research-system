@@ -1,0 +1,41 @@
+31.6. MOSFETS 697
+212 vdsat Out real Saturation drain voltage
+213 sourcevcrit Out real Critical source voltage
+214 drainvcrit Out real Critical drain voltage
+218 gmbs Out real Bulk-Source transconductance
+219 gm Out real Transconductance
+220 gds Out real Drain-Source conductance
+221 gbd Out real Bulk-Drain conductance
+222 gbs Out real Bulk-Source conductance
+233 cgs Out real Gate-Source capacitance
+236 cgd Out real Gate-Drain capacitance
+239 cgb Out real Gate-Bulk capacitance
+223 cbd Out real Bulk-Drain capacitance
+224 cbs Out real Bulk-Source capacitance
+225 cbd0 Out real Zero-Bias B-D junction capacitance
+226 cbdsw0 Out real
+227 cbs0 Out real Zero-Bias B-S junction capacitance
+228 cbssw0 Out real
+235 cqgs Out real Capacitance due to gate-source charge storage
+238 cqgd Out real Capacitance due to gate-drain charge storage
+241 cqgb Out real Capacitance due to gate-bulk charge storage
+243 cqbd Out real Capacitance due to bulk-drain charge storage
+245 cqbs Out real Capacitance due to bulk-source charge storage
+234 qgs Out real Gate-Source charge storage
+237 qgd Out real Gate-Drain charge storage
+240 qgb Out real Gate-Bulk charge storage
+242 qbd Out real Bulk-Drain charge storage
+244 qbs Out real Bulk-Source charge storage
+19 p Out real Instaneous power
+256 sens_l_dc Out real dc sensitivity wrt length
+246 sens_l_real Out real real part of ac sensitivity wrt length
+247 sens_l_imag Out real imag part of ac sensitivity wrt length
+248 sens_l_mag Out real sensitivity wrt l of ac magnitude
+249 sens_l_ph Out real sensitivity wrt l of ac phase
+250 sens_l_cplx Out complex ac sensitivity wrt length
+257 sens_w_dc Out real dc sensitivity wrt width
+251 sens_w_real Out real real part of ac sensitivity wrt width
+252 sens_w_imag Out real imag part of ac sensitivity wrt width
+253 sens_w_mag Out real sensitivity wrt w of ac magnitude
+254 sens_w_ph Out real sensitivity wrt w of ac phase
+255 sens_w_cplx Out complex ac sensitivity wrt width

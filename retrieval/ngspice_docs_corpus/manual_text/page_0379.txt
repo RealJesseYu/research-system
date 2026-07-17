@@ -1,0 +1,34 @@
+17.5. COMMANDS 379
+17.5.4 Altermod*: Change model parameter(s)
+General form:
+altermod mod param = < expression >
+altermod @mod [ param ] = < expression >
+Example:
+altermod nc1 tox = 10 e -9
+altermod @nc1 [ tox ] = 10 e -9
+Altermod operates on models and is used to change model parameters. The above
+example will change the parameter tox in all devices using the model nc1, which is
+defined as
+*** BSIM3v3 model
+.MODEL nc1 nmos LEVEL=8 version = 3.2.2
++ acm = 2 mobmod = 1 capmod = 1 noimod = 1
++ rs = 2.84E+03 rd = 2.84E+03 rsh = 45
++ tox = 20E-9 xj = 0.25E-6 nch = 1.7E+17
++ ...
+If you invoke the model by the MOS device
+M1 d g s b nc1 w=10u l=1u
+you might also insert the device name M1 for mod as in
+altermod M1 tox = 10e-9
+The model parameter tox will be modified, however not only for device M1, but for all
+devices using the associated MOS model nc1!
+If you want to run corner simulations within a single simulation flow, the following option
+of altermod may be of help. The existing models are defined during circuit setup at start
+up of ngspice. Model parameter sets have been included by .model statements ( 2.4) in
+your input file or included by the .include command. The parameter set with name
+nc1 may be overrun by the altermod command specifying a model file. All parameter
+values fitting to the existing model nc1 will be modified. As usual the 'reset' command
+(see 17.5.62) restores the original values. The model file (see 2.4) has to use the standard
+specifications for an input file, the .model section is the relevant part. However the first
+line in the model file will be ignored by the input parser, so it should contain only some
+title information. The .model statement should appear then in the second or any later
+line. More than one .model section may reside in the file.

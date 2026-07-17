@@ -1,0 +1,32 @@
+302 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+General form:
+. options opt1 opt2 ... ( or opt = optval ...)
+Examples:
+. options reltol =.005 trtol =8
+The options line allows the user to reset program control and user options for specific
+simulation purposes. Options specified to ngspice via the option command (see 17.5.52)
+are also passed on as if specified on a .options line. Any combination of the following
+options may be included, in any order. 'x' (below) represents some positive number.
+15.1.1 General Options
+SPARSE selects the Sparse 1.3 matrix solver, which is also the standard when no option
+is given. It is prefgerable for simulating behavioural device models. This option is
+required with noise ( 15.3.4) or CIDER ( 30) simulation.
+KLU selects the KLU matrix solver, which is preferable (yielding faster simulation) when
+(large) circuits containing MOS devices are to be simulated. Small signal noise
+(15.3.4) or CIDER ( 30) simulations are not (yet) supported.
+ACCT causes accounting and run time statistics to be printed.
+NOACCT no printing of statistics, no printing of the Initial Transient Solution.
+NOINIT suppresses only printing of the Initial Transient Solution, maybe combined
+with ACCT.
+LIST causes the summary listing of the input data to be printed.
+NOMOD suppresses the printout of the model parameters.
+NOPAGE suppresses page ejects.
+NODE causes the printing of the node table.
+NOREFV ALUE suppresses printing of reference values, when ngspice has been com-
+piled with configure option --enable-ndev.
+OPTS causes the option values to be printed.
+SEED=val|random Sets the seed value of the random number generator. val may be
+any integer number greater than 0. As an alternative, random will set the seed
+value to the current Unix epoch time, which is the time in seconds since 1.1.1970
+excluding leap seconds.
+SEEDINFO will print the seed value when it has been set to a new integer number.

@@ -1,0 +1,58 @@
+9.2. JFET MODELS (NJF/PJF) 153
+Name Parameter Units Default Example Scaling factor
+VTO Threshold voltage VT 0 V -2.0 -2.0
+BETA Transconductance parameter ( β) A/V " 1.0e-4 1.0e-3 area
+LAMBDA Channel-length modulation
+parameter ( λ)
+1/V 0 1.0e-4
+RD Drain ohmic resistance Ω 0 100 1/area
+RS Source ohmic resistance Ω 0 100 1/area
+CGS Zero-bias G-S junction
+capacitance Cgs
+F 0 5pF area
+CGD Zero-bias G-D junction
+capacitance Cgd
+F 0 1pF area
+PB Gate junction potential V 1 0.6
+IS Gate saturation current IS A 1.0e-14 1.0e-14 area
+B Doping tail parameter - 1 1.1
+KF Flicker noise coefficient - 0
+AF Flicker noise exponent - 1
+NLEV Noise equation selector - 1 3
+GDSNOI Channel noise coefficient for
+nlev=3
+1.0 2.0
+FC Coefficient for forward-bias
+depletion capacitance formula
+0.5
+TNOM Parameter measurement
+temperature
+◦C 27 50
+TCV Threshold voltage temperature
+coefficient
+1/°C 0.0 0.01
+VTOTC Threshold voltage temperature
+coefficient (alternative model)
+1/°C 0.0 -2.5m
+BEX Mobility temperature exponent - 0.0 1.1
+BETATCE Mobility temperature exponent
+(alternative model)
+%/°C 0.0 -0.5
+XTI Gate saturation current
+temperature coefficient
+- 3.0
+EG Bandgap voltage 1.11
+Additional to the standard thermal and flicker noise model an alternative thermal channel
+noise model is implemented and is selectable by setting NLEV parameter to 3. This leads
+to a correct channel thermal noise description in the linear region.
+Snoise = 2
+3 4kT · BET A · V gst (1 + α + α2)
+1 + α GDSN OI (9.6)
+with
+α =
+(
+1 − vds
+vgs−V T O , if vgs − V T O ≥ vds
+0, else (9.7)
+JFET level 1 model has an alternative temperature model for main parameter VTO and
+BETA:

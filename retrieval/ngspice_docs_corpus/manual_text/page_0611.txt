@@ -1,0 +1,37 @@
+28.8. USER-DEFINED NODE DEFINITION FILE 611
+int * i nt_ str uct 2 = ( int *) S T R U C T _ P T R _ 2 ;
+/* Compare the structures */
+if ((* in t_s tru ct1 ) == (* int _st ruc t2 ))
+EQUAL = TRUE ;
+else
+EQUAL = FALSE ;
+}
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+static void u d n _ i n t _ p l o t _ v a l ( P L O T _ V A L _ A R G S )
+{
+int * int_struct = ( int *) STRUCT_PTR ;
+NG_IGNORE ( S T R U C T _ M E M B E R _ I D );
+/* Output a value for the int struct */
+PLOT_VAL = * int_struct ;
+}
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+static void u d n _ i n t _ p r i n t _ v a l ( P R I N T _ V A L _ A R G S )
+{
+int * int_struct = ( int *) STRUCT_PTR ;
+NG_IGNORE ( S T R U C T _ M E M B E R _ I D );
+/* Allocate space for the printed value */
+PRINT_VAL = TMALLOC ( char , 30);
+/* Print the value into the string */
+sprintf ( PRINT_VAL , "%8 d " , * int_struct );
+}
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+static void u d n _ i n t _ i p c _ v a l ( I P C _ V A L _ A R G S )
+{
+/* Simply return the structure and its size */
+IPC_VAL = STRUCT_PTR ;
+IP C _ V A L _ S I Z E = sizeof ( int );
+}
+E v t _ U d n _ I n f o _ t u d n _ i n t _ i n f o = {
+" int " ,
+" integer valued data " ,
+NULL ,

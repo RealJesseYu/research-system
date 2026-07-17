@@ -1,0 +1,48 @@
+12.2. ANALOG MODELS 215
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: rad
+Description: "phase in radians, not degrees"
+Data_Type: boolean
+Default_Value: false
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: span offset
+Description: "Length of table rows" "Offset within row"
+Data_Type: int int
+Default_Value: 3 1
+Limits: [ 3 - ] [ 1 - ]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+/* This is used internally to store the table in compact complex form. */
+STATIC_VAR_TABLE:
+Static_Var_Name: table
+Description: "Internal copy of data"
+Data_Type: pointer
+/* Only warn once about use in transient analysis. */
+STATIC_VAR_TABLE:
+Static_Var_Name: warned
+Description: "Warning indicator"
+Data_Type: int
+This code model is useful only in AC analysis, where it applies a complex transfer function
+to its input. The current circuit frequncy is input to a PWL function defined by a table
+and the output is produced by multiplying the input by the resulting complex number.
+The parameters supply the PWL table and determine its format. The "table" parameter
+supplies the data directly, while "file" defines a path (which must be all lower-case) to a
+file in Touchstone format containing the data. Exactly one of those parameters must be
+specified.
+The data is treated as consisting of rows, each of "span" real numbers. The first number
+is the frequency of a PWL corner and a pair of numbers at the "offset" position in the row
+supply the data. That allows a single Touchstone file to be shared by several instances
+of this code model, as such files for an n-port device will contain logical rows of 2*n^2+1
+numbers: one frequency value and the components of an NxN complex matrix. The
+format of the data pairs is determined by the "db", "rad" and "r_i" parameters. If any of
+these are set, they override the internal indicators in a Touchstone file which themselves
+override the parameter defaults.
+Examples of using this model are in the examples/sp directory: netlist file.sp shows direct
+use, while filter.sp uses the E-source wrapper ( 5.2.6).

@@ -1,0 +1,36 @@
+18.3. LINUX 463
+You still may generate graphics output plots or prints by gnuplot ( 17.5.35), if installed
+properly ( 18.7), or by selecting a suitable printing option ( 18.6).
+18.3 Linux
+The standard user interface is a console for input and the X11 graphics system for output
+with the interactive plot (17.5.53) command. If ngspice is compiled with the -without-x
+flag for ./configure, a console application without graphical interface results. For more
+sophisticated input user interfaces please have a look at Chapt. 18.8.
+The X11 UI has buttons to save the plot in formats suitable for printing or inclusion in
+a web page. The mouse actions in the plot window are the same as the Windows UI.
+In addition, when the pointer is in the plot, keyboard input is inserted at the pointer
+position so that the plot can be annotated. Annotations are included in saved files.
+18.4 CygWin
+The CygWin interface is similar to the Linux interface ( 18.3), i.e. console input and X11
+graphics output. To avoid the warning of a missing graphical user interface, you have to
+start the X11 window manager by issuing the commands
+$ export DISPLAY=:0.0
+$ xwin -multiwindow -clipboard &
+inside of the CygWin window before starting ngspice.
+18.5 Error handling
+Error messages and error handling in ngspice have grown over the years, include a lot of
+'traditional' behavior and thus are not very systematic and consistent.
+Error messages may occur with the token 'Error:' . Often the errors are non-recoverable
+and will lead to exiting ngspice with error code 1. Sometimes, however, you will get an
+error message, but ngspice will continue, and may either bail out later because the error
+has propagated into the simulation, sometimes ngspice will continue, deliver wrong results
+and exit with error code 0 (no error detected!).
+In addition ngspice may issue warning messages like 'Warning: ... ' . These should cover
+recoverable errors only.
+So there is still work to be done to define a consistent error messaging, recovery or exiting.
+A first step is the user definable variable strict_errorhandling. This variable may be set in
+files spinit (16.5) or .spiceinit (16.6) to immediately stop ngspice, after an error is detected
+during parsing the circuit. An error message is sent, the ngspice exit code is 1. This
+behavior deviates from traditional SPICE error handling and thus is introduced as an
+option only.
+XSPICE error messages are explained in Chapt. 29.

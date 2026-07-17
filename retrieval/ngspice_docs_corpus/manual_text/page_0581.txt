@@ -1,0 +1,33 @@
+28.6. INTERF ACE SPECIFICATION FILE 581
+Null_Allowed: yes
+STATIC_VAR_TABLE:
+Static_Var_Name: x
+Data_Type: pointer
+Description: "x-coefficient array"
+28.6.1 The Name Table
+The name table is introduced by the Name_Table: keyword. It defines the code model's
+C function name, the name used on a .MODEL card, and an optional textual description.
+The following sections define the valid fields that may be specified in the Name Table.
+28.6.1.1 C Function Name
+The C function name is a valid C identifier that is the name of the function for the
+code model. It is introduced by the C_Function_Name: keyword followed by a valid C
+identifier. To reduce the chance of name conflicts, it is recommended that user-written
+code model names use the prefix ucm_ for this entry. Thus, in the example given above, the
+model name is xfer, but the C function is ucm_xfer. Note that when you subsequently
+write the model function in the Model Definition File, this name must agree with that of
+the function (i.e., ucm_xfer), or an error will result in the linking step.
+28.6.1.2 SPICE Model Name
+The SPICE model name is a valid SPICE identifier that will be used on SPICE .MODEL
+cards to refer to this code model. It may or may not be the same as the C function name.
+It is introduced by the Spice_Model_Name: keyword followed by a valid SPICE identifier.
+Description The description string is used to describe the purpose and function of the
+code model. It is introduced by the Description: keyword followed by a C string literal.
+28.6.2 The Port Table
+The port table is introduced by the Port_Table: keyword. It defines the set of valid
+ports available to the code model. The following sections define the valid fields that may
+be specified in the port table.
+28.6.2.1 Port Name
+The port name is a valid SPICE identifier. It is introduced by the Port_Name: keyword
+followed by the name of the port. Note that this port name will be used to obtain and
+return input and output values within the model function. This will be discussed in more
+detail in the next section.

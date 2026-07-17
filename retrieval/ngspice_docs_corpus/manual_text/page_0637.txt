@@ -1,0 +1,32 @@
+30.7. ELECTRODE 637
+doping gauss lat . rotate n . type conc = l .0 el9
++ x . l =0.0 x . h =0.5 y . l =0.0 y . h =0.2 ratio =0.7
+Alternatively, an error-function falloff could be used:
+doping gauss lat . erfc conc = l .0 el9
++ x . l =0.0 x . h =0.5 y . l =0.0 y . h =0.2 ratio =0.7
+Finally, the MOSFET channel implant is extracted from an ASCII-format SUPREM3
+file. The lateral profile is uniform, so that the implant is confined between X = 1µm and
+X = 3µm. The profile begins at Y = 0µm (the high Y value defaults equal to the low Y
+value):
+doping ascii suprem3 infile = implant . s3 lat . unif boron
++ x . l =1.0 x . h =3.0 y . l =0.0
+30.6.4 SEE ALSO
+domain, mobility, contact, boundary
+30.7 ELECTRODE
+Set location of a contact to the device
+SYNOPSIS
+electrode [ number ] [ position ]
+30.7.1 DESCRIPTION
+Each device has several electrodes that are used to connect the device to the rest of the
+circuit. The number of electrodes depends on the type of device. For example, a MOSFET
+needs 4 electrodes. A particular electrode can be identified by its position in the list of
+circuit nodes on the device element line. For example, the drain node of a MOSFET
+is electrode number 1, while the bulk node is electrode number 4. Electrodes for which
+an ID number has not been specified are assigned values sequentially in the order they
+appear in the input file.
+For lD devices, the positions of two of the electrodes are predefined to be at the ends
+of the simulation mesh. The first electrode is at the low end of the mesh, and the last
+electrode is at the high end. The position of the special lD BJT base contact is set on
+the options card. Thus, electrode cards are used exclusively for 2D devices.
+Each card associates a portion of the simulation mesh with a particular electrode. In
+contrast to domains, which are specified only in terms of boxes, electrodes can also be

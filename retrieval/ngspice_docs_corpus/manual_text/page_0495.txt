@@ -1,0 +1,31 @@
+19.6. NGSPICE PARALLEL 495
+and the program execution jumps to (9) for redoing the last step with the new deltatime.
+Typically the user provided deltatime should be smaller than the value suggested by
+ngspice.
+19.6.2 Additional exported functions
+The following functions (exported or callback) are designed to support the parallel action
+of several ngspice invocations. They may be useful, however, also when only a single
+library is loaded into a caller, if you want to use external voltage or current sources or
+'play' with advancing simulation time.
+19.6.2.1 int ngSpice_Init_Sync(GetVSRCData* , GetISRCData* , GetSync-
+Data* , int*, void*)
+Pointers to callback functions (details see 19.3.3):
+GetVSRCData* callback function for retrieving a voltage source value from caller
+(NULL allowed)
+GetISRCData* callback function for retrieving a current source value from caller (NULL
+allowed)
+GetSyncData* callback function for synchronization (NULL allowed)
+More pointers
+int* pointer to integer unique to this shared library (defaults to 0)
+void* pointer to user-defined data, will not be modified, but handed over back to caller
+during Callback, e.g. address of calling object. If NULL is sent here, userdata
+info from ngSpice_Init() will be kept, otherwise userdata will be overridden by new
+value from here.
+19.6.2.2 NG_BOOL ngSpice_SetBkpt(double)
+Sets a breakpoint in ngspice, a time point that the simulator is enforced to hit during the
+transient simulation. After the breakpoint time has been hit, the next delta time starts
+with a small value and is ramped up again. A breakpoint should be set only when the
+background thread in ngspice is not running (before the simulation has started, or after the
+simulation has been paused by bg_halt). The time sent to ngspice should be larger than
+the current time (which is either 0 before start or given by the callback GetSyncData
+(19.6.3.3). Several breakpoints may be set.

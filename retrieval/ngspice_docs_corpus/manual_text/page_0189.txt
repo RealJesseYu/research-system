@@ -1,0 +1,45 @@
+12.2. ANALOG MODELS 189
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: den_domain
+Description: "denominator smoothing domain"
+Data_Type: real
+Default_Value: 1.0e-10
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: fraction
+Description: "smoothing fraction/absolute value switch"
+Data_Type: boolean
+Default_Value: false
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: out_gain out_offset
+Description: "output gain" "output offset"
+Data_Type: real real
+Default_Value: 1.0 0.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Description: This function is a two-quadrant divider. It takes two inputs; num (nu-
+merator) and den (denominator). Divide offsets its inputs, multiplies them by their
+respective gains, divides the results, multiplies the quotient by the output gain, and
+offsets the result. The denominator is limited to a value above zero via a user spec-
+ified lower limit. This limit is approached through a quadratic smoothing function,
+the domain of which may be specified as a fraction of the lower limit value (default),
+or as an absolute value. This model will operate in DC, AC and Transient analysis
+modes. However, in ac analysis it is important to remember that results are invalid
+unless only one input of the divider is connected to a node that is connected to an
+ac signal (this is exemplified by the use of the divider to perform a potentiometer
+function: one input is dc, the other carries the ac signal).
+Example SPICE Usage:
+a4 1 2 4 divider
+.model divider divide(num_offset=0.1 num_gain=2.5 den_offset=-0.1
++ den_gain=5.0 den_lower_limit=1e-5 den_domain=1e-6
++ fraction=FALSE out_gain=1.0 out_offset=0.0)

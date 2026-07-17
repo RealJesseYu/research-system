@@ -1,0 +1,42 @@
+17.8. SCRIPTS 453
+Input file with output redirection > and >‌>
+** MOSFET Gain Stage ( AC ):
+** B e n c h m a r k i n g I m p l e m e n t a t i o n of BSIM4 .0.0
+** by Weidong Liu 5/16/2000.
+** output red ire cti on into file
+M1 3 2 0 0 N1 L =1 u W =4 u
+Rsource 1 2 100 k
+Rload 3 vdd 25 k
+Vdd vdd 0 1.8
+Vin 1 0 1.2 ac 0.1
+. control
+ac dec 10 100 1000 Meg
+plot v (2) v (3)
+let flen = length ( frequency ) $ length of the vector
+let lo opc oun ter = 0
+echo output test > text . txt $ start new file test . txt
+* loop
+while l oop cou nte r lt flen
+let vout2 = v (2)[ lo opc ou nte r ] $ generate a single point
+$ complex vector
+let vout2re = real ( vout2 ) $ generate a single point
+$ real vector
+let vout2im = imag ( vout2 ) $ generate a single point
+$ imaginary vector
+let vout3 = v (3)[ lo opc ou nte r ] $ generate a single
+$ point complex vector
+let vout3re = real ( vout3 ) $ generate a single point
+$ real vector
+let vout3im = imag ( vout3 ) $ generate a single point
+$ imaginary vector
+let freq = frequency [ loo pc oun ter ] $ generate a single point vector
+echo bbb " $ & freq " " $ & vout2re " " $ & vout2im "
++ " $ & vout3re " " $ & vout3im " >> text . txt
+$ append text and
+$ data to file
+$ ( continued from line above )
+let lo opc oun ter = lo opc oun te r + 1
+end
+. endc
+. MODEL N1 NMOS LEVEL =14 VERSION =4.8.1 TNOM =27
+. end

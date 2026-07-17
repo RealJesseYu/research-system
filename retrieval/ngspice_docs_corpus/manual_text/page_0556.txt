@@ -1,0 +1,41 @@
+556 CHAPTER 26. EXECUTION PROCEDURES
+26.1.1.2 Models and Subcircuits
+The file discussed in the previous section illustrated the most basic syntax rules of a
+circuit description file. However, ngspice (and other SPICE-based simulators) include
+many other features that allow for accurate modeling of semiconductor devices such as
+diodes and transistors and for grouping elements of a circuit into a macro or 'subcircuit'
+description that can be reused throughout a circuit description. For instance, the file
+shown below is a representation of the schematic shown in Fig. 26.2.
+Examples for control of a behavioral resistor:
+Small Signal Amplifier with Limit Diodes
+*
+* This circuit simulates a small signal amplifier
+* with a diode limiter .
+*
+. dc Vin -1 1 .05
+Vin Input 0 DC 0
+R_source Input Amp_In 100
+D_Neg 0 Amp_In 1 n4148
+D_Pos Amp_In 0 1 n4148
+C1 Amp_In 0 1 uF
+X1 Amp_In 0 Amp_Out Amplifier
+R_Load Amp_Out 0 1000
+. model 1 n4148 D ( is =2.495 e -09 rs =4.755 e -01 n =1.679 e +00
++ tt =3.030 e -09 cjo =1.700 e -12 vj =1 m =1.959 e -01 bv =1.000 e +02
++ ibv =1.000 e -04)
+. subckt Amplifier Input Common Output
+E1 ( Output Common ) ( Input Common ) -10
+R_Input Input Common 1 meg
+. ends Amplifier
+. end
+This is the same basic circuit as in the initial example, with the addition of two components
+and some changes to the simulation file. The two diodes have been included to illustrate
+the use of device models, and the amplifier is implemented with a subcircuit. Additionally,
+this file shows the use of the swept DC control card.
+Device Models Device models allow you to specify, when required, many of the
+parameters of the devices being simulated. In this example, model statements are used
+to define the silicon diodes. Electrically, the diodes serve to limit the voltage at the
+amplifier input to values between about ±700 millivolts. The diode is simulated by first
+declaring the 'instance' of each diode with a device statement. Instead of attempting
+to provide parameter information separately for both diodes, the label '1n4148' alerts
+the simulator that a separate model statement is included in the file that provides the

@@ -1,0 +1,36 @@
+CONTENTS 19
+17.5.88 Stop*: Set a breakpoint . . . . . . . . . . . . . . . . . . . . . . . . 421
+17.5.89 Strcmp: Compare two strings . . . . . . . . . . . . . . . . . . . . . 422
+17.5.90 Strslice: Extract a substring . . . . . . . . . . . . . . . . . . . . . . 422
+17.5.91 Strstr: Find a substring . . . . . . . . . . . . . . . . . . . . . . . . 422
+17.5.92 Sysinfo*: Print system information . . . . . . . . . . . . . . . . . . 422
+17.5.93 Tf*: Run a Transfer Function analysis . . . . . . . . . . . . . . . . 423
+17.5.94 Trace*: Trace nodes . . . . . . . . . . . . . . . . . . . . . . . . . . 424
+17.5.95 Tran*: Perform a transient analysis . . . . . . . . . . . . . . . . . . 424
+17.5.96 Transpose: Swap the elements in a multi-dimensional data set . . . 425
+17.5.97 Unalias: Retract an alias . . . . . . . . . . . . . . . . . . . . . . . . 425
+17.5.98 Undefine: Retract a definition . . . . . . . . . . . . . . . . . . . . . 425
+17.5.99 Unlet: Delete the specified vector(s) . . . . . . . . . . . . . . . . . . 425
+17.5.100 Unset: Clear a variable . . . . . . . . . . . . . . . . . . . . . . . . . 426
+17.5.101 Version: Print the version of ngspice . . . . . . . . . . . . . . . . . 426
+17.5.102 Where*: Identify troublesome node or device . . . . . . . . . . . . . 427
+17.5.103 Wrdata: Write data to a file (simple table) . . . . . . . . . . . . . . 428
+17.5.104 Write: Write data to a file (Spice3f5 format) . . . . . . . . . . . . . 428
+17.5.105 Wrnodev: Write node voltage values to a file (.ic=xx format) . . . . 429
+17.5.106 Wrs2p: Write scattering parameters to file (Touchstone® format) . 430
+17.6 Control Structures . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 430
+17.6.1 While - End . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 430
+17.6.2 Repeat - End . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 431
+17.6.3 Dowhile - End . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 431
+17.6.4 Foreach - End . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 432
+17.6.5 If - Then - Else . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 432
+17.6.6 Label . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 433
+17.6.7 Goto . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 433
+17.6.8 Continue . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 434
+17.6.9 Break . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 434
+17.7 Internally predefined variables . . . . . . . . . . . . . . . . . . . . . . . . . 434
+17.8 Scripts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 442
+17.8.1 Variables . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 443
+17.8.2 Vectors . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 444
+17.8.3 Assessing vectors in subcircuits . . . . . . . . . . . . . . . . . . . . 444
+17.8.4 Commands . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 445

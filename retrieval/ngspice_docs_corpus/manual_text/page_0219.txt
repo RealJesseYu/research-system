@@ -1,0 +1,49 @@
+12.2. ANALOG MODELS 219
+Description: "input sm. domain"
+Data_Type: real
+Default_Value: 0.01
+Limits: [1e-12 0.5]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: fraction
+Description: "smoothing fraction/abs switch"
+Data_Type: boolean
+Default_Value: TRUE
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: mode
+Description: "mode switch (1 = pwl, 2 = hyst)"
+Data_Type: int
+Default_Value: 1
+Limits: [1 2]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: in_low in_high
+Description: "input low value" "input high value"
+Data_Type: real real
+Default_Value: 0.0 1.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: hyst out_lower_limit
+Description: "hysteresis" "output lower limit"
+Data_Type: real real
+Default_Value: 0.1 0.0
+Limits: [0 -] -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: out_upper_limit
+Description: "output upper limit"
+Data_Type: real
+Default_Value: 1.0

@@ -1,0 +1,28 @@
+7.3. DIODE EQUATIONS 137
+The junction grading coefficient temperature dependence is:
+M J(T ) = MJ(1 + TM1( T − TNOM) + TM2(T − TNOM)2) (7.16)
+The series resistance temperature dependence is:
+RS(T ) = RS(1 + TRS( T − TNOM) + TRS2(T − TNOM)2) (7.17)
+Noise model
+The diode has three noise contribution, one due to the presence of the parasitic resistance
+rs and the other two (shot and flicker) due to the pn junction.
+The thermal noise due to the parasitic resistance is:
+i2
+RS = 4kT ∆f
+RS (7.18)
+The shot and flicker noise contributions are
+i2
+d = 2qID∆f + KF · I AF
+D
+f ∆f (7.19)
+Self Heating model
+Ngspice diode model has implemented a simple self heating approach. A current equivalent
+to the dissipated power is conducted to a RC parallel circuit. The connection node voltage
+is so a thermal equivalent to the junction overtemperature. This temperature follows in
+a electro-thermal feedback with appropriate change of the diode current and capacitance.
+Compared to the standard diode we have a third node tj and a flag thermal on element
+line. In the model description we have to set rthh0 and cth0 model parameter.
+General form element usage:
+DXXXXXXX n + n - tj mname < off > < ic = vd > thermal
+Example model:
+. model DPWR D ( bv =16 is =1 e -10 n =1.03 rth0 =50 cth0 =1 u )

@@ -1,0 +1,46 @@
+26.3. HOW TO CREATE CODE MODELS 563
+Code Model Test : new xxor
+*
+*** analysis type ***
+. tran .01 s 4 s
+*
+*** input sources ***
+*
+v2 200 0 DC PWL ( (0 0.0) (2 0.0) ( 2 . 0 0 0 0 0 0 0 0 0 1 1.0) (3 1.0) )
+*
+v1 100 0 DC PWL ( (0 0.0) (1.0 0.0) ( 1 . 0 0 0 0 0 0 0 0 0 1 1.0) (2 1.0)
++ ( 2 . 0 0 0 0 0 0 0 0 0 1 0.0) (3 0.0) ( 3 . 0 0 0 0 0 0 0 0 0 1 1.0) (4 1.0) )
+*
+*** resistors to ground ***
+r1 100 0 1 k
+r2 200 0 1 k
+*
+*** adc_bridge blocks ***
+aconverter [200 100] [2 1] ad c_ bri dge 1
+. model a dc _br idg e1 adc_bridge ( in_low =0.1 in_high =0.9
++ rise_delay =1.0 e -12 fall_delay =1.0 e -12)
+*
+*** xor block ***
+a7 [1 2] 70 d_xor1
+. model d_xor1 d_xxor ( rise_delay =1.0 e -6 fall_delay =2.0 e -6
++ input_load =1.0 e -12)
+*
+*** dac_bridge blocks ****
+abridge1 [70] [ out ] dac1
+. model dac1 dac_bridge ( out_low = 0.7 out_high = 3.5
++ out_undef = 2.2 input_load = 5.0 e -12 t_rise = 50 e -9
++ t_fall = 20 e -9)
+*
+*** simulation and plotting ***
+. control
+run
+plot allv
+. endc
+*
+. end
+An analog input, delivered by the pwl voltage sources, is transformed into the digital
+domain by an adc_bridge, processed by the new code model d_xxor, and then translated
+back into the analog domain.
+If you want to change the functionality of the new model, you have to edit ifspec.ifs for
+the code model interface and cfunc.mod for the detailed functionality of the new model.
+Please see Chapt. 28, especially Chapt. 28.6 ff. for any details. And of course you may

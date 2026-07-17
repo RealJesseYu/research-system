@@ -1,0 +1,39 @@
+666 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+31.2.3 Inductor - Fixed inductor
+31.2.3.1 Inductor instance parameters
+# Name Direction Type Description
+1 inductance InOut real Inductance of inductor
+2 ic InOut real Initial current through inductor
+5 sens_ind In flag flag to request sensitivity WRT
+inductance
+9 temp InOut real Instance operating temperature
+10 dtemp InOut real Instance temperature difference with
+the rest of the circuit
+8 m InOut real Multiplication Factor
+11 scale InOut real Scale factor
+12 nt InOut real Number of turns
+3 flux Out real Flux through inductor
+4 v Out real Terminal voltage of inductor
+4 volt Out real
+6 i Out real Current through the inductor
+6 current Out real
+7 p Out real instantaneous power dissipated by the
+inductor
+206 sens_dc Out real dc sensitivity sensitivity
+201 sens_real Out real real part of ac sensitivity
+202 sens_imag Out real dc sensitivity and imag part of ac
+sensitivty
+203 sens_mag Out real sensitivity of AC magnitude
+204 sens_ph Out real sensitivity of AC phase
+205 sens_cplx Out complex ac sensitivity
+31.2.3.2 Inductor model parameters
+# Name Direction Type Description
+100 ind InOut real Model inductance
+101 tc1 InOut real First order temp. coefficient
+102 tc2 InOut real Second order temp. coefficient
+103 tnom InOut real Parameter measurement temperature
+104 csect InOut real Inductor cross section
+105 length InOut real Inductor length
+106 nt InOut real Model number of turns
+107 mu InOut real Relative magnetic permeability
+108 l In flag Inductor model

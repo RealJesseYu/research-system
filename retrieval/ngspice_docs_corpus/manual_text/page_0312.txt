@@ -1,0 +1,36 @@
+312 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+component is erroneous because there is the strong fundamental F2 component at the
+same frequency. Also, F1 + F2 = 2F1 − F2 in the latter case, and each result is erroneous
+individually. This problem is not there in the case where f2overf1 = 49/100, because
+F1 − F2 = 51 /100 F1 <> 49/100 F1 = F2. In this case, there are two very closely
+spaced frequency components at F2 and F1 − F2. One of the advantages of the Volterra
+series technique is that it computes distortions at mix frequencies expressed symbolically
+(i.e. nF1 + mF2), therefore one is able to obtain the strengths of distortion components
+accurately even if the separation between them is very small, as opposed to transient
+analysis for example. The disadvantage is of course that if two of the mix frequencies
+coincide, the results are not merged together and presented (though this could presumably
+be done as a postprocessing step). Currently, the interested user should keep track of the
+mix frequencies himself or herself and add the distortions at coinciding mix frequencies
+together should it be necessary.
+Only a subset of the ngspice nonlinear device models supports distortion analysis. These
+are
+• Diodes (DIO),
+• BJT,
+• JFET (level 1),
+• MOSFETs (levels 1, 2, 3, 9, and BSIM1),
+• MESFET (level 1).
+15.3.4 .NOISE: Noise Analysis
+General form:
+. noise v ( output <, ref >) src ( dec | lin | oct ) pts fstart fstop
++ < pts_per_summary >
+Examples:
+. noise v (5) VIN dec 10 1 kHz 100 MEG
+. noise v (5 ,3) V1 oct 8 1.0 1.0 e6 1
+The .noise line does a noise analysis of the circuit. output is the node at which the total
+output noise is desired; if ref is specified, then the noise voltage v(output) - v(ref) is
+calculated. By default, ref is assumed to be ground. src is the name of an independent
+source to which input noise is referred. pts, fstart and fstop are .ac type parameters
+that specify the frequency range over which plots are desired. pts_per_summary is an
+optional integer; if specified, the noise contributions of each noise generator is produced
+every pts_per_summary frequency points. The .noise control line produces two plots,
+which can selected by setplot command:

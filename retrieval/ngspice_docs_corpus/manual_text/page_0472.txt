@@ -1,0 +1,34 @@
+472 CHAPTER 18. NGSPICE USER INTERF ACES
+The following variables and options are aknowledged:
+appendwrite Append to the file when a write command is issued, if one already exists.
+moremode If moremode is set, whenever a large amount of data is being printed to the
+screen (e.g, the print or asciiplot commands), the output is stopped every screen-
+ful and continues when a carriage return is typed. If moremode is unset, then data
+scrolls off the screen without pausing.
+noprintscale Don't print the scale in the leftmost column when a print col command
+is given.
+numdgt The number of digits to use when printing tables of data ( print col ). The de-
+fault precision is 6 digits. On the PC, approximately 16 decimal digits are available
+using double precision, so p should not be more than 16. If the output number is
+negative, one digit less is printed to ensure constant widths in tables.
+18.6.2.7 Command eprint
+Prints event driven nodes to the console (or a file when using output redirection). See
+17.5.26 and 27.2.2 for an example.
+18.7 Gnuplot
+18.7.1 Using Gnuplot to produce 1D graphs of (electrical) sim-
+ulation results
+Plotting with Gnuplot is directly available from the ngspice .control section or interactive
+command. Install Gnuplot (on Linux available from the distribution, on Windows avail-
+able here). On Windows, expand the zip file to a directory of your choice, add the path
+<any directory>/gnuplot/bin to the PATH variable, and off you go... The command to
+invoke Gnuplot ( 17.5.35) is limited to x/y plots (no polar etc.).
+General Form:
+gnuplot file plotargs
+plotargs is a list of vectors to be plotted. file may either be temp or tmp or a file name
+(without file extension).
+Plot window only:
+gnuplot temp vss # branch vss2 # branch
++ title ' Drain current versus drain voltage '
++ xlabel ' Drain voltage / V ' ylabel ' Drain current / uA '
+ngspice generates temporary data and command files for Gnuplot, calls Gnuplot for ope-
+nening the plot windows and then discards the temporary files.

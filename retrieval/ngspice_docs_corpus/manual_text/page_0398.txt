@@ -1,0 +1,32 @@
+398 CHAPTER 17. INTERACTIVE INTERPRETER
+17.5.39 Inventory: Print circuit inventory
+General Form:
+inventory
+This commands accepts no argument and simply prints the number of instances of a
+particular device in a loaded netlist.
+17.5.40 Iplot*: Incremental plot
+General Form:
+iplot [ - d delay ] [ - w width ][ node ...]
+Incrementally plot the values of the nodes while ngspice runs. The iplot command can be
+used with the where command to find trouble spots in a transient simulation. The "-d"
+options sets the delay (in simulation steps) between the start of the simulation and the
+appearance of the window. It can be used to suppress flicker when new values cause rapid
+resizing at the start of the simulation. The "-w" option sets a fixed width for the window
+in simulation units (time, frequency etc). When the output does not fit, only the latest
+output values are shown.
+The @name[param] notation ( 31.1) and XSPICE event nodes do not work yet.
+17.5.41 Jobs*: List active asynchronous ngspice runs
+General Form:
+jobs
+Report on the asynchronous ngspice jobs currently running. Ngnutmeg checks to see if
+the jobs are finished every time you execute a command. If it is done then the data is
+loaded and becomes available.
+17.5.42 Let: Assign a value to a vector
+General Form:
+let name = expr
+Creates a new vector called name with the value specified by expr, an expression as
+described above. If expr is [] (a zero-length vector) then the vector becomes undefined.
+Individual elements of a vector may be modified by appending a subscript to name (ex.
+name[0]). If there are no arguments, let is the same as display.
+The command let creates a vector in the current plot. Use setplot (17.5.73) to create a
+new plot.

@@ -1,0 +1,47 @@
+708 CHAPTER 31. MODEL AND DEVICE PARAMETERS
+170 u10 InOut real VDS depence of mobility
+171 lu10 InOut real Length dependence of u10
+172 wu10 InOut real Width dependence of u10
+173 u1b InOut real VBS depence of u1
+174 lu1b InOut real Length depence of u1b
+175 wu1b InOut real Width depence of u1b
+176 u1d InOut real VDS depence of u1
+177 lu1d InOut real Length depence of u1d
+178 wu1d InOut real Width depence of u1d
+179 n0 InOut real Subthreshold slope at VDS=0 VBS=0
+180 ln0 InOut real Length dependence of n0
+181 wn0 InOut real Width dependence of n0
+182 nb InOut real VBS dependence of n
+183 lnb InOut real Length dependence of nb
+184 wnb InOut real Width dependence of nb
+185 nd InOut real VDS dependence of n
+186 lnd InOut real Length dependence of nd
+187 wnd InOut real Width dependence of nd
+188 vof0 InOut real Threshold voltage offset AT VDS=0 VBS=0
+189 lvof0 InOut real Length dependence of vof0
+190 wvof0 InOut real Width dependence of vof0
+191 vofb InOut real VBS dependence of vof
+192 lvofb InOut real Length dependence of vofb
+193 wvofb InOut real Width dependence of vofb
+194 vofd InOut real VDS dependence of vof
+195 lvofd InOut real Length dependence of vofd
+196 wvofd InOut real Width dependence of vofd
+197 ai0 InOut real Pre-factor of hot-electron effect.
+198 lai0 InOut real Length dependence of ai0
+199 wai0 InOut real Width dependence of ai0
+200 aib InOut real VBS dependence of ai
+201 laib InOut real Length dependence of aib
+202 waib InOut real Width dependence of aib
+203 bi0 InOut real Exponential factor of hot-electron effect.
+204 lbi0 InOut real Length dependence of bi0
+205 wbi0 InOut real Width dependence of bi0
+206 bib InOut real VBS dependence of bi
+207 lbib InOut real Length dependence of bib
+208 wbib InOut real Width dependence of bib
+209 vghigh InOut real Upper bound of the cubic spline function.
+210 lvghigh InOut real Length dependence of vghigh
+211 wvghigh InOut real Width dependence of vghigh
+212 vglow InOut real Lower bound of the cubic spline function.
+213 lvglow InOut real Length dependence of vglow
+214 wvglow InOut real Width dependence of vglow
+215 tox InOut real Gate oxide thickness in um

@@ -1,0 +1,36 @@
+366 CHAPTER 16. STARTING NGSPICE
+16.14.9 Spectre Compatibility mode
+If the variable ( 17.7) ngbehavior is set to spe with the command
+set ngbehavior=spe
+is set in .spiceinit Spectre compatibility mode is enabled. True compatibility today is
+still far away. The only action available for now is the use of the MOS device instance
+parameter nf. If nf is given and larger than 1 and Spectre (or HSPICE) compatibility
+is enabled, nf is used as a divisor to the transistor width W given on the instance line.
+The resulting W/nf is now used to select the suitable device model in the binning process.
+This procedure is of interest for a multi-gate transistor, which has a total width of W, but
+each finger is model according to the model given for W/nf.
+16.14.10 HSPICE Compatibility mode
+If the variable ( 17.7) ngbehavior is set to hs with the command
+set ngbehavior=hs
+is set in .spiceinit HSPICE compatibility mode is enabled. This mode allows to read
+libraries with the .lib command in a recursive fashion, as is required by HSPICE com-
+patible process development kits (PDKs) In addition the nf flag is enabled, as described
+in 16.14.9 .
+16.15 Tests
+The ngspice distribution is accompanied by a suite of test input and output files, located
+in the directory ngspice/tests. Originally this suite was meant to see if ngspice with all
+models was made and installed properly. It is started by
+$ make check
+from within your compilation and development shell. A sequence of simulations is thus
+started, its outputs compared to given output files by comparisons string by string. This
+feature is momentarily used to check for some basic procedures and the XSPICE extension
+(12) as a regression test. Several other input files located in directory ngspice/tests may
+serve as light-weight examples for invoking devices and simple circuits.
+Today's very complex device models (BSIM3 ( 11.2.10), BSIM4 (see 11.2.11), HiSIM (see
+11.2.14) and others) require a different strategy for verification. Under development for
+ngspice is the CMC Regression test by Colin McAndrew, which accompanies every new
+model. These tests cover a large range of different DC, AC and noise simulations with
+different geometry ranges and operating conditions and are more meaningful the transient
+simulations with their step size dependencies. A major advantage is the scalability of
+the diff comparisons, which check for equality within a given tolerance. A set of Perl
+modules cares for input, output and comparisons of the models. Currently BSIM3, BSIM4,

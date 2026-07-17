@@ -1,0 +1,45 @@
+12.2. ANALOG MODELS 225
+Default_Value: 0.5 1.0e-9
+Limits: [1e-6 0.999999] -
+Vector: no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: fall_time
+Description: "output fall time"
+Data_Type: real
+Default_Value: 1.0e-9
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: This function is a controlled square wave oscillator with parametrizable
+values of low and high peak output, duty cycle, rise time, and fall time. It takes
+an input voltage or current value. This value is used as the independent variable
+in the piecewise linear curve described by the coordinate points of the cntl_array
+and freq_array pairs. From the curve, a frequency value is determined, and the
+oscillator will output a square wave at that frequency.
+From the above, it is easy to see that array sizes of 2 for both the cntl_array and the
+freq_array will yield a linear variation of the frequency with respect to the control
+input. Any sizes greater than 2 will yield a piecewise linear transfer characteristic.
+For more detail, refer to the description of the piecewise linear controlled source,
+which uses a similar method to derive an output value given a control input.
+Example SPICE Usage:
+ain 1 2 pulse1
+.model pulse1 square(cntl_array = [-1 0 5 6]
++ freq_array=[10 10 1000 1000] out_low = 0.0
++ out_high = 4.5 duty_cycle = 0.2
++ rise_time = 1e-6 fall_time = 2e-6)
+12.2.26 Controlled One-Shot
+NAME_TABLE:
+C_Function_Name: cm_oneshot
+Spice_Model_Name: oneshot
+Description: "controlled one-shot"
+PORT_TABLE:
+Port Name: clk cntl_in
+Description: "clock input" "control input"
+Direction: in in
+Default_Type: v v
+Allowed_Types: [v,vd,i,id] [v,vd,i,id]
+Vector: no no
+Vector_Bounds: - -

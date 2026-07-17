@@ -1,0 +1,44 @@
+162 CHAPTER 11. MOSFETS
+and nrs designate the equivalent number of squares of the drain and source diffusions;
+these values multiply the sheet resistance rsh specified on the .model control line for
+an accurate representation of the parasitic series drain and source resistance of each
+transistor. pd and ps default to 0.0 while nrd and nrs to 1.0. off indicates an (optional)
+initial condition on the device for dc analysis. The (optional) initial condition specification
+using ic=vds,vgs,vbs is intended for use with the uic option on the .tran control line,
+when a transient analysis is desired starting from other than the quiescent operating
+point. See the .ic control line for a better and more convenient way to specify transient
+initial conditions. The (optional) temp value is the temperature at which this device is to
+operate, and overrides the temperature specification on the .option control line.
+The temperature specification is ONLY valid for level 1, 2, 3, and 6 MOSFETs, not for
+level 4 or 5 (BSIM) devices.
+BSIM3 (v3.2 and v3.3.0), BSIM4 (v4.7 and v4.8) and BSIMSOI models are also supporting
+the instance parameter delvto and mulu0 for local mismatch and NBTI (negative bias
+temperature instability) modeling:
+Name Parameter Units Default Example
+delvto (delvt0) Threshold voltage shift V 0.0 0.07
+mulu0 Low-field mobility multiplier (U0) - 1.0 0.9
+11.2 MOSFET models (NMOS/PMOS)
+MOSFET models are the central part of ngspice, probably because they are the most
+widely used devices in the electronics world. Ngspice provides all the MOSFETs imple-
+mented in the original Spice3f and adds several models developed by UC Berkeley's Device
+Group and other independent groups.
+Each model is invoked with a .model card. A minimal version is:
+.model MOSN NMOS level=8 version=3.3.0
+The model name MOSN corresponds to the model name in the instance card (see 11.1).
+Parameter NMOS selects an n-channel device, PMOS would point to a p-channel tran-
+sistor. The level and version parameters select the specific model. Further model
+parameters are optional and replace ngspice default values. Due to the large number
+of parameters (more than 100 for modern models), model cards may be stored in extra
+files and loaded into the netlist by the .include ( 2.7) command. Model cards are specific
+for a an IC manufacturing process and are typically provided by the IC foundry. Some
+generic parameter sets, not linked to a specific process, are made available by the model
+developers, e.g. UC Berkeley's Device Group for BSIM4 and BSIMSOI.
+Ngspice provides several MOSFET device models, which differ in the formulation of the
+I-V characteristic, and are of varying complexity. Models available are listed in table 11.1.
+Current models for IC design are BSIM3 ( 11.2.10, down to channel length of 0.25 µm),
+BSIM4 (11.2.11, below 0.25 µm), BSIMSOI ( 11.2.12, silicon-on-insulator devices), HiSIM2
+and HiSIM_HV ( 11.2.14, surface potential models for standard and high voltage/high
+power MOS devices).
+With the (new in ngspice-39) OpenV AF/OSDI approach (see13), all modern MOS models,
+written in Verilog-A, become available, like BSIMBULK, BSIM-CMG and BSIM-IMG,
+PSP, HiSim etc..

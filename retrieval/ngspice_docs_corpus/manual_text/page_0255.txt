@@ -1,0 +1,42 @@
+12.4. DIGITAL MODELS 255
+Example SPICE Usage:
+a6 [1 2 3] 8 or1
+.model or1 d_or(rise_delay = 0.5e-9 fall_delay = 0.3e-9
++ input_load = 0.5e-12)
+12.4.6 Nor
+NAME_TABLE:
+C_Function_Name: cm_d_nor
+Spice_Model_Name: d_nor
+Description: "digital 'nor' gate"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: yes no
+Vector_Bounds: [2 -] -
+Null_Allowed: no no
+Common parameters: inertial_delay, family, rise_delay, fall_delay, input_load.
+Description: The digital nor gate is an n-input, single-output nor gate that produces
+an active ' 0' value if at least one of its inputs is a ' 1' value. The gate produces a
+'0' value if all inputs are ' 0'; if neither of these two conditions holds, the output is
+unknown.
+Example SPICE Usage:
+anor12 [1 2 3 4] 8 nor12
+.model nor12 d_nor(rise_delay = 0.5e-9 fall_delay = 0.3e-9
++ input_load = 0.5e-12)
+12.4.7 Xor
+NAME_TABLE:
+C_Function_Name: cm_d_xor
+Spice_Model_Name: d_xor
+Description: "digital exclusive-or gate"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: yes no
+Vector_Bounds: [2 -] -
+Null_Allowed: no no

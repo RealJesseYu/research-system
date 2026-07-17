@@ -1,0 +1,35 @@
+30.2. BOUNDARY, INTERF ACE 629
+scribed above. Notice how the .MODEL line and the leading pluses form a border around
+the model description:
+Example: Numerical diode
+. MODEL M _N UME RIC AL NUPD LEVEL =2
++ cardnamel numberl = val1 ( number2 val2 ) , ( number3 = val3 )
++ cardname2 numberl = val1 string1 = name1
++
++ cardname3 numberl = val1 , flag1 , ^ flag2
++ + number2 = val2 , flag3
+The element line for an instance of this model might look something like the following.
+Double quotes are used to protect the file name from decapitalization:
+dl 1 2 M _N UME RIC AL area = lOOpm ^2 ic . file = " diode . IC "
+30.2 BOUNDARY, INTERF ACE
+Specify properties of a domain boundary or the interface between two boundaries.
+SYNOPSIS
+boundary domain [ bounding - box ] [ properties ]
+interface domain neighbor [ bounding - box ] [ properties ]
+30.2.1 DESCRIPTION
+The boundary and interface cards are used to set surface physics parameters along the
+boundary of a specified domain. Normally, the parameters apply to the entire boundary,
+but there are two ways to restrict the area of interest. If a neighboring domain is also
+specified, the parameters are only set on the interface between the two domains. In
+addition, if a bounding box is given, only that portion of the boundary or interface inside
+the bounding box will be set.
+If a semiconductor-insulator interface is specified, then an estimate of the width of any
+inversion or accumulation layer that may form at the interface can be provided. If the
+surface mobility model (cf. models card) is enabled, then the model will apply to all
+semiconductor portions of the device within this estimated distance of the interface. If a
+point lies within the estimated layer width of more than one interface, it belong to the
+interface specified first in the input file. If the layer width given is less than or equal
+to zero, it is automatically replaced by an estimate calculated from the doping near the
+interface. As a consequence, if the doping varies so will the layer width estimate.
+Each edge of the bounding box can be specified in terms of its location or its mesh-index
+in the relevant dimension, or defaulted to the respective boundary of the simulation mesh.

@@ -1,0 +1,44 @@
+12.4. DIGITAL MODELS 269
+Data_Type: real real
+Default_Value: 1.0e-12 1.0e-12
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Common parameters: rise_delay, fall_delay.
+Description: The digital d-type latch is a one-bit, level-sensitive storage element that
+will output the value on the data line whenever the enable input line is high (ONE).
+The value on the data line is stored (i.e., held on the out line) whenever the enable
+line is low (ZERO).
+In addition, asynchronous set and reset signals exist, and each of the four methods of
+changing the stored output of the d_dlatch (i.e., data changing with enable=ONE,
+enable changing to ONE from ZERO with a new value on data, raising set and
+raising reset) have separate delays associated with them. You may also specify
+separate rise and fall delay values that are added to those specified for the input
+lines; these allow for more faithful reproduction of the output characteristics of
+different IC fabrication technologies.
+Note that any UNKNOWN inputs other than on the data line when enable=ZERO
+immediately cause the output to go UNKNOWN.
+Example SPICE Usage:
+a4 12 4 5 6 3 14 latch1
+.model latch1 d_dlatch(data_delay = 13.0e-9 enable_delay = 22.0e-9
++ set_delay = 25.0e-9
++ reset_delay = 27.0e-9 ic = 2
++ rise_delay = 10.0e-9 fall_delay = 3e-9)
+12.4.17 Set-Reset Latch
+NAME_TABLE:
+C_Function_Name: cm_d_srlatch
+Spice_Model_Name: d_srlatch
+Description: "digital sr-type latch"
+PORT_TABLE:
+Port Name: s r
+Description: "set" "reset"
+Direction: in in
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PORT_TABLE:
+Port Name: enable
+Description: "enable"

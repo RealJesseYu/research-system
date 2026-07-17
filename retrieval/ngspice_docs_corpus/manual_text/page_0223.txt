@@ -1,0 +1,48 @@
+12.2. ANALOG MODELS 223
+C_Function_Name: cm_triangle
+Spice_Model_Name: triangle
+Description: "controlled triangle wave oscillator"
+PORT_TABLE:
+Port Name: cntl_in out
+Description: "control input" "output"
+Direction: in out
+Default_Type: v v
+Allowed_Types: [v,vd,i,id] [v,vd,i,id]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: cntl_array freq_array
+Description: "control array" "frequency array"
+Data_Type: real real
+Default_Value: 0.0 1.0e3
+Limits: - [0 -]
+Vector: yes yes
+Vector_Bounds: [2 -] cntl_array
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: out_low out_high
+Description: "output peak low value" "output peak high value"
+Data_Type: real real
+Default_Value: -1.0 1.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: duty_cycle
+Description: "rise time duty cycle"
+Data_Type: real
+Default_Value: 0.5
+Limits: [1e-10 0.999999999]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: This function is a controlled triangle/ramp wave oscillator with parametriz-
+able values of low and high peak output and rise time duty cycle. It takes an input
+voltage or current value. This value is used as the independent variable in the
+piecewise linear curve described by the coordinate points of the cntl_array and
+freq_array pairs.
+From the curve, a frequency value is determined, and the oscillator will output a
+triangle wave at that frequency. From the above, it is easy to see that array sizes
+of 2 for both the cntl_array and the freq_array will yield a linear variation of the

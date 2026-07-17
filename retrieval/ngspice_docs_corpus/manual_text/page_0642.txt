@@ -1,0 +1,35 @@
+642 CHAPTER 30. CIDER USER'S MANUAL
+30.10.3 Examples
+Use one carrier simulation for a MOSFET, and choose direct method AC analysis to
+ensure accurate, high frequency results:
+method onec ac . an = direct
+Tolerate no more than 10−10 as the absolute error in device-level equations, and perform
+no more than 15 Newton iterations in any one loop:
+method devtol =1 e -10 itlim =15
+30.11 Mobility
+Specify types and parameters of mobility models
+SYNOPSIS
+mobility material [ carrier ] [ parameters ] [ models ] [ initialize ]
+30.11.1 Description
+The mobility model is one of the most complicated models of a material's physical prop-
+erties. As a result, separate cards are needed to set up this model for a given material.
+Mobile carriers in a device are divided into a number of different classes, each of which has
+different mobility modeling. There are three levels of division. First, electrons and holes
+are obviously handled separately. Second, carriers in surface inversion or accumulation
+layers are treated differently than carriers in the bulk. Finally, bulk carriers can be either
+majority or minority carriers.
+For surface carriers, the normal-field mobility degradation model has three user-modifiable
+parameters. For bulk carriers, the ionized impurity scattering model has four controllable
+parameters. Different sets of parameters are maintained for each of the four bulk carrier
+types: majority-electron, minority-electron, majority-hole and minority-hole. Velocity
+saturation modeling can be applied to both surface and bulk carriers. However, only two
+sets of parameters are maintained: one for electrons and one for holes. These must be
+changed on a majority carrier card (i.e. when the majority flag is set).
+Several models for the physical effects are available, along with appropriate default values.
+Initially, a universal set of default parameters usable with all models is provided. These
+can be overridden by defaults specific to a particular model by setting the initialization
+flag. These can then be changed directly on the card itself. The bulk ionized impurity
+models are the Caughey-Thomas (CT) model and the Scharfetter-Gummel (SG) model
+[CAUG671, [SCHA69]. Three alternative sets of defaults are available for the Caughey-
+Thomas expression. They are the Arora (AR) parameters for Si [AROR82], the University
+of Florida (UF) parameters for minority carriers in Si [SOLL90], and a set of parameters

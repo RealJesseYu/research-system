@@ -1,0 +1,15 @@
+31.2. ELEMENTARY DEVICES 667
+31.2.4 Mutual - Mutual Inductor
+31.2.4.1 Mutual instance parameters
+# Name Direction Type Description
+401 k InOut real Mutual inductance
+401 coefficient InOut real
+402 inductor1 InOut instance First coupled inductor
+403 inductor2 InOut instance Second coupled inductor
+404 sens_coeff In flag flag to request sensitivity WRT coupling factor
+606 sens_dc Out real dc sensitivity
+601 sens_real Out real real part of ac sensitivity
+602 sens_imag Out real dc sensitivity and imag part of ac sensitivty
+603 sens_mag Out real sensitivity of AC magnitude
+604 sens_ph Out real sensitivity of AC phase
+605 sens_cplx Out complex mutual model parameters:

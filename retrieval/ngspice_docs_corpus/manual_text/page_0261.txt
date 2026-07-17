@@ -1,0 +1,44 @@
+12.4. DIGITAL MODELS 261
+Null_Allowed: yes yes
+Common parameters: rise_delay, fall_delay.
+Description: The digital d-type flip flop is a one-bit, edge-triggered storage element that
+will store data whenever the clk input line transitions from low to high (ZERO to
+ONE). In addition, asynchronous set and reset signals exist, and each of the three
+methods of changing the stored output of the d_dff have separate load values and
+delays associated with them. Additionally, you may specify separate rise and fall
+delay values that are added to those specified for the input lines; these allow for
+more faithful reproduction of the output characteristics of different IC fabrication
+technologies.
+Note that any UNKNOWN input on the set or reset lines immediately results in an
+UNKNOWN output.
+Example SPICE Usage:
+a7 1 2 3 4 5 6 flop1
+.model flop1 d_dff(clk_delay = 13.0e-9 set_delay = 25.0e-9
++ reset_delay = 27.0e-9 ic = 2 rise_delay = 10.0e-9
++ fall_delay = 3e-9)
+12.4.13 JK Flip Flop
+NAME_TABLE:
+C_Function_Name: cm_d_jkff
+Spice_Model_Name: d_jkff
+Description: "digital jk-type flip flop"
+PORT_TABLE:
+Port Name: j k
+Description: "j input" "k input"
+Direction: in in
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PORT_TABLE:
+Port Name: clk
+Description: "clock"
+Direction: in
+Default_Type: d
+Allowed_Types: [d]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: no
+PORT_TABLE:
+Port Name: set reset
+Description: "asynchronous set" "asynchronous reset"

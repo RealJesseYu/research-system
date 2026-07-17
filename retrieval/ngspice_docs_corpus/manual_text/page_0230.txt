@@ -1,0 +1,45 @@
+230CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Description: "initial resistance" "threshold"
+Data_Type: real real
+Default_Value: 7000.0 0.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: alpha beta
+Description: "model parameter 1" "model parameter 2"
+Data_Type: real real
+Default_Value: 0.0 1.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+Description: The memristor is a two-terminal resistor with memory, whose resistance
+depends on the time integral of the voltage across its terminals. rmin and rmax
+provide the lower and upper limits of the resistance, rinit is its starting value (no
+voltage applied so far). The voltage has to be above a threshold vt to become
+effective in changing the resistance. alpha and beta are two model parameters. The
+memristor code model is derived from a SPICE subcircuit published in [ 23].
+Example SPICE Usage:
+amen 1 2 memr
+.model memr memristor (rmin=1k rmax=10k rinit=7k
++ alpha=0 beta=2e13 vt=1.6)
+12.2.30 2D table model
+NAME_TABLE:
+C_Function_Name: cm_table2D
+Spice_Model_Name: table2D
+Description: "2D table model"
+PORT_TABLE:
+Port_Name: inx iny out
+Description: "inputx" "inputy" "output"
+Direction: in in out
+Default_Type: v v i
+Allowed_Types: [v,vd,i,id,vnam] [v,vd,i,id,vnam] [v,vd,i,id]
+Vector: no no no
+Vector_Bounds: - - -
+Null_Allowed: no no no
+PARAMETER_TABLE:
+Parameter_Name: order verbose
+Description: "order" "verbose"
+Data_Type: int int

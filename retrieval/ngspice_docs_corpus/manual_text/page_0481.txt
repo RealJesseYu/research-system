@@ -1,0 +1,28 @@
+19.3. SHARED NGSPICE API 481
+vector_info
+typedef struct ve cto r_i nfo {
+char * v_name ; /* Same as so_vname */
+int v_type ; /* Same as so_vtype */
+short v_flags ; /* Flags ( a co mbi na tio n of VF_ *) */
+double * v_realdata ; /* Real data */
+ngc omp lex _t * v_compdata ;/* Complex data */
+int v_length ; /* Length of the vector */
+} vector_info , * p v e c t o r _ i n f o ;
+The next two structures are used by the callback function SendInitData (see 19.3.3.5).
+Each time a new plot is generated during simulation, e.g. when a sequence of op, ac or
+tran is used, or commands like linearize or fft are invoked, the function is called once
+by ngspice. Among its parameters you find a pointer to a struct vecinfoall, which includes
+an array of vecinfo, one for each vector. Pointers to the struct dvec, containing the vector,
+are included.
+vecinfo
+typedef struct vecinfo
+{
+int number ; /* number of vector , as position in the
+linked list of vectors , starts with 0 */
+char * vecname ; /* name of the actual vector */
+bool is_real ; /* TRUE if the actual vector has real data */
+void * pdvec ; /* a void pointer to struct dvec *d , the
+actual vector */
+void * pdvecscale ; /* a void pointer to struct dvec * ds ,
+the scale vector */
+} vecinfo , * pvecinfo ;

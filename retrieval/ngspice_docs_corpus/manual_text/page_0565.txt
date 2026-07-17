@@ -1,0 +1,28 @@
+Chapter 27
+Example circuits
+The following chapter is designed to demonstrate XSPICE features. The first example
+circuit models the circuit of Fig. 26.2 using the XSPICE gain block code model to
+substitute for the more complex and computationally expensive ngspice transistor model.
+This example illustrates one way in which XSPICE code models can be used to raise the
+level of abstraction in circuit modeling to improve simulation speed.
+The next example, shown in Fig. 27.1, illustrates many of the more advanced features
+offered by XSPICE. This circuit is a mixed-mode design incorporating digital data, analog
+data, and User-Defined Node data together in the same simulation. Some of the important
+features illustrated include:
+• Creating and compiling Code Models
+• Creating an XSPICE executable that incorporates these new models
+• The use of 'node bridge' models to translate data between the data types in the
+simulation
+• Plotting analog and event-driven (digital and User-Defined Node) data
+• Using the eprint command to print event-driven data
+Throughout these examples, we assume that ngspice with XSPICE option has already
+been installed on your system and that your user account has been set up with the proper
+search path and environment variable data.
+The examples also assume that you are running under Linux and will use standard Linux
+commands such as cp for copying files, etc. If you are using a different set up, with
+different operating system command names, you should be able to translate the commands
+shown into those suitable for your installation. Finally, file system path-names given
+in the examples assume that ngspice + XSPICE has been installed on your system in
+directory /usr/local/xspice-1-0. If your installation is different, you should substitute the
+appropriate root path-name where appropriate.
+565

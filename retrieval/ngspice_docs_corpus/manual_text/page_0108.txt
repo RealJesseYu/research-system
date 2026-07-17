@@ -1,0 +1,30 @@
+108CHAPTER 5. NON-LINEAR DEPENDENT SOURCES (BEHA VIORAL SOURCES)
+Example: Non linear capacitor
+. Subckt nlcap pos neg
+* Bx : calculate f ( input voltage )
+Bx 1 0 v = f ( v ( pos , neg ))
+* Cx : linear c apa cit anc e
+Cx 2 0 1
+* Vx : Ammeter to measure current into the capacitor
+Vx 2 1 DC 0 Volts
+* Drive the current through Cx back into the circuit
+Fx pos neg Vx 1
+. ends
+Example for f(v(pos,neg)):
+Bx 1 0 V = v ( pos , neg )* v ( pos , neg )
+Non-linear resistors or inductors may be described in a similar manner. An example for
+a nonlinear resistor using this template is shown below.
+Example: Non linear resistor
+* use of ' hertz ' variable in nonlinear resistor
+*. param rbase =1 k
+* some tests
+B1 1 0 V = hertz * v (33)
+B2 2 0 V = v (33)* hertz
+b3 3 0 V = 6.283 e3 /( hertz +6.283 e3 )* v (33)
+V1 33 0 DC 0 AC 1
+*** Translate R1 10 0 R = '1 k / sqrt ( HERTZ ) ' to B source ***
+. Subckt nlres pos neg rb = rbase
+* Bx : calculate f ( input voltage )
+Bx 1 0 v = -1 / { rb } / sqrt ( HERTZ ) * v ( pos , neg )
+* Rx : linear resistance
+Rx 2 0 1

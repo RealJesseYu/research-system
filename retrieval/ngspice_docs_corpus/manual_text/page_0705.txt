@@ -1,0 +1,13 @@
+31.6. MOSFETS 705
+170 pb InOut real Source drain junction built in potential
+171 mj InOut real Source drain bottom junction capacitance grading coefficient
+172 pbsw InOut real Source drain side junction capacitance built in potential
+173 mjsw InOut real Source drain side junction capacitance grading coefficient
+174 cj InOut real Source drain bottom junction capacitance per unit area
+175 cjsw InOut real Source drain side junction capacitance per unit area
+176 wdf InOut real Default width of source drain diffusion in um
+177 dell InOut real Length reduction of source drain diffusion
+180 kf InOut real Flicker noise coefficient
+181 af InOut real Flicker noise exponent
+178 nmos In flag Flag to indicate NMOS
+179 pmos In flag Flag to indicate PMOS

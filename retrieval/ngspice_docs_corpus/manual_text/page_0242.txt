@@ -1,0 +1,49 @@
+242CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Null_Allowed: no no
+/* The direction of the bridge ports may be controlled by digital inputs.
+* with LOW selecting DAC behavior and HIGH selecting ADC.
+* If null, or the value is UNKNOWN the bridge will be truly bi-directional.
+*/
+PORT_TABLE:
+Port_Name: dir
+Description: "direction"
+Direction: in
+Default_Type: d
+Allowed_Types: [d]
+Vector: yes
+Vector_Bounds: -
+Null_Allowed: yes
+/* Alternatively, this parameter sets direction: 0-2 for DAC, ADC, ignore.
+* Values 0/1 override the direction port.
+*/
+PARAMETER_TABLE:
+Parameter_Name: direction input_load
+Description: "force direction" "capacitive input load (F)"
+Data_Type: int real
+Default_Value: 2 1.0e-12
+Limits: [0 2] -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+/* Digital 0utput strength is 0 (strong, default) or 1 (resistive).
+* Smooth controls use of smoothing functions, default is 0 (no smoothing).
+*/
+PARAMETER_TABLE:
+Parameter_Name: strength smooth
+Description: "output strength" "smoothing level"
+Data_Type: int int
+Default_Value: 0 0
+Limits: [0 2] [0 2]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+/* Analog thresholds, in_low may be greater than in-high, enabling hysteresis.
+*/
+PARAMETER_TABLE:
+Parameter_Name: in_low
+Description: "maximum 0-valued analog input"
+Data_Type: real
+Default_Value: 0.1
+Limits: -
+Vector: no
+Vector_Bounds: -

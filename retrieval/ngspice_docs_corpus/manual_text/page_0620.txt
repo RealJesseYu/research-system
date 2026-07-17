@@ -1,0 +1,39 @@
+620 CHAPTER 29. ERROR MESSAGES
+29.3.2 Code Model climit
+climit_range_error:
+**** ERROR ****
+* CLIMIT function linear range less than zero. *
+This message occurs whenever the difference between the upper and lower control input
+values are close enough that there is no effective room for proper limiting to occur; this
+indicates an error in the control input values.
+29.3.3 Code Model core
+allocation_error:
+***ERROR***
+CORE: Allocation calloc failed!
+This message is a generic message related to allocating sufficient storage for the H and B
+array values.
+limit_error:
+***ERROR***
+CORE: Violation of 50% rule in breakpoints!
+This message occurs whenever the input domain value is an absolute value and the H
+coordinate points are spaced too closely together (overlap of the smoothing regions will
+occur unless the H values are redefined).
+29.3.4 Code Model d_osc
+d_osc_allocation_error:
+**** Error ****
+D_OSC: Error allocating VCO block storage
+Generic block storage allocation error.
+d_osc_array_error:
+**** Error ****
+D_OSC: Size of control array different than frequency array
+Error occurs when there is a different number of control array members than frequency
+array members.
+d_osc_negative_freq_error:
+**** Error ****
+D_OSC: The extrapolated value for frequency
+has been found to be negative...
+Lower frequency level has been clamped to 0.0 Hz.
+Occurs whenever a control voltage is input to a model that would ordinarily (given the
+specified control/freq coordinate points) cause that model to attempt to generate an
+output oscillating at zero frequency. In this case, the output will be clamped to some DC
+value until the control voltage returns to a more reasonable value.

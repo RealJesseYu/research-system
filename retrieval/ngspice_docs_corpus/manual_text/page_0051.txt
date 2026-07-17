@@ -1,0 +1,31 @@
+2.2. DOT COMMANDS 51
+this is not feasible, you may switch the conversion off by setting set no_auto_gnd in one
+of the configuration files spinit or .spiceinit. Each circuit has to have a ground node (gnd
+or 0)! Note the difference in ngspice where the nodes are treated as character strings
+and not evaluated as numbers, thus ' 0' and 00 are distinct nodes in ngspice but not in
+SPICE2.
+2.1.5 Topological constraints
+Ngspice requires that the following topological constraints are satisfied:
+• The circuit cannot contain a loop of voltage sources and/or inductors and cannot
+contain a cut-set of current sources and/or capacitors.
+• Each node in the circuit must have a dc path to ground.
+• Every node must have at least two connections except for transmission line nodes
+(to permit unterminated transmission lines) and MOSFET substrate nodes (which
+have two internal connections anyway).
+2.2 Dot commands
+This section summarizes all dot commands available in ngspice, with links to their detailed
+presentation, in alphabetical order. Control section (or interactive) commands are listed
+and explained in chapter 17.5.
+.AC start an ac simulation ( 15.3.1).
+.CONTROL start a .control section ( 16.4.3).
+.CSPARAM define parameter(s) made available in a control section ( 2.11).
+.DC start a dc simulation ( 15.3.2).
+.DISTO start a distortion analysis simulation ( 15.3.3).
+.ELSE conditional branching in the netlist ( 2.13).
+.ELSEIF conditional branching in the netlist ( 2.13).
+.END end of the netlist ( 2.3.2).
+.ENDC end of the .control section ( 16.4.3).
+.ENDIF conditional branching in the netlist ( 2.13).
+.ENDS end of subcircuit definition ( 2.5.2).
+.FOUR Fourier analysis of transient simulation output ( 15.6.4).
+.FUNC define a function ( 2.10).

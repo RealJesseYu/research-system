@@ -1,0 +1,30 @@
+568 CHAPTER 27. EXAMPLE CIRCUITS
+Figure 27.1: Example Circuit C3
+Example:
+Mixed IO types
+* This circuit contains a mixture of IO types , including
+* analog , digital , user - defined ( real ) , and ' null '.
+*
+* The circuit d e m o n s t r a t e s the use of the digital and
+* user - defined node capability to model system - level designs
+* such as sampled - data filters . The simulated circuit
+* contains a digital oscillator enabled after 100 us . The
+* square wave oscillator output is divided by 8 with a
+* ripple counter . The result is passed through a digital
+* filter to convert it to a sine wave .
+*
+. tran 1e -5 1e -3
+*
+v1 1 0 0.0 pulse (0 1 1e -4 1e -6)
+r1 1 0 1 k
+*
+abridge1 [1] [ enable ] atod
+. model atod adc_bridge
+*
+aclk [ enable clk ] clk nand
+. model nand d_nand ( rise_delay =1 e -5 fall_delay =1 e -5)
+*
+adiv2 div2_out clk NULL NULL NULL div2_out dff
+adiv4 div4_out div2_out NULL NULL NULL div4_out dff
+adiv8 div8_out div4_out NULL NULL NULL div8_out dff
+. model dff d_dff

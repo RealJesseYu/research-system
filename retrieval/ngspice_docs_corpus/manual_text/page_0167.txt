@@ -1,0 +1,47 @@
+11.2. MOSFET MODELS (NMOS/PMOS) 167
+Name Parameter Units Default Example
+FC Coefficient for
+forward-bias depletion
+capacitance formula
+- 0.5
+DELTA Width effect on threshold
+voltage (MOS2 and
+MOS3)
+- 0.0 1.0
+THETA Mobility modulation
+(MOS3 only)
+1/V 0.0 0.1
+ETA Static feedback (MOS3
+only)
+- 0.0 1.0
+KAPPA Saturation field factor
+(MOS3 only)
+- 0.2 0.5
+TNOM Parameter measurement
+temperature
+◦C 27 50
+11.2.6 MOS Level 9
+Documentation is not available..
+11.2.7 BSIM Models
+Ngspice implements many of the BSIM models developed by Berkeley's BSIM group .
+BSIM stands for Berkeley Short-Channel IGFET Model and groups a class of models that
+is continuously updated. BSIM3 ( 11.2.10) and BSIM4 ( 11.2.11) are industry standards
+for CMOS processes down to 0.15 µm (BSIM3) and below (BSIM4), are very stable and
+are supported by model parameter sets from foundries all over the world. BSIM1 and
+BSIM2 are obsolete today.
+In general, all parameters of BSIM models are obtained from process characterization,
+in particular level 4 and level 5 (BSIM1 and BSIM2) parameters can be generated auto-
+matically. J. Pierret [4] describes a means of generating a 'process' file, and the program
+ngproc2mod provided with ngspice converts this file into a sequence of BSIM1 .model
+lines suitable for inclusion in an ngspice input file.
+Parameters marked below with an * in the l/w column also have corresponding parameters
+with a length and width dependency. For example, vfb is the basic parameter with units
+of Volts, and lvfb and wvfb also exist and have units of Volt-meter.
+The formula
+P = P0 + PL
+Leffective
++ PW
+Weffective
+(11.1)
+is used to evaluate the parameter for the actual device specified with
+Leffective = Linput − DL (11.2)

@@ -1,0 +1,48 @@
+216CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+12.2.20 Slew Rate Block
+NAME_TABLE:
+C_Function_Name: cm_slew
+Spice_Model_Name: slew
+Description: "A simple slew rate follower block"
+PORT_TABLE:
+Port Name: in out
+Description: "input" "output"
+Direction: in out
+Default_Type: v v
+Allowed_Types: [v,vd,i,id] [v,vd,i,id]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: no no
+PARAMETER_TABLE:
+Parameter_Name: rise_slope
+Description: "maximum rising slope value"
+Data_Type: real
+Default_Value: 1.0e9
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: fall_slope
+Description: "maximum falling slope value"
+Data_Type: real
+Default_Value: 1.0e9
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: range
+Description: "smoothing range"
+Data_Type: real
+Default_Value: 0.1
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: This function is a simple slew rate block that limits the absolute slope
+of the output with respect to time to some maximum or value. The actual slew
+rate effects of over-driving an amplifier circuit can thus be accurately modeled by
+cascading the amplifier with this model. The units used to describe the maximum
+rising and falling slope values are expressed in volts or amperes per second. Thus a
+desired slew rate of 0.5 V/ µs will be expressed as 0.5e+6, etc.

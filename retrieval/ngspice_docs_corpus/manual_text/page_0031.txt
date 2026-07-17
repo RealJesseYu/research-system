@@ -1,0 +1,32 @@
+Prefaces
+Preface to the first edition
+This manual has been assembled from different sources:
+1. The spice3f5 manual,
+2. the XSPICE user's manual,
+3. the CIDER user's manual
+and some original material needed to describe the new features and the newly implemented
+models. This cut and paste approach, while not being orthodox, allowed ngspice to have
+a full manual in a fraction of the time that writing a completely new text would have
+required. The use of LaTex and L YX instead of TeXinfo, which was the original encoding
+for the manual, further helped to reduce the writing effort and improved the quality of
+the result, at the expense of an on-line version of the manual but, due to the complexity
+of the software I hardly think that users will ever want to read an on-line text version.
+In writing this text I followed the spice3f5 manual, both in the chapter sequence and
+presentation of material, mostly because that was already the user manual of SPICE.
+Ngspice is an open source software, users can download the source code, compile, and
+run it. This manual has an entire chapter describing program compilation and available
+options to help users in building ngspice (see Chapt. 32). The source package already
+comes with all 'safe' options enabled by default, and activating the others can produce
+unpredictable results and thus is recommended to expert users only. This is the first
+ngspice manual and I have removed all the historical material that described the differences
+between ngspice and spice3, since it was of no use for the user and not so useful for the
+developer who can look for it in the Changelogs of in the revision control system.
+I want to acknowledge the work done by Emmanuel Rouat and Arno W. Peters for
+converting the original spice3f documentation to T EXinfo. Their effort gave ngspice users
+the only available documentation that described the changes for many years. A good
+source of ideas for this manual came from the on-line spice3f manual written by Charles
+D.H. Williams ( Spice3f5 User Guide ), constantly updated and useful for its many insights.
+As always, errors, omissions and unreadable phrases are only my fault.
+Paolo Nenzi
+Roma, March 24th 2001
+31

@@ -1,0 +1,39 @@
+5.4. DEBUGGING A BEHA VIORAL SOURCE 117
+5.3.6 FREQ
+See E-Source, Chapt. 5.2.6 , for an equivalent code model replacement.
+5.3.7 Example
+An example file is given below.
+Example input file:
+VCCS , VCVS , non - linear dependency
+. param Vi =1
+. param Offs = '0.01* Vi '
+* VCCS depending on V (3)
+B21 int1 0 V = V (3)* V (3)
+G1 21 22 int1 0 1
+* measure current through VCCS
+vm 22 0 dc 0
+R21 21 0 1
+* new VCCS depending on V (3)
+G51 55 225 cur = 'V (3)* V (3) - Offs '
+* measure current through VCCS
+vm5 225 0 dc 0
+R51 55 0 1
+* VCVS depending on V (3)
+B31 int2 0 V = V (3)* V (3)
+E1 1 0 int2 0 1
+R1 1 0 1
+* new VCVS depending on V (3)
+E41 4 0 vol = 'V (3)* V (3) - Offs '
+R4 4 0 1
+* control voltage
+V1 3 0 PWL (0 0 100 u { Vi })
+. control
+unset askquit
+tran 10 n 100 u uic
+plot i ( E1 ) i ( E41 )
+plot i ( vm ) i ( vm5 )
+. endc
+. end
+5.4 Debugging a behavioral source
+The B, E, G, sources and the behavioral R, C, L elements are powerful tools to set up
+user defined models. Unfortunately debugging these models is not very comfortable.

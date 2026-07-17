@@ -1,0 +1,37 @@
+18.7. GNUPLOT 473
+Plot window plus command and data files:
+gnuplot newplot vss # branch vss2 # branch
++ title ' Drain current versus drain voltage '
++ xlabel ' Drain voltage / V ' ylabel ' Drain current / uA '
+Gnuplot command file newplot.plt and data file newplot.data are generated to stay in the
+current directory. The command file may be modified to alter the plot, and then called
+by gnuplot newplot.plt to draw the modified plot.
+The following variables are aknowledged by the gnuplot command:
+gnuplot_terminal May be one of the following: png (write png file and plot to screen),
+png/quit (write png file but no plot, see 18.6.1.3), eps (write PostScript file and
+plot to screen) , eps/quit (write PostScript file, but no plot) , xterm (open gnu-
+plot in an xterm window).
+xbrushwidth Linewidth for graph (see xgridwidth for border and grid). Valid for MS
+Windows GUI, X11, gnuplot and Postscript.
+xgridwidth Linewidth for border and grid. Valid for MS Windows GUI, X11, gnuplot
+and Postscript.
+plotstyle This should be one of linplot, combplot, or pointplot. linplot, the
+default, causes points to be plotted as parts of connected lines. combplot causes a
+comb plot to be done. It plots vectors by drawing a vertical line from each point
+to the X-axis, as opposed to joining the points. pointplot causes each point to be
+plotted separately.
+nolegend Don't plot the legend, when using the plot command.
+18.7.2 Using gnuplot to produce 2D contour plots for Cider
+The gnuplot command to generate 2D x/y contour plots from Cider models is:
+General Form:
+gnuplot file xycontour expr
+The xycontour switch is ignored if the data is not from a 2D Cider model. expr is a single
+plotarg expression which specifies the vector to be plotted. file has the same meaning
+as in section 18.7.1 previously. The only variable which affects the gnuplot xycontour
+option is gnuplot_terminal.
+Before a plot can be created, the Cider solution file containing the data you are interested
+in must be loaded with the LOAD ( 17.5.45) command. The example later in this section
+demonstrates the steps to be followed.
+The Cider OUTPUT command (see 30.14) explains how to get solution files for a Cider
+model. It is important to include a 'rootfile' parameter in the OUTPUT command which
+specifies a subdirectory to hold the solution files themselves. Depending on the analysis

@@ -1,0 +1,42 @@
+354 CHAPTER 16. STARTING NGSPICE
+Table 16.1: OpenMP performance
+Threads CPU time [s] CPU time [s]
+Windows Linux
+1 65.4 69.3
+2 46.7 47.4
+4 37.2 36.9
+6 33.6 33.6
+8 32.4 32.4
+12 35.7 31.7
+16 38.2 34.3
+BSIM3load() is now a wrapper function, calling the for-loop, which runs through functions
+BSIM3LoadOMP(), once per instance. Inside BSIM3LoadOMP() the model equations are
+calculated.
+Typically it is necessary to use synchronization constructs such as mutexes when multiple
+threads write to a common memory location. To avoid the performance degradation of
+such synchronization, temporary per-thread memory locations are used within the for loop
+of the BSIM3LoadOMP() function as defined in bsim3def.h. After all threads complete
+the for-loop, the update to the matrix is done in an extra function BSIM3LoadRhsMat()
+in the main thread.
+Then the thread programming needed is only a single line!!
+#pragma omp parallel for
+introducing the for-loop over the device instances.
+This of course is made possible only thanks to the OpenMP guys and the clever trick on
+no synchronization introduced by the above cited authors.
+The time-measuring function getrusage() used with Linux or Cygwin to determine the
+CPU time usage (with the rusage option enabled) counts tics from every core, adds them
+up, and thus reports a CPU time value enlarged by a factor of 8 if 8 threads have been
+chosen. So now ngspice is forced to use ftime for time measuring if OpenMP is selected.
+16.10.3 Some results
+Some results on an inverter chain with 627 CMOS inverters, BSIM4.7, 45 nm, running for
+200ns, compiled with Visual Studio Community 2019 on Windows 10 (full optimization)
+or gcc 7.4, SUSE Linux Leap 15.1, -O2, on a i9 9900K machine with 8 real cores (16
+logical processors using hyperthreading) and 32 GB of memory are shown in table 16.1.
+So we see a ngspice speed up of more than a factor of two! Even on an Windows 7
+notebook with a dual core i7 processor, more than 1.5x improvement using two threads
+was attained. This is consistent with the fact that roughly half of the CPU time is used
+for evaluating the device model, half of the time for solving the matrix. Only the device
+evaluation is parallelized by OpenMP. The time for doing this becomes negligible with
+8 or more threads. Allowing more than 8 threads (using the 8 physical cores) does not
+yield much improvement, even leads to a slight increase of simulation time, because the
+code is not optimized for hyperthreading.

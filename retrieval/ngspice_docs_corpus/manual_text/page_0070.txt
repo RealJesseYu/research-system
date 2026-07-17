@@ -1,0 +1,6 @@
+70 CHAPTER 2. CIRCUIT DESCRIPTION
+output using expressions, change some of the element or model parameters with the
+alter and altermod statements (see Chapt. 17.5.3) and then automatically start a new
+simulation.
+Expressions and scripting are powerful tools within ngspice, and we will enhance the
+examples given in Chapt. 21 continuously to describe these features.

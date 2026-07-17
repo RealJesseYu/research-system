@@ -1,0 +1,33 @@
+17.11. MISCELLANEOUS 457
+Example:
+shell echo $HOME
+/ home / holger
+The following is valid only if you are working with ngspice as a console app (Linux,
+Cygwin). In interactive mode or from a .control section you may transfer the return of a
+command from the shell into an ngspice variable by backquote or backtick substitution.
+Any text between backquotes is replaced by the result of executing the text as a command
+to the shell.
+Example:
+set myvar2 = '/ bin / bash -c " echo $HOME " '
+echo $myvar2
+/ home / holger
+17.11 MISCELLANEOUS
+C-shell type quoting with ' and " may be used. Within single quotes, no further substi-
+tution (like history substitution) is done, and within double quotes, the words are kept
+together but further substitution is done.
+History substitutions, similar to C-shell history substitutions, are also available - see
+the C-shell manual page for all of the details. The characters ~, @{, and @} have the
+same effects as they do in the C-Shell, i.e., home directory and alternative expansion. It
+is possible to use the wildcard characters *, ?, [, and ] also, but only if you unset noglob
+first. This makes them rather useless for typing algebraic expressions, so you should set
+noglob again after you are done with wildcard expansion. Note that the pattern [^abc]
+matches all characters except a, b, and c.
+If X is being used, the cursor may be positioned at any point on the screen when the
+window is up and characters typed at the keyboard are added to the window at that
+point. The window may then be sent to a printer using the xpr(1) program.
+17.12 Bugs
+When defining aliases like alias pdb plot db ( !:1 - !:2 ) you must be careful to quote
+the argument list substitutions in this manner. If you quote the whole argument it might
+not work properly.
+In a user-defined function, the arguments cannot be part of a name that uses the plot.vec
+syntax. For example: define check(v(1)) cos(tran1.v(1)) does not work.

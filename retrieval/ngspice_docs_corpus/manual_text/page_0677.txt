@@ -1,0 +1,18 @@
+31.4. TRANSMISSION LINES 677
+31.4.5 URC - Uniform R. C. line
+31.4.5.1 URC instance parameters
+# Name Direction Type Description
+1 l InOut real Length of transmission line
+2 n InOut real Number of lumps
+3 pos_node Out integer Positive node of URC
+4 neg_node Out integer Negative node of URC
+5 gnd Out integer Ground node of URC
+31.4.5.2 URC model parameters
+# Name Direction Type Description
+101 k InOut real Propagation constant
+102 fmax InOut real Maximum frequency of interest
+103 rperl InOut real Resistance per unit length
+104 cperl InOut real Capacitance per unit length
+105 isperl InOut real Saturation current per length
+106 rsperl InOut real Diode resistance per length
+107 urc In flag Uniform R.C. line model

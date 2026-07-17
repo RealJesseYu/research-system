@@ -1,0 +1,45 @@
+12.3. HYBRID MODELS 241
+Parameter_Name: in_high
+Description: "minimum 1-valued analog input"
+Data_Type: real
+Default_Value: 2.0
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+PARAMETER_TABLE:
+Parameter_Name: rise_delay fall_delay
+Description: "rise delay" "fall delay"
+Data_Type: real real
+Default_Value: 1.0e-9 1.0e-9
+Limits: [1.0e-12 -] [1.0e-12 -]
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+Description: The adc_bridge is one of three node bridge devices designed to allow for
+the ready transfer of analog information to digital values and back again. The
+second device is the dac_bridge (which takes a digital value and maps it to an
+analog one). The adc_bridge takes as input an analog value from an analog node.
+This value by definition may be in the form of a voltage, or a current. If the input
+value is less than or equal to in_low, then a digital output value of ' 0' is generated.
+If the input is greater than or equal to in_high, a digital output value of '1' is
+generated. If neither of these is true, then a digital 'UNKNOWN' value is output.
+Note that unlike the case of the dac_bridge, no ramping time or delay is associated
+with the adc_bridge. Rather, the continuous ramping of the input value provides
+for any associated delays in the digitized signal.
+Example SPICE Usage:
+abridge2 [1] [8] adc_buff
+.model adc_buff adc_bridge(in_low = 0.3 in_high = 3.5)
+12.3.3 Bidirectional Analog/Digital Node Bridge
+NAME_TABLE:
+C_Function_Name: cm_bidi_bridge
+Spice_Model_Name: bidi_bridge
+Description: "bidirectional digital/analog node bridge"
+PORT_TABLE:
+Port_Name: a d
+Description: "analog" "digital in/out"
+Direction: inout inout
+Default_Type: g d
+Allowed_Types: [g, gd] [d]
+Vector: yes yes
+Vector_Bounds: [1 -] [1 -]

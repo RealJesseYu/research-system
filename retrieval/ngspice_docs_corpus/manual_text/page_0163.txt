@@ -1,0 +1,27 @@
+11.2. MOSFET MODELS (NMOS/PMOS) 163
+Level Name Model Version Developer References Notes
+1 MOS1 Shichman-Hodges - Berkeley This is the classical quadratic model.
+2 MOS2 Grove-Frohman - Berkeley Described in [2]
+3 MOS3 Berkeley A semi-empirical model (see [1])
+4 BSIM1 Berkeley Described in [3]
+5 BSIM2 Berkeley Described in [5]
+6 MOS6 Berkeley Described in [2]
+9 MOS9 Alan Gillespie
+8, 49 BSIM3v0 3.0 Berkeley extensions by Alan Gillespie
+8, 49 BSIM3v1 3.1 Berkeley extensions by Serban Popescu
+8, 49 BSIM3v32 3.2 - 3.2.4 Berkeley Multi version code
+8, 49 BSIM3 3.3.0 Berkeley Described in [13]
+10, 58 B4SOI 4.3.1 Berkeley
+14, 54 BSIM4v5 4.0 - 4.5 Berkeley Multi version code
+14, 54 BSIM4v6 4.6.2 Berkeley
+14, 54 BSIM4v7 4.7.0 Berkeley
+14, 54 BSIM4 4.8.2 Berkeley
+55 B3SOIFD Berkeley
+56 B3SOIDD Berkeley
+57 B3SOIPD Berkeley
+60 STAG SOI3 Southampton
+68 HiSIM2 2.8.0 Hiroshima
+73 HiSIM_HV 1.2.4/2.2.0 Hiroshima High Voltage Version for LDMOS
+OSDI see 13.2 With its OSDI interface all MOS models written in Verilog-A and compiled with OpenV AFare available
+Examples: BSIMBULK, BSIM-CMG, BSIM-IMG, PSP, HiSIM (see V A-Models).
+Table 11.1: MOSFET model summary

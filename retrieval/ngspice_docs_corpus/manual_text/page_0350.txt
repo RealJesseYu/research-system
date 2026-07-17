@@ -1,0 +1,37 @@
+350 CHAPTER 16. STARTING NGSPICE
+16.6 User defined configuration file .spiceinit
+In addition to spinit you may define a (personal) file .spiceinit and put it into the current
+directory or in your home directory. The typical search sequence for .spiceinit is: user
+provided directory (in env. variable SPICE_USERINIT_DIR), current directory, HOME
+(Linux) and then USERPROFILE (Windows). HOME (Linux, Cygwin, macOS) may
+point to /home/<User name> , or /root if you are acting as admin. USERPROFILE
+(MS Windows) is typically C:\Users\<User name> . To find out what directory HOME
+or USERPROFILE are pointing to, enter the commands set or export into a console
+window and search for the token.
+.spiceinit will be read in and executed after spinit, but before any other input file is read. It
+may contain further scripts, set variables, or issue commands from Chapt. 17.5 to override
+commands given in spinit. For example set filetype=ascii will yield ASCII output in
+the output data file (rawfile), instead of the compact binary format that is used by default.
+set ngdebug will yield a lot of additional debug output. Any other contents of the script,
+e.g. plotting preferences, may be included here also. If the command line option -n is
+used upon ngspice start up, this file will be ignored.
+.spiceinit for simulating IC designs with MOS transistor data from PDKs may contain:
+* . spiceinit for use with Skywater PDK and ngspice KLU
+set ngbehavior = hsa ; set c o m p a t i b i l i t y for reading
+; PDK libs
+set sk ywa ter pdk ; omit some time consuming checks
+; during lib loading
+set n g _ n o m o d c h e c k ; don ' t check the model parameters
+option noinit ; don ' t print operating point data
+option klu ; select KLU as matrix solver
+optran 0 0 0 100 p 2 n 0 ; don ' t use dc operating point ,
+; but transient op
+set num_threads=8 should be set to the number of physical cores of the computer in use
+(here for example 8 cores), set ngbehavior=hsa will ensure HSPICE compatibility with
+some important and essential tweaks for the PDK, set skywaterpdk suppresses time
+consuming checks during lib loading, assuming 4 nodes for a MOS device and adequately
+labled parameters. set ng_nomodcheck will suppress some unwanted warnings, option
+noinit will suppress the (often lengthy) printing of the operating point results. option
+klu often will yield simulation speed up by a factor of 2 or more. optran ... will skip
+usual operating point iterations, which for very large circuits consume much time, and
+replace them by a time integrated operating point estimation.

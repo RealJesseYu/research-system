@@ -1,0 +1,40 @@
+42 CHAPTER 1. INTRODUCTION
+• MOSFETs (levels 1, 2, 3, 9, and BSIM1),
+• MESFET (level 1).
+All linear devices are automatically supported by distortion analysis. If there are switches
+present in the circuit, the analysis continues to be accurate provided the switches do not
+change state under the small excitations used for distortion calculations.
+If a device model does not support direct small signal distortion analysis, please use the
+Fourier of FFT statements and evaluate the output per scripting.
+1.2.6 Sensitivity Analysis
+Ngspice can calculate either the DC operating-point sensitivity or the AC small-signal
+sensitivity of an output variable with respect to all circuit variables, including model
+parameters. Ngspice calculates the difference in an output variable (either a node voltage
+or a branch current) by perturbing each parameter of each device independently. Since the
+method is a numerical approximation, the results may demonstrate second order effects
+in highly sensitive parameters, or may fail to show very low but non-zero sensitivity.
+Since each variable is perturbed by a small fraction of its value, zero-valued parameters
+are not analyzed, reducing what is usually a very large amount of data.
+1.2.7 Noise Analysis
+Noise analysis in ngspice measures the device-generated noise for a given circuit. When
+provided with an input source and an output port, the analysis calculates the noise con-
+tributions of each device, and each noise generator within each device, as measured as a
+voltage at the output port. Noise analysis also calculates the equivalent input noise of
+the circuit, based on the output noise. This is done for every frequency point in a spec-
+ified range - the calculated value of the noise corresponds to the spectral density of the
+circuit variable viewed as a stationary Gaussian stochastic process. After calculating the
+spectral densities, noise analysis integrates these values over the specified frequency range
+to arrive at the total noise voltage and current over this frequency range. The calculated
+values correspond to the variance of the circuit variables viewed as stationary Gaussian
+processes.
+1.2.8 Periodic Steady State Analysis
+Experimental code.
+PSS is a radio frequency periodical large-signal dedicated analysis. The implementation
+is based on a time domain shooting method that make use of transient analysis. As
+it is in early development stage, PSS performs analysis only on autonomous circuits,
+meaning that it is able to predict fundamental frequency and (harmonic) amplitude(s)
+for oscillators, VCOs, etc.. The algorithm is based on a search of the minimum error
+vector defined as the difference of RHS vectors between two occurrences of an estimated
+period. Convergence is reached when the mean of this error vector decreases below a given
+threshold parameter. Results of PSS are the basis of periodical large-signal analyses like
+PAC or PNoise.

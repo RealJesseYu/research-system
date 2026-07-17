@@ -1,0 +1,40 @@
+1.2. SUPPORTED ANALYSES 39
+CIDER provides accurate, one- and two-dimensional numerical device models based on
+the solution of Poisson's equation, and the electron and hole current-continuity equa-
+tions. CIDER incorporates many of the same basic physical models found in the the
+Stanford two-dimensional device simulator PISCES [PINT85]. Input to CIDER consists
+of a SPICE-like description of the circuit and its compact models, and PISCES-like de-
+scriptions of the structures of numerically modeled devices. As a result, CIDER should
+seem familiar to designers already accustomed to these two tools.
+The CIDER input format has great flexibility and allows increased access to physical
+model parameters. New physical models have been added to allow simulation of state-
+of-the-art devices. These include transverse field mobility degradation [GATE90] that
+is important in scaled-down MOSFETs and a polysilicon model for poly-emitter bipolar
+transistors. Temperature dependence has been included for most physical models over
+the range from -50 °C to 150 °C. The numerical models can be used to simulate all the
+basic types of semiconductor devices: resistors, MOS capacitors, diodes, BJTs, JFETs
+and MOSFETs. BJTs and JFETs can be modeled with or without a substrate contact.
+Support has been added for the management of device internal states. Post-processing
+of device states can be performed using the control language user interface of ngspice.
+Previously computed states can be loaded into the program to provide accurate initial
+guesses for subsequent analyses.
+Details of the basic semiconductor equations and the physical models used by CIDER are
+not provided in this manual. Unfortunately, no other single source exists that describes
+all of the relevant background material. Comprehensive reviews of device simulation can
+be found in [PINT90] and the book [SELB84]. CODECS (predecessor to CIDER) and its
+inversion-layer mobility model are described in [MAYA88] and [LGATE90], respectively.
+PISCES and its models are described in [PINT85]. Temperature dependencies for the
+PISCES models used by CIDER are available in [SOLL90].
+For Linux users the cooperation of the TCAD software GSS with ngspice might be of
+interest, see https://ngspice.sourceforge.io/gss.html. This project is no longer maintained
+however, but has moved into the Genius simulator, still available as open source cogenda
+genius.
+1.2 Supported Analyses
+The ngspice simulator supports the following different types of analysis:
+1. DC Analysis (Operating Point and DC Sweep)
+2. AC Small-Signal Analysis
+3. Transient Analysis
+4. Pole-Zero Analysis
+5. Small-Signal Distortion Analysis
+6. Sensitivity Analysis
+7. Noise Analysis

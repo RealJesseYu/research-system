@@ -1,0 +1,31 @@
+658 CHAPTER 30. CIDER USER'S MANUAL
+30.19.3 EXAMPLES
+A numerical MOSFET with a gate width of 5 µm and length of 1 µm is described below.
+However, the model can only be used for l µm length devices, so the length parameter is
+redundant. The device is initially biased near its threshold by taking an initial state from
+the file NM1.vth.
+M1 1 2 3 4 M_NMOS_1UM W =5 um L =1 um IC . FILE =" NM1 . vth "
+. MODEL MNMOS_1UM NUMOS
++ * D esc rip tio n of a lum device
++ ...
+This example saves the definite admittance matrix of the previous MOSFET where the
+source terminal (3) is used as the reference. (The definite admittance matrix is formed
+by deleting the third row and column from the indefinite admittance matrix.)
+. SAVE @m1 [ y11 ] @m1 [ y12 ] @ml [ y14 ]
+. SAVE @m1 [ y21 ] @m1 [ y22 ] @ml [ y24 ]
+. SAVE @m1 [ y41 ] @m1 [ y42 ] @ml [ y44 ]
+Bipolar transistors are usually specified in terms of their area relative to a unit device.
+The following example creates a unit-sized device:
+MQ1 NC NB NE NS N_BJT
+. MODEL M_BJT NUMOS LEVEL =2
++ options bipolar defw =5 um
++ ...
+30.19.4 SEE ALSO
+options, output
+30.20 2D contour plots
+2D contour plots of CIDER simulation results are available via Gnuplot (see 18.7.2).
+30.21 Cider examples
+The original Cider User's manual , in its Appendix A, lists a lot of examples, starting at
+page 226. We do not reproduce these pages here, but ask you to refer to the original
+document. If you experience any difficulties downloading it, please send a note to the
+ngspice users' mailing list .

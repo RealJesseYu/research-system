@@ -1,0 +1,11 @@
+110CHAPTER 5. NON-LINEAR DEPENDENT SOURCES (BEHA VIORAL SOURCES)
+The same is possible for voltage sources:
+Example: pwl_voltage
+Blimit b 0 V = pwl ( v (1) , -4 ,0 , -2 ,2 , 2 ,4 , 4 ,5 , 6 ,5)
+Monotony of the independent variable in the pwl definition is checked - non-monotonic x
+entries will stop the program execution. v(1) may be replaced by a controlling current
+source, or it may be replaced by time (for transient simulations). v(1) may also be
+replaced by an expression, e.g. −2 ∗ i(Vin). The value pairs may also be parameters, and
+have to be predefined by a .param statement. An example for the pwl function using all
+of these options is shown below.
+Figure 5.1: pwl (piece-wise linear) B source

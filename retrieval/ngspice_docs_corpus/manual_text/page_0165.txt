@@ -1,0 +1,51 @@
+11.2. MOSFET MODELS (NMOS/PMOS) 165
+as the mj and mjsw power of junction voltage respectively, and are determined by the
+parameters cbd, cbs, cj, cjsw, mj, mjsw and pb.
+Charge storage effects are modeled by the piecewise linear voltages-dependent capacitance
+model proposed by Meyer. The thin-oxide charge-storage effects are treated slightly differ-
+ent for the level 1 model. These voltage-dependent capacitances are included only if tox
+is specified in the input description and they are represented using Meyer's formulation.
+There is some overlap among the parameters describing the junctions, e.g. the reverse
+current can be input either as is (in A) or as js (in A/m2). Whereas the first is an absolute
+value the second is multiplied by ad and as to give the reverse current of the drain and
+source junctions respectively.
+This methodology has been chosen since there is no sense in relating always junction
+characteristics with ad and as entered on the device line; the areas can be defaulted. The
+same idea applies also to the zero-bias junction capacitances cbd and cbs (in F) on one
+hand, and cj (in F/m2) on the other.
+The parasitic drain and source series resistance can be expressed as either rd and rs (in
+ohms) or rsh (in ohms/sq.), the latter being multiplied by the number of squares nrd
+and nrs input on the device line.
+MOS level 1, 2, 3 and 6 parameters
+Name Parameter Units Default Example
+LEVEL Model index - 1
+VTO Zero-bias threshold
+voltage ( VT 0)
+V 0.0 1.0
+KP Transconductance
+parameter
+A/V 2 2.0e-5 3.1e-5
+GAMMA Bulk threshold parameter
+√
+V 0.0 0.37
+PHI Surface potential (U) V 0.6 0.65
+LAMBDA Channel length
+modulation (MOS1 and
+MOS2 only) ( λ)
+1/V 0.0 0.02
+RD Drain ohmic resistance Ω 0.0 1.0
+RS Source ohmic resistance Ω 0.0 1.0
+CBD Zero-bias B-D junction
+capacitance
+F 0.0 20fF
+CBS Zero-bias B-S junction
+capacitance
+F 0.0 20fF
+IS Bulk junction saturation
+current ( IS)
+A 1.0e-14 1.0e-15
+PB Bulk junction potential V 0.8 0.87
+CGSO Gate-source overlap
+capacitance per meter
+channel width
+F/m 0.0 4.0e-11

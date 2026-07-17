@@ -1,0 +1,43 @@
+566 CHAPTER 27. EXAMPLE CIRCUITS
+27.1 Amplifier with XSPICE model 'gain'
+The circuit, as has been shown in Fig. 26.2, is extended here by using the XSPICE code
+model gain. The ngspice circuit description for this circuit is shown below.
+Example:
+A transistor amplifier circuit
+*
+. tran 1e -5 2e -3
+*
+vin 1 0 0.0 ac 1.0 sin (0 1 1 k )
+*
+ccouple 1 in 10 uF
+rzin in 0 19.35 k
+*
+aamp in aout gain_block
+. model gain_block gain ( gain = -3.9 out_offset = 7.003)
+*
+rzout aout coll 3.9 k
+rbig coll 0 1 e12
+*
+. end
+Notice the component 'aamp' . This is an XSPICE code model device. All XSPICE code
+model devices begin with the letter 'a' to distinguish them from other ngspice devices.
+The actual code model used is referenced through a user-defined identifier at the end
+of the line - in this case gain_block. The type of code model used and its parameters
+appear on the associated .model card. In this example, the gain has been specified as
+-3.9 to approximate the gain of the transistor amplifier, and the output offset (out_offset)
+has been set to 7.003 according to the DC bias point information obtained from the DC
+analysis in Example 1 from Chapter 26.
+Notice also that input and output impedances of the one-transistor amplifier circuit are
+modeled with the resistors 'rzin' and 'rzout', since the gain code model defaults to an
+ideal voltage-input, voltage-output device with infinite input impedance and zero output
+impedance.
+Lastly, note that a special resistor 'rbig' with value '1e12' has been included at the opposite
+side of the output impedance resistor 'rzout' . This resistor is required by ngspice's matrix
+solution formula. Without it, the resistor 'rzout' would have only one connection to the
+circuit, and an ill-formed matrix could result. One way to avoid such problems without
+adding resistors explicitly is to use the ngspice 'rshunt' option described in this document
+under ngspice Syntax Extensions/General Enhancements.
+To simulate this circuit, copy the file xspice_c2.cir from the directory /src/xspice/ex-
+amples into a directory in your account.
+$ cp /examples/xspice/xspice_c2.cir xspice_c2.cir
+Invoke the simulator on this circuit:

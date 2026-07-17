@@ -1,0 +1,34 @@
+330 CHAPTER 15. ANALYSES AND OUTPUT CONTROL (BATCH MODE)
+and dissipated power (Diodes, and BJTs), or the resulting temperature (Diodes) exceed
+limits that are specified by model parameters. All these parameters are positive with
+default value of infinity. For the bipolar VBIC model ( 15.5.3.3) .option warn=2 will add
+additional operating point info
+The check is executed after Newton-Raphson iteration is finished i.e. in transient analysis
+in each time step. The user can specify an additional .option maxwarns (default: 5) to
+limit the count of messages.
+The output goes on default to stdout or alternatively to a file specified by command line
+option --soa-log=filename.
+To achive SOA checking, add some or all of these parameters with suitable limit values
+to the .model line of the respective device.
+15.5.1 Resistor and Capacitor SOA model parameters
+1. Bv_max: If |Vr| or |Vc| exceed Bv_max, SOA warning is issued.
+15.5.2 Diode SOA model parameters
+1. Bv_max: If |Vj| exceeds Bv_max, SOA warning is issued.
+2. Fv_max: If |Vf| exceeds Fv_max, SOA warning is issued.
+3. Id_max: If |Id| exceeds Id_max, SOA warning is issued.
+4. Pd_max: If power exceeds Pd_max, SOA warning is issued.
+5. Te_max: If temperature exceeds Te_max, SOA warning is issued.
+6. rth0: Thermal resistance between junction and ambient.
+7. tnom: Nominal temperature where all parameters have been measured at.
+Three SOA modes are available. All modes check for Bv_max, Vf_max, and Id_max.
+If self-heating ( 7.3) is switched on, and Te_max, tnom and rth0 are given, then a der-
+ating for the maximam allowed power dissipation is calculated, and power and current
+temperature are checked against their max. allowed values.
+pdmax = pdmaxmod − (tempcurr − tnom)/rth0
+If self-heating is switched off, and rth0 and tnom are given, then a static max. power
+derating is calculated, taking the device temperature (set by its default value 27 °C, or the
+global .temp value, or the device specific instance parameter temp) into account. The
+reference temperature is tnom.
+pdmax = pdmaxmod − (temp − tnom)/rth0
+If rth0 or tnom are not given, no derating is calculated, the power disspation is simply
+checked against Pd_max.

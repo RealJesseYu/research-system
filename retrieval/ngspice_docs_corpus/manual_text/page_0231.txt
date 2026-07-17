@@ -1,0 +1,47 @@
+12.2. ANALOG MODELS 231
+Default_Value: 3 0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: offset gain
+Description: "offset" "gain"
+Data_Type: real real
+Default_Value: 0.0 1.0
+Limits: - -
+Vector: no no
+Vector_Bounds: - -
+Null_Allowed: yes yes
+PARAMETER_TABLE:
+Parameter_Name: file
+Description: "file name"
+Data_Type: string
+Default_Value: "2D-table-model.txt"
+Limits: -
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes
+Description: The 2D table model reads a matrix from file " file name " (default 2D-
+table-model.txt) which has x columns and y rows. Each x,y pair, addressed by
+inx and iny, yields an output value out. Linear interpolation is used for out, eno
+(essentially non oscillating) interpolation for its derivatives. Parameters offset (de-
+fault 0) and gain (default 1) modify the output table values according to of f set+
+gain out . Parameter order (default 3) influences the calculation of the derivatives.
+Parameter verbose (default 0) yields test outputs, if set to 1 or 2. The table format
+is shown below. Be careful to include the data point inx = 0, iny = 0 into your
+table, because ngspice uses these during .OP computations. The x horizontal and y
+vertical address values have to increase monotonically.
+Table Example:
+* table source
+* number of columns (x)
+8
+* number of rows (y)
+9
+* x horizontal (column) address values (real numbers)
+-1 0 1 2 3 4 5 6
+* y vertical (row) address values (real numbers)
+-0.6 0 0.6 1.2 1.8 2.4 3.0 3.6 4.2
+* table with output data (horizontally addressed by x, vertically by y)
+1 0.9 0.8 0.7 0.6 0.5 0.4 0.3
+1 1 1 1 1 1 1 1

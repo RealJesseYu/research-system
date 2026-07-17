@@ -1,0 +1,43 @@
+31.6. MOSFETS 703
+31.6.6 BSIM1 - Berkeley Short Channel IGFET Model
+31.6.6.1 BSIM1 instance parameters
+# Name Direction Type Description
+2 l InOut real Length
+1 w InOut real Width
+14 m InOut real Parallel Multiplier
+4 ad InOut real Drain area
+3 as InOut real Source area
+6 pd InOut real Drain perimeter
+5 ps InOut real Source perimeter
+8 nrd InOut real Number of squares in drain
+7 nrs InOut real Number of squares in source
+9 off InOut flag Device is initially off
+11 vds InOut real Initial D-S voltage
+12 vgs InOut real Initial G-S voltage
+10 vbs InOut real Initial B-S voltage
+13 ic In unknown vector Vector of DS,GS,BS initial voltages
+31.6.6.2 BSIM1 Model Parameters
+# Name Direction Type Description
+101 vfb InOut real Flat band voltage
+102 lvfb InOut real Length dependence of vfb
+103 wvfb InOut real Width dependence of vfb
+104 phi InOut real Strong inversion surface potential
+105 lphi InOut real Length dependence of phi
+106 wphi InOut real Width dependence of phi
+107 k1 InOut real Bulk effect coefficient 1
+108 lk1 InOut real Length dependence of k1
+109 wk1 InOut real Width dependence of k1
+110 k2 InOut real Bulk effect coefficient 2
+111 lk2 InOut real Length dependence of k2
+112 wk2 InOut real Width dependence of k2
+113 eta InOut real VDS dependence of threshold voltage
+114 leta InOut real Length dependence of eta
+115 weta InOut real Width dependence of eta
+116 x2e InOut real VBS dependence of eta
+117 lx2e InOut real Length dependence of x2e
+118 wx2e InOut real Width dependence of x2e
+119 x3e InOut real VDS dependence of eta
+120 lx3e InOut real Length dependence of x3e
+121 wx3e InOut real Width dependence of x3e
+122 dl InOut real Channel length reduction in um
+123 dw InOut real Channel width reduction in um

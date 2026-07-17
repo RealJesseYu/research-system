@@ -1,0 +1,64 @@
+136 CHAPTER 7. DIODES
+Cdeplsw =
+(
+CJP ef f(1 − VD
+PHP )−MJSW, if V D < FCS · PHP
+CJP ef f
+1−FCS(1+MJSW)+MJSW· VD
+PHP
+(1−FCS)(1+MJSW) , otherwise.
+(7.5)
+Temperature dependence
+The temperature affects many of the parameters in the equations above, and the follow-
+ing equations show how. One of the most significant parameters that varies with the
+temperature for a semiconductor is the band-gap energy:
+EGnom = 1.16 − 7.02e−4 TNOM2
+TNOM + 1108.0 (7.6)
+EG(T ) = 1 .16 − 7.02e−4 T 2
+TNOM + 1108.0 (7.7)
+The leakage current temperature's dependence is:
+IS (T ) = IS e
+logf actor
+N (7.8)
+JSW (T ) = JSW e
+logf actor
+N (7.9)
+where 'logfactor' is defined as
+logf actor = EG
+Vt(TNOM) − EG
+Vt(T ) + XTI ln( T
+TNOM ) (7.10)
+The contact potentials (bottom-wall an sidewall) temperature dependence is:
+V J (T ) = VJ( T
+TNOM ) − Vt(T )
+
+3 · ln( T
+TNOM ) + EGnom
+Vt(TNOM) − EG(T )
+Vt(T )
+
+(7.11)
+P HP (T ) = PHP( T
+TNOM ) − Vt(T )
+
+3 · ln( T
+TNOM ) + EGnom
+Vt(TNOM) − EG(T )
+Vt(T )
+
+(7.12)
+The depletion capacitances temperature dependence is:
+CJ (T ) = CJ
+
+1 + MJ(4.0e−4(T − TNOM) − V J (T )
+VJ + 1)
+
+(7.13)
+CJSW (T ) = CJSW
+
+1 + MJSW(4.0e−4(T − TNOM) − P HP (T )
+PHP + 1)
+
+(7.14)
+The transit time temperature dependence is:
+T T(T ) = TT(1 + TTT1( T − TNOM) + TTT2(T − TNOM)2) (7.15)

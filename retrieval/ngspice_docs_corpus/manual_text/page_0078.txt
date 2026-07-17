@@ -1,0 +1,40 @@
+78 CHAPTER 3. CIRCUIT ELEMENTS AND MODELS
+3.3.2 Semiconductor Resistors
+General form:
+RXXXXXXX n + n - < value > < mname > <l = length > <w = width >
++ < temp = val > < dtemp = val > <m = val > < ac = val > < scale = val >
++ < noisy = 0|1 >
+Examples:
+RLOAD 2 10 10 K
+RMOD 3 7 RMODEL L =10 u W =1 u
+This is the more general form of the resistor presented before ( 3.3.1) and allows the
+modeling of temperature effects and for the calculation of the actual resistance value from
+strictly geometric information and the specifications of the process. If value is specified,
+it overrides the geometric information and defines the resistance. If mname is specified,
+then the resistance may be calculated from the process information in the model mname
+and the given length and width. If value is not specified, then mname and length must
+be specified. If width is not specified, then it is taken from the default width given in
+the model.
+The (optional) temp value is the temperature at which this device is to operate, and
+overrides the temperature specification on the .option control line and the value specified
+in dtemp.
+3.3.3 Semiconductor Resistor Model (R)
+The resistor model consists of process-related device data that allow the resistance to
+be calculated from geometric information and to be corrected for temperature. The
+parameters available are as follows:
+Name Parameter Units Default Example
+TC1 first order temperature coeff. Ω/◦C 0.0 -
+TC2 second order temperature coeff. Ω/◦C2 0.0 -
+RSH sheet resistance Ω/ - 50
+DEFW default width m 1e-6 2e-6
+NARROW narrowing due to side etching m 0.0 1e-7
+SHORT shortening due to side etching m 0.0 1e-7
+TNOM parameter measurement temperature ◦C 27 50
+KF flicker noise coefficient 0.0 1e-25
+AF flicker noise exponent 0.0 1.0
+WF flicker noise width exponent 1.0
+LF flicker noise length exponent 1.0
+EF flicker noise frequency exponent 1.0
+R (RES) default value if element value not given Ω - 1000
+The sheet resistance is used with the narrowing parameter and l and w from the resistor
+device to determine the nominal resistance by the formula:

@@ -1,0 +1,34 @@
+13.3. HOW TO CREATE AND APPLY OPENV AF MODELS 293
+openvaf --help yields more options of the compiler.
+To simplify making suitable *.osdi models for the example netlists provided in ngspice/ex-
+amples/osdi, the appropriate Verilog-A models and short scripts (for Linux and Windows)
+are available for download as V AforOSDI.7zfrom our release directory. The following steps
+are required to compile the shared library models:
+• Expand V AforOSDI.7z into a directory of your choice.
+• Download OpenV AF(Linux or Windows) from and place the executable here in this
+directory.
+• Run the script openvaf-compile-va.bat for MS Windows or openvaf-compile-va.sh
+for Linux
+• Copy the *.osdi files from directory osdilibs to the place where then code models
+(*.cm) are located, typically in lib/ngspice or similar.
+• Edit file ' spinit', typically found in share/ngspice/scripts: Comment out the
+line ' unset osdi_enabled '
+13.3.1.5 Prepare the model parameters
+According to chapter 2.4 the model parameter set for each device model is organized in a
+.model line. This is valid for OSDI models as well. However here the model type takes the
+role to distinguish models from each other, not the level or version parameters found
+in the intrinsic models. A TYPE parameter determines, if NMOS ( TYPE=1) or PMOS
+(TYPE=-1), NPN ( TYPE=1) or PNP ( TYPE=-1) are selected.
+Consider as an example the bsimbulk model. The modeltype is set by the
+module bsimbulk(d, g, s, b, t);
+line of the BSIMBULK.va Verilog-A model file. So one has to search for the module
+name in the *.va file to obtain the modeltype for the .model line and the number of
+nodes (and their meanings) for the instance (or device) line while creating the netlist (see
+next chapter 13.3.1.6).
+General form:
+. model mname modeltype ( pname1 = pval1 pname2 = pval2 ... )
+Examples:
+. model B S I M B U L K _ o s d i _ N bsimbulk TYPE =1 GEOMOD =0 RGEOMOD =0 ...
+So to prepare the .model line, select an appropriate model parameter set, comment out
+the version and level parameters, add the type parameter, and change the modeltype
+to the Verilog-A module name.

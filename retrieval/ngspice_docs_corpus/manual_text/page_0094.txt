@@ -1,0 +1,32 @@
+94 CHAPTER 4. VOLTAGE AND CURRENT SOURCES
+ac simulation. ACMAG is the ac magnitude and ACPHASE is the ac phase. The voltage or
+current source then will become a reference for all nodes. All small signal node amplitude
+values obtained after the simulation have been divided by the reference ACMAG. A typcal
+ACMAG value thus may be unity. Any measured phase has been shifted by ACPHASE. If
+ACPHASE is omitted, a value of zero is assumed. If the source is not an ac small-signal
+input, the keyword AC and the ac values are to be avoided.
+DISTOF1 and DISTOF2 are the keywords that specify that the independent source has
+distortion inputs at the frequencies F1 and F2 respectively (see the description of the
+.DISTO control line). The keywords may be followed by an optional magnitude and
+phase. The default values of the magnitude and phase are 1.0 and 0.0 respectively.
+Any independent source can be assigned a time-dependent value for transient analysis. If
+a source is assigned a time-dependent value, the time-zero value is used for dc analysis.
+There are nine independent source functions:
+• pulse,
+• exponential,
+• sinusoidal,
+• piece-wise linear,
+• single-frequency FM,
+• AM,
+• transient noise,
+• random voltages or currents,
+• external data (only with ngspice shared library),
+• and RF port
+If parameters other than source values are omitted or set to zero, the default values shown
+are assumed. TSTEP is the printing increment and TSTOP is the final time - see the .TRAN
+control line for an explanation.
+4.1.1 Pulse
+General form:
+PULSE ( V1 V2 TD TR TF PW PER NP )
+Examples:
+VIN 3 0 PULSE ( -1 1 2 NS 2 NS 2 NS 50 NS 100 NS 5)

@@ -1,0 +1,17 @@
+16.14. COMPATIBILITY 361
+a1 %v(11) %gd(2 3) sw
+.MODEL SW aswitch(cntl_off=0.0 cntl_on=5.0 r_off=1e5
++ r_on=0.1 log=TRUE)
+The XSPICE option has to be enabled.
+16.14.4 Controls and commands
+16.14.4.1 .lib
+The ngspice .lib command (see 2.8) requires two parameters, a file name followed by a
+library name. If no library name is given, the line
+.lib filename
+should be replaced by
+.inc filename
+Alternatively, the compatibility mode ( 16.14.1) may be set to 'ps'.
+16.14.4.2 .step
+Repeated analysis in ngspice is offered by a short script inside of a .control section (see
+Chapt. 17.8.8) added to the input file. A simple application (multiple dc sweeps) is shown
+below.

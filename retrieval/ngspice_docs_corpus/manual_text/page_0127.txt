@@ -1,0 +1,16 @@
+6.4. KSPICE LOSSY TRANSMISSION LINES 127
+ni1 ... nix are the nodes at port 1 with gnd1; no1 ... nox are the nodes at port 2
+with gnd2. The optional instance parameter len is the length of the line and may be
+expressed in multiples of [ unit]. Typically unit is given in meters. len will override the
+model parameter length for the specific instance only.
+The CPL model takes a number of parameters:
+Name Parameter Units/Type Default Example
+R resistance/length Ω/unit 0.0 0.2
+L inductance/length H/unit 0.0 9.13e-9
+G conductance/length mhos/unit 0.0 0.0
+C capacitance/length F/unit 0.0 3.65e-12
+LENGTH length of line unit no default 1.0
+All RLGC parameters are given in Maxwell matrix form. For the R and G matrices the
+diagonal elements must be specified, for L and C matrices the lower or upper triangular
+elements must specified. The parameter LENGTH is a scalar and is mandatory. For
+transient simulation only.

@@ -1,0 +1,34 @@
+28.8. USER-DEFINED NODE DEFINITION FILE 605
+Complex_t x; /* The first operand of x + y */
+Complex_t y; /* The second operand of x + y */
+Complex_t cm_complex_sub (x, y)
+Complex_t x; /* The first operand of x - y (minuend) */
+Complex_t y; /* The second operand of x - y (subtrahend) */
+Complex_t cm_complex_mult (x, y)
+Complex_t x; /* The first operand of x * y */
+Complex_t y; /* The second operand of x * y */
+Complex_t cm_complex_div (x, y)
+Complex_t x; /* The first operand of x / y (dividend) */
+Complex_t y; /* The second operand of x / y (divisor) */
+cm_complex_set() takes as input two doubles, and converts these to a Complex_t. The
+first double is taken as the real part, and the second is taken as the imaginary part of the
+resulting complex value.
+cm_complex_add(), cm_complex_sub(), cm_complex_mult(), and cm_complex_div()
+each take two complex values as inputs and return the result of a complex addition,
+subtraction, multiplication, or division, respectively.
+28.8 User-Defined Node Definition File
+The User-Defined Node Definition File ( udnfunc.c) defines the C functions that implement
+basic operations on user-defined nodes such as data structure creation, initialization,
+copying, and comparison. Unlike the Model Definition File that uses the Code Model
+Preprocessor to translate Accessor Macros, the User-Defined Node Definition file is a
+pure C language file. This file uses macros to isolate you from data structure definitions,
+but the macros are defined in a standard header file ( EVTudn.h), and translations are
+performed by the standard C Preprocessor.
+When you create a directory for a new User-Defined Node, e.g.
+/ngspice/src/xspice/icm/xtraevt/new_type/, add a new User-Defined Node Defini-
+tion File udnfunc.c (see the example in Chapt. 28.8.3), and place a structure of type
+'Evt_Udn_Info_t' at its bottom.
+This structure contains the type name for the node, a description string, and pointers to
+each of the functions that define the node. This structure is complete except for a text
+string that describes the node type. This string is stubbed out and may be edited by you
+if desired.

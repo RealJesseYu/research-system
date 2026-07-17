@@ -1,0 +1,34 @@
+Chapter 17
+Interactive Interpreter
+17.1 Introduction
+The simulation flow in ngspice (input, simulation, output) may be controlled by dot
+commands (see Chapt. 15 and 16.4.1) in batch mode. There is, however, a much more
+powerful control scheme available in ngspice, traditionally coined 'Interactive Interpreter',
+but being much more than just that. In fact there are several ways to use this feature,
+truly interactively by typing commands to the input, but also running command sequences
+as scripts or as part of your input deck in a quasi batch mode.
+You may type in expressions, functions ( 17.2) or commands ( 17.5) into the input console
+to elaborate on data already achieved from the interactive simulation session.
+Sequences of commands, functions and control structures ( 17.6) may be assembled as a
+script ( 17.8) into a file, and then activated by just typing the file name into the console
+input of an interactive ngspice session.
+Finally, and most useful, is to add a script to the input file, in addition the the netlist and
+dot commands. This is achieved by enclosing the script into .control ... .endc (see
+16.4.3, and 17.8.8 for an example). This feature enables a wealth of control options. You
+may set internal ( 17.7) and other variables, start a simulation, evaluate the simulation
+output, start a new simulation based on these data, and finally make use of many options
+for outputting the data (graphically or into output files).
+Historical note: The final releases of Berkeley Spice introduced a command shell and
+scripting possibilities. The former releases were not interactive. The choice for the script-
+ing language was an early version of 'csh', the C-shell, which was en vogue back then as an
+improvement over the ubiquitous Bourne Shell. Berkeley Spice incorporated a modified
+csh source code that, instead of invoking the unix 'exec' system call, executed internal
+SPICE C subroutines. Apart from bug fixes, this is still how ngspice works.
+One important difference from C-shell is that ngspice does not support multiple commands
+on one line, separated by ';' . In ngspice, semi-colons introduce a comment.
+The csh-like scripting language is active in .control sections. It works on 'strings', and
+does string substitution of 'environment' variables. You see the csh at work in ngspice
+with set foo = "bar"; set baz = "bar$foo" , and in if, repeat, for, ... constructs.
+However, ngspice processes mainly numerical data, and support for this was not avail-
+able in the c-sh implementation. Therefore, Berkeley implemented an additional type of
+369

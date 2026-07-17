@@ -1,0 +1,44 @@
+8.2. BJT MODELS (NPN/PNP) 145
+TMJC2 2nd order temperature coefficient
+for MJC
+1/◦C2 0.0 1e-5
+Quasi-Saturation Model extension
+By defining parameter RCO, VO, GAMMA and QCO an extension of the Gummel-
+Poon model will be switched on to model bipolar junction transistors that exhibit quasi-
+saturation effects. A description can be found in [ 24].
+Name Parameters Units Default Example Scale factor
+RCO Epitaxial region resistance Ω 0 0.45 1/area
+VO Carrier mobility knee
+voltage
+V 10 4.16
+GAMMA Epitaxial region doping
+factor
+− 1e-11 1.0e-15
+QCO Epitaxial region charge
+factor
+C 0.0 3.4E-11
+VG Energy gap QS temp.
+depend.
+V 1.206 1.2
+CN Temperature exponent of
+RCI
+2.42 NPN 2.2 PNP
+D Temperature exponent of
+VO
+.87 NPN .52 PNP
+The Collector current output characteristic shows a special moderate transition in the
+BJT saturation region, see figure 8.1. Furthermore DC current gain and the unity gain
+frequency fT falls sharply.
+8.2.2 VBIC Model
+The VBIC model is an extended development of the Standard Gummel-Poon (SGP)
+model with the focus of integrated bipolar transistors in today's modern semiconductor
+technologies. With the implemented modified Quasi-Saturation model from Kull and
+Nagel it is also possible to model the special output characteristic of discrete switching
+and RF transistors. It is a improved alternative to the SGP model for silicon, SiGe and
+III-V HBT devices.
+VBIC Capabilities compared to Standard Gummel-Poon Model:
+• Integrated substrate transistor for parasitic devices in integrated processes
+• Weak avalanche and base-emitter breakdown model
+• Improved Early effect modeling
+• Physical separation of Ic and Ib
+• Improved depletion capacitance model

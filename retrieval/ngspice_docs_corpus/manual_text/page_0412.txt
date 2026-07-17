@@ -1,0 +1,36 @@
+412 CHAPTER 17. INTERACTIVE INTERPRETER
+device data ( 31.1) are accepted as @dev[param]. The syntax is identical to the .save
+command ( 15.6.1).
+Note: In the .control .... .endc section save must occur before the run or tran
+command to become effective.
+If a node has been mentioned in a save command, it appears in the working plot after
+a run has completed, or in the rawfile written by the write ( 17.5.104) command. For
+backward compatibility, if there are no save commands given, all outputs are saved. If
+you want to trace (17.5.94) or plot (17.5.53) a node, you have to save it explicitly, except
+for all given or no save command at all.
+When the keyword all appears in the save command, all node voltages, voltage source
+currents and inductor currents are saved in addition to any other vectors listed.
+Save voltage and current:
+save vd_node vs # branch v ( vs_node ) i ( vs2 )
+Save allows storing and later access of internal device parameters. e.g. in a command
+like
+Save internal parameters:
+save all @mn1 [ gm ]
+saves all standard analysis output data plus gm of transistor mn1 to internal memory (see
+also 31.1).
+save may store data from nodes or devices residing inside of a subcircuit:
+Save voltage on node 3 (top level), node 8 (from inside subcircuit x2) and current through
+vmeas (from subcircuit x1):
+save 3 x1 . x2 . x1 . x2 .8 v . x1 . x1 . x1 . vmeas # branch
+Save internal parameters within subcircuit:
+save @m . xmos3 . mn1 [ gm ]
+Use commands listing expand ( 17.5.44, before the simulation) or display (17.5.22,
+after simulation) to obtain a list of all nodes and currents available. Please see Chapt. 31
+for an explanation of the syntax for internal parameters.
+Entering several save lines in a single .control section will accumulate the nodes and
+parameters to be saved. If you want to exclude a node, you have to get its number by
+calling status (17.5.86) and then calling delete number (17.5.18).
+Don't save anything:
+save none
+Useful if shared ngspice library is used and data are immediately transferred to the caller
+via the shared ngspice interface.

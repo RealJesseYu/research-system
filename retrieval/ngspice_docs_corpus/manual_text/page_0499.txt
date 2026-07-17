@@ -1,0 +1,27 @@
+Chapter 20
+TCLspice
+Spice historically comes as a simulation engine with a Command Line Interface. The
+Spice engine can also be used with a Graphical User Interface. Tclspice represents a third
+approach to interfacing ngspice simulation functionality. Tclspice is nothing more than
+a new way of compiling and using SPICE source code. Spice is no longer considered as
+a standalone program but as a library invoked by a TCL interpreter. It either permits
+direct simulation in a TCL shell (this is quite analogous to the command line interface
+of ngspice), or it permits the elaboration of more complex, more specific, or more user
+friendly simulation programs, by writing TCL scripts.
+20.1 tclspice framework
+The technical difference between the ngspice CLI interface and tclspice is that the CLI
+interface is compiled as a standalone program, whereas tclspice is a shared object. Tclspice
+is designed to work with tools that expand the capabilities of ngspice: TCL for the
+scripting and programming language interface and BLT for data processing and display.
+This two tools give tclspice all of its relevance, with the insurance that the functionality
+is maintained by competent people.
+Making tclspice (see 20.6) produces two files: libspice.so and pkgIndex.tcl. libspice.so is the
+executable binary that the TCL interpreter calls to handle SPICE commands. pkgIndex.tcl
+take place in the TCL directory tree, providing the SPICE package 1 to the TCL user.
+BLT is a TCL package. It is quite well documented. It permits handling mathematical
+vector data structures for calculus and display, in a Tk interpreter like wish.
+20.2 tclspice documentation
+A detailed documentation on tclspice commands is available on the original tclspice web
+page.
+1package has to be understood as the TCL package
+499

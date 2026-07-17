@@ -1,0 +1,28 @@
+656 CHAPTER 30. CIDER USER'S MANUAL
+QJ1 11 12 13 M_JFET W =5 um IC . FILE =" IC . jfet "
+. MODEL M_JFET NBJT LEVEL =2
++ options jfet
++ ...
+A final example shows how to use symmetry to simulate half of a 2D BJT, avoiding having
+the user double the area of each instance:
+Q2 NC2 NB2 NE2 BJTMOD AREA =1
+Q3 NC3 NB3 NE3 BJTMOD AREA =1
+. MODEL BJTMOD NBJT LEVEL =2
++ options defw =2 um
++ * Define half of the device now
++ ...
+30.18.4 SEE ALSO
+options, output
+30.18.5 BUGS
+MESFETs cannot be simulated properly yet because Schottky contacts have not been
+implemented.
+30.19 NUMOS
+MOSFET / four-terminal numerical models and elements
+SYNOPSIS Model:
+. MODEL model - name NUMOS [ level ]
++ ...
+SYNOPSIS Element:
+MXXXXXXX nl n2 n3 n4 model - name [ geometry ]
++ [ tem pe rat ure ] [ initial - conditions ]
+SYNOPSIS Output:
+. SAVE [ small - signal values ]

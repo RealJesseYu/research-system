@@ -1,0 +1,38 @@
+346 CHAPTER 16. STARTING NGSPICE
+Further arguments to ngspice are taken to be ngspice input files, which are read and
+saved (if running in batch mode then they are run immediately). Ngspice accepts Spice3
+(and also most Spice2) input files, and outputs ASCII plots, Fourier analyses, and node
+printouts as specified in .plot, .four, and .print cards. If an out parameter is given on
+a .width card (15.6.7), the effect is the same as set width = .... Since ngspice ASCII plots
+do not use multiple ranges, however, if vectors together on a .plot card have different
+ranges they do not provide as much information as they do in a scalable graphics plot.
+For ngnutmeg, further arguments are taken to be data files in binary or ASCII raw file
+format (generated with -r in batch mode or the write (see 17.5.104) command) that are
+loaded into ngnutmeg. If the file is in binary format, it may be only partially completed
+(useful for examining output before the simulation is finished). One file may contain any
+number of data sets from different analyses.
+16.4 Starting options
+16.4.1 Batch mode
+Let's take as an example the Four-Bit binary adder MOS circuit shown in Chapt. 21.6,
+stored in a file adder-mos.cir. You may start the simulation immediately by calling
+ngspice -b -r adder.raw -o adder.log adder-mos.cir
+ngspice will start, simulate according to the .tran command and store the output data
+in a rawfile adder.raw. Comments, warnings and info messages go to log file adder.log.
+Commands for batch mode operation are described in Chapt. 15.
+16.4.2 Interactive mode
+If you call
+ngspice
+ngspice will start, load spinit (16.5) and .spiceinit (16.6, if available), and then waits for
+your manual input. Any of the commands described in 17.5 may be chosen, but many of
+them are useful only after a circuit has been loaded by
+ngspice 1 -> source adder-mos.cir
+others require the simulation to be done already (e.g. plot):
+ngspice 2 ->run
+ngspice 3 ->plot allv
+If you call ngspice from the command line with a circuit file as parameter:
+ngspice adder-mos.cir
+ngspice will start, load the circuit file, parse the circuit (same circuit file as above, con-
+taining only dot commands (see Chapt. 15) for analysis and output control). ngspice then
+just waits for your input. You may start the simulation by issuing the run command.
+Following completion of the simulation you may analyze the data by any of the commands
+given in Chapt. 17.5.

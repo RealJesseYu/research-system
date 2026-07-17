@@ -1,0 +1,47 @@
+276CHAPTER 12. MIXED-MODE AND BEHA VIORAL MODELING WITH XSPICE
+Example SPICE Usage:
+a4 3 7 divider
+.model divider d_fdiv(div_factor = 5 high_cycles = 3
++ i_count = 4 rise_delay = 23e-9
++ fall_delay = 9e-9)
+12.4.20 RAM
+NAME_TABLE:
+C_Function_Name: cm_d_ram
+Spice_Model_Name: d_ram
+Description: "digital random-access memory"
+PORT_TABLE:
+Port Name: data_in data_out
+Description: "data input line(s)" "data output line(s)"
+Direction: in out
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: yes yes
+Vector_Bounds: [1 -] data_in
+Null_Allowed: no no
+PORT_TABLE:
+Port Name: address write_en
+Description: "address input line(s)" "write enable line"
+Direction: in in
+Default_Type: d d
+Allowed_Types: [d] [d]
+Vector: yes no
+Vector_Bounds: [1 -] -
+Null_Allowed: no no
+PORT_TABLE:
+Port Name: select
+Description: "chip select line(s)"
+Direction: in
+Default_Type: d
+Allowed_Types: [d]
+Vector: yes
+Vector_Bounds: [1 16]
+Null_Allowed: no
+PARAMETER_TABLE:
+Parameter_Name: select_value
+Description: "decimal active value for select line comparison"
+Data_Type: int
+Default_Value: 1
+Limits: [0 32767]
+Vector: no
+Vector_Bounds: -
+Null_Allowed: yes

@@ -1,0 +1,2 @@
+25.3. XSPICE TOP-LEVEL DIAGRAM 551
+Figure 25.1: ngspice/XSPICE Top-Level Diagram

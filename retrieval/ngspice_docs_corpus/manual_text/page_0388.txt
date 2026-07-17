@@ -1,0 +1,30 @@
+388 CHAPTER 17. INTERACTIVE INTERPRETER
+P the parameter is a principal of the device. Used for naming output variables in sensi-
+tivity.
+AA the parameter is significant for AC analyses only.
+N the parameter is significant for noise analyses only.
+U the parameter is not shown in the default show command output.
+R redundant parameter name (e.g. vto vs.vt0).
+Example:
+devhelp
+devhelp resistor
+devhelp capacitor ic
+devhelp - flags - type bjt
+17.5.21 Diff: Compare vectors
+General Form:
+diff plot1 plot2 [ vec ...]
+Compare all the vectors in the specified plots, or only the named vectors if any are given. If
+there are different vectors in the two plots, or any values in the vectors differ significantly,
+the difference is reported. The variables diff_abstol, diff_reltol, and diff_vntol are used to
+determine a significant difference.
+17.5.22 Display: List known vectors and types
+General Form:
+display [ varname ...]
+Prints a summary of currently defined vectors, or of the names specified. The vectors
+are sorted by name unless the variable nosort is set. The information given is the name
+of the vector, the length, the type of the vector, and whether it is real or complex data.
+Additionally, one vector is labeled [scale]. When a command such as plot is given without
+a vs argument, this scale is used for the X-axis. It is always the first vector in a rawfile,
+or the first vector defined in a new plot. If you undefine the scale (i.e, let TIME = [] ), one
+of the remaining vectors becomes the new scale (which one is unpredictable). You may
+set the scale to another vector of the plot with the command setscale (17.5.74).

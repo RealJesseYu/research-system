@@ -1,0 +1,23 @@
+21.1. AC COUPLED TRANSISTOR AMPLIFIER 515
+If we had desired to plot the difference between the voltage at node 'base' and node ' 1', we
+would need to enclose the node name ' 1' in the construction v( ) producing a command
+such as plot (base - v(1)) .
+Now, issue the following command to examine the voltages on two of the internal nodes
+of the transistor amplifier circuit:
+ngspice 3 -> plot vcc coll emit
+The plot shown in Fig. 21.3 should appear. Notice in the circuit description that the
+power supply voltage source and the node it is connected to both have the name 'vcc' . The
+plot command above has plotted the node voltage 'vcc' . However, it is also possible to
+plot branch currents through voltage sources in a circuit. ngspice always adds the special
+suffix #branch to voltage source names. Hence, to plot the current into the voltage source
+named vcc, we would use a command such as plot vcc#branch .
+Figure 21.3: VCC, Collector and Emitter Voltages
+Now let's run a simple DC simulation of this circuit and examine the bias voltages with
+the print command. One way to do this is to quit the simulator using the quit command,
+edit the input file to change the .tran line to .op (for 'operating point analysis'), re-invoke
+the simulator, and then issue the run command. However, ngspice allows analysis mode
+changes directly from the ngspice prompt. All that is required is to enter the control line,
+e.g. op (without the leading ' . '). ngspice will interpret the information on the line and
+start the new analysis run immediately, without the need to enter a new run command.
+To run the DC simulation of the transistor amplifier, issue the following command:
+ngspice 4 -> op

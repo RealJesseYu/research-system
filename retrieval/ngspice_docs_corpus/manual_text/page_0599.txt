@@ -1,0 +1,42 @@
+28.7. MODEL DEFINITION FILE 599
+cm_analog_alloc() and cm_event_alloc() allow you to allocate storage space for analog
+and event-driven model state information. The storage space is not static, but rather
+represents a storage vector of two values that rotate with each accepted simulator time-
+point evaluation. This is explained more fully below. The 'tag' parameter allows you to
+specify an integer tag when allocating space. This allows more than one rotational storage
+location per model to be allocated. The 'size' parameter specifies the size in bytes of the
+storage (computed by the C language sizeof() operator). Both cm_analog_alloc() and
+cm_event_alloc() will not return pointers to the allocated space, as has been available
+(and buggy) from the original XSPICE code. cm_analog_alloc() should be used by an
+analog model; cm_event_alloc() should be used by an event-driven model.
+cm_analog_get_ptr() and cm_event_get_ptr() retrieve the pointer location of the rota-
+tional storage space previously allocated by cm_analog_alloc() or cm_event_alloc().
+Important notice: These functions must be called only after all memory allocation
+(all calls to cm_analog_alloc() or cm_event_alloc()) have been done. All pointers
+returned between calls to memory allocation will become obsolete (point to freed memory
+because of an internal realloc). The functions take the integer 'tag' used to allocate the
+space, and an integer from 0 to 1 that specifies the time-point with which the desired
+state variable is associated (e.g. timepoint = 0 will retrieve the address of storage for the
+current time-point; timepoint = 1 will retrieve the address of storage for the last accepted
+time-point). Note that once a model is exited, storage to the current time-point
+state storage location (i.e., timepoint = 0) will, upon the next time-point iter-
+ation, be rotated to the previous location (i.e., timepoint = 1). When rotation
+is done, a copy of the old 'timepoint = 0' storage value is placed in the new 'timepoint
+= 1' storage location. Thus, if a value does not change for a particular iteration, specific
+writing to 'timepoint = 0' storage is not required. These features allow a model coder
+to constantly know which piece of state information is being dealt with within the model
+function at each time-point.
+Rotation and copying for cm_analog_get_ptr() occurs when the circuit state converges
+and the simulator accepts the new timepoint. Rotation and copying are done for cm_event_get_ptr()
+before each EVENT call. When simulation time moves backward, newer EVENT data
+is discarded and the next copy is made from the oldest data with time-stamp less than
+TIME.
+28.7.2.4 Integration and Convergence Functions
+int cm_analog_integrate(integrand, integral, partial)
+double integrand; /* The integrand */
+double *integral; /* The current and returned value of integral */
+double *partial; /* The partial derivative of integral wrt integrand */
+int cm_analog_converge(state)
+double *state; /* The state to be converged */
+void cm_analog_not_converged()
+void cm_analog_auto_partial()

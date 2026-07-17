@@ -1,0 +1,38 @@
+646 CHAPTER 30. CIDER USER'S MANUAL
+If a particular state file does not fit. this pattern, the filename can be entered directly on
+the instance line.
+Mask dimension defaults can be set so that device sizes can be specified in terms of
+area or width. Dimensions for the special lD BJT base contact can also be controlled.
+The measurement temperature of material parameters, normally taken to be the circuit
+default, can be overridden.
+30.13.2 Parameters
+Name Type Description
+Resistor Flag Resistor
+: Capacitor Flag Capacitor
+: Diode Flag Diode
+: Bipolar|BJT Flag Bipolar transistor
+: MOSFET Flag MOS field-effect transistor
+: JFET Flag Junction field-effect transistor
+: MESFET Flag MES field-effect transistor
+IC.File String Initial-conditions filename
+Unique Flag Append instance name to filename
+DefA Real Default Mask Area, (m 2)
+DefW Real Default Mask Width, (m)
+DefL Real Default Mask Length, (m)
+Base.Area Real lD BJT base area relative to emitter area
+Base.Length Real Real lD BJT base contact length, ( µm)
+Base.Depth Real lD BJT base contact depth, ( µm)
+TNom Real Nominal measurement temperature, ( °C)
+30.13.3 Examples
+Normally, a 'numos' device model is used for MOSFET devices. However, it can be
+changed into a bipolar-with-substrate-contact model, by specifying a bipolar structure
+using the other cards, and indicating the device-structure type as shown here. The default
+length is set to 1.0 µm so that when mask area is specified on the element line it can be
+divided by this default to obtain the device width.
+options bipolar defl =1.0
+Specify that a 1D BJT has base area 1/10th that of the emitter, has an effective depth
+of 0.2 µm and a length between the internal and external base contacts
+options base . area =0.1 base . depth =0.2 base . len =1.5
+If a circuit contains two instances of a bipolar transistor model named 'q1' and 'q2', the
+following line tells the simulator to look for initial conditions in the 'OP1.q2', respectively.
+The period in the middle of the names is added automatically:

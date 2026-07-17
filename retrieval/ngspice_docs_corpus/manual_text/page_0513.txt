@@ -1,0 +1,35 @@
+21.1. AC COUPLED TRANSISTOR AMPLIFIER 513
+file xspice_c1.cir from directory /examples/xspice/. This file stems from the original
+XSPICE introduction, therefore its name, but you do not need to have a version of ngspice
+with the XSPICE option to run it.
+$ cp /examples/xspice/xspice_c1.cir xspice_c1.cir
+Now invoke the simulator on this circuit as follows:
+$ ngspice xspice_c1.cir
+After a few moments, you should see the ngspice prompt:
+ngspice 1 ->
+At this point, ngspice has read-in the circuit description and checked it for errors. If
+any errors had been encountered, messages describing them would have been output to
+your terminal. Since no messages were printed for this circuit, the syntax of the circuit
+description was correct.
+To see the circuit description read by the simulator you can issue the following command:
+ngspice 1 -> listing
+The simulator shows you the circuit description currently in memory:
+a berkeley spice3 compatible circuit
+1 : a berkeley spice3 compatible circuit
+2 : .global gnd
+10 : .tran 1e-5 2e-3
+12 : vcc vcc 0 12.0
+13 : vin 1 0 0.0 ac 1.0 sin(0 1 1k)
+14 : ccouple 1 base 10uf
+15 : rbias1 vcc base 100k
+16 : rbias2 base 0 24k
+17 : q1 coll base emit generic
+18 : rcollector vcc coll 3.9k
+19 : remitter emit 0 1k
+21 : .model generic npn
+24 : .end
+The title of this circuit is 'A Berkeley SPICE3 compatible circuit' . The circuit descrip-
+tion contains a transient analysis control command .TRAN 1E-5 2E-3 requesting a total
+simulated time of 2ms with a maximum time-step of 10us. The remainder of the lines in
+the circuit description describe the circuit of Fig. 21.1.
+Now, execute the simulation by entering the run command:

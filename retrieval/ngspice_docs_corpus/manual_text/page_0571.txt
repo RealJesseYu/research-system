@@ -1,0 +1,23 @@
+27.2. XSPICE ADV ANCED USAGE 571
+$ ngspice xspice_c3.cir
+Execute the simulation with the run command.
+ngspice 1 -> run
+After a short time, the ngspice prompt should return. Results of this simulation are
+examined in the manner illustrated in the previous two examples. You can use the plot
+command to plot either analog nodes, event-driven nodes, or both. For example, you can
+plot the values of the sampled-data filter input node and the analog low-pass filter output
+node as follows:
+ngspice 2 -> plot filt_in lpf_out
+The plot shown in Fig. 27.2 should appear.
+Figure 27.2: Plot of Filter Input and Output
+You can also plot data from nodes inside a subcircuit. For example, to plot the data on
+node 'x1a' in subcircuit 'xfilter', create a pathname to this node with a dot separator.
+ngspice 3 -> plot xfilter.x1a
+The output from this command is shown in Fig. 27.3. Note that the waveform contains
+vertical segments. These segments are caused by the non-zero delays in the 'real gain'
+models used within the subcircuit. Each vertical segment is actually a step with a width
+equal to the model delay (1e-9 seconds).
+Plotting nodes internal to subcircuits works for both analog and event-driven nodes.
+To examine data such as the closely spaced events inside the subcircuit at node 'xfil-
+ter.x1a', it is often convenient to use the eprint command to produce a tabular listing
+of events. Try this by entering the following command:

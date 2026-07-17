@@ -1,0 +1,4 @@
+476 CHAPTER 18. NGSPICE USER INTERF ACES
+The two contour graphs thus simulated are shown here:
+Figure 18.3: Potential
+Figure 18.4: Electrical field

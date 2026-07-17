@@ -1,0 +1,42 @@
+17.5. COMMANDS 393
+The named file is opened and a numeric handle is returned in variable 'handle', or -1 on
+error. This is a simple wrapper around the standard C-library function with the same
+name, so the meaning of string 'mode' is as defined by your OS documentation. By default
+the file is opened for reading only. If interpreter variable "silent_fileio" is set, no message
+is printed on error.
+17.5.32 Fourier: Perform a Fourier transform
+General Form:
+fourier f u n d a m e n t a l _ f r e q u e n c y [ expression ...]
+Fourier is used to analyze the output vector(s) of a preceding transient analysis (see
+17.5.95). It does a Fourier analysis of each of the given values, using the first 10 multiples
+of the fundamental frequency (or the first nfreqs multiples, if that variable is set (see
+17.7). The printed output is like that of the .four ngspice line (Chapt. 15.6.4). The
+expressions may be any valid expression (see 17.2), e.g. v(2). The evaluated expression
+values are interpolated onto a fixed-space grid with the number of points given by the
+fourgridsize variable, or 200 if it is not set. The interpolation is of degree polydegree
+if that variable is set, or 1 otherwise. If polydegree is 0, then no interpolation is done.
+This is likely to give erroneous results if the time scale is not monotonic.
+The fourier command not only issues a printout, but also generates vectors, one per
+expression. The size of the vector is 3 x nfreqs (per default 3 x 10). The name of the
+new vector is fouriermn, where m is set by the mth call to the fourier command, n is
+the nth expression given in the actual fourier command. fouriermn[0] is the vector of
+the 10 (nfreqs) frequency values, fouriermn[1] contains the 10 (nfreqs) magnitude values,
+fouriermn[2] the 10 (nfreqs) phase values of the result.
+Example:
+* do the transient analysis
+tran 1 n 1 m
+* do the fourier analysis
+fourier 3.34 e6 v (2) v (3) $ first call
+fourier 100 e6 v (2) v (3) $ second call
+* get individual values
+let newt1 = fourier11 [0][1]
+let newt2 = fourier11 [1][1]
+let newt3 = fourier11 [2][1]
+let newt4 = fourier12 [0][4]
+let newt5 = fourier12 [1][4]
+let newt6 = fourier12 [2][4]
+* plot magnitude of second expression ( v (3))
+* from first call versus frequency
+plot fourier12 [1] vs fourier12 [0]
+The plot command from the example plots the vector of the magnitude values, obtained
+by the first call to fourier and evaluating the first expression in this call, against the vector

@@ -1,0 +1,28 @@
+2.5. .SUBCKT SUBCIRCUITS 57
+There is no limit on the size or complexity of subcircuits, and subcircuits may contain
+other subcircuits. An example of subcircuit usage is given in Chapt. 21.6.
+2.5.1 .SUBCKT Line
+General form:
+. SUBCKT subnam N1 < N2 N3 ... >
+Examples:
+. SUBCKT OPAMP 1 2 3 4
+A circuit definition is begun with a .SUBCKT line. subnam is the subcircuit name, and
+N1, N2, ... are the external nodes, which cannot be zero. The group of element lines
+that immediately follow the .SUBCKT line define the subcircuit. The last line in a sub-
+circuit definition is the .ENDS line (see below). Control lines may not appear within a
+subcircuit definition; however, subcircuit definitions may contain anything else, including
+other subcircuit definitions, device models, and subcircuit calls (see below). Note that
+any device models or subcircuit definitions included as part of a subcircuit definition are
+strictly local (i.e., such models and definitions are not known outside the subcircuit defi-
+nition). Also, any element nodes not included on the .SUBCKT line are strictly local, with
+the exception of 0 (ground) that is always global. If you use parameters, the .SUBCKT line
+will be extended (see 2.9.3).
+2.5.2 .ENDS Line
+General form:
+. ENDS < SUBNAM >
+Examples:
+. ENDS OPAMP
+The .ENDS line must be the last one for any subcircuit definition. The subcircuit name,
+if included, indicates which subcircuit definition is being terminated; if omitted, all sub-
+circuits being defined are terminated. The name is needed only when nested subcircuit
+definitions are being made.
