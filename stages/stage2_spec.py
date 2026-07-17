@@ -16,10 +16,13 @@ from __future__ import annotations
 
 from typing import Any
 
-# The wrapper's own QoI vocabularies are the single source of truth — imported,
-# never redefined here. (_QOI_FIELD_RE is the wrapper's field-identifier rule;
-# MASK_TYPES is the wrapper's spatial-mask vocabulary for multi-QoI extraction.)
-from tools.run_cfd import QOI_COMPONENTS, QOI_OPERATIONS, MASK_TYPES, _QOI_FIELD_RE
+# D.3: the wrapper's own QoI vocabularies stay the single source of truth,
+# now reached through the per-substrate lookup (tools/qoi_vocab.py — the sole
+# sanctioned import site of run_cfd's vocabulary objects) instead of a direct
+# run_cfd import. The record is shape-tagged (field-reduction vs
+# named-quantity) and the qoi checks dispatch on the shape, never on a
+# substrate name.
+from tools.qoi_vocab import FIELD_REDUCTION, NAMED_QUANTITY, vocab_for
 
 REQUIRED_SPEC_FIELDS = (
     "hypothesis_id",
@@ -140,21 +143,22 @@ def _validate_parameters(params: Any, errors: list[str]) -> tuple[dict, dict, se
     return sweep_ranges, fixed_values, derived_names
 
 
-def _validate_mask(mask: Any, errors: list[str], label: str) -> None:
+def _validate_mask(mask: Any, vocab, errors: list[str], label: str) -> None:
     """Optional spatial mask on a qoi (Multi-QoI build, part B). Present-only
     light check, control_block precedent. Shape: {type, params} — type one of
-    the wrapper's MASK_TYPES, params an object carrying that mask's numeric
-    bounds (e.g. {radius_frac} for corner_exclusion). The exact bound keys are
-    not deep-checked here; the wrapper is the authority on those.
+    the vocabulary's mask types (the wrapper's MASK_TYPES via the injected
+    record), params an object carrying that mask's numeric bounds (e.g.
+    {radius_frac} for corner_exclusion). The exact bound keys are not
+    deep-checked here; the wrapper is the authority on those.
     """
     if not isinstance(mask, dict):
         errors.append(
             f"{label} mask, when present, must be an object with 'type' and 'params'."
         )
         return
-    if mask.get("type") not in MASK_TYPES:
+    if mask.get("type") not in vocab.mask_types:
         errors.append(
-            f"{label} mask type must be one of {sorted(MASK_TYPES)}; "
+            f"{label} mask type must be one of {sorted(vocab.mask_types)}; "
             f"got {mask.get('type')!r}."
         )
     if not isinstance(mask.get("params"), dict):
@@ -163,7 +167,7 @@ def _validate_mask(mask: Any, errors: list[str], label: str) -> None:
         )
 
 
-def _validate_qoi(qoi: Any, errors: list[str], label: str = "qoi") -> None:
+def _validate_qoi(qoi: Any, vocab, errors: list[str], label: str = "qoi") -> None:
     if isinstance(qoi, list):
         errors.append(
             f"{label} must be a single object, never a list — pick the one quantity "
@@ -177,6 +181,33 @@ def _validate_qoi(qoi: Any, errors: list[str], label: str = "qoi") -> None:
         if field not in qoi:
             errors.append(f"{label} is missing '{field}'.")
 
+    # D.3 two-shape dispatch: the OTHER shape's machine keys are rejected
+    # loudly — a request in the wrong grammar must never pass silently as
+    # "not extractable". Unreachable by any real pre-D.3 spec (no cavity
+    # spec ever carried named-quantity keys); required by the two-shape
+    # proof so each record rejects the other grammar.
+    alien = [k for k in vocab.alien_keys if k in qoi]
+    if alien:
+        errors.append(
+            f"{label} carries the key(s) {', '.join(repr(k) for k in alien)}, "
+            f"which belong to a different substrate class's QoI grammar — this "
+            f"substrate's machine-readable keys follow its own vocabulary; "
+            f"remove them."
+        )
+
+    if vocab.shape == FIELD_REDUCTION:
+        _validate_qoi_field_reduction(qoi, vocab, errors, label)
+    elif vocab.shape == NAMED_QUANTITY:
+        _validate_qoi_named_quantity(qoi, vocab, errors, label)
+    else:  # a vocab record with an unknown shape is a broken invariant
+        raise ValueError(f"unknown QoI vocabulary shape {vocab.shape!r}")
+
+
+def _validate_qoi_field_reduction(qoi: dict, vocab, errors: list[str], label: str) -> None:
+    """The field-reduction (cavity-class) machine-key checks — the pre-D.3
+    body verbatim, vocabulary members read from the injected record. Error
+    strings are model-visible behavior (the d3 retry-surface captures) and
+    stay byte-identical."""
     # Optional machine-readable extraction keys: absent (all three) is valid —
     # it declares the QoI not extractable by the substrate. Any that are
     # present must use exactly the wrapper's vocabulary, and a partial set is
@@ -194,28 +225,68 @@ def _validate_qoi(qoi: Any, errors: list[str], label: str = "qoi") -> None:
                 )
     if "field" in qoi:
         name = qoi["field"]
-        if not isinstance(name, str) or not _QOI_FIELD_RE.match(name):
+        if not isinstance(name, str) or not vocab.field_re.match(name):
             errors.append(
                 f"{label} field must be the exact name of a field the case already "
                 f"writes — a plain identifier (letters, digits, underscore, dot, "
                 f"starting with a letter); got {name!r}."
             )
-    if "operation" in qoi and qoi["operation"] not in QOI_OPERATIONS:
+    if "operation" in qoi and qoi["operation"] not in vocab.operations:
         errors.append(
-            f"{label} operation must be one of {sorted(QOI_OPERATIONS)}; "
+            f"{label} operation must be one of {sorted(vocab.operations)}; "
             f"got {qoi['operation']!r}."
         )
-    if "component" in qoi and qoi["component"] not in QOI_COMPONENTS:
+    if "component" in qoi and qoi["component"] not in vocab.components:
+        # AWKWARD SEAM, preserved deliberately: this string hardcodes the
+        # component list ("mag" or 0|1|2) in prose instead of rendering it
+        # from vocab.components — a future component-vocabulary change would
+        # desync the prose. Kept verbatim because the string is model-visible
+        # behavior (d3 captures); rewording is its own recorded change.
         errors.append(
             f"{label} component must be \"mag\" or 0|1|2 (or omitted entirely); "
             f"got {qoi['component']!r}."
         )
     # Optional spatial mask (Multi-QoI build, part B): present-only.
     if "mask" in qoi:
-        _validate_mask(qoi["mask"], errors, label)
+        _validate_mask(qoi["mask"], vocab, errors, label)
 
 
-def _validate_qois(qois: Any, errors: list[str]) -> None:
+def _validate_qoi_named_quantity(qoi: dict, vocab, errors: list[str], label: str) -> None:
+    """The named-quantity (ngspice/FEA-class) machine-key checks: enumerated
+    kinds x target-name grammar x enumerated reductions, mirroring the
+    field-reduction rules' style — optional as a set, but kind, target, and
+    reduction travel together."""
+    machine_keys = [k for k in ("kind", "target", "reduction") if k in qoi]
+    if machine_keys:
+        for needed in ("kind", "target", "reduction"):
+            if needed not in qoi:
+                errors.append(
+                    f"{label} carries the machine-readable key(s) "
+                    f"{', '.join(repr(k) for k in machine_keys)} but is missing "
+                    f"'{needed}' — an extractable qoi must carry 'kind', 'target', "
+                    f"and 'reduction' together; either add '{needed}' or omit all "
+                    f"machine-readable keys."
+                )
+    if "kind" in qoi and qoi["kind"] not in vocab.kinds:
+        errors.append(
+            f"{label} kind must be one of {sorted(vocab.kinds)}; "
+            f"got {qoi['kind']!r}."
+        )
+    if "target" in qoi:
+        name = qoi["target"]
+        if not isinstance(name, str) or not vocab.target_re.match(name):
+            errors.append(
+                f"{label} target must be the exact name of a node or source the "
+                f"netlist declares; got {name!r}."
+            )
+    if "reduction" in qoi and qoi["reduction"] not in vocab.reductions:
+        errors.append(
+            f"{label} reduction must be one of {sorted(vocab.reductions)}; "
+            f"got {qoi['reduction']!r}."
+        )
+
+
+def _validate_qois(qois: Any, vocab, errors: list[str]) -> None:
     """Optional VECTOR of qoi objects (Multi-QoI build, part B). Present-only;
     each entry is validated exactly like the single `qoi` (same required
     fields, same machine-key rules, plus the optional `mask`). Rides alongside
@@ -231,7 +302,7 @@ def _validate_qois(qois: Any, errors: list[str]) -> None:
         )
         return
     for idx, entry in enumerate(qois):
-        _validate_qoi(entry, errors, label=f"qois[{idx}]")
+        _validate_qoi(entry, vocab, errors, label=f"qois[{idx}]")
 
 
 def _validate_success_criterion(sc: Any, errors: list[str]) -> None:
@@ -392,11 +463,21 @@ def _validate_control_block(cb: Any, errors: list[str]) -> None:
         )
 
 
-def validate_spec(spec: Any, chosen_id: str) -> list[str]:
+def validate_spec(spec: Any, chosen_id: str, vocab: Any = None) -> list[str]:
     """Deep-check one stage-2 spec against the schema rules. Returns a list of
     plain-language error strings — empty means valid. Each string is phrased
     so it can be sent straight back to the model as a guided correction.
+
+    `vocab` is the substrate's QoI-vocabulary record (tools/qoi_vocab.py);
+    the qoi machine-key checks dispatch on its shape. None resolves to the
+    cavity record at this entry point — the same explicit cavity pin, and
+    the same D.1.1 disclosure, as stage2_experiment_design's contract_for
+    call; every pre-D.3 caller keeps byte-identical behavior.
     """
+    if vocab is None:
+        # TODO(D.1.1): substrate selection undesigned at this surface —
+        # owner ruling pending; explicit cavity pin, single-sourced.
+        vocab = vocab_for("cavity_2d_cfd")
     if not isinstance(spec, dict):
         return ["the spec must be a single JSON object."]
 
@@ -423,9 +504,9 @@ def validate_spec(spec: Any, chosen_id: str) -> list[str]:
             spec["parameters"], errors
         )
     if "qoi" in spec:
-        _validate_qoi(spec["qoi"], errors)
+        _validate_qoi(spec["qoi"], vocab, errors)
     if "qois" in spec:
-        _validate_qois(spec["qois"], errors)
+        _validate_qois(spec["qois"], vocab, errors)
     if "success_criterion" in spec:
         _validate_success_criterion(spec["success_criterion"], errors)
     if "regime" in spec:
