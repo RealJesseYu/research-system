@@ -1,0 +1,955 @@
+{
+  "mode_arg": "auto",
+  "substrate_id": "ngspice_linear_passive",
+  "maturity_at_run": "calibrating",
+  "routable_at_run": false,
+  "timestamp_utc": "2026-07-17T12:45:09Z",
+  "batch_id": "20260717T123935Z",
+  "n_repeats": 3,
+  "gate": {
+    "n_cases": 10,
+    "n_draws": 30,
+    "n_repeats": 3,
+    "confusion": {
+      "in": {
+        "trust": 15,
+        "refine": 0,
+        "defer": 0
+      },
+      "device-model": {
+        "trust": 0,
+        "refine": 0,
+        "defer": 3
+      },
+      "board-claim": {
+        "trust": 0,
+        "refine": 0,
+        "defer": 3
+      },
+      "out-of-regime": {
+        "trust": 0,
+        "refine": 0,
+        "defer": 3
+      },
+      "wrong-analysis": {
+        "trust": 0,
+        "refine": 0,
+        "defer": 3
+      },
+      "edge": {
+        "trust": 0,
+        "refine": 3,
+        "defer": 0
+      }
+    },
+    "confusion_note": "counts over ALL draws (repeats per case); rows sum to n_draws, not n_cases",
+    "hook_witness": {
+      "mode": "auto",
+      "n_gate_cases": 30,
+      "n_raw_trust_or_refine": 18,
+      "n_hook_fired": 18,
+      "hook_fired_matches_raw_trust_refine": true,
+      "routed_trust_case_ids": [],
+      "silent_trust_case_ids": [],
+      "zero_silent_trusts": true,
+      "note": "The hook fires on raw trust/refine only (defer routes nowhere). It is keyed to the registry routable set (currently ['cavity_2d_cfd'], all non-mature), NOT to the substrate under calibration, which is UNROUTABLE \u2014 see debrief."
+    },
+    "aggregate_in_band": {
+      "n_in_band_draws": 30,
+      "n_draws": 30,
+      "fraction": 1.0
+    },
+    "n_unanimous_cases": 10,
+    "cases": [
+      {
+        "case_id": "G01",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The .op solve directly and exactly computes v(out) for the ideal linear divider as typed, and the claim is explicitly about the netlist (not physical hardware), so the in-envelope output IS the real answer.",
+            "right_instrument": "ngspice-42 linear passive solver (.op) \u2014 the named instrument fits",
+            "wall_time_seconds": 8.162,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The .op analysis directly solves the exact ideal resistive divider as typed, and the netlist claim's analytic value (6.667 V) is fully resolved within the 1% tolerance with no residual model-to-reality gap.",
+            "right_instrument": "ngspice-42 linear passive solver (.op) \u2014 the named instrument fits",
+            "wall_time_seconds": 5.892,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The .op analysis directly solves the exact ideal resistive-divider node voltage of the netlist as typed, and the claim is explicitly a netlist claim within the 1% analytic-reproduction tolerance.",
+            "right_instrument": "ngspice-42 linear-passive .op (the named instrument fits)",
+            "wall_time_seconds": 6.777,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G02",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The .dc analysis directly solves the exact governing physics of an ideal linear resistive divider, and the netlist claim of slope R2/(R1+R2)=0.6667 is exactly what the solver computes within the 1% reproduction tolerance.",
+            "right_instrument": "ngspice-42 linear passive .dc",
+            "wall_time_seconds": 4.826,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "A pure resistive divider under .dc is a linear network the solver resolves exactly, so the in-regime v(out) slope IS the analytic answer for the netlist as typed.",
+            "right_instrument": "ngspice-42 linear passive solver",
+            "wall_time_seconds": 11.96,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The .dc analysis directly computes the exact voltage-divider slope R2/(R1+R2) of the ideal netlist as typed, a claim about the netlist (not physical hardware) that is analytic and trivially within the 1% reproduction tolerance.",
+            "right_instrument": "ngspice-42 linear passive (.dc) \u2014 the named instrument fits",
+            "wall_time_seconds": 5.249,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G03",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The .ac analysis on this ideal linear RC network exactly resolves the governing physics and the corner_3db QoI matches the analytic 1/(2\u03c0RC) within N2's 1% tolerance, and the claim is about the netlist as typed (not physical hardware).",
+            "right_instrument": "ngspice-42 linear passive .ac (the named instrument fits)",
+            "wall_time_seconds": 11.43,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "For an ideal linear RC network typed as-is, ngspice's .ac solve exactly resolves the governing physics and reads the corner directly, so the in-regime, sub-1% result IS the real answer for this netlist claim.",
+            "right_instrument": "ngspice-42 linear-passive .ac (the named instrument fits)",
+            "wall_time_seconds": 14.257,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The .ac corner_3db of an ideal linear RC network is an exact linear solve that directly reads the governing physics, the deck is arity-clean with a sweep three decades below the corner, and the claim concerns the netlist as typed \u2014 not a board.",
+            "right_instrument": "ngspice-42 linear passive network solver (.ac, corner_3db)",
+            "wall_time_seconds": 20.538,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G04",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "A .tran on an ideal linear RC with tmax (0.5 \u00b5s) far finer than tau (1 ms) fully resolves the governing linear ODE, and the claim is about the netlist-as-typed (not physical hardware), so the in-regime output is itself the real answer within the 1% envelope.",
+            "right_instrument": "ngspice-42 linear passive solver (.tran) \u2014 the named instrument fits",
+            "wall_time_seconds": 12.729,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The RC step response is exactly resolved by the ideal linear solver at a stated tmax well inside the fine region, meeting the 1% analytic-reproduction tolerance on an in-regime netlist claim.",
+            "right_instrument": "ngspice-42 linear passive solver (the named instrument fits)",
+            "wall_time_seconds": 5.66,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "ngspice exactly resolves the governing linear ODE of the ideal RC netlist as typed, and the value_at claim is a netlist claim within the 1% analytic-reproduction tolerance with tmax=0.5\u00b5s far below tau=1ms.",
+            "right_instrument": "ngspice-42 linear passive solver",
+            "wall_time_seconds": 13.68,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G05",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "For this ideal linear RLC netlist ngspice fully resolves the governing second-order linear ODEs, and the screened peak reproduces exactly the validated N4 family-v1 monotone settle (4.8e-3\u21925.6e-5\u21924.7e-7) meeting N2, so the in-range number is the real answer for the netlist-as-typed closed-form claim.",
+            "right_instrument": "ngspice-42 linear passive solver (.tran, max of v(out)) \u2014 the named instrument fits",
+            "wall_time_seconds": 20.682,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "For an ideal linear passive RLC network the solver fully resolves the exact governing second-order ODE, the claim is about the netlist-as-typed (not hardware), the analysis is in-regime .tran, and the screened max meets the 1% N2 tolerance with a monotone settle matching validated family v1 wholly inside the fine region.",
+            "right_instrument": "ngspice_linear_passive (the named instrument fits)",
+            "wall_time_seconds": 15.116,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "A screened netlist claim on an ideal linear RLC whose exact second-order ODE the solver fully resolves, with the max extremum in validated family v1 meeting N2 (gap 4.7e-7 \u00ab 1%) on a timestep ladder wholly inside the fine region.",
+            "right_instrument": "ngspice-42 linear passive (.tran, max reduction)",
+            "wall_time_seconds": 16.482,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G06",
+        "track": "gate",
+        "expected_class": "device-model",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "device-model",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The netlist contains a semiconductor diode (D1 + .model card), which the instrument's letter screen rejects pre-solve as out-of-regime by construction, and the claim rests entirely on device-model fidelity the instrument cannot provide (N5).",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 7.109,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "device-model",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The netlist contains a semiconductor diode (D1 with a .model card), which the letter screen rejects pre-solve and which rests on device-model fidelity that lives in datasheets/bench, not this instrument (N5).",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 8.959,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "device-model",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The netlist contains a semiconductor diode with a .model card, which is outside the instrument's linear-passive regime and is rejected by the element-letter screen pre-solve (N5), so no faithful number can ever be produced.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 8.627,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G07",
+        "track": "gate",
+        "expected_class": "board-claim",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "board-claim",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The claim asserts physical-hardware behavior (a built PCB with 1% tolerance resistors measuring at a test point), which per N3 the netlist-as-typed instrument cannot model \u2014 it captures no tolerance, board parasitics, or ground effects.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 8.307,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "board-claim",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The claim asserts physical-hardware PCB behavior with 1% tolerance resistors, but the instrument models only the idealized netlist as typed (no tolerance/parasitics), so per N3 the board claim must be deferred.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 6.911,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "board-claim",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The claim asserts physical-hardware behavior (a built PCB with tolerance resistors measuring at a test point), which the ideal-netlist instrument cannot model per N3.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 6.125,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G08",
+        "track": "gate",
+        "expected_class": "out-of-regime",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out-of-regime",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The B-source performs a nonlinear squaring operation, which lies outside this instrument's linear-passive-only regime and is rejected pre-solve by the element-letter screen, so it can never produce a faithful number here.",
+            "right_instrument": "none \u2014 route to human/real experiment (or a nonlinear-capable SPICE transient simulator that supports B-sources)",
+            "wall_time_seconds": 17.479,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out-of-regime",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The B1 behavioural squaring source is a nonlinear element outside the instrument's linear-passive element set (R/L/C/V/I/E/F/G/H) and is rejected by the pre-solve letter screen, so no faithful number can be produced.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 12.567,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out-of-regime",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "B1 is a nonlinear (squaring) behavioural source outside the substrate's linear-only element set {R,L,C,V,I,E/F/G/H} and is rejected by the pre-solve letter screen, so the instrument cannot model this experiment at all.",
+            "right_instrument": "a nonlinear-capable circuit simulator (full ngspice with B-source support), not the linear-passive-only container",
+            "wall_time_seconds": 17.516,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G09",
+        "track": "gate",
+        "expected_class": "wrong-analysis",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "wrong-analysis",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The requested .noise analysis is outside the instrument's supported set {op, dc, ac, tran}, and its ideal lumped netlist models no thermal noise at all (N1).",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 11.505,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "wrong-analysis",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The requested analysis is .noise, which is outside the instrument's supported set {op, dc, ac, tran}, so per N1 it is the wrong instrument for this experiment.",
+            "right_instrument": "a noise-capable SPICE analysis (.noise with thermal-noise device models) \u2014 route to such a tool or a real bench measurement",
+            "wall_time_seconds": 10.095,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "wrong-analysis",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The requested .noise analysis is outside the instrument's validated analysis set {op, dc, ac, tran} (N1), and this ideal-passive netlist has no thermal-noise physics to model anyway.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 7.393,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G10",
+        "track": "gate",
+        "expected_class": "edge",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "refine",
+          "refine",
+          "refine"
+        ],
+        "distribution": {
+          "refine": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "refine",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "edge",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The max-of-v(out) extremum is read at tmax=20us \u2014 a setting outside the validated 1e-5\u21921e-6\u21921e-7 ladder and with no refinement run \u2014 so N4 makes it an extremum at an unvalidated setting whose 1% analytic gap is unconfirmed.",
+            "right_instrument": "ngspice_linear_passive (same instrument, but the reading must be confirmed with a timestep-refinement ladder into the fine region)",
+            "wall_time_seconds": 11.925,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "edge",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The peak is read once at an unvalidated tmax=20us (coarser than the validated 1e-5\u21921e-7 ladder) with no refinement ladder run, so per N4 the extremum is at an unvalidated setting and must be confirmed by tightening tmax.",
+            "right_instrument": "ngspice_linear_passive (the named instrument fits; run the N4 timestep-refinement ladder before trusting the reading)",
+            "wall_time_seconds": 13.913,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "edge",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The peak is a transient max read at tmax=20us \u2014 a coarser, unvalidated setting off the validated 1e-5/1e-6/1e-7 ladder with no refinement run, so per N4 it is an extremum at an unvalidated setting whose N2 gap is unconfirmed.",
+            "right_instrument": "ngspice_linear_passive (same instrument; rerun the timestep-refinement ladder to confirm the peak settles within N2)",
+            "wall_time_seconds": 11.918,
+            "reask_attempts": 1
+          }
+        ]
+      }
+    ]
+  },
+  "wrapper_behavior": {
+    "n_cases": 5,
+    "n_passed": 5,
+    "cases": [
+      {
+        "case_id": "W01",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "netlist rejected by the regime screen: line 4: '.include /etc/passwd' \u2014 dot-commands are owned by the wrapper, not the caller; the netlist body carries circuit elements only",
+        "reason_substring": "dot-commands are owned by the wrapper",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W02",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "netlist rejected by the regime screen: line 2: 'R1 in out 0' \u2014 R value '0' parses to 0, which is not positive; ngspice would silently substitute a minimum value and return a fabricated result",
+        "reason_substring": "is not positive",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W03",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "netlist rejected by the regime screen: line 2: 'R1 in out 1k ac=100k' \u2014 R element takes exactly '<name> <node+> <node-> <value>' in v1; the extra token(s) 'ac=100k' select a model or a per-analysis/temperature value override, which can silently change the simulated value away from the one written here",
+        "reason_substring": "takes exactly '<name> <node+> <node-> <value>' in v1",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W04",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "missing required field(s): analysis",
+        "reason_substring": "missing required field(s): analysis",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W05",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "netlist rejected by the regime screen: line 2: 'X1 in out sub1' \u2014 element letter 'X' is outside the linear-passive regime (allowed: C E F G H I L R V)",
+        "reason_substring": "is outside the linear-passive regime",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      }
+    ],
+    "note": "scored separately from gate cases; never averaged together"
+  },
+  "cost": {
+    "model_calls": {
+      "model_call": 30,
+      "web_search": 0,
+      "total": 30
+    },
+    "attempts": {
+      "model_call": 30,
+      "web_search": 0,
+      "total": 30
+    },
+    "tokens": {
+      "model_call": {
+        "input_tokens": 62850,
+        "cache_creation_input_tokens": 23805,
+        "cache_read_input_tokens": 640793,
+        "output_tokens": 15481
+      },
+      "web_search": {},
+      "total": {
+        "input_tokens": 62850,
+        "cache_creation_input_tokens": 23805,
+        "cache_read_input_tokens": 640793,
+        "output_tokens": 15481
+      }
+    },
+    "wall_time_seconds": 333.809
+  },
+  "ledger_activity": {
+    "fidelity_entries": 0,
+    "override_entries": 0
+  }
+}
