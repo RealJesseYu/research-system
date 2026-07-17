@@ -1,0 +1,28 @@
+{
+  "status": "executed",
+  "verdict_label": "trust",
+  "qoi_request": {
+    "kind": "node_voltage",
+    "target": "out",
+    "reduction": "op_value",
+    "at": null
+  },
+  "runs": [
+    {
+      "run_index": 1,
+      "case": "r2355-canned-ngspice_run1",
+      "params": {
+        "netlist_body": "V1 in 0 DC 10\nR1 in out 1k\nR2 out 0 2k",
+        "analysis": {
+          "type": "op"
+        }
+      },
+      "summary": {
+        "valid": true,
+        "qoi": 6.6666667,
+        "diagnostics": "op solve completed; v(out) extracted",
+        "runtime_s": 0.26
+      }
+    }
+  ]
+}

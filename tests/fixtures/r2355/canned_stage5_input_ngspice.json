@@ -1,0 +1,83 @@
+{
+  "run_id": "r2355-canned-ngspice",
+  "created_at": "2026-07-17T00:00:00+00:00",
+  "mode": "auto",
+  "payload": {
+    "domain": "linear passive circuit response characterization",
+    "chosen_hypothesis": {
+      "id": "hand-ngspice",
+      "statement": "resistive divider output-voltage baseline",
+      "rationale": "R-23.5-5 CANNED (not stage-1 output): a synthetic circuit-shaped stage-5 input; the proof is assembly determinism, not physical realism."
+    },
+    "substrate_id": "ngspice_linear_passive",
+    "experiment_spec": {
+      "hypothesis_id": "hand-ngspice",
+      "title": "Resistive divider output-voltage baseline",
+      "objective": "Verify the linear divider's operating-point output voltage matches the R2/(R1+R2) prediction.",
+      "parameters": [
+        {
+          "name": "netlist_body",
+          "role": "derived",
+          "units": "SPICE netlist text",
+          "derived_from": "composed verbatim from the fixed divider topology: V1 in 0 DC 10; R1 in out 1k; R2 out 0 2k"
+        },
+        {
+          "name": "analysis",
+          "role": "derived",
+          "units": "analysis directive",
+          "derived_from": "operating-point analysis {type: op} for every run"
+        }
+      ],
+      "qoi": {
+        "name": "divider output voltage",
+        "units": "V",
+        "definition": "operating-point voltage at node out",
+        "how_extracted": "op solve, v(out)",
+        "kind": "node_voltage",
+        "target": "out",
+        "reduction": "op_value"
+      },
+      "success_criterion": {
+        "statement": "v(out) exceeds 6.5 V at the declared divider values (prediction 6.667 V).",
+        "threshold": 6.5,
+        "direction": "above"
+      },
+      "regime": {
+        "reynolds_min": 1,
+        "reynolds_max": 1,
+        "notes": "Not a fluid regime: reynolds_min/max are schema-required placeholders (the locked Step-15 spec shape is cavity-flavored here \u2014 a Step-23.5 disclosed limitation, no schema change without a ruling). The true regime is linear passive DC operating point."
+      },
+      "mini_experiment": {
+        "runs": [
+          {
+            "netlist_body": "V1 in 0 DC 10\nR1 in out 1k\nR2 out 0 2k",
+            "analysis": {
+              "type": "op"
+            }
+          }
+        ],
+        "expected_observation": "v(out) = 10 * 2k/(1k+2k) = 6.667 V at the operating point."
+      },
+      "full_experiment": {
+        "design": "Sweep R2 over a decade around the baseline to trace the divider transfer ratio.",
+        "estimated_run_count": 5
+      }
+    },
+    "fidelity_verdict": {
+      "label": "trust",
+      "rationale": "R-23.5-5 canned executable circuit baseline for the stage-5 input capture",
+      "right_instrument": "ngspice_linear_passive run_ngspice"
+    },
+    "execution_results": {
+      "status": "executed",
+      "runs": [
+        {
+          "converged": true,
+          "wall_clock_s": 0.26,
+          "qoi_value": 6.6666667
+        }
+      ]
+    }
+  },
+  "history": []
+}
