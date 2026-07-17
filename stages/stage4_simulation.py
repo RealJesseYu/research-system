@@ -59,7 +59,7 @@ from tools.substrate_selection import select_substrate
 REFINE_FLAG = "refine — survivors require downstream confirmation"
 
 
-def translate_qoi(spec_qoi, vocab=None) -> tuple[dict | None, str | None]:
+def translate_qoi(spec_qoi, vocab) -> tuple[dict | None, str | None]:
     """Translate a spec's qoi object into a wrapper qoi_request, or refuse.
 
     Returns (qoi_request, None) when the qoi is contract-extractable, else
@@ -70,12 +70,13 @@ def translate_qoi(spec_qoi, vocab=None) -> tuple[dict | None, str | None]:
     D.4: the operation/component re-checks read the QoI-vocabulary RECORD of
     the SELECTED substrate (tools/qoi_vocab.vocab_for — for cavity its
     members ARE run_cfd's own objects, so the checks are unchanged), passed
-    in by run(). A None vocab resolves the record structurally, via
-    selection on an unconstrained spec (today: cavity) — this keeps the
-    pre-D.4 single-argument call shape valid and hardcodes no substrate id.
+    in by run(). `vocab` is REQUIRED (G2 guard, owner ruling 2026-07-17):
+    the pre-D.4 bare call resolved it via selection on a None spec, which —
+    the moment routable_ids() has two entries — silently means "first
+    enrolled by vacuous match". A caller must resolve the record itself
+    (vocab_for(select_substrate(spec)), or an explicit id); a bare call now
+    raises instead of guessing a substrate.
     """
-    if vocab is None:
-        vocab = vocab_for(select_substrate(None))
     if not isinstance(spec_qoi, dict):
         return None, "spec has no qoi object"
     field = spec_qoi.get("field")

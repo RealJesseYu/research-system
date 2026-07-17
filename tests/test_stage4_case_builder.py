@@ -23,6 +23,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from stages.stage4_case_builder import TEMPLATE, CaseSynthesisError, build_case
 from stages.stage4_simulation import translate_qoi
+from tools.qoi_vocab import vocab_for
+
+# G2 guard (owner ruling 2026-07-17): translate_qoi's vocab is REQUIRED —
+# these tests exercise cavity translation, so they pass cavity's record
+# explicitly (resolved once; the record is frozen).
+CAVITY_VOCAB = vocab_for("cavity_2d_cfd")
 
 # A fully-buildable run: every buildable parameter present, plus a
 # reynolds_number that IS consistent with its explicit decomposition
@@ -210,7 +216,8 @@ class TestTranslateQoi(unittest.TestCase):
         request, reason = translate_qoi(
             {"name": "mean speed", "units": "m/s", "definition": "…",
              "how_extracted": "…", "field": "U", "operation": "volAverage",
-             "component": "mag"}
+             "component": "mag"},
+            CAVITY_VOCAB,
         )
         self.assertIsNone(reason)
         self.assertEqual(
@@ -220,14 +227,16 @@ class TestTranslateQoi(unittest.TestCase):
     def test_free_text_only_qoi_is_refused_with_a_reason(self):
         request, reason = translate_qoi(
             {"name": "Danckwerts mixing index", "units": "-",
-             "definition": "…", "how_extracted": "read the scalar field…"}
+             "definition": "…", "how_extracted": "read the scalar field…"},
+            CAVITY_VOCAB,
         )
         self.assertIsNone(request)
         self.assertIn("no machine-readable field/operation", reason)
 
     def test_unknown_operation_is_refused_with_a_reason(self):
         request, reason = translate_qoi(
-            {"name": "x", "field": "U", "operation": "timeSeries"}
+            {"name": "x", "field": "U", "operation": "timeSeries"},
+            CAVITY_VOCAB,
         )
         self.assertIsNone(request)
         self.assertIn("timeSeries", reason)

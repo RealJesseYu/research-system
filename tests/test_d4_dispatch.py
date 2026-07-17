@@ -378,14 +378,24 @@ class TestFailLoudTranslation(unittest.TestCase):
 
 
 class TestTranslateQoiVocabSeam(unittest.TestCase):
-    def test_bare_call_equals_explicit_cavity_vocab_call(self):
-        # the pre-D.4 single-argument shape resolves the record structurally
-        # and matches the explicit cavity record — same objects, same result
+    def test_bare_call_raises_never_a_vacuous_selection(self):
+        # G2 guard (owner ruling 2026-07-17): the pre-D.4 single-argument
+        # shape resolved the vocab via selection on a None spec — once two
+        # substrates are routable that silently means "first enrolled by
+        # vacuous match". The seam is CLOSED: vocab is required, a bare
+        # call raises instead of guessing a substrate.
         spec_qoi = {"name": "x", "field": "U", "operation": "volAverage",
                     "component": "mag"}
+        with self.assertRaises(TypeError):
+            s4.translate_qoi(spec_qoi)
+        # the explicit-record call is unchanged
+        request, reason = s4.translate_qoi(
+            spec_qoi, qoi_vocab.vocab_for("cavity_2d_cfd")
+        )
+        self.assertIsNone(reason)
         self.assertEqual(
-            s4.translate_qoi(spec_qoi),
-            s4.translate_qoi(spec_qoi, qoi_vocab.vocab_for("cavity_2d_cfd")),
+            request,
+            {"field": "U", "operation": "volAverage", "component": "mag"},
         )
 
     def test_cavity_vocab_members_are_run_cfds_objects(self):
