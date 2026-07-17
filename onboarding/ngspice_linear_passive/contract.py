@@ -143,6 +143,15 @@ solve — the circuits themselves solve in milliseconds, and a 30,023-row
 transient differs from a 3-element steady solve by well under 3x. Runs are
 killed after 600 seconds and reported as a failure; nothing in this regime has
 approached that.
+How this summary maps to an upstream stage-4 run entry (ruled R1 option 4,
+2026-07-17): converged := (valid is true). For this substrate, converged means
+the run COMPLETED AND PARSED — the deck ran, no failure marker fired, and one
+finite scalar was extracted. It does NOT mean an iterative-residual criterion
+was met: this instrument has none — a linear network solve either completes or
+it does not, and agreement with circuit theory is judged separately (section 4).
+valid=false maps to converged=false with the diagnostics line carried as
+qoi_error, and no number. This substrate carries no optional `state` value: the
+summary has no state vocabulary of its own beyond the boolean valid.
 
 4. HONEST LIMITS
   - Ideal linear passive only. There are no semiconductor device models, no

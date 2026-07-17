@@ -6,6 +6,14 @@ frozen prompts).
 Ruled change, Step 16: optional prior_thought at post-gate-1 (loop-back
 re-entry), persists through pass-2 boundaries — every boundary tolerates
 it, and when present it must be a valid thought shape.
+Ruled change, D.5 (R1 option 4, 2026-07-17): execution run entries admit
+an optional per-substrate `state` key (non-empty string when present).
+The required set is unchanged — {converged, wall_clock_s, and exactly one
+of qoi_value | qoi_error} — and an entry without `state` validates
+byte-identically, so every cavity entry is untouched. Allowed `state`
+VALUES are contract-§3 material per substrate (e.g. run_scipy's tri-state
+solved_verified | unevaluated | error), never enumerated here: schemas.py
+stays substrate-neutral.
 Deferred candidates and wake conditions:
   - candidate 1 (categorical parameter role): wake on a second live
     categorical occurrence or a downstream mis-read;
@@ -49,6 +57,12 @@ POST_STAGE5_KEYS = POST_STAGE4_KEYS + ("thought", "iterate_decision")
 
 CHOSEN_HYPOTHESIS_KEYS = ("id", "statement", "rationale")
 FIDELITY_VERDICT_KEYS = ("label", "rationale", "right_instrument")
+
+# The SINGLE source for the run-entry key set (D.5 census: schemas.py is the
+# one production site enforcing this shape — never a second key list).
+# `state` is the D.5-ruled optional (R1 option 4); the other four are the
+# locked Step-15 required set.
+RUN_ENTRY_KEYS = ("converged", "wall_clock_s", "qoi_value", "qoi_error", "state")
 
 
 def _is_non_empty_str(value: Any) -> bool:
@@ -158,7 +172,9 @@ def _check_fidelity_verdict(payload: dict, errors: list[str]) -> None:
 
 def _check_execution_run_entry(entry: Any, label: str, errors: list[str]) -> None:
     """One conclusions-only run entry: {converged, wall_clock_s, and exactly
-    one of qoi_value | qoi_error} — the shape stage 4 writes (RUN B)."""
+    one of qoi_value | qoi_error} — the shape stage 4 writes (RUN B) — plus
+    the D.5-ruled optional `state` (non-empty string; per-substrate values
+    are contract material, not checked here)."""
     if not isinstance(entry, dict):
         errors.append(f"{label} must be an object.")
         return
@@ -185,11 +201,17 @@ def _check_execution_run_entry(entry: Any, label: str, errors: list[str]) -> Non
         errors.append(
             f"{label} qoi_error must be a non-empty string; got {entry['qoi_error']!r}."
         )
+    if "state" in entry and not _is_non_empty_str(entry["state"]):
+        errors.append(
+            f"{label} state, when present, must be a non-empty string; "
+            f"got {entry['state']!r}."
+        )
     for key in entry:
-        if key not in ("converged", "wall_clock_s", "qoi_value", "qoi_error"):
+        if key not in RUN_ENTRY_KEYS:
             errors.append(
                 f"{label} field '{key}' is not allowed — a run entry carries "
-                f"exactly converged, wall_clock_s, and qoi_value or qoi_error."
+                f"exactly converged, wall_clock_s, and qoi_value or qoi_error, "
+                f"plus the optional state."
             )
 
 

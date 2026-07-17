@@ -18,14 +18,18 @@ KeyError-first on an unknown id (via registry.get). NEVER a cavity fallback:
 a substrate stage 4 has no adapter for is refused at dispatch, not executed
 down the wrong path.
 
-An adapter's D.4 job is INPUT + QoI translation ONLY (repo_facts §10.5
-(i)+(ii)): map one mini-run's spec params to the wrapper's own typed input,
-and hand on the substrate's translated QoI request. Return-shape adaptation
-(§10.5 (iii)) is D.5's material and is deliberately NOT built here — a
-non-cavity adapter returns its wrapper summary VERBATIM, and mapping
-valid -> converged anywhere would be dishonest (repo_facts §10.6: `valid`
-means "ran and parsed", exactly what the cavity contract says converged is
-not).
+An adapter's job is INPUT + QoI translation (repo_facts §10.5 (i)+(ii), D.4):
+map one mini-run's spec params to the wrapper's own typed input, and hand on
+the substrate's translated QoI request. A non-cavity adapter returns its
+wrapper summary VERBATIM. Return-shape adaptation (§10.5 (iii)) is D.5's:
+a SEPARATE per-substrate entry constructor (ngspice_run_entry below) maps a
+wrapper summary to the stage-4 conclusions-only run entry, under the R1
+option-4 ruling — the per-substrate converged mapping lives in that
+substrate's contract §3, and valid -> converged is honest for ngspice
+precisely because §3 now states converged means completed-and-parsed there
+(repo_facts §10.6). Entry construction stays OUT of the adapters so evidence
+keeps the full summary; stage 4 wires the constructor at promotion (R2),
+never before.
 
 The ngspice adapter is DEFINED here but NOT registered — the run_ngspice
 precedent (built, unregistered): tests register it on a constructed
@@ -125,8 +129,8 @@ def _ngspice_adapter(substrate_id, params, case_name, roles, qoi_request):
     loud (ValueError naming every offender) on anything untranslatable —
     never a silent drop or default. Returns the wrapper summary VERBATIM:
     entry construction for the {valid, qoi, diagnostics, runtime_s} shape is
-    D.5's material, and a valid -> converged mapping here would be dishonest
-    (repo_facts §10.6)."""
+    ngspice_run_entry's job (D.5), kept out of the adapter so stage-4
+    evidence keeps the full summary."""
     if not isinstance(params, dict):
         raise ValueError(
             f"cannot translate mini-run params: expected an object, got "
@@ -157,6 +161,78 @@ def _ngspice_adapter(substrate_id, params, case_name, roles, qoi_request):
         k: (qoi_request if k == "qoi" else params[k]) for k in _REQUIRED_FIELDS
     }
     return wrapper_callable(substrate_id)(typed)
+
+
+# The run_ngspice summary key set, per the wrapper's own documented return
+# shape (tools/run_ngspice.py:28: {valid, qoi, diagnostics, runtime_s}) —
+# the wrapper defines no constant for it, so the contract line is the cite.
+_NGSPICE_SUMMARY_KEYS = ("valid", "qoi", "diagnostics", "runtime_s")
+
+
+def ngspice_run_entry(summary) -> dict:
+    """D.5 (R1 option 4): one conclusions-only stage-4 run entry
+    {converged, wall_clock_s, qoi_value | qoi_error} from a run_ngspice
+    summary {valid, qoi, diagnostics, runtime_s}. NOT wired into stage 4 —
+    the _ngspice_adapter precedent (built, unregistered): stage 4 dispatches
+    entry construction per substrate at promotion (R2), never before.
+
+    The mapping, ruled in the staged contract §3 (option 4): converged :=
+    (valid is True) — for this substrate converged means COMPLETED-AND-
+    PARSED, stated plainly there; wall_clock_s := runtime_s; valid=False ->
+    converged=False plus qoi_error from diagnostics, NEVER a fabricated
+    qoi_value. NO `state` key is wired: run_ngspice's summary carries no
+    own-vocabulary state field (only the boolean valid), and inventing one
+    here would fabricate vocabulary the wrapper does not emit.
+
+    FAIL LOUD (ValueError naming every offender) on structurally missing or
+    ill-typed wrapper fields — never a default: a summary that breaks the
+    wrapper's own contract must not become a well-formed entry."""
+    if not isinstance(summary, dict):
+        raise ValueError(
+            f"cannot construct a run entry: expected a run_ngspice summary "
+            f"object, got {type(summary).__name__}"
+        )
+    missing = [k for k in _NGSPICE_SUMMARY_KEYS if k not in summary]
+    if missing:
+        raise ValueError(
+            "cannot construct a run entry: run_ngspice summary is missing "
+            f"field(s) {', '.join(missing)} — the wrapper contract is "
+            f"exactly {{{', '.join(_NGSPICE_SUMMARY_KEYS)}}}; refusing to "
+            "default"
+        )
+    valid = summary["valid"]
+    if not isinstance(valid, bool):
+        raise ValueError(
+            f"cannot construct a run entry: summary valid must be a bool, "
+            f"got {valid!r}"
+        )
+    runtime_s = summary["runtime_s"]
+    if not isinstance(runtime_s, (int, float)) or isinstance(runtime_s, bool):
+        raise ValueError(
+            f"cannot construct a run entry: summary runtime_s must be a "
+            f"number, got {runtime_s!r}"
+        )
+    entry = {"converged": valid is True, "wall_clock_s": runtime_s}
+    if valid:
+        qoi = summary["qoi"]
+        if not isinstance(qoi, (int, float)) or isinstance(qoi, bool):
+            raise ValueError(
+                f"cannot construct a run entry: summary claims valid=true "
+                f"but qoi is {qoi!r}, not a number — the wrapper contract "
+                "says valid=true always carries one scalar; refusing to "
+                "fabricate a qoi_value"
+            )
+        entry["qoi_value"] = qoi
+    else:
+        diagnostics = summary["diagnostics"]
+        if not isinstance(diagnostics, str) or not diagnostics.strip():
+            raise ValueError(
+                f"cannot construct a run entry: summary valid=false but "
+                f"diagnostics is {diagnostics!r} — a failed run must carry "
+                "its named reason; refusing to invent a qoi_error"
+            )
+        entry["qoi_error"] = diagnostics
+    return entry
 
 
 # substrate_id -> its execution adapter. cavity ALONE in production,
