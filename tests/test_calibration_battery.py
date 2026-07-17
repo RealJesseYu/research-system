@@ -26,6 +26,7 @@ from stages.stage3_fidelity_gate import VALID_LABELS
 
 FEA = "calculix_cantilever_fea"
 CODE = "code_sklearn_eval"
+FENICSX = "fenicsx_cantilever_elastic"
 
 
 class TestCaseFileIntegrity(unittest.TestCase):
@@ -63,7 +64,7 @@ class TestCaseFileIntegrity(unittest.TestCase):
                             for w in data["wrapper_cases"]))
 
     def test_acceptable_labels_are_vocabulary(self):
-        for sid in (FEA, CODE):
+        for sid in (FEA, CODE, FENICSX):
             for g in cb.load_cases(sid)["gate_cases"]:
                 self.assertTrue(g["acceptable_labels"])
                 for lbl in g["acceptable_labels"]:
@@ -79,7 +80,7 @@ class TestCaseFileIntegrity(unittest.TestCase):
     def test_rule1_no_answer_key_leak_in_built_input(self):
         # The stage_input a gate case would send carries none of the answer-key
         # keys — the same tripwire run_gate_case asserts live.
-        for sid in (FEA, CODE):
+        for sid in (FEA, CODE, FENICSX):
             data = cb.load_cases(sid)
             for g in data["gate_cases"]:
                 stage_input = {
@@ -98,7 +99,7 @@ class TestCaseFileIntegrity(unittest.TestCase):
         # (all keys) - {"id", "experiment"}. Fails the moment a case gains a hidden
         # field the blocklist does not know — so the blocklist cannot silently drift
         # out of coverage as cases are added.
-        for sid in (FEA, CODE):
+        for sid in (FEA, CODE, FENICSX):
             for g in cb.load_cases(sid)["gate_cases"]:
                 hidden = set(g) - set(cb._MODEL_VISIBLE_GATE_FIELDS)
                 missing = hidden - set(cb._ANSWER_KEY_KEYS)
@@ -159,6 +160,162 @@ class TestAnswerKeyTripwire(unittest.TestCase):
                     "auto",
                 )
             self.assertIn("TRIPWIRE-ON-PATH", str(ctx.exception))
+
+
+class TestStagedBatteryWiring(unittest.TestCase):
+    """The `_ANSWER_KEY_KEYS` amendment (label_provenance, label_rationale),
+    PROVEN BY FAILING THE ESCAPE.
+
+    MOVED from tests/test_run_fenicsx.py at the Wave-2 merge, as that build
+    flagged. There the battery was frozen, so these tests SIMULATED the patched
+    state by substituting the blocklist. Now the REAL blocklist is patched, so
+    the roles invert: the live `cb._ANSWER_KEY_KEYS` IS the patched state
+    (tested directly, no substitution), and the PRE-patch state is reconstructed
+    by removing the two additions — kept only to prove the escape SUCCEEDED
+    before the amendment. A guard test that passes under the patch but was never
+    shown to fail without it proves nothing.
+    """
+
+    def setUp(self):
+        sys.path.insert(0, str(ROOT / "onboarding" / "fenicsx_cantilever_elastic"))
+        import battery_wiring  # noqa: E402
+        import contract  # noqa: E402
+
+        self.cb = cb
+        self.contract = contract
+        additions = tuple(battery_wiring.ANSWER_KEY_KEYS_ADDITIONS)
+        # The REAL shipped blocklist — the thing under test, no substitution.
+        self.patched = tuple(cb._ANSWER_KEY_KEYS)
+        # The pre-amendment state, reconstructed by subtraction. If the
+        # amendment is ever reverted, patched == unpatched and the trips-patched
+        # assertions below fail loudly.
+        self.unpatched = tuple(k for k in self.patched if k not in additions)
+
+    def _leaking_input(self, mutated_rationale: str) -> dict:
+        """A model input carrying a MUTATED label_rationale — i.e. answer-key text
+        that has drifted into what the model would see."""
+        return {
+            "case_id": "X06",
+            "substrate": "irrelevant substrate text",
+            "envelope": "irrelevant envelope text",
+            "experiment": "Cantilever ... element_degree=1. Extract tip_displacement.",
+            "label_rationale": mutated_rationale,
+        }
+
+    def test_escape_succeeds_unpatched_then_guard_trips_patched(self):
+        """THE FAILING ESCAPE (the 0199161 pattern). Take a real X06 rationale,
+        mutate it, drift it into the model input, and show the guard's two states
+        differ: PRE-patch it sails through; the REAL guard trips."""
+        x06 = {c["id"]: c for c in self.contract.GATE_CASES}["X06"]
+        mutated = x06["label_rationale"].replace("dangerous", "MUTATED-dangerous")
+        self.assertNotEqual(mutated, x06["label_rationale"])  # the mutation is real
+        leaking = self._leaking_input(mutated)
+
+        # (a) UNPATCHED: the escape SUCCEEDS — the gap was real, not hypothetical.
+        with mock.patch.object(self.cb, "_ANSWER_KEY_KEYS", self.unpatched):
+            self.cb._assert_no_answer_key_leak(leaking, "X06")   # does NOT raise
+
+        # (b) PATCHED: the REAL guard (no substitution) TRIPS on the same input.
+        with self.assertRaises(AssertionError) as ctx:
+            self.cb._assert_no_answer_key_leak(leaking, "X06")
+        self.assertIn("label_rationale", str(ctx.exception))
+        self.assertIn("X06", str(ctx.exception))
+
+    def test_patched_guard_trips_on_each_new_field_individually(self):
+        """Both added names are caught on their own, not just as a pair."""
+        for field in ("label_provenance", "label_rationale"):
+            with self.subTest(field=field):
+                leaking = {"case_id": "X01", "experiment": "beam", field: "drifted"}
+                with mock.patch.object(self.cb, "_ANSWER_KEY_KEYS", self.unpatched):
+                    self.cb._assert_no_answer_key_leak(leaking, "X01")   # escape works
+                with self.assertRaises(AssertionError):
+                    self.cb._assert_no_answer_key_leak(leaking, "X01")  # real guard
+
+    def test_patched_guard_still_passes_a_clean_input(self):
+        """The real guard must not fire on the real construction path, or it
+        would be a tripwire that trips on everything — which is also not a proof."""
+        clean = {"case_id": "X06", "substrate": "s", "envelope": "e",
+                 "experiment": "Cantilever ... element_degree=1."}
+        self.cb._assert_no_answer_key_leak(clean, "X06")   # does NOT raise
+
+    def test_merge_blocker_is_real_and_the_amendment_resolves_it(self):
+        """The drift guard's own derivation, run against THIS slate:
+        PRE-patch it fails on every gate case (the merge blocker was real);
+        against the REAL blocklist it passes (the amendment is sufficient and no
+        further name is needed)."""
+        visible = set(self.cb._MODEL_VISIBLE_GATE_FIELDS)
+        uncovered_unpatched, uncovered_patched = [], []
+        for case in self.contract.GATE_CASES:
+            hidden = set(case) - visible
+            if hidden - set(self.unpatched):
+                uncovered_unpatched.append(case["id"])
+            if hidden - set(self.patched):
+                uncovered_patched.append(case["id"])
+        self.assertEqual(len(uncovered_unpatched), 10)   # merge blocker: all 10
+        self.assertEqual(uncovered_patched, [])          # amendment resolves it
+
+
+class TestOldPathUnchangedByThePatch(unittest.TestCase):
+    """THE OLD-PATH PROPERTY: the FEA and code case files must assemble a
+    BYTE-IDENTICAL model prompt before and after the patch.
+
+    MOVED from tests/test_run_fenicsx.py at the Wave-2 merge, as flagged there.
+    The amendment only adds names to a blocklist that SCANS; it must not touch
+    construction, and — the real risk — the two new names must not newly trip on
+    the existing slates' text. Both are proven by running the REAL
+    `run_gate_case` construction path with the model call stubbed out. The
+    patched list is now the live `cb._ANSWER_KEY_KEYS`; the pre-patch list is
+    reconstructed by removing the two additions.
+    """
+
+    def setUp(self):
+        sys.path.insert(0, str(ROOT / "onboarding" / "fenicsx_cantilever_elastic"))
+        import battery_wiring  # noqa: E402
+
+        self.cb = cb
+        additions = tuple(battery_wiring.ANSWER_KEY_KEYS_ADDITIONS)
+        self.patched = tuple(cb._ANSWER_KEY_KEYS)
+        self.unpatched = tuple(k for k in self.patched if k not in additions)
+
+    def _prompts_under(self, blocklist) -> list[str]:
+        """Every FEA + code gate case's assembled model input, serialized, built
+        through the REAL run_gate_case with only the model call replaced."""
+        captured: list[str] = []
+
+        def _fake_call(stage, prompt, stage_input, schema, model=None,
+                       extra_validator=None):
+            captured.append(json.dumps(stage_input, sort_keys=True))
+            return ({"verdict": {"label": "defer", "rationale": "stub",
+                                 "right_instrument": "stub"}}, {"attempts": 1})
+
+        with mock.patch.object(self.cb, "_ANSWER_KEY_KEYS", blocklist), \
+                mock.patch.object(self.cb, "call_stage_model", _fake_call):
+            for sid in (FEA, CODE):
+                data = self.cb.load_cases(sid)
+                for gc in data["gate_cases"]:
+                    self.cb.run_gate_case(data, gc, "auto")
+        return captured
+
+    def test_fea_and_code_prompts_are_byte_identical_before_and_after(self):
+        before = self._prompts_under(self.unpatched)
+        after = self._prompts_under(self.patched)
+        self.assertTrue(before, "no prompts captured — the harness did not run")
+        self.assertEqual(len(before), 21)          # FEA 10 + code 11 gate cases
+        self.assertEqual(before, after)            # byte-identical, case for case
+
+    def test_the_two_new_names_raise_no_false_positive_on_the_old_slates(self):
+        """If FEA's or code's prompt text happened to contain the literal
+        '"label_rationale"', the patched guard would abort a battery that works
+        today. Prove it does not — this is the only way the patch could break the
+        old path, and _prompts_under would have raised if it did."""
+        for sid in (FEA, CODE):
+            data = self.cb.load_cases(sid)
+            for name in ("label_provenance", "label_rationale"):
+                with self.subTest(substrate=sid, name=name):
+                    self.assertNotIn(f'"{name}"', json.dumps(data["substrate_text"]))
+                    self.assertNotIn(f'"{name}"', json.dumps(data["envelope_text"]))
+                    for gc in data["gate_cases"]:
+                        self.assertNotIn(f'"{name}"', json.dumps(gc["experiment"]))
 
 
 class TestConfusion(unittest.TestCase):

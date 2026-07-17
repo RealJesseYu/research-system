@@ -16,3 +16,5 @@ harness/validation_batch_18.json
 /cases_fea/
 /cases_code/
 /cases_fenicsx/
+/cases_scipy/
+/cases_ngspice/

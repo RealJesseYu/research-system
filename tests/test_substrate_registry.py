@@ -21,7 +21,7 @@ from tools import web_search_stub
 
 
 class TestRegistryTable(unittest.TestCase):
-    def test_all_four_substrates_enrolled(self):
+    def test_all_five_substrates_enrolled(self):
         ids = [r.substrate_id for r in registry.all_substrates()]
         self.assertEqual(
             ids,
@@ -29,6 +29,7 @@ class TestRegistryTable(unittest.TestCase):
                 "cavity_2d_cfd",
                 "calculix_cantilever_fea",
                 "code_sklearn_eval",
+                "fenicsx_cantilever_elastic",
                 "web_search",
             ],
         )

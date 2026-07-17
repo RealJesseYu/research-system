@@ -101,6 +101,15 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         notes="battery not on the run manifest — owner decision pending",
     ),
     SubstrateRecord(
+        substrate_id="fenicsx_cantilever_elastic",
+        wrapper="tools/run_fenicsx.py",
+        card_path="docs/envelope_card_fenicsx_cantilever_elastic.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes="slate drafted (15 cases); battery pending owner OK on the slate ruling",
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",

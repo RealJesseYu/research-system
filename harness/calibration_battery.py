@@ -88,6 +88,7 @@ STAGE_NAME = "calibration_fidelity_case"
 _CASE_FILES = {
     "calculix_cantilever_fea": "calibration_cases_fea.json",
     "code_sklearn_eval": "calibration_cases_code.json",
+    "fenicsx_cantilever_elastic": "calibration_cases_fenicsx_cantilever_elastic.json",
 }
 
 # Answer-key keys that must never appear in what the model is sent (RULE-1).
@@ -96,7 +97,8 @@ _CASE_FILES = {
 # verbatim). Everything else on a gate case is answer key. A drift test
 # (tests/test_calibration_battery.py) fails if any gate case gains a hidden field
 # this blocklist does not know, so it cannot silently fall out of coverage.
-_ANSWER_KEY_KEYS = ("expected_class", "acceptable_labels", "note", "right_instrument")
+_ANSWER_KEY_KEYS = ("expected_class", "acceptable_labels", "note",
+                    "right_instrument", "label_provenance", "label_rationale")
 
 # Gate-case fields that DO legitimately reach the model (the allowlist the
 # blocklist is the complement of). Used only by the drift test's derivation.
@@ -137,6 +139,10 @@ def _wrapper_validator(substrate_id: str):
         from tools.run_code import CodeSpecError, validate_spec
 
         return validate_spec, CodeSpecError
+    if substrate_id == "fenicsx_cantilever_elastic":
+        from tools.run_fenicsx import FenicsxInputError, _validate_input
+
+        return _validate_input, FenicsxInputError
     raise KeyError(f"no wrapper validator wired for substrate {substrate_id!r}")
 
 
