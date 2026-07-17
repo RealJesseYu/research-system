@@ -1,0 +1,15 @@
+{
+  "run_id": "c235-canned-chooser",
+  "hypotheses": [
+    {
+      "id": "h1",
+      "statement": "In the laminar lid-driven cavity, mean kinetic energy scales sub-linearly with lid speed",
+      "rationale": "C235 CANNED (not stage-1 output): a synthetic ranked survivor; the proof is composition byte-identity, not physical realism."
+    },
+    {
+      "id": "h2",
+      "statement": "Corner vortex intensity saturates above Re 150 in the same cavity",
+      "rationale": "C235 CANNED (not stage-1 output): second-ranked synthetic survivor so the ranked list has k=2."
+    }
+  ]
+}

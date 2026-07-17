@@ -1,0 +1,15 @@
+{
+  "run_id": "c235-canned-lessons",
+  "created_at": "2026-07-17T00:00:00+00:00",
+  "mode": "auto",
+  "payload": {
+    "domain": "baseline characterization of laminar lid-driven cavity flows",
+    "chosen_hypothesis": {
+      "id": "hand-baseline",
+      "statement": "baseline cavity mean-speed characterization",
+      "rationale": "C235 CANNED (not stage-1 output): payload content mirrors the d1 canned baton; the proof is assembly determinism with the lessons block present, not physical realism."
+    },
+    "substrate_id": "cavity_2d_cfd"
+  },
+  "history": []
+}

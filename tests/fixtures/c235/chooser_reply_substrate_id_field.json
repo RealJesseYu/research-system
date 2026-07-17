@@ -1,0 +1,6 @@
+{
+  "ack_run_id": "c235-canned-chooser",
+  "chosen_id": "h1",
+  "substrate_id": "ngspice_linear_passive",
+  "reasoning": "C235 CANNED reply: chooses h1 and names an instrument in a field TODAY'S envelope forbids; this reply exists to capture the current envelope-error text verbatim on the retry surface."
+}

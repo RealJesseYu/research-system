@@ -1,0 +1,4 @@
+{"run_id": "c235-A", "kind": "learned_summary", "hypothesis_id": "hA", "text": "C235 CANNED lesson 1: the cavity wrapper extracts only fields the case already writes.", "timestamp": "2026-07-17T00:00:01+00:00", "extras": {}}
+{"run_id": "c235-B", "kind": "run_record", "hypothesis_id": "hB", "text": "C235 CANNED decoy: a non-learned_summary entry the kind filter must exclude.", "timestamp": "2026-07-17T00:00:02+00:00", "extras": {}}
+{"run_id": "c235-C", "kind": "learned_summary", "hypothesis_id": "hC", "text": "C235 CANNED lesson 2: single-shot QoI only, no time-series extraction.", "timestamp": "2026-07-17T00:00:03+00:00", "extras": {}}
+{"run_id": "c235-D", "kind": "learned_summary", "hypothesis_id": "hD", "text": "C235 CANNED lesson 3: convergence is reported separately from QoI validity.", "timestamp": "2026-07-17T00:00:04+00:00", "extras": {}}

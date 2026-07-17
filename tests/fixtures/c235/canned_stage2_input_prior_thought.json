@@ -1,0 +1,22 @@
+{
+  "run_id": "c235-canned-prior-thought",
+  "created_at": "2026-07-17T00:00:00+00:00",
+  "mode": "auto",
+  "payload": {
+    "domain": "baseline characterization of laminar lid-driven cavity flows",
+    "chosen_hypothesis": {
+      "id": "hand-baseline",
+      "statement": "baseline cavity mean-speed characterization",
+      "rationale": "C235 CANNED (not stage-1 output): payload content mirrors the d1 canned baton; the proof is assembly determinism with prior_thought present, not physical realism."
+    },
+    "substrate_id": "cavity_2d_cfd",
+    "prior_thought": {
+      "assessment": "C235 CANNED prior thought: the previous design's mini-experiment could not distinguish the hypothesis from its null.",
+      "surprise_triage": "setup_error",
+      "iterate_decision": "back_to_design",
+      "justification": "C235 CANNED: the QoI as extracted was insensitive to the swept parameter, so the loop returned to design.",
+      "learned_summary": "C235 CANNED: sweep ranges must move the QoI by more than the discretization jitter."
+    }
+  },
+  "history": []
+}
