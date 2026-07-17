@@ -1,0 +1,17 @@
+# Pinned symbolic/numeric manifest for the sci-Python sandbox image (Regime A).
+#
+# These are the ONLY packages the sandbox image carries beyond the base. sympy
+# is the Regime-A substrate itself; scipy is present ONLY as the independent
+# numeric cross-check arm (owner ruling 2026-07-16: Regime B is QUEUED — no
+# SciPy operation is exposed as a callable operation, its numbers appear only in
+# the wrapper's `crosscheck` diagnostic field, never as a result).
+#
+# numpy is deliberately NOT pinned here: scipy 1.18 constrains it (>=2.0.0) and
+# the resolver selects the version. The resolved set is captured FROM THE BUILT
+# IMAGE by `pip freeze` into RESOLVED_VERSIONS.md — that file, not this one, is
+# the record of what actually shipped. mpmath arrives as sympy's dependency.
+#
+# All ship prebuilt cp312 manylinux wheels, so the build needs network but no
+# compiler; jobs at runtime get NO network (tools/run_scipy.py: --network=none).
+sympy==1.14.*
+scipy==1.18.*
