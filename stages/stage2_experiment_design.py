@@ -2,8 +2,10 @@
 stage2_experiment_design.py — real Experiment-Design stage: ONE isolated
 Sonnet call turns the gate-1 chosen hypothesis into a typed experiment spec.
 
-The stage reads the baton payload ({domain, chosen_hypothesis}) plus the
-substrate contract (substrates.py — this stage is its first consumer) plus,
+The stage reads the baton payload ({domain, chosen_hypothesis,
+substrate_id} since Step 23.5, R-23.5-4) plus the contract of the payload's
+gate-decided substrate (read from the registry — the D.1.1 cavity pin is
+retired at this surface) plus,
 since Step 18.5, the last 3 learned_summary journal entries, code-composed
 into a substrate-capability lessons block (evidence at
 runs/<run_id>/stage2/retrieved_memory.json; loop-back re-entry re-reads, so
@@ -26,6 +28,7 @@ from baton import Baton
 from memory.journal import journal_recent_by_kind
 from model_call import call_stage_model, log_stage_call
 from stages.stage2_spec import validate_spec
+from tools.qoi_vocab import vocab_for
 from tools.substrate_registry import contract_for
 
 SONNET_MODEL = "claude-sonnet-4-6"
@@ -122,10 +125,14 @@ SCHEMA = {"required": ["ack_run_id", "spec"]}
 ENVELOPE_FIELDS = ("ack_run_id", "spec")
 
 
-def _make_extra_validator(chosen_id: str):
+def _make_extra_validator(chosen_id: str, vocab):
     """Deep validator handed to call_stage_model: the reply envelope must be
     exactly {ack_run_id, spec}, and the spec must pass validate_spec for the
-    chosen hypothesis. Returns plain-language error strings, empty = valid.
+    chosen hypothesis under the substrate's OWN QoI vocabulary (R-23.5-4:
+    resolved from the payload's gate-decided substrate_id — the cavity
+    vocab is the same record the old bare call resolved to, so cavity
+    retry surfaces are byte-identical). Returns plain-language error
+    strings, empty = valid.
     """
 
     def check(parsed: dict) -> list[str]:
@@ -135,7 +142,7 @@ def _make_extra_validator(chosen_id: str):
             for key in parsed
             if key not in ENVELOPE_FIELDS
         ]
-        errors.extend(validate_spec(parsed["spec"], chosen_id))
+        errors.extend(validate_spec(parsed["spec"], chosen_id, vocab))
         return errors
 
     return check
@@ -175,13 +182,18 @@ def run(baton: Baton) -> Baton:
         f"STAGE2_MEMORY retrieved {len(memory_entries)} learned_summary entries",
     )
 
-    # TODO(D.1.1): substrate selection undesigned at this surface —
-    # owner ruling pending; explicit cavity pin, single-sourced.
+    # R-23.5-4 (owner, 2026-07-17): the composition is grounded in the
+    # contract of the payload's gate-decided substrate_id — a structural
+    # key read, never a string literal, never a name parse. contract_for
+    # fails loud on an unknown (KeyError) or contractless (LookupError)
+    # id — NEVER a cavity fallback. For a cavity payload this returns the
+    # same imported constant object as the retired literal pin, so the
+    # composed bytes are identical (d1 pins hold with zero fixture edits).
     stage_input = {
         "run_id": baton.run_id,
         "domain": domain,
         "chosen_hypothesis": chosen,
-        "substrate_contract": contract_for("cavity_2d_cfd"),
+        "substrate_contract": contract_for(baton.payload["substrate_id"]),
         "prior_thought": prior_thought,
     }
     if lessons_block is not None:
@@ -192,7 +204,9 @@ def run(baton: Baton) -> Baton:
         stage_input,
         SCHEMA,
         model=SONNET_MODEL,
-        extra_validator=_make_extra_validator(chosen["id"]),
+        extra_validator=_make_extra_validator(
+            chosen["id"], vocab_for(baton.payload["substrate_id"])
+        ),
     )
 
     if data["ack_run_id"] != baton.run_id:

@@ -475,8 +475,12 @@ def validate_spec(spec: Any, chosen_id: str, vocab: Any = None) -> list[str]:
     call; every pre-D.3 caller keeps byte-identical behavior.
     """
     if vocab is None:
-        # TODO(D.1.1): substrate selection undesigned at this surface —
-        # owner ruling pending; explicit cavity pin, single-sourced.
+        # Step 23.5 (R-23.5-4): every production caller now passes the
+        # vocabulary of the payload's gate-decided substrate_id (stage 2's
+        # extra_validator; schemas._check_experiment_spec). This None
+        # default is the documented direct-caller/test default only — the
+        # select_substrate(None) precedent — and resolves to the cavity
+        # record exactly as the retired D.1.1 pin did.
         vocab = vocab_for("cavity_2d_cfd")
     if not isinstance(spec, dict):
         return ["the spec must be a single JSON object."]

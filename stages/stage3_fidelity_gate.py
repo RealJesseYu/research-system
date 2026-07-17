@@ -137,9 +137,21 @@ def _log_line(run_id: str, line: str) -> None:
 
 
 def run(baton: Baton) -> Baton:
-    _substrate_id, substrate_contract = _selected_contract(
+    selected_id, substrate_contract = _selected_contract(
         baton.payload["experiment_spec"]
     )
+    # R-23.5-4 agreement check (owner, 2026-07-17): the spec-derived
+    # structural selection must agree with the gate-decided substrate_id
+    # the payload carries — a mismatch is a broken invariant and stops
+    # loudly BEFORE routing (no model call, no contract judged). A payload
+    # without the key fails loud here too (KeyError), never defaults.
+    carried_id = baton.payload["substrate_id"]
+    if selected_id != carried_id:
+        raise RuntimeError(
+            f"stage3_fidelity_gate: substrate agreement check failed — "
+            f"spec-derived selection {selected_id!r} != gate-decided payload "
+            f"substrate_id {carried_id!r}; stopping before routing."
+        )
     stage_input = {
         "run_id": baton.run_id,
         "spec": baton.payload["experiment_spec"],

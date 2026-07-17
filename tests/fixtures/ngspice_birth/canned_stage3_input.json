@@ -9,6 +9,7 @@
       "statement": "resistive divider operating-point baseline",
       "rationale": "HAND-FED (not stage-1 output): a known-servable named-quantity spec to capture the ngspice stage-3 model-visible surface at its birth (R2 flip)."
     },
+    "substrate_id": "ngspice_linear_passive",
     "experiment_spec": {
       "parameters": [
         {

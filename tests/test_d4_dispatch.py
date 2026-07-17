@@ -157,6 +157,9 @@ def _ngspice_trust_baton() -> Baton:
     b.payload = {
         "domain": "circuits",
         "chosen_hypothesis": {"id": "h1", "statement": "s", "rationale": "r"},
+        # Truth-edited Step 23.5 (R-23.5-4): the payload carries the
+        # gate-decided substrate_id, agreeing with the spec's selection.
+        "substrate_id": "ngspice_linear_passive",
         "experiment_spec": {
             "parameters": [{"name": "netlist_body"}, {"name": "analysis"}],
             "qoi": _ngspice_spec_qoi(),

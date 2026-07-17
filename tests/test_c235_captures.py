@@ -401,6 +401,156 @@ class C4Stage2PriorThoughtByteIdentity(unittest.TestCase):
         self.assertNotIn("substrate_id", system_prompt)
 
 
+NGSPICE_RETRY_CLASSES = ("bad_kind", "bad_target", "bad_reduction", "alien_keys")
+
+NGSPICE_RETRY_PERTURBATIONS = {
+    "bad_kind": {"kind": "voltage_node"},
+    "bad_target": {"target": "out node!"},
+    "bad_reduction": {"reduction": "average"},
+    "alien_keys": {"operation": "volAverage"},
+}
+
+
+def _ngspice_reply_with(perturb: dict) -> str:
+    """The known-valid full ngspice spec (frozen at
+    tests/fixtures/c235/ngspice_full_spec.json) with exactly ONE qoi
+    perturbation, wrapped in the stage-2 reply envelope — so each captured
+    validation_error carries exactly one validator error string (the d3
+    one-perturbation discipline)."""
+    spec = json.loads(_fixture("ngspice_full_spec.json"))
+    spec["qoi"].update(perturb)
+    return json.dumps(
+        {"ack_run_id": "c235-canned-ngspice", "spec": spec}, indent=2
+    )
+
+
+def compose_stage2_retry(baton_fixture: str, reply_text: str) -> tuple[str, str]:
+    """Drive the REAL stage-2 re-ask composition on a c235 canned baton (the
+    d3 pattern): transport patched so attempt 1 returns `reply_text` and
+    attempt 2 captures the exact (system_prompt, user_turn) pair."""
+    baton = Baton.from_json(_fixture(baton_fixture))
+    captured: dict = {}
+    calls = {"n": 0}
+
+    def _transport(stage_name, stage_input, system_prompt, user_turn, model):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return reply_text
+        captured["system_prompt"] = system_prompt
+        captured["user_turn"] = user_turn
+        raise _Captured()
+
+    old_cwd = os.getcwd()
+    tmp = tempfile.mkdtemp(prefix="c235_s2retry_")
+    try:
+        os.chdir(tmp)
+        with patch.dict(os.environ, {"BLANK_MEMORY": "1"}):
+            with patch.object(
+                model_call, "_transport_with_retry", side_effect=_transport
+            ):
+                try:
+                    s2.run(baton)
+                except _Captured:
+                    pass
+                else:
+                    raise AssertionError(
+                        "attempt 2 was never reached — the canned reply did "
+                        "not trigger a re-ask"
+                    )
+    finally:
+        os.chdir(old_cwd)
+        shutil.rmtree(tmp, ignore_errors=True)
+
+    return captured["system_prompt"], captured["user_turn"]
+
+
+class C5NgspiceStage2Birth(unittest.TestCase):
+    """Phase-3b birth pin: stage 2's composition on an ngspice-routed
+    post-gate-1 payload — the NEW model-visible surface the 3a un-pin
+    creates. The injected contract IS the graduated registry constant;
+    substrate_id still enters no composed prompt (R-23.5-4)."""
+
+    def test_user_turn_byte_identical_to_birth_fixture(self):
+        _, user_turn = assemble_stage2_variant(
+            "canned_stage2_input_ngspice.json", hermetic_journal=False
+        )
+        self.assertEqual(user_turn, _fixture("stage2_user_turn_ngspice.txt"))
+
+    def test_contract_is_the_ngspice_constant_and_no_substrate_id_leak(self):
+        from substrates import NGSPICE_LINEAR_PASSIVE_CONTRACT
+
+        system_prompt, user_turn = assemble_stage2_variant(
+            "canned_stage2_input_ngspice.json", hermetic_journal=False
+        )
+        parsed = json.loads(user_turn)
+        self.assertEqual(
+            parsed["substrate_contract"], NGSPICE_LINEAR_PASSIVE_CONTRACT
+        )
+        self.assertNotIn("substrate_id", parsed)
+        self.assertIs(system_prompt, s2.SYSTEM_PROMPT)
+
+    def test_assembly_is_deterministic(self):
+        self.assertEqual(
+            assemble_stage2_variant("canned_stage2_input_ngspice.json", False),
+            assemble_stage2_variant("canned_stage2_input_ngspice.json", False),
+        )
+
+    def test_canned_baton_is_canonical_post_gate1_shape(self):
+        from schemas import validate_payload_post_gate1
+
+        baton = json.loads(_fixture("canned_stage2_input_ngspice.json"))
+        self.assertEqual(validate_payload_post_gate1(baton["payload"]), [])
+
+
+class C6NgspiceRetryBirth(unittest.TestCase):
+    """Phase-3b birth pins: the ngspice-class stage-2 retry rejection
+    shapes — validate_spec running the NGSPICE vocabulary inside the real
+    re-ask loop (d3's cavity four are untouched; this is the new class).
+    One perturbation per canned reply = exactly one validator error."""
+
+    def _check_class(self, cls: str) -> None:
+        system_prompt, user_turn = compose_stage2_retry(
+            "canned_stage2_input_ngspice.json",
+            _fixture(f"ngspice_reply_{cls}.json"),
+        )
+        self.assertEqual(user_turn, _fixture(f"ngspice_retry_{cls}.txt"))
+        self.assertIs(system_prompt, s2.SYSTEM_PROMPT)
+
+    def test_bad_kind_retry_byte_identical(self):
+        self._check_class("bad_kind")
+
+    def test_bad_target_retry_byte_identical(self):
+        self._check_class("bad_target")
+
+    def test_bad_reduction_retry_byte_identical(self):
+        self._check_class("bad_reduction")
+
+    def test_alien_keys_retry_byte_identical(self):
+        self._check_class("alien_keys")
+
+    def test_each_class_carries_exactly_one_validator_error(self):
+        markers = {
+            "bad_kind": "qoi kind must be one of",
+            "bad_target": "qoi target must be the exact name",
+            "bad_reduction": "qoi reduction must be one of",
+            "alien_keys": "belong to a different substrate class's QoI grammar",
+        }
+        for cls, marker in markers.items():
+            validation_error = json.loads(
+                _fixture(f"ngspice_retry_{cls}.txt")
+            )["validation_error"]
+            self.assertIn(marker, validation_error)
+            self.assertEqual(validation_error.count(" (raw reply: "), 1)
+
+    def test_original_input_matches_c5_pinned_user_turn(self):
+        for cls in NGSPICE_RETRY_CLASSES:
+            parsed = json.loads(_fixture(f"ngspice_retry_{cls}.txt"))
+            self.assertEqual(
+                json.dumps(parsed["original_input"]),
+                _fixture("stage2_user_turn_ngspice.txt"),
+            )
+
+
 def capture() -> None:
     """Write the four captured-surface fixtures from the CURRENT tree's
     composition (the canned INPUT fixtures are hand-authored and never
@@ -427,6 +577,20 @@ def capture() -> None:
     _, c4 = assemble_stage2_variant("canned_stage2_input_prior_thought.json", False)
     (FIX / "stage2_user_turn_prior_thought.txt").write_text(c4)
     print(f"captured C4 stage-2 prior-thought user turn: {len(c4)} bytes")
+
+    # Phase-3b birth captures (Step 23.5): the ngspice stage-2 surface.
+    _, c5 = assemble_stage2_variant("canned_stage2_input_ngspice.json", False)
+    (FIX / "stage2_user_turn_ngspice.txt").write_text(c5)
+    print(f"captured C5 stage-2 ngspice user turn: {len(c5)} bytes")
+
+    for cls, perturb in NGSPICE_RETRY_PERTURBATIONS.items():
+        reply = _ngspice_reply_with(perturb)
+        (FIX / f"ngspice_reply_{cls}.json").write_text(reply)
+        _, user_turn = compose_stage2_retry(
+            "canned_stage2_input_ngspice.json", reply
+        )
+        (FIX / f"ngspice_retry_{cls}.txt").write_text(user_turn)
+        print(f"captured C6 ngspice retry {cls}: {len(user_turn)} bytes")
 
 
 if __name__ == "__main__":

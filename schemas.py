@@ -40,6 +40,7 @@ from __future__ import annotations
 from typing import Any
 
 from stages.stage2_spec import validate_spec
+from tools.qoi_vocab import vocab_for
 from stages.stage5_thought_layer import (
     DECISION_VALUES,
     THOUGHT_FIELDS,
@@ -153,13 +154,34 @@ def _check_experiment_spec(payload: dict, errors: list[str]) -> None:
     """Defer to validate_spec for the spec's internals — never duplicated
     here. The hypothesis-id pin comes from the payload's own
     chosen_hypothesis; when that id is itself broken, the errors already
-    say so and the pin check is skipped rather than guessed."""
+    say so and the pin check is skipped rather than guessed.
+
+    R-23.5-4 (Step 23.5): the spec's QoI machine keys are checked against
+    the vocabulary of the payload's own gate-decided substrate_id — a
+    structural key read, never a name parse (R-28H-1 untouched). For a
+    cavity payload vocab_for returns the same record the old bare
+    validate_spec call resolved to, so cavity boundary errors are
+    byte-identical. An unresolvable id becomes an error string (fail loud,
+    no cavity fallback); a missing/empty substrate_id is already flagged
+    by the key checks, so the spec check is skipped rather than guessed."""
     if "experiment_spec" not in payload:
         return
     chosen = payload.get("chosen_hypothesis")
     chosen_id = chosen.get("id") if isinstance(chosen, dict) else None
-    if _is_non_empty_str(chosen_id):
-        errors.extend(validate_spec(payload["experiment_spec"], chosen_id))
+    if not _is_non_empty_str(chosen_id):
+        return
+    substrate_id = payload.get("substrate_id")
+    if not _is_non_empty_str(substrate_id):
+        return
+    try:
+        vocab = vocab_for(substrate_id)
+    except Exception:
+        errors.append(
+            f"no QoI vocabulary is wired for substrate {substrate_id!r} — "
+            "the experiment_spec cannot be validated against its substrate."
+        )
+        return
+    errors.extend(validate_spec(payload["experiment_spec"], chosen_id, vocab))
 
 
 def _check_fidelity_verdict(payload: dict, errors: list[str]) -> None:

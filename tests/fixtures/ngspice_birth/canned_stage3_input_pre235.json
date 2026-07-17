@@ -1,0 +1,43 @@
+{
+  "run_id": "birth-canned-ngspice",
+  "created_at": "2026-07-17T00:00:00+00:00",
+  "mode": "auto",
+  "payload": {
+    "domain": "linear passive network characterization",
+    "chosen_hypothesis": {
+      "id": "hand-ngspice-birth",
+      "statement": "resistive divider operating-point baseline",
+      "rationale": "HAND-FED (not stage-1 output): a known-servable named-quantity spec to capture the ngspice stage-3 model-visible surface at its birth (R2 flip)."
+    },
+    "experiment_spec": {
+      "parameters": [
+        {
+          "name": "netlist_body"
+        },
+        {
+          "name": "analysis"
+        }
+      ],
+      "qoi": {
+        "name": "divider output voltage",
+        "units": "V",
+        "definition": "operating-point voltage at node out",
+        "how_extracted": "op solve, v(out)",
+        "kind": "node_voltage",
+        "target": "out",
+        "reduction": "op_value"
+      },
+      "mini_experiment": {
+        "runs": [
+          {
+            "netlist_body": "V1 in 0 DC 10\nR1 in out 1k\nR2 out 0 2k",
+            "analysis": {
+              "type": "op"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "history": []
+}

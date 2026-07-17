@@ -84,9 +84,20 @@ def _ngspice_spec() -> dict:
 
 def _trust_baton(mode: str, spec: dict, run_id: str) -> Baton:
     b = Baton(run_id=run_id, created_at="2026-07-17T00:00:00Z", mode=mode)
+    # Truth-edited Step 23.5 (R-23.5-4): the payload carries the
+    # gate-decided substrate_id; these constructed batons agree with their
+    # spec's own structural selection, keeping each proof on its original
+    # subject (mismatch escapes live in test_c235_chain). For an
+    # unserveable spec the stage raises at selection BEFORE the agreement
+    # check, so the placeholder id is never read.
+    try:
+        sid = selection.select_substrate(spec)
+    except Exception:
+        sid = "unserveable-constructed"
     b.payload = {
         "domain": "circuits",
         "chosen_hypothesis": {"id": "h1", "statement": "s", "rationale": "r"},
+        "substrate_id": sid,
         "experiment_spec": spec,
         "fidelity_verdict": {
             "label": "trust",

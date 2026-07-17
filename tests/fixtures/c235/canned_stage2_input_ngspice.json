@@ -1,0 +1,15 @@
+{
+  "run_id": "c235-canned-ngspice",
+  "created_at": "2026-07-17T00:00:00+00:00",
+  "mode": "auto",
+  "payload": {
+    "domain": "linear passive network characterization",
+    "chosen_hypothesis": {
+      "id": "hand-ngspice",
+      "statement": "a resistive divider's operating-point output voltage matches the R2/(R1+R2) prediction",
+      "rationale": "C235 CANNED (not stage-1 output): a synthetic circuit-shaped post-gate-1 payload; the proof is composition byte-identity on the ngspice contract, not physical depth."
+    },
+    "substrate_id": "ngspice_linear_passive"
+  },
+  "history": []
+}

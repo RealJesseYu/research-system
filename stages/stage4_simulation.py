@@ -163,6 +163,18 @@ def run(baton: Baton) -> Baton:
     # its adapter BEFORE any translation: an unwired or unknown id raises
     # here, escape-failing — never a cavity fallback.
     substrate_id = select_substrate(spec)
+    # R-23.5-4 agreement check (owner, 2026-07-17): the spec-derived
+    # structural selection must agree with the gate-decided substrate_id
+    # the payload carries — a mismatch stops loudly BEFORE execution
+    # (nothing built, nothing run). A payload without the key fails loud
+    # here too (KeyError), never defaults.
+    carried_id = baton.payload["substrate_id"]
+    if substrate_id != carried_id:
+        raise RuntimeError(
+            f"stage4_simulation: substrate agreement check failed — "
+            f"spec-derived selection {substrate_id!r} != gate-decided payload "
+            f"substrate_id {carried_id!r}; stopping before execution."
+        )
     adapter = adapter_for(substrate_id)
     vocab = vocab_for(substrate_id)
     # R2 flip: the spec-QoI translation and the conclusions-only entry
