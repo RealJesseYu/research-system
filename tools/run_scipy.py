@@ -61,37 +61,40 @@ Return (and ONLY this leaves the wrapper — raw container output NEVER escapes)
 from __future__ import annotations
 
 import ast
+import importlib.util
 import json
 import subprocess
-import sys
 import time
 import uuid
 from pathlib import Path
 from typing import Callable
 
 # --- the single source of truth -------------------------------------------
-_ONBOARDING = Path(__file__).resolve().parent.parent / "onboarding" / "sympy_symbolic_exact"
-if str(_ONBOARDING) not in sys.path:
-    sys.path.insert(0, str(_ONBOARDING))
+# Loaded by full path under a UNIQUE PRIVATE module name (the ngspice
+# precedent): a bare `contract` in sys.modules collides across substrates in
+# one process — Python holds one module per name, first loader wins.
+_CONTRACT_PATH = (Path(__file__).resolve().parent.parent / "onboarding" /
+                  "sympy_symbolic_exact" / "contract.py")
+_spec = importlib.util.spec_from_file_location("_sympy_contract", _CONTRACT_PATH)
+_contract = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_contract)
 
-from contract import (  # noqa: E402  (staged onboarding module, path-injected)
-    ALLOWED_ASSUMPTIONS,
-    ALLOWED_CONSTANTS,
-    ALLOWED_FUNCTIONS,
-    CROSSCHECK_AGREE_TOL,
-    NUMERIC_DIFF_STEP,
-    NUMERIC_PRECISION_DPS,
-    NUMERIC_SAMPLE_POINTS,
-    ODE_CROSSCHECK_ATOL,
-    ODE_CROSSCHECK_RTOL,
-    ODE_CROSSCHECK_SAMPLES,
-    ODE_CROSSCHECK_SPAN,
-    OP_FIELDS,
-    OPERATIONS,
-    UNIVERSAL_OPTIONAL_FIELDS,
-    UNIVERSAL_REQUIRED_FIELDS,
-    VERIFY_RESIDUAL_TOL,
-)
+ALLOWED_ASSUMPTIONS = _contract.ALLOWED_ASSUMPTIONS
+ALLOWED_CONSTANTS = _contract.ALLOWED_CONSTANTS
+ALLOWED_FUNCTIONS = _contract.ALLOWED_FUNCTIONS
+CROSSCHECK_AGREE_TOL = _contract.CROSSCHECK_AGREE_TOL
+NUMERIC_DIFF_STEP = _contract.NUMERIC_DIFF_STEP
+NUMERIC_PRECISION_DPS = _contract.NUMERIC_PRECISION_DPS
+NUMERIC_SAMPLE_POINTS = _contract.NUMERIC_SAMPLE_POINTS
+ODE_CROSSCHECK_ATOL = _contract.ODE_CROSSCHECK_ATOL
+ODE_CROSSCHECK_RTOL = _contract.ODE_CROSSCHECK_RTOL
+ODE_CROSSCHECK_SAMPLES = _contract.ODE_CROSSCHECK_SAMPLES
+ODE_CROSSCHECK_SPAN = _contract.ODE_CROSSCHECK_SPAN
+OP_FIELDS = _contract.OP_FIELDS
+OPERATIONS = _contract.OPERATIONS
+UNIVERSAL_OPTIONAL_FIELDS = _contract.UNIVERSAL_OPTIONAL_FIELDS
+UNIVERSAL_REQUIRED_FIELDS = _contract.UNIVERSAL_REQUIRED_FIELDS
+VERIFY_RESIDUAL_TOL = _contract.VERIFY_RESIDUAL_TOL
 
 # ----------------------------------------------------------------------------
 # Configuration — the only knobs, in one place (mirrors run_code.py).

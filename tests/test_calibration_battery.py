@@ -11,6 +11,7 @@ Run directly: venv/bin/python3 tests/test_calibration_battery.py
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import sys
 import unittest
@@ -180,7 +181,16 @@ class TestStagedBatteryWiring(unittest.TestCase):
     def setUp(self):
         sys.path.insert(0, str(ROOT / "onboarding" / "fenicsx_cantilever_elastic"))
         import battery_wiring  # noqa: E402
-        import contract  # noqa: E402
+
+        # `contract` is loaded by full path under a UNIQUE PRIVATE name (the
+        # ngspice precedent): a bare `import contract` collides across
+        # substrates in one pytest process. battery_wiring stays a bare import
+        # deliberately — its filename is unique across branches today.
+        _spec = importlib.util.spec_from_file_location(
+            "_fenicsx_contract",
+            ROOT / "onboarding" / "fenicsx_cantilever_elastic" / "contract.py")
+        contract = importlib.util.module_from_spec(_spec)
+        _spec.loader.exec_module(contract)
 
         self.cb = cb
         self.contract = contract

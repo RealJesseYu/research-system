@@ -23,6 +23,7 @@ wall.
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
 import sys
@@ -553,9 +554,17 @@ class TestArmSelectionIsPure(unittest.TestCase):
     def test_the_interval_is_stated_not_implicit(self):
         """The ODE arm's comparison interval is a contract constant, not a
         number invented inside the runner."""
-        from contract import ODE_CROSSCHECK_SAMPLES, ODE_CROSSCHECK_SPAN
-        self.assertGreater(ODE_CROSSCHECK_SPAN, 0)
-        self.assertGreaterEqual(ODE_CROSSCHECK_SAMPLES, 1)
+        # Loaded by full path under a UNIQUE PRIVATE name (the ngspice
+        # precedent) — the constants come from contract.py, the one source of
+        # truth, never from a bare `contract` name that collides across
+        # substrates in one pytest process.
+        _spec = importlib.util.spec_from_file_location(
+            "_sympy_contract",
+            _ROOT / "onboarding" / "sympy_symbolic_exact" / "contract.py")
+        _contract = importlib.util.module_from_spec(_spec)
+        _spec.loader.exec_module(_contract)
+        self.assertGreater(_contract.ODE_CROSSCHECK_SPAN, 0)
+        self.assertGreaterEqual(_contract.ODE_CROSSCHECK_SAMPLES, 1)
 
 
 @unittest.skipUnless(DOCKER, "docker/colima + scipy-img not available")
@@ -1133,11 +1142,17 @@ class TestGeneratedSlateByteIdentity(unittest.TestCase):
     def test_regeneration_is_byte_identical_to_the_committed_json(self):
         """The case file is GENERATED, never hand-authored. If this fails, the
         committed JSON was edited by hand — regenerate it instead."""
-        sys.path.insert(0, str(_ROOT / "onboarding" / "sympy_symbolic_exact"))
-        from generate_cases import render  # noqa: E402
+        # Loaded by full path under a UNIQUE PRIVATE name (the ngspice
+        # precedent): a bare `generate_cases` name collides with fenicsx's
+        # generator in one pytest process.
+        _spec = importlib.util.spec_from_file_location(
+            "_sympy_generate_cases",
+            _ROOT / "onboarding" / "sympy_symbolic_exact" / "generate_cases.py")
+        _gen = importlib.util.module_from_spec(_spec)
+        _spec.loader.exec_module(_gen)
 
         committed = (_ROOT / "harness" / "calibration_cases_sympy_symbolic_exact.json").read_bytes()
-        self.assertEqual(render().encode(), committed)
+        self.assertEqual(_gen.render().encode(), committed)
 
 
 if __name__ == "__main__":

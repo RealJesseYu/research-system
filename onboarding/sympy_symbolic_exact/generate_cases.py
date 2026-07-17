@@ -31,19 +31,22 @@ loadable by the battery. The two-line registration is staged, not merged.
 
 from __future__ import annotations
 
+import importlib.util
 import json
-import sys
 from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
-if str(_HERE) not in sys.path:
-    sys.path.insert(0, str(_HERE))
 
-from contract import (  # noqa: E402
-    SUBSTRATE_ID,
-    envelope_text,
-    substrate_text,
-)
+# Loaded by full path under a UNIQUE PRIVATE module name (the ngspice
+# precedent): a bare `contract` in sys.modules collides across substrates in
+# one process — Python holds one module per name, first loader wins.
+_spec = importlib.util.spec_from_file_location("_sympy_contract", _HERE / "contract.py")
+_contract = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_contract)
+
+SUBSTRATE_ID = _contract.SUBSTRATE_ID
+envelope_text = _contract.envelope_text
+substrate_text = _contract.substrate_text
 
 OUT_PATH = _HERE.parent.parent / "harness" / "calibration_cases_sympy_symbolic_exact.json"
 

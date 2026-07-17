@@ -17,6 +17,7 @@ Run directly:  venv/bin/python3 -m pytest tests/test_run_fenicsx.py
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
 import sys
@@ -27,6 +28,18 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 
 import run_fenicsx  # noqa: E402
+
+
+def _load_fenicsx_module(filename: str):
+    """Load an onboarding module by full path under a UNIQUE PRIVATE name (the
+    ngspice precedent): a bare `import contract` collides across substrates in
+    one pytest process — Python holds one module per name, first loader wins."""
+    path = ROOT / "onboarding" / "fenicsx_cantilever_elastic" / filename
+    spec = importlib.util.spec_from_file_location(f"_fenicsx_{path.stem}", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 CONVERGED = (FIXTURES / "fenicsx_cantilever_converged.out").read_text()
@@ -301,8 +314,7 @@ class TestCaseFileGeneration(unittest.TestCase):
     """S5: the case file is GENERATED from contract.py, never hand-authored."""
 
     def test_generated_case_file_is_byte_identical_to_committed(self):
-        sys.path.insert(0, str(ROOT / "onboarding" / "fenicsx_cantilever_elastic"))
-        import generate_cases  # noqa: E402  (staging module, path-injected)
+        generate_cases = _load_fenicsx_module("generate_cases.py")
 
         committed = generate_cases.CASE_FILE.read_text()
         self.assertEqual(
@@ -312,8 +324,7 @@ class TestCaseFileGeneration(unittest.TestCase):
             "with generate_cases.py; never hand-edit the JSON.")
 
     def test_slate_composition_is_15(self):
-        sys.path.insert(0, str(ROOT / "onboarding" / "fenicsx_cantilever_elastic"))
-        import contract  # noqa: E402
+        contract = _load_fenicsx_module("contract.py")
 
         self.assertEqual(len(contract.GATE_CASES), 10)
         self.assertEqual(len(contract.WRAPPER_CASES), 5)
@@ -325,8 +336,7 @@ class TestCaseFileGeneration(unittest.TestCase):
         """The slate was RULED by the owner 2026-07-16, so every label's
         provenance is the ruled value — not the agent's drafted one. Pinned here
         so a label cannot silently regress to drafted-by-agent after a ruling."""
-        sys.path.insert(0, str(ROOT / "onboarding" / "fenicsx_cantilever_elastic"))
-        import contract  # noqa: E402
+        contract = _load_fenicsx_module("contract.py")
 
         for case in contract.GATE_CASES + contract.WRAPPER_CASES:
             with self.subTest(case=case["id"]):
@@ -337,8 +347,7 @@ class TestCaseFileGeneration(unittest.TestCase):
         """X06/X07 are the drought's first fair refine-expected test. A 'trust'
         draw there is the dangerous false-trust error, so the SLATE must not
         admit it as acceptable."""
-        sys.path.insert(0, str(ROOT / "onboarding" / "fenicsx_cantilever_elastic"))
-        import contract  # noqa: E402
+        contract = _load_fenicsx_module("contract.py")
 
         by_id = {c["id"]: c for c in contract.GATE_CASES}
         for cid in ("X06", "X07"):
@@ -349,8 +358,7 @@ class TestCaseFileGeneration(unittest.TestCase):
         """The pre-registered reason_substrings are asserted against the ACTUAL
         validator, not against a remembered string — so the slate cannot pass
         while the wrapper says something else."""
-        sys.path.insert(0, str(ROOT / "onboarding" / "fenicsx_cantilever_elastic"))
-        import contract  # noqa: E402
+        contract = _load_fenicsx_module("contract.py")
 
         for wc in contract.WRAPPER_CASES:
             with self.subTest(case=wc["id"]):
@@ -370,15 +378,13 @@ class TestContractText(unittest.TestCase):
         self.assertNotIn("from tools.run_fea", source)
 
     def test_contract_names_element_degree_in_its_vocabulary(self):
-        sys.path.insert(0, str(ROOT / "onboarding" / "fenicsx_cantilever_elastic"))
-        import contract  # noqa: E402
+        contract = _load_fenicsx_module("contract.py")
 
         self.assertIn("element_degree", contract.FENICSX_CANTILEVER_ELASTIC_CONTRACT)
         self.assertIn("element_degree", contract.SUBSTRATE_TEXT)
 
     def test_envelope_text_states_the_locking_bound_and_its_consequence(self):
-        sys.path.insert(0, str(ROOT / "onboarding" / "fenicsx_cantilever_elastic"))
-        import contract  # noqa: E402
+        contract = _load_fenicsx_module("contract.py")
 
         # R-CARD-2: a bound with no consequence transmits as a number with no
         # teeth. The envelope text must say degree 1 is not validated, not

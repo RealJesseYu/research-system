@@ -14,13 +14,18 @@ Run:  venv/bin/python3 onboarding/fenicsx_cantilever_elastic/generate_cases.py
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
-import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-import contract  # noqa: E402  (staging module, path-injected)
+# Loaded by full path under a UNIQUE PRIVATE module name (the ngspice
+# precedent): a bare `contract` in sys.modules collides across substrates in
+# one process — Python holds one module per name, first loader wins. The
+# local alias keeps the rest of this file unchanged.
+_spec = importlib.util.spec_from_file_location(
+    "_fenicsx_contract", Path(__file__).resolve().parent / "contract.py")
+contract = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(contract)
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 CASE_FILE = (_PROJECT_ROOT / "harness" /
