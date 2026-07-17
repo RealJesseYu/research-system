@@ -89,6 +89,7 @@ _CASE_FILES = {
     "calculix_cantilever_fea": "calibration_cases_fea.json",
     "code_sklearn_eval": "calibration_cases_code.json",
     "fenicsx_cantilever_elastic": "calibration_cases_fenicsx_cantilever_elastic.json",
+    "sympy_symbolic_exact": "calibration_cases_sympy_symbolic_exact.json",
 }
 
 # Answer-key keys that must never appear in what the model is sent (RULE-1).
@@ -143,6 +144,10 @@ def _wrapper_validator(substrate_id: str):
         from tools.run_fenicsx import FenicsxInputError, _validate_input
 
         return _validate_input, FenicsxInputError
+    if substrate_id == "sympy_symbolic_exact":
+        from tools.run_scipy import ScipyInputError, validate_input
+
+        return validate_input, ScipyInputError
     raise KeyError(f"no wrapper validator wired for substrate {substrate_id!r}")
 
 

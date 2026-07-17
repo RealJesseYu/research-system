@@ -110,6 +110,20 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         notes="slate drafted (15 cases); battery pending owner OK on the slate ruling",
     ),
     SubstrateRecord(
+        substrate_id="sympy_symbolic_exact",
+        wrapper="tools/run_scipy.py",
+        card_path="docs/envelope_card_sympy_symbolic_exact.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes=(
+            "sci-Python Regime A (exact symbolic CAS); card provisionally "
+            "signed (owner, 2026-07-16), S1-S6 + S2a/S4a/S4b all RULED (owner, "
+            "2026-07-16); battery pending owner OK. Regime B "
+            "(scipy_numeric_quad) is QUEUED and has no row."
+        ),
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",

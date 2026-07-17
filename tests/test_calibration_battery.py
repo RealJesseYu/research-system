@@ -27,6 +27,7 @@ from stages.stage3_fidelity_gate import VALID_LABELS
 FEA = "calculix_cantilever_fea"
 CODE = "code_sklearn_eval"
 FENICSX = "fenicsx_cantilever_elastic"
+SCIPY = "sympy_symbolic_exact"
 
 
 class TestCaseFileIntegrity(unittest.TestCase):
@@ -64,7 +65,7 @@ class TestCaseFileIntegrity(unittest.TestCase):
                             for w in data["wrapper_cases"]))
 
     def test_acceptable_labels_are_vocabulary(self):
-        for sid in (FEA, CODE, FENICSX):
+        for sid in (FEA, CODE, FENICSX, SCIPY):
             for g in cb.load_cases(sid)["gate_cases"]:
                 self.assertTrue(g["acceptable_labels"])
                 for lbl in g["acceptable_labels"]:
@@ -80,7 +81,7 @@ class TestCaseFileIntegrity(unittest.TestCase):
     def test_rule1_no_answer_key_leak_in_built_input(self):
         # The stage_input a gate case would send carries none of the answer-key
         # keys — the same tripwire run_gate_case asserts live.
-        for sid in (FEA, CODE, FENICSX):
+        for sid in (FEA, CODE, FENICSX, SCIPY):
             data = cb.load_cases(sid)
             for g in data["gate_cases"]:
                 stage_input = {
@@ -99,7 +100,7 @@ class TestCaseFileIntegrity(unittest.TestCase):
         # (all keys) - {"id", "experiment"}. Fails the moment a case gains a hidden
         # field the blocklist does not know — so the blocklist cannot silently drift
         # out of coverage as cases are added.
-        for sid in (FEA, CODE, FENICSX):
+        for sid in (FEA, CODE, FENICSX, SCIPY):
             for g in cb.load_cases(sid)["gate_cases"]:
                 hidden = set(g) - set(cb._MODEL_VISIBLE_GATE_FIELDS)
                 missing = hidden - set(cb._ANSWER_KEY_KEYS)
