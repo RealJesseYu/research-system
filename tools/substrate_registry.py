@@ -8,7 +8,13 @@ truth the supervisor consults before it lets a fidelity "trust decision"
 
 THE MATURITY LADDER (low -> high), for routable substrates:
     calibrating  -- a card exists / a battery is being assembled, but the
-                    substrate has not earned unattended trust. Never routable.
+                    substrate has not earned unattended trust. Not routable
+                    by default; AMENDED by ruling R3 (owner, 2026-07-17): a
+                    calibrating substrate whose battery has run MAY be ruled
+                    routable — every trust decision touching it stays
+                    human-required via the supervisor's maturity hook
+                    (NEEDS_HUMAN_SIGNOFF; auto-mode trust/refine downgrades
+                    to defer), so it is never silently trusted.
     provisional  -- real runs are accruing and the wrapper behaves, but the
                     calibration is not complete (e.g. cavity_2d_cfd: real runs
                     accruing, mini-21 pending). Routable, but a trust decision
@@ -36,7 +42,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from substrates import CAVITY_2D_CONTRACT
+from substrates import CAVITY_2D_CONTRACT, NGSPICE_LINEAR_PASSIVE_CONTRACT
 
 # --- maturity rungs -------------------------------------------------------
 CALIBRATING = "calibrating"
@@ -78,8 +84,9 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         routable=True,
         cost_tier="low",
         notes=(
-            "real runs accruing, mini-21 pending; the SOLE routable substrate "
-            "(current pipeline behavior)"
+            "real runs accruing, mini-21 pending; first-enrolled routable "
+            "substrate (sole-routable note retired at the R2 flip, owner "
+            "2026-07-17)"
         ),
     ),
     SubstrateRecord(
@@ -128,9 +135,16 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         wrapper="tools/run_ngspice.py",
         card_path="docs/envelope_card_ngspice_linear_passive.md",
         maturity=CALIBRATING,
-        routable=False,
+        routable=True,
         cost_tier="low",
-        notes="battery assembled (15 cases), unexecuted — owner-OK'd slot pending",
+        notes=(
+            "battery executed 2026-07-17 (30/30 draws in-band, 10/10 cases "
+            "unanimous, hook witnessed 18/18 zero-silent-trust — harness/"
+            "calibration_ngspice_linear_passive_20260717T123935Z.json); "
+            "routable=True RULED R2, maturity CALIBRATING unchanged RULED R3 "
+            "(owner, 2026-07-17) — every trust decision human-required via "
+            "the maturity hook until a separate maturity ruling"
+        ),
     ),
     SubstrateRecord(
         substrate_id="web_search",
@@ -159,6 +173,11 @@ _BY_ID: dict[str, SubstrateRecord] = {r.substrate_id: r for r in _REGISTRY}
 # oversight, and is the fail-loud escape the Part-A tests prove.
 _CONTRACTS: dict[str, str] = {
     "cavity_2d_cfd": CAVITY_2D_CONTRACT,
+    # R2 promotion flip (owner, 2026-07-17): the IMPORTED runtime constant,
+    # graduated to substrates.py — never a pasted copy, and never the
+    # battery's compact SUBSTRATE_TEXT (a different artifact; see
+    # onboarding/ngspice_linear_passive/contract.py).
+    "ngspice_linear_passive": NGSPICE_LINEAR_PASSIVE_CONTRACT,
 }
 
 
@@ -245,6 +264,6 @@ def routable_ids() -> tuple[str, ...]:
     """The substrate ids the pipeline may route execution to, in enrollment
     order. This is the registry's answer to 'what can a run execute on' — it
     is consulted structurally, NOT parsed from a payload's substrate names
-    (that would violate the substrate-agnostic invariant). Today: exactly
-    ('cavity_2d_cfd',)."""
+    (that would violate the substrate-agnostic invariant). Since the R2 flip
+    (owner, 2026-07-17): ('cavity_2d_cfd', 'ngspice_linear_passive')."""
     return tuple(r.substrate_id for r in _REGISTRY if r.routable)

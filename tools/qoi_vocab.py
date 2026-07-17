@@ -23,11 +23,12 @@ dispatches on the shape, never on a substrate name (R-28H-1 discipline).
 
 SINGLE SOURCES, NEVER A THIRD COPY (the _CONTRACTS/_SIGNATURES precedent).
 The cavity record's members ARE run_cfd's objects — imported, assertIs-
-provable, never a pasted copy. ngspice's record is NOT wired in production:
-same discipline as the registry's _CONTRACTS map and selection's _SIGNATURES
-map (absence is deliberate; a vocabulary is wired alongside a routability
-ruling, never before). Tests construct the ngspice record from
-tools/run_ngspice.py's own constants — THEIR single source.
+provable, never a pasted copy. ngspice's record was WIRED at the R2
+promotion flip (owner ruling, 2026-07-17), alongside its routability ruling
+exactly as the discipline requires, from tools/run_ngspice.py's own
+constants — its single source. The still-unrouted substrates (fenicsx/
+sympy/FEA/code) remain unwired: absence is deliberate; a vocabulary is
+wired alongside a routability ruling, never before.
 
 FAIL LOUD (contract_for's style): a substrate with no wired vocabulary
 raises LookupError — validation must never guess a vocabulary, and NEVER
@@ -43,6 +44,7 @@ from typing import Any, ClassVar, Pattern
 
 from tools import substrate_registry as registry
 from tools.run_cfd import MASK_TYPES, QOI_COMPONENTS, QOI_OPERATIONS, _QOI_FIELD_RE
+from tools.run_ngspice import _NAME_RE, _QOI_KINDS, _REDUCTIONS
 
 FIELD_REDUCTION = "field_reduction"
 NAMED_QUANTITY = "named_quantity"
@@ -80,17 +82,23 @@ class NamedQuantityVocab:
     alien_keys: ClassVar[tuple] = ("field", "operation", "component", "mask")
 
 
-# substrate_id -> its QoI-vocabulary record. cavity ALONE in production,
-# mirroring _CONTRACTS (registry) and _SIGNATURES (selection): absence is
-# deliberate, wired only alongside a routability ruling. The cavity members
-# ARE run_cfd's objects (see module docstring) — a literal here would be a
-# forbidden third copy.
+# substrate_id -> its QoI-vocabulary record, mirroring _CONTRACTS (registry)
+# and _SIGNATURES (selection): wired only alongside a routability ruling —
+# ngspice entered at the R2 flip (owner, 2026-07-17); the still-unrouted
+# substrates are deliberately absent. Every member IS the owning wrapper's
+# object (see module docstring) — a literal here would be a forbidden third
+# copy.
 _VOCABS: dict[str, Any] = {
     "cavity_2d_cfd": FieldReductionVocab(
         operations=QOI_OPERATIONS,
         components=QOI_COMPONENTS,
         field_re=_QOI_FIELD_RE,
         mask_types=MASK_TYPES,
+    ),
+    "ngspice_linear_passive": NamedQuantityVocab(
+        kinds=_QOI_KINDS,
+        target_re=_NAME_RE,
+        reductions=_REDUCTIONS,
     ),
 }
 

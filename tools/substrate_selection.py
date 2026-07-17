@@ -31,12 +31,15 @@ to a vocabulary IMPORTED read-only from the place that already owns it:
     against an explicit U/L/nu decomposition). That module is a known
     unguarded duplicate of contract §5; importing its keys read-only adds
     no new copy and that file is deliberately NOT edited here.
-  - ngspice_linear_passive et al.: NOT wired in production — same
-    discipline as the registry's _CONTRACTS map (absence is deliberate; a
-    signature is wired alongside a routability ruling, never before).
-    Tests construct multi-routable registries by patching this map with
-    vocabularies imported from THEIR single sources (e.g.
-    tools/run_ngspice.py's _REQUIRED_FIELDS).
+  - ngspice_linear_passive: WIRED at the R2 promotion flip (owner ruling,
+    2026-07-17), alongside its routability ruling exactly as this note
+    always required: the wrapper's own _REQUIRED_FIELDS
+    (tools/run_ngspice.py), imported read-only — the tested wiring shape.
+  - fenicsx/sympy/FEA/code et al.: NOT wired — same discipline as the
+    registry's _CONTRACTS map (absence is deliberate; a signature is wired
+    alongside a routability ruling, never before). Tests construct
+    multi-routable registries by patching this map with vocabularies
+    imported from THEIR single sources.
 
 WHAT SELECTION READS FROM THE SPEC — and R-28H-1. Serve-ability reads the
 spec's declared parameter NAMES only. That is structural matching against
@@ -58,12 +61,16 @@ from __future__ import annotations
 
 from stages.stage4_case_builder import BUILDABLE_PARAMS, REYNOLDS_KEY
 from tools import substrate_registry as registry
+from tools.run_ngspice import _REQUIRED_FIELDS as _NGSPICE_REQUIRED_FIELDS
 
 # substrate_id -> the set of spec parameter names its builder/wrapper honors.
 # Values are built from IMPORTED vocabularies only (see module docstring);
 # a literal name string in this map would be a forbidden third copy.
 _SIGNATURES: dict[str, frozenset[str]] = {
     "cavity_2d_cfd": frozenset(BUILDABLE_PARAMS) | {REYNOLDS_KEY},
+    # R2 promotion flip (owner, 2026-07-17): run_ngspice's own typed-key
+    # vocabulary, imported — the shape the D.2 tests always wired.
+    "ngspice_linear_passive": frozenset(_NGSPICE_REQUIRED_FIELDS),
 }
 
 

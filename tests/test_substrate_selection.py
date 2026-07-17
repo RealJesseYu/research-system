@@ -210,18 +210,22 @@ class TestNgspiceOnlySpec(unittest.TestCase):
 
 class TestNoServerRaises(unittest.TestCase):
     def test_c_real_registry_never_falls_back_to_cavity(self):
-        # (c) in the REAL registry (cavity is the only routable substrate) an
-        # ngspice-shaped spec has no server. Failing the escape: the inner
-        # assertion only runs if a fallback substrate is wrongly returned.
+        # (c) in the REAL registry (two routable since the R2 flip) a spec
+        # whose parameter name sits in NEITHER signature has no server —
+        # pre-flip this test used an ngspice-shaped spec, which now HAS a
+        # server by design. Failing the escape: the inner assertion only
+        # runs if a fallback substrate is wrongly returned.
         with self.assertRaises(LookupError):
-            got = selection.select_substrate(_spec_with("netlist_body"))
-            self.assertNotEqual(got, "cavity_2d_cfd")
+            got = selection.select_substrate(
+                _spec_with("warp_coil_inductance_map")
+            )
+            self.assertNotIn(got, registry.routable_ids())
 
     def test_c_message_names_the_unserved_parameters(self):
         with self.assertRaises(LookupError) as ctx:
-            selection.select_substrate(_spec_with("netlist_body"))
+            selection.select_substrate(_spec_with("warp_coil_inductance_map"))
         self.assertIn("no routable substrate can serve", str(ctx.exception))
-        self.assertIn("netlist_body", str(ctx.exception))
+        self.assertIn("warp_coil_inductance_map", str(ctx.exception))
 
     def test_c_two_routable_registry_still_raises_when_neither_serves(self):
         patches = _cavity_ngspice_registry()
@@ -281,13 +285,17 @@ class TestFailLoudWiring(unittest.TestCase):
 
     def test_routable_without_signature_raises_at_selection(self):
         # contract wired but signature not: the signature probe fails loudly.
+        # Post-R2-flip ngspice carries BOTH in production, so the subject is
+        # fenicsx (enrolled, wholly unwired) with a contract patched in and
+        # the signature deliberately left missing.
         with mock.patch.object(
             registry,
             "routable_ids",
-            return_value=("cavity_2d_cfd", "ngspice_linear_passive"),
+            return_value=("cavity_2d_cfd", "fenicsx_cantilever_elastic"),
         ):
             with mock.patch.dict(
-                registry._CONTRACTS, {"ngspice_linear_passive": NGSPICE_CONTRACT}
+                registry._CONTRACTS,
+                {"fenicsx_cantilever_elastic": "SUBSTRATE CONTRACT: constructed"},
             ):
                 with self.assertRaises(LookupError) as ctx:
                     selection.select_substrate(_spec_with("lid_velocity"))

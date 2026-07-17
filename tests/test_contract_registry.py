@@ -24,10 +24,16 @@ from tools import substrate_registry as registry
 
 
 class TestContractSelection(unittest.TestCase):
-    def test_sole_routable_is_cavity(self):
-        # Structural read: the single-node pipeline's one routable substrate.
-        self.assertEqual(registry.sole_routable_id(), "cavity_2d_cfd")
-        self.assertEqual(registry.sole_routable_id(), registry.routable_ids()[0])
+    def test_sole_routable_raises_on_the_real_two_routable_registry(self):
+        # Post-R2-flip the routable set is two, so the RETIRED
+        # sole_routable_id() raises on the real registry — its documented
+        # behavior, and the reason D.2 replaced it with select_substrate.
+        self.assertEqual(
+            registry.routable_ids(),
+            ("cavity_2d_cfd", "ngspice_linear_passive"),
+        )
+        with self.assertRaises(RuntimeError):
+            registry.sole_routable_id()
 
     def test_cavity_contract_is_the_imported_constant(self):
         # Single source of truth: contract_for returns the SAME object
@@ -99,11 +105,13 @@ class TestFailLoudEscape(unittest.TestCase):
     def test_never_falls_back_to_cavity_for_a_contractless_substrate(self):
         # The heart of "never fall back": for every enrolled substrate that has
         # NO wired contract, contract_for must raise — it must never quietly
-        # return cavity's text.
+        # return cavity's text. Contractless is derived from the wired map
+        # itself (pre-flip the map held cavity alone; since the R2 flip it
+        # holds cavity + ngspice), so the derivation never goes stale.
         contractless = [
             r.substrate_id
             for r in registry.all_substrates()
-            if r.substrate_id != "cavity_2d_cfd"
+            if r.substrate_id not in registry._CONTRACTS
         ]
         self.assertTrue(contractless)  # the test would be vacuous with none
         for sid in contractless:

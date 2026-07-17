@@ -178,9 +178,11 @@ class TestTwoShapeProof(unittest.TestCase):
 
 class TestFailLoudEscape(unittest.TestCase):
     def test_routable_substrate_without_vocab_raises_at_lookup(self):
-        # A registry where ngspice has been flipped routable but no vocabulary
-        # was wired: the lookup raises, never a cavity fallback.
-        real = registry.get("ngspice_linear_passive")
+        # A registry where a substrate has been flipped routable but no
+        # vocabulary was wired: the lookup raises, never a cavity fallback.
+        # Post-R2-flip ngspice IS wired, so the subject is fenicsx (enrolled,
+        # unwired).
+        real = registry.get("fenicsx_cantilever_elastic")
         routable_row = registry.SubstrateRecord(
             substrate_id=real.substrate_id, wrapper=real.wrapper,
             card_path=real.card_path, maturity=real.maturity,
@@ -188,13 +190,14 @@ class TestFailLoudEscape(unittest.TestCase):
         )
         with mock.patch.object(registry, "get", return_value=routable_row):
             with self.assertRaises(LookupError) as ctx:
-                vocab_for("ngspice_linear_passive")
+                vocab_for("fenicsx_cantilever_elastic")
         self.assertIn("no QoI vocabulary wired", str(ctx.exception))
         self.assertIn("routable=True", str(ctx.exception))
 
     def test_enrolled_unwired_substrate_raises_lookup_error(self):
+        # fenicsx: enrolled, unwired (ngspice left this class at the R2 flip)
         with self.assertRaises(LookupError):
-            vocab_for("ngspice_linear_passive")
+            vocab_for("fenicsx_cantilever_elastic")
 
     def test_unknown_substrate_raises_key_error_first(self):
         with self.assertRaises(KeyError):

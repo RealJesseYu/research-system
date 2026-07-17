@@ -22,13 +22,18 @@ deterministic, D.2 test (d)), never parsed from a payload name (R-28H-1);
 the payload gains no substrate field (the key set is locked). An unwired or
 unknown id raises at dispatch — never a cavity fallback.
 
-The spec's QoI is translated to a wrapper qoi_request ONLY if the spec's qoi
-object carries machine-readable {field, operation, component?} keys that the
-substrate contract can extract (operation/component vocabularies read from
-the selected substrate's QoI-vocabulary record, tools/qoi_vocab — for cavity
-its members ARE the wrapper's own objects, single source of truth);
-otherwise every run executes WITHOUT a qoi_request and records an honest
-qoi_error. Whether the named field actually exists in the case is the
+The spec's QoI is translated to a wrapper qoi_request through the SELECTED
+substrate's translation (tools/substrate_dispatch.qoi_translation_for, R2
+flip) ONLY if the spec's qoi object carries the machine-readable keys of
+that substrate's own grammar — cavity: {field, operation, component?};
+named-quantity class: {kind, target, reduction[, at]} — with vocabularies
+read from the selected substrate's QoI-vocabulary record (tools/qoi_vocab;
+every member IS the owning wrapper's object, single source of truth);
+otherwise the honest-refusal path records a qoi_error (for cavity, runs
+still execute WITHOUT a qoi_request; a named-quantity adapter refuses to
+execute without one, loudly). Run entries are built by the selected
+substrate's own conclusions-only constructor
+(tools/substrate_dispatch.run_entry_constructor_for). Whether the named field actually exists in the case is the
 wrapper's own check at extraction time — it reports its own qoi_error rather
 than fabricating a number.
 
@@ -53,7 +58,11 @@ from pathlib import Path
 from baton import Baton
 from stages.stage4_case_builder import CaseSynthesisError
 from tools.qoi_vocab import vocab_for
-from tools.substrate_dispatch import adapter_for
+from tools.substrate_dispatch import (
+    adapter_for,
+    qoi_translation_for,
+    run_entry_constructor_for,
+)
 from tools.substrate_selection import select_substrate
 
 REFINE_FLAG = "refine — survivors require downstream confirmation"
@@ -124,21 +133,6 @@ def _log_line(run_id: str, line: str) -> None:
         f.write(line + "\n")
 
 
-def _payload_run_entry(summary: dict, qoi_error_fallback: str | None) -> dict:
-    """Conclusions only: {converged, qoi_value | qoi_error, wall_clock_s}."""
-    entry = {
-        "converged": bool(summary.get("converged")),
-        "wall_clock_s": summary.get("runtime", {}).get("wall_clock_s"),
-    }
-    if "qoi" in summary:
-        entry["qoi_value"] = summary["qoi"]["value"]
-    elif "qoi_error" in summary:
-        entry["qoi_error"] = summary["qoi_error"]
-    elif qoi_error_fallback is not None:
-        entry["qoi_error"] = qoi_error_fallback
-    return entry
-
-
 def run(baton: Baton) -> Baton:
     verdict = baton.payload["fidelity_verdict"]
     label = verdict["label"]
@@ -171,10 +165,17 @@ def run(baton: Baton) -> Baton:
     substrate_id = select_substrate(spec)
     adapter = adapter_for(substrate_id)
     vocab = vocab_for(substrate_id)
+    # R2 flip: the spec-QoI translation and the conclusions-only entry
+    # constructor are per-substrate glue, resolved structurally at dispatch
+    # (fail-loud on an unwired id) — for cavity both ARE the pre-flip code
+    # paths (translate_qoi / the moved _cavity_run_entry), fixture-pinned
+    # byte-identical.
+    translate = qoi_translation_for(substrate_id)
+    entry_constructor = run_entry_constructor_for(substrate_id)
     mini_runs = spec["mini_experiment"]["runs"]
     parameter_roles = extract_parameter_roles(spec.get("parameters"))
     qoi_name = spec.get("qoi", {}).get("name") if isinstance(spec.get("qoi"), dict) else None
-    qoi_request, refusal = translate_qoi(spec.get("qoi"), vocab)
+    qoi_request, refusal = translate(spec.get("qoi"), vocab)
     qoi_error_fallback = (
         None
         if qoi_request is not None
@@ -207,12 +208,19 @@ def run(baton: Baton) -> Baton:
                 "summary": summary,
             }
         )
-        payload_runs.append(_payload_run_entry(summary, qoi_error_fallback))
+        payload_runs.append(entry_constructor(summary, qoi_error_fallback))
+        # the qoi display tolerates both wrapper shapes: cavity's {value: …}
+        # object and ngspice's bare scalar/null (cavity output unchanged)
+        raw_qoi = summary.get("qoi")
+        if isinstance(raw_qoi, dict):
+            qoi_display = raw_qoi.get("value", "n/a")
+        else:
+            qoi_display = raw_qoi if raw_qoi is not None else "n/a"
         _log_line(
             baton.run_id,
             f"STAGE4 run {index}/{len(mini_runs)} case={case_name} "
             f"status={summary.get('status')} converged={summary.get('converged')} "
-            f"qoi={summary.get('qoi', {}).get('value', 'n/a')}",
+            f"qoi={qoi_display}",
         )
 
     status = "halted_synthesis" if halt_reason else "executed"

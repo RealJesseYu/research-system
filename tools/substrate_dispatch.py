@@ -28,12 +28,16 @@ option-4 ruling — the per-substrate converged mapping lives in that
 substrate's contract §3, and valid -> converged is honest for ngspice
 precisely because §3 now states converged means completed-and-parsed there
 (repo_facts §10.6). Entry construction stays OUT of the adapters so evidence
-keeps the full summary; stage 4 wires the constructor at promotion (R2),
-never before.
+keeps the full summary; stage 4 reaches the constructor through
+run_entry_constructor_for (wired at the R2 promotion flip, owner 2026-07-17,
+exactly as deferred), and the spec-QoI translation through
+qoi_translation_for — both keyed by the STRUCTURALLY selected substrate id,
+fail-loud on an unwired one, so stage code never branches on a substrate
+name.
 
-The ngspice adapter is DEFINED here but NOT registered — the run_ngspice
-precedent (built, unregistered): tests register it on a constructed
-registry; promotion adds the _ADAPTERS entry under a recorded ruling.
+The ngspice adapter IS registered since the R2 flip (owner, 2026-07-17) —
+before it, the run_ngspice precedent held (built, unregistered; tests
+registered it on a constructed registry).
 
 UNIFORM ADAPTER SIGNATURE:
     adapter(substrate_id, params, case_name, roles, qoi_request) -> summary
@@ -118,8 +122,9 @@ def ngspice_qoi_request(spec_qoi) -> dict:
 
 def _ngspice_adapter(substrate_id, params, case_name, roles, qoi_request):
     """NAMED-QUANTITY (ngspice-class) execution adapter — INPUT + QoI ONLY
-    (D.4). NOT in _ADAPTERS: tests register it on a constructed registry;
-    promotion is a recorded ruling. case_name and roles are cavity-class
+    (D.4). In _ADAPTERS since the R2 promotion flip (owner, 2026-07-17);
+    before it, tests registered it on a constructed registry (the built-
+    unregistered precedent). case_name and roles are cavity-class
     concepts (the wrapper composes its own deck in its own job dir, and a
     derived spec parameter would already fail the strict key check below) —
     accepted for the uniform adapter signature, unused.
@@ -235,13 +240,121 @@ def ngspice_run_entry(summary) -> dict:
     return entry
 
 
-# substrate_id -> its execution adapter. cavity ALONE in production,
-# mirroring _CONTRACTS (registry), _SIGNATURES (selection) and _VOCABS
-# (qoi_vocab): absence is deliberate, wired only alongside a routability
-# ruling. The ngspice adapter above exists but is NOT registered.
+# substrate_id -> its execution adapter, mirroring _CONTRACTS (registry),
+# _SIGNATURES (selection) and _VOCABS (qoi_vocab): wired only alongside a
+# routability ruling — ngspice entered at the R2 flip (owner, 2026-07-17);
+# the still-unrouted substrates are deliberately absent.
 _ADAPTERS: dict = {
     "cavity_2d_cfd": _cavity_adapter,
+    "ngspice_linear_passive": _ngspice_adapter,
 }
+
+
+# --- per-substrate spec-QoI translation (stage 4's seam, R2 flip) ----------
+
+def _cavity_qoi_translation(spec_qoi, vocab):
+    """Field-reduction translation — stage 4's own translate_qoi, LATE-BOUND
+    (stages.stage4_simulation imports this module at module level; a
+    top-level import back would be a cycle). Same (request, refusal) return
+    shape, byte-identical behavior."""
+    from stages.stage4_simulation import translate_qoi
+
+    return translate_qoi(spec_qoi, vocab)
+
+
+def _ngspice_qoi_translation(spec_qoi, vocab):
+    """Named-quantity translation in stage 4's honest-refusal return shape:
+    (request, None) on success, (None, reason) on anything untranslatable —
+    ngspice_qoi_request's loud ValueError becomes the refusal reason, so the
+    stage records an honest qoi_error path instead of crashing on QoI
+    CONTENT. `vocab` is accepted for the uniform (spec_qoi, vocab) signature
+    and deliberately unused: content validation is the wrapper's own
+    _validate_qoi, the single source."""
+    try:
+        return ngspice_qoi_request(spec_qoi), None
+    except ValueError as exc:
+        return None, str(exc)
+
+
+_QOI_TRANSLATIONS: dict = {
+    "cavity_2d_cfd": _cavity_qoi_translation,
+    "ngspice_linear_passive": _ngspice_qoi_translation,
+}
+
+
+def qoi_translation_for(substrate_id: str):
+    """The spec-QoI translation callable for one substrate — uniform
+    signature (spec_qoi, vocab) -> (request | None, refusal | None). Read
+    STRUCTURALLY from this map keyed by substrate_id (R-28H-1). FAIL LOUD
+    (contract_for's style): a substrate with no wired translation raises
+    LookupError; an unknown id raises KeyError first (via registry.get)."""
+    registry.get(substrate_id)  # KeyError on an unknown id — never silent
+    try:
+        return _QOI_TRANSLATIONS[substrate_id]
+    except KeyError:
+        record = registry.get(substrate_id)
+        raise LookupError(
+            f"no spec-QoI translation wired for substrate {substrate_id!r} "
+            f"(maturity={record.maturity}, routable={record.routable}); "
+            "stage 4 must NOT fall back to the cavity translation — wire an "
+            "entry in tools/substrate_dispatch.py under a recorded ruling "
+            "before routing execution to this substrate."
+        )
+
+
+# --- per-substrate conclusions-only run-entry construction (R2 flip) -------
+
+def _cavity_run_entry(summary: dict, qoi_error_fallback: str | None) -> dict:
+    """Conclusions only: {converged, qoi_value | qoi_error, wall_clock_s} —
+    MOVED VERBATIM from stages.stage4_simulation._payload_run_entry at the
+    R2 flip (owner, 2026-07-17); the cavity data surface is fixture-pinned
+    byte-identical (tests/fixtures/d4/)."""
+    entry = {
+        "converged": bool(summary.get("converged")),
+        "wall_clock_s": summary.get("runtime", {}).get("wall_clock_s"),
+    }
+    if "qoi" in summary:
+        entry["qoi_value"] = summary["qoi"]["value"]
+    elif "qoi_error" in summary:
+        entry["qoi_error"] = summary["qoi_error"]
+    elif qoi_error_fallback is not None:
+        entry["qoi_error"] = qoi_error_fallback
+    return entry
+
+
+def _ngspice_run_entry_with_fallback(summary, qoi_error_fallback) -> dict:
+    """ngspice_run_entry under the uniform (summary, qoi_error_fallback)
+    constructor signature. The fallback is deliberately unused: a
+    named-quantity substrate never executes without a translated QoI request
+    (_ngspice_adapter refuses), so a summary always carries its own
+    qoi / diagnostics truth."""
+    return ngspice_run_entry(summary)
+
+
+_RUN_ENTRY_CONSTRUCTORS: dict = {
+    "cavity_2d_cfd": _cavity_run_entry,
+    "ngspice_linear_passive": _ngspice_run_entry_with_fallback,
+}
+
+
+def run_entry_constructor_for(substrate_id: str):
+    """The conclusions-only run-entry constructor for one substrate —
+    uniform signature (summary, qoi_error_fallback) -> entry. Read
+    STRUCTURALLY from this map keyed by substrate_id (R-28H-1). FAIL LOUD
+    (contract_for's style): a substrate with no wired constructor raises
+    LookupError; an unknown id raises KeyError first (via registry.get)."""
+    registry.get(substrate_id)  # KeyError on an unknown id — never silent
+    try:
+        return _RUN_ENTRY_CONSTRUCTORS[substrate_id]
+    except KeyError:
+        record = registry.get(substrate_id)
+        raise LookupError(
+            f"no run-entry constructor wired for substrate {substrate_id!r} "
+            f"(maturity={record.maturity}, routable={record.routable}); "
+            "stage 4 must NOT fall back to the cavity entry shape — wire an "
+            "entry in tools/substrate_dispatch.py under a recorded ruling "
+            "before routing execution to this substrate."
+        )
 
 
 def adapter_for(substrate_id: str):

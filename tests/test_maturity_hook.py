@@ -58,7 +58,12 @@ class TestHumanModeNonMature(unittest.TestCase):
         # but the signoff is recorded + logged
         signoff = b._maturity_signoff
         self.assertTrue(signoff["required"])
-        self.assertEqual(signoff["substrates"], ["cavity_2d_cfd@provisional"])
+        # both routable substrates are non-mature since the R2 flip (owner,
+        # 2026-07-17): cavity@provisional plus ngspice@calibrating
+        self.assertEqual(
+            signoff["substrates"],
+            ["cavity_2d_cfd@provisional", "ngspice_linear_passive@calibrating"],
+        )
         self.assertTrue(any("NEEDS_HUMAN_SIGNOFF" in ln for ln in logger.lines))
         # no downgrade line in human mode
         self.assertFalse(any("MATURITY_DOWNGRADE" in ln for ln in logger.lines))
@@ -128,9 +133,14 @@ class TestRunRecordStamping(unittest.TestCase):
         rec = captured[0]
         self.assertTrue(rec["extras"]["needs_human_signoff"])
         self.assertEqual(
-            rec["extras"]["needs_human_signoff_substrates"], ["cavity_2d_cfd@provisional"]
+            rec["extras"]["needs_human_signoff_substrates"],
+            ["cavity_2d_cfd@provisional", "ngspice_linear_passive@calibrating"],
         )
-        self.assertIn("needs_human_signoff=[cavity_2d_cfd@provisional]", rec["text"])
+        self.assertIn(
+            "needs_human_signoff=[cavity_2d_cfd@provisional, "
+            "ngspice_linear_passive@calibrating]",
+            rec["text"],
+        )
 
     def test_no_signoff_run_record_is_byte_identical(self):
         """Back-compat: a baton the hook never touched yields a record with no

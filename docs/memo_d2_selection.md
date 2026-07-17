@@ -69,3 +69,15 @@ Stage 3's composed model-visible surface is byte-pinned
 (tests/fixtures/d2/, captured pre-surgery at commit 48d06f6); for every
 cavity spec the selected contract remains byte-identical to
 `substrates.CAVITY_2D_CONTRACT` — era 862531b holds.
+
+---
+
+## Ruling (owner, 2026-07-17)
+
+R4: APPROVED — signature-based selection as built (serve-ability on declared
+parameter names, fail-loud contract+signature probes, mature preferred,
+enrollment-order tie-break) is the standing selection rule. Enacted at the
+R2/R3 promotion flip (this commit): ngspice_linear_passive wired into
+_CONTRACTS / _SIGNATURES / _VOCABS / _ADAPTERS and flipped routable=True at
+maturity CALIBRATING. The known limitation above stands unchanged — the
+D.1.1 selection point between gate 1 and stage 2 lands with Step-35.

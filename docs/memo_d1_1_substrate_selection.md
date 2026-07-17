@@ -112,3 +112,14 @@ single-sourced, marker in place). The memo's asks are (1) whether the
 Stage-2" direction is the standing intent to design against at
 second-substrate promotion, and (2) whether P8-B's payload-wall era cost
 is acceptable when Step 35 arrives. Nothing needs ruling before then.
+
+---
+
+## Ruling (owner, 2026-07-17)
+
+Direction: APPROVED — the "all routable contracts at Stage-1 surfaces /
+task-typed selection at Stage-2" direction is the standing intent to design
+against. C/D land with Step-35 as their own era ruling + re-captures —
+deliberately NOT at the R2/R3 promotion flip: the four explicit cavity pins
+stand un-moved, so the rwin1/d0/d1 era fixtures hold byte-identical through
+the flip.

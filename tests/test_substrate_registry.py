@@ -36,15 +36,28 @@ class TestRegistryTable(unittest.TestCase):
             ],
         )
 
-    def test_cavity_is_provisional_and_the_sole_routable(self):
+    def test_cavity_is_provisional_and_first_routable(self):
         cfd = registry.get("cavity_2d_cfd")
         self.assertEqual(cfd.maturity, registry.PROVISIONAL)
         self.assertTrue(cfd.routable)
         self.assertEqual(cfd.wrapper, "tools/run_cfd.py")
         # provisional is non-mature -> a trust decision on it is human-required
         self.assertFalse(registry.is_mature("cavity_2d_cfd"))
-        # the SOLE routable substrate today
-        self.assertEqual(registry.routable_ids(), ("cavity_2d_cfd",))
+        # the routable set since the R2 flip (owner, 2026-07-17): cavity
+        # first (enrollment order), ngspice second
+        self.assertEqual(
+            registry.routable_ids(),
+            ("cavity_2d_cfd", "ngspice_linear_passive"),
+        )
+
+    def test_ngspice_is_calibrating_routable_under_r2_r3(self):
+        # the flip's row: routable=True RULED R2, maturity CALIBRATING
+        # unchanged RULED R3 (owner, 2026-07-17), recorded in notes
+        rec = registry.get("ngspice_linear_passive")
+        self.assertTrue(rec.routable)
+        self.assertEqual(rec.maturity, registry.CALIBRATING)
+        self.assertFalse(registry.is_mature("ngspice_linear_passive"))
+        self.assertIn("(owner, 2026-07-17)", rec.notes)
 
     def test_fea_and_code_are_calibrating_and_unroutable(self):
         for sid in ("calculix_cantilever_fea", "code_sklearn_eval"):

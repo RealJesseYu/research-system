@@ -16,23 +16,27 @@ execution.
 | `code_sklearn_eval` | `tools/run_code.py` | `docs/envelope_card_code_sklearn_eval.md` | calibrating | no | low | battery not on the run manifest — owner decision pending |
 | `fenicsx_cantilever_elastic` | `tools/run_fenicsx.py` | `docs/envelope_card_fenicsx_cantilever_elastic.md` | calibrating | no | low | slate drafted (15 cases); battery pending owner OK on the slate ruling |
 | `sympy_symbolic_exact` | `tools/run_scipy.py` | `docs/envelope_card_sympy_symbolic_exact.md` | calibrating | no | low | sci-Python Regime A (exact symbolic CAS); card provisionally signed (owner, 2026-07-16), S1-S6 + S2a/S4a/S4b all RULED (owner, 2026-07-16); battery pending owner OK. Regime B (scipy_numeric_quad) is QUEUED and has no row. |
-| `ngspice_linear_passive` | `tools/run_ngspice.py` | `docs/envelope_card_ngspice_linear_passive.md` | calibrating | no | low | battery assembled (15 cases), unexecuted — owner-OK'd slot pending |
+| `ngspice_linear_passive` | `tools/run_ngspice.py` | `docs/envelope_card_ngspice_linear_passive.md` | calibrating | **yes** | low | battery executed 2026-07-17 (30/30 draws in-band, 10/10 cases unanimous, hook witnessed 18/18 zero-silent-trust); routable=True RULED R2, maturity CALIBRATING unchanged RULED R3 (owner, 2026-07-17) — every trust decision human-required via the maturity hook |
 | `web_search` | `tools/web_search_stub.py` | (this doc) | retrieval-provisional | no | minimal | structurally never trusted alone |
 
 ## The ladder semantics and the promotion rule
 
 For routable substrates the ladder runs **calibrating → provisional → mature**,
 low to high. *Calibrating* means a card exists (or a battery is being
-assembled) but the substrate has not earned unattended trust — it is never
-routable. *Provisional* means real runs are accruing and the wrapper behaves,
+assembled) but the substrate has not earned unattended trust — not routable
+by default; **amended by ruling R3 (owner, 2026-07-17):** a calibrating
+substrate whose battery has run may be ruled routable, with every trust
+decision touching it human-required via the maturity hook (never silently
+trusted). *Provisional* means real runs are accruing and the wrapper behaves,
 but calibration is not complete; a provisional substrate may be routable, but
 any trust decision that touches it is **human-required** (the supervisor marks
 it `needs_human_signoff` and, in auto mode, downgrades the trust/refine verdict
 to defer-class handling rather than trusting it silently). *Mature* means
 calibration is complete and trust decisions may proceed unattended. **No
-substrate is mature today** — `cavity_2d_cfd`, the sole routable substrate,
-sits at provisional, so every trust decision the pipeline can currently make is
-human-required by construction. `web_search` sits in its own class,
+substrate is mature today** — the routable set since the R2 flip is
+`cavity_2d_cfd` (provisional) and `ngspice_linear_passive` (calibrating,
+R3-routable), both non-mature, so every trust decision the pipeline can
+currently make is human-required by construction. `web_search` sits in its own class,
 *retrieval-provisional*, deliberately outside the ladder: it is a retrieval
 source that is structurally never trusted alone, so it is never routable.
 

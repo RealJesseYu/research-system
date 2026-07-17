@@ -112,6 +112,16 @@ def _ngspice_registry(with_adapter: bool):
                 {"ngspice_linear_passive": dispatch._ngspice_adapter},
             )
         )
+    else:
+        # post-R2-flip the production _ADAPTERS carries ngspice, so the
+        # no-adapter escape needs it explicitly ABSENT, not merely un-added
+        patches.append(
+            mock.patch.object(
+                dispatch,
+                "_ADAPTERS",
+                {"cavity_2d_cfd": dispatch._cavity_adapter},
+            )
+        )
     return patches
 
 
@@ -174,12 +184,16 @@ class TestWrapperCallable(unittest.TestCase):
         )
 
     def test_ngspice_row_resolves_to_run_ngspice(self):
-        # reading the row implies no promotion: ngspice stays routable=False
+        # since the R2 flip (owner, 2026-07-17) ngspice is routable=True at
+        # maturity calibrating — the row is the ruling's record
         self.assertIs(
             dispatch.wrapper_callable("ngspice_linear_passive"),
             run_ngspice.run_ngspice,
         )
-        self.assertFalse(registry.get("ngspice_linear_passive").routable)
+        self.assertTrue(registry.get("ngspice_linear_passive").routable)
+        self.assertEqual(
+            registry.get("ngspice_linear_passive").maturity, registry.CALIBRATING
+        )
 
     def test_unknown_id_raises_keyerror(self):
         with self.assertRaises(KeyError):
@@ -192,11 +206,20 @@ class TestAdapterForRealRegistry(unittest.TestCase):
             dispatch.adapter_for("cavity_2d_cfd"), dispatch._cavity_adapter
         )
 
-    def test_ngspice_unwired_raises_lookuperror_escape_failed(self):
-        # failing the escape: the inner assertion only runs if a fallback
-        # adapter is wrongly returned instead of the raise
+    def test_ngspice_wired_since_r2_flip(self):
+        # the R2 flip registered the adapter; the resolution is structural
+        self.assertIs(
+            dispatch.adapter_for("ngspice_linear_passive"),
+            dispatch._ngspice_adapter,
+        )
+
+    def test_unwired_substrate_raises_lookuperror_escape_failed(self):
+        # failing the escape (post-flip subject: fenicsx, enrolled but
+        # unwired — ngspice moved out of this class at the R2 flip): the
+        # inner assertion only runs if a fallback adapter is wrongly
+        # returned instead of the raise
         with self.assertRaises(LookupError) as ctx:
-            got = dispatch.adapter_for("ngspice_linear_passive")
+            got = dispatch.adapter_for("fenicsx_cantilever_elastic")
             self.assertIsNot(got, dispatch._cavity_adapter)
         self.assertIn("no execution adapter wired", str(ctx.exception))
         self.assertIn("must NOT fall back", str(ctx.exception))
