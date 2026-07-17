@@ -195,15 +195,18 @@ def contract_for(substrate_id: str) -> str:
 
 
 def sole_routable_id() -> str:
-    """The one routable substrate id — the single-node pipeline's structural
-    answer to 'which substrate does this run execute/verdict against'. Read
-    from the registry, never guessed. RAISES if the routable set is not exactly
-    one: multi-substrate node selection (which node runs on which substrate) is
-    Step 35 (task typing), and this session promotes nothing, so today the
-    routable set is exactly ('cavity_2d_cfd',). A future promotion that makes a
-    second substrate routable without building selection lands here loudly,
-    which is the intended seam — it names the missing work rather than silently
-    picking one."""
+    """RETIRED FROM PRODUCTION (D.2, 2026-07-17): zero production call sites —
+    stage 3 now selects via tools/substrate_selection.select_substrate
+    (signature-based serve-ability, mature preferred, enrollment-order
+    tie-break), and that module's fail-loud probes (contract AND signature
+    wired for every routable substrate) replace this function's
+    exactly-one-routable raise as the promotion seam. The body stays for
+    tests/history (tests/test_contract_registry.py exercises it); no new call
+    site may use it.
+
+    Original contract, still honored: the one routable substrate id, read from
+    the registry, never guessed; RAISES if the routable set is not exactly
+    one."""
     routable = routable_ids()
     if len(routable) != 1:
         raise RuntimeError(

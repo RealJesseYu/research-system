@@ -36,6 +36,7 @@ from baton import Baton
 from memory.ledgers import fidelity_append
 from model_call import call_stage_model, log_stage_call
 from tools import substrate_registry as registry
+from tools import substrate_selection
 
 OPUS_MODEL = "claude-opus-4-8"
 
@@ -109,16 +110,21 @@ def _contract_substrate_name(contract_text: str) -> str | None:
     return None
 
 
-def _selected_contract() -> tuple[str, str]:
-    """R-S3-1: the substrate this gate judges against, chosen STRUCTURALLY from
-    the registry (never the old hardcoded module constant, never parsed from a
-    payload). Returns (substrate_id, contract_text). Today the registry's sole
-    routable substrate is cavity_2d_cfd, so contract_text is byte-identical to
-    the substrates.CAVITY_2D_CONTRACT the gate used before — era 862531b holds.
-    A missing contract RAISES (registry.contract_for); the gate never falls back
-    to cavity. Extracted so the byte-identity proof exercises the exact text the
-    model will see without spending a model call."""
-    substrate_id = registry.sole_routable_id()
+def _selected_contract(spec: dict | None = None) -> tuple[str, str]:
+    """R-S3-1 + D.2: the substrate this gate judges against, chosen
+    STRUCTURALLY by signature-based selection (tools/substrate_selection —
+    routable substrates that can serve the spec's declared parameter names,
+    mature preferred, enrollment-order tie-break; sole_routable_id is retired
+    from production). Returns (substrate_id, contract_text). Today the
+    registry's one routable substrate is cavity_2d_cfd, so contract_text is
+    byte-identical to the substrates.CAVITY_2D_CONTRACT the gate used before —
+    era 862531b holds (d2 fixture-pinned). A spec of None declares no
+    parameters and constrains nothing — the era proofs call this bare; run()
+    always passes the real spec. A spec no routable substrate can serve, or a
+    routable substrate missing its contract or signature, RAISES at selection;
+    the gate never falls back to cavity. Extracted so the byte-identity proof
+    exercises the exact text the model will see without spending a model call."""
+    substrate_id = substrate_selection.select_substrate(spec)
     return substrate_id, registry.contract_for(substrate_id)
 
 
@@ -130,7 +136,9 @@ def _log_line(run_id: str, line: str) -> None:
 
 
 def run(baton: Baton) -> Baton:
-    _substrate_id, substrate_contract = _selected_contract()
+    _substrate_id, substrate_contract = _selected_contract(
+        baton.payload["experiment_spec"]
+    )
     stage_input = {
         "run_id": baton.run_id,
         "spec": baton.payload["experiment_spec"],
