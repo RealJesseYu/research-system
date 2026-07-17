@@ -124,6 +124,15 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="ngspice_linear_passive",
+        wrapper="tools/run_ngspice.py",
+        card_path="docs/envelope_card_ngspice_linear_passive.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes="battery assembled (15 cases), unexecuted — owner-OK'd slot pending",
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",

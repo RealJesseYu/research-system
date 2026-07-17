@@ -90,6 +90,7 @@ _CASE_FILES = {
     "code_sklearn_eval": "calibration_cases_code.json",
     "fenicsx_cantilever_elastic": "calibration_cases_fenicsx_cantilever_elastic.json",
     "sympy_symbolic_exact": "calibration_cases_sympy_symbolic_exact.json",
+    "ngspice_linear_passive": "calibration_cases_ngspice_linear_passive.json",
 }
 
 # Answer-key keys that must never appear in what the model is sent (RULE-1).
@@ -148,6 +149,10 @@ def _wrapper_validator(substrate_id: str):
         from tools.run_scipy import ScipyInputError, validate_input
 
         return validate_input, ScipyInputError
+    if substrate_id == "ngspice_linear_passive":
+        from tools.run_ngspice import NgspiceInputError, _validate_input
+
+        return _validate_input, NgspiceInputError
     raise KeyError(f"no wrapper validator wired for substrate {substrate_id!r}")
 
 

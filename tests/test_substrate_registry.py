@@ -21,7 +21,7 @@ from tools import web_search_stub
 
 
 class TestRegistryTable(unittest.TestCase):
-    def test_all_six_substrates_enrolled(self):
+    def test_all_seven_substrates_enrolled(self):
         ids = [r.substrate_id for r in registry.all_substrates()]
         self.assertEqual(
             ids,
@@ -31,6 +31,7 @@ class TestRegistryTable(unittest.TestCase):
                 "code_sklearn_eval",
                 "fenicsx_cantilever_elastic",
                 "sympy_symbolic_exact",
+                "ngspice_linear_passive",
                 "web_search",
             ],
         )
