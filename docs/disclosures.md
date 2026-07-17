@@ -124,3 +124,35 @@ families):
 Comparability note: scored numbers taken before this commit are not
 comparable to scored numbers taken after it for anything a Stage-1 composed
 surface touches.
+
+Step 23.5 (2026-07-17) — instrument decision at gate 1; era move on the
+chooser prompt family. R-23.5-1..4 recorded in
+docs/memo_d1_1_substrate_selection.md and as ruling comments at every
+governed site. Disclosures:
+  - Era: the chooser SYSTEM_PROMPT gained exactly one instruction sentence
+    plus the updated reply-shape sentence (substrate_id in the envelope);
+    the retry-path envelope-error text changed. Old prompt preserved at
+    tests/fixtures/rwin1/chooser_pre235.txt; the pre-change retry surface
+    at tests/fixtures/c235/chooser_retry_user_turn.txt is frozen history.
+    Every other model-visible surface proven byte-identical (C1/C3/C4
+    containment pins; d1 zero-diff; tripwire proven by failing it once).
+  - Comparability: scored numbers taken before the Step-23.5 Phase-4
+    commit are not comparable to numbers taken after it for anything the
+    gate-1 chooser surface touches.
+  - Human gate 1 now writes TWO override-ledger entries per resolution
+    (rank entry unchanged in shape and content; instrument entry additive,
+    same shape) — ledger entry counts per human run change accordingly.
+  - Auto gate 1 can now halt (null instrument, R-23.5-2) — a new honest
+    stop that did not exist before; the log line "STOP null-instrument
+    (R-23.5-2)" distinguishes it from a human halt.
+  - The locked Step-15 spec schema requires numeric regime.reynolds_min/
+    max; circuit specs fill them with disclosed placeholders (fixture
+    regime notes carry the disclosure). Schema generalization deferred to
+    its own ruling.
+  - Handfeed side doors (handfeed_stage2/3/4.py) reconstruct pre-23.5
+    payloads without substrate_id and now fail loud (KeyError) on old
+    source runs — honest, deliberately unfixed until a real need.
+  - harness/validation_batch.py replays cavity-era selections under an
+    explicit "cavity_2d_cfd" canned pin (harness canned-input class per
+    the d1 shape ruling) — never read by production, never a runtime
+    default.

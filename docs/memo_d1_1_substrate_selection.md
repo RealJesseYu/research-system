@@ -160,3 +160,59 @@ So a Stage-1 hypothesis steered toward the ngspice contract still meets the
 cavity pin at stage 2 until Step 35; the fidelity gate judges the resulting
 spec against the substrate its declared parameters actually select (or the
 selection raise above), never silently against the wrong instrument.
+
+---
+
+## Step 23.5 (owner-ruled 2026-07-17): P8 UNPARKED — the instrument is decided at gate 1
+
+R-23.5-1  Instrument selection is decided at gate 1 by the gate's decider;
+          in auto mode the chooser's same single call names the instrument.
+          Deliberate era move on the chooser's prompt family ONLY
+          (instruction text + retry-path envelope-error text); every other
+          model-visible surface proven byte-identical (C1/C3/C4 whole-build
+          containment tripwires plus the d1/d2/d3/rwin1/ngspice-birth pins).
+R-23.5-2  The chooser's never-raise fallback carries substrate_id null; in
+          auto mode a null instrument STOPS the run loudly at the gate with
+          a named reason. A cavity default is forbidden.
+R-23.5-3  Human mode: after the valid rank pick, one more prompt — an
+          instrument from the routable list, or halt — same invalid-answer
+          cap pattern. The chooser's instrument read joins the advisory.
+          The override-ledger entry keeps its exact current shape; the
+          instrument answer is logged additively beside it. Supersedes the
+          frozen human-gate flow by this ruling.
+R-23.5-4  Post-gate-1 payload is exactly {domain, chosen_hypothesis,
+          substrate_id}; chosen_hypothesis stays exactly {id, statement,
+          rationale}; substrate_id enters NO composed prompt anywhere; it
+          travels forward so stages 3 and 4 compare it against
+          select_substrate's spec-derived answer — mismatch stops loudly
+          before routing and before execution.
+
+Build-chat rulings under the Step-23.5 brief (owner, 2026-07-17), applied
+in the Phase commits: start-state quarantine + late-evidence commit (THE
+FLIP's cited ngspice battery JSON, commit 2510a97); 3a scope corrected to
+the :184 literal (disk beats brief — :29 imports contract_for, which
+stays); the d1/C3-C4 canned-shape rule (harness inputs truth-edited into
+the ruled three-key world; pinned model-visible bytes immutable outside
+the chooser family; originals preserved append-only as *_pre235*); the
+2d/3c phase split (a schema shape is atomic across its boundaries — the
+payload-travel slice landed with Phase 2, consumers with Phase 3).
+
+Consequence for this memo's earlier text: the "P8 / Step-35 remains
+PARKED" paragraph above is SUPERSEDED — stage 2 now composes against
+contract_for(payload substrate_id), the D.1.1 cavity pin is retired at
+that surface (and validate_spec's bare-call default is downgraded to a
+documented direct-caller/test default), and stage-3/stage-4 structural
+selection is now an AGREEMENT CHECK against the gate's decision rather
+than the sole decider: a divergence between the gate's instrument and the
+spec's structural selection stops loudly at stage 3 (before routing) and
+stage 4 (before execution), naming both values.
+
+Disclosed limitation found by the chain-close: the locked Step-15 spec
+schema requires numeric regime.reynolds_min/max, so a circuit spec carries
+disclosed placeholder values (see tests/fixtures/c235/ngspice_full_spec
+.json); any generalization is its own schemas.py ruling. The ngspice
+netlist_body/analysis parameters ride the 'derived' role — the only role
+admitting non-numeric content.
+
+Era-of-record: e9084af (R5) -> the Step-23.5 Phase-4 commit, declared in
+that commit's message.

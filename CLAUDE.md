@@ -959,3 +959,37 @@ Terminal, human mode): executed solver path under the post-17 pipeline;
 Stage-6 real-pipeline paper + paperlint. Next action: Run C, then
 18-prep (snapshot + parallel-arms ruling; Step-18 sizing already ruled
 at 4 runs/arm on the measured 17-E cost).
+
+Step 23.5 COMPLETE (2026-07-17, owner-ruled brief; phase commits
+2510a97 / 201d25e / 3c10f4c / f26ed0a + the Phase-4 record commit):
+stage 2 authors against the decided instrument. Gate 1 decides the
+instrument — auto mode's chooser names substrate_id in its same single
+Opus call (R-23.5-1; validated against routable_ids() read LIVE, never a
+hardcoded list), the never-raise fallback carries substrate_id null and
+a null instrument stops an auto run loudly at the gate (R-23.5-2; a
+cavity default is forbidden), human mode adds one instrument prompt
+after the rank pick with an additive override-ledger entry beside the
+unchanged rank entry (R-23.5-3, supersedes the frozen human-gate flow by
+that ruling). The post-gate-1 payload is exactly {domain,
+chosen_hypothesis, substrate_id} (R-23.5-4), widened BY DERIVATION at
+every downstream boundary (build-chat ruling: a schema shape is atomic
+across its boundaries), travels the payload only (enters NO composed
+prompt), survives back_to_design surgery (pass-N invariant proven), and
+stages 3/4 run an agreement check — spec-derived selection vs the gate's
+decision — stopping loudly before routing/execution on mismatch.
+Stage 2's D.1.1 cavity pin is RETIRED: composition fetches
+contract_for(payload substrate_id); the reply spec validates under the
+substrate's own QoI vocabulary (boundary schemas resolve the vocab the
+same way). Cavity byte-identity held everywhere (C1/C3/C4 whole-build
+containment pins, d1/d3 zero fixture edits, tripwire proven by failing
+it once); ngspice stage-2 composition + four ngspice-class retry
+rejections birth-fixtured; chain-close proven call-free for both twins
+(circuit through the maturity hook — signoff human / trust->defer auto —
+and cavity byte-identical with hook behavior unchanged). Disclosed
+finds: the locked Step-15 spec schema requires numeric regime Reynolds
+bounds (circuit specs carry disclosed placeholders — future schema
+ruling); handfeed side doors fail loud on pre-23.5 source runs; human
+gate 1 now writes two ledger entries per resolution. Superseded fixtures
+preserved append-only (*_pre235*). The era-of-record moves from e9084af
+to this build's final commit (declared there). Rulings R-23.5-1..4
+recorded in docs/memo_d1_1_substrate_selection.md.
