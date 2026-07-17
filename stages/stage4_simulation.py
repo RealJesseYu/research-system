@@ -6,21 +6,31 @@ here. This stage reads the fidelity verdict already in the payload and acts
 on it; it never re-judges anything:
 
   defer          -> execute nothing (skipped_defer).
-  trust | refine -> for each mini-experiment run (1-3, sequential): synthesize
-                    a case via stage4_case_builder.build_case, then run it
-                    through the production wrapper (tools/run_cfd). A
-                    CaseSynthesisError is an honest outcome, not a crash: the
-                    stage records halted_synthesis, runs nothing further, and
-                    relays onward. refine additionally flags that survivors
-                    require downstream confirmation.
+  trust | refine -> for each mini-experiment run (1-3, sequential): execute
+                    through the SELECTED substrate's adapter
+                    (tools/substrate_dispatch, D.4) — for cavity that is
+                    build_case + the identical production-wrapper call this
+                    stage has always made. A CaseSynthesisError is an honest
+                    outcome, not a crash: the stage records halted_synthesis,
+                    runs nothing further, and relays onward. refine
+                    additionally flags that survivors require downstream
+                    confirmation.
+
+The substrate is chosen STRUCTURALLY (D.4): signature-based selection on the
+validated spec (tools/substrate_selection, the same function stage 3 uses —
+deterministic, D.2 test (d)), never parsed from a payload name (R-28H-1);
+the payload gains no substrate field (the key set is locked). An unwired or
+unknown id raises at dispatch — never a cavity fallback.
 
 The spec's QoI is translated to a wrapper qoi_request ONLY if the spec's qoi
 object carries machine-readable {field, operation, component?} keys that the
-substrate contract can extract (operation/component vocabularies imported
-from the wrapper — single source of truth); otherwise every run executes
-WITHOUT a qoi_request and records an honest qoi_error. Whether the named
-field actually exists in the case is the wrapper's own check at extraction
-time — it reports its own qoi_error rather than fabricating a number.
+substrate contract can extract (operation/component vocabularies read from
+the selected substrate's QoI-vocabulary record, tools/qoi_vocab — for cavity
+its members ARE the wrapper's own objects, single source of truth);
+otherwise every run executes WITHOUT a qoi_request and records an honest
+qoi_error. Whether the named field actually exists in the case is the
+wrapper's own check at extraction time — it reports its own qoi_error rather
+than fabricating a number.
 
 Evidence: the FULL per-run wrapper summaries go to runs/<id>/stage4/
 results.json. The payload gains execution_results with conclusions ONLY —
@@ -29,8 +39,10 @@ qoi_error, wall_clock_s}]} — no residual dicts, no logs, per the baton
 invariant. The single history note is code-authored from validated fields.
 
 Substrate note: this stage names no solver and no substrate file format; the
-one substrate-specific module (the case builder) sits below it, and the
-parameter/QoI content it forwards is payload DATA, never branched on by name.
+substrate-specific machinery (case builder, wrappers, adapters) sits below
+it behind the dispatch seam, and the parameter/QoI content it forwards is
+payload DATA, never branched on by name — the substrate id it dispatches on
+is obtained structurally from selection, never from the payload.
 """
 
 from __future__ import annotations
@@ -39,20 +51,31 @@ import json
 from pathlib import Path
 
 from baton import Baton
-from stages.stage4_case_builder import CaseSynthesisError, build_case
-from tools.run_cfd import QOI_COMPONENTS, QOI_OPERATIONS, run_cfd
+from stages.stage4_case_builder import CaseSynthesisError
+from tools.qoi_vocab import vocab_for
+from tools.substrate_dispatch import adapter_for
+from tools.substrate_selection import select_substrate
 
 REFINE_FLAG = "refine — survivors require downstream confirmation"
 
 
-def translate_qoi(spec_qoi) -> tuple[dict | None, str | None]:
+def translate_qoi(spec_qoi, vocab=None) -> tuple[dict | None, str | None]:
     """Translate a spec's qoi object into a wrapper qoi_request, or refuse.
 
     Returns (qoi_request, None) when the qoi is contract-extractable, else
-    (None, honest_reason). Pure function, never raises. Extractability is
+    (None, honest_reason). Never raises on qoi content. Extractability is
     signalled by explicit machine-readable keys in the spec qoi — this code
     never guesses from free text.
+
+    D.4: the operation/component re-checks read the QoI-vocabulary RECORD of
+    the SELECTED substrate (tools/qoi_vocab.vocab_for — for cavity its
+    members ARE run_cfd's own objects, so the checks are unchanged), passed
+    in by run(). A None vocab resolves the record structurally, via
+    selection on an unconstrained spec (today: cavity) — this keeps the
+    pre-D.4 single-argument call shape valid and hardcodes no substrate id.
     """
+    if vocab is None:
+        vocab = vocab_for(select_substrate(None))
     if not isinstance(spec_qoi, dict):
         return None, "spec has no qoi object"
     field = spec_qoi.get("field")
@@ -63,11 +86,11 @@ def translate_qoi(spec_qoi) -> tuple[dict | None, str | None]:
             "spec qoi carries no machine-readable field/operation keys "
             "(free-text definitions are not translated)"
         )
-    if operation not in QOI_OPERATIONS:
+    if operation not in vocab.operations:
         return None, (
-            f"operation {operation!r} is not one of {sorted(QOI_OPERATIONS)}"
+            f"operation {operation!r} is not one of {sorted(vocab.operations)}"
         )
-    if component is not None and component not in QOI_COMPONENTS:
+    if component is not None and component not in vocab.components:
         return None, f"component {component!r} is not 'mag' or 0|1|2"
     request = {"field": field, "operation": operation}
     if component is not None:
@@ -139,10 +162,18 @@ def run(baton: Baton) -> Baton:
         )
 
     spec = baton.payload["experiment_spec"]
+    # D.4: the substrate id is RE-DERIVED structurally from the validated
+    # spec (the same deterministic selection stage 3 used — the payload key
+    # set is locked and carries no substrate field), then dispatch resolves
+    # its adapter BEFORE any translation: an unwired or unknown id raises
+    # here, escape-failing — never a cavity fallback.
+    substrate_id = select_substrate(spec)
+    adapter = adapter_for(substrate_id)
+    vocab = vocab_for(substrate_id)
     mini_runs = spec["mini_experiment"]["runs"]
     parameter_roles = extract_parameter_roles(spec.get("parameters"))
     qoi_name = spec.get("qoi", {}).get("name") if isinstance(spec.get("qoi"), dict) else None
-    qoi_request, refusal = translate_qoi(spec.get("qoi"))
+    qoi_request, refusal = translate_qoi(spec.get("qoi"), vocab)
     qoi_error_fallback = (
         None
         if qoi_request is not None
@@ -158,12 +189,15 @@ def run(baton: Baton) -> Baton:
     for index, params in enumerate(mini_runs, start=1):
         case_name = f"{baton.run_id}_run{index}"
         try:
-            build_case(params, case_name, roles=parameter_roles)
+            # the selected substrate's adapter: for cavity, build_case + the
+            # identical wrapper call this loop always made (D.4 dispatch)
+            summary = adapter(
+                substrate_id, params, case_name, parameter_roles, qoi_request
+            )
         except CaseSynthesisError as exc:
             halt_reason = f"run {index} of {len(mini_runs)}: {exc}"
             _log_line(baton.run_id, f"STAGE4 halted_synthesis at {halt_reason}")
             break
-        summary = run_cfd(case_name, qoi_request=qoi_request)
         evidence_runs.append(
             {
                 "run_index": index,
