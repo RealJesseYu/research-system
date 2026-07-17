@@ -1,0 +1,93 @@
+{
+  "status": "executed",
+  "verdict_label": "trust",
+  "qoi_request": {
+    "field": "U",
+    "operation": "volAverage",
+    "component": "mag"
+  },
+  "runs": [
+    {
+      "run_index": 1,
+      "case": "d0-canned-cavity_run1",
+      "params": {
+        "lid_velocity": 2.0,
+        "kinematic_viscosity": 0.01,
+        "cavity_length": 1.0,
+        "mesh_resolution": 64,
+        "end_time": 20.0,
+        "time_step": 0.005
+      },
+      "summary": {
+        "status": "ok",
+        "case": "d0-canned-cavity_run1",
+        "solver": "incompressibleFluid",
+        "converged": true,
+        "reason": "reached endTime=20.0 with all final residuals < 0.001",
+        "final_time": 20.0,
+        "end_time": 20.0,
+        "residuals": {
+          "Ux": 1.1e-05,
+          "Uy": 1.4e-05,
+          "p": 8.7e-05
+        },
+        "key_result": {
+          "max_Courant": 0.62,
+          "continuity_global": -1.3e-09
+        },
+        "runtime": {
+          "solver_execution_time_s": 152.4,
+          "wall_clock_s": 161.62
+        },
+        "qoi": {
+          "name": "volAverage(mag(U))",
+          "field": "U",
+          "operation": "volAverage",
+          "value": 0.4168353,
+          "time": 20.0
+        }
+      }
+    },
+    {
+      "run_index": 2,
+      "case": "d0-canned-cavity_run2",
+      "params": {
+        "lid_velocity": 1.0,
+        "kinematic_viscosity": 0.01,
+        "cavity_length": 1.0,
+        "mesh_resolution": 64,
+        "end_time": 20.0,
+        "time_step": 0.005
+      },
+      "summary": {
+        "status": "ok",
+        "case": "d0-canned-cavity_run2",
+        "solver": "incompressibleFluid",
+        "converged": true,
+        "reason": "reached endTime=20.0 with all final residuals < 0.001",
+        "final_time": 20.0,
+        "end_time": 20.0,
+        "residuals": {
+          "Ux": 9.6e-06,
+          "Uy": 1.2e-05,
+          "p": 7.9e-05
+        },
+        "key_result": {
+          "max_Courant": 0.31,
+          "continuity_global": -8.4e-10
+        },
+        "runtime": {
+          "solver_execution_time_s": 89.7,
+          "wall_clock_s": 95.34
+        },
+        "qoi": {
+          "name": "volAverage(mag(U))",
+          "field": "U",
+          "operation": "volAverage",
+          "value": 0.1930067,
+          "time": 20.0
+        }
+      }
+    }
+  ]
+}
