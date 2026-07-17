@@ -493,11 +493,15 @@ def build_gate1_chooser_advisory(record: dict) -> str:
     try:
         chosen = record.get("chosen_id") or "?"
         reasoning = record.get("reasoning") or "?"
+        # R-23.5-3 (owner, 2026-07-17): the chooser's instrument read joins
+        # the advisory — display-only; the human's instrument answer decides.
+        instrument = record.get("substrate_id") or "?"
         fallback = " (FALLBACK to rank 1)" if record.get("fallback") else ""
         return "\n".join(
             [
                 "---- CHOOSER ADVISORY (display-only; your pick decides) ----",
                 f"  chooser chose: {chosen}{fallback}",
+                f"  chooser instrument: {instrument}",
                 f"  reasoning: {reasoning}",
                 "---- end chooser advisory ----",
             ]
@@ -761,19 +765,116 @@ def parse_gate1_selection(raw: str, k: int) -> tuple:
     return ("invalid",)
 
 
-def run_gate1(logger: Logger, baton: Baton, mode: str) -> tuple:
-    """Gate after stage 1: pick one of the k ranked hypotheses, or halt.
+def parse_gate1_instrument(raw: str, routable: tuple) -> tuple:
+    """Classify one raw gate-1 instrument answer (Step 23.5, R-23.5-3). Pure
+    function, no I/O — the same pattern as parse_gate1_selection.
 
-    Auto mode (Step 23) resolves to the Stage-1.5 chooser's chosen_id — one
-    Opus call in stages/gate1_chooser.py, never invoked in this file's own
-    logic beyond scheduling it, exactly as stages are scheduled; the chooser
-    never raises and falls back to rank 1 (the old placeholder) with the
-    fallback recorded in gate1_chooser.json. Human mode shows the ranked
-    list plus the chooser's reasoning as a display-only advisory and
-    prompts; the human's integer pick remains the decision; after
-    MAX_GATE1_INVALID_ANSWERS invalid answers it halts. Returns
-    ("select", rank) or ("halt",). Like run_gate, decisions are recorded in
-    the LOG only, never in the baton's history.
+    Returns ("instrument", substrate_id) for the exact id (whitespace
+    tolerated, case-sensitive) or its 1-based index in `routable`,
+    ("halt",) for n/N, ("invalid",) for everything else — including
+    out-of-range indexes and empty input.
+    """
+    text = raw.strip()
+    if text.lower() == "n":
+        return ("halt",)
+    if text in routable:
+        return ("instrument", text)
+    try:
+        value = int(text)
+    except ValueError:
+        return ("invalid",)
+    if 1 <= value <= len(routable):
+        return ("instrument", routable[value - 1])
+    return ("invalid",)
+
+
+def _prompt_gate1_instrument(
+    logger: Logger, baton: Baton, gate_name: str, rank: int, chooser_record: dict
+) -> tuple:
+    """R-23.5-3 (owner, 2026-07-17): the human instrument prompt after the
+    valid rank pick — an instrument from the registry's LIVE routable list,
+    or halt, under the same MAX_GATE1_INVALID_ANSWERS cap pattern as the
+    rank prompt. Returns ("select", rank, substrate_id) or ("halt",). The
+    instrument answer is logged additively as a second override-ledger
+    entry of the exact current entry shape, beside the rank entry."""
+    from tools import substrate_registry as registry
+
+    routable = registry.routable_ids()
+    chooser_read = (
+        chooser_record.get("substrate_id")
+        if isinstance(chooser_record, dict)
+        else None
+    )
+    listing = ", ".join(f"{i}={sid}" for i, sid in enumerate(routable, start=1))
+    invalid_count = 0
+    while invalid_count < MAX_GATE1_INVALID_ANSWERS:
+        prompt = (
+            f"GATE {gate_name}: instrument — routable: {listing} — "
+            f"type the id or 1..{len(routable)}, or n to stop: "
+        )
+        logger.log(f"GATE {gate_name}: prompting {prompt!r}")
+        answer = input(prompt)
+        logger.log(f"GATE {gate_name}: human answered {answer!r}")
+
+        parsed = parse_gate1_instrument(answer, routable)
+        if parsed[0] != "invalid":
+            if parsed[0] == "instrument":
+                human_decision = f"instrument {parsed[1]}"
+                did_override = parsed[1] != chooser_read
+            else:  # ("halt",)
+                human_decision = "halt (instrument prompt)"
+                did_override = True
+            override_append(
+                run_id=baton.run_id,
+                gate=1,
+                system_decision=f"instrument {chooser_read}",
+                human_decision=human_decision,
+                did_override=did_override,
+            )
+            if parsed[0] == "instrument":
+                return ("select", rank, parsed[1])
+            return ("halt",)
+        invalid_count += 1
+        logger.log(
+            f"GATE {gate_name}: invalid instrument answer "
+            f"({invalid_count} of {MAX_GATE1_INVALID_ANSWERS} allowed)"
+        )
+
+    logger.log(
+        f"GATE {gate_name}: {MAX_GATE1_INVALID_ANSWERS} invalid instrument "
+        "answers, halting"
+    )
+    override_append(
+        run_id=baton.run_id,
+        gate=1,
+        system_decision=f"instrument {chooser_read}",
+        human_decision=(
+            f"halt ({MAX_GATE1_INVALID_ANSWERS} invalid instrument answers)"
+        ),
+        did_override=True,
+    )
+    return ("halt",)
+
+
+def run_gate1(logger: Logger, baton: Baton, mode: str) -> tuple:
+    """Gate after stage 1: pick one of the k ranked hypotheses AND the
+    instrument, or halt.
+
+    Auto mode (Step 23; instrument decision Step 23.5, R-23.5-1) resolves to
+    the Stage-1.5 chooser's chosen_id and substrate_id — one Opus call in
+    stages/gate1_chooser.py, never invoked in this file's own logic beyond
+    scheduling it, exactly as stages are scheduled; the chooser never raises
+    and falls back to rank 1 (the old placeholder) with the fallback
+    recorded in gate1_chooser.json. R-23.5-2: the fallback carries
+    substrate_id null, and a null instrument stops the run loudly at the
+    gate — a cavity default is forbidden. Human mode shows the ranked list
+    plus the chooser's reasoning and instrument read as a display-only
+    advisory and prompts; the human's integer pick remains the decision,
+    then one more prompt decides the instrument (R-23.5-3, superseding the
+    frozen human-gate flow by that ruling); after
+    MAX_GATE1_INVALID_ANSWERS invalid answers at either prompt it halts.
+    Returns ("select", rank, substrate_id) or ("halt",). Like run_gate,
+    decisions are recorded in the LOG only, never in the baton's history.
     """
     gate_name = "after_stage_1"
     logger.log(f"GATE {gate_name}: reached")
@@ -785,6 +886,18 @@ def run_gate1(logger: Logger, baton: Baton, mode: str) -> tuple:
         record = gate1_chooser.choose_hypothesis(
             baton.run_id, hypotheses, Path("runs") / baton.run_id
         )
+        # R-23.5-2 (owner, 2026-07-17): a null instrument STOPS the run
+        # loudly at the gate — a cavity default is forbidden. The
+        # null-instrument marker below names the reason and is
+        # distinguishable in the log from a human halt.
+        if record.get("substrate_id") is None:
+            logger.log(
+                f"GATE {gate_name} [auto]: STOP null-instrument (R-23.5-2) — "
+                f"chooser returned substrate_id null "
+                f"(fallback={record.get('fallback')}); "
+                f"reason: {record.get('reasoning')}"
+            )
+            return ("halt",)
         # The chooser guarantees a valid id (validator + rank-1 fallback);
         # the default-1 here is deterministic belt-and-braces only.
         rank = next(
@@ -793,9 +906,12 @@ def run_gate1(logger: Logger, baton: Baton, mode: str) -> tuple:
         )
         logger.log(
             f"GATE {gate_name} [auto]: chooser chose {record['chosen_id']} "
-            f"(rank {rank} of {k}, fallback={record['fallback']})"
+            f"(rank {rank} of {k}, fallback={record['fallback']}) "
+            f"on instrument {record['substrate_id']}"
         )
-        return ("select", rank)
+        # R-23.5-1: in auto mode the chooser's same single call names the
+        # instrument; it travels with the selection.
+        return ("select", rank, record["substrate_id"])
 
     logger.log(f"--- ranked hypotheses at gate {gate_name} ---")
     for rank, h in enumerate(hypotheses, start=1):
@@ -847,7 +963,18 @@ def run_gate1(logger: Logger, baton: Baton, mode: str) -> tuple:
                 human_decision=human_decision,
                 did_override=did_override,
             )
-            return parsed
+            if parsed[0] != "select":
+                return parsed
+            # R-23.5-3 (owner, 2026-07-17; supersedes the frozen human-gate
+            # flow by this ruling): after the valid rank pick, one more
+            # prompt — an instrument from the LIVE routable list, or halt —
+            # under the same invalid-answer cap pattern. The override-ledger
+            # entry above keeps its exact current shape; the instrument
+            # answer is logged additively BESIDE it as a second entry of
+            # the same shape.
+            return _prompt_gate1_instrument(
+                logger, baton, gate_name, parsed[1], chooser_record
+            )
         invalid_count += 1
         logger.log(
             f"GATE {gate_name}: invalid answer "
@@ -866,11 +993,24 @@ def run_gate1(logger: Logger, baton: Baton, mode: str) -> tuple:
 
 
 def apply_gate1_selection(
-    logger: Logger, baton: Baton, mode: str, rank: int, run_dir: Path, pass_number: int = 1
+    logger: Logger,
+    baton: Baton,
+    mode: str,
+    rank: int,
+    run_dir: Path,
+    pass_number: int = 1,
+    *,
+    substrate_id: str,
 ) -> None:
     """Deterministic Python, no model call: replace the baton payload with the
-    chosen hypothesis. The ranked list and the hypotheses_ranked flag do not
-    travel further — they remain on disk in stage1/ evidence and in
+    chosen hypothesis and the decided instrument (R-23.5-4, owner
+    2026-07-17: the post-gate-1 payload is exactly {domain,
+    chosen_hypothesis, substrate_id}; substrate_id enters NO composed
+    prompt anywhere — it travels forward so stages 3 and 4 compare it
+    against select_substrate's spec-derived answer). substrate_id is a
+    required keyword: a caller that fails to pass the gate's decision
+    raises, never defaults. The ranked list and the hypotheses_ranked flag
+    do not travel further — they remain on disk in stage1/ evidence and in
     baton_after_stage_1.json. Baton history is untouched: gates never write
     history entries. pass_number > 1 (Step 16 loop-back re-entry) writes a
     pass-suffixed snapshot so the first pass's record survives.
@@ -879,7 +1019,10 @@ def apply_gate1_selection(
     k = len(hypotheses)
     chosen = hypotheses[rank - 1]
 
-    logger.log(f"GATE after_stage_1 [{mode}]: selected {chosen['id']} (rank {rank} of {k})")
+    logger.log(
+        f"GATE after_stage_1 [{mode}]: selected {chosen['id']} "
+        f"(rank {rank} of {k}) on instrument {substrate_id}"
+    )
 
     baton.payload = {
         "domain": baton.payload["domain"],
@@ -888,6 +1031,7 @@ def apply_gate1_selection(
             "statement": chosen["statement"],
             "rationale": chosen["rationale"],
         },
+        "substrate_id": substrate_id,
     }
     baton.validate()
 
@@ -916,6 +1060,11 @@ def apply_loopback_surgery(logger: Logger, baton: Baton, enacted: str) -> int:
         baton.payload = {
             "domain": baton.payload["domain"],
             "chosen_hypothesis": baton.payload["chosen_hypothesis"],
+            # R-23.5-4 + loop-back invariant (build-chat ruling, 2026-07-17):
+            # the carried substrate_id is read from the LIVE payload — the
+            # standing decision of the pass being redesigned, never a
+            # prior-pass snapshot, never a default; absent = loud KeyError.
+            "substrate_id": baton.payload["substrate_id"],
             "prior_thought": baton.payload["thought"],
         }
         re_enter_index = 1
@@ -1016,7 +1165,10 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
                     write_failure_memo_safe(logger, run_dir)
                     record_run_outcome(baton, f"halted at gate {gate_name}")
                     sys.exit(0)
-                apply_gate1_selection(logger, baton, mode, outcome[1], run_dir, pass_number)
+                apply_gate1_selection(
+                    logger, baton, mode, outcome[1], run_dir, pass_number,
+                    substrate_id=outcome[2],
+                )
                 # Step 15: the post-gate-1 payload is the first locked
                 # boundary shape (the ranked-list payload before it is
                 # gate-owned, not a stage boundary).

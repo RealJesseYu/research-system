@@ -1,11 +1,12 @@
 {
-  "provenance": "Step 15 chunk 1: copy of specs/handcrafted_baseline_payload.json (Step 12) with EXACTLY one content change — mini_experiment.expected_observation sharpened to state the known-true values (volAverage(mag(U)) ~0.4168 m/s at lid 2.0, ~0.1930 at lid 1.0, ratio ~2.16) so run B's thought call probes whether sharpened FREE-TEXT expectation suffices. n=1, not scored. The spec copy lives at specs/step15_executed_probe.json; the originals are untouched. This key is stripped by handfeed_stage4's four-key payload filter and never enters the baton.",
+  "provenance": "Step 15 chunk 1: copy of specs/handcrafted_baseline_payload.json (Step 12) with EXACTLY one content change \u2014 mini_experiment.expected_observation sharpened to state the known-true values (volAverage(mag(U)) ~0.4168 m/s at lid 2.0, ~0.1930 at lid 1.0, ratio ~2.16) so run B's thought call probes whether sharpened FREE-TEXT expectation suffices. n=1, not scored. The spec copy lives at specs/step15_executed_probe.json; the originals are untouched. This key is stripped by handfeed_stage4's four-key payload filter and never enters the baton. | Step-23.5 truth-edit (R-23.5-4, owner-ruled): substrate_id 'cavity_2d_cfd' added \u2014 the canned three-key-era shape for this cavity payload, NOT a runtime default; pre-edit original preserved append-only at step15_executed_payload_pre235.json.",
   "domain": "baseline characterization of laminar lid-driven cavity flows",
   "chosen_hypothesis": {
     "id": "hand-baseline",
     "statement": "baseline cavity mean-speed characterization",
     "rationale": "HAND-FED (not stage-1 output): a known-executable baseline to witness the Step-12 executed path; legitimate through Step 16."
   },
+  "substrate_id": "cavity_2d_cfd",
   "experiment_spec": {
     "hypothesis_id": "hand-baseline",
     "title": "Baseline cavity mean-speed characterization",
@@ -87,7 +88,7 @@
           "time_step": 0.005
         }
       ],
-      "expected_observation": "Both runs converge; volAverage(mag(U)) is approximately 0.4168 m/s at lid 2.0 m/s and approximately 0.1930 m/s at lid 1.0 m/s — a ratio of approximately 2.16, slightly above linear because Re doubles from 100 to 200."
+      "expected_observation": "Both runs converge; volAverage(mag(U)) is approximately 0.4168 m/s at lid 2.0 m/s and approximately 0.1930 m/s at lid 1.0 m/s \u2014 a ratio of approximately 2.16, slightly above linear because Re doubles from 100 to 200."
     },
     "full_experiment": {
       "design": "The two mini-experiment runs ARE the experiment: a two-point lid-speed characterization of the baseline cavity.",

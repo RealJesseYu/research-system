@@ -102,6 +102,9 @@ class StubRelay:
         baton.payload = {
             "domain": baton.payload["domain"],
             "chosen_hypothesis": baton.payload["chosen_hypothesis"],
+            # Truth-edited Step 23.5 (R-23.5-4): the stub mirrors the real
+            # stage 2 — the gate-decided instrument travels the payload.
+            "substrate_id": baton.payload["substrate_id"],
             "experiment_spec": make_valid_spec(),
         }
         if prior is not None:
@@ -162,8 +165,11 @@ class LoopControllerCase(unittest.TestCase):
             side_effect=lambda b, how_far, retry=0: outcomes.append(how_far),
         ), patch(
             "supervisor.gate1_chooser.choose_hypothesis",
+            # Truth-edited Step 23.5 (R-23.5-1/2): the record carries
+            # substrate_id; null would loudly halt the auto gate.
             side_effect=lambda run_id, hyps, run_dir: {
                 "chosen_id": hyps[0]["id"],
+                "substrate_id": "cavity_2d_cfd",
                 "fallback": False,
             },
         ):
@@ -197,9 +203,11 @@ class TestBackToDesignLoop(LoopControllerCase):
         stubs, run_dir, outcomes, log = self.drive(["back_to_design", "exit"])
         # Pass-2 stage-2 input: exactly the surgically reduced payload.
         self.assertEqual(len(stubs.stage2_inputs), 2)
+        # Truth-edited Step 23.5 (R-23.5-4): the reduced payload retains
+        # the live pass's substrate_id (loop-back invariant).
         self.assertEqual(
             sorted(stubs.stage2_inputs[1]),
-            ["chosen_hypothesis", "domain", "prior_thought"],
+            ["chosen_hypothesis", "domain", "prior_thought", "substrate_id"],
         )
         self.assertEqual(
             stubs.stage2_inputs[1]["prior_thought"],
@@ -220,6 +228,75 @@ class TestBackToDesignLoop(LoopControllerCase):
         self.assertIn("LOOP-BACK (back_to_design)", log)
         self.assertIn("SCHEMA OK after gate 1 (pass 2)", log)
         self.assertIn("SCHEMA OK after stage 2 (pass 2)", log)
+
+
+class TestLoopbackInstrumentInvariant(LoopControllerCase):
+    """Step 23.5 (build-chat ruling on the 2d/3c split, condition 4): after
+    any pass-N re-entry, the live payload's substrate_id is exactly the one
+    decided by pass-N's own gate-1 decision — never stale from a prior
+    pass, never defaulted; prior-pass snapshots untouched."""
+
+    def drive_varying_instrument(self, decisions):
+        """Like drive(), but the mocked chooser names a DIFFERENT instrument
+        per call — the discriminating input a stale carry would fail on."""
+        instruments = iter(["cavity_2d_cfd", "ngspice_linear_passive"])
+        stubs = StubRelay(decisions)
+        self._tmp = tempfile.TemporaryDirectory()
+        run_dir = Path(self._tmp.name)
+        logger = Logger(run_dir / "log.txt")
+        baton = Baton(
+            run_id="loop-test",
+            created_at="2026-07-06T00:00:00+00:00",
+            mode="auto",
+            payload={"domain": DOMAIN},
+        )
+        with patch(
+            "supervisor.record_run_outcome",
+            side_effect=lambda b, how_far, retry=0: None,
+        ), patch(
+            "supervisor.gate1_chooser.choose_hypothesis",
+            side_effect=lambda run_id, hyps, run_dir_: {
+                "chosen_id": hyps[0]["id"],
+                "substrate_id": next(instruments),
+                "fallback": False,
+            },
+        ):
+            run_relay(logger, baton, run_dir, "auto", stages=stubs.stages())
+        self.baton = baton
+        return stubs, run_dir
+
+    def test_pass2_gate1_decision_governs_not_pass1(self):
+        # back_to_ideation re-runs gate 1 in pass 2; the pass-2 chooser
+        # names ngspice — the pass-2 payload must carry ngspice, and the
+        # pass-1 snapshot must still carry cavity (append-only, untouched).
+        stubs, run_dir = self.drive_varying_instrument(["back_to_ideation", "exit"])
+        self.assertEqual(
+            stubs.stage2_inputs[0]["substrate_id"], "cavity_2d_cfd"
+        )
+        self.assertEqual(
+            stubs.stage2_inputs[1]["substrate_id"], "ngspice_linear_passive"
+        )
+        self.assertEqual(self.baton.payload["substrate_id"], "ngspice_linear_passive")
+        pass1_snap = json.loads(
+            (run_dir / "baton_after_gate_1.json").read_text()
+        )
+        self.assertEqual(pass1_snap["payload"]["substrate_id"], "cavity_2d_cfd")
+        pass2_snap = json.loads(
+            (run_dir / "baton_after_gate_1_pass2.json").read_text()
+        )
+        self.assertEqual(
+            pass2_snap["payload"]["substrate_id"], "ngspice_linear_passive"
+        )
+
+    def test_back_to_design_carries_the_standing_decision_live(self):
+        # back_to_design does NOT re-run gate 1: the reduced payload carries
+        # the standing decision read from the LIVE payload (pass 1's gate is
+        # the current decision of record for the redesign).
+        stubs, run_dir = self.drive_varying_instrument(["back_to_design", "exit"])
+        self.assertEqual(
+            stubs.stage2_inputs[1]["substrate_id"], "cavity_2d_cfd"
+        )
+        self.assertEqual(self.baton.payload["substrate_id"], "cavity_2d_cfd")
 
 
 class TestBackToIdeationLoop(LoopControllerCase):

@@ -295,7 +295,16 @@ def run_one(
             run_id=run_id,
             created_at=now,
             mode="auto",
-            payload={"domain": selection["domain"], "chosen_hypothesis": selection["chosen_hypothesis"]},
+            payload={
+                "domain": selection["domain"],
+                "chosen_hypothesis": selection["chosen_hypothesis"],
+                # R-23.5-4 canned shape (build-chat ruling, 2026-07-17,
+                # same class as the d1 canned baton): this batch replays
+                # cavity-era selections that predate the gate-1 instrument
+                # decision — an explicit harness canned input, never read
+                # by production, never a runtime default.
+                "substrate_id": "cavity_2d_cfd",
+            },
             history=[],
         )
         baton.validate()

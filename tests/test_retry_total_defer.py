@@ -96,6 +96,9 @@ class DeferStubRelay:
         baton.payload = {
             "domain": baton.payload["domain"],
             "chosen_hypothesis": baton.payload["chosen_hypothesis"],
+            # Truth-edited Step 23.5 (R-23.5-4): the stub mirrors the real
+            # stage 2 — the gate-decided instrument travels the payload.
+            "substrate_id": baton.payload["substrate_id"],
             "experiment_spec": make_valid_spec(),
         }
         if prior is not None:
@@ -154,7 +157,13 @@ class RetryCase(unittest.TestCase):
             ),
             patch(
                 "supervisor.gate1_chooser.choose_hypothesis",
-                side_effect=lambda run_id, hyps, run_dir: {"chosen_id": hyps[0]["id"], "fallback": False},
+                # Truth-edited Step 23.5 (R-23.5-1/2): the record carries
+                # substrate_id; null would loudly halt the auto gate.
+                side_effect=lambda run_id, hyps, run_dir: {
+                    "chosen_id": hyps[0]["id"],
+                    "substrate_id": "cavity_2d_cfd",
+                    "fallback": False,
+                },
             ),
             patch.dict(os.environ, env, clear=False),
         ]
@@ -262,12 +271,13 @@ class TestFlagOffAndHumanMode(RetryCase):
 
     def test_human_mode_ignores_flag(self):
         # Human mode: flag on, but the retry must not fire. Gate inputs are
-        # scripted (gate1 rank 1, gate2 y, gate5 exit=accept 'a').
+        # scripted (gate1 rank 1, gate1 instrument — the R-23.5-3 second
+        # prompt, truth-edited Step 23.5 — gate2 y, gate5 exit=accept 'a').
         stubs, run_dir, outcomes, log = self.drive(
             ["exit"],
             mode="human",
             env={"RETRY_ON_TOTAL_DEFER": "1"},
-            inputs=["1", "y", "a"],
+            inputs=["1", "cavity_2d_cfd", "y", "a"],
         )
         self.assertEqual(stubs.stage1_calls, 1)
         self.assertNotIn("RETRY_ON_TOTAL_DEFER", log)

@@ -25,6 +25,8 @@ import schemas
 from baton import Baton
 from supervisor import Logger, enforce_boundary_schema
 
+# Truth-edited Step 23.5 (R-23.5-4): the post-gate-1 payload carries the
+# decided instrument.
 VALID_POST_GATE1_PAYLOAD = {
     "domain": "baseline characterization of laminar lid-driven cavity flows",
     "chosen_hypothesis": {
@@ -32,6 +34,7 @@ VALID_POST_GATE1_PAYLOAD = {
         "statement": "baseline cavity mean-speed characterization",
         "rationale": "canned copy of the RUN B payload's hypothesis",
     },
+    "substrate_id": "cavity_2d_cfd",
 }
 
 

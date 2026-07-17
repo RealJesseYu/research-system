@@ -118,17 +118,25 @@ RUN_C_REFINE_VERDICT = {
 
 
 class TestPostGate1(unittest.TestCase):
+    # Truth-edited Step 23.5 (R-23.5-4): the post-gate-1 payload is exactly
+    # {domain, chosen_hypothesis, substrate_id}; every constructed payload
+    # here gained substrate_id, and the missing/empty escapes are new.
+
     def test_run_b_shape_passes(self):
         base = _base_post_stage3()
         payload = {
             "domain": base["domain"],
             "chosen_hypothesis": base["chosen_hypothesis"],
+            "substrate_id": "cavity_2d_cfd",
         }
         self.assertEqual(validate_payload_post_gate1(payload), [])
 
     def test_missing_domain_fails(self):
         base = _base_post_stage3()
-        payload = {"chosen_hypothesis": base["chosen_hypothesis"]}
+        payload = {
+            "chosen_hypothesis": base["chosen_hypothesis"],
+            "substrate_id": "cavity_2d_cfd",
+        }
         self.assertTrue(
             any("'domain'" in e for e in validate_payload_post_gate1(payload))
         )
@@ -138,16 +146,49 @@ class TestPostGate1(unittest.TestCase):
         payload = {
             "domain": base["domain"],
             "chosen_hypothesis": base["chosen_hypothesis"],
+            "substrate_id": "cavity_2d_cfd",
             "hypotheses": [],
         }
         self.assertTrue(
             any("'hypotheses'" in e for e in validate_payload_post_gate1(payload))
         )
 
+    def test_missing_substrate_id_fails(self):
+        # R-23.5-4 escape: the widened schema rejects a payload without the
+        # decided instrument — no optional-key softening.
+        base = _base_post_stage3()
+        payload = {
+            "domain": base["domain"],
+            "chosen_hypothesis": base["chosen_hypothesis"],
+        }
+        self.assertTrue(
+            any("'substrate_id'" in e for e in validate_payload_post_gate1(payload))
+        )
+
+    def test_empty_substrate_id_fails(self):
+        # R-23.5-4 escape: empty and whitespace-only are both rejected.
+        base = _base_post_stage3()
+        for empty in ("", "   "):
+            payload = {
+                "domain": base["domain"],
+                "chosen_hypothesis": base["chosen_hypothesis"],
+                "substrate_id": empty,
+            }
+            self.assertTrue(
+                any(
+                    "substrate_id must be a non-empty string" in e
+                    for e in validate_payload_post_gate1(payload)
+                )
+            )
+
     def test_empty_statement_fails(self):
         base = _base_post_stage3()
         chosen = dict(base["chosen_hypothesis"], statement="   ")
-        payload = {"domain": base["domain"], "chosen_hypothesis": chosen}
+        payload = {
+            "domain": base["domain"],
+            "chosen_hypothesis": chosen,
+            "substrate_id": "cavity_2d_cfd",
+        }
         self.assertTrue(
             any("statement" in e for e in validate_payload_post_gate1(payload))
         )
@@ -155,7 +196,11 @@ class TestPostGate1(unittest.TestCase):
     def test_extra_hypothesis_key_fails(self):
         base = _base_post_stage3()
         chosen = dict(base["chosen_hypothesis"], rank=1)
-        payload = {"domain": base["domain"], "chosen_hypothesis": chosen}
+        payload = {
+            "domain": base["domain"],
+            "chosen_hypothesis": chosen,
+            "substrate_id": "cavity_2d_cfd",
+        }
         self.assertTrue(
             any("'rank'" in e for e in validate_payload_post_gate1(payload))
         )
@@ -167,11 +212,14 @@ class TestPostGate1(unittest.TestCase):
 
 
 class TestPostStage2(unittest.TestCase):
+    # Truth-edited Step 23.5 (R-23.5-4): downstream boundaries widened by
+    # derivation — constructed payloads carry substrate_id.
     def test_run_b_shape_passes(self):
         base = _base_post_stage3()
         payload = {
             "domain": base["domain"],
             "chosen_hypothesis": base["chosen_hypothesis"],
+            "substrate_id": base["substrate_id"],
             "experiment_spec": base["experiment_spec"],
         }
         self.assertEqual(validate_payload_post_stage2(payload), [])
@@ -181,6 +229,7 @@ class TestPostStage2(unittest.TestCase):
         payload = {
             "domain": base["domain"],
             "chosen_hypothesis": base["chosen_hypothesis"],
+            "substrate_id": base["substrate_id"],
         }
         self.assertTrue(
             any(
@@ -197,6 +246,7 @@ class TestPostStage2(unittest.TestCase):
         payload = {
             "domain": base["domain"],
             "chosen_hypothesis": base["chosen_hypothesis"],
+            "substrate_id": base["substrate_id"],
             "experiment_spec": spec,
         }
         self.assertTrue(
@@ -354,9 +404,11 @@ class TestPriorThought(unittest.TestCase):
 
     def _gate1_payload(self) -> dict:
         base = _base_post_stage3()
+        # Truth-edited Step 23.5 (R-23.5-4): three-key post-gate-1 shape.
         return {
             "domain": base["domain"],
             "chosen_hypothesis": base["chosen_hypothesis"],
+            "substrate_id": "cavity_2d_cfd",
         }
 
     def test_absent_passes(self):
@@ -452,6 +504,56 @@ class TestPostStage5(unittest.TestCase):
         self.assertTrue(
             any("'notes'" in e for e in validate_payload_post_stage5(payload))
         )
+
+
+class TestSubstrateIdRequiredAtEveryBoundary(unittest.TestCase):
+    """Step 23.5 (build-chat ruling on the 2d/3c split, condition 3): the
+    widened downstream boundaries all REQUIRE substrate_id — no boundary
+    where the key is optional. One parametrized escape across boundaries."""
+
+    def _boundary_payloads(self):
+        base = _base_post_stage3()
+        post_stage2 = {
+            k: base[k]
+            for k in ("domain", "chosen_hypothesis", "substrate_id", "experiment_spec")
+        }
+        post_stage3 = dict(base)
+        post_stage4 = dict(base)
+        post_stage4["execution_results"] = json.loads(
+            json.dumps(RUN_B_EXECUTION_RESULTS)
+        )
+        post_stage5 = dict(post_stage4)
+        post_stage5["thought"] = dict(RUN_B_THOUGHT)
+        post_stage5["iterate_decision"] = "exit"
+        return [
+            (validate_payload_post_gate1, {
+                k: base[k] for k in ("domain", "chosen_hypothesis", "substrate_id")
+            }),
+            (validate_payload_post_stage2, post_stage2),
+            (validate_payload_post_stage3, post_stage3),
+            (validate_payload_post_stage4, post_stage4),
+            (validate_payload_post_stage5, post_stage5),
+        ]
+
+    def test_every_boundary_requires_substrate_id(self):
+        for validator, payload in self._boundary_payloads():
+            with self.subTest(boundary=validator.__name__):
+                self.assertEqual(validator(payload), [])
+                stripped = {k: v for k, v in payload.items() if k != "substrate_id"}
+                self.assertTrue(
+                    any("'substrate_id'" in e for e in validator(stripped))
+                )
+
+    def test_every_boundary_rejects_empty_substrate_id(self):
+        for validator, payload in self._boundary_payloads():
+            with self.subTest(boundary=validator.__name__):
+                emptied = dict(payload, substrate_id="   ")
+                self.assertTrue(
+                    any(
+                        "substrate_id must be a non-empty string" in e
+                        for e in validator(emptied)
+                    )
+                )
 
 
 if __name__ == "__main__":

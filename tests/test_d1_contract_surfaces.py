@@ -125,8 +125,18 @@ class Stage2InputByteIdentity(unittest.TestCase):
         )
 
     def test_canned_input_is_canonical_post_gate1_shape(self):
+        # Truth-edited Step 23.5 (owner-ruled at the d1/C3-C4 shape STOP):
+        # the canned baton gained substrate_id "cavity_2d_cfd" — the
+        # R-23.5-4 canned three-key shape for a cavity-twin input, NOT a
+        # runtime default; original preserved append-only at
+        # canned_stage2_input_pre235.json. The pinned MODEL-VISIBLE bytes
+        # (stage2_user_turn.txt / stage2_system_prompt.txt) are unchanged —
+        # substrate_id enters no composed prompt (R-23.5-4).
         baton = Baton.from_json((FIX / "canned_stage2_input.json").read_text())
         self.assertEqual(validate_payload_post_gate1(baton.payload), [])
+        self.assertEqual(
+            set(baton.payload), {"domain", "chosen_hypothesis", "substrate_id"}
+        )
 
     def test_contract_entered_the_user_turn(self):
         # the substrate_contract key carries the cavity contract text — the

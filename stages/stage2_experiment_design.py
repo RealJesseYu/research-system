@@ -222,6 +222,10 @@ def run(baton: Baton) -> Baton:
         "domain": domain,
         "chosen_hypothesis": chosen,
         "experiment_spec": spec,
+        # R-23.5-4 (owner, 2026-07-17): the gate-decided instrument travels
+        # the payload untouched — it enters NO composed prompt; a payload
+        # without it fails loud here, never defaults.
+        "substrate_id": baton.payload["substrate_id"],
     }
     if prior_thought is not None:
         baton.payload["prior_thought"] = prior_thought

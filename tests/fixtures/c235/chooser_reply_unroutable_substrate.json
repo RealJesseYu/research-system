@@ -1,0 +1,6 @@
+{
+  "ack_run_id": "c235-canned-chooser",
+  "chosen_id": "h1",
+  "substrate_id": "web_search",
+  "reasoning": "C235 BIRTH reply (Step 23.5, R-23.5-1): names an enrolled but UNROUTABLE substrate so the post-23.5 envelope-error text lands on the retry surface — exactly one validator error."
+}

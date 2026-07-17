@@ -9,6 +9,7 @@
       "statement": "baseline cavity mean-speed characterization",
       "rationale": "D.0 CANNED (not stage-1 output): a synthetic cavity-shaped stage-5 input; the proof is assembly determinism, not physical realism."
     },
+    "substrate_id": "cavity_2d_cfd",
     "experiment_spec": {
       "hypothesis_id": "hand-baseline",
       "title": "Baseline cavity mean-speed characterization",

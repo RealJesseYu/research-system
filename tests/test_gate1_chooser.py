@@ -45,10 +45,14 @@ HYPOTHESES = [
     {"id": "h3", "statement": "statement three", "rationale": "rationale three"},
 ]
 
+# Truth-edited Step 23.5 (R-23.5-1): the envelope gained substrate_id — a
+# routable NON-cavity id here so the carry-through proofs can't pass on a
+# cavity accident.
 GOOD_REPLY_H2 = json.dumps(
     {
         "ack_run_id": RUN_ID,
         "chosen_id": "h2",
+        "substrate_id": "ngspice_linear_passive",
         "reasoning": "Near-tie in Elo and h2 carries lighter addressable concerns.",
     }
 )
@@ -134,6 +138,7 @@ class Gate1ChooserTest(unittest.TestCase):
             record = choose_hypothesis(RUN_ID, HYPOTHESES, self.run_dir)
 
         self.assertEqual(record["chosen_id"], "h2")
+        self.assertEqual(record["substrate_id"], "ngspice_linear_passive")
         self.assertFalse(record["fallback"])
         self.assertIn("lighter addressable concerns", record["reasoning"])
 
@@ -164,9 +169,12 @@ class Gate1ChooserTest(unittest.TestCase):
             model_call, "_invoke_transport", make_transport(GOOD_REPLY_H2)
         ):
             outcome = supervisor.run_gate1(logger, baton, "auto")
-        self.assertEqual(outcome, ("select", 2))
+        # Truth-edited Step 23.5 (R-23.5-1): the selection carries the
+        # chooser's instrument as a third element.
+        self.assertEqual(outcome, ("select", 2, "ngspice_linear_passive"))
         log_text = (self.run_dir / "log.txt").read_text()
         self.assertIn("chooser chose h2 (rank 2 of 3, fallback=False)", log_text)
+        self.assertIn("on instrument ngspice_linear_passive", log_text)
 
     # --- invalid chosen_id: re-ask, then fall back to rank 1 ---
 
@@ -184,11 +192,14 @@ class Gate1ChooserTest(unittest.TestCase):
         self.assertEqual(len(calls), model_call.MAX_ATTEMPTS)
         self.assertIn("validation_error", calls[1]["user_turn"])
         self.assertEqual(record["chosen_id"], "h1")
+        # R-23.5-2: the never-raise fallback carries substrate_id null.
+        self.assertIsNone(record["substrate_id"])
         self.assertTrue(record["fallback"])
         self.assertIn("fallback to rank 1", record["reasoning"])
         on_disk = json.loads((self.run_dir / "gate1_chooser.json").read_text())
         self.assertTrue(on_disk["fallback"])
         self.assertEqual(on_disk["chosen_id"], "h1")
+        self.assertIsNone(on_disk["substrate_id"])
 
     # --- transport exhaustion: fall back, never crash ---
 
@@ -200,12 +211,18 @@ class Gate1ChooserTest(unittest.TestCase):
         ):
             record = choose_hypothesis(RUN_ID, HYPOTHESES, self.run_dir)
         self.assertEqual(record["chosen_id"], "h1")
+        self.assertIsNone(record["substrate_id"])
         self.assertTrue(record["fallback"])
         self.assertIn("transport down", record["reasoning"])
 
     def test_ack_mismatch_falls_back(self):
         wrong_ack = json.dumps(
-            {"ack_run_id": "some-other-run", "chosen_id": "h2", "reasoning": "fine"}
+            {
+                "ack_run_id": "some-other-run",
+                "chosen_id": "h2",
+                "substrate_id": "cavity_2d_cfd",
+                "reasoning": "fine",
+            }
         )
         with patch.object(model_call, "_invoke_transport", make_transport(wrong_ack)):
             record = choose_hypothesis(RUN_ID, HYPOTHESES, self.run_dir)
@@ -225,22 +242,38 @@ class Gate1ChooserTest(unittest.TestCase):
         ), patch.object(
             supervisor, "override_append", lambda **kw: ledger_writes.append(kw)
         ), patch(
-            "builtins.input", return_value="3"
+            # Truth-edited Step 23.5 (R-23.5-3): human mode now answers two
+            # prompts — the rank pick, then the instrument.
+            "builtins.input", side_effect=["3", "cavity_2d_cfd"]
         ):
             outcome = supervisor.run_gate1(logger, baton, "human")
 
-        # The human's integer pick decides, not the chooser's h2.
-        self.assertEqual(outcome, ("select", 3))
+        # The human's picks decide, not the chooser's h2/ngspice.
+        self.assertEqual(outcome, ("select", 3, "cavity_2d_cfd"))
         # The payload is provably untouched by the advisory display.
         self.assertEqual(json.dumps(baton.payload, sort_keys=True), payload_before)
-        # The advisory block is durable in the log, chooser pick visible.
+        # The advisory block is durable in the log, chooser pick and
+        # instrument read (R-23.5-3) both visible.
         log_text = (self.run_dir / "log.txt").read_text()
         self.assertIn("CHOOSER ADVISORY (display-only; your pick decides)", log_text)
         self.assertIn("chooser chose: h2", log_text)
-        # Frozen ledger semantics: system_decision baseline stays rank 1.
-        self.assertEqual(len(ledger_writes), 1)
+        self.assertIn("chooser instrument: ngspice_linear_passive", log_text)
+        # Frozen ledger semantics: the rank entry keeps its exact current
+        # shape and content; the instrument answer is logged additively
+        # BESIDE it as a second entry of the same shape (R-23.5-3).
+        self.assertEqual(len(ledger_writes), 2)
         self.assertEqual(ledger_writes[0]["system_decision"], "select rank 1")
         self.assertEqual(ledger_writes[0]["human_decision"], "select rank 3")
+        self.assertEqual(
+            ledger_writes[1]["system_decision"], "instrument ngspice_linear_passive"
+        )
+        self.assertEqual(
+            ledger_writes[1]["human_decision"], "instrument cavity_2d_cfd"
+        )
+        self.assertTrue(ledger_writes[1]["did_override"])
+        self.assertEqual(
+            sorted(ledger_writes[0]), sorted(ledger_writes[1])
+        )  # same entry shape
 
     def test_advisory_builder_never_raises(self):
         self.assertIn("chooser chose: h2", supervisor.build_gate1_chooser_advisory(
@@ -262,8 +295,11 @@ class Gate1ChooserTest(unittest.TestCase):
         ):
             outcome = supervisor.run_gate1(logger, baton, "auto")
         supervisor.apply_gate1_selection(
-            logger, baton, "auto", outcome[1], self.run_dir
+            logger, baton, "auto", outcome[1], self.run_dir,
+            substrate_id=outcome[2],
         )
+        # Truth-edited Step 23.5 (R-23.5-4): the post-gate-1 payload is
+        # exactly {domain, chosen_hypothesis, substrate_id}.
         self.assertEqual(
             baton.payload,
             {
@@ -273,6 +309,7 @@ class Gate1ChooserTest(unittest.TestCase):
                     "statement": "statement two",
                     "rationale": "rationale two",
                 },
+                "substrate_id": "ngspice_linear_passive",
             },
         )
         snapshot = json.loads((self.run_dir / "baton_after_gate_1.json").read_text())

@@ -143,6 +143,9 @@ class TestStage2MemoryReach(JournalFixtureCase):
         payload = {
             "domain": "test domain",
             "chosen_hypothesis": {"id": "h1", "statement": "s", "rationale": "r"},
+            # Truth-edited Step 23.5 (R-23.5-4): the post-gate-1 payload
+            # carries the decided instrument; stage 2 fails loud without it.
+            "substrate_id": "cavity_2d_cfd",
         }
         payload.update(extra_payload or {})
         return Baton(

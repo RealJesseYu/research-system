@@ -9,6 +9,7 @@
       "statement": "baseline cavity mean-speed characterization",
       "rationale": "HAND-FED (not stage-1 output): a known-executable baseline to witness the Step-12 executed path; legitimate through Step 16."
     },
+    "substrate_id": "cavity_2d_cfd",
     "experiment_spec": {
       "hypothesis_id": "hand-baseline",
       "title": "Baseline cavity mean-speed characterization",

@@ -49,7 +49,14 @@ from stages.stage5_thought_layer import (
 VERDICT_LABELS = ("trust", "refine", "defer")
 EXECUTION_STATUSES = ("executed", "skipped_defer", "halted_synthesis")
 
-POST_GATE1_KEYS = ("domain", "chosen_hypothesis")
+# R-23.5-4 (owner, 2026-07-17): the post-gate-1 payload is exactly
+# {domain, chosen_hypothesis, substrate_id} — the decided instrument travels
+# the payload (it enters NO composed prompt anywhere) so stages 3 and 4 can
+# compare it against select_substrate's spec-derived answer. The downstream
+# boundaries widen BY DERIVATION (build-chat ruling on the 2d/3c split: a
+# schema shape is atomic across its boundaries — every boundary that
+# validates the payload requires the key; no boundary where it is optional).
+POST_GATE1_KEYS = ("domain", "chosen_hypothesis", "substrate_id")
 POST_STAGE2_KEYS = POST_GATE1_KEYS + ("experiment_spec",)
 POST_STAGE3_KEYS = POST_STAGE2_KEYS + ("fidelity_verdict",)
 POST_STAGE4_KEYS = POST_STAGE3_KEYS + ("execution_results",)
@@ -126,6 +133,20 @@ def _check_chosen_hypothesis(payload: dict, errors: list[str]) -> None:
                 f"chosen_hypothesis field '{key}' is not allowed — it carries "
                 f"exactly: {', '.join(CHOSEN_HYPOTHESIS_KEYS)}."
             )
+
+
+def _check_substrate_id(payload: dict, errors: list[str]) -> None:
+    """R-23.5-4 (owner, 2026-07-17): substrate_id is a non-empty string —
+    checked in code, never a prompt. Routable membership is the registry's
+    judgment at the consuming sites (gate validator, stages 3/4), not a
+    schema concern. A missing key is reported by _check_exact_keys."""
+    if "substrate_id" not in payload:
+        return
+    if not _is_non_empty_str(payload["substrate_id"]):
+        errors.append(
+            f"substrate_id must be a non-empty string; "
+            f"got {payload['substrate_id']!r}."
+        )
 
 
 def _check_experiment_spec(payload: dict, errors: list[str]) -> None:
@@ -377,9 +398,11 @@ def _as_payload(payload: Any) -> tuple[dict | None, list[str]]:
 
 
 def validate_payload_post_gate1(payload: Any) -> list[str]:
-    """Boundary gate 1 -> stage 2: exactly {domain, chosen_hypothesis};
-    chosen_hypothesis exactly {id, statement, rationale}, non-empty strings.
-    Evidence: runs/20260706T044214Z/baton_after_gate_1.json (RUN A)."""
+    """Boundary gate 1 -> stage 2: exactly {domain, chosen_hypothesis,
+    substrate_id} (R-23.5-4, owner 2026-07-17); chosen_hypothesis exactly
+    {id, statement, rationale}, non-empty strings; substrate_id a non-empty
+    string. Pre-23.5 evidence of the two-key era:
+    runs/20260706T044214Z/baton_after_gate_1.json (RUN A)."""
     payload, errors = _as_payload(payload)
     if payload is None:
         return errors
@@ -387,6 +410,7 @@ def validate_payload_post_gate1(payload: Any) -> list[str]:
     _check_prior_thought(payload, errors)
     _check_domain(payload, errors)
     _check_chosen_hypothesis(payload, errors)
+    _check_substrate_id(payload, errors)
     return errors
 
 
@@ -401,6 +425,7 @@ def validate_payload_post_stage2(payload: Any) -> list[str]:
     _check_prior_thought(payload, errors)
     _check_domain(payload, errors)
     _check_chosen_hypothesis(payload, errors)
+    _check_substrate_id(payload, errors)
     _check_experiment_spec(payload, errors)
     return errors
 
@@ -417,6 +442,7 @@ def validate_payload_post_stage3(payload: Any) -> list[str]:
     _check_prior_thought(payload, errors)
     _check_domain(payload, errors)
     _check_chosen_hypothesis(payload, errors)
+    _check_substrate_id(payload, errors)
     _check_experiment_spec(payload, errors)
     _check_fidelity_verdict(payload, errors)
     return errors
@@ -434,6 +460,7 @@ def validate_payload_post_stage4(payload: Any) -> list[str]:
     _check_prior_thought(payload, errors)
     _check_domain(payload, errors)
     _check_chosen_hypothesis(payload, errors)
+    _check_substrate_id(payload, errors)
     _check_experiment_spec(payload, errors)
     _check_fidelity_verdict(payload, errors)
     _check_execution_results(payload, errors)
@@ -453,6 +480,7 @@ def validate_payload_post_stage5(payload: Any) -> list[str]:
     _check_prior_thought(payload, errors)
     _check_domain(payload, errors)
     _check_chosen_hypothesis(payload, errors)
+    _check_substrate_id(payload, errors)
     _check_experiment_spec(payload, errors)
     _check_fidelity_verdict(payload, errors)
     _check_execution_results(payload, errors)

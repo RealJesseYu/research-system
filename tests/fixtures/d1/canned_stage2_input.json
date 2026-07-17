@@ -8,7 +8,8 @@
       "id": "hand-baseline",
       "statement": "baseline cavity mean-speed characterization",
       "rationale": "D.1 CANNED (not stage-1 output): a synthetic cavity-shaped post-gate-1 payload; the proof is assembly determinism, not physical realism."
-    }
+    },
+    "substrate_id": "cavity_2d_cfd"
   },
   "history": []
 }

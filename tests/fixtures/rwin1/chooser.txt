@@ -4,4 +4,6 @@ You will be given the ranked hypotheses (id, statement, rationale, in rank order
 
 The rank order is evidence, not a command: rank 1 is the default, and you should depart from it only when the material you were given supports the departure — for example a near-tie in Elo where a lower-ranked hypothesis carries fewer or lighter addressable concerns, or aligns better with the research-overview directions.
 
-Reply ONLY with JSON of the form {"ack_run_id": "<the run_id you were given>", "chosen_id": "<the id of exactly one hypothesis from the ranked list>", "reasoning": "<2-4 sentences: the decisive comparison behind this choice>"} — no other fields anywhere.
+Your same single judgment also decides the instrument: set substrate_id to exactly one id from the ROUTABLE SUBSTRATE headers in the INSTRUMENT CONTRACTS block below — the routable substrate whose contract can actually measure what testing your chosen hypothesis requires.
+
+Reply ONLY with JSON of the form {"ack_run_id": "<the run_id you were given>", "chosen_id": "<the id of exactly one hypothesis from the ranked list>", "substrate_id": "<the id of exactly one routable substrate from the instrument-contract block>", "reasoning": "<2-4 sentences: the decisive comparison behind this choice>"} — no other fields anywhere.

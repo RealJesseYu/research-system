@@ -16,15 +16,19 @@ rwin1/d1/d3 fixture discipline (fixture file + byte-identity test):
        chooser era move to instruction text + retry-path envelope-error
        text; the composed stage_input rendering is NOT licensed to move.
 
-  C2 — chooser retry (attempt-2) user-turn, including the CURRENT
-       envelope-error text. The canned attempt-1 reply carries a
-       "substrate_id" field, which TODAY'S envelope forbids — so the
-       captured validation_error holds the exact before-state sentence
-       ('reply with exactly "ack_run_id", "chosen_id", and "reasoning"').
-       CONTAINMENT CLASS: documents the BEFORE-state only; superseded
-       during Phase 2 under R-23.5-1 — this fixture is preserved
-       append-only and the post-change retry bytes get a birth fixture of
-       their own.
+  C2 — chooser retry (attempt-2) user-turn, including the envelope-error
+       text. The Phase-1 capture used a canned attempt-1 reply carrying a
+       "substrate_id" field, which the PRE-23.5 envelope forbade — the
+       preserved fixture chooser_retry_user_turn.txt holds the exact
+       before-state sentence ('reply with exactly "ack_run_id",
+       "chosen_id", and "reasoning"').
+       CONTAINMENT CLASS: documented the BEFORE-state only; SUPERSEDED in
+       Phase 2 under R-23.5-1 (truth-edit itemized in the Phase-2 commit):
+       that reply is now the VALID envelope shape, so it composes no retry
+       — the flip is asserted directly, the superseded fixture stays
+       append-only as history, and the post-23.5 retry surface (an
+       enrolled-but-UNROUTABLE substrate_id, one validator error) is
+       birth-fixtured as chooser_retry_user_turn_v235.txt.
 
   C3 — stage-2 composed user-turn, lessons-block-present variant: the d1
        family pinned the lessons-absent shape (BLANK_MEMORY); this pins the
@@ -242,42 +246,79 @@ class C1ChooserAttempt1ByteIdentity(unittest.TestCase):
         self.assertEqual(len(parsed["research_overview_directions"]), 1)
 
 
-class C2ChooserRetryByteIdentity(unittest.TestCase):
-    """C2 documents the BEFORE-state envelope-error text; superseded during
-    Phase 2 under R-23.5-1 (this fixture preserved append-only, post-change
-    bytes birth-fixtured separately)."""
+class C2ChooserRetrySuperseded(unittest.TestCase):
+    """C2's Phase-1 role, post-supersession (R-23.5-1, truth-edited in
+    Phase 2; each proof kept with a post-flip subject): the preserved
+    fixture is read-only history of the before-state, and the before-state
+    reply is asserted to be the NEW valid envelope shape — the flip
+    documented from both sides."""
 
-    def test_retry_user_turn_byte_identical_to_fixture(self):
-        system_prompt, user_turn = compose_chooser_retry(
-            _fixture("chooser_reply_substrate_id_field.json")
-        )
-        self.assertEqual(user_turn, _fixture("chooser_retry_user_turn.txt"))
-        # the attempt-2 system prompt IS the composed chooser prompt — its
-        # base text is rwin1's chooser.txt pin; identity of composition here.
-        self.assertEqual(system_prompt, g1c.compose_chooser_prompt())
-
-    def test_composition_is_deterministic(self):
-        reply = _fixture("chooser_reply_substrate_id_field.json")
-        self.assertEqual(
-            compose_chooser_retry(reply), compose_chooser_retry(reply)
-        )
-
-    def test_original_input_matches_c1_pinned_user_turn(self):
-        # Cross-family coherence, the d3 pattern: the retry surface embeds
-        # the SAME assembled stage_input C1 pinned as the attempt-1 user_turn.
-        parsed = json.loads(_fixture("chooser_retry_user_turn.txt"))
-        self.assertEqual(
-            json.dumps(parsed["original_input"]),
-            _fixture("chooser_attempt1_user_turn.txt"),
-        )
-
-    def test_carries_exactly_the_current_envelope_error(self):
+    def test_superseded_fixture_preserved_with_before_state_error(self):
+        # Append-only history: the Phase-1 fixture still carries the exact
+        # pre-23.5 envelope-error sentence. Read-only — never re-derived.
         validation_error = json.loads(_fixture("chooser_retry_user_turn.txt"))[
             "validation_error"
         ]
         self.assertIn(
             "reply field 'substrate_id' is not allowed — reply with exactly "
             '"ack_run_id", "chosen_id", and "reasoning", nothing else.',
+            validation_error,
+        )
+        self.assertEqual(validation_error.count(" (raw reply: "), 1)
+
+    def test_original_input_matches_c1_pinned_user_turn(self):
+        # Cross-family coherence, the d3 pattern: the preserved retry
+        # surface embeds the SAME assembled stage_input C1 pins — and C1 is
+        # a whole-build containment tripwire, so this holds post-change too.
+        parsed = json.loads(_fixture("chooser_retry_user_turn.txt"))
+        self.assertEqual(
+            json.dumps(parsed["original_input"]),
+            _fixture("chooser_attempt1_user_turn.txt"),
+        )
+
+    def test_before_state_reply_is_now_the_valid_envelope(self):
+        # THE FLIP, asserted directly: the reply the pre-23.5 validator
+        # rejected (extra substrate_id field) is exactly the post-23.5
+        # valid shape — routable substrate_id and all four fields.
+        reply = json.loads(_fixture("chooser_reply_substrate_id_field.json"))
+        validator = g1c.make_choice_validator({"h1", "h2"})
+        self.assertEqual(validator(reply), [])
+
+
+class C2bChooserRetryBirth(unittest.TestCase):
+    """Birth pin of the post-23.5 chooser retry surface (R-23.5-1): an
+    enrolled-but-UNROUTABLE substrate_id draws the new envelope-error text
+    from the LIVE registry read — exactly one validator error."""
+
+    def test_retry_user_turn_byte_identical_to_birth_fixture(self):
+        system_prompt, user_turn = compose_chooser_retry(
+            _fixture("chooser_reply_unroutable_substrate.json")
+        )
+        self.assertEqual(user_turn, _fixture("chooser_retry_user_turn_v235.txt"))
+        # the attempt-2 system prompt IS the composed chooser prompt — its
+        # base text is rwin1's chooser.txt pin; identity of composition here.
+        self.assertEqual(system_prompt, g1c.compose_chooser_prompt())
+
+    def test_composition_is_deterministic(self):
+        reply = _fixture("chooser_reply_unroutable_substrate.json")
+        self.assertEqual(
+            compose_chooser_retry(reply), compose_chooser_retry(reply)
+        )
+
+    def test_original_input_matches_c1_pinned_user_turn(self):
+        parsed = json.loads(_fixture("chooser_retry_user_turn_v235.txt"))
+        self.assertEqual(
+            json.dumps(parsed["original_input"]),
+            _fixture("chooser_attempt1_user_turn.txt"),
+        )
+
+    def test_carries_exactly_the_new_envelope_error(self):
+        validation_error = json.loads(
+            _fixture("chooser_retry_user_turn_v235.txt")
+        )["validation_error"]
+        self.assertIn(
+            "substrate_id must be exactly one of "
+            "['cavity_2d_cfd', 'ngspice_linear_passive']; got 'web_search'.",
             validation_error,
         )
         self.assertEqual(validation_error.count(" (raw reply: "), 1)
@@ -370,9 +411,14 @@ def capture() -> None:
     (FIX / "chooser_attempt1_user_turn.txt").write_text(c1)
     print(f"captured C1 chooser attempt-1 user turn: {len(c1)} bytes")
 
-    _, c2 = compose_chooser_retry(_fixture("chooser_reply_substrate_id_field.json"))
-    (FIX / "chooser_retry_user_turn.txt").write_text(c2)
-    print(f"captured C2 chooser retry user turn: {len(c2)} bytes")
+    # C2 (chooser_retry_user_turn.txt) is SUPERSEDED history (R-23.5-1,
+    # Phase 2): frozen append-only, never regenerated. Its successor is the
+    # post-23.5 birth capture below.
+    _, c2b = compose_chooser_retry(
+        _fixture("chooser_reply_unroutable_substrate.json")
+    )
+    (FIX / "chooser_retry_user_turn_v235.txt").write_text(c2b)
+    print(f"captured C2b chooser retry user turn (v235): {len(c2b)} bytes")
 
     _, c3 = assemble_stage2_variant("canned_stage2_input_lessons.json", True)
     (FIX / "stage2_user_turn_lessons.txt").write_text(c3)

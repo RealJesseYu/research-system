@@ -1,10 +1,14 @@
 """
-gate1_chooser.py — Stage 1.5 (Step 23): the reasoned gate-1 chooser. ONE
-isolated Opus call over the ranked list, the final Elo table, each
-survivor's addressable_notes, and the research-overview directions emits
-{chosen_id, reasoning}. Opus, per CLAUDE.md's model roles: which hypothesis
-to advance is a hard judgment — auto mode's old rank-1 selection was a
-placeholder, never a decision.
+gate1_chooser.py — Stage 1.5 (Step 23; instrument decision added Step 23.5):
+the reasoned gate-1 chooser. ONE isolated Opus call over the ranked list,
+the final Elo table, each survivor's addressable_notes, and the
+research-overview directions emits {chosen_id, substrate_id, reasoning}.
+Opus, per CLAUDE.md's model roles: which hypothesis to advance is a hard
+judgment — auto mode's old rank-1 selection was a placeholder, never a
+decision. R-23.5-1 (owner, 2026-07-17): instrument selection is decided at
+gate 1 by the gate's decider; in auto mode this chooser's same single call
+names the instrument (substrate_id, validated against the registry's LIVE
+routable ids — never a hardcoded list).
 
 The supervisor stays deterministic: it schedules this module exactly as it
 schedules the six stages, and consumes only the typed record returned here.
@@ -37,7 +41,7 @@ import json
 from pathlib import Path
 
 from model_call import call_stage_model, log_stage_call
-from tools.substrate_registry import routable_contracts_block
+from tools.substrate_registry import routable_contracts_block, routable_ids
 
 # Step-23 ruled pin: the chooser is a hard judgment, so it rides Opus.
 CHOOSER_MODEL = "claude-opus-4-8"
@@ -83,24 +87,33 @@ You will be given the ranked hypotheses (id, statement, rationale, in rank order
 
 The rank order is evidence, not a command: rank 1 is the default, and you should depart from it only when the material you were given supports the departure — for example a near-tie in Elo where a lower-ranked hypothesis carries fewer or lighter addressable concerns, or aligns better with the research-overview directions.
 
-Reply ONLY with JSON of the form {"ack_run_id": "<the run_id you were given>", "chosen_id": "<the id of exactly one hypothesis from the ranked list>", "reasoning": "<2-4 sentences: the decisive comparison behind this choice>"} — no other fields anywhere."""
+Your same single judgment also decides the instrument: set substrate_id to exactly one id from the ROUTABLE SUBSTRATE headers in the INSTRUMENT CONTRACTS block below — the routable substrate whose contract can actually measure what testing your chosen hypothesis requires.
 
-SCHEMA = {"required": ["ack_run_id", "chosen_id", "reasoning"]}
+Reply ONLY with JSON of the form {"ack_run_id": "<the run_id you were given>", "chosen_id": "<the id of exactly one hypothesis from the ranked list>", "substrate_id": "<the id of exactly one routable substrate from the instrument-contract block>", "reasoning": "<2-4 sentences: the decisive comparison behind this choice>"} — no other fields anywhere."""
 
-ENVELOPE_FIELDS = ("ack_run_id", "chosen_id", "reasoning")
+# R-23.5-1 (owner, 2026-07-17): instrument selection is decided at gate 1 by
+# this chooser; the same single call names the instrument. The era move is
+# confined to this prompt family (instruction text + retry-path
+# envelope-error text) — every other model-visible surface stays
+# byte-identical (C1/C3/C4 containment tripwires in test_c235_captures.py).
+SCHEMA = {"required": ["ack_run_id", "chosen_id", "substrate_id", "reasoning"]}
+
+ENVELOPE_FIELDS = ("ack_run_id", "chosen_id", "substrate_id", "reasoning")
 
 
 def make_choice_validator(valid_ids: set) -> callable:
     """Deep validator handed to call_stage_model: the reply envelope must be
-    exactly {ack_run_id, chosen_id, reasoning}, chosen_id must be one of the
-    ranked list's actual ids, and reasoning must be a non-empty string.
+    exactly {ack_run_id, chosen_id, substrate_id, reasoning}, chosen_id must
+    be one of the ranked list's actual ids, substrate_id must be one of the
+    registry's LIVE routable ids, and reasoning must be a non-empty string.
     Returns plain-language error strings, empty = valid.
     """
 
     def validator(parsed: dict) -> list[str]:
         errors = [
             f"reply field '{key}' is not allowed — reply with exactly "
-            '"ack_run_id", "chosen_id", and "reasoning", nothing else.'
+            '"ack_run_id", "chosen_id", "substrate_id", and "reasoning", '
+            "nothing else."
             for key in parsed
             if key not in ENVELOPE_FIELDS
         ]
@@ -108,6 +121,15 @@ def make_choice_validator(valid_ids: set) -> callable:
             errors.append(
                 f"chosen_id must be exactly one of {sorted(valid_ids)}; "
                 f"got {parsed.get('chosen_id')!r}."
+            )
+        # R-23.5-1 (owner, 2026-07-17): membership is checked against
+        # routable_ids() read LIVE from the registry at validation time —
+        # never a hardcoded list (one runtime source of truth, no third copy).
+        live_routable = routable_ids()
+        if parsed.get("substrate_id") not in live_routable:
+            errors.append(
+                f"substrate_id must be exactly one of {list(live_routable)}; "
+                f"got {parsed.get('substrate_id')!r}."
             )
         reasoning = parsed.get("reasoning")
         if not isinstance(reasoning, str) or not reasoning.strip():
@@ -166,12 +188,16 @@ def gather_evidence(stage1_dir: Path, hypotheses: list) -> dict:
 
 
 def choose_hypothesis(run_id: str, hypotheses: list, run_dir: Path) -> dict:
-    """One Opus call choosing which ranked hypothesis to advance. NEVER
-    raises: any failure — transport exhaustion, three invalid replies, an
-    ack mismatch, even an evidence-read surprise — falls back to rank 1
-    with fallback=true, because this call replaces the rank-1 placeholder
-    and must fail exactly as the placeholder behaved. Returns the record
-    {chosen_id, reasoning, fallback} and writes it to
+    """One Opus call choosing which ranked hypothesis to advance AND which
+    instrument the run should execute on (R-23.5-1: the same single call
+    names the instrument). NEVER raises: any failure — transport exhaustion,
+    three invalid replies, an ack mismatch, even an evidence-read surprise —
+    falls back to rank 1 with fallback=true, because this call replaces the
+    rank-1 placeholder and must fail exactly as the placeholder behaved.
+    R-23.5-2 (owner, 2026-07-17): the fallback record carries substrate_id
+    null — NEVER a cavity default; in auto mode the supervisor stops the run
+    loudly at the gate on a null instrument. Returns the record
+    {chosen_id, substrate_id, reasoning, fallback} and writes it to
     <run_dir>/gate1_chooser.json (best-effort) in both modes.
     """
     run_dir = Path(run_dir)
@@ -208,6 +234,7 @@ def choose_hypothesis(run_id: str, hypotheses: list, run_dir: Path) -> dict:
             )
         record = {
             "chosen_id": data["chosen_id"],
+            "substrate_id": data["substrate_id"],
             "reasoning": data["reasoning"].strip(),
             "fallback": False,
         }
@@ -217,6 +244,10 @@ def choose_hypothesis(run_id: str, hypotheses: list, run_dir: Path) -> dict:
             reason = reason[:300].rstrip() + "…"
         record = {
             "chosen_id": rank1_id,
+            # R-23.5-2 (owner, 2026-07-17): the never-raise fallback carries
+            # substrate_id null; a cavity default is forbidden. Auto mode
+            # stops loudly at the gate on this null (supervisor.run_gate1).
+            "substrate_id": None,
             "reasoning": f"fallback to rank 1: {reason}",
             "fallback": True,
         }
