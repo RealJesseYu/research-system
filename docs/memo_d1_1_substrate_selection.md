@@ -123,3 +123,40 @@ against. C/D land with Step-35 as their own era ruling + re-captures —
 deliberately NOT at the R2/R3 promotion flip: the four explicit cavity pins
 stand un-moved, so the rwin1/d0/d1 era fixtures hold byte-identical through
 the flip.
+
+---
+
+## R5 record (owner, 2026-07-17) — the Stage-1 half executed
+
+R5 executes the ruled direction's STAGE-1 HALF: the three Stage-1 surfaces
+(P5 gate1_chooser, P6 reflection full review, P7 generation feasibility
+nudge) now embed `tools/substrate_registry.routable_contracts_block()` —
+per routable substrate, a fixed `ROUTABLE SUBSTRATE: <substrate_id>` header
+then `contract_for(id)` VERBATIM, enrollment order, deterministic, fail-loud
+inherited from `contract_for`. The `TODO(D.1.1)` markers at those three
+sites are retired under R5. This is a deliberate era move: era-of-record
+leaves 862531b and becomes the commit landing R5 (its sha is in the git
+log — a commit cannot embed its own hash; see docs/disclosures.md R5 entry).
+
+**P8 / Step-35 remains PARKED.** The explicit cavity pin at
+stage2_experiment_design (option A) stands un-moved; the eventual design is
+option C (Step-35 task typing), its own era ruling + re-captures. The
+mismatch limitation and its catch, verbatim from docs/memo_d2_selection.md:
+
+> In production, specs are authored against the contract **stage 2 was
+> shown**. Stage-3 selection can therefore only ever re-derive the substrate
+> stage 2 already wrote toward — end-to-end mixed-domain routing additionally
+> binds to the D.1.1 direction: a selection point **between gate 1 and stage
+> 2** (memo P8, option C — Step-35 task typing), so stage 2 is handed the
+> contract of the substrate the run will actually route to.
+
+> Stated consequence, plainly: a spec whose declared parameters no routable
+> substrate can serve now **raises at stage-3 selection** (supervisor's
+> stage-crash catch journals it) instead of being verdicted against cavity's
+> contract and halting later at stage-4 synthesis. The refusal moved earlier
+> and got louder; nothing is silently judged against the wrong instrument.
+
+So a Stage-1 hypothesis steered toward the ngspice contract still meets the
+cavity pin at stage 2 until Step 35; the fidelity gate judges the resulting
+spec against the substrate its declared parameters actually select (or the
+selection raise above), never silently against the wrong instrument.

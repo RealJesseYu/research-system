@@ -1,5 +1,8 @@
 """
-test_d1_contract_surfaces.py — D.1 Step-0 captures (era 862531b).
+test_d1_contract_surfaces.py — D.1 Step-0 captures (captured under era
+862531b; era-of-record is now the R5 all-routable commit, owner 2026-07-17 —
+the P7 feasibility-nudge fixture was RE-CAPTURED under R5 and carries every
+routable contract; the P8 stage-2 pair is pinned un-moved).
 
 ZERO live model calls: before the four `from substrates import
 CAVITY_2D_CONTRACT` sites are retired to the registry (D.1), the two

@@ -8,7 +8,10 @@ fixtures captured from today's composition (tests/fixtures/rwin1/*.txt) EXCEPT
 the two unconditional changes — the instrument-contract block appended to the
 chooser and the full review, and the contract cost sentences — which get their
 own presence/content asserts. Also proves hard rule (a): every contract block
-IS the imported CAVITY_2D_CONTRACT, never a pasted copy.
+carries the imported contract constants verbatim, never a pasted copy — since
+R5 (owner, 2026-07-17) the blocks carry ALL routable contracts, so the
+grounding asserts cover NGSPICE_LINEAR_PASSIVE_CONTRACT alongside
+CAVITY_2D_CONTRACT.
 
 Run directly: venv/bin/python3 tests/test_rwin1_prompts.py
 """
@@ -23,7 +26,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from substrates import CAVITY_2D_CONTRACT
+from substrates import CAVITY_2D_CONTRACT, NGSPICE_LINEAR_PASSIVE_CONTRACT
 from stages import gate1_chooser as gc
 from stages import reflection_reviews as rr
 from stages import stage1_ideation as s1
@@ -99,8 +102,10 @@ class ChooserContractGrounding(unittest.TestCase):
         # byte-identical prefix — only the unconditional block is added
         self.assertTrue(out.startswith(base))
         self.assertEqual(out, base + gc.instrument_contract_block())
-        # single source of truth: body IS the imported constant, not a copy
+        # single source of truth: body carries the imported constants, not a
+        # copy — ALL routable contracts since R5 (owner, 2026-07-17)
         self.assertIn(CAVITY_2D_CONTRACT, gc.instrument_contract_block())
+        self.assertIn(NGSPICE_LINEAR_PASSIVE_CONTRACT, gc.instrument_contract_block())
         self.assertIn(gc.INSTRUMENT_CONTRACT_HEADER, out)
         self.assertIn(gc.INSTRUMENT_CONTRACT_INSTRUCTION, out)
 
@@ -112,8 +117,9 @@ class ReflectionFullReviewGrounding(unittest.TestCase):
         base = _fixture("full_review.txt")
         self.assertEqual(out, base + rr.instrument_contract_block())
         self.assertNotIn(rr.IMPACT_LENS, out)
-        # single source of truth
+        # single source of truth — ALL routable contracts since R5
         self.assertIn(CAVITY_2D_CONTRACT, rr.instrument_contract_block())
+        self.assertIn(NGSPICE_LINEAR_PASSIVE_CONTRACT, rr.instrument_contract_block())
         self.assertIn(rr.INSTRUMENT_CONTRACT_HEADER, out)
         self.assertIn(rr.INSTRUMENT_CONTRACT_INSTRUCTION, out)
 
@@ -141,7 +147,9 @@ class FeasibilityNudgeSeam(unittest.TestCase):
         # imported contract + instruction only
         block = gs.build_feasibility_nudge("rwin1-no-such-run")
         self.assertTrue(block.startswith(gs.FEASIBILITY_NUDGE_HEADER))
-        self.assertIn(CAVITY_2D_CONTRACT, block)  # single source of truth
+        # single source of truth — ALL routable contracts since R5
+        self.assertIn(CAVITY_2D_CONTRACT, block)
+        self.assertIn(NGSPICE_LINEAR_PASSIVE_CONTRACT, block)
         self.assertIn(gs.FEASIBILITY_NUDGE_INSTRUCTION, block)
         self.assertNotIn("MOST RECENT FAILURE MEMO", block)
 

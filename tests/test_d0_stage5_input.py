@@ -1,7 +1,9 @@
 """
-test_d0_stage5_input.py — D.0 stage-5 model-input fixture (era 862531b).
+test_d0_stage5_input.py — D.0 stage-5 model-input fixture (captured under era
+862531b; era-of-record is now the R5 all-routable commit, owner 2026-07-17 —
+stage 5's surface did not move, so the capture holds byte-identical).
 
-ZERO live model calls: the one hole in the era-862531b byte-identity net was
+ZERO live model calls: the one hole in the era byte-identity net was
 stage 5's model-visible input — the rwin1 set (chooser, debate_judge,
 full_review, ranking_judge) never pinned it, and D.5 changes stage 5's
 payload. This test drives the REAL assembly path — stage5_thought_layer.run()

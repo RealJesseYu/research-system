@@ -81,7 +81,7 @@ from pathlib import Path
 
 from memory.journal import journal_recent_by_kind
 from model_call import call_stage_model, log_stage_call
-from tools.substrate_registry import contract_for
+from tools.substrate_registry import routable_contracts_block
 
 _RETRIEVAL_DIR = Path(__file__).resolve().parent.parent / "retrieval"
 if str(_RETRIEVAL_DIR) not in sys.path:
@@ -186,28 +186,29 @@ FULL_REVIEW_SYSTEM_PROMPT = (
 # UNCONDITIONAL contract block (new-era baseline, not switched) and a
 # switched IMPACT lens, both grounding the full review — the merit review
 # that feeds the deterministic filter's novelty/quality/critique. Single
-# source of truth: the block body IS substrates.CAVITY_2D_CONTRACT, read
-# via the registry's contract_for (same object, never a pasted copy — hard
-# rule (a); D.1). No new kill path: the lens and the
-# contract steer the quality/critique judgment, they add no discard branch.
+# source of truth: the block body IS the registry's routable_contracts_block —
+# every routable contract verbatim, never a pasted copy (hard rule (a);
+# R5, owner 2026-07-17). No new kill path: the lens and the
+# contracts steer the quality/critique judgment, they add no discard branch.
 INSTRUMENT_CONTRACT_HEADER = (
-    "INSTRUMENT CONTRACT (what the available instrument can actually measure)"
+    "INSTRUMENT CONTRACTS (what the available instruments can actually measure)"
 )
 INSTRUMENT_CONTRACT_INSTRUCTION = (
-    "Candidates whose test requires measurements outside this contract must be "
-    "treated as weaker bets, stated in the reasoning."
+    "Candidates whose test requires measurements outside every listed contract "
+    "must be treated as weaker bets, stated in the reasoning."
 )
 
 
 def instrument_contract_block() -> str:
     """The delimited instrument-contract block appended to grounded reviews.
-    Body = the registry's cavity contract verbatim — the same object
-    substrates.py exports (single source of truth)."""
-    # TODO(D.1.1): substrate selection undesigned at this surface —
-    # owner ruling pending; explicit cavity pin, single-sourced.
+    Body = the registry's all-routable contract block verbatim (single source
+    of truth)."""
+    # R5 (owner, 2026-07-17): Stage-1 surfaces carry ALL routable contracts —
+    # the D.1.1 cavity pin is retired here; selection stays a Stage-2/Step-35
+    # design (P8 pin unmoved).
     return (
         "\n\n" + INSTRUMENT_CONTRACT_HEADER + ":\n"
-        + contract_for("cavity_2d_cfd") + "\n"
+        + routable_contracts_block() + "\n"
         + INSTRUMENT_CONTRACT_INSTRUCTION
     )
 

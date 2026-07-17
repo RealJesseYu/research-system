@@ -213,6 +213,25 @@ def contract_for(substrate_id: str) -> str:
         )
 
 
+def routable_contracts_block() -> str:
+    """R5 (owner, 2026-07-17): the ALL-ROUTABLE contract block for Stage-1
+    surfaces. Stage 1 sits BEFORE any hypothesis is chosen, so its honest
+    grounding is every instrument the run could route to — never a selected
+    one (the D.1.1 direction: all routable contracts at Stage-1 surfaces,
+    task-typed selection at Stage-2/Step-35).
+
+    Deterministic pure function of the registry: loops routable_ids() in
+    enrollment order and emits, per substrate, a minimal fixed header naming
+    the substrate_id and then contract_for(id) VERBATIM — never a paraphrase,
+    never a pasted copy. No timestamps, fixed separators, byte-stable.
+    FAIL LOUD inherits from contract_for: a routable substrate without a
+    wired contract cannot compose — the LookupError escapes."""
+    return "\n\n".join(
+        "ROUTABLE SUBSTRATE: " + sid + "\n" + contract_for(sid)
+        for sid in routable_ids()
+    )
+
+
 def sole_routable_id() -> str:
     """RETIRED FROM PRODUCTION (D.2, 2026-07-17): zero production call sites —
     stage 3 now selects via tools/substrate_selection.select_substrate

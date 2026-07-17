@@ -2,8 +2,10 @@
 test_contract_registry.py — R-S3-1 Part A. Call-free: no model calls, no
 network. Proves (1) contract selection is un-pinned from the module constant to
 the registry, (2) cavity's model-visible contract text is BYTE-IDENTICAL before
-and after (era 862531b holds), and (3) the fail-loud escape: a substrate with no
-wired contract RAISES and NEVER falls back to cavity.
+and after (captured under era 862531b; era-of-record is now the R5 all-routable
+commit, owner 2026-07-17 — cavity's text itself did not change), and (3) the
+fail-loud escape: a substrate with no wired contract RAISES and NEVER falls
+back to cavity. R5 adds the routable_contracts_block proofs.
 
 Run directly: venv/bin/python3 tests/test_contract_registry.py
 """
@@ -59,7 +61,9 @@ class TestEraByteIdentity(unittest.TestCase):
     """THE CENTRAL CLAIM. The old code set stage3's model-visible
     substrate_contract to exactly substrates.CAVITY_2D_CONTRACT. The new path
     derives it from the registry. Byte-equality to that constant IS byte-equality
-    to the pre-change model-visible text — era 862531b survives. Could fail: if
+    to the pre-change model-visible text — cavity's stage-3 surface survives
+    unchanged through the R5 era move (owner, 2026-07-17; the era-of-record is
+    the R5 commit — only composed STAGE-1 surfaces moved). Could fail: if
     selection returned a different substrate, or contract_for mutated the text,
     or the constant drifted, these assertions break."""
 
@@ -77,6 +81,42 @@ class TestEraByteIdentity(unittest.TestCase):
         # Sanity that the text is the cavity contract, not an empty stand-in.
         _sid, contract_text = stage3_fidelity_gate._selected_contract()
         self.assertIn("SUBSTRATE CONTRACT: cavity_2d", contract_text)
+
+
+class TestRoutableContractsBlock(unittest.TestCase):
+    """R5 (owner, 2026-07-17): the all-routable contract block for Stage-1
+    surfaces — deterministic pure function of the registry, per-substrate
+    fixed header + contract verbatim, fail-loud inherited from contract_for."""
+
+    def test_double_composition_byte_equality(self):
+        # D.0 pattern: byte-stability proven by composing twice.
+        self.assertEqual(
+            registry.routable_contracts_block(),
+            registry.routable_contracts_block(),
+        )
+
+    def test_block_is_headers_plus_verbatim_contracts_in_enrollment_order(self):
+        # The exact composition: per routable substrate, the minimal fixed
+        # header naming the substrate_id, then the imported contract VERBATIM,
+        # sections joined by one blank line — in enrollment order.
+        expected = (
+            "ROUTABLE SUBSTRATE: cavity_2d_cfd\n"
+            + substrates.CAVITY_2D_CONTRACT
+            + "\n\nROUTABLE SUBSTRATE: ngspice_linear_passive\n"
+            + substrates.NGSPICE_LINEAR_PASSIVE_CONTRACT
+        )
+        self.assertEqual(registry.routable_contracts_block(), expected)
+
+    def test_fail_loud_escape_contractless_routable_cannot_compose(self):
+        # A routable substrate without a wired contract cannot compose — the
+        # LookupError escapes (never a silent skip, never a cavity fallback).
+        with mock.patch.object(
+            registry,
+            "routable_ids",
+            return_value=("cavity_2d_cfd", "calculix_cantilever_fea"),
+        ):
+            with self.assertRaises(LookupError):
+                registry.routable_contracts_block()
 
 
 class TestFailLoudEscape(unittest.TestCase):

@@ -92,3 +92,35 @@ landed under it), so the boundary moves cleanly to this commit — there is no
 in-era scored data to straddle. Scored numbers taken before this commit are not
 comparable to scored numbers taken after it; this commit is the new
 era-of-record for anything the model-visible contract or spec schema touches.
+
+## R5 — all-routable contract block at Stage-1 surfaces; era-of-record moves to this commit (2026-07-17)
+
+Owner ruling R5 executes the D.1.1 direction's Stage-1 half. The comparability
+era moves to the single commit that lands it (its hash is in this session's
+git log; a commit cannot embed its own hash). Era-of-record leaves 862531b.
+
+Model-visible changes (STAGE-1 surfaces only; the P8 stage-2 cavity pin and
+every stage-2+ surface are untouched — proven by the zero-edit fixture
+families):
+  - P5 `stages/gate1_chooser.py` + P6 `stages/reflection_reviews.py`
+    instrument-contract blocks and P7 `stages/generation_strategies.py`
+    feasibility nudge now embed
+    `tools/substrate_registry.routable_contracts_block()`: per routable
+    substrate, a fixed `ROUTABLE SUBSTRATE: <substrate_id>` header then the
+    imported contract VERBATIM, enrollment order — today
+    cavity_2d_cfd then ngspice_linear_passive. Never a paraphrase, never a
+    pasted copy; fail-loud inherits from `contract_for`.
+  - Singular-instrument prose minimally edited where it became false:
+    block header "INSTRUMENT CONTRACT (what the available instrument…)" →
+    "INSTRUMENT CONTRACTS (what the available instruments…)"; instruction
+    "outside this contract" → "outside every listed contract"; nudge
+    instruction "Prefer hypotheses this instrument can test as-is." →
+    "Prefer hypotheses at least one of these instruments can test as-is."
+  - Fixture re-capture: tests/fixtures/d1/feasibility_nudge.txt (8,739 →
+    19,861 bytes, both contracts present). The rwin1 fixtures pin BASE
+    prompts and are byte-unchanged; the composed blocks are asserted live
+    with grounding asserts extended to ngspice.
+
+Comparability note: scored numbers taken before this commit are not
+comparable to scored numbers taken after it for anything a Stage-1 composed
+surface touches.

@@ -115,10 +115,11 @@ def _selected_contract(spec: dict | None = None) -> tuple[str, str]:
     STRUCTURALLY by signature-based selection (tools/substrate_selection —
     routable substrates that can serve the spec's declared parameter names,
     mature preferred, enrollment-order tie-break; sole_routable_id is retired
-    from production). Returns (substrate_id, contract_text). Today the
-    registry's one routable substrate is cavity_2d_cfd, so contract_text is
-    byte-identical to the substrates.CAVITY_2D_CONTRACT the gate used before —
-    era 862531b holds (d2 fixture-pinned). A spec of None declares no
+    from production). Returns (substrate_id, contract_text). For a cavity
+    spec selection returns cavity_2d_cfd, so contract_text is byte-identical
+    to the substrates.CAVITY_2D_CONTRACT the gate used before — the d2
+    fixture pin holds through the R5 era move (owner, 2026-07-17; captured
+    under era 862531b, stage 3's surface un-moved). A spec of None declares no
     parameters and constrains nothing — the era proofs call this bare; run()
     always passes the real spec. A spec no routable substrate can serve, or a
     routable substrate missing its contract or signature, RAISES at selection;

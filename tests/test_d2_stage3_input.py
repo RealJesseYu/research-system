@@ -1,5 +1,7 @@
 """
-test_d2_stage3_input.py — D.2 Step-0 capture (era 862531b).
+test_d2_stage3_input.py — D.2 Step-0 capture (captured under era 862531b;
+era-of-record is now the R5 all-routable commit, owner 2026-07-17 — stage 3's
+surface did not move, so the capture holds byte-identical).
 
 ZERO live model calls: before D.2 retires stage 3's sole_routable_id() call
 to signature-based selection, the stage-3 composed model-visible surface —
