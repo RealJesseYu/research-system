@@ -26,7 +26,7 @@ from baton import Baton
 from memory.journal import journal_recent_by_kind
 from model_call import call_stage_model, log_stage_call
 from stages.stage2_spec import validate_spec
-from substrates import CAVITY_2D_CONTRACT
+from tools.substrate_registry import contract_for
 
 SONNET_MODEL = "claude-sonnet-4-6"
 
@@ -175,11 +175,13 @@ def run(baton: Baton) -> Baton:
         f"STAGE2_MEMORY retrieved {len(memory_entries)} learned_summary entries",
     )
 
+    # TODO(D.1.1): substrate selection undesigned at this surface —
+    # owner ruling pending; explicit cavity pin, single-sourced.
     stage_input = {
         "run_id": baton.run_id,
         "domain": domain,
         "chosen_hypothesis": chosen,
-        "substrate_contract": CAVITY_2D_CONTRACT,
+        "substrate_contract": contract_for("cavity_2d_cfd"),
         "prior_thought": prior_thought,
     }
     if lessons_block is not None:

@@ -51,7 +51,7 @@ from pathlib import Path
 
 import cost_meter
 from model_call import call_stage_model, log_stage_call
-from substrates import CAVITY_2D_CONTRACT
+from tools.substrate_registry import contract_for
 
 _RETRIEVAL_DIR = Path(__file__).resolve().parent.parent / "retrieval"
 if str(_RETRIEVAL_DIR) not in sys.path:
@@ -76,8 +76,9 @@ TOP_K_PER_SOURCE = 3
 # 19-lite/retry build per the R-WIN-1 nudge-seam audit — the nudge is about
 # instrument feasibility, not journal memory, so unlike memory_block it is not
 # scoped to strategies 1 and 4; a nudge that skipped half the pool would leave
-# those hypotheses free to keep drifting infeasible). Body = the imported
-# CAVITY_2D_CONTRACT (single source of truth) + the most recent failure memo
+# those hypotheses free to keep drifting infeasible). Body = the cavity
+# contract read via the registry's contract_for (same object substrates.py
+# exports — single source of truth; D.1) + the most recent failure memo
 # for this run when one exists + one instruction sentence. With the switch off
 # no feasibility_nudge field is added, so composed inputs are byte-identical to
 # today's. The retry-on-total-defer path (supervisor.py) forces the switch on
@@ -114,10 +115,13 @@ def read_recent_failure_memo(run_id: str) -> str | None:
 
 
 def build_feasibility_nudge(run_id: str) -> str:
-    """The FEASIBILITY NUDGE block: header + the imported CAVITY_2D_CONTRACT
-    (single source of truth) + the most recent failure memo for this run when
-    one exists + one instruction sentence to prefer as-is-testable hypotheses."""
-    parts = [FEASIBILITY_NUDGE_HEADER + ":", CAVITY_2D_CONTRACT]
+    """The FEASIBILITY NUDGE block: header + the registry's cavity contract
+    (the same object substrates.py exports — single source of truth) + the
+    most recent failure memo for this run when one exists + one instruction
+    sentence to prefer as-is-testable hypotheses."""
+    # TODO(D.1.1): substrate selection undesigned at this surface —
+    # owner ruling pending; explicit cavity pin, single-sourced.
+    parts = [FEASIBILITY_NUDGE_HEADER + ":", contract_for("cavity_2d_cfd")]
     memo = read_recent_failure_memo(run_id)
     if memo:
         parts.append("MOST RECENT FAILURE MEMO FOR THIS RUN:\n" + memo)

@@ -37,7 +37,7 @@ import json
 from pathlib import Path
 
 from model_call import call_stage_model, log_stage_call
-from substrates import CAVITY_2D_CONTRACT
+from tools.substrate_registry import contract_for
 
 # Step-23 ruled pin: the chooser is a hard judgment, so it rides Opus.
 CHOOSER_MODEL = "claude-opus-4-8"
@@ -45,7 +45,8 @@ CHOOSER_MODEL = "claude-opus-4-8"
 # --- R-WIN-1: instrument-contract grounding (the h6 fix), UNCONDITIONAL ------
 # The chooser is grounded in what the instrument can actually measure so it
 # does not advance a hypothesis whose test is out of contract. Single source
-# of truth: the body IS the imported CAVITY_2D_CONTRACT (never a pasted copy).
+# of truth: the body IS substrates.CAVITY_2D_CONTRACT, read via the
+# registry's contract_for (same object, never a pasted copy — D.1).
 # New-era baseline, not switched. No new failure path — the fallback-to-rank-1
 # contract is untouched.
 INSTRUMENT_CONTRACT_HEADER = (
@@ -59,10 +60,13 @@ INSTRUMENT_CONTRACT_INSTRUCTION = (
 
 def instrument_contract_block() -> str:
     """The delimited instrument-contract block appended to the chooser prompt.
-    Body = the imported CAVITY_2D_CONTRACT verbatim (single source of truth)."""
+    Body = the registry's cavity contract verbatim — the same object
+    substrates.py exports (single source of truth)."""
+    # TODO(D.1.1): substrate selection undesigned at this surface —
+    # owner ruling pending; explicit cavity pin, single-sourced.
     return (
         "\n\n" + INSTRUMENT_CONTRACT_HEADER + ":\n"
-        + CAVITY_2D_CONTRACT + "\n"
+        + contract_for("cavity_2d_cfd") + "\n"
         + INSTRUMENT_CONTRACT_INSTRUCTION
     )
 

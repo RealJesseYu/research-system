@@ -81,7 +81,7 @@ from pathlib import Path
 
 from memory.journal import journal_recent_by_kind
 from model_call import call_stage_model, log_stage_call
-from substrates import CAVITY_2D_CONTRACT
+from tools.substrate_registry import contract_for
 
 _RETRIEVAL_DIR = Path(__file__).resolve().parent.parent / "retrieval"
 if str(_RETRIEVAL_DIR) not in sys.path:
@@ -186,8 +186,9 @@ FULL_REVIEW_SYSTEM_PROMPT = (
 # UNCONDITIONAL contract block (new-era baseline, not switched) and a
 # switched IMPACT lens, both grounding the full review — the merit review
 # that feeds the deterministic filter's novelty/quality/critique. Single
-# source of truth: the block body IS the imported CAVITY_2D_CONTRACT
-# (never a pasted copy — hard rule (a)). No new kill path: the lens and the
+# source of truth: the block body IS substrates.CAVITY_2D_CONTRACT, read
+# via the registry's contract_for (same object, never a pasted copy — hard
+# rule (a); D.1). No new kill path: the lens and the
 # contract steer the quality/critique judgment, they add no discard branch.
 INSTRUMENT_CONTRACT_HEADER = (
     "INSTRUMENT CONTRACT (what the available instrument can actually measure)"
@@ -200,10 +201,13 @@ INSTRUMENT_CONTRACT_INSTRUCTION = (
 
 def instrument_contract_block() -> str:
     """The delimited instrument-contract block appended to grounded reviews.
-    Body = the imported CAVITY_2D_CONTRACT verbatim (single source of truth)."""
+    Body = the registry's cavity contract verbatim — the same object
+    substrates.py exports (single source of truth)."""
+    # TODO(D.1.1): substrate selection undesigned at this surface —
+    # owner ruling pending; explicit cavity pin, single-sourced.
     return (
         "\n\n" + INSTRUMENT_CONTRACT_HEADER + ":\n"
-        + CAVITY_2D_CONTRACT + "\n"
+        + contract_for("cavity_2d_cfd") + "\n"
         + INSTRUMENT_CONTRACT_INSTRUCTION
     )
 
