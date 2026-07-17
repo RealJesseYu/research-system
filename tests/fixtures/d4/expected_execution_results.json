@@ -1,0 +1,15 @@
+{
+  "status": "executed",
+  "runs": [
+    {
+      "converged": true,
+      "wall_clock_s": 161.62,
+      "qoi_value": 0.4168353
+    },
+    {
+      "converged": true,
+      "wall_clock_s": 95.34,
+      "qoi_value": 0.1930067
+    }
+  ]
+}
