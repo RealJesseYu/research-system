@@ -27,9 +27,11 @@ from typing import Any
 from tools.qoi_vocab import (
     ANALYSIS_TYPE,
     FIELD_REDUCTION,
+    FIXED_SUMMARY,
     NAMED_QUANTITY,
     OPERATION_SET,
     REYNOLDS_BAND,
+    STATIC_SMALL_DEFLECTION,
     SYMBOLIC_RESULT,
 )
 
@@ -210,6 +212,8 @@ def _validate_qoi(qoi: Any, vocab, errors: list[str], label: str = "qoi") -> Non
         _validate_qoi_named_quantity(qoi, vocab, errors, label)
     elif vocab.shape == SYMBOLIC_RESULT:
         _validate_qoi_symbolic_result(qoi, vocab, errors, label)
+    elif vocab.shape == FIXED_SUMMARY:
+        _validate_qoi_fixed_summary(qoi, vocab, errors, label)
     else:  # a vocab record with an unknown shape is a broken invariant
         raise ValueError(f"unknown QoI vocabulary shape {vocab.shape!r}")
 
@@ -307,6 +311,23 @@ def _validate_qoi_symbolic_result(qoi: dict, vocab, errors: list[str], label: st
     stated here rather than left implicit."""
 
 
+def _validate_qoi_fixed_summary(qoi: dict, vocab, errors: list[str], label: str) -> None:
+    """The fixed-summary (cantilever-class) machine-key check: the wrapper
+    takes no QoI request and returns a fixed set of named numbers every
+    valid run, so the ONE machine key is "quantity" — which of those
+    numbers is THE quantity of interest, membership-checked against the
+    wrapper's own imported name set. Absent is valid: it declares the QoI
+    not extractable (the honest qoi_error fallback path), mirroring the
+    cavity grammar's absent-machine-keys semantics. Foreign grammars'
+    machine keys are rejected by name by the common alien-key check above."""
+    if "quantity" in qoi and qoi["quantity"] not in vocab.names:
+        errors.append(
+            f"{label} quantity must be one of {sorted(vocab.names)} — the "
+            f"named numbers this instrument returns on every valid run; "
+            f"got {qoi['quantity']!r}."
+        )
+
+
 def _validate_qois(qois: Any, vocab, errors: list[str]) -> None:
     """Optional VECTOR of qoi objects (Multi-QoI build, part B). Present-only;
     each entry is validated exactly like the single `qoi` (same required
@@ -383,6 +404,8 @@ def _validate_regime(regime: Any, vocab, errors: list[str]) -> None:
         _validate_regime_analysis_type(regime, vocab.regime, errors)
     elif vocab.regime.shape == OPERATION_SET:
         _validate_regime_operation_set(regime, vocab.regime, errors)
+    elif vocab.regime.shape == STATIC_SMALL_DEFLECTION:
+        _validate_regime_static_small_deflection(regime, vocab.regime, errors)
     else:
         raise ValueError(f"unknown regime vocabulary shape {vocab.regime.shape!r}")
 
@@ -473,6 +496,33 @@ def _validate_regime_operation_set(regime: Any, reg, errors: list[str]) -> None:
             f"regime operation must be one of: {allowed}; "
             f"got {regime['operation']!r}."
         )
+
+
+def _validate_regime_static_small_deflection(regime: Any, reg, errors: list[str]) -> None:
+    """Static-small-deflection regime semantics (cantilever class, Packet B
+    Phase 2.0 option R1, ruled by the build chat under the owner's standing
+    delegation, 2026-07-17): these instruments serve exactly ONE physics
+    regime by construction, so there is no per-case regime axis to declare —
+    the spec's regime object is {"notes": "..."}, a statement of why the
+    case sits inside the card's ruled bounds (which are gate judgments the
+    contract §3 states, never typed inputs). ALL three other shapes' keys
+    are rejected BY NAME (reg.alien_keys) so a wrong-grammar regime block
+    fails with a per-substrate reason, not a bare missing-key complaint."""
+    if not isinstance(regime, dict):
+        errors.append("regime must be an object with notes.")
+        return
+    for key in reg.alien_keys:
+        if key in regime:
+            errors.append(
+                f"regime field '{key}' is not part of this substrate's regime "
+                f"vocabulary — this instrument's regime is not a Reynolds "
+                f"band, not a circuit analysis, and not a symbolic operation; "
+                f"it serves exactly one physics regime by construction — "
+                f"declare 'notes' stating why the case sits inside the "
+                f"contract's stated bounds."
+            )
+    if "notes" not in regime:
+        errors.append("regime is missing 'notes'.")
 
 
 def _validate_mini_experiment(

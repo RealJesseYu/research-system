@@ -247,27 +247,25 @@ class TestDeterminismAndTieBreak(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertEqual(first, "cavity_2d_cfd")
 
-    def test_d_tie_break_is_enrollment_order(self):
-        # both candidates provisional (non-mature), both serve -> the FIRST id
-        # in routable (enrollment) order wins…
-        patches = _two_cavity_registry(
-            registry.PROVISIONAL, ("cavity_2d_cfd", "cavity_2d_cfd_v2")
-        )
-        with patches[0], patches[1], patches[2], patches[3]:
-            self.assertEqual(
-                selection.select_substrate(_spec_with("lid_velocity")),
-                "cavity_2d_cfd",
-            )
-        # …and reversing the order flips the pick: the tie-break IS the order,
-        # not a hidden preference for cavity.
-        patches = _two_cavity_registry(
-            registry.PROVISIONAL, ("cavity_2d_cfd_v2", "cavity_2d_cfd")
-        )
-        with patches[0], patches[1], patches[2], patches[3]:
-            self.assertEqual(
-                selection.select_substrate(_spec_with("lid_velocity")),
-                "cavity_2d_cfd_v2",
-            )
+    def test_d_tie_stops_loudly_in_both_enrollment_orders(self):
+        # R-B-1 (owner-delegated, 2026-07-17): both candidates provisional
+        # (non-mature), both serve -> the enrollment-order pick is RETIRED
+        # and selection STOPS LOUDLY naming both. Fired in BOTH orders so
+        # the stop is provably order-independent — never a silent pick,
+        # never a hidden preference for cavity.
+        for order in (
+            ("cavity_2d_cfd", "cavity_2d_cfd_v2"),
+            ("cavity_2d_cfd_v2", "cavity_2d_cfd"),
+        ):
+            patches = _two_cavity_registry(registry.PROVISIONAL, order)
+            with patches[0], patches[1], patches[2], patches[3]:
+                with self.assertRaises(LookupError) as ctx:
+                    selection.select_substrate(_spec_with("lid_velocity"))
+            msg = str(ctx.exception)
+            self.assertIn("ambiguous (R-B-1", msg)
+            self.assertIn("cavity_2d_cfd@", msg)
+            self.assertIn("cavity_2d_cfd_v2@", msg)
+            self.assertIn("stopping before routing", msg)
 
 
 class TestFailLoudWiring(unittest.TestCase):
@@ -319,11 +317,28 @@ class TestSpecReading(unittest.TestCase):
             frozenset(BUILDABLE_PARAMS) | {REYNOLDS_KEY},
         )
 
-    def test_none_spec_constrains_nothing(self):
-        # the era proofs call _selected_contract() bare: a None spec declares
-        # no parameters, so the real registry's cavity serves it.
+    def test_none_spec_stops_loudly_under_r_b_1(self):
+        # S1 (ruled 2026-07-17): a None spec declares nothing, so EVERY
+        # routable substrate serves it and selection stops loudly — the
+        # pre-R-B-1 constrains-nothing convention (bare reads resolving to
+        # cavity, a silent enrollment-order pick) is RETIRED. Fired on the
+        # REAL registry: the stop is live before any flip.
         self.assertEqual(selection.declared_parameter_names(None), frozenset())
-        self.assertEqual(selection.select_substrate(None), "cavity_2d_cfd")
+        with self.assertRaises(LookupError) as ctx:
+            selection.select_substrate(None)
+        msg = str(ctx.exception)
+        self.assertIn("ambiguous (R-B-1", msg)
+        self.assertIn("cavity_2d_cfd@provisional", msg)
+        self.assertIn("stopping before routing", msg)
+
+    def test_empty_parameters_spec_stops_loudly_under_r_b_1(self):
+        # The disclosed residual S1 exists to kill: a VALIDATABLE spec with
+        # parameters: [] declares nothing — under S2 it would have silently
+        # picked cavity by enrollment order (a cavity fallback). It now
+        # stops loudly, proven by firing.
+        with self.assertRaises(LookupError) as ctx:
+            selection.select_substrate({"parameters": []})
+        self.assertIn("ambiguous (R-B-1", str(ctx.exception))
 
     def test_canned_spec_names_are_all_buildable(self):
         names = selection.declared_parameter_names(_canned_cavity_spec())

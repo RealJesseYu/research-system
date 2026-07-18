@@ -64,12 +64,23 @@ class TestEraByteIdentity(unittest.TestCase):
     derives it from the registry. Byte-equality to that constant IS byte-equality
     to the pre-change model-visible text — cavity's stage-3 surface survives
     unchanged through the R5 era move (owner, 2026-07-17; the era-of-record is
-    the R5 commit — only composed STAGE-1 surfaces moved). Could fail: if
-    selection returned a different substrate, or contract_for mutated the text,
-    or the constant drifted, these assertions break."""
+    the R5 commit — only composed STAGE-1 surfaces moved). Since R-B-1 S1
+    (ruled 2026-07-17) the bare _selected_contract() read is retired — a
+    nothing-declaring spec stops loudly — so these proofs pass a MINIMAL
+    cavity-declaring spec (one cavity-signature parameter name); the
+    assertion's meaning is unchanged: the model-visible text is byte-equal
+    to the constant. Could fail: if selection returned a different
+    substrate, or contract_for mutated the text, or the constant drifted,
+    these assertions break."""
+
+    # One cavity-signature name -> cavity is the unique candidate (its
+    # signature is the only one covering lid_velocity).
+    _CAVITY_MINIMAL_SPEC = {"parameters": [{"name": "lid_velocity"}]}
 
     def test_stage3_selected_contract_byte_identical(self):
-        substrate_id, contract_text = stage3_fidelity_gate._selected_contract()
+        substrate_id, contract_text = stage3_fidelity_gate._selected_contract(
+            self._CAVITY_MINIMAL_SPEC
+        )
         self.assertEqual(substrate_id, "cavity_2d_cfd")
         # byte-for-byte identical to the constant the gate used before R-S3-1
         self.assertEqual(contract_text, substrates.CAVITY_2D_CONTRACT)
@@ -80,7 +91,9 @@ class TestEraByteIdentity(unittest.TestCase):
 
     def test_selected_contract_carries_the_cavity_header(self):
         # Sanity that the text is the cavity contract, not an empty stand-in.
-        _sid, contract_text = stage3_fidelity_gate._selected_contract()
+        _sid, contract_text = stage3_fidelity_gate._selected_contract(
+            self._CAVITY_MINIMAL_SPEC
+        )
         self.assertIn("SUBSTRATE CONTRACT: cavity_2d", contract_text)
 
 

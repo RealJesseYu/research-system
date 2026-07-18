@@ -378,11 +378,17 @@ def qoi_translation_for(substrate_id: str):
 
 # --- per-substrate conclusions-only run-entry construction (R2 flip) -------
 
-def _cavity_run_entry(summary: dict, qoi_error_fallback: str | None) -> dict:
+def _cavity_run_entry(summary: dict, qoi_error_fallback: str | None,
+                      qoi_request=None) -> dict:
     """Conclusions only: {converged, qoi_value | qoi_error, wall_clock_s} —
     MOVED VERBATIM from stages.stage4_simulation._payload_run_entry at the
     R2 flip (owner, 2026-07-17); the cavity data surface is fixture-pinned
-    byte-identical (tests/fixtures/d4/)."""
+    byte-identical (tests/fixtures/d4/). qoi_request joined the uniform
+    constructor signature ADDITIVELY at Packet B Phase 2.0 (ruled, option
+    V-A) for fixed-summary substrates whose wrapper returns several named
+    numbers; deliberately IGNORED here — the cavity wrapper already
+    extracts the one requested QoI itself, and the entry stays
+    byte-identical (proven by exact-dict asserts)."""
     entry = {
         "converged": bool(summary.get("converged")),
         "wall_clock_s": summary.get("runtime", {}).get("wall_clock_s"),
@@ -396,12 +402,16 @@ def _cavity_run_entry(summary: dict, qoi_error_fallback: str | None) -> dict:
     return entry
 
 
-def _ngspice_run_entry_with_fallback(summary, qoi_error_fallback) -> dict:
-    """ngspice_run_entry under the uniform (summary, qoi_error_fallback)
-    constructor signature. The fallback is deliberately unused: a
-    named-quantity substrate never executes without a translated QoI request
-    (_ngspice_adapter refuses), so a summary always carries its own
-    qoi / diagnostics truth."""
+def _ngspice_run_entry_with_fallback(summary, qoi_error_fallback,
+                                     qoi_request=None) -> dict:
+    """ngspice_run_entry under the uniform (summary, qoi_error_fallback,
+    qoi_request) constructor signature. The fallback is deliberately
+    unused: a named-quantity substrate never executes without a translated
+    QoI request (_ngspice_adapter refuses), so a summary always carries its
+    own qoi / diagnostics truth. qoi_request (additive, Packet B Phase 2.0
+    ruled option V-A) is likewise ignored: the wrapper already extracted
+    the one requested quantity — the entry stays byte-identical (proven by
+    exact-dict asserts)."""
     return ngspice_run_entry(summary)
 
 
@@ -414,7 +424,7 @@ _SCIPY_SUMMARY_KEYS = ("valid", "state", "result", "reason", "diagnostics",
 _SCIPY_STATES = ("solved_verified", "unevaluated", "error")
 
 
-def sympy_run_entry(summary, qoi_error_fallback=None) -> dict:
+def sympy_run_entry(summary, qoi_error_fallback=None, qoi_request=None) -> dict:
     """Packet B Phase 1.0 ruling items 3/4 (owner, 2026-07-17): one
     conclusions-only stage-4 run entry from a run_scipy tri-state summary.
     THE TRI-STATE SURVIVES: the wrapper's state travels VERBATIM in the
@@ -436,6 +446,9 @@ def sympy_run_entry(summary, qoi_error_fallback=None) -> dict:
     qoi_error_fallback is accepted for the uniform constructor signature
     and deliberately unused: this substrate's summary always carries its
     own truth (the translation never refuses a well-formed prose QoI).
+    qoi_request (additive, Packet B Phase 2.0 ruled option V-A) is likewise
+    ignored: this wrapper takes no QoI request at all — the entry stays
+    byte-identical (proven by exact-dict asserts).
     FAIL LOUD (ValueError naming every offender) on structurally missing,
     ill-typed, or state-contradicting wrapper fields — never a default."""
     if not isinstance(summary, dict):

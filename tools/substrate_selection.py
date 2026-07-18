@@ -12,10 +12,13 @@ actually honors. Selection is:
                        cavity fallback — a spec nothing routable can serve
                        is refused loudly at selection, not judged against
                        the wrong instrument.
-    among candidates, prefer mature (registry.is_mature); tie-break is
-    ENROLLMENT ORDER — routable_ids() preserves the registry's enrollment
-    order, and the first candidate in that order wins. Deterministic: same
-    spec, same registry -> same pick, always.
+    among candidates, prefer mature (registry.is_mature); if MORE THAN ONE
+    candidate survives that filter, selection STOPS LOUDLY naming all of
+    them (R-B-1, owner-delegated, 2026-07-17) — the silent enrollment-order
+    pick is RETIRED, maturity is the only tie-breaker, and no further tie
+    policy exists or may be invented. Deterministic where determinable:
+    same spec, same registry -> same unique pick or the same loud stop,
+    always.
 
 FAIL LOUD AT SELECTION, not downstream: before serve-ability is even
 consulted, every routable substrate must have BOTH a wired fidelity
@@ -123,9 +126,14 @@ def signature_for(substrate_id: str) -> frozenset[str]:
 
 def declared_parameter_names(spec: dict | None) -> frozenset[str]:
     """The parameter names a validated spec declares. A None spec (or one
-    with no parameters) declares nothing and so constrains nothing — every
-    routable substrate can serve it; the era proofs rely on this for their
-    bare _selected_contract() reads."""
+    with no parameters) declares nothing — and since R-B-1 (S1, ruled
+    2026-07-17) a nothing-declaring spec is served by EVERY routable
+    substrate and therefore stops loudly at selection whenever more than
+    one is routable: the old constrains-nothing convenience (bare
+    era-proof reads resolving to cavity) is RETIRED, because its residual
+    was a silent enrollment-order pick landing on cavity — a cavity
+    fallback, forbidden by doctrine. Era proofs pass a minimal
+    cavity-declaring spec instead."""
     if not isinstance(spec, dict):
         return frozenset()
     return frozenset(
@@ -138,8 +146,10 @@ def declared_parameter_names(spec: dict | None) -> frozenset[str]:
 def select_substrate(spec: dict | None) -> str:
     """Pick the ONE substrate this spec routes to. See the module docstring
     for the full rule; in brief: routable + wired (contract AND signature,
-    both probed loudly up front) + can-serve, mature preferred, tie-break =
-    enrollment order (routable_ids() order), deterministic."""
+    both probed loudly up front) + can-serve, mature preferred — and if
+    more than one candidate survives the mature filter, a LOUD STOP naming
+    all of them (R-B-1): the enrollment-order pick is retired, and the
+    only deterministic outcomes are a unique candidate or the raise."""
     routable = registry.routable_ids()
     for sid in routable:
         registry.contract_for(sid)  # LookupError: routable without a contract
@@ -162,4 +172,19 @@ def select_substrate(spec: dict | None) -> str:
 
     mature = [sid for sid in candidates if registry.is_mature(sid)]
     pool = mature or candidates
-    return pool[0]
+    if len(pool) > 1:                       # R-B-1 (owner-delegated, 2026-07-17)
+        rungs = ", ".join(
+            f"{sid}@{registry.maturity_of(sid)}" for sid in pool
+        )
+        raise LookupError(
+            f"substrate selection is ambiguous (R-B-1, owner 2026-07-17): "
+            f"{len(pool)} candidates serve this spec after the mature-preferred "
+            f"filter — {rungs}; the declared parameters {sorted(names)} sit "
+            f"inside every one of their signatures. The enrollment-order pick "
+            f"is RETIRED by that ruling and no further tie policy exists — "
+            f"author the spec against exactly one instrument (declare a "
+            f"parameter only one signature covers), or promote exactly one "
+            f"candidate to mature under a recorded ruling; stopping before "
+            f"routing."
+        )
+    return pool[0]                          # unique candidate — the only survivor

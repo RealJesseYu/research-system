@@ -220,7 +220,12 @@ def run(baton: Baton) -> Baton:
                 "summary": summary,
             }
         )
-        payload_runs.append(entry_constructor(summary, qoi_error_fallback))
+        # qoi_request joined the uniform constructor signature ADDITIVELY at
+        # Packet B Phase 2.0 (ruled option V-A): fixed-summary substrates
+        # return several named numbers and the constructor must know which
+        # one the spec requested; cavity/ngspice/sympy constructors ignore
+        # it — their entries are byte-identical (exact-dict asserts).
+        payload_runs.append(entry_constructor(summary, qoi_error_fallback, qoi_request))
         # the qoi display tolerates both wrapper shapes: cavity's {value: …}
         # object and ngspice's bare scalar/null (cavity output unchanged)
         raw_qoi = summary.get("qoi")

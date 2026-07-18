@@ -119,11 +119,14 @@ def _selected_contract(spec: dict | None = None) -> tuple[str, str]:
     spec selection returns cavity_2d_cfd, so contract_text is byte-identical
     to the substrates.CAVITY_2D_CONTRACT the gate used before — the d2
     fixture pin holds through the R5 era move (owner, 2026-07-17; captured
-    under era 862531b, stage 3's surface un-moved). A spec of None declares no
-    parameters and constrains nothing — the era proofs call this bare; run()
-    always passes the real spec. A spec no routable substrate can serve, or a
-    routable substrate missing its contract or signature, RAISES at selection;
-    the gate never falls back to cavity. Extracted so the byte-identity proof
+    under era 862531b, stage 3's surface un-moved). Since R-B-1 (S1, ruled
+    2026-07-17) a None spec declares nothing, is served by every routable
+    substrate, and STOPS LOUDLY at selection — the old bare era-proof read
+    is retired; the era proofs pass a minimal cavity-declaring spec, and
+    run() always passes the real spec. A spec no routable substrate can
+    serve, a multi-candidate tie after the mature filter, or a routable
+    substrate missing its contract or signature, RAISES at selection; the
+    gate never falls back to cavity. Extracted so the byte-identity proof
     exercises the exact text the model will see without spending a model call."""
     substrate_id = substrate_selection.select_substrate(spec)
     return substrate_id, registry.contract_for(substrate_id)

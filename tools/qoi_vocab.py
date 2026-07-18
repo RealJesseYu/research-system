@@ -52,6 +52,7 @@ from tools.run_scipy import OPERATIONS as _SCIPY_OPERATIONS
 FIELD_REDUCTION = "field_reduction"
 NAMED_QUANTITY = "named_quantity"
 SYMBOLIC_RESULT = "symbolic_result"
+FIXED_SUMMARY = "fixed_summary"
 
 # Regime-semantics shapes (R-23.5-5, owner 2026-07-17): "regime" remains
 # REQUIRED in every spec; its MEANING is per-substrate. The semantics ride
@@ -62,6 +63,7 @@ SYMBOLIC_RESULT = "symbolic_result"
 REYNOLDS_BAND = "reynolds_band"
 ANALYSIS_TYPE = "analysis_type"
 OPERATION_SET = "operation_set"
+STATIC_SMALL_DEFLECTION = "static_small_deflection"
 
 
 @dataclass(frozen=True)
@@ -139,6 +141,32 @@ SYMPY_REGIME = OperationSetRegime(operations=tuple(_SCIPY_OPERATIONS))
 
 
 @dataclass(frozen=True)
+class StaticSmallDeflectionRegime:
+    """Cantilever-class regime semantics (Packet B Phase 2.0 option R1,
+    ruled by the build chat under the owner's standing delegation,
+    2026-07-17): these instruments serve exactly ONE physics regime by
+    construction — linear-elastic isotropic small-deflection STATIC bending
+    of a singly-clamped, tip-loaded rectangular prism (the card unit is the
+    (substrate, physics-regime) pair). There is no per-case regime axis to
+    declare: no Reynolds band, no analysis type, no operation. The spec's
+    required "regime" object for this shape is {"notes": "..."} — a
+    statement of why the case sits inside the card's ruled bounds, which
+    are gate judgments stated in the contract §3, never typed inputs.
+    Carries no data members, deliberately: the ruled bound VALUES live on
+    the human-facing cards and in the model-visible §3 text; nothing
+    deterministic consumes them today (expand on evidence)."""
+
+    shape: ClassVar[str] = STATIC_SMALL_DEFLECTION
+
+    # ALL three other shapes' spec keys, rejected by name so a
+    # wrong-grammar regime block in a cantilever spec fails loudly with a
+    # per-substrate reason instead of a bare missing-key complaint.
+    alien_keys: ClassVar[tuple] = (
+        "reynolds_min", "reynolds_max", "analysis_type", "operation",
+    )
+
+
+@dataclass(frozen=True)
 class FieldReductionVocab:
     """A reduction-over-a-field vocabulary (cavity class). Members are the
     wrapper's own objects — the record adds structure, never content."""
@@ -189,6 +217,35 @@ class SymbolicResultVocab:
 
     # BOTH other shapes' machine keys, rejected by name: a request in any
     # foreign grammar fails loudly instead of passing silently as prose.
+    alien_keys: ClassVar[tuple] = (
+        "field", "operation", "component", "mask",   # field-reduction grammar
+        "kind", "target", "reduction",                # named-quantity grammar
+    )
+
+
+@dataclass(frozen=True)
+class FixedSummaryVocab:
+    """A fixed-summary vocabulary (cantilever class, Packet B Phase 2.0
+    option V-A, ruled by the build chat under the owner's standing
+    delegation, 2026-07-17): the wrapper takes NO QoI request (its typed
+    input rejects unknown fields by name) yet returns a FIXED set of named
+    numbers on every valid run. A spec's qoi under this shape may carry ONE
+    machine key, "quantity", naming which of those numbers is THE quantity
+    of interest — membership-checked against `names`, which is IMPORTED
+    from the owning wrapper's own constant (never a pasted copy). An absent
+    "quantity" declares the QoI not extractable (the honest qoi_error
+    fallback path), exactly like an absent machine-key set in the cavity
+    grammar. Machine keys from EITHER other grammar are rejected by name.
+    The record carries the substrate's regime-semantics member — the
+    regime rides the vocab record in every shape (R-23.5-5)."""
+
+    shape: ClassVar[str] = FIXED_SUMMARY
+
+    names: tuple         # the wrapper's own fixed QoI-name set, in order
+    regime: Any          # the substrate's regime-semantics record
+
+    # BOTH other machine-key grammars' keys, rejected by name ("quantity"
+    # is this shape's own and appears in no other grammar).
     alien_keys: ClassVar[tuple] = (
         "field", "operation", "component", "mask",   # field-reduction grammar
         "kind", "target", "reduction",                # named-quantity grammar
