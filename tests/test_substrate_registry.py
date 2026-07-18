@@ -35,6 +35,7 @@ class TestRegistryTable(unittest.TestCase):
                 "sympy_symbolic_exact",
                 "ngspice_linear_passive",
                 "rdkit",
+                "cobrapy",
                 "web_search",
             ],
         )
@@ -100,6 +101,17 @@ class TestRegistryTable(unittest.TestCase):
         self.assertNotIn("rdkit", registry.routable_ids())
         with self.assertRaises(LookupError):
             registry.contract_for("rdkit")
+
+    def test_cobrapy_enrolled_calibrating_unroutable_and_inert(self):
+        # BIO Wave D.2 increment 2 (Option A): same inert enrollment as rdkit.
+        rec = registry.get("cobrapy")
+        self.assertEqual(rec.maturity, registry.CALIBRATING)
+        self.assertFalse(rec.routable)
+        self.assertFalse(registry.is_mature("cobrapy"))
+        self.assertEqual(rec.wrapper, "tools/run_cobrapy.py")
+        self.assertNotIn("cobrapy", registry.routable_ids())
+        with self.assertRaises(LookupError):
+            registry.contract_for("cobrapy")
 
     def test_cantilevers_are_calibrating_routable_under_packet_b_phase2(self):
         # the flip's rows: routable=True RULED Packet B Phase 2 (owner

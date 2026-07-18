@@ -1,0 +1,54 @@
+{
+  "tool": "cobrapy",
+  "solver": "GLPK (cobra default)",
+  "cases": {
+    "e_coli_core_optimal": {
+      "spec": {
+        "model": "e_coli_core",
+        "quantity": "growth_rate"
+      },
+      "valid": true,
+      "qoi": 0.8739215069684305,
+      "diagnostics": "cobrapy FBA on e_coli_core (95 reactions, 72 metabolites); status=optimal; growth_rate=0.873922"
+    },
+    "iML1515_optimal": {
+      "spec": {
+        "model": "iML1515",
+        "quantity": "growth_rate"
+      },
+      "valid": true,
+      "qoi": 0.8769972144269406,
+      "diagnostics": "cobrapy FBA on iML1515 (2712 reactions, 1877 metabolites); status=optimal; growth_rate=0.876997"
+    },
+    "e_coli_core_infeasible": {
+      "spec": {
+        "model": "e_coli_core",
+        "quantity": "growth_rate",
+        "min_growth": 1000
+      },
+      "valid": false,
+      "qoi": null,
+      "diagnostics": "FBA did not yield a trustworthy growth (status=infeasible): solver status 'infeasible' is not optimal -- no feasible steady state"
+    },
+    "iML1515_infeasible": {
+      "spec": {
+        "model": "iML1515",
+        "quantity": "growth_rate",
+        "min_growth": 1000
+      },
+      "valid": false,
+      "qoi": null,
+      "diagnostics": "FBA did not yield a trustworthy growth (status=infeasible): solver status 'infeasible' is not optimal -- no feasible steady state"
+    },
+    "e_coli_core_feasible_constraint": {
+      "spec": {
+        "model": "e_coli_core",
+        "quantity": "growth_rate",
+        "min_growth": 0.5
+      },
+      "valid": true,
+      "qoi": 0.8739215069684301,
+      "diagnostics": "cobrapy FBA on e_coli_core (95 reactions, 72 metabolites); status=optimal; growth_rate=0.873922; min_growth=0.5"
+    }
+  }
+}

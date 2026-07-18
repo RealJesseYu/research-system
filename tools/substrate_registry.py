@@ -227,6 +227,25 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="cobrapy",
+        wrapper="tools/run_cobrapy.py",
+        card_path="docs/envelope_card_cobrapy.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes=(
+            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): "
+            "fba_steady_state wrapper (tools/run_cobrapy.py) proven real in "
+            "cobrapy-prod on e_coli_core + iML1515; the STRUCTURAL status-gate "
+            "jail (infeasible -> qoi None, never the stale objective) proven by "
+            "triggering it on BOTH models; card from real runs "
+            "(docs/envelope_card_cobrapy.md). ENROLLED but INERT — runtime maps "
+            "STAGED in onboarding/cobrapy/, UNWIRED; contract_for('cobrapy') "
+            "must keep raising LookupError until a D.4 promotion ruling. "
+            "Battery pending. Nothing routes here."
+        ),
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",
