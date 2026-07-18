@@ -1,0 +1,929 @@
+{
+  "mode_arg": "auto",
+  "substrate_id": "sympy_symbolic_exact",
+  "maturity_at_run": "calibrating",
+  "routable_at_run": false,
+  "timestamp_utc": "2026-07-17T12:00:22Z",
+  "batch_id": "20260717T115450Z",
+  "n_repeats": 3,
+  "gate": {
+    "n_cases": 10,
+    "n_draws": 30,
+    "n_repeats": 3,
+    "confusion": {
+      "in": {
+        "trust": 14,
+        "refine": 1,
+        "defer": 0
+      },
+      "out": {
+        "trust": 0,
+        "refine": 1,
+        "defer": 14
+      }
+    },
+    "confusion_note": "counts over ALL draws (repeats per case); rows sum to n_draws, not n_cases",
+    "hook_witness": {
+      "mode": "auto",
+      "n_gate_cases": 30,
+      "n_raw_trust_or_refine": 16,
+      "n_hook_fired": 16,
+      "hook_fired_matches_raw_trust_refine": true,
+      "routed_trust_case_ids": [],
+      "silent_trust_case_ids": [],
+      "zero_silent_trusts": true,
+      "note": "The hook fires on raw trust/refine only (defer routes nowhere). It is keyed to the registry routable set (currently ['cavity_2d_cfd'], all non-mature), NOT to the substrate under calibration, which is UNROUTABLE \u2014 see debrief."
+    },
+    "aggregate_in_band": {
+      "n_in_band_draws": 28,
+      "n_draws": 30,
+      "fraction": 0.9333
+    },
+    "n_unanimous_cases": 8,
+    "cases": [
+      {
+        "case_id": "A1",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "refine",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "refine": 1,
+          "trust": 2
+        },
+        "unanimous": false,
+        "modal_verdict": "trust",
+        "n_in_band": 2,
+        "in_band_fraction": 0.6667,
+        "entropy_bits": 0.9183,
+        "draws": [
+          {
+            "case_id": "A1",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": false,
+            "rationale": "The success criterion asks only for the exact closed form of the integral of x*sin(x) as typed \u2014 a pure symbolic operation the substrate computes exactly and verifies by differentiating back, with no modeling or real-world claim beyond the expression.",
+            "right_instrument": "sympy_symbolic_exact",
+            "wall_time_seconds": 6.699,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "A1",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The success criterion asks only for the exact value of the definite integral of x*sin(x) as typed with no modeling, unit, domain, or mean claim beyond the expression, and the elementary antiderivative is exactly computed and independently back-differentiation-verified so the symbolic output IS the real answer.",
+            "right_instrument": "sympy_symbolic_exact",
+            "wall_time_seconds": 13.342,
+            "reask_attempts": 2
+          },
+          {
+            "case_id": "A1",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The definite integral of x*sin(x) over [0,pi] is an exact closed-form symbolic computation whose returned value is verified against the antiderivative across the bounds (S2a), and the success criterion asks for nothing beyond the expression as typed.",
+            "right_instrument": "sympy_symbolic_exact",
+            "wall_time_seconds": 7.407,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "A2",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "A2",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "A symbolic derivative is a directly computed exact closed form, verified by differentiating back within tolerance, and the success criterion asks for exactly the expression as typed with no modeling claim beyond it.",
+            "right_instrument": "sympy_symbolic_exact (diff)",
+            "wall_time_seconds": 4.216,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "A2",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "diff is an allowlisted, exactly-computed symbolic operation whose result is back-substitution verified, and the success criterion asserts nothing beyond the expression as typed, so the in-range output IS the real answer.",
+            "right_instrument": "sympy_symbolic_exact (diff)",
+            "wall_time_seconds": 8.088,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "A2",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The task is a pure symbolic differentiation on the allowlist whose success criterion asks only for the exact derivative of the expression as typed, and the verified closed form IS that exact derivative with no residual model-to-reality gap.",
+            "right_instrument": "sympy_symbolic_exact",
+            "wall_time_seconds": 10.549,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "A3",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "A3",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The requested operation is allowlisted, sin(x)/x converges quadratically so the limit arm verifies it (residual ~1.7e-13), and the success criterion asks only for the exact limit of the expression as typed with no modeling claim beyond it \u2014 the exact symbolic result IS the real answer.",
+            "right_instrument": "sympy_symbolic_exact",
+            "wall_time_seconds": 9.263,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "A3",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The operation is in-allowlist and the success criterion asks only for the exact symbolic limit of the expression as typed \u2014 which the substrate computes exactly and, for sin(x)/x specifically, verifies (residual ~1.7e-13), so its output IS the real answer with no residual model-to-reality gap.",
+            "right_instrument": "sympy_symbolic_exact (limit)",
+            "wall_time_seconds": 8.665,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "A3",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The operation is on the allowlist and the exact symbolic limit of sin(x)/x is itself the real answer (a pure mathematical fact, no model-to-reality gap), and the envelope confirms this limit verifies at residual 1.7e-13.",
+            "right_instrument": "sympy_symbolic_exact (limit)",
+            "wall_time_seconds": 8.546,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "A4",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "A4",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "dsolve is allowlisted and the success criterion is a purely symbolic claim \u2014 exact satisfaction of the equation and declared y(0)=3 \u2014 which is precisely what S2a's returned-object verification and checkodesol confirm, so the verified closed form y=3*exp(-2x) IS the real answer with no residual model-to-reality gap.",
+            "right_instrument": "sympy_symbolic_exact (dsolve)",
+            "wall_time_seconds": 10.212,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "A4",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The success criterion is purely about the symbolic solution satisfying the equation and declared initial condition \u2014 exactly what dsolve produces and what S2/S2a independently verify by back-substitution and the y(0)=3 check, with no residual model-to-reality gap.",
+            "right_instrument": "sympy_symbolic_exact (dsolve)",
+            "wall_time_seconds": 10.914,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "A4",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "dsolve is on the allowlist and the success criterion asks only that the returned function exactly satisfy the equation and declared y(0)=3 \u2014 a claim about the expression as typed, which checkodesol plus S2a's initial-condition check verify exactly with no modeling gap.",
+            "right_instrument": "sympy_symbolic_exact",
+            "wall_time_seconds": 9.144,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "A5",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "A5",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "solve is allowlisted (S1), the polynomial has exact closed-form roots verified by back-substitution, and the success criterion asks only about the exact roots of the expression as typed with no modeling or real-world claim (S3 not triggered).",
+            "right_instrument": "sympy_symbolic_exact (solve)",
+            "wall_time_seconds": 8.534,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "A5",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The success criterion asks only for the exact roots of the polynomial exactly as typed \u2014 a pure symbolic question with no modeling, unit, or domain claim beyond the expression \u2014 and solve is on the allowlist and back-substitution-verifies each root.",
+            "right_instrument": "sympy_symbolic_exact (solve)",
+            "wall_time_seconds": 7.742,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "A5",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "solve returns the exact roots of a polynomial that fully factors, verified by back-substitution, and the success criterion asks for nothing beyond the exact roots of the expression as typed.",
+            "right_instrument": "sympy_symbolic_exact",
+            "wall_time_seconds": 6.691,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "B1",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "B1",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "x**x has no elementary antiderivative, so the substrate will correctly return the unevaluated state (S4) \u2014 an honest non-answer, not the closed form the success criterion demands.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 11.68,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "B1",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "x**x has no elementary closed-form antiderivative, so the substrate will correctly return state=unevaluated \u2014 an honest non-answer that cannot satisfy the success criterion of returning a closed form.",
+            "right_instrument": "sympy_symbolic_exact (it is the correct tool and correctly declines, but no instrument can return a closed form that does not exist)",
+            "wall_time_seconds": 17.253,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "B1",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "x**x has no elementary antiderivative, so the substrate correctly returns state=unevaluated with a null result \u2014 an honest non-answer that under S4 is a defer, and the experiment's success criterion (a returned closed form) cannot be met at all.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 10.837,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "B2",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "B2",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Finding the constrained minimizer over [0,5] is not an allowlisted single operation \u2014 it requires composing diff, solving the cubic derivative, and comparing critical-point and endpoint values, which the closed operation set (S1) forbids best-effort translating into a nearby operation like solve.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 28.132,
+            "reask_attempts": 2
+          },
+          {
+            "case_id": "B2",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "\"Minimize over [0,5]\" is not a member of the closed operation allowlist and identifying the exact constrained minimizer requires comparing interior critical points against the endpoints \u2014 something no single allowlisted symbolic operation on the expression as typed can produce.",
+            "right_instrument": "none \u2014 route to human/real experiment (a symbolic/constrained optimizer, not this single-operation CAS)",
+            "wall_time_seconds": 21.809,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "B2",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "\"Minimize over [0,5]\" is not an allowlisted operation, and solve only returns roots of an equation (the derivative's critical points), not the constrained interval minimizer, which requires comparing function values across critical points and endpoints \u2014 a composition this single-operation substrate cannot express.",
+            "right_instrument": "a constrained optimizer / symbolic minimize routine (CAS with global-minimization over an interval); none is available here \u2014 route to human/real experiment",
+            "wall_time_seconds": 17.141,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "B3",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "B3",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The success criterion claims the returned number is the mean value of sin(x) on [0,\u03c0], but the computation returns the integral (2), not the mean (2/\u03c0), so the expression as typed does not model the question asked.",
+            "right_instrument": "sympy_symbolic_exact \u2014 but computing integrate(sin(x),(x,0,pi))/(pi-0), the mean; the integral-only expression as typed is the wrong model",
+            "wall_time_seconds": 8.901,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "B3",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The success criterion asserts the returned number is the MEAN value, but the typed expression computes only the integral (=2, not 2/pi); per S3 the modeling claim beyond the expression-as-typed must be deferred and the integral is the wrong model for a mean.",
+            "right_instrument": "sympy_symbolic_exact \u2014 but with the expression integrate(sin(x),(x,0,pi))/pi; as typed it does not model the mean, so route the modeling claim to a human",
+            "wall_time_seconds": 7.728,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "B3",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The success criterion asserts a mean value, but the computation as typed returns the bare integral (2) not the mean (2/pi), so the exact symbolic result is a true answer to the wrong question.",
+            "right_instrument": "the same sympy_symbolic_exact substrate computing integrate(sin(x),(x,0,pi))/pi \u2014 the mean requires dividing the integral by the interval length (pi)",
+            "wall_time_seconds": 9.472,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "B4",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "refine",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "refine": 1,
+          "defer": 2
+        },
+        "unanimous": false,
+        "modal_verdict": "defer",
+        "n_in_band": 2,
+        "in_band_fraction": 0.6667,
+        "entropy_bits": 0.9183,
+        "draws": [
+          {
+            "case_id": "B4",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": false,
+            "rationale": "The operation is allowlisted and would return an exact symbolic value, but the claim sin(30)=0.5 is a modeling claim (degrees) that the substrate silently evaluates in radians, so the symbolic answer is true about the expression as typed yet does not settle the caller's intended question.",
+            "right_instrument": "sympy_symbolic_exact (with degree-to-radian conversion, i.e. sin(30*pi/180)) \u2014 the instrument fits; the modeling/units claim must be confirmed outside it",
+            "wall_time_seconds": 7.14,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "B4",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Bare numeric evaluation of sin(30) is not a member of the closed operation allowlist (integrate/diff/limit/series/solve/dsolve), and the success criterion further rides on a degrees-vs-radians modeling claim the substrate cannot adjudicate.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 17.905,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "B4",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment's entire success criterion is a unit-convention modeling claim (sin(30\u00b0)=0.5), but the substrate evaluates sin(30) in radians as typed \u2014 yielding \u2248-0.988, so its exact result cannot adjudicate the claim as meant.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 12.976,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "B5",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "B5",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Under SymPy's default complex assumptions sqrt(x**2) does not simplify to x, so the substrate cannot confirm the claimed identity \u2014 and simplify is not even in the allowlisted operation set, making the request inexpressible here.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 8.773,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "B5",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The requested operation \"simplify\" is not a member of the closed allowlist (integrate_definite, integrate_indefinite, diff, limit, series, solve, dsolve), so under S1 the request is not even expressible on this substrate.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 12.902,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "B5",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The requested operation 'simplify' is not a member of the closed allowlist (integrate_definite, integrate_indefinite, diff, limit, series, solve, dsolve), so per S1 the request is inexpressible on this substrate.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 9.319,
+            "reask_attempts": 1
+          }
+        ]
+      }
+    ]
+  },
+  "wrapper_behavior": {
+    "n_cases": 5,
+    "n_passed": 5,
+    "cases": [
+      {
+        "case_id": "W1",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "parse_error: '(' was never closed",
+        "reason_substring": "parse_error",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W2",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "undefined_symbol: y",
+        "reason_substring": "undefined_symbol",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W3",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "ast_node_disallowed:Attribute: Attribute is not permitted in an expression",
+        "reason_substring": "ast_node_disallowed:Attribute",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W4",
+        "track": "wrapper",
+        "expected_class": "jail_contained",
+        "wrapper_valid": true,
+        "expect_valid": true,
+        "wrapper_reason": "",
+        "reason_substring": "",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W5",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "op_not_allowlisted:minimize: allowed: integrate_definite, integrate_indefinite, diff, limit, series, solve, dsolve",
+        "reason_substring": "op_not_allowlisted:minimize",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      }
+    ],
+    "note": "scored separately from gate cases; never averaged together"
+  },
+  "cost": {
+    "model_calls": {
+      "model_call": 32,
+      "web_search": 0,
+      "total": 32
+    },
+    "attempts": {
+      "model_call": 32,
+      "web_search": 0,
+      "total": 32
+    },
+    "tokens": {
+      "model_call": {
+        "input_tokens": 67040,
+        "cache_creation_input_tokens": 108840,
+        "cache_read_input_tokens": 738874,
+        "output_tokens": 15144
+      },
+      "web_search": {},
+      "total": {
+        "input_tokens": 67040,
+        "cache_creation_input_tokens": 108840,
+        "cache_read_input_tokens": 738874,
+        "output_tokens": 15144
+      }
+    },
+    "wall_time_seconds": 332.0
+  },
+  "ledger_activity": {
+    "fidelity_entries": 0,
+    "override_entries": 0
+  }
+}
