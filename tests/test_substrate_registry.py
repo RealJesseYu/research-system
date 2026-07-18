@@ -21,7 +21,9 @@ from tools import web_search_stub
 
 
 class TestRegistryTable(unittest.TestCase):
-    def test_all_seven_substrates_enrolled(self):
+    def test_all_enrolled_substrates_in_order(self):
+        # BIO Wave D.2: rdkit enrolled (Option A) after ngspice, before
+        # web_search (web_search stays last — outside the routable ladder).
         ids = [r.substrate_id for r in registry.all_substrates()]
         self.assertEqual(
             ids,
@@ -32,6 +34,7 @@ class TestRegistryTable(unittest.TestCase):
                 "fenicsx_cantilever_elastic",
                 "sympy_symbolic_exact",
                 "ngspice_linear_passive",
+                "rdkit",
                 "web_search",
             ],
         )
@@ -83,6 +86,20 @@ class TestRegistryTable(unittest.TestCase):
         self.assertEqual(rec.maturity, registry.CALIBRATING)
         self.assertFalse(rec.routable)
         self.assertFalse(registry.is_mature("code_sklearn_eval"))
+
+    def test_rdkit_enrolled_calibrating_unroutable_and_inert(self):
+        # BIO Wave D.2 (Option A): rdkit enrolls calibrating/routable=False and
+        # is INERT — a registry row only, with NO _CONTRACTS entry, so
+        # contract_for MUST raise (the ngspice-card-8.5 invariant). Runtime
+        # wiring is deferred to D.4 promotion.
+        rec = registry.get("rdkit")
+        self.assertEqual(rec.maturity, registry.CALIBRATING)
+        self.assertFalse(rec.routable)
+        self.assertFalse(registry.is_mature("rdkit"))
+        self.assertEqual(rec.wrapper, "tools/run_rdkit.py")
+        self.assertNotIn("rdkit", registry.routable_ids())
+        with self.assertRaises(LookupError):
+            registry.contract_for("rdkit")
 
     def test_cantilevers_are_calibrating_routable_under_packet_b_phase2(self):
         # the flip's rows: routable=True RULED Packet B Phase 2 (owner

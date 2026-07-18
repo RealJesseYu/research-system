@@ -209,6 +209,24 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="rdkit",
+        wrapper="tools/run_rdkit.py",
+        card_path="docs/envelope_card_rdkit.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes=(
+            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): "
+            "descriptor_computation wrapper (tools/run_rdkit.py) proven real in "
+            "rdkit-prod, all four jails triggered; card signed from real runs "
+            "(docs/envelope_card_rdkit.md, rdkit 2026.03.4). ENROLLED but INERT "
+            "— the runtime maps (contract/signature/vocab/dispatch) are STAGED "
+            "in onboarding/rdkit/, UNWIRED; contract_for('rdkit') must keep "
+            "raising LookupError until a D.4 promotion ruling. Battery pending "
+            "an owner-OK'd slot. First BIO substrate; nothing routes here."
+        ),
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",
