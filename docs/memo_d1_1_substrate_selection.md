@@ -216,3 +216,59 @@ admitting non-numeric content.
 
 Era-of-record: e9084af (R5) -> the Step-23.5 Phase-4 commit, declared in
 that commit's message.
+
+---
+
+## Step 23.5 / R-23.5-5 (owner-ruled 2026-07-17): regime goes per-substrate
+
+R-23.5-5  "regime" remains REQUIRED in every spec; its MEANING is
+          per-substrate. Validation delegates to the per-substrate
+          vocabulary (same lookup family as QoIs — tools/qoi_vocab.py's
+          records carry a required regime-semantics member; unknown/
+          unwired ids hit vocab_for's existing loud raises). Cavity's
+          regime semantics are today's Reynolds bounds — validation
+          behavior and rejection text byte-equal, proven by the cavity
+          pins passing untouched (the regime rejection strings and the
+          regime retry surface, unpinned before this build, were
+          exact-captured in Phase 1: tests/test_r2355_captures.py).
+          ngspice's regime is DERIVED FROM ITS WRAPPER'S typed input on
+          disk (tools/run_ngspice.py _ANALYSIS_FIELDS -> analysis_type in
+          op|dc|ac|tran), never invented; its contract's §3 now states it
+          at the single runtime source of truth (substrates.py).
+          Placeholder circuit fixtures superseded by an honest circuit
+          spec ({"analysis_type": "op", ...}); originals preserved
+          append-only as *_pre2355*.
+R-23.5-5a Rider: the vocab=None -> cavity default in validate_spec is
+          REMOVED; the argument is required at every call site; escape
+          proven by failing (absent vocab raises TypeError; explicit None
+          raises; a vocab record cannot be constructed without regime
+          semantics). No silent cavity resolution anywhere.
+R-23.5-5b Rider: run_ngspice.py's stale "UNREGISTERED" docstring
+          truth-edited with disclosure (stale since the R2 flip);
+          grep-verified first that it enters no composed prompt.
+R-REC-1   Journal convention: Phase 4 of this and every future build
+          writes the build's FINAL OUTPUT verbatim into the repo journal
+          (memory/journal.jsonl, append-only). This build ALSO backfilled
+          Step 23.5's FINAL OUTPUT verbatim from the session transcript
+          (~/.claude/projects/-Users-jesseyu-research-system/
+          a0683898-97d2-4fa9-9184-763978987f5f.jsonl, assistant message at
+          line index 893), provenance-noted in the journal entry.
+
+Build-sequencing ruling applied (disclosed in the Phase-2 commit): the
+brief's Phase-2 "suite green at every commit" and the placeholder-pinned
+c235 fixtures could not both hold with ngspice regime enforcement live,
+so Phase 2 landed the machinery with ngspice's enrolled regime
+transitionally ReynoldsBandRegime (truthful current behavior), and the
+enrollment flip to NGSPICE_REGIME rode the Phase-3 commit with the
+placeholder supersession. Cavity content was byte-identical throughout.
+
+ERA SCOPE outcome: Phase 0c printed NO (the ngspice contract §3 stated
+returns only; no regime statement anywhere in the contract), so BOTH
+permitted era families moved: (1) the stage-2 frozen-prompt regime
+sentence went regime-generic, and (2) the ngspice contract §3 gained its
+regime statement. Cavity content byte-identical everywhere (zero
+cavity-content fixture in any diff; substrates.py cavity region
+byte-identical; tripwire fired once, red then green).
+
+Era-of-record: 3ce383c (Step 23.5 Phase 4) -> the R-23.5-5 Phase-4
+commit, declared in that commit's message.
