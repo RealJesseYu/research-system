@@ -4,13 +4,21 @@ interprets what the pipeline designed and (when permitted) executed, triages
 surprise, and decides what the system should do next. Opus, per CLAUDE.md's
 model roles: the iterate decision is a hard judgment.
 
-The stage code is deterministic: it assembles EXACTLY six prompt inputs from
-the baton payload plus the on-disk stage-4 wrapper summaries, and nothing
-else may enter. The model call itself is factored into run_thought_model,
-shared with the handfeed_stage5 harness; it carries a runtime tripwire — the
-serialized input must not contain the substring "answer_key" and the input's
-top-level keys must be exactly the six allowed — which hard-stops with
-"ANSWER KEY LEAK" otherwise.
+The stage code is deterministic: it assembles the six CORE prompt inputs from
+the baton payload plus the on-disk stage-4 wrapper summaries, and — since D.1a
+— an OPTIONAL seventh input, "substrate_contract": the routed substrate's own
+fidelity-contract text, threaded so the thought layer can ground its
+instrument-fit judgment (and the downstream validation instruction) in the
+instrument's declared limits instead of a bare defer. The contract is threaded
+ONLY for a substrate that is NOT the declared frozen reproducibility anchor
+(registry.is_frozen_anchor) — the anchor (cavity) keeps its byte-frozen
+six-key turn, and its exclusion is a declared registry property, never a
+substrate-name branch. Nothing else may enter. The model call itself is
+factored into run_thought_model, shared with the handfeed_stage5 harness; it
+carries a runtime tripwire — the serialized input must not contain the
+substring "answer_key", the six core keys must all be present, and no key
+beyond the six core plus the optional substrate_contract may appear — which
+hard-stops with "ANSWER KEY LEAK" otherwise.
 
 The reply is enforced in Python, not trusted: a shallow envelope schema,
 then _validate_thought as call_stage_model's extra_validator (surprise_triage
@@ -38,9 +46,14 @@ from pathlib import Path
 from baton import Baton
 from memory.journal import journal_append
 from model_call import call_stage_model, log_stage_call
+from tools import substrate_registry as registry
 
 OPUS_MODEL = "claude-opus-4-8"
 
+# The six CORE keys, always present, in assembly order. This stays exactly six
+# so the frozen anchor's (cavity's) turn keeps its byte-identical shape and
+# tests/test_d0_stage5_input.py holds unchanged: the D.1a contract is NOT a
+# core key — it is the tolerated optional seventh below.
 PROMPT_INPUT_KEYS = (
     "run_id",
     "chosen_hypothesis",
@@ -49,6 +62,12 @@ PROMPT_INPUT_KEYS = (
     "execution_results",
     "stage4_summaries",
 )
+
+# D.1a: the optional seventh key. Threaded by run() only for a non-anchor
+# substrate that has a wired contract; absent for the frozen anchor and for a
+# routable-but-unwired substrate. Kept OUT of PROMPT_INPUT_KEYS on purpose (see
+# above) — the tripwire allows it explicitly.
+CONTRACT_KEY = "substrate_contract"
 
 TRIAGE_VALUES = ("none", "setup_error", "genuine_surprise", "out_of_envelope")
 DECISION_VALUES = ("back_to_ideation", "back_to_design", "more_data", "exit")
@@ -156,10 +175,18 @@ def run_thought_model(prompt_inputs: dict) -> tuple[dict, dict]:
             "ANSWER KEY LEAK: the serialized thought-model input contains the "
             "substring 'answer_key' — refusing to call the model."
         )
-    if sorted(prompt_inputs) != sorted(PROMPT_INPUT_KEYS):
+    # D.1a: the six CORE keys are required; substrate_contract is the tolerated
+    # optional seventh. Any missing core key OR any key beyond the allowed set
+    # still hard-stops — the tripwire is relaxed by exactly one named key, not
+    # opened up.
+    allowed = set(PROMPT_INPUT_KEYS) | {CONTRACT_KEY}
+    missing = set(PROMPT_INPUT_KEYS) - set(prompt_inputs)
+    extra = set(prompt_inputs) - allowed
+    if missing or extra:
         raise RuntimeError(
-            "ANSWER KEY LEAK: thought-model input keys must be exactly "
-            f"{sorted(PROMPT_INPUT_KEYS)}; got {sorted(prompt_inputs)}."
+            "ANSWER KEY LEAK: thought-model input keys must be the six core "
+            f"{sorted(PROMPT_INPUT_KEYS)} plus optional {CONTRACT_KEY!r}; got "
+            f"{sorted(prompt_inputs)}."
         )
 
     data, timing = call_stage_model(
@@ -225,6 +252,20 @@ def run(baton: Baton) -> Baton:
         "execution_results": baton.payload["execution_results"],
         "stage4_summaries": _load_stage4_summaries(baton.run_id),
     }
+    # D.1a: thread the routed substrate's OWN fidelity contract into the thought
+    # layer, so its instrument-fit judgment — and the validation instruction
+    # stage 6 derives from this stage's justification — is grounded in the
+    # instrument's declared limits rather than a bare defer. Excluded for the
+    # declared frozen anchor (cavity keeps its byte-frozen six-key turn and is
+    # the golden case that needs a grounding instruction least) by reading a
+    # registry PROPERTY, never a name branch. A routable-but-unwired substrate
+    # has no contract yet: no field, and the fail-loud stays downstream.
+    substrate_id = baton.payload.get("substrate_id")
+    if substrate_id is not None and not registry.is_frozen_anchor(substrate_id):
+        try:
+            prompt_inputs[CONTRACT_KEY] = registry.contract_for(substrate_id)
+        except LookupError:
+            pass
     data, timing = run_thought_model(prompt_inputs)
 
     thought = data["thought"]

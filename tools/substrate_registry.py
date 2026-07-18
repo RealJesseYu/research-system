@@ -77,6 +77,15 @@ class SubstrateRecord:
     routable: bool
     cost_tier: str
     notes: str
+    # A declared per-substrate ROLE (D.1a, owner-ruled 2026-07-18): a
+    # reproducibility-anchor / frozen-fixture substrate is the golden
+    # known-correct case whose model-visible surfaces are byte-frozen and used
+    # as the era drift-guard. Generic logic that would grow a model-visible
+    # surface (e.g. threading the substrate contract into the thought layer)
+    # opts the anchor OUT by reading THIS property — never by a substrate-NAME
+    # branch. Opt-in, default False: a new substrate is never an anchor until
+    # declared one under a recorded ruling.
+    frozen_anchor: bool = False
 
 
 # The registry itself. Order is the enrollment order and is preserved by
@@ -94,6 +103,13 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
             "substrate (sole-routable note retired at the R2 flip, owner "
             "2026-07-17)"
         ),
+        # THE FROZEN REPRODUCIBILITY ANCHOR (D.1a, owner-ruled 2026-07-18):
+        # cavity is the golden known-correct case; its stage-5 model-visible
+        # turn is byte-frozen (tests/fixtures/d0/thought_user_turn.txt) as the
+        # era drift-guard, and it needs a grounded validation instruction least.
+        # This declared property — not its name — is what excludes it from
+        # contract-threading. No other substrate is an anchor.
+        frozen_anchor=True,
     ),
     SubstrateRecord(
         substrate_id="calculix_cantilever_fea",
@@ -339,6 +355,16 @@ def is_mature(substrate_id: str) -> bool:
     decision may proceed on unattended. provisional / calibrating /
     retrieval-provisional all return False (non-mature)."""
     return _BY_ID[substrate_id].maturity == MATURE
+
+
+def is_frozen_anchor(substrate_id: str) -> bool:
+    """True only for a declared reproducibility-anchor substrate (D.1a) —
+    today, cavity alone. Generic logic that would grow a model-visible surface
+    reads THIS to opt the anchor out, keeping its byte-frozen era guard intact,
+    without ever branching on a substrate name. Raises KeyError on an unknown
+    id (via _BY_ID) — an unenrolled substrate is never silently treated as
+    anything, same fail-loud discipline as the rest of the registry."""
+    return _BY_ID[substrate_id].frozen_anchor
 
 
 def routable_ids() -> tuple[str, ...]:
