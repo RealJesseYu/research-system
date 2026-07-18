@@ -115,10 +115,14 @@ class TestFlipRegistry(unittest.TestCase):
         self.assertIn("Packet B Phase 1", rec.notes)
         self.assertIn("OperationSetRegime", rec.notes)
 
-    def test_routable_set_is_three_in_enrollment_order(self):
+    def test_routable_set_is_five_in_enrollment_order(self):
+        # widened at the Packet B Phase 2 flip: the cantilever pair joined
+        # (sympy stays mid-list — enrollment order preserved)
         self.assertEqual(
             registry.routable_ids(),
-            ("cavity_2d_cfd", "sympy_symbolic_exact", "ngspice_linear_passive"),
+            ("cavity_2d_cfd", "calculix_cantilever_fea",
+             "fenicsx_cantilever_elastic", "sympy_symbolic_exact",
+             "ngspice_linear_passive"),
         )
 
     def test_contract_is_the_graduated_constant_single_source(self):
@@ -170,9 +174,15 @@ class TestFlipRegistry(unittest.TestCase):
             }
         )
         self.assertEqual(sig, expected)
-        # DISJOINTNESS, asserted as a fact (brief item 3): the R-B-1
-        # Phase-2 loud stop leans on overlap detection being real.
-        for other in ("cavity_2d_cfd", "ngspice_linear_passive"):
+        # THE OVERLAP-AWARE STATEMENT (truth-edited at the Packet B Phase 2
+        # flip under R-B-1): sympy's signature stays disjoint from EVERY
+        # other wired signature — including both cantilevers'. The one
+        # deliberate overlap among wired signatures is the cantilever pair
+        # itself (asserted exactly in tests/test_b2_flip_promotion.py:
+        # FEA's seven a proper subset of fenicsx's eight); the R-B-1 loud
+        # stop is what makes that overlap safe.
+        for other in ("cavity_2d_cfd", "ngspice_linear_passive",
+                      "calculix_cantilever_fea", "fenicsx_cantilever_elastic"):
             self.assertEqual(
                 sig & selection.signature_for(other), frozenset(), other
             )
@@ -190,7 +200,7 @@ class TestFlipRegistry(unittest.TestCase):
             dispatch.sympy_run_entry,
         )
 
-    def test_no_substrate_is_mature_and_hook_lists_three_rungs(self):
+    def test_no_substrate_is_mature(self):
         self.assertFalse(
             any(registry.is_mature(r.substrate_id) for r in registry.all_substrates())
         )
@@ -521,6 +531,8 @@ class TestChainCloseSympy(unittest.TestCase):
                 self.assertEqual(
                     signoff["substrates"],
                     ["cavity_2d_cfd@provisional",
+                     "calculix_cantilever_fea@calibrating",
+                     "fenicsx_cantilever_elastic@calibrating",
                      "sympy_symbolic_exact@calibrating",
                      "ngspice_linear_passive@calibrating"],
                 )

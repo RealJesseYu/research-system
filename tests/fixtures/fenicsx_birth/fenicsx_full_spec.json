@@ -1,0 +1,100 @@
+{
+  "hypothesis_id": "hand-fenicsx",
+  "title": "Tip deflection of the reference cantilever at element degree 2",
+  "objective": "Verify that the 3D linear-elastic solve reproduces the Euler-Bernoulli tip deflection of the reference steel cantilever within the validated band at the validated element degree.",
+  "parameters": [
+    {
+      "name": "length",
+      "units": "m",
+      "role": "fixed",
+      "value": 1.0
+    },
+    {
+      "name": "width",
+      "units": "m",
+      "role": "fixed",
+      "value": 0.05
+    },
+    {
+      "name": "height",
+      "units": "m",
+      "role": "fixed",
+      "value": 0.05
+    },
+    {
+      "name": "E",
+      "units": "Pa",
+      "role": "fixed",
+      "value": 210000000000.0
+    },
+    {
+      "name": "nu",
+      "units": "-",
+      "role": "fixed",
+      "value": 0.3
+    },
+    {
+      "name": "tip_load",
+      "units": "N",
+      "role": "fixed",
+      "value": 1000.0
+    },
+    {
+      "name": "mesh_density",
+      "units": "int",
+      "role": "sweep",
+      "min": 8,
+      "max": 16
+    },
+    {
+      "name": "element_degree",
+      "units": "int",
+      "role": "fixed",
+      "value": 2
+    }
+  ],
+  "qoi": {
+    "name": "tip displacement",
+    "units": "m",
+    "definition": "the maximum |u_z| over the displacement dofs \u2014 the tip deflection of the transversely loaded cantilever",
+    "how_extracted": "returned by the wrapper on every valid run; the requested number per the contract's quantity key",
+    "quantity": "tip_displacement"
+  },
+  "success_criterion": {
+    "statement": "The coarse-mesh tip deflection exceeds 0.0029 m (within ~5% of the Euler-Bernoulli value 0.0030476 m, approaching from below).",
+    "threshold": 0.0029,
+    "direction": "above"
+  },
+  "regime": {
+    "notes": "Slender reference beam (L/h = 20 >= 10, G1), small deflection (delta/L ~ 0.3% <= 10%, G2), element_degree 2 at the validated floor (G5); the requested QoI is the validated tip_displacement, not the reported-only stress."
+  },
+  "mini_experiment": {
+    "runs": [
+      {
+        "length": 1.0,
+        "width": 0.05,
+        "height": 0.05,
+        "E": 210000000000.0,
+        "nu": 0.3,
+        "tip_load": 1000.0,
+        "mesh_density": 8,
+        "element_degree": 2
+      },
+      {
+        "length": 1.0,
+        "width": 0.05,
+        "height": 0.05,
+        "E": 210000000000.0,
+        "nu": 0.3,
+        "tip_load": 1000.0,
+        "mesh_density": 16,
+        "element_degree": 2
+      }
+    ],
+    "expected_observation": "tip_displacement 0.003008 -> 0.003029 m across mesh 8 -> 16, converging toward the Euler-Bernoulli 0.0030476 m from below."
+  },
+  "full_experiment": {
+    "design": "The three-rung refinement ladder (mesh 8/16/32) at degree 2, comparing each tip deflection to the closed form; degree 3 on the coarsest rung as an over-resolution check.",
+    "estimated_run_count": 4
+  }
+}

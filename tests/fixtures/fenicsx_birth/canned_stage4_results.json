@@ -1,0 +1,32 @@
+{
+  "status": "executed",
+  "verdict_label": "trust",
+  "qoi_request": {
+    "quantity": "tip_displacement"
+  },
+  "runs": [
+    {
+      "run_index": 1,
+      "case": "birth-canned-fenicsx-s5_run1",
+      "params": {
+        "length": 1.0,
+        "width": 0.05,
+        "height": 0.05,
+        "E": 210000000000.0,
+        "nu": 0.3,
+        "tip_load": 1000.0,
+        "mesh_density": 8,
+        "element_degree": 2
+      },
+      "summary": {
+        "valid": true,
+        "qoi": {
+          "tip_displacement": 0.003007857,
+          "max_von_mises": 42460000.0
+        },
+        "diagnostics": "dolfinx 0.11.0.post0 Lagrange degree 2 hex mesh 8x1x1 (8 cells, 425 dofs); scalar=float64; von Mises interpolated into DG1; solve 0.024s",
+        "runtime_s": 0.705
+      }
+    }
+  ]
+}

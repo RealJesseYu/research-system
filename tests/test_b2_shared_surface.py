@@ -351,11 +351,15 @@ class TestFixedSummaryVocabShape(unittest.TestCase):
             self.assertTrue(errors, key)
             self.assertIn("different substrate class's QoI grammar", errors[0])
 
-    def test_no_production_instance_before_the_flip(self):
+    def test_unwired_set_carries_no_vocab_instance(self):
         # Instances are wired at the flip alongside the routability ruling,
-        # never before — the map carries no cantilever entry at this commit.
-        self.assertNotIn(FEA, qoi_vocab._VOCABS)
-        self.assertNotIn(FENICSX, qoi_vocab._VOCABS)
+        # never before — at commit 2 this asserted the CANTILEVERS absent;
+        # since the Phase 2 flip they are wired, and the statement moves to
+        # the remaining unwired set (code_sklearn_eval, web_search).
+        self.assertIn(FEA, qoi_vocab._VOCABS)
+        self.assertIn(FENICSX, qoi_vocab._VOCABS)
+        self.assertNotIn("code_sklearn_eval", qoi_vocab._VOCABS)
+        self.assertNotIn("web_search", qoi_vocab._VOCABS)
 
 
 if __name__ == "__main__":

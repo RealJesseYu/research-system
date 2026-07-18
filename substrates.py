@@ -534,3 +534,245 @@ ill-typed field is rejected before anything runs. Bounds, points, and ics
 keys are expressions and pass the same AST allowlist as the expression
 itself.
 """
+
+CALCULIX_CANTILEVER_FEA_CONTRACT = """\
+SUBSTRATE CONTRACT: calculix_cantilever_fea
+
+1. WHAT THE INSTRUMENT IS
+This substrate runs 3D linear-elastic isotropic small-deflection static
+cantilever beams: a rectangular prism clamped on one end face, loaded by a
+single transverse force distributed over the opposite end face. The solver
+is CalculiX 2.17 (ccx) running inside the ccx-prod container, driven
+through the run_fea wrapper — deterministic Python with no AI inside,
+which meshes the beam, writes the input deck, runs one static solve, and
+parses the result down to a small summary. The element is C3D8I, the
+8-node incompatible-modes hexahedron: bending-capable IN THE ELEMENT
+FORMULATION itself, so this family has no element-order knob to set and a
+coarse mesh does not shear-lock (contrast the sibling fenicsx cantilever
+family, which exposes element order as typed input). The validated
+envelope comes from this substrate's own evidence: the reference beam
+(L=1.0 m, w=h=0.05 m, steel E=210e9 Pa, nu=0.3, 1000 N) at three
+refinements reproduces the Euler-Bernoulli closed form within 1.466% ->
+0.602% -> 0.550% (mesh 8 -> 16 -> 32), converging monotonically from
+below, and the calibration battery executed 2026-07-16 scored 30/30 gate
+draws in-band at 3 repeats with the wrapper's five typed-rejection
+self-checks 5/5. Cases in that class are proven; anything far outside it
+is unproven, not impossible.
+
+2. WHAT A CASE MUST DEFINE
+A case is a fully typed input; the wrapper meshes and solves it as-is. It
+must define, in the canonical vocabulary of section 5: the beam's three
+dimensions; the isotropic material's Young's modulus and Poisson's ratio;
+the total transverse tip load; and the mesh density along the length.
+Geometry convention: X spans the length (clamped at x=0), Y the width, Z
+the height and the load direction (-Z). Every field is REQUIRED — there
+are no defaults, an omitted field is a named rejection, never a guess —
+and unknown fields are rejected by name. Nothing else is meshable by this
+instrument: any other geometry, boundary condition, material law, or load
+pattern is outside it.
+
+3. WHAT run_fea RETURNS TODAY
+On a run that completes, a small fixed summary — never the raw solver
+output:
+  - valid: true or false. False whenever the input was rejected, the
+    solver failed, or the output was unusable; diagnostics names the
+    reason, and the instrument NEVER fabricates a number.
+  - qoi (on a valid run), carrying BOTH of these, every run, with no
+    per-run selection:
+      * tip_displacement (m): the maximum |u3| over the printed nodes —
+        the tip deflection of a transversely loaded cantilever. VALIDATED
+        within family v1 against the Euler-Bernoulli closed form.
+      * max_von_mises (Pa): the maximum von Mises stress over the
+        integration points. REPORTED-ONLY — see the regime statement
+        below and section 4.
+  - diagnostics: a bounded human-readable line (mesh and node/element
+    counts, parse summary), capped at 800 characters.
+  - runtime_s: wall-clock seconds. A run is killed after 600 seconds and
+    reported as a failure; one retry on transient infrastructure failure.
+An experiment spec's qoi object may carry the machine-readable key
+"quantity" naming which returned number is THE quantity of interest —
+exactly one of "tip_displacement" | "max_von_mises", validated against
+the wrapper's own vocabulary; a qoi without it is recorded honestly as
+not extractable, never guessed.
+How this summary maps to an upstream stage-4 run entry (per the ngspice
+mapping, stated here at enrollment): converged := (valid is true) — for
+this substrate converged means the solve COMPLETED AND PARSED, never that
+the mesh is converged or the physics in-regime; wall_clock_s :=
+runtime_s; valid=false carries the wrapper's own diagnostics line as
+qoi_error, and no number is ever invented. There is no `state` key: this
+wrapper's summary carries no state vocabulary of its own, only the
+boolean valid.
+THIS INSTRUMENT'S REGIME (stated at enrollment per R-23.5-5c; shape
+ruled Packet B Phase 2.0, build chat under the owner's standing
+delegation, 2026-07-17): not a Reynolds band, not a circuit analysis,
+and not a symbolic operation — this instrument serves exactly one
+physics regime by construction: linear-elastic isotropic
+small-deflection STATIC bending of a singly-clamped, tip-loaded
+rectangular prism, solved with the C3D8I incompatible-modes hex element
+(bending-capable in the element formulation itself, so this family has
+no element-order knob to set). The regime's ruled bounds are card
+judgments the gate reads, not typed inputs: the Euler-Bernoulli
+reference applies at slenderness length/height >= 10 (F1); the linear
+solve holds to tip-deflection/length <= 0.10 (F2); a mesh must reproduce
+the reference within 2.0% (F3); and max_von_mises is REPORTED-ONLY,
+never validated (F4) — its pointwise maximum sits on the clamped-corner
+stress singularity and RISES with mesh refinement (measured 2.521e7 ->
+3.848e7 Pa across mesh 8 -> 32) instead of settling, so a claim resting
+on it is deferred, never trusted. An experiment spec's required "regime"
+object for this substrate is {"notes": "..."} — a statement of why the
+case sits inside those bounds; a regime block carrying Reynolds fields,
+an analysis_type key, or an operation key is rejected by name by the
+per-substrate validator before anything runs. Documentation honesty: the
+docs index serves the CalculiX manual v2.23 while the solver is v2.17 —
+a superset reference, not a version-matched one; a worked example from
+the manual must be version-checked before its numbers are trusted.
+
+4. HONEST LIMITS
+  - Linear-elastic isotropic small-deflection statics ONLY. No
+    plasticity, no hyperelasticity, no contact, no buckling, no dynamics,
+    no anisotropy, no thermal coupling, no distributed or multiple loads,
+    no non-rectangular sections. A case whose physics is actually any of
+    those will still return a number, and the wrapper cannot detect that.
+  - The Euler-Bernoulli closed form delta = P*L^3/(3*E*I) with
+    I = w*h^3/12 is the only reference this instrument is validated
+    against, and it is only itself trustworthy for SLENDER beams — it
+    neglects shear deformation, whose correction grows rapidly below
+    length/height = 10 (bound F1). A stubby beam needs a Timoshenko or
+    full-elasticity reference; the solve may be fine, but
+    validated-against-the-reference no longer holds.
+  - Past tip-deflection/length ~ 0.10 (bound F2) the small-deflection
+    assumption itself is broken: the linear static solve ignores
+    geometric stiffening and over-predicts deflection while converging
+    cleanly. No re-run of THIS instrument fixes that.
+  - max_von_mises is REPORTED, NOT VALIDATED (bound F4): its pointwise
+    maximum sits at the clamped-corner stress singularity, which belongs
+    to the continuum problem itself — it rises with refinement (measured
+    2.521e7 -> 2.609e7 -> 3.848e7 Pa across mesh 8 -> 16 -> 32) instead
+    of settling and has no converged value to find. The sibling fenicsx
+    instrument measured the same rise independently on a different
+    solver: the disease is the corner, not the code.
+  - A case with nu near 0.5 is numerically suspect even though the input
+    is well-formed and the solve converges: near-incompressibility risks
+    volumetric locking, which this element is not built to remedy.
+    Anticipated from the physics, not measured on this substrate.
+  - There is NO regime check anywhere in this instrument. It confirms
+    that the solver ran and the output parsed — never that the physics
+    is in-regime, never that the mesh is converged. Slenderness and
+    linearity are invisible to it.
+  - Whether a case's regime assumptions are themselves trustworthy is
+    NOT checked anywhere in this contract; that open axis belongs to the
+    fidelity gate's future work, and nothing here should be read as
+    covering it.
+
+5. CANONICAL PARAMETER VOCABULARY
+The wrapper honors exactly these canonical parameter names; anything
+else is rejected by name, and every one is REQUIRED (no defaults — an
+omitted field is a rejection, never a guess):
+  - length        (m)   -- beam length, spanning X; clamped at x=0
+  - width         (m)   -- section width, spanning Y
+  - height        (m)   -- section height, spanning Z; the load direction
+  - E             (Pa)  -- Young's modulus; must be positive
+  - nu            (-)   -- Poisson's ratio; must be in (-1, 0.5)
+  - tip_load      (N)   -- total transverse load at x=length, in -Z,
+                           distributed uniformly over the tip face
+  - mesh_density  (int) -- hexahedral element count along the length; the
+                           width and height counts scale by aspect ratio,
+                           so the reference beam meshes 8 -> 8x1x1,
+                           16 -> 16x1x1, 32 -> 32x2x2
+These seven names carry the SAME units and semantics as the sibling
+fenicsx cantilever family v1, deliberately, so one beam can be posed to
+both instruments; that family's eighth field (element_degree) has no
+counterpart here — C3D8I fixes bending locking in the element
+formulation instead, with no order to choose.
+"""
+
+# ---------------------------------------------------------------------------
+# fenicsx_cantilever_elastic — graduated at the Packet B Phase 2 flip.
+#
+# ONE RUNTIME SOURCE OF TRUTH, honored by CONSTRUCTION rather than by copy:
+# the five contract sections live in onboarding/fenicsx_cantilever_elastic/
+# contract.py (the module the envelope card §6 points at, and the module the
+# battery case file is GENERATED from with a byte-identity test). This file
+# path-loads that module (the run_scipy.py mechanism, under its own private
+# module name) and composes the graduated contract from THOSE objects — the
+# four composed section constants stay byte-identical (binding Phase-2
+# ruling constraint 5: the executed battery's case file must keep matching
+# its contract), and the ruled §3 additions below land OUTSIDE them.
+# ---------------------------------------------------------------------------
+import importlib.util as _importlib_util
+from pathlib import Path as _Path
+
+_FENICSX_CONTRACT_PATH = (
+    _Path(__file__).resolve().parent
+    / "onboarding" / "fenicsx_cantilever_elastic" / "contract.py"
+)
+_fenicsx_spec = _importlib_util.spec_from_file_location(
+    "_fenicsx_contract_sections", _FENICSX_CONTRACT_PATH
+)
+_fenicsx_sections = _importlib_util.module_from_spec(_fenicsx_spec)
+_fenicsx_spec.loader.exec_module(_fenicsx_sections)
+
+# The ruled §3 additions (Packet B Phase 2.0/2.1): the "quantity" machine
+# key statement (option V-A), the run-entry mapping, and the regime
+# statement — authored HERE, outside the four battery-composed section
+# constants, so contract.py's SUBSTRATE_TEXT / ENVELOPE_TEXT and the
+# generated case file stay byte-identical to what the battery executed.
+_FENICSX_SECTION3_ADDITIONS = """\
+An experiment spec's qoi object may carry the machine-readable key
+"quantity" naming which returned number is THE quantity of interest —
+exactly one of "tip_displacement" | "max_von_mises", validated against
+the wrapper's own vocabulary; a qoi without it is recorded honestly as
+not extractable, never guessed.
+How this summary maps to an upstream stage-4 run entry (per the ngspice
+mapping, stated here at enrollment): converged := (valid is true) —
+COMPLETED AND PARSED, never mesh-converged, never in-regime, never
+element-appropriate; wall_clock_s := runtime_s; valid=false carries the
+wrapper's own diagnostics line as qoi_error, and no number is ever
+invented. There is no `state` key: this wrapper's summary carries no
+state vocabulary of its own, only the boolean valid.
+THIS INSTRUMENT'S REGIME (stated at enrollment per R-23.5-5c; shape
+ruled Packet B Phase 2.0, build chat under the owner's standing
+delegation, 2026-07-17): not a Reynolds band, not a circuit analysis,
+and not a symbolic operation — this instrument serves exactly one
+physics regime by construction: linear-elastic isotropic
+small-deflection STATIC bending of a singly-clamped, tip-loaded
+rectangular prism. Its ruled bounds are card judgments the gate reads:
+slenderness length/height >= 10 (G1); tip-deflection/length <= 0.10
+(G2); mesh reproduction within 2.0% of the closed form (G3);
+max_von_mises REPORTED-ONLY, never validated (G4 — the clamped-corner
+singularity rises with refinement here too, measured 4.246e7 -> 4.670e7
+Pa); and THE ELEMENT-ORDER BOUND (G5): only element_degree >= 2 is
+validated. element_degree is typed input this instrument exposes and its
+sibling does not: a degree-1 run is ACCEPTED by the wrapper, converges
+cleanly, and reports a shear-locked, confidently wrong number (measured
+0.28x the closed form at mesh_density 8, still 5.5% too stiff at 64,
+with degree 2 at 0.987x on the coarsest mesh) and nothing in the
+diagnostics says so. This bound must survive into every routing
+decision, or routing to this substrate is unsafe. Note the tension
+without glossing it: G1 demands slender beams because that is where the
+reference is trustworthy, and slender beams are exactly where a locked
+low-order element is MOST wrong — both are true at once, and G5 is what
+makes G1's regime safely usable. An experiment spec's required "regime"
+object for this substrate is {"notes": "..."}; a regime block carrying
+Reynolds fields, an analysis_type key, or an operation key is rejected
+by name by the per-substrate validator before anything runs."""
+
+FENICSX_CANTILEVER_ELASTIC_CONTRACT = f"""\
+SUBSTRATE CONTRACT: fenicsx_cantilever_elastic
+
+1. WHAT THE INSTRUMENT IS
+{_fenicsx_sections._INSTRUMENT}
+
+2. WHAT A CASE MUST DEFINE
+{_fenicsx_sections._CASE_DEFINITION}
+
+3. WHAT run_fenicsx RETURNS TODAY
+{_fenicsx_sections._RETURNS}
+{_FENICSX_SECTION3_ADDITIONS}
+
+4. HONEST LIMITS
+{_fenicsx_sections._LIMITS}
+
+5. CANONICAL PARAMETER VOCABULARY
+{_fenicsx_sections._VOCABULARY}
+"""

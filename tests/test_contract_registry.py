@@ -26,14 +26,16 @@ from tools import substrate_registry as registry
 
 
 class TestContractSelection(unittest.TestCase):
-    def test_sole_routable_raises_on_the_real_three_routable_registry(self):
-        # Post-Packet-B-Phase-1-flip the routable set is three, so the
+    def test_sole_routable_raises_on_the_real_five_routable_registry(self):
+        # Post-Packet-B-Phase-2-flip the routable set is five, so the
         # RETIRED sole_routable_id() raises on the real registry — its
         # documented behavior, and the reason D.2 replaced it with
         # select_substrate.
         self.assertEqual(
             registry.routable_ids(),
-            ("cavity_2d_cfd", "sympy_symbolic_exact", "ngspice_linear_passive"),
+            ("cavity_2d_cfd", "calculix_cantilever_fea",
+             "fenicsx_cantilever_elastic", "sympy_symbolic_exact",
+             "ngspice_linear_passive"),
         )
         with self.assertRaises(RuntimeError):
             registry.sole_routable_id()
@@ -116,6 +118,10 @@ class TestRoutableContractsBlock(unittest.TestCase):
         expected = (
             "ROUTABLE SUBSTRATE: cavity_2d_cfd\n"
             + substrates.CAVITY_2D_CONTRACT
+            + "\n\nROUTABLE SUBSTRATE: calculix_cantilever_fea\n"
+            + substrates.CALCULIX_CANTILEVER_FEA_CONTRACT
+            + "\n\nROUTABLE SUBSTRATE: fenicsx_cantilever_elastic\n"
+            + substrates.FENICSX_CANTILEVER_ELASTIC_CONTRACT
             + "\n\nROUTABLE SUBSTRATE: sympy_symbolic_exact\n"
             + substrates.SYMPY_SYMBOLIC_EXACT_CONTRACT
             + "\n\nROUTABLE SUBSTRATE: ngspice_linear_passive\n"
@@ -126,10 +132,14 @@ class TestRoutableContractsBlock(unittest.TestCase):
     def test_fail_loud_escape_contractless_routable_cannot_compose(self):
         # A routable substrate without a wired contract cannot compose — the
         # LookupError escapes (never a silent skip, never a cavity fallback).
+        # Subject migrated at the Packet B Phase 2 flip: calculix gained a
+        # contract, so the subject is code_sklearn_eval (enrolled, wholly
+        # unwired — the remaining unwired set is {code_sklearn_eval,
+        # web_search}).
         with mock.patch.object(
             registry,
             "routable_ids",
-            return_value=("cavity_2d_cfd", "calculix_cantilever_fea"),
+            return_value=("cavity_2d_cfd", "code_sklearn_eval"),
         ):
             with self.assertRaises(LookupError):
                 registry.routable_contracts_block()
@@ -141,9 +151,10 @@ class TestFailLoudEscape(unittest.TestCase):
     cannot fail is not a proof, so we request contract-less substrates and assert
     the raise, then assert cavity's text was NOT returned."""
 
-    def test_fea_has_no_contract_and_raises(self):
-        with self.assertRaises(LookupError):
-            registry.contract_for("calculix_cantilever_fea")
+    # test_fea_has_no_contract_and_raises retired at the Packet B Phase 2
+    # flip: calculix's contract is wired (the graduated constant). The
+    # remaining unwired escapes are code and web_search below; the
+    # live-derived contractless sweep keeps covering the whole set.
 
     def test_code_has_no_contract_and_raises(self):
         with self.assertRaises(LookupError):

@@ -1,0 +1,15 @@
+{
+  "run_id": "birth-canned-fenicsx",
+  "created_at": "2026-07-17T00:00:00+00:00",
+  "mode": "auto",
+  "payload": {
+    "domain": "static deflection of slender elastic cantilever beams",
+    "chosen_hypothesis": {
+      "id": "hand-fenicsx",
+      "statement": "The reference steel cantilever's tip deflection under a 1000 N tip load matches the Euler-Bernoulli prediction within 2% at element degree 2.",
+      "rationale": "HAND-FED (not stage-1 output): a known-servable fixed-summary claim to capture the fenicsx stage-2 model-visible surface at its birth (Packet B Phase 2 flip)."
+    },
+    "substrate_id": "fenicsx_cantilever_elastic"
+  },
+  "history": []
+}

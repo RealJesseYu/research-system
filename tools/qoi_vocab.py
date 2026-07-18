@@ -46,6 +46,8 @@ from typing import Any, ClassVar, Pattern
 
 from tools import substrate_registry as registry
 from tools.run_cfd import MASK_TYPES, QOI_COMPONENTS, QOI_OPERATIONS, _QOI_FIELD_RE
+from tools.run_fea import QOI_FIELDS as _FEA_QOI_FIELDS
+from tools.run_fenicsx import QOI_FIELDS as _FENICSX_QOI_FIELDS
 from tools.run_ngspice import _ANALYSIS_FIELDS, _NAME_RE, _QOI_KINDS, _REDUCTIONS
 from tools.run_scipy import OPERATIONS as _SCIPY_OPERATIONS
 
@@ -284,6 +286,22 @@ _VOCABS: dict[str, Any] = {
     # so the record carries no machine-key vocabulary, only the regime
     # record derived above from the wrapper's own operation allowlist.
     "sympy_symbolic_exact": SymbolicResultVocab(regime=SYMPY_REGIME),
+    # Packet B Phase 2 flip (build chat under the owner's standing
+    # delegation, 2026-07-17): the cantilever pair's vocabularies are the
+    # fixed-summary shape — each wrapper takes no QoI request yet returns
+    # BOTH named numbers every valid run; `names` is each wrapper's OWN
+    # QOI_FIELDS constant, imported (the two tuples are equal by design
+    # and deliberately not shared — the wrappers share no code). TWO
+    # regime instances of one shape, one per (substrate, physics-regime)
+    # card unit.
+    "calculix_cantilever_fea": FixedSummaryVocab(
+        names=tuple(_FEA_QOI_FIELDS),
+        regime=StaticSmallDeflectionRegime(),
+    ),
+    "fenicsx_cantilever_elastic": FixedSummaryVocab(
+        names=tuple(_FENICSX_QOI_FIELDS),
+        regime=StaticSmallDeflectionRegime(),
+    ),
 }
 
 

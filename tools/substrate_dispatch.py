@@ -53,6 +53,8 @@ from pathlib import PurePosixPath
 
 from stages import stage4_case_builder
 from tools import substrate_registry as registry
+from tools.run_fea import _REQUIRED_FIELDS as _FEA_INPUT_KEYS
+from tools.run_fenicsx import _REQUIRED_FIELDS as _FENICSX_INPUT_KEYS
 from tools.run_ngspice import _REQUIRED_FIELDS, _REQUIRED_QOI_FIELDS
 from tools.run_scipy import (
     OP_FIELDS as _SCIPY_OP_FIELDS,
@@ -222,6 +224,57 @@ def _sympy_adapter(substrate_id, params, case_name, roles, qoi_request):
     return wrapper_callable(substrate_id)(dict(params))
 
 
+def _cantilever_adapter(substrate_id, params, case_name, roles, qoi_request,
+                        input_keys):
+    """FIXED-SUMMARY (cantilever class) execution adapter core — INPUT ONLY
+    (Packet B Phase 2 flip, build chat under the owner's standing
+    delegation, 2026-07-17). case_name and roles are cavity-class concepts,
+    accepted for the uniform adapter signature, unused. qoi_request is
+    likewise not part of the typed input: these wrappers take NO QoI
+    request (both named numbers return on every valid run; the request is
+    consumed at ENTRY CONSTRUCTION, which picks the one requested number).
+
+    Structural screen only, mirroring the sympy adapter: params must be a
+    dict whose keys are members of the owning wrapper's own typed-key set
+    (imported) — unknown keys fail loud naming every offender. CONTENT
+    validation (missing fields, positivity, nu bounds, the element_degree
+    typed floor) is the wrapper's own _validate_input, the single source:
+    content problems come back as honest valid=false summaries whose
+    diagnostics name the offender, never as adapter crashes. Returns the
+    wrapper summary VERBATIM so stage-4 evidence keeps the full summary."""
+    if not isinstance(params, dict):
+        raise ValueError(
+            f"cannot translate mini-run params: expected an object, got "
+            f"{type(params).__name__}"
+        )
+    unknown = sorted(set(params) - set(input_keys))
+    if unknown:
+        raise ValueError(
+            "cannot translate mini-run params to the cantilever typed input: "
+            f"unknown key(s) {', '.join(unknown)} (the wrapper input takes "
+            f"only keys from {', '.join(input_keys)})"
+        )
+    return wrapper_callable(substrate_id)(dict(params))
+
+
+def _fea_adapter(substrate_id, params, case_name, roles, qoi_request):
+    """calculix_cantilever_fea: the cantilever adapter over run_fea's own
+    typed-key set (imported — the FEA seven)."""
+    return _cantilever_adapter(
+        substrate_id, params, case_name, roles, qoi_request, _FEA_INPUT_KEYS
+    )
+
+
+def _fenicsx_adapter(substrate_id, params, case_name, roles, qoi_request):
+    """fenicsx_cantilever_elastic: the cantilever adapter over
+    run_fenicsx's own typed-key set (imported — the seven plus
+    element_degree, the regime-boundary field the wrapper REQUIRES with no
+    default)."""
+    return _cantilever_adapter(
+        substrate_id, params, case_name, roles, qoi_request, _FENICSX_INPUT_KEYS
+    )
+
+
 # The run_ngspice summary key set, per the wrapper's own documented return
 # shape (tools/run_ngspice.py:28: {valid, qoi, diagnostics, runtime_s}) —
 # the wrapper defines no constant for it, so the contract line is the cite.
@@ -303,6 +356,10 @@ _ADAPTERS: dict = {
     "ngspice_linear_passive": _ngspice_adapter,
     # Packet B Phase 1 flip (owner, 2026-07-17)
     "sympy_symbolic_exact": _sympy_adapter,
+    # Packet B Phase 2 flip (build chat under the owner's standing
+    # delegation, 2026-07-17)
+    "calculix_cantilever_fea": _fea_adapter,
+    "fenicsx_cantilever_elastic": _fenicsx_adapter,
 }
 
 
@@ -348,11 +405,45 @@ def _sympy_qoi_translation(spec_qoi, vocab):
     return {"symbolic_result": True}, None
 
 
+def _fixed_summary_qoi_translation(spec_qoi, vocab):
+    """Fixed-summary (cantilever class) translation in stage 4's
+    (request, refusal) shape: the ONE machine key is "quantity" — which of
+    the wrapper's returned numbers is THE quantity of interest, membership-
+    checked against the record's `names` (imported from the wrapper's own
+    QOI_FIELDS). A missing or unknown quantity is an honest refusal (the
+    qoi_error fallback path), never a guess — the wrapper returns both
+    numbers regardless; the request is consumed at entry construction."""
+    if not isinstance(spec_qoi, dict):
+        return None, (
+            f"spec qoi must be an object, got {type(spec_qoi).__name__} — "
+            "refusing to invent a request"
+        )
+    if "quantity" not in spec_qoi:
+        return None, (
+            "spec qoi carries no machine-readable 'quantity' key — a "
+            "fixed-summary request names which of the wrapper's returned "
+            f"numbers ({', '.join(vocab.names)}) is THE quantity of "
+            "interest; free-text definitions are not translated"
+        )
+    quantity = spec_qoi["quantity"]
+    if quantity not in vocab.names:
+        return None, (
+            f"spec qoi quantity {quantity!r} is not one of the wrapper's "
+            f"returned numbers ({', '.join(vocab.names)}); refusing to guess"
+        )
+    return {"quantity": quantity}, None
+
+
 _QOI_TRANSLATIONS: dict = {
     "cavity_2d_cfd": _cavity_qoi_translation,
     "ngspice_linear_passive": _ngspice_qoi_translation,
     # Packet B Phase 1 flip (owner, 2026-07-17)
     "sympy_symbolic_exact": _sympy_qoi_translation,
+    # Packet B Phase 2 flip (build chat under the owner's standing
+    # delegation, 2026-07-17): one translation, two substrates — the
+    # membership set is per-record (each wrapper's own imported names).
+    "calculix_cantilever_fea": _fixed_summary_qoi_translation,
+    "fenicsx_cantilever_elastic": _fixed_summary_qoi_translation,
 }
 
 
@@ -509,11 +600,114 @@ def sympy_run_entry(summary, qoi_error_fallback=None, qoi_request=None) -> dict:
     return entry
 
 
+# The cantilever wrappers' summary key set, per both wrappers' documented
+# return shape (tools/run_fea.py:22-26 / tools/run_fenicsx.py:33-37:
+# {valid, qoi, diagnostics, runtime_s}) — neither wrapper defines a
+# constant for it, so the contract lines are the cite.
+_CANTILEVER_SUMMARY_KEYS = ("valid", "qoi", "diagnostics", "runtime_s")
+
+
+def fixed_summary_run_entry(summary, qoi_error_fallback=None,
+                            qoi_request=None) -> dict:
+    """Packet B Phase 2 flip (ruled option V-A, build chat under the
+    owner's standing delegation, 2026-07-17): one conclusions-only stage-4
+    run entry from a cantilever fixed-summary wrapper summary.
+
+    The mapping, stated in both graduated contracts §3: converged :=
+    (valid is True) — COMPLETED AND PARSED, never mesh-converged, never
+    in-regime; wall_clock_s := runtime_s; NO `state` key (these wrappers
+    carry no state vocabulary of their own, only the boolean valid). The
+    wrapper returns BOTH named numbers on every valid run, and the locked
+    run entry carries ONE numeric qoi_value — qoi_request (the additive
+    third constructor parameter this substrate class exists for) names
+    which: {"quantity": <name>} picks summary["qoi"][<name>]. A valid run
+    with NO translated request files honestly under qoi_error via the
+    stage-4 fallback; valid=false carries the wrapper's own diagnostics.
+    FAIL LOUD (ValueError naming every offender) on structurally missing,
+    ill-typed, or contract-breaking wrapper fields — never a default."""
+    if not isinstance(summary, dict):
+        raise ValueError(
+            f"cannot construct a run entry: expected a cantilever wrapper "
+            f"summary object, got {type(summary).__name__}"
+        )
+    missing = [k for k in _CANTILEVER_SUMMARY_KEYS if k not in summary]
+    if missing:
+        raise ValueError(
+            "cannot construct a run entry: cantilever wrapper summary is "
+            f"missing field(s) {', '.join(missing)} — the wrapper contract "
+            f"is exactly {{{', '.join(_CANTILEVER_SUMMARY_KEYS)}}}; "
+            "refusing to default"
+        )
+    valid = summary["valid"]
+    if not isinstance(valid, bool):
+        raise ValueError(
+            f"cannot construct a run entry: summary valid must be a bool, "
+            f"got {valid!r}"
+        )
+    runtime_s = summary["runtime_s"]
+    if not isinstance(runtime_s, (int, float)) or isinstance(runtime_s, bool):
+        raise ValueError(
+            f"cannot construct a run entry: summary runtime_s must be a "
+            f"number, got {runtime_s!r}"
+        )
+    entry = {"converged": valid is True, "wall_clock_s": runtime_s}
+    if not valid:
+        diagnostics = summary["diagnostics"]
+        if not isinstance(diagnostics, str) or not diagnostics.strip():
+            raise ValueError(
+                f"cannot construct a run entry: summary valid=false but "
+                f"diagnostics is {diagnostics!r} — a failed run must carry "
+                "its named reason; refusing to invent a qoi_error"
+            )
+        entry["qoi_error"] = diagnostics
+        return entry
+    qoi = summary["qoi"]
+    if not isinstance(qoi, dict):
+        raise ValueError(
+            f"cannot construct a run entry: summary claims valid=true but "
+            f"qoi is {qoi!r}, not an object — the wrapper contract says "
+            "valid=true always carries both named numbers; refusing to "
+            "fabricate a qoi_value"
+        )
+    if isinstance(qoi_request, dict) and "quantity" in qoi_request:
+        quantity = qoi_request["quantity"]
+        if quantity not in qoi:
+            raise ValueError(
+                f"cannot construct a run entry: requested quantity "
+                f"{quantity!r} is absent from the wrapper qoi object "
+                f"(keys: {', '.join(sorted(qoi))}) — the wrapper contract "
+                "says every valid run carries both named numbers; refusing "
+                "to substitute"
+            )
+        value = qoi[quantity]
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            raise ValueError(
+                f"cannot construct a run entry: quantity {quantity!r} is "
+                f"{value!r}, not a number — refusing to fabricate a "
+                "qoi_value"
+            )
+        entry["qoi_value"] = value
+        return entry
+    if qoi_error_fallback is not None:
+        entry["qoi_error"] = qoi_error_fallback
+        return entry
+    raise ValueError(
+        "cannot construct a run entry: a valid cantilever run arrived with "
+        "neither a translated qoi_request nor a qoi_error fallback — "
+        "refusing to pick a number silently"
+    )
+
+
 _RUN_ENTRY_CONSTRUCTORS: dict = {
     "cavity_2d_cfd": _cavity_run_entry,
     "ngspice_linear_passive": _ngspice_run_entry_with_fallback,
     # Packet B Phase 1 flip (owner, 2026-07-17): the tri-state carrier.
     "sympy_symbolic_exact": sympy_run_entry,
+    # Packet B Phase 2 flip (build chat under the owner's standing
+    # delegation, 2026-07-17): one constructor, two substrates — the
+    # request-named pick is per-call, the contract mapping identical.
+    "calculix_cantilever_fea": fixed_summary_run_entry,
+    "fenicsx_cantilever_elastic": fixed_summary_run_entry,
 }
 
 

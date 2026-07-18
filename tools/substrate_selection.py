@@ -53,8 +53,10 @@ spec's declared parameter NAMES only. That is structural matching against
 wrapper vocabularies, not substrate-name parsing: the spec never names a
 substrate, and no substrate name found in any payload is consulted or
 branched on. The QoI request is deliberately NOT part of serve-ability
-today: parameter signatures already fully discriminate among enrolled
-substrates (the vocabularies are disjoint), and a QoI the wrapper cannot
+today: parameter signatures discriminate among enrolled substrates —
+pairwise disjoint EXCEPT the ruled cantilever overlap (the FEA seven are
+a proper subset of the fenicsx eight, Packet B Phase 2), where a
+shared-seven spec stops loudly under R-B-1 — and a QoI the wrapper cannot
 extract has an honest downstream path (qoi_error, never a wrong number).
 Expand on evidence.
 
@@ -68,6 +70,8 @@ from __future__ import annotations
 
 from stages.stage4_case_builder import BUILDABLE_PARAMS, REYNOLDS_KEY
 from tools import substrate_registry as registry
+from tools.run_fea import _REQUIRED_FIELDS as _FEA_REQUIRED_FIELDS
+from tools.run_fenicsx import _REQUIRED_FIELDS as _FENICSX_REQUIRED_FIELDS
 from tools.run_ngspice import _REQUIRED_FIELDS as _NGSPICE_REQUIRED_FIELDS
 from tools.run_scipy import (
     OP_FIELDS as _SCIPY_OP_FIELDS,
@@ -100,9 +104,18 @@ _SIGNATURES: dict[str, frozenset[str]] = {
     "ngspice_linear_passive": frozenset(_NGSPICE_REQUIRED_FIELDS),
     # Packet B Phase 1 flip (owner, 2026-07-17): run_scipy's own typed-key
     # vocabulary, imported and derived above. Disjoint from every other
-    # wired signature today — asserted by test, since the Phase-2 R-B-1
-    # loud-stop leans on overlap detection being real.
+    # wired signature — asserted by test, since the R-B-1 loud stop leans
+    # on overlap detection being real.
     "sympy_symbolic_exact": _SCIPY_SIGNATURE,
+    # Packet B Phase 2 flip (build chat under the owner's standing
+    # delegation, 2026-07-17): each cantilever wrapper's own typed-key
+    # vocabulary, imported. THE ONE DELIBERATE OVERLAP among wired
+    # signatures: the FEA seven are a proper subset of the fenicsx eight
+    # (element_degree is the one extra name), so a spec declaring only the
+    # shared seven is served by BOTH — and stops loudly under R-B-1
+    # instead of falling to enrollment order.
+    "calculix_cantilever_fea": frozenset(_FEA_REQUIRED_FIELDS),
+    "fenicsx_cantilever_elastic": frozenset(_FENICSX_REQUIRED_FIELDS),
 }
 
 

@@ -223,12 +223,13 @@ class TestAdapterForRealRegistry(unittest.TestCase):
         )
 
     def test_unwired_substrate_raises_lookuperror_escape_failed(self):
-        # failing the escape (post-flip subject: fenicsx, enrolled but
-        # unwired — ngspice moved out of this class at the R2 flip): the
-        # inner assertion only runs if a fallback adapter is wrongly
-        # returned instead of the raise
+        # failing the escape (subject migrated at the Packet B Phase 2
+        # flip: both cantilevers are wired, so the subject is
+        # code_sklearn_eval — enrolled, wholly unwired): the inner
+        # assertion only runs if a fallback adapter is wrongly returned
+        # instead of the raise
         with self.assertRaises(LookupError) as ctx:
-            got = dispatch.adapter_for("fenicsx_cantilever_elastic")
+            got = dispatch.adapter_for("code_sklearn_eval")
             self.assertIsNot(got, dispatch._cavity_adapter)
         self.assertIn("no execution adapter wired", str(ctx.exception))
         self.assertIn("must NOT fall back", str(ctx.exception))

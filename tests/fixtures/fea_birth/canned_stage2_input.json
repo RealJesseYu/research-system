@@ -1,0 +1,15 @@
+{
+  "run_id": "birth-canned-fea",
+  "created_at": "2026-07-17T00:00:00+00:00",
+  "mode": "auto",
+  "payload": {
+    "domain": "static deflection of slender elastic cantilever beams",
+    "chosen_hypothesis": {
+      "id": "hand-fea",
+      "statement": "The reference steel cantilever's tip deflection under a 1000 N tip load matches the Euler-Bernoulli prediction within 2%.",
+      "rationale": "HAND-FED (not stage-1 output): a known-servable fixed-summary claim to capture the calculix stage-2 model-visible surface at its birth (Packet B Phase 2 flip). Its 7-field spec is the R-B-1 tie spec: stage 3 stops loudly at selection, by design."
+    },
+    "substrate_id": "calculix_cantilever_fea"
+  },
+  "history": []
+}

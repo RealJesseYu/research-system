@@ -318,7 +318,8 @@ class C2bChooserRetryBirth(unittest.TestCase):
         )["validation_error"]
         self.assertIn(
             "substrate_id must be exactly one of "
-            "['cavity_2d_cfd', 'sympy_symbolic_exact', "
+            "['cavity_2d_cfd', 'calculix_cantilever_fea', "
+            "'fenicsx_cantilever_elastic', 'sympy_symbolic_exact', "
             "'ngspice_linear_passive']; got 'web_search'.",
             validation_error,
         )

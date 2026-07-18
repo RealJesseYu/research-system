@@ -43,7 +43,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from substrates import (
+    CALCULIX_CANTILEVER_FEA_CONTRACT,
     CAVITY_2D_CONTRACT,
+    FENICSX_CANTILEVER_ELASTIC_CONTRACT,
     NGSPICE_LINEAR_PASSIVE_CONTRACT,
     SYMPY_SYMBOLIC_EXACT_CONTRACT,
 )
@@ -98,9 +100,25 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         wrapper="tools/run_fea.py",
         card_path="docs/envelope_card_calculix_cantilever.md",
         maturity=CALIBRATING,
-        routable=False,
+        routable=True,
         cost_tier="low",
-        notes="battery pending owner OK",
+        notes=(
+            "battery executed 2026-07-16 (30/30 gate draws in-band at 3 "
+            "repeats, 9/10 cases unanimous, hook witnessed 16/16 "
+            "zero-silent-trust, wrapper self-checks 5/5 — harness/"
+            "calibration_calculix_cantilever_fea_20260716T053643Z.json; "
+            "first single-repeat pass 10/10 — harness/"
+            "calibration_calculix_cantilever_fea_20260716T013008Z.json); "
+            "F1-F4 RULED + card provisionally signed (owner, 2026-07-15); "
+            "routable=True RULED Packet B Phase 2 (owner 'start phase 1' "
+            "pair unit + R-B-1 + the Phase-2.0 ruling line, build chat "
+            "under the owner's standing delegation, 2026-07-17: "
+            "StaticSmallDeflectionRegime shape, option R1), maturity "
+            "CALIBRATING unchanged — every trust decision human-required "
+            "via the maturity hook until a separate maturity ruling. A "
+            "spec both cantilevers serve stops loudly at selection under "
+            "R-B-1 — never a silent enrollment-order pick."
+        ),
     ),
     SubstrateRecord(
         substrate_id="code_sklearn_eval",
@@ -116,9 +134,25 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         wrapper="tools/run_fenicsx.py",
         card_path="docs/envelope_card_fenicsx_cantilever_elastic.md",
         maturity=CALIBRATING,
-        routable=False,
+        routable=True,
         cost_tier="low",
-        notes="slate drafted (15 cases); battery pending owner OK on the slate ruling",
+        notes=(
+            "battery executed 2026-07-17 (28/30 gate draws in-band at 3 "
+            "repeats, 8/10 cases unanimous, hook witnessed 18/18 "
+            "zero-silent-trust, wrapper self-checks 5/5 — harness/"
+            "calibration_fenicsx_cantilever_elastic_20260717T125837Z.json); "
+            "G0-G5 RULED + card provisionally signed (owner, 2026-07-16); "
+            "routable=True RULED Packet B Phase 2 (owner 'start phase 1' "
+            "pair unit + R-B-1 + the Phase-2.0 ruling line, build chat "
+            "under the owner's standing delegation, 2026-07-17: "
+            "StaticSmallDeflectionRegime shape, option R1), maturity "
+            "CALIBRATING unchanged — every trust decision human-required "
+            "via the maturity hook until a separate maturity ruling. The "
+            "element-order bound G5 must survive into every routing "
+            "decision (router card §7); a spec both cantilevers serve "
+            "stops loudly at selection under R-B-1 — never a silent "
+            "enrollment-order pick."
+        ),
     ),
     SubstrateRecord(
         substrate_id="sympy_symbolic_exact",
@@ -197,6 +231,15 @@ _CONTRACTS: dict[str, str] = {
     # module's STAGING NOTE) — never a pasted copy, and never the
     # battery's substrate_text/envelope_text (different artifacts).
     "sympy_symbolic_exact": SYMPY_SYMBOLIC_EXACT_CONTRACT,
+    # Packet B Phase 2 flip (build chat under the owner's standing
+    # delegation, 2026-07-17): the IMPORTED runtime constants — calculix
+    # AUTHORED AT GRADUATION in substrates.py (no onboarding module ever
+    # existed for it); fenicsx COMPOSED in substrates.py from the
+    # onboarding module's own section constants (path-loaded, the
+    # run_scipy mechanism) so the battery-facing text has exactly one
+    # source and the executed battery's case file stays byte-identical.
+    "calculix_cantilever_fea": CALCULIX_CANTILEVER_FEA_CONTRACT,
+    "fenicsx_cantilever_elastic": FENICSX_CANTILEVER_ELASTIC_CONTRACT,
 }
 
 
@@ -303,8 +346,8 @@ def routable_ids() -> tuple[str, ...]:
     order. This is the registry's answer to 'what can a run execute on' — it
     is consulted structurally, NOT parsed from a payload's substrate names
     (that would violate the substrate-agnostic invariant). Since the
-    Packet B Phase 1 flip (owner, 2026-07-17): ('cavity_2d_cfd',
-    'sympy_symbolic_exact', 'ngspice_linear_passive') — sympy sits in the
-    middle because enrollment order is preserved and its row precedes
-    ngspice's."""
+    Packet B Phase 2 flip (build chat under the owner's standing
+    delegation, 2026-07-17): ('cavity_2d_cfd', 'calculix_cantilever_fea',
+    'fenicsx_cantilever_elastic', 'sympy_symbolic_exact',
+    'ngspice_linear_passive') — five ids, enrollment order preserved."""
     return tuple(r.substrate_id for r in _REGISTRY if r.routable)

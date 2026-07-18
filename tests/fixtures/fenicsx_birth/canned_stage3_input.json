@@ -1,0 +1,64 @@
+{
+  "run_id": "birth-canned-fenicsx",
+  "created_at": "2026-07-17T00:00:00+00:00",
+  "mode": "auto",
+  "payload": {
+    "domain": "static deflection of slender elastic cantilever beams",
+    "chosen_hypothesis": {
+      "id": "hand-fenicsx",
+      "statement": "The reference steel cantilever's tip deflection under a 1000 N tip load matches the Euler-Bernoulli prediction within 2% at element degree 2.",
+      "rationale": "HAND-FED (not stage-1 output): a known-servable fixed-summary claim to capture the fenicsx stage-2 model-visible surface at its birth (Packet B Phase 2 flip)."
+    },
+    "substrate_id": "fenicsx_cantilever_elastic",
+    "experiment_spec": {
+      "parameters": [
+        {
+          "name": "length"
+        },
+        {
+          "name": "width"
+        },
+        {
+          "name": "height"
+        },
+        {
+          "name": "E"
+        },
+        {
+          "name": "nu"
+        },
+        {
+          "name": "tip_load"
+        },
+        {
+          "name": "mesh_density"
+        },
+        {
+          "name": "element_degree"
+        }
+      ],
+      "qoi": {
+        "name": "tip displacement",
+        "units": "m",
+        "definition": "the maximum |u_z| over the displacement dofs \u2014 the tip deflection of the transversely loaded cantilever",
+        "how_extracted": "returned by the wrapper on every valid run; the requested number per the contract's quantity key",
+        "quantity": "tip_displacement"
+      },
+      "mini_experiment": {
+        "runs": [
+          {
+            "length": 1.0,
+            "width": 0.05,
+            "height": 0.05,
+            "E": 210000000000.0,
+            "nu": 0.3,
+            "tip_load": 1000.0,
+            "mesh_density": 8,
+            "element_degree": 2
+          }
+        ]
+      }
+    }
+  },
+  "history": []
+}

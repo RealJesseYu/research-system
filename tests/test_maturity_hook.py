@@ -58,12 +58,16 @@ class TestHumanModeNonMature(unittest.TestCase):
         # but the signoff is recorded + logged
         signoff = b._maturity_signoff
         self.assertTrue(signoff["required"])
-        # all three routable substrates are non-mature since the Packet B
-        # Phase 1 flip (owner, 2026-07-17): cavity@provisional, then
-        # sympy@calibrating (enrollment order), then ngspice@calibrating
+        # all five routable substrates are non-mature since the Packet B
+        # Phase 2 flip (build chat under the owner's standing delegation,
+        # 2026-07-17): cavity@provisional, then calculix, fenicsx, sympy,
+        # ngspice all @calibrating (enrollment order)
         self.assertEqual(
             signoff["substrates"],
-            ["cavity_2d_cfd@provisional", "sympy_symbolic_exact@calibrating",
+            ["cavity_2d_cfd@provisional",
+             "calculix_cantilever_fea@calibrating",
+             "fenicsx_cantilever_elastic@calibrating",
+             "sympy_symbolic_exact@calibrating",
              "ngspice_linear_passive@calibrating"],
         )
         self.assertTrue(any("NEEDS_HUMAN_SIGNOFF" in ln for ln in logger.lines))
@@ -136,11 +140,16 @@ class TestRunRecordStamping(unittest.TestCase):
         self.assertTrue(rec["extras"]["needs_human_signoff"])
         self.assertEqual(
             rec["extras"]["needs_human_signoff_substrates"],
-            ["cavity_2d_cfd@provisional", "sympy_symbolic_exact@calibrating",
+            ["cavity_2d_cfd@provisional",
+             "calculix_cantilever_fea@calibrating",
+             "fenicsx_cantilever_elastic@calibrating",
+             "sympy_symbolic_exact@calibrating",
              "ngspice_linear_passive@calibrating"],
         )
         self.assertIn(
             "needs_human_signoff=[cavity_2d_cfd@provisional, "
+            "calculix_cantilever_fea@calibrating, "
+            "fenicsx_cantilever_elastic@calibrating, "
             "sympy_symbolic_exact@calibrating, "
             "ngspice_linear_passive@calibrating]",
             rec["text"],

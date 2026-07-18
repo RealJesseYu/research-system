@@ -98,6 +98,15 @@ FENICSX_DOCS_INDEX = _RETRIEVAL_DIR / "fenicsx_docs_index.pkl"
 _REQUIRED_FIELDS = ("length", "width", "height", "E", "nu", "tip_load",
                     "mesh_density", "element_degree")
 
+# The fixed QoI-name set every valid run returns (both names, every run, no
+# per-run selection). THIS WRAPPER'S OWN single source (Packet B Phase 2,
+# ruled option V-A): parse_solver_output and the summary build derive their
+# keys from it, and the fixed-summary vocabulary record imports it — never
+# a pasted copy. Deliberately NOT shared with the sibling FEA wrapper (the
+# two share no code, by design; agreement through independent copies is
+# evidence).
+QOI_FIELDS = ("tip_displacement", "max_von_mises")
+
 
 class FenicsxInputError(ValueError):
     """The typed input is not a buildable fenicsx-cantilever-v1 config."""
@@ -207,7 +216,7 @@ def parse_solver_output(stdout: str) -> dict:
 
     if not payload.get("ok"):
         raise ValueError(f"solver reported failure: {payload.get('error', 'no reason given')}")
-    for key in ("tip_displacement", "max_von_mises"):
+    for key in QOI_FIELDS:
         if key not in payload:
             raise ValueError(f"result line is missing {key!r}")
         if not isinstance(payload[key], (int, float)):
@@ -336,8 +345,7 @@ def run_fenicsx(spec: dict) -> dict:
     if result is None:
         return _fail("solver produced no usable result after retry")
 
-    qoi = {"tip_displacement": result["tip_displacement"],
-           "max_von_mises": result["max_von_mises"]}
+    qoi = {k: result[k] for k in QOI_FIELDS}
     diagnostics = (
         f"dolfinx {result.get('dolfinx_version', '?')} "
         f"{ELEMENT_FAMILY} degree {clean['element_degree']} "

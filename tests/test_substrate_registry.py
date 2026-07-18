@@ -43,12 +43,14 @@ class TestRegistryTable(unittest.TestCase):
         self.assertEqual(cfd.wrapper, "tools/run_cfd.py")
         # provisional is non-mature -> a trust decision on it is human-required
         self.assertFalse(registry.is_mature("cavity_2d_cfd"))
-        # the routable set since the Packet B Phase 1 flip (owner,
-        # 2026-07-17): enrollment order — cavity, then sympy (row 5), then
-        # ngspice (row 6)
+        # the routable set since the Packet B Phase 2 flip (build chat
+        # under the owner's standing delegation, 2026-07-17): five ids in
+        # enrollment order — cavity, calculix, fenicsx, sympy, ngspice
         self.assertEqual(
             registry.routable_ids(),
-            ("cavity_2d_cfd", "sympy_symbolic_exact", "ngspice_linear_passive"),
+            ("cavity_2d_cfd", "calculix_cantilever_fea",
+             "fenicsx_cantilever_elastic", "sympy_symbolic_exact",
+             "ngspice_linear_passive"),
         )
 
     def test_sympy_is_calibrating_routable_under_packet_b_phase1(self):
@@ -74,12 +76,33 @@ class TestRegistryTable(unittest.TestCase):
         self.assertFalse(registry.is_mature("ngspice_linear_passive"))
         self.assertIn("(owner, 2026-07-17)", rec.notes)
 
-    def test_fea_and_code_are_calibrating_and_unroutable(self):
-        for sid in ("calculix_cantilever_fea", "code_sklearn_eval"):
+    def test_code_is_calibrating_and_unroutable(self):
+        # calculix left this loop at the Packet B Phase 2 flip; code stays
+        # the enrolled-unroutable subject (with web_search, its own class).
+        rec = registry.get("code_sklearn_eval")
+        self.assertEqual(rec.maturity, registry.CALIBRATING)
+        self.assertFalse(rec.routable)
+        self.assertFalse(registry.is_mature("code_sklearn_eval"))
+
+    def test_cantilevers_are_calibrating_routable_under_packet_b_phase2(self):
+        # the flip's rows: routable=True RULED Packet B Phase 2 (owner
+        # 'start phase 1' pair unit + R-B-1 + the Phase-2.0 ruling line,
+        # build chat under the owner's standing delegation, 2026-07-17),
+        # maturity CALIBRATING unchanged, battery evidence in notes.
+        for sid, battery in (
+            ("calculix_cantilever_fea",
+             "calibration_calculix_cantilever_fea_20260716T053643Z.json"),
+            ("fenicsx_cantilever_elastic",
+             "calibration_fenicsx_cantilever_elastic_20260717T125837Z.json"),
+        ):
             rec = registry.get(sid)
+            self.assertTrue(rec.routable, sid)
             self.assertEqual(rec.maturity, registry.CALIBRATING, sid)
-            self.assertFalse(rec.routable, sid)
             self.assertFalse(registry.is_mature(sid), sid)
+            self.assertIn("Packet B Phase 2", rec.notes)
+            self.assertIn("R-B-1", rec.notes)
+            self.assertIn("StaticSmallDeflectionRegime", rec.notes)
+            self.assertIn(battery, rec.notes)
 
     def test_web_search_is_its_own_class_and_unroutable(self):
         web = registry.get("web_search")

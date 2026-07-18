@@ -274,9 +274,10 @@ class TestHumanModeInstrument(TmpRunDirCase):
         return outcome, ledger_writes, (self.run_dir / "log.txt").read_text()
 
     def test_index_answer_resolves_by_enrollment_order(self):
-        # ngspice is routable #3 since the Packet B Phase 1 flip (sympy
-        # enrolled between cavity and ngspice); "3" resolves it by order.
-        outcome, writes, log = self.run_human(["1", "3"])
+        # ngspice is routable #5 since the Packet B Phase 2 flip (the
+        # cantilever pair enrolled between cavity and sympy); "5" resolves
+        # it by order.
+        outcome, writes, log = self.run_human(["1", "5"])
         self.assertEqual(outcome, ("select", 1, "ngspice_linear_passive"))
         self.assertEqual(len(writes), 2)
         self.assertEqual(writes[1]["human_decision"], "instrument ngspice_linear_passive")

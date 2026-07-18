@@ -270,12 +270,14 @@ class TestDeterminismAndTieBreak(unittest.TestCase):
 
 class TestFailLoudWiring(unittest.TestCase):
     def test_routable_without_contract_raises_at_selection(self):
-        # FEA is enrolled with NO contract and NO signature; making it
-        # routable must fail loudly at selection even for a cavity-only spec.
+        # code_sklearn_eval is enrolled with NO contract and NO signature
+        # (the subject migrated here at the Packet B Phase 2 flip — both
+        # cantilevers are now wired); making it routable must fail loudly
+        # at selection even for a cavity-only spec.
         with mock.patch.object(
             registry,
             "routable_ids",
-            return_value=("cavity_2d_cfd", "calculix_cantilever_fea"),
+            return_value=("cavity_2d_cfd", "code_sklearn_eval"),
         ):
             with self.assertRaises(LookupError) as ctx:
                 selection.select_substrate(_spec_with("lid_velocity"))
@@ -283,17 +285,17 @@ class TestFailLoudWiring(unittest.TestCase):
 
     def test_routable_without_signature_raises_at_selection(self):
         # contract wired but signature not: the signature probe fails loudly.
-        # Post-R2-flip ngspice carries BOTH in production, so the subject is
-        # fenicsx (enrolled, wholly unwired) with a contract patched in and
-        # the signature deliberately left missing.
+        # Post-Phase-2-flip BOTH cantilevers carry both in production, so
+        # the subject is code_sklearn_eval (enrolled, wholly unwired) with
+        # a contract patched in and the signature deliberately left missing.
         with mock.patch.object(
             registry,
             "routable_ids",
-            return_value=("cavity_2d_cfd", "fenicsx_cantilever_elastic"),
+            return_value=("cavity_2d_cfd", "code_sklearn_eval"),
         ):
             with mock.patch.dict(
                 registry._CONTRACTS,
-                {"fenicsx_cantilever_elastic": "SUBSTRATE CONTRACT: constructed"},
+                {"code_sklearn_eval": "SUBSTRATE CONTRACT: constructed"},
             ):
                 with self.assertRaises(LookupError) as ctx:
                     selection.select_substrate(_spec_with("lid_velocity"))

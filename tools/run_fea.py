@@ -66,6 +66,14 @@ FEA_DOCS_INDEX = _RETRIEVAL_DIR / "fea_docs_index.pkl"
 # ----------------------------------------------------------------------------
 _REQUIRED_FIELDS = ("length", "width", "height", "E", "nu", "tip_load", "mesh_density")
 
+# The fixed QoI-name set every valid run returns (both names, every run, no
+# per-run selection). THIS WRAPPER'S OWN single source (Packet B Phase 2,
+# ruled option V-A): summarize_dat derives its keys from it, and the
+# fixed-summary vocabulary record imports it — never a pasted copy.
+# Deliberately NOT shared with the sibling fenicsx wrapper (the two share
+# no code, by design; agreement through independent copies is evidence).
+QOI_FIELDS = ("tip_displacement", "max_von_mises")
+
 
 class FeaInputError(ValueError):
     """The typed input is not a buildable cantilever-v1 config."""
@@ -282,7 +290,7 @@ def summarize_dat(dat_text: str) -> dict:
         raise ValueError("no stress rows found in solver output")
     max_vm = max(von_mises(*s) for s in stresses)
 
-    return {"tip_displacement": tip_disp, "max_von_mises": max_vm}
+    return dict(zip(QOI_FIELDS, (tip_disp, max_vm)))
 
 
 # ----------------------------------------------------------------------------
