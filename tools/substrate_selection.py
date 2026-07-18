@@ -20,6 +20,33 @@ actually honors. Selection is:
     same spec, same registry -> same unique pick or the same loud stop,
     always.
 
+STEP 41 — HIERARCHICAL ROUTING (D.1b, owner-ruled 2026-07-18;
+docs/memo_step41_routing.md). Serve-ability alone makes near-neighbour
+FAMILIES (substrates that share a signature) unroutable: any spec two can
+serve stops loudly. Step 41 interposes TASK-CLASS narrowing between
+serve-ability and the R-B-1 stop, all structural and reading only the vocab
+records each substrate already declares (tools/qoi_vocab.py) — no new source
+of truth, no invented tie-break:
+
+    L0  serve-ability (above) — declared names ⊆ signature.
+    L1a regime-shape          — keep candidates whose regime grammar admits
+                                the spec's regime block.
+    L1b QoI-vocab             — keep candidates whose QoI vocabulary admits
+                                the spec's requested QoI (routes a family on
+                                the quantity it asks for).
+    L2  instance tie-break    — among the survivors (true near-neighbours:
+                                same params, same regime shape, same admitted
+                                QoI), maturity then R-B-1's LOUD STOP. L2 is
+                                Option 1 (loud stop, stated reason) — the
+                                owner-ruled default; NO per-family preference
+                                table is built (a later, explicitly
+                                owner-declared add-on if a family needs one).
+
+Every level that empties the set stops loudly with a level-named reason.
+L1a/L1b are transparent when the spec declares no regime/qoi. R-B-1 is
+PRESERVED, not replaced — its loud stop is simply the L2 default, reached
+only on genuine ties instead of on every family.
+
 FAIL LOUD AT SELECTION, not downstream: before serve-ability is even
 consulted, every routable substrate must have BOTH a wired fidelity
 contract (registry.contract_for — raises for an unwired one) and a wired
@@ -69,7 +96,16 @@ and stage 2, memo P8 option C). See docs/memo_d2_selection.md.
 from __future__ import annotations
 
 from stages.stage4_case_builder import BUILDABLE_PARAMS, REYNOLDS_KEY
+# Step 41 (D.1b) L1a/L1b: the ONE grammar+admissibility oracle for "does this
+# substrate's regime/QoI vocabulary admit this spec's regime/QoI block". Reused
+# read-only from stage 2 (the same read-only-internal-import discipline this
+# file already applies to the wrapper vocabularies below) so routing and
+# authoring share ONE source of truth — never a second copy of the grammar.
+# Both dispatch on the vocab record's shape (vocab_for), never on a substrate
+# name (R-28H-1). No import cycle: stage2_spec imports only tools.qoi_vocab.
+from stages.stage2_spec import _validate_qoi, _validate_regime
 from tools import substrate_registry as registry
+from tools.qoi_vocab import vocab_for
 from tools.run_fea import _REQUIRED_FIELDS as _FEA_REQUIRED_FIELDS
 from tools.run_fenicsx import _REQUIRED_FIELDS as _FENICSX_REQUIRED_FIELDS
 from tools.run_ngspice import _REQUIRED_FIELDS as _NGSPICE_REQUIRED_FIELDS
@@ -156,18 +192,59 @@ def declared_parameter_names(spec: dict | None) -> frozenset[str]:
     )
 
 
+def _regime_shape_admits(spec: dict, sid: str) -> bool:
+    """L1a oracle (Step 41): does substrate `sid`'s regime grammar admit the
+    spec's regime block? True iff the shared stage-2 regime check finds no
+    errors — the SAME grammar the spec was authored against, read through the
+    substrate's own vocab record (vocab_for), never re-implemented. A spec
+    with no dict `regime` narrows nothing and admits everywhere (handled by
+    the caller)."""
+    errors: list[str] = []
+    _validate_regime(spec["regime"], vocab_for(sid), errors)
+    return not errors
+
+
+def _qoi_vocab_admits(spec: dict, sid: str) -> bool:
+    """L1b oracle (Step 41): does substrate `sid`'s QoI vocabulary admit the
+    spec's requested QoI? True iff the shared stage-2 QoI check finds no
+    errors. This is what routes a shared-signature family on the QoI it asks
+    for: a quantity only one member's vocab admits narrows to that member;
+    two members admitting the same quantity are true near-neighbours and fall
+    through to L2."""
+    errors: list[str] = []
+    _validate_qoi(spec["qoi"], vocab_for(sid), errors)
+    return not errors
+
+
 def select_substrate(spec: dict | None) -> str:
-    """Pick the ONE substrate this spec routes to. See the module docstring
-    for the full rule; in brief: routable + wired (contract AND signature,
-    both probed loudly up front) + can-serve, mature preferred — and if
-    more than one candidate survives the mature filter, a LOUD STOP naming
-    all of them (R-B-1): the enrollment-order pick is retired, and the
-    only deterministic outcomes are a unique candidate or the raise."""
+    """Pick the ONE substrate this spec routes to — Step 41 hierarchical
+    routing (D.1b), task-class first then instance. In brief: routable + wired
+    (contract AND signature, both probed loudly up front), then narrow through
+
+        L0  serve-ability   — declared parameter names ⊆ signature (exists);
+        L1a regime-shape    — the substrate's regime grammar admits the spec's
+                              regime block (new: reads the vocab record);
+        L1b QoI-vocab       — the substrate's QoI vocabulary admits the spec's
+                              requested QoI (new: reads the vocab record);
+        L2  instance        — among true near-neighbours (survivors of L0+L1),
+                              maturity is the ONE tie-breaker, then R-B-1's
+                              LOUD STOP (Option 1, owner-ruled D.1b default —
+                              NO preference table). Never a coin flip.
+
+    Every level that empties the candidate set STOPS LOUDLY with a stated,
+    level-named reason — never a cavity fallback, never a silent pick. L1a/L1b
+    are transparent when the spec declares no regime/qoi (minimal era-proof
+    specs): there is nothing to narrow on, so nothing is dropped. PRECONDITION:
+    the spec is stage-2-validated, so its regime/qoi are grammar-valid for its
+    intended (L0-surviving) substrate — L1a/L1b therefore never drop that
+    substrate; they only drop wrong-grammar near-neighbours.
+    """
     routable = registry.routable_ids()
     for sid in routable:
         registry.contract_for(sid)  # LookupError: routable without a contract
         signature_for(sid)          # LookupError: routable without a signature
 
+    # L0 — SERVE-ABILITY (unchanged): declared names ⊆ signature.
     names = declared_parameter_names(spec)
     candidates = [sid for sid in routable if names <= signature_for(sid)]
     if not candidates:
@@ -183,6 +260,46 @@ def select_substrate(spec: dict | None) -> str:
             "and wire one under a recorded ruling."
         )
 
+    # L1a — TASK-CLASS by REGIME-SHAPE (Step 41). Narrow a shared-signature
+    # family to the candidates whose regime grammar admits this spec's regime.
+    if isinstance(spec, dict) and isinstance(spec.get("regime"), dict):
+        in_regime = [sid for sid in candidates if _regime_shape_admits(spec, sid)]
+        if not in_regime:
+            raise LookupError(
+                f"substrate selection stops at L1a (Step 41, regime-shape): "
+                f"{len(candidates)} substrate(s) serve this spec's parameters "
+                f"{sorted(names)} — {', '.join(candidates)} — but NONE has a "
+                f"regime grammar that admits the spec's regime block. Selection "
+                "must NOT fall back to cavity (or any substrate) whose regime "
+                "grammar the spec does not fit — author the regime in the "
+                "grammar of a serving substrate, or enroll one under a recorded "
+                "ruling; stopping before routing."
+            )
+        candidates = in_regime
+
+    # L1b — TASK-CLASS by QoI-VOCAB (Step 41). Narrow to candidates whose QoI
+    # vocabulary admits the spec's requested QoI — this routes a family on the
+    # quantity it asks for.
+    if isinstance(spec, dict) and isinstance(spec.get("qoi"), dict):
+        in_qoi = [sid for sid in candidates if _qoi_vocab_admits(spec, sid)]
+        if not in_qoi:
+            raise LookupError(
+                f"substrate selection stops at L1b (Step 41, QoI-vocab): "
+                f"{len(candidates)} substrate(s) serve this spec's parameters "
+                f"and regime — {', '.join(candidates)} — but NONE has a QoI "
+                f"vocabulary that admits the requested QoI. Selection must NOT "
+                "fall back to a substrate that cannot extract the asked-for "
+                "quantity — request a QoI a serving substrate's vocabulary "
+                "admits, or enroll one under a recorded ruling; stopping before "
+                "routing."
+            )
+        candidates = in_qoi
+
+    # L2 — INSTANCE TIE-BREAK. Structural narrowing is done; the survivors are
+    # true near-neighbours (same params, same regime shape, same admitted QoI).
+    # Maturity is the ONE tie-breaker; if more than one survives it, the R-B-1
+    # LOUD STOP fires (Option 1, the owner-ruled D.1b default — NO preference
+    # table). Text preserved byte-identical: R-B-1's loud stop IS the L2 default.
     mature = [sid for sid in candidates if registry.is_mature(sid)]
     pool = mature or candidates
     if len(pool) > 1:                       # R-B-1 (owner-delegated, 2026-07-17)
