@@ -146,17 +146,17 @@ _VOCABS: dict[str, Any] = {
         mask_types=MASK_TYPES,
         regime=ReynoldsBandRegime(),
     ),
-    # TRANSITIONAL (R-23.5-5 build, Phase 2 — disclosed): ngspice's enrolled
-    # regime is still ReynoldsBandRegime, the truthful CURRENT behavior (the
-    # c235 placeholder circuit spec carries a Reynolds-shaped regime and is
-    # the pinned fixture). The flip to NGSPICE_REGIME (AnalysisTypeRegime,
-    # derived from the wrapper) lands in Phase 3 together with the
-    # placeholder-fixture supersession, keeping every commit green.
+    # R-23.5-5 (owner, 2026-07-17): ngspice's regime semantics are its own —
+    # NGSPICE_REGIME, derived above from the wrapper's typed analysis set —
+    # enrolled at Phase 3 of the R-23.5-5 build together with the c235
+    # placeholder-fixture supersession (the Phase-2 commit carried a
+    # disclosed transitional ReynoldsBandRegime so every commit stayed
+    # green while the placeholder was still the pinned fixture).
     "ngspice_linear_passive": NamedQuantityVocab(
         kinds=_QOI_KINDS,
         target_re=_NAME_RE,
         reductions=_REDUCTIONS,
-        regime=ReynoldsBandRegime(),
+        regime=NGSPICE_REGIME,
     ),
 }
 

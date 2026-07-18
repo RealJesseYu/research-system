@@ -233,16 +233,31 @@ class Stage5NgspiceInputByteIdentity(unittest.TestCase):
         baton = Baton.from_json(_fixture("canned_stage5_input_ngspice.json"))
         self.assertEqual(validate_payload_post_stage4(baton.payload), [])
 
-    def test_placeholder_spec_enters_the_user_turn_verbatim(self):
-        # the c235 placeholder spec IS the spec stage 5 sees — the exact
-        # surface Phase 3c supersedes with the honest circuit spec
+    def test_circuit_spec_enters_the_user_turn_verbatim(self):
+        # SUPERSEDED at Phase 3c under R-23.5-5 (original assertion pinned
+        # the placeholder; originals preserved as *_pre2355*): the honest
+        # circuit spec IS the spec stage 5 sees — named-analysis regime in,
+        # placeholder marker gone.
         _, user_turn = assemble_stage5_input()
         parsed = json.loads(user_turn)
         self.assertEqual(
             parsed["experiment_spec"],
             json.loads((C235_FIX / "ngspice_full_spec.json").read_text()),
         )
-        self.assertIn("Not a fluid regime", user_turn)
+        self.assertIn("analysis_type", user_turn)
+        self.assertNotIn("Not a fluid regime", user_turn)
+
+    def test_superseded_originals_preserved_append_only(self):
+        for name in (
+            "canned_stage5_input_ngspice_pre2355.json",
+            "thought_user_turn_ngspice_pre2355.txt",
+        ):
+            self.assertTrue((FIX / name).is_file(), name)
+        # the preserved original still carries the placeholder it was
+        # captured with — history, frozen
+        self.assertIn(
+            "Not a fluid regime", _fixture("thought_user_turn_ngspice_pre2355.txt")
+        )
 
 
 if __name__ == "__main__":

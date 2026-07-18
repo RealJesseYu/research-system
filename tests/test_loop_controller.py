@@ -99,13 +99,23 @@ class StubRelay:
         # Record exactly what this pass's stage 2 received (its "input").
         self.stage2_inputs.append(copy.deepcopy(baton.payload))
         prior = baton.payload.get("prior_thought")
+        spec = make_valid_spec()
+        # Truth-edited R-23.5-5: regime meaning is per-substrate, and the
+        # boundary validator now enforces it — the stub mirrors the real
+        # stage 2 by authoring the regime of the pass's DECIDED instrument
+        # (make_valid_spec's Reynolds band is cavity's shape only).
+        if baton.payload["substrate_id"] == "ngspice_linear_passive":
+            spec["regime"] = {
+                "analysis_type": "op",
+                "notes": "stub named-analysis regime for the ngspice pass",
+            }
         baton.payload = {
             "domain": baton.payload["domain"],
             "chosen_hypothesis": baton.payload["chosen_hypothesis"],
             # Truth-edited Step 23.5 (R-23.5-4): the stub mirrors the real
             # stage 2 — the gate-decided instrument travels the payload.
             "substrate_id": baton.payload["substrate_id"],
-            "experiment_spec": make_valid_spec(),
+            "experiment_spec": spec,
         }
         if prior is not None:
             baton.payload["prior_thought"] = prior

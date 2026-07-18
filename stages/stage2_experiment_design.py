@@ -114,7 +114,10 @@ SYSTEM_PROMPT = (
     '"definition": "...", "how_extracted": "...", and the machine-readable keys '
     "only in the extractable case}, \"success_criterion\": "
     '{"statement": "...", "threshold": <number>, "direction": "above" or "below"}, '
-    '"regime": {"reynolds_min": <number>, "reynolds_max": <number>, "notes": "..."}, '
+    '"regime": <this substrate\'s regime declaration: an object with the '
+    "regime fields the substrate contract states for this instrument "
+    '(where the contract states none, the Reynolds band — "reynolds_min" '
+    'and "reynolds_max" as numbers), plus "notes": "...">, '
     '"mini_experiment": {"runs": [{"<parameter name>": <value>, ...}, ...], '
     '"expected_observation": "..."}, "full_experiment": {"design": "...", '
     '"estimated_run_count": <positive integer>}}} — no other fields anywhere.'

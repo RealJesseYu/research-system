@@ -25,11 +25,12 @@ path); ZERO docker.
      object IS the same imported constant), and the hook behaves exactly
      as before.
 
-The locked Step-15 spec schema requires numeric regime.reynolds_min/max —
-cavity-flavored fields a circuit spec must fill with disclosed
-placeholders (see tests/fixtures/c235/ngspice_full_spec.json's regime
-notes). Recorded as a Step-23.5 disclosed limitation; no schema change
-without a ruling.
+TRUTH-EDITED under R-23.5-5 (owner, 2026-07-17): the regime placeholder
+limitation this docstring used to disclose is RESOLVED — regime meaning is
+per-substrate (validation delegates to the vocabulary record), and the
+circuit spec fixture now carries its honest named-analysis regime
+{analysis_type, notes}. The placeholder-era fixture is preserved as
+tests/fixtures/c235/ngspice_full_spec_pre2355.json.
 
 Run directly: venv/bin/python3 tests/test_c235_chain.py
 """

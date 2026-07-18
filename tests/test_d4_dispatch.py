@@ -81,8 +81,10 @@ NGSPICE_VOCAB = qoi_vocab.NamedQuantityVocab(
     target_re=run_ngspice._NAME_RE,
     reductions=run_ngspice._REDUCTIONS,
     # R-23.5-5: regime semantics are a required member of every vocab
-    # record; this constructed record mirrors the production map's CURRENT
-    # (Phase-2 transitional) Reynolds semantics.
+    # record. This constructed record keeps ReynoldsBandRegime (the
+    # production record carries NGSPICE_REGIME since the Phase-3 flip):
+    # these dispatch tests exercise QoI translation and run-entry
+    # construction, never the regime check.
     regime=qoi_vocab.ReynoldsBandRegime(),
 )
 

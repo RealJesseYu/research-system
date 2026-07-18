@@ -250,6 +250,15 @@ it does not, and agreement with circuit theory is judged separately (section 4).
 valid=false maps to converged=false with the diagnostics line carried as
 qoi_error, and no number. This substrate carries no optional `state` value: the
 summary has no state vocabulary of its own beyond the boolean valid.
+THIS INSTRUMENT'S REGIME (ruled R-23.5-5, 2026-07-17): not a Reynolds band —
+the regime of a linear passive network is which analysis it lives in. An
+experiment spec's required "regime" object for this substrate is
+  {"analysis_type": "op" | "dc" | "ac" | "tran", "notes": "..."}
+where the four analysis types are the wrapper's own typed analysis set
+(section 2) — the same set whose boundary section 1 declares out of regime by
+ruling. A regime block carrying Reynolds fields, an analysis_type outside
+that set, or a missing analysis_type is rejected by the per-substrate
+validator before anything runs.
 
 4. HONEST LIMITS
   - Ideal linear passive only. There are no semiconductor device models, no

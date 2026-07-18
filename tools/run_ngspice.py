@@ -3,9 +3,14 @@ run_ngspice — the production ngspice (linear passive circuit) solver wrapper.
 
 Plain, deterministic code. NO AI inside, no model calls, ever — the same
 contract run_cfd.py holds for OpenFOAM and run_fea.py holds for CalculiX. This
-wrapper is UNREGISTERED at build time: nothing in stages/, the supervisor,
-substrates.py, or any schema imports it. It is reachable by tests (and a
-__main__ CLI) only.
+wrapper is REGISTERED and ROUTABLE: promoted at the R2 flip (owner ruling,
+2026-07-17) — its contract is enrolled in tools/substrate_registry.py, its QoI
+vocabulary and regime semantics are wired in tools/qoi_vocab.py from this
+module's own constants, and stage 4 reaches it through the dispatch seam.
+(TRUTH-EDIT, R-23.5-5b, 2026-07-17: the previous "UNREGISTERED at build time"
+sentence was written at this wrapper's birth and went stale at the R2
+promotion flip; grep-verified before editing that this docstring enters no
+composed prompt.)
 
 Shape mirrors run_fea:
   * a typed input is turned into a full ngspice deck by deterministic Python

@@ -11,8 +11,9 @@ ZERO model calls. What is proven here:
     analysis_types == tuple(run_ngspice._ANALYSIS_FIELDS), the wrapper's
     own analysis-type table, never a pasted list;
   - the named-analysis checker's semantics, tested DIRECTLY on a
-    constructed vocab (production enrollment of NGSPICE_REGIME flips at
-    Phase 3 with the placeholder-fixture supersession): a valid
+    constructed vocab (production enrollment of NGSPICE_REGIME FLIPPED at
+    Phase 3 with the placeholder-fixture supersession — see
+    TestProductionRecordEscapes for the enrolled-record proofs): a valid
     {analysis_type, notes} block passes; a Reynolds-shaped block REJECTS
     with a named per-substrate reason; an unknown analysis_type rejects;
     a regime-less spec still rejects via the required-field check;
@@ -50,7 +51,8 @@ FIX = Path(__file__).resolve().parent / "fixtures"
 CAVITY_VOCAB = vocab_for("cavity_2d_cfd")
 
 # A named-quantity vocab carrying the ngspice regime semantics, constructed
-# HERE for direct checker tests — Phase-3 flips the production record.
+# HERE for direct checker tests (written pre-flip; since Phase 3 the
+# production record carries the same NGSPICE_REGIME — proven below).
 NGSPICE_VOCAB_WITH_REGIME = NamedQuantityVocab(
     kinds=run_ngspice._QOI_KINDS,
     target_re=run_ngspice._NAME_RE,
@@ -60,8 +62,9 @@ NGSPICE_VOCAB_WITH_REGIME = NamedQuantityVocab(
 
 
 def _circuit_spec() -> dict:
-    """The c235 circuit spec (placeholder regime at Phase 2; honest regime
-    after the Phase-3c supersession — this loader tracks the fixture)."""
+    """The c235 circuit spec (placeholder regime at Phase 2; honest
+    named-analysis regime since the Phase-3c supersession — this loader
+    tracks the fixture)."""
     return json.loads((FIX / "c235" / "ngspice_full_spec.json").read_text())
 
 
@@ -188,6 +191,45 @@ class TestUnknownShapeRaises(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             validate_spec(_circuit_spec(), "hand-ngspice", alien)
+
+
+class TestProductionRecordEscapes(unittest.TestCase):
+    """3e NEW escapes, proven on the ENROLLED production record (post-flip)."""
+
+    def test_production_ngspice_record_carries_the_wrapper_derived_regime(self):
+        self.assertIs(vocab_for("ngspice_linear_passive").regime, NGSPICE_REGIME)
+
+    def test_honest_circuit_spec_validates_under_the_production_record(self):
+        self.assertEqual(
+            validate_spec(
+                _circuit_spec(), "hand-ngspice", vocab_for("ngspice_linear_passive")
+            ),
+            [],
+        )
+
+    def test_reynolds_shaped_regime_rejects_under_the_production_record(self):
+        spec = _circuit_spec()
+        spec["regime"] = {"reynolds_min": 1, "reynolds_max": 1, "notes": "placeholder"}
+        errors = validate_spec(
+            spec, "hand-ngspice", vocab_for("ngspice_linear_passive")
+        )
+        self.assertTrue(
+            any("not a Reynolds band" in e for e in errors), errors
+        )
+
+    def test_regime_less_spec_rejects_under_the_production_record(self):
+        spec = _circuit_spec()
+        del spec["regime"]
+        self.assertIn(
+            "required field 'regime' is missing — add it.",
+            validate_spec(
+                spec, "hand-ngspice", vocab_for("ngspice_linear_passive")
+            ),
+        )
+
+    def test_unknown_substrate_at_the_vocab_lookup_raises(self):
+        with self.assertRaises(KeyError):
+            vocab_for("no_such_substrate")
 
 
 class TestRider5aEscapes(unittest.TestCase):

@@ -59,9 +59,11 @@ NGSPICE_VOCAB = NamedQuantityVocab(
     target_re=run_ngspice._NAME_RE,
     reductions=run_ngspice._REDUCTIONS,
     # R-23.5-5: regime semantics are a required member of every vocab
-    # record. This tests-only record keeps the production map's CURRENT
-    # (Phase-2 transitional) Reynolds semantics so the d3 battery specs'
-    # regime blocks validate unchanged.
+    # record. This tests-only record DELIBERATELY keeps ReynoldsBandRegime
+    # (unlike the production record, which carries NGSPICE_REGIME since the
+    # Phase-3 flip): its battery specs are the d3 cavity captures, whose
+    # Reynolds regime blocks must validate unchanged — these tests probe
+    # QoI-shape classes, not regime semantics.
     regime=ReynoldsBandRegime(),
 )
 

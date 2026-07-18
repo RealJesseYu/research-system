@@ -43,9 +43,8 @@
         "direction": "above"
       },
       "regime": {
-        "reynolds_min": 1,
-        "reynolds_max": 1,
-        "notes": "Not a fluid regime: reynolds_min/max are schema-required placeholders (the locked Step-15 spec shape is cavity-flavored here \u2014 a Step-23.5 disclosed limitation, no schema change without a ruling). The true regime is linear passive DC operating point."
+        "analysis_type": "op",
+        "notes": "Linear passive DC operating point: the divider is solved at .op; no frequency or time dependence enters the regime. Declared per the substrate contract's section-3 regime statement (R-23.5-5)."
       },
       "mini_experiment": {
         "runs": [
