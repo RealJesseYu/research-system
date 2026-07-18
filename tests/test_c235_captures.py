@@ -318,7 +318,8 @@ class C2bChooserRetryBirth(unittest.TestCase):
         )["validation_error"]
         self.assertIn(
             "substrate_id must be exactly one of "
-            "['cavity_2d_cfd', 'ngspice_linear_passive']; got 'web_search'.",
+            "['cavity_2d_cfd', 'sympy_symbolic_exact', "
+            "'ngspice_linear_passive']; got 'web_search'.",
             validation_error,
         )
         self.assertEqual(validation_error.count(" (raw reply: "), 1)

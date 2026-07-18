@@ -43,11 +43,26 @@ class TestRegistryTable(unittest.TestCase):
         self.assertEqual(cfd.wrapper, "tools/run_cfd.py")
         # provisional is non-mature -> a trust decision on it is human-required
         self.assertFalse(registry.is_mature("cavity_2d_cfd"))
-        # the routable set since the R2 flip (owner, 2026-07-17): cavity
-        # first (enrollment order), ngspice second
+        # the routable set since the Packet B Phase 1 flip (owner,
+        # 2026-07-17): enrollment order — cavity, then sympy (row 5), then
+        # ngspice (row 6)
         self.assertEqual(
             registry.routable_ids(),
-            ("cavity_2d_cfd", "ngspice_linear_passive"),
+            ("cavity_2d_cfd", "sympy_symbolic_exact", "ngspice_linear_passive"),
+        )
+
+    def test_sympy_is_calibrating_routable_under_packet_b_phase1(self):
+        # the flip's row: routable=True RULED (owner "start phase 1" +
+        # Phase-1.0 ruling line, 2026-07-17), maturity CALIBRATING
+        # unchanged, recorded in notes with the battery evidence line
+        rec = registry.get("sympy_symbolic_exact")
+        self.assertTrue(rec.routable)
+        self.assertEqual(rec.maturity, registry.CALIBRATING)
+        self.assertFalse(registry.is_mature("sympy_symbolic_exact"))
+        self.assertIn("Packet B Phase 1", rec.notes)
+        self.assertIn("'start phase 1'", rec.notes)
+        self.assertIn(
+            "calibration_sympy_symbolic_exact_20260717T115450Z.json", rec.notes
         )
 
     def test_ngspice_is_calibrating_routable_under_r2_r3(self):

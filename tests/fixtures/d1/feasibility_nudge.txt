@@ -141,6 +141,188 @@ the hypothesis genuinely requires them — but the current builder cannot
 honor them and will halt loudly, by name, on any it does not know.
 
 
+ROUTABLE SUBSTRATE: sympy_symbolic_exact
+SUBSTRATE CONTRACT: sympy_symbolic_exact
+
+1. WHAT THE INSTRUMENT IS
+This substrate performs exact symbolic computer algebra over a single
+closed-form expression: SymPy running inside an ephemeral, no-network,
+memory-capped container, driven through the run_scipy wrapper —
+deterministic Python with no AI inside, which validates the typed request
+field-by-field, runs one operation in a restricted parse namespace, and
+independently verifies the answer before returning it. One operation per
+job, on one expression typed as text, over symbols the caller declares
+explicitly. It is exact where it succeeds — a returned antiderivative is a
+real antiderivative, checked by differentiating it back — and honest where
+it fails, because SymPy frequently returns an operation UNEVALUATED rather
+than wrong; that third outcome is neither an answer nor an error and is
+carried as its own state (section 3). The validated envelope comes from
+this substrate's own calibration jobs: all seven operations exercised live,
+worst verified residual 4.05e-10 across 33 verified jobs (a diff, the
+binding arm — only 2.47x inside the ruled 1e-9 tolerance). Cases in that
+class are proven; anything far outside it is unproven, not impossible.
+Operations offered: integrate_definite, integrate_indefinite, diff, limit,
+series, solve, dsolve. An operation outside that closed set (minimization,
+numeric quadrature as the answer, multi-expression systems, and the rest of
+mathematics) is out of this regime by ruling S1 — deferred to the right
+instrument, never best-effort translated into a nearby operation.
+
+2. WHAT A CASE MUST DEFINE
+A case is a typed request, not a file. It must define:
+  - operation: exactly one of the seven listed in section 1.
+  - expression: the closed-form expression as text. It is parsed in a
+    RESTRICTED namespace against an AST allowlist: elementary and special
+    functions (sin/cos/tan and inverses, hyperbolics, exp, log, sqrt, Abs,
+    gamma, erf, factorial, atan2), structural forms (Derivative, Integral,
+    Function), and the constants pi, E, I, oo, zoo, nan. Anything else is
+    rejected BY NAME before any container starts.
+  - symbols: every free name in the expression, declared explicitly. SymPy
+    silently auto-creates symbols for typos, so the wrapper checks this
+    itself — an undeclared name is rejected, not guessed.
+  - assumptions (optional): per-symbol declarations from the closed set
+    {real, positive, negative, nonnegative, nonzero, integer, rational,
+    complex, finite}. Declaring an assumption CHANGES THE MATHEMATICAL
+    MEANING of the job (sqrt(x**2) is x under positive=True and Abs(x)
+    under the complex default) — see section 4.
+  - per-operation fields: integrate_definite needs var, lower, upper;
+    integrate_indefinite needs var; diff needs var (optional order); limit
+    needs var, point; series needs var, point (optional order); solve needs
+    var; dsolve needs var, func (optional ics, e.g. {"y(0)": 3}). Bounds and
+    points are themselves expressions and go through the same AST allowlist.
+Unknown fields are rejected by name. One operation per job; a second
+quantity means a second job.
+
+3. WHAT run_scipy RETURNS TODAY
+On a run that completes, a small fixed summary — never raw container output:
+  - valid: true or false. False means NO result is reported, for any reason.
+  - state: exactly one of three, NEVER collapsed into two:
+      solved_verified — SymPy found a closed form AND the wrapper
+        independently verified it (back-substitution; a root substituted
+        back; checkodesol for ODEs; numeric spot-checks for diff/series).
+        The ONLY state that carries a result out of the wrapper.
+      unevaluated — SymPy DECLINED: the operation survives unperformed in
+        the output (the canonical instance is the indefinite integral of
+        x**x, which has no elementary closed form), or the operation call
+        raised its narrow decline set (NotImplementedError or PoleError,
+        rulings S4a/S4b — by exception TYPE, never message text). An HONEST
+        NON-ANSWER: result null, reason null, the substrate worked
+        correctly. It must never be narrated as an error and never leak as
+        a QoI.
+      error — invalid input, a container kill (memory cap or timeout), or
+        verification_failed: SymPy returned a closed form the wrapper could
+        not confirm. A solved-but-unverified answer is an error — NO RESULT
+        LEAVES THIS WRAPPER UNVERIFIED (residual tolerance 1e-9, ruled S2;
+        the residual verifies the RETURNED object, ruled S2a).
+  - result: the exact expression or scalar AS A STRING, non-null only in
+    solved_verified. Exact means exact: "pi/2", not 1.5707963.
+  - residual: the verification residual (worse of back-substitution and the
+    returned-object check). crosscheck: for definite integrals and ODEs
+    with a declared initial condition, an independent-algorithm arm (quad /
+    solve_ivp) — DIAGNOSTIC ONLY, agreement is evidence, never proof, and
+    disagreement is a flag for a human, never auto-resolved.
+  - reason: a named, machine-greppable failure reason, non-null only in
+    error. diagnostics: a bounded honest line (<= 800 characters).
+  - runtime_s: wall-clock seconds.
+Indicative cost, measured on this substrate: 0.6-1.8 s of wall clock per
+job, container-startup-dominated rather than compute-dominated — an
+unevaluated non-answer costs the same as a solved answer, so cost predicts
+nothing about success. Runs are killed after 600 seconds and reported as a
+named failure; nothing in this regime has approached that.
+How this summary maps to an upstream stage-4 run entry (Packet B Phase 1.0
+ruling, items 3/4, owner 2026-07-17): converged := (valid is true). For
+this substrate, converged means the job COMPLETED AND THE WRAPPER ANSWERED
+— true for solved_verified AND for unevaluated (the honest non-answer is a
+completed answer about the question), false only for error. The wrapper's
+state travels verbatim in the entry's optional `state` key, and the answer
+slot is per-state: solved_verified carries qoi_expression — the exact
+result STRING, never a fabricated float; unevaluated carries the wrapper's
+own honest-non-answer diagnostics line as qoi_error, with state
+"unevaluated" beside it saying machine-readably that this is a decline, not
+a failure; error carries the diagnostics line as qoi_error with state
+"error". No number is ever invented at this mapping.
+THIS INSTRUMENT'S REGIME (regime stated at enrollment per R-23.5-5c; shape
+ruled Packet B Phase 1.0, owner, 2026-07-17): not a Reynolds band and not a
+circuit analysis — the regime of an exact symbolic instrument is which
+operation it performs on the expression as typed. An experiment spec's
+required "regime" object for this substrate is
+  {"operation": "integrate_definite" | "integrate_indefinite" | "diff" |
+   "limit" | "series" | "solve" | "dsolve", "notes": "..."}
+where the seven operations are the wrapper's own closed operation allowlist
+(ruling S1, section 2) — the same closed set whose boundary section 1
+declares out of regime by ruling: a question outside it is deferred to the
+right instrument, never best-effort translated into a nearby operation. A
+regime block carrying Reynolds fields, an analysis_type key, an operation
+outside that set, or a missing operation is rejected by the per-substrate
+validator before anything runs.
+
+4. HONEST LIMITS
+  - THE CENTRAL LIMIT: the result is trustworthy as a statement about THE
+    EXPRESSION AS TYPED, and about nothing else. Whether that expression
+    models the question the caller meant is a SEPARATE claim this substrate
+    cannot adjudicate: an exactly correct integral of sin(x) over [0, pi]
+    is a worthless answer to a question about the MEAN value of sin(x), and
+    sin(30) is exactly correct in radians while being the wrong model of a
+    claim about degrees. Both return solved_verified with a true result.
+    This substrate's failure mode is not a wrong number — it is an exactly
+    right answer to the wrong question, indistinguishable at the gate from
+    a genuine success (ruling S3: trust the narrow symbolic claim AND defer
+    the modeling/utility claim in the same breath, never a bare trust).
+  - Assumptions and branch cuts are a KNOWN GAP, not a check (S5): the
+    wrapper validates that declared assumptions are allowlist members, but
+    whether the declared set matches the caller's INTENT lives nowhere the
+    wrapper or the gate can read. SymPy's defaults are COMPLEX. Advisory
+    only; its silence is not evidence of agreement.
+  - An unevaluated result is an answer about the question, not a failure to
+    be retried. Re-asking will not create a closed form that does not
+    exist; the honest route is to the right instrument (S4).
+  - Verification independence is tiered, and no arm is independent of
+    SymPy's own translation layer: back-substitution/checkodesol/limit are
+    SymPy checking SymPy; diff/series spot-checks run on numpy through
+    lambdify (partial); definite integrals and ics-bearing ODEs get a
+    genuinely different algorithm (quad / solve_ivp) that still reaches
+    numpy through lambdify. Every arm was fault-injected and rejects a
+    deliberately wrong result, with the characterized exceptions below.
+  - The limit arm FAILS CLOSED on slowly-converging limits: its residual is
+    the function's genuine remaining distance from its limit at a finite
+    probe, so sin(x)/x verifies while (exp(x)-1)/x is REJECTED as
+    verification_failed despite SymPy being exactly right. A limit reported
+    as verification_failed may mean the arm is too weak to confirm it, not
+    that the answer is wrong.
+  - The series truncation check is BLIND to a wrong coefficient on the
+    HIGHEST RETAINED term (structural, not a tuning oversight); low- and
+    mid-order errors are caught.
+  - A DIVERGENT definite integral returns solved_verified with result 'oo'
+    or even 'nan' at residual 0.0 (measured: sec(x)**2 over [0, pi];
+    1/x over [-1, 1]) — SymPy is not wrong, those integrals diverge, but a
+    NON-FINITE result must NEVER be read as a QoI. Whether such a case
+    should instead be unevaluated is an open owner question, NOT ruled.
+  - Whether a case's regime assumptions are themselves trustworthy is NOT
+    checked anywhere in this contract; that open axis belongs to the
+    fidelity gate's future work, and nothing here should be read as
+    covering it.
+
+5. CANONICAL PARAMETER VOCABULARY
+Unlike the cavity substrate, this instrument takes no named physical-
+parameter dictionary: the expression itself is the parameterization. The
+wrapper honors exactly these typed keys:
+  - operation    (enum)          — see section 1
+  - expression   (string)        — AST-allowlisted expression text
+  - symbols      (list of names) — every free name in the expression
+  - assumptions  (object, opt.)  — per-symbol, from the closed set in
+                                   section 2
+  - var          (name)          — the operating variable (all operations)
+  - lower, upper (expressions)   — integrate_definite bounds
+  - point        (expression)    — limit / series expansion point
+  - order        (integer >= 1)  — diff / series order, optional
+  - func         (name)          — dsolve's unknown function
+  - ics          (object, opt.)  — dsolve initial conditions, keys are
+                                   expressions (e.g. "y(0)"), values numbers
+Every field is validated by name pre-solve; a missing, unknown, or
+ill-typed field is rejected before anything runs. Bounds, points, and ics
+keys are expressions and pass the same AST allowlist as the expression
+itself.
+
+
 ROUTABLE SUBSTRATE: ngspice_linear_passive
 SUBSTRATE CONTRACT: ngspice_linear_passive
 

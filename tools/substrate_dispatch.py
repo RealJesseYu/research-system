@@ -54,6 +54,28 @@ from pathlib import PurePosixPath
 from stages import stage4_case_builder
 from tools import substrate_registry as registry
 from tools.run_ngspice import _REQUIRED_FIELDS, _REQUIRED_QOI_FIELDS
+from tools.run_scipy import (
+    OP_FIELDS as _SCIPY_OP_FIELDS,
+    UNIVERSAL_OPTIONAL_FIELDS as _SCIPY_UNIVERSAL_OPTIONAL_FIELDS,
+    UNIVERSAL_REQUIRED_FIELDS as _SCIPY_UNIVERSAL_REQUIRED_FIELDS,
+)
+
+# The full sympy typed-key set, derived from the wrapper's own re-exported
+# constants (imported, never copied) — the structural membership screen the
+# sympy adapter applies before handing params to the wrapper, whose own
+# validate_input remains the single source for content checks.
+_SCIPY_INPUT_KEYS: tuple = tuple(
+    dict.fromkeys(
+        list(_SCIPY_UNIVERSAL_REQUIRED_FIELDS)
+        + list(_SCIPY_UNIVERSAL_OPTIONAL_FIELDS)
+        + [
+            name
+            for fields in _SCIPY_OP_FIELDS.values()
+            for group in ("required", "optional")
+            for name in fields[group]
+        ]
+    )
+)
 
 # The wrapper input fields one mini-run's params must supply for ngspice:
 # the wrapper's own required-field set (imported, never copied) minus 'qoi',
@@ -168,6 +190,38 @@ def _ngspice_adapter(substrate_id, params, case_name, roles, qoi_request):
     return wrapper_callable(substrate_id)(typed)
 
 
+def _sympy_adapter(substrate_id, params, case_name, roles, qoi_request):
+    """SYMBOLIC-RESULT (exact-CAS class) execution adapter — INPUT ONLY
+    (Packet B Phase 1 flip, owner 2026-07-17). case_name and roles are
+    cavity-class concepts, accepted for the uniform adapter signature,
+    unused. qoi_request is likewise unused here: this substrate's wrapper
+    takes NO QoI request (the QoI IS the operation's verified result), so
+    nothing from it enters the typed input.
+
+    Structural screen only: params must be a dict whose keys are members of
+    the wrapper's own typed-key set (imported above) — unknown keys fail
+    loud naming every offender, mirroring the ngspice adapter. CONTENT
+    validation (per-operation required fields, allowlists, the AST jail) is
+    the wrapper's own validate_input, the single source: content problems
+    come back as honest error-state summaries, never as adapter crashes.
+    Returns the wrapper summary VERBATIM: entry construction for the
+    tri-state {valid, state, result, ...} shape is sympy_run_entry's job,
+    kept out of the adapter so stage-4 evidence keeps the full summary."""
+    if not isinstance(params, dict):
+        raise ValueError(
+            f"cannot translate mini-run params: expected an object, got "
+            f"{type(params).__name__}"
+        )
+    unknown = sorted(set(params) - set(_SCIPY_INPUT_KEYS))
+    if unknown:
+        raise ValueError(
+            "cannot translate mini-run params to the sympy typed input: "
+            f"unknown key(s) {', '.join(unknown)} (the wrapper input takes "
+            f"only keys from {', '.join(_SCIPY_INPUT_KEYS)})"
+        )
+    return wrapper_callable(substrate_id)(dict(params))
+
+
 # The run_ngspice summary key set, per the wrapper's own documented return
 # shape (tools/run_ngspice.py:28: {valid, qoi, diagnostics, runtime_s}) —
 # the wrapper defines no constant for it, so the contract line is the cite.
@@ -247,6 +301,8 @@ def ngspice_run_entry(summary) -> dict:
 _ADAPTERS: dict = {
     "cavity_2d_cfd": _cavity_adapter,
     "ngspice_linear_passive": _ngspice_adapter,
+    # Packet B Phase 1 flip (owner, 2026-07-17)
+    "sympy_symbolic_exact": _sympy_adapter,
 }
 
 
@@ -276,9 +332,27 @@ def _ngspice_qoi_translation(spec_qoi, vocab):
         return None, str(exc)
 
 
+def _sympy_qoi_translation(spec_qoi, vocab):
+    """Symbolic-result translation in stage 4's (request, refusal) shape:
+    this substrate's wrapper takes NO QoI request — the QoI IS the
+    operation's own verified result, extractable by construction for any
+    well-formed prose QoI. The returned marker is NOT a wrapper input (the
+    adapter ignores it); it exists so stage 4's None-means-unextractable
+    fallback path — which would file every run under qoi_error — is never
+    taken for this substrate. A non-object spec qoi is refused honestly."""
+    if not isinstance(spec_qoi, dict):
+        return None, (
+            f"spec qoi must be an object, got {type(spec_qoi).__name__} — "
+            "refusing to invent a request"
+        )
+    return {"symbolic_result": True}, None
+
+
 _QOI_TRANSLATIONS: dict = {
     "cavity_2d_cfd": _cavity_qoi_translation,
     "ngspice_linear_passive": _ngspice_qoi_translation,
+    # Packet B Phase 1 flip (owner, 2026-07-17)
+    "sympy_symbolic_exact": _sympy_qoi_translation,
 }
 
 
@@ -331,9 +405,102 @@ def _ngspice_run_entry_with_fallback(summary, qoi_error_fallback) -> dict:
     return ngspice_run_entry(summary)
 
 
+# The run_scipy summary key set, per the wrapper's own documented return
+# shape (tools/run_scipy.py:56-58) — the structural fields the constructor
+# reads; residual/crosscheck stay in the full summary (stage-4 evidence).
+_SCIPY_SUMMARY_KEYS = ("valid", "state", "result", "reason", "diagnostics",
+                       "runtime_s")
+
+_SCIPY_STATES = ("solved_verified", "unevaluated", "error")
+
+
+def sympy_run_entry(summary, qoi_error_fallback=None) -> dict:
+    """Packet B Phase 1.0 ruling items 3/4 (owner, 2026-07-17): one
+    conclusions-only stage-4 run entry from a run_scipy tri-state summary.
+    THE TRI-STATE SURVIVES: the wrapper's state travels VERBATIM in the
+    entry's optional `state` key, and no bool anywhere overwrites it.
+
+    The mapping, stated in the graduated contract §3: converged := (valid
+    is True) — completed-and-answered, true for solved_verified AND
+    unevaluated (an honest non-answer is a completed answer about the
+    question), false only for error. Per state:
+      solved_verified -> qoi_expression carrying the exact result STRING
+        (ruling item 4: never a fabricated float);
+      unevaluated -> qoi_error carrying the wrapper's own honest-non-answer
+        diagnostics line VERBATIM (ruling item 3: the locked schema's
+        answer slot, with state beside it saying machine-readably that this
+        is a decline, not a failure);
+      error -> qoi_error carrying the diagnostics line (which names the
+        wrapper's machine-greppable reason).
+
+    qoi_error_fallback is accepted for the uniform constructor signature
+    and deliberately unused: this substrate's summary always carries its
+    own truth (the translation never refuses a well-formed prose QoI).
+    FAIL LOUD (ValueError naming every offender) on structurally missing,
+    ill-typed, or state-contradicting wrapper fields — never a default."""
+    if not isinstance(summary, dict):
+        raise ValueError(
+            f"cannot construct a run entry: expected a run_scipy summary "
+            f"object, got {type(summary).__name__}"
+        )
+    missing = [k for k in _SCIPY_SUMMARY_KEYS if k not in summary]
+    if missing:
+        raise ValueError(
+            "cannot construct a run entry: run_scipy summary is missing "
+            f"field(s) {', '.join(missing)} — the wrapper contract is "
+            f"exactly {{{', '.join(_SCIPY_SUMMARY_KEYS)}}} plus residual/"
+            "crosscheck; refusing to default"
+        )
+    state = summary["state"]
+    if state not in _SCIPY_STATES:
+        raise ValueError(
+            f"cannot construct a run entry: summary state must be one of "
+            f"{', '.join(_SCIPY_STATES)}; got {state!r} — an unknown state "
+            "must not become a well-formed entry"
+        )
+    valid = summary["valid"]
+    if not isinstance(valid, bool) or valid is not (state != "error"):
+        raise ValueError(
+            f"cannot construct a run entry: summary valid={valid!r} "
+            f"contradicts state={state!r} — the wrapper contract ties "
+            "valid=true to the two non-error states; refusing to pick one"
+        )
+    runtime_s = summary["runtime_s"]
+    if not isinstance(runtime_s, (int, float)) or isinstance(runtime_s, bool):
+        raise ValueError(
+            f"cannot construct a run entry: summary runtime_s must be a "
+            f"number, got {runtime_s!r}"
+        )
+    entry = {"converged": valid is True, "wall_clock_s": runtime_s,
+             "state": state}
+    if state == "solved_verified":
+        result = summary["result"]
+        if not isinstance(result, str) or not result.strip():
+            raise ValueError(
+                f"cannot construct a run entry: state=solved_verified but "
+                f"result is {result!r}, not a non-empty string — the "
+                "wrapper contract says solved_verified always carries the "
+                "exact result; refusing to fabricate a qoi_expression"
+            )
+        entry["qoi_expression"] = result
+    else:
+        diagnostics = summary["diagnostics"]
+        if not isinstance(diagnostics, str) or not diagnostics.strip():
+            raise ValueError(
+                f"cannot construct a run entry: state={state!r} but "
+                f"diagnostics is {diagnostics!r} — a non-answer or failure "
+                "must carry the wrapper's own line; refusing to invent a "
+                "qoi_error"
+            )
+        entry["qoi_error"] = diagnostics
+    return entry
+
+
 _RUN_ENTRY_CONSTRUCTORS: dict = {
     "cavity_2d_cfd": _cavity_run_entry,
     "ngspice_linear_passive": _ngspice_run_entry_with_fallback,
+    # Packet B Phase 1 flip (owner, 2026-07-17): the tri-state carrier.
+    "sympy_symbolic_exact": sympy_run_entry,
 }
 
 

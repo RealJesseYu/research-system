@@ -35,7 +35,11 @@ to a vocabulary IMPORTED read-only from the place that already owns it:
     2026-07-17), alongside its routability ruling exactly as this note
     always required: the wrapper's own _REQUIRED_FIELDS
     (tools/run_ngspice.py), imported read-only — the tested wiring shape.
-  - fenicsx/sympy/FEA/code et al.: NOT wired — same discipline as the
+  - sympy_symbolic_exact: WIRED at the Packet B Phase 1 flip (owner
+    ruling, 2026-07-17), alongside its routability ruling: the wrapper's
+    own re-exported universal + per-operation field constants
+    (tools/run_scipy.py), imported read-only and derived structurally.
+  - fenicsx/FEA/code et al.: NOT wired — same discipline as the
     registry's _CONTRACTS map (absence is deliberate; a signature is wired
     alongside a routability ruling, never before). Tests construct
     multi-routable registries by patching this map with vocabularies
@@ -62,6 +66,26 @@ from __future__ import annotations
 from stages.stage4_case_builder import BUILDABLE_PARAMS, REYNOLDS_KEY
 from tools import substrate_registry as registry
 from tools.run_ngspice import _REQUIRED_FIELDS as _NGSPICE_REQUIRED_FIELDS
+from tools.run_scipy import (
+    OP_FIELDS as _SCIPY_OP_FIELDS,
+    UNIVERSAL_OPTIONAL_FIELDS as _SCIPY_UNIVERSAL_OPTIONAL_FIELDS,
+    UNIVERSAL_REQUIRED_FIELDS as _SCIPY_UNIVERSAL_REQUIRED_FIELDS,
+)
+
+# sympy's full typed-key vocabulary, derived STRUCTURALLY from the wrapper's
+# own re-exported constants (Packet B Phase 1 flip, owner 2026-07-17):
+# the universal fields plus every per-operation required/optional field —
+# never a literal name (a literal here would be a forbidden third copy).
+_SCIPY_SIGNATURE: frozenset[str] = (
+    frozenset(_SCIPY_UNIVERSAL_REQUIRED_FIELDS)
+    | frozenset(_SCIPY_UNIVERSAL_OPTIONAL_FIELDS)
+    | {
+        name
+        for fields in _SCIPY_OP_FIELDS.values()
+        for group in ("required", "optional")
+        for name in fields[group]
+    }
+)
 
 # substrate_id -> the set of spec parameter names its builder/wrapper honors.
 # Values are built from IMPORTED vocabularies only (see module docstring);
@@ -71,6 +95,11 @@ _SIGNATURES: dict[str, frozenset[str]] = {
     # R2 promotion flip (owner, 2026-07-17): run_ngspice's own typed-key
     # vocabulary, imported — the shape the D.2 tests always wired.
     "ngspice_linear_passive": frozenset(_NGSPICE_REQUIRED_FIELDS),
+    # Packet B Phase 1 flip (owner, 2026-07-17): run_scipy's own typed-key
+    # vocabulary, imported and derived above. Disjoint from every other
+    # wired signature today — asserted by test, since the Phase-2 R-B-1
+    # loud-stop leans on overlap detection being real.
+    "sympy_symbolic_exact": _SCIPY_SIGNATURE,
 }
 
 

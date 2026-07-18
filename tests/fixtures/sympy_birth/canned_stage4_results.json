@@ -1,0 +1,29 @@
+{
+  "status": "executed",
+  "verdict_label": "trust",
+  "qoi_request": {
+    "symbolic_result": true
+  },
+  "runs": [
+    {
+      "run_index": 1,
+      "case": "birth-canned-sympy-s5_run1",
+      "params": {
+        "operation": "integrate_indefinite",
+        "expression": "x**x",
+        "symbols": ["x"],
+        "var": "x"
+      },
+      "summary": {
+        "valid": true,
+        "state": "unevaluated",
+        "result": null,
+        "residual": null,
+        "crosscheck": null,
+        "reason": null,
+        "diagnostics": "integrate_indefinite: SymPy returned the operation unevaluated (an Integral object survives in the output); surviving form 'Integral(x**x, x)'. This is an honest non-answer, not a failure.",
+        "runtime_s": 0.94
+      }
+    }
+  ]
+}

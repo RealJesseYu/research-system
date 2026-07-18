@@ -26,9 +26,11 @@ The cavity record's members ARE run_cfd's objects — imported, assertIs-
 provable, never a pasted copy. ngspice's record was WIRED at the R2
 promotion flip (owner ruling, 2026-07-17), alongside its routability ruling
 exactly as the discipline requires, from tools/run_ngspice.py's own
-constants — its single source. The still-unrouted substrates (fenicsx/
-sympy/FEA/code) remain unwired: absence is deliberate; a vocabulary is
-wired alongside a routability ruling, never before.
+constants — its single source. sympy's record was wired the same way at
+the Packet B Phase 1 flip (owner, 2026-07-17), from tools/run_scipy.py's
+re-exported operation allowlist. The still-unrouted substrates (fenicsx/
+FEA/code) remain unwired: absence is deliberate; a vocabulary is wired
+alongside a routability ruling, never before.
 
 FAIL LOUD (contract_for's style): a substrate with no wired vocabulary
 raises LookupError — validation must never guess a vocabulary, and NEVER
@@ -45,6 +47,7 @@ from typing import Any, ClassVar, Pattern
 from tools import substrate_registry as registry
 from tools.run_cfd import MASK_TYPES, QOI_COMPONENTS, QOI_OPERATIONS, _QOI_FIELD_RE
 from tools.run_ngspice import _ANALYSIS_FIELDS, _NAME_RE, _QOI_KINDS, _REDUCTIONS
+from tools.run_scipy import OPERATIONS as _SCIPY_OPERATIONS
 
 FIELD_REDUCTION = "field_reduction"
 NAMED_QUANTITY = "named_quantity"
@@ -125,6 +128,14 @@ class OperationSetRegime:
     # analysis-shaped regime block in an operation-set spec fails loudly
     # with a per-substrate reason instead of a bare missing-key complaint.
     alien_keys: ClassVar[tuple] = ("reynolds_min", "reynolds_max", "analysis_type")
+
+
+# sympy's regime record, constructed from the wrapper's own closed operation
+# allowlist (Packet B Phase 1.0 ruling item 1 + packet rule D.1: derived from
+# run_scipy's own operation allowlist, NEVER invented — run_scipy.OPERATIONS
+# IS the onboarding contract's ruled S1 tuple, bound at the wrapper's own
+# import; tuple(...) reads it live at import, a structural view).
+SYMPY_REGIME = OperationSetRegime(operations=tuple(_SCIPY_OPERATIONS))
 
 
 @dataclass(frozen=True)
@@ -210,6 +221,12 @@ _VOCABS: dict[str, Any] = {
         reductions=_REDUCTIONS,
         regime=NGSPICE_REGIME,
     ),
+    # Packet B Phase 1 flip (owner, 2026-07-17): sympy's vocabulary is the
+    # symbolic-result shape — the wrapper takes no QoI request (its typed
+    # input has no qoi field; the QoI IS the operation's verified result),
+    # so the record carries no machine-key vocabulary, only the regime
+    # record derived above from the wrapper's own operation allowlist.
+    "sympy_symbolic_exact": SymbolicResultVocab(regime=SYMPY_REGIME),
 }
 
 

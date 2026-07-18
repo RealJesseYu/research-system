@@ -58,11 +58,13 @@ class TestHumanModeNonMature(unittest.TestCase):
         # but the signoff is recorded + logged
         signoff = b._maturity_signoff
         self.assertTrue(signoff["required"])
-        # both routable substrates are non-mature since the R2 flip (owner,
-        # 2026-07-17): cavity@provisional plus ngspice@calibrating
+        # all three routable substrates are non-mature since the Packet B
+        # Phase 1 flip (owner, 2026-07-17): cavity@provisional, then
+        # sympy@calibrating (enrollment order), then ngspice@calibrating
         self.assertEqual(
             signoff["substrates"],
-            ["cavity_2d_cfd@provisional", "ngspice_linear_passive@calibrating"],
+            ["cavity_2d_cfd@provisional", "sympy_symbolic_exact@calibrating",
+             "ngspice_linear_passive@calibrating"],
         )
         self.assertTrue(any("NEEDS_HUMAN_SIGNOFF" in ln for ln in logger.lines))
         # no downgrade line in human mode
@@ -134,10 +136,12 @@ class TestRunRecordStamping(unittest.TestCase):
         self.assertTrue(rec["extras"]["needs_human_signoff"])
         self.assertEqual(
             rec["extras"]["needs_human_signoff_substrates"],
-            ["cavity_2d_cfd@provisional", "ngspice_linear_passive@calibrating"],
+            ["cavity_2d_cfd@provisional", "sympy_symbolic_exact@calibrating",
+             "ngspice_linear_passive@calibrating"],
         )
         self.assertIn(
             "needs_human_signoff=[cavity_2d_cfd@provisional, "
+            "sympy_symbolic_exact@calibrating, "
             "ngspice_linear_passive@calibrating]",
             rec["text"],
         )

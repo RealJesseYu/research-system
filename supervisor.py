@@ -209,8 +209,9 @@ def apply_substrate_maturity_hook(logger: Logger, baton: Baton, mode: str) -> No
     substrate, so there is nothing to gate). The substrates a run may route to
     are read STRUCTURALLY from the registry's routable set — never parsed from
     the payload's substrate names, which would violate the substrate-agnostic
-    invariant. Today the routable set is exactly ('cavity_2d_cfd',), which is
-    'provisional' == non-mature.
+    invariant. (The routable set is the registry's to state — see
+    tools/substrate_registry.py; every routable substrate today is
+    non-mature.)
 
     If ANY routable substrate is non-mature the trust decision is human-
     required: a NEEDS_HUMAN_SIGNOFF line is logged (a display) and the fact is

@@ -1,0 +1,75 @@
+{
+  "hypothesis_id": "hand-sympy",
+  "title": "Exact definite integral of x*sin(x) over [0, pi]",
+  "objective": "Verify by exact symbolic integration, with independent verification, that the definite integral of x*sin(x) over [0, pi] equals pi.",
+  "parameters": [
+    {
+      "name": "operation",
+      "role": "derived",
+      "units": "operation name",
+      "derived_from": "the hypothesis is a definite-integral claim: integrate_definite for every run"
+    },
+    {
+      "name": "expression",
+      "role": "derived",
+      "units": "expression text",
+      "derived_from": "the integrand exactly as typed in the hypothesis: x*sin(x)"
+    },
+    {
+      "name": "symbols",
+      "role": "derived",
+      "units": "symbol list",
+      "derived_from": "the one free name in the expression: [x]"
+    },
+    {
+      "name": "var",
+      "role": "derived",
+      "units": "symbol name",
+      "derived_from": "the integration variable: x"
+    },
+    {
+      "name": "lower",
+      "role": "derived",
+      "units": "expression",
+      "derived_from": "the interval's lower bound as typed: 0"
+    },
+    {
+      "name": "upper",
+      "role": "derived",
+      "units": "expression",
+      "derived_from": "the interval's upper bound as typed: pi"
+    }
+  ],
+  "qoi": {
+    "name": "exact integral value",
+    "units": "dimensionless",
+    "definition": "the exact symbolic value of Integral(x*sin(x), (x, 0, pi))",
+    "how_extracted": "the wrapper's verified symbolic result string (qoi_expression)"
+  },
+  "success_criterion": {
+    "statement": "The verified exact value equals pi (numerically 3.14159...), i.e. its numeric value exceeds 3.1.",
+    "threshold": 3.1,
+    "direction": "above"
+  },
+  "regime": {
+    "operation": "integrate_definite",
+    "notes": "One closed-form definite integral on one declared symbol, inside the wrapper's ruled S1 operation allowlist. Declared per the substrate contract's section-3 regime statement (Packet B Phase 1.0)."
+  },
+  "mini_experiment": {
+    "runs": [
+      {
+        "operation": "integrate_definite",
+        "expression": "x*sin(x)",
+        "symbols": ["x"],
+        "var": "x",
+        "lower": "0",
+        "upper": "pi"
+      }
+    ],
+    "expected_observation": "state solved_verified with result pi; the independent quad cross-check agrees within 1e-8."
+  },
+  "full_experiment": {
+    "design": "Extend to the integrand family x**n * sin(x) for n in 1..5 over [0, pi], one job per n, comparing each verified exact value to its closed form.",
+    "estimated_run_count": 5
+  }
+}

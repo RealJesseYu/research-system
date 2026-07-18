@@ -1,0 +1,55 @@
+{
+  "run_id": "birth-canned-sympy",
+  "created_at": "2026-07-17T00:00:00+00:00",
+  "mode": "auto",
+  "payload": {
+    "domain": "exact symbolic evaluation of closed-form integrals",
+    "chosen_hypothesis": {
+      "id": "hand-sympy",
+      "statement": "The definite integral of x*sin(x) over [0, pi] equals pi exactly.",
+      "rationale": "HAND-FED (not stage-1 output): a known-servable symbolic-result spec to capture the sympy stage-3 model-visible surface at its birth (Packet B Phase 1 flip)."
+    },
+    "substrate_id": "sympy_symbolic_exact",
+    "experiment_spec": {
+      "parameters": [
+        {
+          "name": "operation"
+        },
+        {
+          "name": "expression"
+        },
+        {
+          "name": "symbols"
+        },
+        {
+          "name": "var"
+        },
+        {
+          "name": "lower"
+        },
+        {
+          "name": "upper"
+        }
+      ],
+      "qoi": {
+        "name": "exact integral value",
+        "units": "dimensionless",
+        "definition": "the exact symbolic value of Integral(x*sin(x), (x, 0, pi))",
+        "how_extracted": "the wrapper's verified symbolic result string (qoi_expression)"
+      },
+      "mini_experiment": {
+        "runs": [
+          {
+            "operation": "integrate_definite",
+            "expression": "x*sin(x)",
+            "symbols": ["x"],
+            "var": "x",
+            "lower": "0",
+            "upper": "pi"
+          }
+        ]
+      }
+    }
+  },
+  "history": []
+}

@@ -11,11 +11,11 @@ execution.
 
 | substrate_id | wrapper | card | maturity | routable | cost tier | notes |
 |---|---|---|---|---|---|---|
-| `cavity_2d_cfd` | `tools/run_cfd.py` | `docs/envelope_card_cavity2d.md` | **provisional** | **yes** | low | real runs accruing, mini-21 pending; the sole routable substrate (current behavior) |
+| `cavity_2d_cfd` | `tools/run_cfd.py` | `docs/envelope_card_cavity2d.md` | **provisional** | **yes** | low | real runs accruing, mini-21 pending; routable since Step 28 (was the sole routable substrate until the R2 flip) |
 | `calculix_cantilever_fea` | `tools/run_fea.py` | `docs/envelope_card_calculix_cantilever.md` | calibrating | no | low | battery pending owner OK |
 | `code_sklearn_eval` | `tools/run_code.py` | `docs/envelope_card_code_sklearn_eval.md` | calibrating | no | low | battery not on the run manifest — owner decision pending |
 | `fenicsx_cantilever_elastic` | `tools/run_fenicsx.py` | `docs/envelope_card_fenicsx_cantilever_elastic.md` | calibrating | no | low | slate drafted (15 cases); battery pending owner OK on the slate ruling |
-| `sympy_symbolic_exact` | `tools/run_scipy.py` | `docs/envelope_card_sympy_symbolic_exact.md` | calibrating | no | low | sci-Python Regime A (exact symbolic CAS); card provisionally signed (owner, 2026-07-16), S1-S6 + S2a/S4a/S4b all RULED (owner, 2026-07-16); battery pending owner OK. Regime B (scipy_numeric_quad) is QUEUED and has no row. |
+| `sympy_symbolic_exact` | `tools/run_scipy.py` | `docs/envelope_card_sympy_symbolic_exact.md` | calibrating | **yes** | low | sci-Python Regime A (exact symbolic CAS); card provisionally signed (owner, 2026-07-16), S1-S6 + S2a/S4a/S4b all RULED (owner, 2026-07-16); battery executed 2026-07-17 (28/30 draws in-band, 8/10 cases unanimous, hook witnessed 16/16 zero-silent-trust, wrapper self-checks 5/5); routable=True RULED Packet B Phase 1 (owner 'start phase 1' + Phase-1.0 ruling line, 2026-07-17: OperationSetRegime, item 1), maturity CALIBRATING unchanged — every trust decision human-required via the maturity hook. Regime B (scipy_numeric_quad) is QUEUED and has no row. |
 | `ngspice_linear_passive` | `tools/run_ngspice.py` | `docs/envelope_card_ngspice_linear_passive.md` | calibrating | **yes** | low | battery executed 2026-07-17 (30/30 draws in-band, 10/10 cases unanimous, hook witnessed 18/18 zero-silent-trust); routable=True RULED R2, maturity CALIBRATING unchanged RULED R3 (owner, 2026-07-17) — every trust decision human-required via the maturity hook |
 | `web_search` | `tools/web_search_stub.py` | (this doc) | retrieval-provisional | no | minimal | structurally never trusted alone |
 
@@ -33,9 +33,10 @@ any trust decision that touches it is **human-required** (the supervisor marks
 it `needs_human_signoff` and, in auto mode, downgrades the trust/refine verdict
 to defer-class handling rather than trusting it silently). *Mature* means
 calibration is complete and trust decisions may proceed unattended. **No
-substrate is mature today** — the routable set since the R2 flip is
-`cavity_2d_cfd` (provisional) and `ngspice_linear_passive` (calibrating,
-R3-routable), both non-mature, so every trust decision the pipeline can
+substrate is mature today** — the routable set since the Packet B Phase 1
+flip is `cavity_2d_cfd` (provisional), `sympy_symbolic_exact` (calibrating,
+Phase-1-routable), and `ngspice_linear_passive` (calibrating, R3-routable),
+all non-mature, so every trust decision the pipeline can
 currently make is human-required by construction. `web_search` sits in its own class,
 *retrieval-provisional*, deliberately outside the ladder: it is a retrieval
 source that is structurally never trusted alone, so it is never routable.

@@ -26,13 +26,14 @@ from tools import substrate_registry as registry
 
 
 class TestContractSelection(unittest.TestCase):
-    def test_sole_routable_raises_on_the_real_two_routable_registry(self):
-        # Post-R2-flip the routable set is two, so the RETIRED
-        # sole_routable_id() raises on the real registry — its documented
-        # behavior, and the reason D.2 replaced it with select_substrate.
+    def test_sole_routable_raises_on_the_real_three_routable_registry(self):
+        # Post-Packet-B-Phase-1-flip the routable set is three, so the
+        # RETIRED sole_routable_id() raises on the real registry — its
+        # documented behavior, and the reason D.2 replaced it with
+        # select_substrate.
         self.assertEqual(
             registry.routable_ids(),
-            ("cavity_2d_cfd", "ngspice_linear_passive"),
+            ("cavity_2d_cfd", "sympy_symbolic_exact", "ngspice_linear_passive"),
         )
         with self.assertRaises(RuntimeError):
             registry.sole_routable_id()
@@ -102,6 +103,8 @@ class TestRoutableContractsBlock(unittest.TestCase):
         expected = (
             "ROUTABLE SUBSTRATE: cavity_2d_cfd\n"
             + substrates.CAVITY_2D_CONTRACT
+            + "\n\nROUTABLE SUBSTRATE: sympy_symbolic_exact\n"
+            + substrates.SYMPY_SYMBOLIC_EXACT_CONTRACT
             + "\n\nROUTABLE SUBSTRATE: ngspice_linear_passive\n"
             + substrates.NGSPICE_LINEAR_PASSIVE_CONTRACT
         )

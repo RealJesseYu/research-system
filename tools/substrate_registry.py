@@ -42,7 +42,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from substrates import CAVITY_2D_CONTRACT, NGSPICE_LINEAR_PASSIVE_CONTRACT
+from substrates import (
+    CAVITY_2D_CONTRACT,
+    NGSPICE_LINEAR_PASSIVE_CONTRACT,
+    SYMPY_SYMBOLIC_EXACT_CONTRACT,
+)
 
 # --- maturity rungs -------------------------------------------------------
 CALIBRATING = "calibrating"
@@ -121,13 +125,21 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         wrapper="tools/run_scipy.py",
         card_path="docs/envelope_card_sympy_symbolic_exact.md",
         maturity=CALIBRATING,
-        routable=False,
+        routable=True,
         cost_tier="low",
         notes=(
             "sci-Python Regime A (exact symbolic CAS); card provisionally "
             "signed (owner, 2026-07-16), S1-S6 + S2a/S4a/S4b all RULED (owner, "
-            "2026-07-16); battery pending owner OK. Regime B "
-            "(scipy_numeric_quad) is QUEUED and has no row."
+            "2026-07-16); battery executed 2026-07-17 (28/30 draws in-band, "
+            "8/10 cases unanimous, hook witnessed 16/16 zero-silent-trust, "
+            "wrapper self-checks 5/5 — harness/"
+            "calibration_sympy_symbolic_exact_20260717T115450Z.json); "
+            "routable=True RULED Packet B Phase 1 (owner 'start phase 1' + "
+            "Phase-1.0 ruling line, 2026-07-17: OperationSetRegime regime "
+            "shape, item 1), maturity CALIBRATING unchanged — every trust "
+            "decision human-required via the maturity hook until a separate "
+            "maturity ruling. Regime B (scipy_numeric_quad) is QUEUED and "
+            "has no row."
         ),
     ),
     SubstrateRecord(
@@ -178,6 +190,13 @@ _CONTRACTS: dict[str, str] = {
     # battery's compact SUBSTRATE_TEXT (a different artifact; see
     # onboarding/ngspice_linear_passive/contract.py).
     "ngspice_linear_passive": NGSPICE_LINEAR_PASSIVE_CONTRACT,
+    # Packet B Phase 1 flip (owner, 2026-07-17): the IMPORTED runtime
+    # constant, AUTHORED AT GRADUATION in substrates.py (the sympy
+    # onboarding module had no 5-section text to move — its structured
+    # allowlists stay the wrapper's source of truth; see the onboarding
+    # module's STAGING NOTE) — never a pasted copy, and never the
+    # battery's substrate_text/envelope_text (different artifacts).
+    "sympy_symbolic_exact": SYMPY_SYMBOLIC_EXACT_CONTRACT,
 }
 
 
@@ -283,6 +302,9 @@ def routable_ids() -> tuple[str, ...]:
     """The substrate ids the pipeline may route execution to, in enrollment
     order. This is the registry's answer to 'what can a run execute on' — it
     is consulted structurally, NOT parsed from a payload's substrate names
-    (that would violate the substrate-agnostic invariant). Since the R2 flip
-    (owner, 2026-07-17): ('cavity_2d_cfd', 'ngspice_linear_passive')."""
+    (that would violate the substrate-agnostic invariant). Since the
+    Packet B Phase 1 flip (owner, 2026-07-17): ('cavity_2d_cfd',
+    'sympy_symbolic_exact', 'ngspice_linear_passive') — sympy sits in the
+    middle because enrollment order is preserved and its row precedes
+    ngspice's."""
     return tuple(r.substrate_id for r in _REGISTRY if r.routable)

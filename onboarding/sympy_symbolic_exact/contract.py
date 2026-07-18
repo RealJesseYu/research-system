@@ -14,10 +14,18 @@ consumers, zero copies:
 
 Never a third copy of any text below.
 
-STAGING NOTE: this module lives under onboarding/ deliberately. The substrate is
-UNREGISTERED and UNROUTABLE — nothing in `stages/`, the supervisor,
-`substrates.py`, or any schema imports it. Registration is a separate owner
-ruling; the Wave Guide merges the staged fragments serially.
+STAGING NOTE — RESOLVED at the Packet B Phase 1 flip (owner "start phase 1"
++ Phase-1.0 ruling line, 2026-07-17). The substrate is ROUTABLE at maturity
+`calibrating`. This module remains the wrapper's one runtime source of truth
+for the STRUCTURED allowlists (tools/run_scipy.py path-loads it); the
+model-visible RUNTIME contract text was AUTHORED AT GRADUATION in
+substrates.py (SYMPY_SYMBOLIC_EXACT_CONTRACT, its canonical home per the
+56e16d9 pattern) and is re-exported at the bottom of this module. The
+bundled dict below keeps its historic SYMPY_SYMBOLIC_EXACT_CONTRACT name —
+it is card-referenced prose material with zero code consumers, and renaming
+card-referenced identifiers is a card ruling, not this build's; the
+re-export therefore carries the distinct name RUNTIME_CONTRACT_TEXT
+(disclosed naming deviation from the ngspice pattern).
 
 RULED CONSTANTS: `VERIFY_RESIDUAL_TOL` (card slot S2) and `CROSSCHECK_AGREE_TOL`
 (slot S6) were RULED by the owner on 2026-07-16 and carry that label at their
@@ -540,3 +548,21 @@ def envelope_text() -> str:
         "The wrapper confirms only that the operation ran, produced a closed "
         "form, and that the closed form survived back-substitution."
     )
+
+
+# ---------------------------------------------------------------------------
+# Graduated at the Packet B Phase 1 flip (owner ruling, 2026-07-17): the
+# model-visible RUNTIME contract text lives in substrates.py — its canonical
+# home (the 56e16d9 pattern) — and is RE-EXPORTED here so every consumer
+# gets the same object (assertIs-provable). ONE source; this is an import,
+# never a second copy. See the STAGING NOTE in the module docstring for why
+# the re-export name differs from the ngspice pattern.
+# ---------------------------------------------------------------------------
+import sys as _sys
+from pathlib import Path as _Path
+
+_ROOT = _Path(__file__).resolve().parents[2]
+if str(_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_ROOT))
+
+from substrates import SYMPY_SYMBOLIC_EXACT_CONTRACT as RUNTIME_CONTRACT_TEXT  # noqa: E402
