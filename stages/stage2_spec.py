@@ -24,7 +24,14 @@ from typing import Any
 # run_cfd import. The record is shape-tagged (field-reduction vs
 # named-quantity) and the qoi checks dispatch on the shape, never on a
 # substrate name.
-from tools.qoi_vocab import ANALYSIS_TYPE, FIELD_REDUCTION, NAMED_QUANTITY, REYNOLDS_BAND
+from tools.qoi_vocab import (
+    ANALYSIS_TYPE,
+    FIELD_REDUCTION,
+    NAMED_QUANTITY,
+    OPERATION_SET,
+    REYNOLDS_BAND,
+    SYMBOLIC_RESULT,
+)
 
 REQUIRED_SPEC_FIELDS = (
     "hypothesis_id",
@@ -201,6 +208,8 @@ def _validate_qoi(qoi: Any, vocab, errors: list[str], label: str = "qoi") -> Non
         _validate_qoi_field_reduction(qoi, vocab, errors, label)
     elif vocab.shape == NAMED_QUANTITY:
         _validate_qoi_named_quantity(qoi, vocab, errors, label)
+    elif vocab.shape == SYMBOLIC_RESULT:
+        _validate_qoi_symbolic_result(qoi, vocab, errors, label)
     else:  # a vocab record with an unknown shape is a broken invariant
         raise ValueError(f"unknown QoI vocabulary shape {vocab.shape!r}")
 
@@ -288,6 +297,16 @@ def _validate_qoi_named_quantity(qoi: dict, vocab, errors: list[str], label: str
         )
 
 
+def _validate_qoi_symbolic_result(qoi: dict, vocab, errors: list[str], label: str) -> None:
+    """The symbolic-result (exact-CAS class) checks: this shape has NO
+    machine-readable extraction vocabulary — the wrapper takes no QoI
+    request, and the QoI is the operation's own verified result. The prose
+    fields are checked by the common code above; machine keys from either
+    other grammar are rejected there too, by name, via the record's
+    alien_keys. Nothing further to validate is itself the shape's fact,
+    stated here rather than left implicit."""
+
+
 def _validate_qois(qois: Any, vocab, errors: list[str]) -> None:
     """Optional VECTOR of qoi objects (Multi-QoI build, part B). Present-only;
     each entry is validated exactly like the single `qoi` (same required
@@ -362,6 +381,8 @@ def _validate_regime(regime: Any, vocab, errors: list[str]) -> None:
         _validate_regime_reynolds_band(regime, errors)
     elif vocab.regime.shape == ANALYSIS_TYPE:
         _validate_regime_analysis_type(regime, vocab.regime, errors)
+    elif vocab.regime.shape == OPERATION_SET:
+        _validate_regime_operation_set(regime, vocab.regime, errors)
     else:
         raise ValueError(f"unknown regime vocabulary shape {vocab.regime.shape!r}")
 
@@ -417,6 +438,40 @@ def _validate_regime_analysis_type(regime: Any, reg, errors: list[str]) -> None:
         errors.append(
             f"regime analysis_type must be one of: {allowed}; "
             f"got {regime['analysis_type']!r}."
+        )
+
+
+def _validate_regime_operation_set(regime: Any, reg, errors: list[str]) -> None:
+    """Operation-set regime semantics (exact-CAS class, Packet B Phase 1.0
+    ruling item 1): the regime is DECLARED AS ONE OF THE WRAPPER'S OWN
+    ALLOWLISTED OPERATIONS — reg.operations is derived from the owning
+    wrapper's imported allowlist, never invented here. The other shapes'
+    keys are rejected BY NAME (reg.alien_keys) so a Reynolds-shaped or
+    analysis-shaped regime block fails with a per-substrate reason, not a
+    bare missing-key complaint."""
+    allowed = ", ".join(reg.operations)
+    if not isinstance(regime, dict):
+        errors.append("regime must be an object with operation and notes.")
+        return
+    for key in reg.alien_keys:
+        if key in regime:
+            errors.append(
+                f"regime field '{key}' is not part of this substrate's regime "
+                f"vocabulary — this instrument's regime is not a Reynolds band "
+                f"and not a circuit analysis; declare 'operation' (one of: "
+                f"{allowed}) and 'notes'."
+            )
+    if "notes" not in regime:
+        errors.append("regime is missing 'notes'.")
+    if "operation" not in regime:
+        errors.append(
+            f"regime is missing 'operation' — this substrate's regime is "
+            f"declared as one of its allowlisted operations: {allowed}."
+        )
+    elif regime["operation"] not in reg.operations:
+        errors.append(
+            f"regime operation must be one of: {allowed}; "
+            f"got {regime['operation']!r}."
         )
 
 

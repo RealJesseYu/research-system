@@ -48,6 +48,7 @@ from tools.run_ngspice import _ANALYSIS_FIELDS, _NAME_RE, _QOI_KINDS, _REDUCTION
 
 FIELD_REDUCTION = "field_reduction"
 NAMED_QUANTITY = "named_quantity"
+SYMBOLIC_RESULT = "symbolic_result"
 
 # Regime-semantics shapes (R-23.5-5, owner 2026-07-17): "regime" remains
 # REQUIRED in every spec; its MEANING is per-substrate. The semantics ride
@@ -57,6 +58,7 @@ NAMED_QUANTITY = "named_quantity"
 # substrates hit vocab_for's existing loud raises before any regime check.
 REYNOLDS_BAND = "reynolds_band"
 ANALYSIS_TYPE = "analysis_type"
+OPERATION_SET = "operation_set"
 
 
 @dataclass(frozen=True)
@@ -85,10 +87,16 @@ class AnalysisTypeRegime:
 
     analysis_types: tuple  # run_ngspice._ANALYSIS_FIELDS keys, in wrapper order
 
-    # The cavity shape's keys, rejected by name so a Reynolds-shaped regime
-    # block in a named-quantity spec fails loudly with a per-substrate
+    # The OTHER shapes' keys, rejected by name so a wrong-grammar regime
+    # block in a named-analysis spec fails loudly with a per-substrate
     # reason instead of a bare missing-key complaint (mirrors alien_keys).
-    alien_keys: ClassVar[tuple] = ("reynolds_min", "reynolds_max")
+    # "operation" joined ADDITIVELY under the Packet B Phase 1.0 ruling
+    # (item 2, owner, 2026-07-17): the operation-set shape's key, so a
+    # CAS-shaped regime block in an ngspice-class spec rejects by name in
+    # the reverse direction too. Existing rejection strings for Reynolds
+    # inputs are byte-identical (per-key rendering; pinned exact by
+    # tests/test_r2355_regime.py).
+    alien_keys: ClassVar[tuple] = ("reynolds_min", "reynolds_max", "operation")
 
 
 # ngspice's regime record, constructed from the wrapper's typed input
@@ -96,6 +104,27 @@ class AnalysisTypeRegime:
 # analysis-type table, imported at the top of this module; tuple(...) reads
 # its keys live at import).
 NGSPICE_REGIME = AnalysisTypeRegime(analysis_types=tuple(_ANALYSIS_FIELDS))
+
+
+@dataclass(frozen=True)
+class OperationSetRegime:
+    """CAS-class regime semantics (Packet B Phase 1.0 ruling item 1, owner
+    2026-07-17): DERIVED FROM THE WRAPPER'S own closed operation allowlist,
+    never invented — the regime of an exact symbolic instrument is which
+    operation it performs on the expression as typed. `operations` is
+    derived from the owning wrapper's imported allowlist (for sympy:
+    tools/run_scipy.py's OPERATIONS, which IS the onboarding contract's S1
+    tuple, bound at run_scipy.py's own import) — a structural view, never
+    a pasted copy."""
+
+    shape: ClassVar[str] = OPERATION_SET
+
+    operations: tuple  # the wrapper's closed operation allowlist, in order
+
+    # The OTHER shapes' keys, rejected by name so a Reynolds-shaped or
+    # analysis-shaped regime block in an operation-set spec fails loudly
+    # with a per-substrate reason instead of a bare missing-key complaint.
+    alien_keys: ClassVar[tuple] = ("reynolds_min", "reynolds_max", "analysis_type")
 
 
 @dataclass(frozen=True)
@@ -130,6 +159,29 @@ class NamedQuantityVocab:
     regime: Any          # the substrate's regime-semantics record (R-23.5-5)
 
     alien_keys: ClassVar[tuple] = ("field", "operation", "component", "mask")
+
+
+@dataclass(frozen=True)
+class SymbolicResultVocab:
+    """A symbolic-result vocabulary (exact-CAS class, Packet B Phase 1.0):
+    the QoI IS the operation's own verified result — the wrapper takes no
+    QoI request (its typed input has no `qoi` field; unknown fields are
+    rejected by name), so this shape carries NO machine-readable extraction
+    keys. A spec's qoi under this shape is the four prose fields only;
+    machine keys from EITHER other grammar are rejected by name via
+    alien_keys. The record still carries the substrate's regime-semantics
+    member — the regime rides the vocab record in every shape (R-23.5-5)."""
+
+    shape: ClassVar[str] = SYMBOLIC_RESULT
+
+    regime: Any          # the substrate's regime-semantics record
+
+    # BOTH other shapes' machine keys, rejected by name: a request in any
+    # foreign grammar fails loudly instead of passing silently as prose.
+    alien_keys: ClassVar[tuple] = (
+        "field", "operation", "component", "mask",   # field-reduction grammar
+        "kind", "target", "reduction",                # named-quantity grammar
+    )
 
 
 # substrate_id -> its QoI-vocabulary record, mirroring _CONTRACTS (registry)

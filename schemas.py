@@ -68,9 +68,14 @@ FIDELITY_VERDICT_KEYS = ("label", "rationale", "right_instrument")
 
 # The SINGLE source for the run-entry key set (D.5 census: schemas.py is the
 # one production site enforcing this shape — never a second key list).
-# `state` is the D.5-ruled optional (R1 option 4); the other four are the
-# locked Step-15 required set.
-RUN_ENTRY_KEYS = ("converged", "wall_clock_s", "qoi_value", "qoi_error", "state")
+# `state` is the D.5-ruled optional (R1 option 4); `qoi_expression` is the
+# Packet-B-Phase-1.0-ruled optional (item 4, owner 2026-07-17: an exact
+# symbolic instrument's verified answer is an expression string, not a
+# number — the additive D.5 pattern, one-of-three with qoi_value/qoi_error);
+# the other four are the locked Step-15 required set.
+RUN_ENTRY_KEYS = (
+    "converged", "wall_clock_s", "qoi_value", "qoi_error", "qoi_expression", "state"
+)
 
 
 def _is_non_empty_str(value: Any) -> bool:
@@ -215,9 +220,13 @@ def _check_fidelity_verdict(payload: dict, errors: list[str]) -> None:
 
 def _check_execution_run_entry(entry: Any, label: str, errors: list[str]) -> None:
     """One conclusions-only run entry: {converged, wall_clock_s, and exactly
-    one of qoi_value | qoi_error} — the shape stage 4 writes (RUN B) — plus
-    the D.5-ruled optional `state` (non-empty string; per-substrate values
-    are contract material, not checked here)."""
+    one of qoi_value | qoi_error | qoi_expression} — the shape stage 4
+    writes (RUN B) — plus the D.5-ruled optional `state` (non-empty string;
+    per-substrate values are contract material, not checked here).
+    `qoi_expression` joined the one-of set additively under the Packet B
+    Phase 1.0 ruling (item 4, owner 2026-07-17): an exact symbolic
+    instrument's verified answer is an expression string, never a
+    fabricated number."""
     if not isinstance(entry, dict):
         errors.append(f"{label} must be an object.")
         return
@@ -229,20 +238,27 @@ def _check_execution_run_entry(entry: Any, label: str, errors: list[str]) -> Non
         errors.append(
             f"{label} wall_clock_s must be a number; got {entry.get('wall_clock_s')!r}."
         )
-    has_value = "qoi_value" in entry
-    has_error = "qoi_error" in entry
-    if has_value == has_error:
+    answer_keys = [
+        k for k in ("qoi_value", "qoi_error", "qoi_expression") if k in entry
+    ]
+    if len(answer_keys) != 1:
         errors.append(
-            f"{label} must carry exactly one of qoi_value or qoi_error; "
-            f"got {'both' if has_value else 'neither'}."
+            f"{label} must carry exactly one of qoi_value, qoi_error, or "
+            f"qoi_expression; got "
+            f"{', '.join(answer_keys) if answer_keys else 'none of them'}."
         )
-    if has_value and not _is_number(entry["qoi_value"]):
+    if "qoi_value" in entry and not _is_number(entry["qoi_value"]):
         errors.append(
             f"{label} qoi_value must be a number; got {entry['qoi_value']!r}."
         )
-    if has_error and not _is_non_empty_str(entry["qoi_error"]):
+    if "qoi_error" in entry and not _is_non_empty_str(entry["qoi_error"]):
         errors.append(
             f"{label} qoi_error must be a non-empty string; got {entry['qoi_error']!r}."
+        )
+    if "qoi_expression" in entry and not _is_non_empty_str(entry["qoi_expression"]):
+        errors.append(
+            f"{label} qoi_expression must be a non-empty string; "
+            f"got {entry['qoi_expression']!r}."
         )
     if "state" in entry and not _is_non_empty_str(entry["state"]):
         errors.append(
@@ -253,8 +269,8 @@ def _check_execution_run_entry(entry: Any, label: str, errors: list[str]) -> Non
         if key not in RUN_ENTRY_KEYS:
             errors.append(
                 f"{label} field '{key}' is not allowed — a run entry carries "
-                f"exactly converged, wall_clock_s, and qoi_value or qoi_error, "
-                f"plus the optional state."
+                f"exactly converged, wall_clock_s, and one of qoi_value, "
+                f"qoi_error, or qoi_expression, plus the optional state."
             )
 
 
