@@ -67,7 +67,14 @@ family on its quantity.
 
 ---
 
-## PART A — the §4b checklist, one row per resolved substrate (13)
+## PART A — the §4b checklist, one row per resolved substrate
+
+> **SUPERSEDED — do not cite the rows below.** The canonical, owner-RULED A table
+> is the **12-row** version in `docs/waves/gate_reports/gate_D2_pre_fanout.md`
+> (corrections applied: 6 regime shapes replaced with real task regimes; every
+> trust-split rewritten to gate only on checkable inputs; BLAST+HMMER bundled to
+> `homology_search`). The 13-row draft below is the pre-ruling proposal, kept for
+> history only.
 
 *Every cell filled. Proposal; owner corrects. Spec-key shapes reference
 `tools/qoi_vocab.py`; most bio tools return a named scalar → `fixed_summary`
