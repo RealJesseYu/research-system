@@ -40,7 +40,12 @@ from tools import qoi_vocab
 from tools import run_cfd
 from tools import run_ngspice
 from tools import substrate_registry as registry
-from tools.qoi_vocab import FieldReductionVocab, NamedQuantityVocab, vocab_for
+from tools.qoi_vocab import (
+    FieldReductionVocab,
+    NamedQuantityVocab,
+    ReynoldsBandRegime,
+    vocab_for,
+)
 
 D3_FIX = Path(__file__).resolve().parent / "fixtures" / "d3"
 
@@ -53,6 +58,11 @@ NGSPICE_VOCAB = NamedQuantityVocab(
     kinds=run_ngspice._QOI_KINDS,
     target_re=run_ngspice._NAME_RE,
     reductions=run_ngspice._REDUCTIONS,
+    # R-23.5-5: regime semantics are a required member of every vocab
+    # record. This tests-only record keeps the production map's CURRENT
+    # (Phase-2 transitional) Reynolds semantics so the d3 battery specs'
+    # regime blocks validate unchanged.
+    regime=ReynoldsBandRegime(),
 )
 
 
@@ -85,10 +95,10 @@ class TestCavityBattery(unittest.TestCase):
 
     def test_valid_spec_still_accepted(self):
         spec = json.loads((ROOT / "specs" / "handcrafted_baseline_qoi.json").read_text())
-        self.assertEqual(validate_spec(spec, CHOSEN_ID), [])
+        self.assertEqual(validate_spec(spec, CHOSEN_ID, vocab_for("cavity_2d_cfd")), [])
 
     def _check_class(self, cls: str) -> None:
-        errors = validate_spec(_battery_spec(cls), CHOSEN_ID)
+        errors = validate_spec(_battery_spec(cls), CHOSEN_ID, vocab_for("cavity_2d_cfd"))
         self.assertEqual(errors, [_expected_error(cls)])
 
     def test_bad_operation_byte_identical(self):
@@ -103,13 +113,14 @@ class TestCavityBattery(unittest.TestCase):
     def test_bad_field_byte_identical(self):
         self._check_class("bad_field")
 
-    def test_default_vocab_is_the_cavity_record(self):
-        # The None-default entry point resolves to the SAME record the lookup
-        # returns — no second cavity record anywhere.
-        explicit = validate_spec(_battery_spec("bad_operation"), CHOSEN_ID,
-                                 vocab=vocab_for("cavity_2d_cfd"))
-        defaulted = validate_spec(_battery_spec("bad_operation"), CHOSEN_ID)
-        self.assertEqual(explicit, defaulted)
+    def test_no_default_vocab_escape_proven_by_failing(self):
+        # R-23.5-5a TRUTH-EDIT (superseding the old None-defaults-to-cavity
+        # equivalence test): the default is REMOVED. A call without a vocab
+        # raises, and an explicit None raises — nothing resolves to cavity.
+        with self.assertRaises(TypeError):
+            validate_spec(_battery_spec("bad_operation"), CHOSEN_ID)
+        with self.assertRaises(TypeError):
+            validate_spec(_battery_spec("bad_operation"), CHOSEN_ID, None)
 
 
 class TestTwoShapeProof(unittest.TestCase):

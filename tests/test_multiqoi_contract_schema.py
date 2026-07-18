@@ -33,6 +33,10 @@ sys.path.insert(0, str(ROOT))
 
 from substrates import CAVITY_2D_CONTRACT
 from stages.stage2_spec import validate_spec
+from tools.qoi_vocab import vocab_for
+
+# R-23.5-5a: validate_spec's vocab argument is required at every call site.
+CAVITY_VOCAB = vocab_for("cavity_2d_cfd")
 from stages import gate1_chooser as gc
 
 
@@ -85,7 +89,7 @@ class ContractContent(unittest.TestCase):
 class SchemaBackCompat(unittest.TestCase):
     def test_real_on_disk_spec_validates_unchanged(self):
         spec = json.loads(_REAL_SPEC_PATH.read_text())
-        self.assertEqual(validate_spec(spec, spec["hypothesis_id"]), [])
+        self.assertEqual(validate_spec(spec, spec["hypothesis_id"], CAVITY_VOCAB), [])
 
     def _base_spec(self):
         spec = json.loads(_REAL_SPEC_PATH.read_text())
@@ -110,7 +114,7 @@ class SchemaFiresWhenPresent(unittest.TestCase):
                 "mask": {"type": "corner_exclusion", "params": {"radius_frac": 0.1}},
             }
         ]
-        self.assertEqual(validate_spec(spec, self.cid), [])
+        self.assertEqual(validate_spec(spec, self.cid, CAVITY_VOCAB), [])
 
     def test_malformed_qois_entry_fires(self):
         spec = copy.deepcopy(self.spec)
@@ -118,7 +122,7 @@ class SchemaFiresWhenPresent(unittest.TestCase):
             {"field": "1bad", "operation": "nope",
              "mask": {"type": "wedge", "params": "notdict"}}
         ]
-        errs = validate_spec(spec, self.cid)
+        errs = validate_spec(spec, self.cid, CAVITY_VOCAB)
         # required-field, machine-key, and mask errors all fire, all labeled qois[0]
         self.assertTrue(any("qois[0] is missing 'name'" in e for e in errs))
         self.assertTrue(any("qois[0] field must be" in e for e in errs))
@@ -129,7 +133,7 @@ class SchemaFiresWhenPresent(unittest.TestCase):
     def test_empty_qois_list_fires(self):
         spec = copy.deepcopy(self.spec)
         spec["qois"] = []
-        errs = validate_spec(spec, self.cid)
+        errs = validate_spec(spec, self.cid, CAVITY_VOCAB)
         self.assertTrue(any("qois, when present, must be a non-empty list" in e for e in errs))
 
     def test_single_qoi_bad_mask_fires(self):
@@ -141,7 +145,7 @@ class SchemaFiresWhenPresent(unittest.TestCase):
         q.setdefault("how_extracted", "x")
         q["mask"] = {"type": "corner_exclusion"}  # missing params
         spec["qoi"] = q
-        errs = validate_spec(spec, self.cid)
+        errs = validate_spec(spec, self.cid, CAVITY_VOCAB)
         self.assertTrue(any("qoi mask must carry a 'params'" in e for e in errs))
 
     def test_single_qoi_good_mask_is_clean_addition(self):
@@ -152,11 +156,11 @@ class SchemaFiresWhenPresent(unittest.TestCase):
         q.setdefault("units", "x")
         q.setdefault("definition", "x")
         q.setdefault("how_extracted", "x")
-        baseline = validate_spec(spec, self.cid)
+        baseline = validate_spec(spec, self.cid, CAVITY_VOCAB)
         q["mask"] = {"type": "box",
                      "params": {"x_min": 0.1, "x_max": 0.9, "y_min": 0.1, "y_max": 0.9}}
         spec["qoi"] = q
-        self.assertEqual(validate_spec(spec, self.cid), baseline)
+        self.assertEqual(validate_spec(spec, self.cid, CAVITY_VOCAB), baseline)
 
 
 if __name__ == "__main__":

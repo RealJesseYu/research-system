@@ -80,6 +80,10 @@ NGSPICE_VOCAB = qoi_vocab.NamedQuantityVocab(
     kinds=run_ngspice._QOI_KINDS,
     target_re=run_ngspice._NAME_RE,
     reductions=run_ngspice._REDUCTIONS,
+    # R-23.5-5: regime semantics are a required member of every vocab
+    # record; this constructed record mirrors the production map's CURRENT
+    # (Phase-2 transitional) Reynolds semantics.
+    regime=qoi_vocab.ReynoldsBandRegime(),
 )
 
 DIVIDER_BODY = "V1 in 0 DC 10\nR1 in out 1k\nR2 out 0 2k"

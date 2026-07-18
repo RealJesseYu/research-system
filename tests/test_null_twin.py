@@ -23,6 +23,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from stages.stage2_spec import validate_spec
+from tools.qoi_vocab import vocab_for
+
+# R-23.5-5a: validate_spec's vocab argument is required at every call site.
+CAVITY_VOCAB = vocab_for("cavity_2d_cfd")
 from tools.null_twin import compare
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -33,7 +37,7 @@ def _a_clean_on_disk_spec() -> tuple[dict, str]:
     for f in sorted(glob.glob(str(ROOT / "runs/**/stage2/spec.json"), recursive=True)):
         spec = json.loads(Path(f).read_text())
         hid = spec.get("hypothesis_id", "")
-        if validate_spec(spec, hid) == []:
+        if validate_spec(spec, hid, CAVITY_VOCAB) == []:
             return spec, hid
     raise unittest.SkipTest("no clean on-disk spec found")
 
@@ -44,7 +48,7 @@ class SchemaBackCompat(unittest.TestCase):
         self.assertNotIn("control_block", spec)
         # still valid, still exactly zero errors — the additive optional field
         # left existing specs byte-identical in validation outcome.
-        self.assertEqual(validate_spec(spec, hid), [])
+        self.assertEqual(validate_spec(spec, hid, CAVITY_VOCAB), [])
 
     def test_wellformed_control_block_validates(self):
         spec, hid = _a_clean_on_disk_spec()
@@ -54,13 +58,13 @@ class SchemaBackCompat(unittest.TestCase):
             "params": {"lid_velocity": 0.0},
             "expected_null_outcome": "mean flow speed ~0; the effect must vanish.",
         }
-        self.assertEqual(validate_spec(spec, hid), [])
+        self.assertEqual(validate_spec(spec, hid, CAVITY_VOCAB), [])
 
     def test_malformed_control_block_caught_only_when_present(self):
         spec, hid = _a_clean_on_disk_spec()
         spec = copy.deepcopy(spec)
         spec["control_block"] = {"params": {"lid_velocity": 0.0}}  # missing two fields
-        errs = validate_spec(spec, hid)
+        errs = validate_spec(spec, hid, CAVITY_VOCAB)
         self.assertTrue(any("description" in e for e in errs))
         self.assertTrue(any("expected_null_outcome" in e for e in errs))
 
@@ -68,7 +72,7 @@ class SchemaBackCompat(unittest.TestCase):
         spec, hid = _a_clean_on_disk_spec()
         spec = copy.deepcopy(spec)
         spec["control_block"] = "not an object"
-        errs = validate_spec(spec, hid)
+        errs = validate_spec(spec, hid, CAVITY_VOCAB)
         self.assertTrue(any("control_block" in e for e in errs))
 
 

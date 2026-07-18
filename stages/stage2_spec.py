@@ -6,10 +6,12 @@ validate_spec and runs it as call_stage_model's extra_validator: the model
 is asked for a spec, checked with validate_spec, and the error strings are
 sent back as guided corrections until the spec is clean.
 
-validate_spec(spec, chosen_id) is the deep check: every rule returns a
-plain-language error string phrased so it can be sent straight back to the
+validate_spec(spec, chosen_id, vocab) is the deep check: every rule returns
+a plain-language error string phrased so it can be sent straight back to the
 model as a correction. An empty list means the spec is valid. It never
-raises on bad input — malformed structure becomes error strings too.
+raises on bad input — malformed structure becomes error strings too. The
+vocab argument is REQUIRED (R-23.5-5a): a missing/None vocabulary raises,
+never a silent cavity resolution.
 """
 
 from __future__ import annotations
@@ -22,7 +24,7 @@ from typing import Any
 # run_cfd import. The record is shape-tagged (field-reduction vs
 # named-quantity) and the qoi checks dispatch on the shape, never on a
 # substrate name.
-from tools.qoi_vocab import FIELD_REDUCTION, NAMED_QUANTITY, vocab_for
+from tools.qoi_vocab import ANALYSIS_TYPE, FIELD_REDUCTION, NAMED_QUANTITY, REYNOLDS_BAND
 
 REQUIRED_SPEC_FIELDS = (
     "hypothesis_id",
@@ -350,7 +352,24 @@ def _validate_success_criterion(sc: Any, errors: list[str]) -> None:
         )
 
 
-def _validate_regime(regime: Any, errors: list[str]) -> None:
+def _validate_regime(regime: Any, vocab, errors: list[str]) -> None:
+    """R-23.5-5: 'regime' remains REQUIRED in every spec; its MEANING is
+    per-substrate. Dispatch on the vocabulary record's regime-semantics
+    shape — the same lookup family as the QoI checks, never a substrate
+    name (R-28H-1). An unknown shape is a broken invariant, not a model
+    error, and raises exactly as the QoI dispatch does."""
+    if vocab.regime.shape == REYNOLDS_BAND:
+        _validate_regime_reynolds_band(regime, errors)
+    elif vocab.regime.shape == ANALYSIS_TYPE:
+        _validate_regime_analysis_type(regime, vocab.regime, errors)
+    else:
+        raise ValueError(f"unknown regime vocabulary shape {vocab.regime.shape!r}")
+
+
+def _validate_regime_reynolds_band(regime: Any, errors: list[str]) -> None:
+    """Cavity-class regime semantics: the pre-R-23.5-5 _validate_regime body
+    byte-equal — same checks, same rejection strings (pinned exact by
+    tests/test_r2355_captures.py)."""
     if not isinstance(regime, dict):
         errors.append("regime must be an object with reynolds_min, reynolds_max, and notes.")
         return
@@ -366,6 +385,38 @@ def _validate_regime(regime: Any, errors: list[str]) -> None:
         errors.append(
             f"regime must satisfy 0 < reynolds_min <= reynolds_max; "
             f"got reynolds_min={re_min} and reynolds_max={re_max}."
+        )
+
+
+def _validate_regime_analysis_type(regime: Any, reg, errors: list[str]) -> None:
+    """Named-analysis regime semantics (ngspice class, R-23.5-5): the regime
+    is DECLARED AS ONE OF THE WRAPPER'S OWN ANALYSIS TYPES —
+    reg.analysis_types is derived from tools/run_ngspice.py's
+    _ANALYSIS_FIELDS, never invented here. The cavity shape's keys are
+    rejected BY NAME (reg.alien_keys) so a Reynolds-shaped regime block
+    fails with a per-substrate reason, not a bare missing-key complaint."""
+    allowed = ", ".join(reg.analysis_types)
+    if not isinstance(regime, dict):
+        errors.append("regime must be an object with analysis_type and notes.")
+        return
+    for key in reg.alien_keys:
+        if key in regime:
+            errors.append(
+                f"regime field '{key}' is not part of this substrate's regime "
+                f"vocabulary — this instrument's regime is not a Reynolds band; "
+                f"declare 'analysis_type' (one of: {allowed}) and 'notes'."
+            )
+    if "notes" not in regime:
+        errors.append("regime is missing 'notes'.")
+    if "analysis_type" not in regime:
+        errors.append(
+            f"regime is missing 'analysis_type' — this substrate's regime is "
+            f"declared as one of its analysis types: {allowed}."
+        )
+    elif regime["analysis_type"] not in reg.analysis_types:
+        errors.append(
+            f"regime analysis_type must be one of: {allowed}; "
+            f"got {regime['analysis_type']!r}."
         )
 
 
@@ -463,25 +514,26 @@ def _validate_control_block(cb: Any, errors: list[str]) -> None:
         )
 
 
-def validate_spec(spec: Any, chosen_id: str, vocab: Any = None) -> list[str]:
+def validate_spec(spec: Any, chosen_id: str, vocab: Any) -> list[str]:
     """Deep-check one stage-2 spec against the schema rules. Returns a list of
     plain-language error strings — empty means valid. Each string is phrased
     so it can be sent straight back to the model as a guided correction.
 
     `vocab` is the substrate's QoI-vocabulary record (tools/qoi_vocab.py);
-    the qoi machine-key checks dispatch on its shape. None resolves to the
-    cavity record at this entry point — the same explicit cavity pin, and
-    the same D.1.1 disclosure, as stage2_experiment_design's contract_for
-    call; every pre-D.3 caller keeps byte-identical behavior.
+    the qoi machine-key checks and the regime check (R-23.5-5) dispatch on
+    its shapes. REQUIRED at every call site (R-23.5-5a rider, owner
+    2026-07-17): the old None-defaults-to-cavity resolution is REMOVED —
+    validation must never guess a substrate, so an absent or None vocab
+    raises instead of silently resolving to cavity. Callers obtain the
+    record via tools.qoi_vocab.vocab_for(substrate_id), whose own loud
+    raises cover unknown/unwired substrates.
     """
     if vocab is None:
-        # Step 23.5 (R-23.5-4): every production caller now passes the
-        # vocabulary of the payload's gate-decided substrate_id (stage 2's
-        # extra_validator; schemas._check_experiment_spec). This None
-        # default is the documented direct-caller/test default only — the
-        # select_substrate(None) precedent — and resolves to the cavity
-        # record exactly as the retired D.1.1 pin did.
-        vocab = vocab_for("cavity_2d_cfd")
+        raise TypeError(
+            "validate_spec requires the substrate's QoI-vocabulary record "
+            "(R-23.5-5a): pass tools.qoi_vocab.vocab_for(<substrate_id>) — "
+            "there is no default and no cavity fallback."
+        )
     if not isinstance(spec, dict):
         return ["the spec must be a single JSON object."]
 
@@ -514,7 +566,7 @@ def validate_spec(spec: Any, chosen_id: str, vocab: Any = None) -> list[str]:
     if "success_criterion" in spec:
         _validate_success_criterion(spec["success_criterion"], errors)
     if "regime" in spec:
-        _validate_regime(spec["regime"], errors)
+        _validate_regime(spec["regime"], vocab, errors)
     if "mini_experiment" in spec:
         _validate_mini_experiment(
             spec["mini_experiment"], sweep_ranges, fixed_values, derived_names, errors

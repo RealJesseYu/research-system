@@ -17,6 +17,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from stages.stage2_spec import validate_spec
+from tools.qoi_vocab import vocab_for
+
+# R-23.5-5a: validate_spec's vocab argument is required at every call site —
+# these cavity-spec tests pass the cavity record explicitly.
+CAVITY_VOCAB = vocab_for("cavity_2d_cfd")
 
 CHOSEN_ID = "h3"
 
@@ -63,12 +68,12 @@ def make_valid_spec() -> dict:
 
 class TestValidSpecPasses(unittest.TestCase):
     def test_valid_spec_returns_no_errors(self):
-        self.assertEqual(validate_spec(make_valid_spec(), CHOSEN_ID), [])
+        self.assertEqual(validate_spec(make_valid_spec(), CHOSEN_ID, CAVITY_VOCAB), [])
 
 
 class TestOneRulePerViolation(unittest.TestCase):
     def assert_error_mentioning(self, spec: dict, fragment: str):
-        errors = validate_spec(spec, CHOSEN_ID)
+        errors = validate_spec(spec, CHOSEN_ID, CAVITY_VOCAB)
         self.assertTrue(
             any(fragment in e for e in errors),
             f"expected an error containing {fragment!r}, got: {errors}",
@@ -157,13 +162,13 @@ class TestOneRulePerViolation(unittest.TestCase):
     def test_qoi_machine_keys_valid_pass(self):
         spec = make_valid_spec()
         spec["qoi"].update({"field": "U", "operation": "volAverage", "component": "mag"})
-        self.assertEqual(validate_spec(spec, CHOSEN_ID), [])
+        self.assertEqual(validate_spec(spec, CHOSEN_ID, CAVITY_VOCAB), [])
 
     def test_qoi_machine_keys_absent_pass(self):
         spec = make_valid_spec()
         for key in ("field", "operation", "component"):
             self.assertNotIn(key, spec["qoi"])
-        self.assertEqual(validate_spec(spec, CHOSEN_ID), [])
+        self.assertEqual(validate_spec(spec, CHOSEN_ID, CAVITY_VOCAB), [])
 
     def test_qoi_invalid_operation_rejected(self):
         spec = make_valid_spec()
@@ -189,7 +194,7 @@ class TestStep15DocketInclusions(unittest.TestCase):
     two-sided expectation). One passing and at least one failing case each."""
 
     def assert_error_mentioning(self, spec: dict, fragment: str):
-        errors = validate_spec(spec, CHOSEN_ID)
+        errors = validate_spec(spec, CHOSEN_ID, CAVITY_VOCAB)
         self.assertTrue(
             any(fragment in e for e in errors),
             f"expected an error containing {fragment!r}, got: {errors}",
@@ -198,7 +203,7 @@ class TestStep15DocketInclusions(unittest.TestCase):
     # Candidate 3 — typed fixed values.
     def test_numeric_fixed_value_passes(self):
         # make_valid_spec's viscosity 0.01 is the passing case.
-        self.assertEqual(validate_spec(make_valid_spec(), CHOSEN_ID), [])
+        self.assertEqual(validate_spec(make_valid_spec(), CHOSEN_ID, CAVITY_VOCAB), [])
 
     def test_string_fixed_value_rejected(self):
         spec = make_valid_spec()
@@ -224,7 +229,7 @@ class TestStep15DocketInclusions(unittest.TestCase):
                 "derived_from": "Re = lid_velocity * 1.0 m / viscosity",
             }
         )
-        self.assertEqual(validate_spec(spec, CHOSEN_ID), [])
+        self.assertEqual(validate_spec(spec, CHOSEN_ID, CAVITY_VOCAB), [])
 
     def test_derived_name_allowed_in_mini_runs(self):
         spec = make_valid_spec()
@@ -237,7 +242,7 @@ class TestStep15DocketInclusions(unittest.TestCase):
             }
         )
         spec["mini_experiment"]["runs"][0]["reynolds_number"] = 50
-        self.assertEqual(validate_spec(spec, CHOSEN_ID), [])
+        self.assertEqual(validate_spec(spec, CHOSEN_ID, CAVITY_VOCAB), [])
 
     def test_derived_without_rule_rejected(self):
         spec = make_valid_spec()
@@ -263,7 +268,7 @@ class TestStep15DocketInclusions(unittest.TestCase):
         spec = make_valid_spec()
         spec["success_criterion"]["expected_value"] = 0.15
         spec["success_criterion"]["tolerance"] = 0.03
-        self.assertEqual(validate_spec(spec, CHOSEN_ID), [])
+        self.assertEqual(validate_spec(spec, CHOSEN_ID, CAVITY_VOCAB), [])
 
     def test_expected_value_without_tolerance_rejected(self):
         spec = make_valid_spec()
