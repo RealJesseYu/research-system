@@ -1,5 +1,11 @@
 # BIO Wave — D.2 DRAFT (A + B + C) — for owner ruling by exception
 
+> **PARTIALLY RESOLVED (2026-07-18) — see `docs/waves/gate_reports/gate_D2_pre_fanout.md`.**
+> Owner approved B/C. B ruling: BLAST+HMMER **BUNDLE → census is 12** (nothing
+> on disk; they co-tie on signature/regime/QoI). T3 = {boltz2, proteinmpnn,
+> retrosynthesis}. The A table is HELD for owner ruling in the gate report (the
+> canonical, resolved version). This file is the original proposal.
+
 **Status: DRAFT proposal, UNRULED. No wrappers built. Era `6befb63`.**
 Author: build chat, 2026-07-18. This is the "show the design, get the ruling"
 artifact the packet's #1 risk demands. Recon findings docs are absent from disk
