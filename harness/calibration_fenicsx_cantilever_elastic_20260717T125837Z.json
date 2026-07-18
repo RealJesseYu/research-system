@@ -1,0 +1,957 @@
+{
+  "mode_arg": "auto",
+  "substrate_id": "fenicsx_cantilever_elastic",
+  "maturity_at_run": "calibrating",
+  "routable_at_run": false,
+  "timestamp_utc": "2026-07-17T13:12:08Z",
+  "batch_id": "20260717T125837Z",
+  "n_repeats": 3,
+  "gate": {
+    "n_cases": 10,
+    "n_draws": 30,
+    "n_repeats": 3,
+    "confusion": {
+      "in": {
+        "trust": 11,
+        "refine": 4,
+        "defer": 0
+      },
+      "out": {
+        "trust": 1,
+        "refine": 2,
+        "defer": 12
+      }
+    },
+    "confusion_note": "counts over ALL draws (repeats per case); rows sum to n_draws, not n_cases",
+    "hook_witness": {
+      "mode": "auto",
+      "n_gate_cases": 30,
+      "n_raw_trust_or_refine": 18,
+      "n_hook_fired": 18,
+      "hook_fired_matches_raw_trust_refine": true,
+      "routed_trust_case_ids": [],
+      "silent_trust_case_ids": [],
+      "zero_silent_trusts": true,
+      "note": "The hook fires on raw trust/refine only (defer routes nowhere). It is keyed to the registry routable set (currently ['cavity_2d_cfd'], all non-mature), NOT to the substrate under calibration, which is UNROUTABLE \u2014 see debrief."
+    },
+    "aggregate_in_band": {
+      "n_in_band_draws": 28,
+      "n_draws": 30,
+      "fraction": 0.9333
+    },
+    "n_unanimous_cases": 8,
+    "cases": [
+      {
+        "case_id": "X01",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "X01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Every regime boundary is satisfied \u2014 slender beam (L/h=20), degree-2 elements (no shear locking), nu=0.3 (no volumetric locking), and loads well within small-deflection linear-elastic statics \u2014 so the solver directly resolves the governing physics and the tip displacement is the real answer, not an estimate.",
+            "right_instrument": "FEniCSx/DOLFINx linear-elastic cantilever substrate (as named)",
+            "wall_time_seconds": 33.743,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Every regime condition for the validated QoI is met\u2014degree-2 element (locking-free), slender L/h=20 (closed-form reference valid), nu=0.3 (no volumetric locking), and small linear deflection (~3 mm)\u2014so the FEM tip_displacement fully resolves the governing linear-elastic physics and is the real answer, not a residual-gap estimate.",
+            "right_instrument": "run_fenicsx FEniCSx linear-elastic cantilever instrument (the named one fits)",
+            "wall_time_seconds": 23.096,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Every regime condition holds \u2014 linear-elastic small-deflection statics (3mm/48MPa, well within elastic and small-deflection limits), slender L/h=20, nu=0.3 far from incompressible, and validated degree-2 elements at mesh_density 16 directly resolve the governing 3D elasticity and read tip displacement off the field, so the output effectively is the real answer.",
+            "right_instrument": "FEniCSx / DOLFINx linear-elastic cantilever solver (the named instrument fits)",
+            "wall_time_seconds": 19.328,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "X02",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "X02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Every regime boundary is satisfied \u2014 slender L/H=40, nu=0.3 far from incompressible, validated degree-2 element that eliminates shear locking \u2014 so the FEM fully resolves the governing linear-elastic physics and the tip-displacement QoI is the validated one, making the in-envelope output effectively the real answer.",
+            "right_instrument": "run_fenicsx 3D linear-elastic cantilever (FEniCSx/DOLFINx 0.11.0.post0), the named instrument",
+            "wall_time_seconds": 30.586,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "All regime boundaries are satisfied (slender L/h=40, nu=0.3 far from incompressible, validated degree-2 element that resolves bending without shear locking), so the degree-2 FEM directly resolves the governing linear-elastic small-deflection physics and its tip_displacement is the real answer for this QoI.",
+            "right_instrument": "FEniCSx/DOLFINx linear-elastic cantilever substrate (the named instrument)",
+            "wall_time_seconds": 57.68,
+            "reask_attempts": 2
+          },
+          {
+            "case_id": "X02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Every regime condition the instrument requires is met \u2014 slender beam (L/h=40, reference valid), degree-2 element (shear locking resolved, validated to ~1% at coarser mesh), nu=0.3 (no volumetric locking), and the requested QoI is the validated tip_displacement rather than the unvalidated singular stress \u2014 so the degree-2 FEM directly resolves the governing linear-elastic small-deflection physics and its output is the real answer.",
+            "right_instrument": "run_fenicsx 3D linear-elastic cantilever (the named instrument fits)",
+            "wall_time_seconds": 36.842,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "X03",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust",
+          "refine"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "refine",
+          "refine",
+          "refine"
+        ],
+        "distribution": {
+          "refine": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "refine",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "X03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust",
+              "refine"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Every regime condition is satisfied (slender L/h=20, nu=0.3 far from incompressible, linear small-deflection, degree-2 validated), but the reported tip_displacement is still a discretized FEM estimate carrying ~1.3% residual error at mesh_density 8 and is validated only against an idealized closed form, not against a real beam.",
+            "right_instrument": "FEniCSx/DOLFINx linear-elastic cantilever at element_degree=2 (the named instrument fits)",
+            "wall_time_seconds": 24.67,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust",
+              "refine"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The configuration is fully in-envelope (degree 2, slender L/h=20, nu=0.3 far from incompressible, elastic-range load), so the result is a reliable estimate \u2014 but tip_displacement is an unconverged FE approximation (measured ~1.3% off at mesh_density 8, with no mesh-convergence or against-reality validation), a residual numerical/model gap that reality could still correct.",
+            "right_instrument": "FEniCSx/DOLFINx linear-elastic cantilever solver at element_degree=2 (the named instrument fits)",
+            "wall_time_seconds": 49.443,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust",
+              "refine"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Degree-2 in-range gives an accurate but still discretized/approximate FE estimate of tip deflection (1.31% off closed-form on this coarse mesh) that reality could still correct, not a direct measurement.",
+            "right_instrument": "FEniCSx linear-elastic cantilever with element_degree>=2 (the named instrument fits)",
+            "wall_time_seconds": 6.84,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "X04",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "refine"
+        ],
+        "distribution": {
+          "trust": 2,
+          "refine": 1
+        },
+        "unanimous": false,
+        "modal_verdict": "trust",
+        "n_in_band": 2,
+        "in_band_fraction": 0.6667,
+        "entropy_bits": 0.9183,
+        "draws": [
+          {
+            "case_id": "X04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Linear-elastic small-deflection statics with a validated degree-2 element, slender beam (L/h=10), and safe nu=0.3 places this squarely in the regime where the instrument fully resolves the governing physics and returns the converged tip displacement.",
+            "right_instrument": "FEniCSx/DOLFINx linear-elastic cantilever solver (the named instrument fits)",
+            "wall_time_seconds": 25.818,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Every regime condition is satisfied \u2014 degree-2 (validated, no shear locking), nu=0.3 (no volumetric locking), L/h=10 and ~0.38 mm deflection (slender, linear, small-deflection) \u2014 so the converged 3D FEM directly resolves the full linear-elastic governing physics, which for this material and load IS the real tip displacement.",
+            "right_instrument": "run_fenicsx 3D linear-elastic cantilever (FEniCSx/DOLFINx 0.11.0.post0) as named",
+            "wall_time_seconds": 65.31,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": false,
+            "rationale": "The physics is squarely in-regime and degree-2 correctly avoids shear locking, but the output is a well-converged numerical estimate of the idealized linear-elastic solution whose specific prediction has only been checked against a closed form (not reality), leaving a residual model-to-reality gap \u2014 and at L/h=10 that reference itself begins to lose accuracy to neglected shear.",
+            "right_instrument": "FEniCSx/DOLFINx degree-2 linear-elastic cantilever solver (the named instrument fits)",
+            "wall_time_seconds": 44.134,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "X05",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "X05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The experiment sits squarely in the validated envelope (slender L/h=20, degree 3 \u2265 2 so no shear locking, nu=0.3 far from incompressible so no volumetric locking), where the FEM fully resolves the governing linear-elastic small-deflection physics and tip_displacement is a directly-read, convergent quantity.",
+            "right_instrument": "FEniCSx/DOLFINx linear-elastic cantilever substrate (the named instrument fits)",
+            "wall_time_seconds": 24.463,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Every regime condition for this instrument is met \u2014 linear-elastic small-deflection statics, slender beam (L/h=20), nu=0.3 far from incompressible, and element_degree=3 (>=2 validated, no shear locking) \u2014 so the FEM directly and fully resolves the governing linear-elasticity physics and the tip displacement it returns is the real answer, not a residual-gap estimate.",
+            "right_instrument": "FEniCSx/DOLFINx 3D linear-elastic cantilever solver (the named instrument fits)",
+            "wall_time_seconds": 27.48,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Every regime boundary is safely cleared \u2014 slender L/h=20, nu=0.3 far from incompressibility, small deflection (~3mm), and element_degree=3 well above the degree-2 shear-locking threshold \u2014 so the FEM directly resolves the full governing physics (linear-elastic statics) and its converged tip_displacement is the real answer, not an unresolved estimate.",
+            "right_instrument": "FEniCSx/DOLFINx linear-elastic cantilever solver at element_degree=3 (the named instrument fits)",
+            "wall_time_seconds": 31.342,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "X06",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "X06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Degree-1 fully-integrated Lagrange hexes shear-lock in bending on this slender (L/h=20) beam, returning a confidently wrong tip deflection (~0.28x\u20130.86x closed form) that refinement cannot rescue.",
+            "right_instrument": "the same FEniCSx cantilever instrument run at element_degree >= 2 (validated, ~0.987x closed form on the coarsest mesh)",
+            "wall_time_seconds": 10.617,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "element_degree=1 fully-integrated Lagrange hexes shear-lock in bending, and this slender L/h=20 beam is exactly where locking is worst \u2014 the instrument returns a confident number reported as far too stiff (~5% off even at high mesh density), with no regime check to catch it.",
+            "right_instrument": "the same FEniCSx cantilever substrate run at element_degree >= 2",
+            "wall_time_seconds": 11.209,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "element_degree=1 shear-locks in bending for this slender beam, so the solve converges cleanly to a confidently wrong (far-too-stiff) tip deflection that the wrapper cannot detect.",
+            "right_instrument": "the same FEniCSx cantilever instrument run at element_degree >= 2",
+            "wall_time_seconds": 10.974,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "X07",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "X07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "element_degree=1 shear-locks in bending on this slender L/h=20 beam and is explicitly unvalidated \u2014 it returns a confident wrong deflection (still ~5.5% too stiff even at mesh_density 64), and the instrument has no regime check to flag it.",
+            "right_instrument": "the same FEniCSx cantilever instrument run with element_degree >= 2",
+            "wall_time_seconds": 12.395,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "element_degree=1 shear-locks in bending and per the instrument's own measurements is still 5.5% too stiff even at mesh_density 64, returning a confident wrong deflection the wrapper cannot detect.",
+            "right_instrument": "The same FEniCSx cantilever instrument run with element_degree >= 2 (validated regime, ~1.31% error on the coarsest mesh).",
+            "wall_time_seconds": 10.175,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "element_degree=1 shear-locks in bending and returns a confidently wrong tip deflection (still ~5.5% too stiff even at mesh_density 64, and far worse at low aspect refinement), a defect the wrapper cannot detect.",
+            "right_instrument": "the same FEniCSx cantilever instrument run at element_degree >= 2 (the validated regime), which reaches ~1.3% of closed form even on a coarse mesh",
+            "wall_time_seconds": 9.171,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "X08",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "refine",
+          "refine",
+          "trust"
+        ],
+        "distribution": {
+          "refine": 2,
+          "trust": 1
+        },
+        "unanimous": false,
+        "modal_verdict": "refine",
+        "n_in_band": 2,
+        "in_band_fraction": 0.6667,
+        "entropy_bits": 0.9183,
+        "draws": [
+          {
+            "case_id": "X08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "Degree-2 elements are in the validated regime and free of shear locking, but at length/height=2 the beam is non-slender so shear deformation makes the FE estimate a reliable prediction rather than the confirmed real deflection, and the instrument has no regime check.",
+            "right_instrument": "This FEniCSx cantilever instrument at element_degree>=2 (as posed)",
+            "wall_time_seconds": 6.388,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": true,
+            "rationale": "The experiment sits squarely in the instrument's real regime (linear-elastic, small-deflection, nu=0.3 with no volumetric locking, degree-2 so no shear locking), so the tip displacement is a reliable estimate\u2014but it remains an unvalidated discretized FE prediction: the instrument has no convergence check, and degree-2 accuracy was only validated against a slender closed form (L/h\u226510) that is invalid at L/h=2, leaving a residual model-to-reality gap unconfirmed for this regime.",
+            "right_instrument": "FEniCSx/DOLFINx linear-elastic cantilever solver at element_degree=2 (the named instrument fits)",
+            "wall_time_seconds": 78.279,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional"
+            ],
+            "passed": false,
+            "rationale": "Degree-2 elements eliminate shear locking and nu=0.3 avoids volumetric locking, so this in-regime linear-elastic small-deflection 3D solve fully resolves the governing physics and directly measures tip_displacement \u2014 the non-slender length/height=2 only invalidates the Euler-Bernoulli reference, not the FE solution, which itself captures the shear deformation a deep beam exhibits.",
+            "right_instrument": "FEniCSx/DOLFINx 3D linear-elastic cantilever with element_degree=2 (the named instrument fits)",
+            "wall_time_seconds": 48.593,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "X09",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "X09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The 50 kN tip load drives ~0.15 m tip deflection (~15% of span, violating small-deflection linearity) and ~2.4 GPa bending stress (roughly 7-10x steel yield, invoking plasticity), so the true physics is large-deflection elastoplastic \u2014 neither modeled nor detectable by this linear-elastic small-deflection instrument.",
+            "right_instrument": "a geometrically-nonlinear elastoplastic (large-deformation, material-nonlinear) solver \u2014 none of the linear-elastic instrument fits; route to that or a real experiment",
+            "wall_time_seconds": 30.23,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "At 50 kN this beam sees ~2.4 GPa peak bending stress (far above steel's ~250 MPa yield) and a tip deflection of ~0.15 m (~15% of span), so the true physics is plastic and large-deflection \u2014 outside the instrument's linear-elastic small-deflection-only regime, which it cannot detect.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 20.025,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The 50 kN load drives a ~0.15 m tip deflection (~15% of span) and ~2.4 GPa bending stress far above steel yield, so the real physics is large-deflection and plastic \u2014 exactly the geometric and material nonlinearity this linear-elastic small-deflection solver cannot model and cannot detect.",
+            "right_instrument": "a geometrically-nonlinear elastoplastic FEA solver (or route to human/real experiment)",
+            "wall_time_seconds": 22.109,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "X10",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "refine",
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "X10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "nu=0.4999 is near-incompressible and will trigger volumetric locking, which the instrument's pure-displacement degree-2 formulation cannot resolve and cannot detect, so its converged-looking tip_displacement is untrustworthy.",
+            "right_instrument": "a mixed/u-p (or selective-reduced-integration / F-bar) finite-element formulation for near-incompressible elasticity; the named displacement-only instrument does not fit",
+            "wall_time_seconds": 20.535,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "nu=0.4999 drives near-incompressible volumetric locking, which this pure-displacement instrument explicitly cannot resolve (no mixed/u-p, selective reduced integration, or F-bar) and degree 2 does not fix.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 8.418,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "X10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "refine",
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "nu=0.4999 is severely near-incompressible and this displacement-based instrument has no mixed/u-p, F-bar, or selective-reduced-integration remedy, so degree-2 elements will volumetrically lock and return a confidently wrong (too-stiff) tip displacement the wrapper cannot detect.",
+            "right_instrument": "a near-incompressibility-capable formulation (mixed u-p / F-bar / selective reduced integration); none available here \u2014 route to human/real experiment",
+            "wall_time_seconds": 10.784,
+            "reask_attempts": 1
+          }
+        ]
+      }
+    ]
+  },
+  "wrapper_behavior": {
+    "n_cases": 5,
+    "n_passed": 5,
+    "cases": [
+      {
+        "case_id": "X11",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "field 'E' must be positive, got -210000000000.0",
+        "reason_substring": "field 'E' must be positive",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "X12",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "field 'height' must be positive, got 0.0",
+        "reason_substring": "field 'height' must be positive",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "X13",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "nu must be in (-1, 0.5), got 0.6",
+        "reason_substring": "nu must be in (-1, 0.5)",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "X14",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "element_degree must be >= 1, got 0",
+        "reason_substring": "element_degree must be >= 1",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "X15",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "unsupported field(s) for fenicsx cantilever v1: material",
+        "reason_substring": "unsupported field(s) for fenicsx cantilever v1: material",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      }
+    ],
+    "note": "scored separately from gate cases; never averaged together"
+  },
+  "cost": {
+    "model_calls": {
+      "model_call": 31,
+      "web_search": 0,
+      "total": 31
+    },
+    "attempts": {
+      "model_call": 31,
+      "web_search": 0,
+      "total": 31
+    },
+    "tokens": {
+      "model_call": {
+        "input_tokens": 64945,
+        "cache_creation_input_tokens": 41634,
+        "cache_read_input_tokens": 674000,
+        "output_tokens": 47590
+      },
+      "web_search": {},
+      "total": {
+        "input_tokens": 64945,
+        "cache_creation_input_tokens": 41634,
+        "cache_read_input_tokens": 674000,
+        "output_tokens": 47590
+      }
+    },
+    "wall_time_seconds": 810.702
+  },
+  "ledger_activity": {
+    "fidelity_entries": 0,
+    "override_entries": 0
+  }
+}
