@@ -20,7 +20,7 @@
 | Solver | CalculiX **2.17** (`calculix-ccx`, Ubuntu 22.04 universe) in container `ccx-prod` |
 | Element | `C3D8I` — 8-node incompatible-modes hex (bending-capable) |
 | Wrapper | `tools/run_fea.py` (deterministic Python, no AI), graduated Step 27 DRY |
-| Wrapper commit (last touch) | `c82cfda` (STEP27-DRY) |
+| Wrapper commit (last touch) | `a07f939` (Packet B Phase 2 flip — the additive `QOI_FIELDS` constant, ruled option V-A; was `c82cfda` STEP27-DRY) |
 | Contract text | **none** — substrate is UNREGISTERED; the typed input lives only in `run_fea.py` `_REQUIRED_FIELDS`, not in `substrates.py` |
 | Docs index | CalculiX manual **v2.23** (`retrieval/fea_docs_index.pkl`) — **note the skew: docs v2.23 vs solver v2.17**; the manual is a superset reference, not a version-matched one |
 | Card drafted against repo HEAD | `c82cfda` |
@@ -175,6 +175,12 @@ honors exactly these; anything else is rejected by name:
 | `nu` | — | Poisson's ratio, ∈ (−1, 0.5) |
 | `tip_load` | N | total transverse tip load (−Z), distributed over the tip face |
 | `mesh_density` | int ≥ 1 | element count along the length; width/height scale by aspect ratio |
+
+**QoI-name single source (Packet B Phase 2 flip, ruled option V-A):** the two
+QoI names below are now the wrapper's own constant `run_fea.QOI_FIELDS`
+(`summarize_dat` derives its keys from it; the fixed-summary vocabulary
+record imports it — never a pasted copy). Deliberately NOT shared with the
+sibling fenicsx wrapper: the two share no code, by design.
 
 **QoI status table** — one summary per run, extracted from the `.dat`; the raw
 deck/log NEVER leaves the wrapper:

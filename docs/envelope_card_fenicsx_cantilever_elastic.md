@@ -22,6 +22,7 @@
 | **Real-mode pin** | `float64` **asserted in code** at solve startup; a complex build raises and refuses to solve. **Proven by failing the escape**: under `dolfinx-complex-mode` the pin fires (`complex128`); same input in real mode solves. Fixture: `tests/fixtures/fenicsx_realmode_pin_failure.out` |
 | Element | Lagrange, degree = **typed input** (`element_degree`). Validated at **degree 2**. **No `C3D8I` analog exists** — see G5 |
 | Wrapper | `tools/run_fenicsx.py` (deterministic, no AI). Carries its OWN Euler-Bernoulli copy; imports nothing from the sibling |
+| Wrapper sha (last touch) | `71847e2efe06e2f39a43e8e54ab30a8db189c26074e1f113b0a699f4fa8a9ddb` (was `13b0d776…` before the Packet B Phase 2 flip's additive `QOI_FIELDS` constant, ruled option V-A; line added at that flip per the ngspice-card pattern) |
 | Docs index | DOLFINx **v0.11.0.post0** docs + tutorials (`retrieval/fenicsx_docs_index.pkl`, 17 pages → 325 chunks) — **version-matched, NO skew** (contrast FEA: docs v2.23 vs solver v2.17) |
 | Card drafted against repo HEAD | `07816ba` (branch `build-fenicsx`) |
 | Maturity | **calibrating** |
@@ -187,6 +188,13 @@ over the tip face), `mesh_density` (int ≥ 1, along the length; width/height sc
 by aspect ratio), **`element_degree`** (int ≥ 1 typed / ≥ 2 validated). The first
 seven match the sibling FEA family v1's units and semantics by design, so one beam
 can be posed to both instruments.
+
+**QoI-name single source (Packet B Phase 2 flip, ruled option V-A):** the two
+QoI names below are now the wrapper's own constant `run_fenicsx.QOI_FIELDS`
+(`parse_solver_output` and the summary build derive their keys from it; the
+fixed-summary vocabulary record imports it — never a pasted copy).
+Deliberately NOT shared with the sibling FEA wrapper: the two share no code,
+by design.
 
 | QoI | field | status | basis |
 |---|---|---|---|
