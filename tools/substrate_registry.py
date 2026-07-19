@@ -45,8 +45,11 @@ from dataclasses import dataclass
 from substrates import (
     CALCULIX_CANTILEVER_FEA_CONTRACT,
     CAVITY_2D_CONTRACT,
+    COBRAPY_FBA_CONTRACT,
     FENICSX_CANTILEVER_ELASTIC_CONTRACT,
+    MAFFT_CONTRACT,
     NGSPICE_LINEAR_PASSIVE_CONTRACT,
+    RDKIT_DESCRIPTOR_CONTRACT,
     SYMPY_SYMBOLIC_EXACT_CONTRACT,
 )
 
@@ -212,37 +215,44 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         substrate_id="rdkit",
         wrapper="tools/run_rdkit.py",
         card_path="docs/envelope_card_rdkit.md",
-        maturity=CALIBRATING,
-        routable=False,
+        maturity=MATURE,
+        routable=True,
         cost_tier="low",
         notes=(
-            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): "
-            "descriptor_computation wrapper (tools/run_rdkit.py) proven real in "
-            "rdkit-prod, all four jails triggered; card signed from real runs "
-            "(docs/envelope_card_rdkit.md, rdkit 2026.03.4). ENROLLED but INERT "
-            "— the runtime maps (contract/signature/vocab/dispatch) are STAGED "
-            "in onboarding/rdkit/, UNWIRED; contract_for('rdkit') must keep "
-            "raising LookupError until a D.4 promotion ruling. Battery pending "
-            "an owner-OK'd slot. First BIO substrate; nothing routes here."
+            "BIO Wave D.4 PROMOTION (owner-ruled 2026-07-19): routable=True AND "
+            "maturity=MATURE flipped TOGETHER — one of the first three MATURE "
+            "substrates, so an in-envelope trust verdict routed here STANDS (the "
+            "maturity hook no longer names it). descriptor_computation wrapper "
+            "(tools/run_rdkit.py) proven real in rdkit-prod, all four jails "
+            "triggered; card signed from real runs (docs/envelope_card_rdkit.md, "
+            "rdkit 2026.03.4). Calibration CLEAN at N=3 (in-envelope 30/30 trust, "
+            "out 30/30 defer). Runtime maps WIRED: contract graduated to "
+            "substrates.py (RDKIT_DESCRIPTOR_CONTRACT, re-exported by "
+            "onboarding/rdkit/contract.py — one source), signature/vocab/dispatch "
+            "wired at this flip. First BIO substrate to route."
         ),
     ),
     SubstrateRecord(
         substrate_id="cobrapy",
         wrapper="tools/run_cobrapy.py",
         card_path="docs/envelope_card_cobrapy.md",
-        maturity=CALIBRATING,
-        routable=False,
+        maturity=MATURE,
+        routable=True,
         cost_tier="low",
         notes=(
-            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): "
-            "fba_steady_state wrapper (tools/run_cobrapy.py) proven real in "
-            "cobrapy-prod on e_coli_core + iML1515; the STRUCTURAL status-gate "
-            "jail (infeasible -> qoi None, never the stale objective) proven by "
-            "triggering it on BOTH models; card from real runs "
-            "(docs/envelope_card_cobrapy.md). ENROLLED but INERT — runtime maps "
-            "STAGED in onboarding/cobrapy/, UNWIRED; contract_for('cobrapy') "
-            "must keep raising LookupError until a D.4 promotion ruling. "
-            "Battery pending. Nothing routes here."
+            "BIO Wave D.4 PROMOTION (owner-ruled 2026-07-19): routable=True AND "
+            "maturity=MATURE flipped TOGETHER on the N=7 re-run "
+            "(calibration_cobrapy_20260719T052035Z.json): in-envelope 34 trust "
+            "/ 1 refine (the lone G02/iML1515 refine, 1 of 7 draws — the D.3 "
+            "split WASHED OUT), out 35/35 defer. fba_steady_state wrapper "
+            "(tools/run_cobrapy.py) proven real in cobrapy-prod on e_coli_core + "
+            "iML1515; the STRUCTURAL status-gate jail (infeasible -> qoi None, "
+            "never the stale objective) proven on BOTH models; card from real "
+            "runs (docs/envelope_card_cobrapy.md). Runtime maps WIRED: contract "
+            "graduated to substrates.py (COBRAPY_FBA_CONTRACT, re-exported by "
+            "onboarding/cobrapy/contract.py — one source), signature "
+            "{model,quantity} (min_growth optional, not in the signature), "
+            "vocab/dispatch wired at this flip."
         ),
     ),
     SubstrateRecord(
@@ -296,23 +306,25 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         substrate_id="mafft",
         wrapper="tools/run_mafft.py",
         card_path="docs/envelope_card_mafft.md",
-        maturity=CALIBRATING,
-        routable=False,
+        maturity=MATURE,
+        routable=True,
         cost_tier="low",
         notes=(
-            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): MSA "
-            "alignment (tools/run_mafft.py) proven real in mafft-prod "
-            "(alignment_identity 94.4444, deterministic). Alignment is a "
-            "near-TOTAL function (garbage in -> well-formed alignment of garbage "
-            "out), so the did-it-work signal is the STRICT INPUT GATE (>=2 "
-            "alignable same-alphabet sequences, refused PRE-RUN); input jails "
-            "(single-seq, junk residues, mixed alphabet, empty) proven by "
-            "triggering. NARROWEST trust claim in the wave: an alignment used "
-            "DESCRIPTIVELY, not 'the correct' one (C1-hole M4 carries all "
-            "biological-correctness claims). Card from real runs. Pinned MAFFT "
-            "v7.526. ENROLLED but INERT — runtime maps STAGED in onboarding/"
-            "mafft/, UNWIRED; contract_for('mafft') must keep raising until a "
-            "D.4 promotion ruling. Nothing routes here."
+            "BIO Wave D.4 PROMOTION (owner-ruled 2026-07-19): routable=True AND "
+            "maturity=MATURE flipped TOGETHER; calibration CLEAN at N=3 "
+            "(in-envelope 30/30 trust, out 30/30 defer). MSA alignment "
+            "(tools/run_mafft.py) proven real in mafft-prod (alignment_identity "
+            "94.4444, deterministic). Alignment is a near-TOTAL function "
+            "(garbage in -> well-formed alignment of garbage out), so the "
+            "did-it-work signal is the STRICT INPUT GATE (>=2 alignable "
+            "same-alphabet sequences, refused PRE-RUN); input jails (single-seq, "
+            "junk residues, mixed alphabet, empty) proven by triggering. "
+            "NARROWEST trust claim in the wave: an alignment used DESCRIPTIVELY, "
+            "not 'the correct' one (C1-hole M4 carries all biological-"
+            "correctness claims). Card from real runs. Pinned MAFFT v7.526. "
+            "Runtime maps WIRED: contract graduated to substrates.py "
+            "(MAFFT_CONTRACT, re-exported by onboarding/mafft/contract.py — one "
+            "source), signature/vocab/dispatch wired at this flip."
         ),
     ),
     SubstrateRecord(
@@ -512,6 +524,15 @@ _CONTRACTS: dict[str, str] = {
     # source and the executed battery's case file stays byte-identical.
     "calculix_cantilever_fea": CALCULIX_CANTILEVER_FEA_CONTRACT,
     "fenicsx_cantilever_elastic": FENICSX_CANTILEVER_ELASTIC_CONTRACT,
+    # BIO Wave D.4 promotion flip (owner, 2026-07-19): the first MATURE
+    # substrates. Each IMPORTED runtime constant graduated from
+    # onboarding/<sub>/contract.py to substrates.py (never a pasted copy —
+    # the onboarding module re-exports it). rdkit + mafft on clean N=3
+    # (30/30); cobrapy on the N=7 wash-out (34 trust / 1 refine in-envelope,
+    # G02 lone). homology_search HELD (G03/G05 card fix, no _CONTRACTS entry).
+    "rdkit": RDKIT_DESCRIPTOR_CONTRACT,
+    "cobrapy": COBRAPY_FBA_CONTRACT,
+    "mafft": MAFFT_CONTRACT,
 }
 
 
@@ -627,9 +648,10 @@ def routable_ids() -> tuple[str, ...]:
     """The substrate ids the pipeline may route execution to, in enrollment
     order. This is the registry's answer to 'what can a run execute on' — it
     is consulted structurally, NOT parsed from a payload's substrate names
-    (that would violate the substrate-agnostic invariant). Since the
-    Packet B Phase 2 flip (build chat under the owner's standing
-    delegation, 2026-07-17): ('cavity_2d_cfd', 'calculix_cantilever_fea',
-    'fenicsx_cantilever_elastic', 'sympy_symbolic_exact',
-    'ngspice_linear_passive') — five ids, enrollment order preserved."""
+    (that would violate the substrate-agnostic invariant). Since the BIO
+    Wave D.4 promotion (owner, 2026-07-19): ('cavity_2d_cfd',
+    'calculix_cantilever_fea', 'fenicsx_cantilever_elastic',
+    'sympy_symbolic_exact', 'ngspice_linear_passive', 'rdkit', 'cobrapy',
+    'mafft') — eight ids, enrollment order preserved; the last three are the
+    first MATURE substrates (rdkit/cobrapy/mafft)."""
     return tuple(r.substrate_id for r in _REGISTRY if r.routable)

@@ -26,16 +26,15 @@ from tools import substrate_registry as registry
 
 
 class TestContractSelection(unittest.TestCase):
-    def test_sole_routable_raises_on_the_real_five_routable_registry(self):
-        # Post-Packet-B-Phase-2-flip the routable set is five, so the
-        # RETIRED sole_routable_id() raises on the real registry — its
-        # documented behavior, and the reason D.2 replaced it with
-        # select_substrate.
+    def test_sole_routable_raises_on_the_real_multi_routable_registry(self):
+        # Post-BIO-Wave-D.4 the routable set is EIGHT, so the RETIRED
+        # sole_routable_id() raises on the real registry — its documented
+        # behavior, and the reason D.2 replaced it with select_substrate.
         self.assertEqual(
             registry.routable_ids(),
             ("cavity_2d_cfd", "calculix_cantilever_fea",
              "fenicsx_cantilever_elastic", "sympy_symbolic_exact",
-             "ngspice_linear_passive"),
+             "ngspice_linear_passive", "rdkit", "cobrapy", "mafft"),
         )
         with self.assertRaises(RuntimeError):
             registry.sole_routable_id()
@@ -126,6 +125,14 @@ class TestRoutableContractsBlock(unittest.TestCase):
             + substrates.SYMPY_SYMBOLIC_EXACT_CONTRACT
             + "\n\nROUTABLE SUBSTRATE: ngspice_linear_passive\n"
             + substrates.NGSPICE_LINEAR_PASSIVE_CONTRACT
+            # BIO Wave D.4 promotion (owner 2026-07-19): the block grows by the
+            # three new routable contracts, additive-only, in enrollment order.
+            + "\n\nROUTABLE SUBSTRATE: rdkit\n"
+            + substrates.RDKIT_DESCRIPTOR_CONTRACT
+            + "\n\nROUTABLE SUBSTRATE: cobrapy\n"
+            + substrates.COBRAPY_FBA_CONTRACT
+            + "\n\nROUTABLE SUBSTRATE: mafft\n"
+            + substrates.MAFFT_CONTRACT
         )
         self.assertEqual(registry.routable_contracts_block(), expected)
 

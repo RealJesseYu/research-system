@@ -106,9 +106,12 @@ from stages.stage4_case_builder import BUILDABLE_PARAMS, REYNOLDS_KEY
 from stages.stage2_spec import _validate_qoi, _validate_regime
 from tools import substrate_registry as registry
 from tools.qoi_vocab import vocab_for
+from tools.run_cobrapy import _REQUIRED_FIELDS as _COBRAPY_REQUIRED_FIELDS
 from tools.run_fea import _REQUIRED_FIELDS as _FEA_REQUIRED_FIELDS
 from tools.run_fenicsx import _REQUIRED_FIELDS as _FENICSX_REQUIRED_FIELDS
+from tools.run_mafft import _REQUIRED_FIELDS as _MAFFT_REQUIRED_FIELDS
 from tools.run_ngspice import _REQUIRED_FIELDS as _NGSPICE_REQUIRED_FIELDS
+from tools.run_rdkit import _REQUIRED_FIELDS as _RDKIT_REQUIRED_FIELDS
 from tools.run_scipy import (
     OP_FIELDS as _SCIPY_OP_FIELDS,
     UNIVERSAL_OPTIONAL_FIELDS as _SCIPY_UNIVERSAL_OPTIONAL_FIELDS,
@@ -152,6 +155,16 @@ _SIGNATURES: dict[str, frozenset[str]] = {
     # instead of falling to enrollment order.
     "calculix_cantilever_fea": frozenset(_FEA_REQUIRED_FIELDS),
     "fenicsx_cantilever_elastic": frozenset(_FENICSX_REQUIRED_FIELDS),
+    # BIO Wave D.4 promotion flip (owner, 2026-07-19): each wrapper's own
+    # _REQUIRED_FIELDS, imported. All three are pairwise DISJOINT from each
+    # other and from every existing signature (rdkit {smiles,quantity};
+    # cobrapy {model,quantity} — min_growth is optional and NOT in
+    # _REQUIRED_FIELDS, so it is not part of the serve-ability signature;
+    # mafft {sequences,quantity}), so no spec any two can serve — no new
+    # R-B-1 tie. Proven by test, not asserted.
+    "rdkit": frozenset(_RDKIT_REQUIRED_FIELDS),
+    "cobrapy": frozenset(_COBRAPY_REQUIRED_FIELDS),
+    "mafft": frozenset(_MAFFT_REQUIRED_FIELDS),
 }
 
 
