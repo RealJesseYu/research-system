@@ -98,6 +98,11 @@ _CASE_FILES = {
     "cobrapy": "calibration_cases_cobrapy.json",
     "homology_search": "calibration_cases_homology_search.json",
     "mafft": "calibration_cases_mafft.json",
+    # BIO Wave D.4-network un-defer (owner-ruled 2026-07-19): a
+    # network-blocked lookup, un-deferred once network access was available.
+    # LOOKUP-class, PERMANENTLY never-trust-alone (a standing card property,
+    # NOT lifted by un-deferring); the OUT gate cases are its C1-hole.
+    "alphafold_db": "calibration_cases_alphafold_db.json",
 }
 
 # Answer-key keys that must never appear in what the model is sent (RULE-1).
@@ -176,6 +181,10 @@ def _wrapper_validator(substrate_id: str):
         from tools.run_mafft import MafftInputError, _validate_input
 
         return _validate_input, MafftInputError
+    if substrate_id == "alphafold_db":
+        from tools.run_alphafold_db import AlphaFoldDBInputError, _validate_input
+
+        return _validate_input, AlphaFoldDBInputError
     raise KeyError(f"no wrapper validator wired for substrate {substrate_id!r}")
 
 

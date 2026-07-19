@@ -447,17 +447,22 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         routable=False,
         cost_tier="low",
         notes=(
-            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): "
-            "DEFERRED — a network lookup against the AlphaFold DB endpoint, not "
-            "reachable/verified here. Wrapper input gate proven pure-Python "
-            "(protein_sequence, quantity mean_pLDDT); valid input -> honest "
-            "DEFERRED, never a fabricated pLDDT. Card SKELETON, 3A PENDING. "
-            "UN-DEFER (specific) = working network + the specific AFDB endpoint "
-            "reachable. LOOKUP-class: A3 never-trust-alone is PERMANENT (a "
-            "standing trust claim, corroboration required forever, not just a "
-            "provisioning gate). Signature {protein_sequence,quantity} SHARES "
-            "with boltz2 BY DESIGN (Step-41 L1a pair, distinct regimes). Runtime "
-            "maps STAGED, UNWIRED; contract_for raises."
+            "BIO Wave D.2 enrollment (Option A) -> D.4-network UN-DEFER "
+            "(owner-ruled 2026-07-19): the AFDB endpoint IS reachable, so the "
+            "network lookup path is WIRED (tools/run_alphafold_db.py) and returns "
+            "a REAL mean pLDDT from globalMetricValue — proven live (P0DP23 -> "
+            "85.25, ~0.13 s); the not-found (well-formed absent accession -> 404) "
+            "and endpoint-unreachable (setup_error) jails proven by triggering; "
+            "never a fabricated pLDDT. Card §3A FILLED from real calls. "
+            "INPUT-SHAPE RULING (owner 2026-07-19): keyed by uniprot_accession, "
+            "NOT protein_sequence (AFDB is accession-keyed) — the boltz2 L1a "
+            "pairing is dropped; the {uniprot_accession,quantity} signature is "
+            "unique/disjoint. LOOKUP-class: A3 never-trust-alone is PERMANENT (a "
+            "standing trust claim, NOT lifted by un-deferring). Calibration slate "
+            "staged (harness/calibration_cases_alphafold_db.json); battery "
+            "dispatch extended. STILL calibrating/routable=False — PROMOTION "
+            "(routable+mature, six-surface wiring) is a SEPARATE later flip on "
+            "clean gate-track calibration; contract_for raises until then."
         ),
     ),
     SubstrateRecord(
