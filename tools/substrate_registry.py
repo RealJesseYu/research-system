@@ -385,6 +385,24 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="proteinmpnn",
+        wrapper="tools/run_proteinmpnn.py",
+        card_path="docs/envelope_card_proteinmpnn.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes=(
+            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): "
+            "DEFERRED — ProteinMPNN is a GPU neural model with downloaded "
+            "weights; no GPU here. Wrapper input gate proven pure-Python "
+            "(backbone allowlist, quantity seq_recovery); valid input -> honest "
+            "DEFERRED, never a fabricated score. Card SKELETON, 3A PENDING. "
+            "UN-DEFER (specific) = a GPU host + the PINNED official ProteinMPNN "
+            "weights + a KNOWN-ANSWER validation run (mismatched weights = "
+            "confident garbage). Runtime maps STAGED, UNWIRED; contract_for raises."
+        ),
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",

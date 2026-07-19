@@ -42,6 +42,7 @@ class TestRegistryTable(unittest.TestCase):
                 "autodock_vina",
                 "crispr_guide_scoring",
                 "boltz2",
+                "proteinmpnn",
                 "web_search",
             ],
         )
