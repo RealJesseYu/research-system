@@ -43,6 +43,7 @@ class TestRegistryTable(unittest.TestCase):
                 "crispr_guide_scoring",
                 "boltz2",
                 "proteinmpnn",
+                "retrosynthesis",
                 "web_search",
             ],
         )

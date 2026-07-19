@@ -403,6 +403,26 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="retrosynthesis",
+        wrapper="tools/run_retrosynthesis.py",
+        card_path="docs/envelope_card_retrosynthesis.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes=(
+            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): "
+            "DEFERRED — AiZynth/ASKCOS heavy models AND a reaction ROUTE "
+            "DATABASE/backend (a DATA dependency beyond weights), neither "
+            "available here. Wrapper input gate proven pure-Python "
+            "(target_smiles, backend in {aizynth,askcos}, quantity "
+            "synthesizability); valid input -> honest DEFERRED, never a "
+            "fabricated route. Card SKELETON, 3A PENDING. UN-DEFER (specific) = "
+            "the models AND the reaction route DB/backend the tool queries + a "
+            "KNOWN-ANSWER run ('GPU + weights' UNDERCOUNTS the data dependency). "
+            "Runtime maps STAGED, UNWIRED; contract_for raises."
+        ),
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",
