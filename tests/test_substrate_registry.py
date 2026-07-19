@@ -45,6 +45,7 @@ class TestRegistryTable(unittest.TestCase):
                 "proteinmpnn",
                 "retrosynthesis",
                 "alphafold_db",
+                "bio_db_lookup",
                 "web_search",
             ],
         )

@@ -444,6 +444,27 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="bio_db_lookup",
+        wrapper="tools/run_bio_db_lookup.py",
+        card_path="docs/envelope_card_bio_db_lookup.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes=(
+            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): "
+            "DEFERRED — a 4-API network wrapper (PDB/PubChem/UniProt/ChEMBL); no "
+            "endpoint reachable here. The most expensive single wrapper in the "
+            "wave (4 API integrations). Wrapper input gate proven pure-Python "
+            "incl. PER-NAMESPACE id form (database allowlist, record_id form, "
+            "quantity round_trip_id); valid input -> honest DEFERRED, never a "
+            "fabricated record. Card SKELETON, 3A PENDING. UN-DEFER (specific) = "
+            "ALL FOUR endpoints reachable (ONE down = PARTIAL defer, not full). "
+            "LOOKUP-class: D3 never-trust-alone is PERMANENT (corroboration "
+            "required forever) + the DB's curation currency is unverifiable. "
+            "Runtime maps STAGED, UNWIRED; contract_for raises."
+        ),
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",
