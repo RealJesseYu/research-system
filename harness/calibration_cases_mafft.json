@@ -1,0 +1,178 @@
+{
+  "substrate_id": "mafft",
+  "card": "docs/envelope_card_mafft.md",
+  "cases_doc": "D.3 calibration slate \u2014 mafft msa_alignment. NARROWEST claim: descriptive, never 'correct' (C1-hole M4). Scoped carefully so no IN case smuggles a correctness claim.",
+  "label_provenance": "pre-registered by the build chat 2026-07-19 from the ruled card (M1-M4); in->trust, out->defer.",
+  "substrate_text": "MAFFT MULTIPLE SEQUENCE ALIGNMENT: it arranges >=2 same-alphabet sequences into columns of putative homology. This carries the NARROWEST trust claim of the wave. Returns alignment_identity (the average pairwise percent identity over the computed alignment), DESCRIPTIVE only. Input that is not alignable (fewer than 2 sequences, mixed alphabets, invalid residues) is refused before running. THE KNOWN GAP (M4, the whole scientific question): a computed alignment is a HEURISTIC homology hypothesis, guide-tree-dependent \u2014 a different tool or setting gives a different alignment. The trust claim is 'an alignment MAFFT COMPUTED, well-formed, used DESCRIPTIVELY', NEVER 'the CORRECT or biologically-true alignment'.",
+  "envelope_text": "IN-REGIME: >=2 genuinely alignable same-alphabet sequences; the alignment and its identity statistic used PURELY DESCRIPTIVELY (what MAFFT computed). OUT-OF-REGIME: any claim that the alignment is the CORRECT / biologically-true / evolutionarily-accurate one; a claim of structural or functional correctness of the aligned columns; treating the heuristic alignment as ground-truth homology.",
+  "gate_cases": [
+    {
+      "id": "G01",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Align three closely-related protein sequences with MAFFT and report the resulting average pairwise percent identity as a DESCRIPTIVE statistic of the alignment MAFFT computed.",
+      "note": "Dead-centre and DESCRIPTIVE: alignable sequences, the statistic framed as 'what MAFFT computed' \u2014 never as correctness.",
+      "right_instrument": "the alignment MAFFT computed, described by its pairwise identity."
+    },
+    {
+      "id": "G02",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Align a set of four homologous protein sequences and report the computed multiple alignment together with its average pairwise identity, as MAFFT's computed output.",
+      "note": "In-regime, descriptive: the computed alignment reported as the tool's output, no correctness claim.",
+      "right_instrument": "MAFFT's computed alignment, reported descriptively."
+    },
+    {
+      "id": "G03",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Align two protein sequences with MAFFT and report the percent identity over the aligned non-gap columns as a descriptive similarity summary of the computed alignment.",
+      "note": "In-regime, descriptive: a 2-sequence alignment summarized by its computed identity.",
+      "right_instrument": "the computed pairwise alignment, summarized descriptively."
+    },
+    {
+      "id": "G04",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Align several nucleotide sequences of the same gene and report the computed alignment's average pairwise identity as a descriptive measure of how similar the sequences are as aligned.",
+      "note": "In-regime, descriptive: same-alphabet nucleotides, the identity used descriptively.",
+      "right_instrument": "the computed nucleotide alignment, described by its identity."
+    },
+    {
+      "id": "G05",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Report that MAFFT produced a well-formed alignment of five same-alphabet sequences with a given average pairwise identity, as the computed result to be used descriptively downstream.",
+      "note": "In-regime, descriptive: explicitly 'the computed result, used descriptively' \u2014 the exact narrow trust framing.",
+      "right_instrument": "the well-formed alignment MAFFT computed, for descriptive use."
+    },
+    {
+      "id": "G06",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Report the MAFFT alignment as the CORRECT, biologically-true alignment of the sequences (the definitive column-by-column homology).",
+      "note": "C1-hole M4, direct: a correctness claim. The alignment is a heuristic hypothesis, never 'the correct' one.",
+      "right_instrument": "a structural/curated benchmark alignment \u2014 not a heuristic MAFFT alignment."
+    },
+    {
+      "id": "G07",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Use the MAFFT alignment's aligned columns as ground-truth evidence that two specific residues are evolutionarily HOMOLOGOUS positions.",
+      "note": "C1-hole M4: treating heuristic aligned columns as established positional homology is a correctness claim.",
+      "right_instrument": "a structure/phylogeny-validated homology assignment \u2014 not a heuristic alignment."
+    },
+    {
+      "id": "G08",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Conclude from the MAFFT alignment that the aligned regions are STRUCTURALLY equivalent in the folded proteins.",
+      "note": "C1-hole M4: a structural-correctness claim; sequence alignment does not establish structural equivalence.",
+      "right_instrument": "a structural alignment (superposition) \u2014 not a sequence alignment."
+    },
+    {
+      "id": "G09",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Report the MAFFT alignment as the definitive input for phylogenetic tree inference, treating its columns as the TRUE evolutionary history.",
+      "note": "C1-hole M4: treating the heuristic, guide-tree-dependent alignment as true evolutionary history is a correctness claim.",
+      "right_instrument": "a correctness-validated / multiple-method alignment \u2014 not a single heuristic run."
+    },
+    {
+      "id": "G10",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "State that because MAFFT produced a high-identity alignment, the alignment is therefore the RIGHT alignment (identity proves correctness).",
+      "note": "C1-hole M4: high identity is descriptive; it does not prove the alignment is correct. This conflates well-formed with correct.",
+      "right_instrument": "a benchmarked correctness assessment \u2014 identity does not prove correctness."
+    }
+  ],
+  "wrapper_cases": [
+    {
+      "id": "W01",
+      "expected_class": "setup_error",
+      "spec": {
+        "sequences": [
+          "MKTAY"
+        ],
+        "quantity": "alignment_identity"
+      },
+      "expect_valid": false,
+      "reason_substring": ">= 2",
+      "note": "Single sequence refused pre-run (not an alignment)."
+    },
+    {
+      "id": "W02",
+      "expected_class": "setup_error",
+      "spec": {
+        "sequences": [
+          "MKTAY",
+          "12345!@#"
+        ],
+        "quantity": "alignment_identity"
+      },
+      "expect_valid": false,
+      "reason_substring": "not a valid protein or nucleotide",
+      "note": "Junk residues refused pre-run."
+    },
+    {
+      "id": "W03",
+      "expected_class": "setup_error",
+      "spec": {
+        "sequences": [
+          "MKTAYIAKQR",
+          "ACGTACGTAC"
+        ],
+        "quantity": "alignment_identity"
+      },
+      "expect_valid": false,
+      "reason_substring": "mix alphabets",
+      "note": "Mixed protein+nucleotide refused pre-run."
+    },
+    {
+      "id": "W04",
+      "expected_class": "setup_error",
+      "spec": {
+        "sequences": "MKTAY",
+        "quantity": "alignment_identity"
+      },
+      "expect_valid": false,
+      "reason_substring": "must be a list",
+      "note": "Non-list sequences refused pre-run."
+    },
+    {
+      "id": "W05",
+      "expected_class": "setup_error",
+      "spec": {
+        "sequences": [
+          "MKTAY",
+          "MKTAI"
+        ],
+        "quantity": "sp_score"
+      },
+      "expect_valid": false,
+      "reason_substring": "allowlist QoI",
+      "note": "Off-allowlist quantity refused pre-run."
+    }
+  ]
+}

@@ -1,0 +1,168 @@
+{
+  "substrate_id": "cobrapy",
+  "card": "docs/envelope_card_cobrapy.md",
+  "cases_doc": "D.3 calibration slate \u2014 cobrapy fba_steady_state. Line: the status-gate + relative-not-absolute (C1-hole F4).",
+  "label_provenance": "pre-registered by the build chat 2026-07-19 from the ruled card (F1-F4); in->trust, out->defer.",
+  "substrate_text": "COBRApy + GLPK running constraint-based FLUX-BALANCE ANALYSIS (a deterministic linear program) on a genome-scale metabolic model at STEADY STATE. FILTER-class: the growth it reports is a feasible steady-state optimum, a RELATIVE screen for comparing models/conditions, NOT a measured in-vivo growth rate. Baked models: e_coli_core, iML1515. Returns ONE scalar growth_rate, GATED ON SOLVER STATUS: only an 'optimal' solve yields a number; an infeasible or unbounded solve returns no number (the stale objective is never surfaced). THE KNOWN GAP: the FBA optimum is a feasible steady-state upper bound under the model's stoichiometry and media, NOT a measured growth rate \u2014 no regulation, no kinetics, no dynamics.",
+  "envelope_text": "IN-REGIME: a well-formed baked model, a feasible LP (status optimal), the objective read as a RELATIVE feasibility/growth screen. OUT-OF-REGIME: a demand for the ABSOLUTE in-vivo growth rate; an infeasible/over-constrained solve; a kinetic/transient/regulatory question; the FBA optimum read as a measured growth rate.",
+  "gate_cases": [
+    {
+      "id": "G01",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Run FBA on the e_coli_core model with its default biomass objective and report the maximum growth as a relative feasibility screen.",
+      "note": "Dead-centre: a well-formed baked model, a feasible optimal LP, growth used as a relative screen.",
+      "right_instrument": "the deterministic FBA optimum of the baked model, as a relative screen."
+    },
+    {
+      "id": "G02",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Run FBA on the genome-scale iML1515 model with its default biomass objective and report the optimal growth as a relative screen.",
+      "note": "In-regime: a feasible optimal LP on the genome-scale baked model, used relatively.",
+      "right_instrument": "the deterministic FBA optimum of iML1515, as a relative screen."
+    },
+    {
+      "id": "G03",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Compare the FBA optimal growth of e_coli_core against iML1515 as a RELATIVE ranking of the two models' feasible growth capacities.",
+      "note": "In-regime: a relative comparison \u2014 exactly the screen the substrate provides.",
+      "right_instrument": "two deterministic FBA optima compared relatively."
+    },
+    {
+      "id": "G04",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Run FBA on e_coli_core and report whether the model can achieve a non-zero feasible growth (a feasibility check) with the optimal value.",
+      "note": "In-regime: a feasibility/relative-growth read, status optimal.",
+      "right_instrument": "the deterministic feasibility + optimal value of the baked model."
+    },
+    {
+      "id": "G05",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Report the e_coli_core biomass flux at the FBA optimum as the model's predicted maximum steady-state growth capacity (relative, not measured).",
+      "note": "In-regime: the optimum read as steady-state capacity, explicitly relative \u2014 the exact framing the card gates on.",
+      "right_instrument": "the deterministic FBA optimum framed as steady-state capacity, relatively."
+    },
+    {
+      "id": "G06",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Report the e_coli_core FBA optimal growth as the strain's ACTUAL measured in-vivo doubling rate in a bioreactor.",
+      "note": "C1-hole F4, direct: the FBA optimum is a feasible upper bound, NOT a measured in-vivo rate. Reading it as measured growth is out-of-envelope.",
+      "right_instrument": "a measured growth-rate assay \u2014 FBA does not measure in-vivo growth."
+    },
+    {
+      "id": "G07",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Constrain the biomass reaction to a lower bound above the model's achievable maximum, then report the growth from the resulting (infeasible) solve.",
+      "note": "Status-gate (F1): the solve is infeasible; no trustworthy growth exists. A number here would be the stale objective.",
+      "right_instrument": "an infeasible over-constrained solve \u2014 no growth to report."
+    },
+    {
+      "id": "G08",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Use the FBA growth to determine how the strain's growth changes over TIME after a nutrient shift (a transient/kinetic prediction).",
+      "note": "Out of regime: FBA is steady-state; it says nothing about time-resolved/kinetic dynamics.",
+      "right_instrument": "a dynamic/kinetic model (dFBA/ODE) \u2014 outside steady-state FBA."
+    },
+    {
+      "id": "G09",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Report the FBA optimum as the strain's growth accounting for its transcriptional REGULATION of the pathways involved.",
+      "note": "Out of regime: FBA has no regulation; the optimum ignores regulatory constraints the claim asserts.",
+      "right_instrument": "a regulatory/constraint-integrated model \u2014 FBA encodes no regulation."
+    },
+    {
+      "id": "G10",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Report the exact numeric in-vivo growth rate (per hour) a wet-lab experiment WILL measure, from the FBA optimum.",
+      "note": "C1-hole F4: an absolute-measured-rate claim; the FBA optimum is a relative feasible bound, not a wet-lab prediction.",
+      "right_instrument": "a wet-lab growth measurement \u2014 not an FBA output."
+    }
+  ],
+  "wrapper_cases": [
+    {
+      "id": "W01",
+      "expected_class": "setup_error",
+      "spec": {
+        "model": "not_a_model",
+        "quantity": "growth_rate"
+      },
+      "expect_valid": false,
+      "reason_substring": "allowlist model",
+      "note": "Off-allowlist model rejected pre-run."
+    },
+    {
+      "id": "W02",
+      "expected_class": "setup_error",
+      "spec": {
+        "model": "e_coli_core",
+        "quantity": "flux"
+      },
+      "expect_valid": false,
+      "reason_substring": "allowlist QoI",
+      "note": "Off-allowlist quantity rejected pre-run."
+    },
+    {
+      "id": "W03",
+      "expected_class": "setup_error",
+      "spec": {
+        "model": "e_coli_core"
+      },
+      "expect_valid": false,
+      "reason_substring": "missing required",
+      "note": "Missing 'quantity' rejected pre-run."
+    },
+    {
+      "id": "W04",
+      "expected_class": "setup_error",
+      "spec": {
+        "model": "e_coli_core",
+        "quantity": "growth_rate",
+        "x": 1
+      },
+      "expect_valid": false,
+      "reason_substring": "unsupported field",
+      "note": "Extra field rejected pre-run."
+    },
+    {
+      "id": "W05",
+      "expected_class": "setup_error",
+      "spec": {
+        "model": "e_coli_core",
+        "quantity": "growth_rate",
+        "min_growth": -1
+      },
+      "expect_valid": false,
+      "reason_substring": "must be >= 0",
+      "note": "Negative min_growth rejected pre-run."
+    }
+  ]
+}

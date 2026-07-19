@@ -91,6 +91,13 @@ _CASE_FILES = {
     "fenicsx_cantilever_elastic": "calibration_cases_fenicsx_cantilever_elastic.json",
     "sympy_symbolic_exact": "calibration_cases_sympy_symbolic_exact.json",
     "ngspice_linear_passive": "calibration_cases_ngspice_linear_passive.json",
+    # BIO Wave D.3: the four runnable-here bio tools (rdkit/cobrapy/mafft run in
+    # their own -prod containers; homology_search wraps blast+hmmer). The eight
+    # deferred bio tools get NO battery until un-deferred (never a stub battery).
+    "rdkit": "calibration_cases_rdkit.json",
+    "cobrapy": "calibration_cases_cobrapy.json",
+    "homology_search": "calibration_cases_homology_search.json",
+    "mafft": "calibration_cases_mafft.json",
 }
 
 # Answer-key keys that must never appear in what the model is sent (RULE-1).
@@ -153,6 +160,22 @@ def _wrapper_validator(substrate_id: str):
         from tools.run_ngspice import NgspiceInputError, _validate_input
 
         return _validate_input, NgspiceInputError
+    if substrate_id == "rdkit":
+        from tools.run_rdkit import RdkitInputError, _validate_input
+
+        return _validate_input, RdkitInputError
+    if substrate_id == "cobrapy":
+        from tools.run_cobrapy import CobrapyInputError, _validate_input
+
+        return _validate_input, CobrapyInputError
+    if substrate_id == "homology_search":
+        from tools.run_homology_search import HomologySearchInputError, _validate_input
+
+        return _validate_input, HomologySearchInputError
+    if substrate_id == "mafft":
+        from tools.run_mafft import MafftInputError, _validate_input
+
+        return _validate_input, MafftInputError
     raise KeyError(f"no wrapper validator wired for substrate {substrate_id!r}")
 
 
