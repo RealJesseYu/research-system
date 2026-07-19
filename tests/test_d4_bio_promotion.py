@@ -3,7 +3,12 @@ test_d4_bio_promotion.py — THE BIO WAVE D.4 PROMOTION (owner-ruled 2026-07-19
 on the calibration evidence: rdkit + mafft CLEAN at N=3; cobrapy on the N=7
 wash-out — in-envelope 34 trust / 1 refine, out 35/35 defer). Three substrates
 flip routable=False->True AND maturity=CALIBRATING->MATURE together, the FIRST
-mature substrates. homology_search is HELD (a G03/G05 card fix, no promotion).
+mature substrates. homology_search was HELD from that first merge for a G03/G05
+card fix and PROMOTED in a second merge (promotion #2, same recipe, the
+trust-dominant N=7 re-run) — covered by TestHomologySearchPromotion below, and
+it appears in the four-mature / four-tool-R-B-1 / additive-fixture proofs. It is
+fixed-summary shaped like the trio but adds a THIRD return state
+(valid=True/qoi=None, a clean no-hit) handled by a dedicated run entry.
 
 ZERO live model calls, ZERO docker (every adapter touch below rejects at the
 structural screen or is mocked). What is proven here, none of it argued:
@@ -54,11 +59,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+import schemas
 import substrates
 import supervisor
 from baton import Baton
 from stages.stage2_spec import _validate_qoi, _validate_regime
-from tools import run_cobrapy, run_mafft, run_rdkit
+from tools import run_cobrapy, run_homology_search, run_mafft, run_rdkit
 from tools import substrate_dispatch as dispatch
 from tools import substrate_registry as registry
 from tools import substrate_selection as selection
@@ -111,26 +117,22 @@ class TestFlipRegistry(unittest.TestCase):
             self.assertTrue(registry.is_mature(sid), sid)
             self.assertIn("BIO Wave D.4 PROMOTION", rec.notes, sid)
 
-    def test_routable_set_is_eight_in_enrollment_order(self):
+    def test_routable_set_is_nine_in_enrollment_order(self):
+        # promotion #2 (2026-07-19) added homology_search (BEFORE mafft in
+        # enrollment order).
         self.assertEqual(
             registry.routable_ids(),
             ("cavity_2d_cfd", "calculix_cantilever_fea",
              "fenicsx_cantilever_elastic", "sympy_symbolic_exact",
-             "ngspice_linear_passive", "rdkit", "cobrapy", "mafft"),
+             "ngspice_linear_passive", "rdkit", "cobrapy", "homology_search",
+             "mafft"),
         )
 
-    def test_exactly_the_bio_three_are_mature(self):
+    def test_exactly_the_bio_four_are_mature(self):
+        # promotion #2 (2026-07-19) added homology_search to the mature set.
         mature = {r.substrate_id for r in registry.all_substrates()
                   if registry.is_mature(r.substrate_id)}
-        self.assertEqual(mature, set(BIO))
-
-    def test_homology_search_stays_held_and_inert(self):
-        rec = registry.get("homology_search")
-        self.assertEqual(rec.maturity, registry.CALIBRATING)
-        self.assertFalse(rec.routable)
-        self.assertNotIn("homology_search", registry.routable_ids())
-        with self.assertRaises(LookupError):
-            registry.contract_for("homology_search")
+        self.assertEqual(mature, set(BIO) | {"homology_search"})
 
     def test_contract_for_returns_graduated_constants_single_source(self):
         for sid in BIO:
@@ -212,11 +214,17 @@ class TestRoutingNoTie(unittest.TestCase):
         # but specs never DECLARE quantity as a parameter (it rides the qoi
         # block), so no real spec ties. A bare quantity-only spec, however,
         # sits inside all three -> the R-B-1 loud stop fires (proven).
-        for sid in BIO:
+        for sid in list(BIO) + ["homology_search"]:
             self.assertIn("quantity", selection.signature_for(sid), sid)
+        # the FOUR-tool R-B-1 re-proof (promotion #2): a bare quantity-only
+        # spec sits inside all FOUR mature bio signatures -> loud stop naming
+        # exactly them.
         with self.assertRaises(LookupError) as ctx:
             select_substrate({"parameters": [{"name": "quantity"}]})
-        self.assertIn("ambiguous (R-B-1", str(ctx.exception))
+        msg = str(ctx.exception)
+        self.assertIn("ambiguous (R-B-1", msg)
+        for sid in list(BIO) + ["homology_search"]:
+            self.assertIn(f"{sid}@mature", msg)
 
 
 class TestThreadedAdapterAndScalarEntry(unittest.TestCase):
@@ -343,28 +351,150 @@ class TestAcceptance6(unittest.TestCase):
                 )
 
 
+_ALL_CONTRACT_CONST = dict(
+    _CONTRACT_CONST, homology_search="HOMOLOGY_SEARCH_CONTRACT"
+)
+
+
 class TestFixturesAdditiveOnly(unittest.TestCase):
-    def test_contract_block_gains_three_verbatim_drops_nothing(self):
+    def test_contract_block_gains_four_verbatim_drops_nothing(self):
         block = registry.routable_contracts_block()
-        for sid in BIO:
+        for sid in list(BIO) + ["homology_search"]:
             header = f"ROUTABLE SUBSTRATE: {sid}\n"
-            self.assertIn(header + getattr(substrates, _CONTRACT_CONST[sid]), block)
-        # additive-only at the fixture level: every pred4 line still present.
+            self.assertIn(
+                header + getattr(substrates, _ALL_CONTRACT_CONST[sid]), block
+            )
+        # cumulative additive-only: every pre-D.4 (pred4) line still present.
         pred4 = (D1 / "feasibility_nudge_pred4.txt").read_text().splitlines()
         current = set((D1 / "feasibility_nudge.txt").read_text().splitlines())
-        missing = [ln for ln in pred4 if ln not in current]
-        self.assertEqual(missing, [], "no pred4 line may be dropped")
+        self.assertEqual([ln for ln in pred4 if ln not in current], [])
+        # this-merge additive-only: nothing dropped vs the 8-routable snapshot.
+        pred4hs = (D1 / "feasibility_nudge_pred4hs.txt").read_text().splitlines()
+        self.assertEqual([ln for ln in pred4hs if ln not in current], [])
 
-    def test_chooser_retry_id_list_gains_exactly_the_three(self):
+    def test_chooser_retry_id_list_grows_additive_only(self):
         import re
 
         def ids(path):
             err = json.loads((C235 / path).read_text())["validation_error"]
             return set(eval(re.search(r"exactly one of (\[[^\]]*\])", err).group(1)))
-        old = ids("chooser_retry_user_turn_v235_pred4.txt")
         new = ids("chooser_retry_user_turn_v235.txt")
-        self.assertEqual(new - old, set(BIO))
-        self.assertEqual(old - new, set())
+        # cumulative vs pre-D.4: the four bio ids added, nothing removed.
+        pred4 = ids("chooser_retry_user_turn_v235_pred4.txt")
+        self.assertEqual(new - pred4, set(BIO) | {"homology_search"})
+        self.assertEqual(pred4 - new, set())
+        # this-merge vs the 8-routable snapshot: exactly homology_search added.
+        pred4hs = ids("chooser_retry_user_turn_v235_pred4hs.txt")
+        self.assertEqual(new - pred4hs, {"homology_search"})
+        self.assertEqual(pred4hs - new, set())
+
+
+class TestHomologySearchPromotion(unittest.TestCase):
+    """Promotion #2 (owner 2026-07-19): homology_search is fixed-summary shaped
+    like the trio (quantity='e_value' threaded in, scalar qoi), but has a THIRD
+    return state — valid=True/qoi=None (a clean no-hit) — handled by a dedicated
+    three-state run entry, and three distinct content keys."""
+
+    def test_row_flipped_mature_routable_with_record(self):
+        rec = registry.get("homology_search")
+        self.assertEqual(rec.maturity, registry.MATURE)
+        self.assertTrue(rec.routable)
+        self.assertIn("BIO Wave D.4 PROMOTION #2", rec.notes)
+        self.assertIs(
+            registry.contract_for("homology_search"),
+            substrates.HOMOLOGY_SEARCH_CONTRACT,
+        )
+
+    def test_vocab_signature_and_dispatch(self):
+        vocab = vocab_for("homology_search")
+        self.assertIsInstance(vocab, FixedSummaryVocab)
+        self.assertIs(vocab.names, tuple(run_homology_search.QOI_FIELDS))
+        self.assertEqual(vocab.names, ("e_value",))
+        self.assertEqual(
+            selection.signature_for("homology_search"),
+            frozenset(run_homology_search._REQUIRED_FIELDS),
+        )
+        self.assertIs(
+            dispatch.adapter_for("homology_search"),
+            dispatch._homology_search_adapter,
+        )
+        self.assertIs(
+            dispatch.qoi_translation_for("homology_search"),
+            dispatch._fixed_summary_qoi_translation,
+        )
+        # NOT the scalar constructor — the three-state one.
+        self.assertIs(
+            dispatch.run_entry_constructor_for("homology_search"),
+            dispatch.homology_search_run_entry,
+        )
+
+    def test_routes_to_itself_on_its_three_content_params(self):
+        spec = {
+            "parameters": [{"name": "database"}, {"name": "query"},
+                           {"name": "tool"}],
+            "regime": {"notes": "query vs reference DB, e-value significance"},
+            "qoi": {"name": "q", "units": "u", "definition": "d",
+                    "how_extracted": "h", "quantity": "e_value"},
+        }
+        self.assertEqual(select_substrate(spec), "homology_search")
+
+    def test_adapter_threads_quantity_over_three_content_keys(self):
+        captured = {}
+        orig = dispatch.wrapper_callable
+
+        def fake(sid):
+            def _w(typed):
+                captured["typed"] = typed
+                return {"valid": True, "qoi": 4.36e-58, "diagnostics": "hit",
+                        "runtime_s": 0.2}
+            return _w
+        dispatch.wrapper_callable = fake
+        try:
+            dispatch._homology_search_adapter(
+                "homology_search",
+                {"database": "db", "query": "MKT", "tool": "blast"},
+                "case", {}, {"quantity": "e_value"},
+            )
+        finally:
+            dispatch.wrapper_callable = orig
+        self.assertEqual(
+            captured["typed"],
+            {"database": "db", "query": "MKT", "tool": "blast",
+             "quantity": "e_value"},
+        )
+
+    def test_three_state_run_entry(self):
+        E = dispatch.homology_search_run_entry
+        hit = E({"valid": True, "qoi": 4.36e-58, "diagnostics": "1 hit",
+                 "runtime_s": 0.2})
+        nohit = E({"valid": True, "qoi": None,
+                   "diagnostics": "0 significant hits (a real no homolog)",
+                   "runtime_s": 0.1})
+        cantrun = E({"valid": False, "qoi": None,
+                     "diagnostics": "DB integrity failure", "runtime_s": 0.05})
+        self.assertEqual(
+            hit, {"converged": True, "wall_clock_s": 0.2, "qoi_value": 4.36e-58})
+        # a clean no-hit CONVERGED (the search ran) but carries no number —
+        # the honest 'no homolog' line as qoi_error, NEVER a fabricated 0.
+        self.assertEqual(
+            nohit, {"converged": True, "wall_clock_s": 0.1,
+                    "qoi_error": "0 significant hits (a real no homolog)"})
+        self.assertEqual(
+            cantrun, {"converged": False, "wall_clock_s": 0.05,
+                      "qoi_error": "DB integrity failure"})
+        for entry in (hit, nohit, cantrun):
+            errors: list[str] = []
+            schemas._check_execution_run_entry(entry, "runs[0]", errors)
+            self.assertEqual(errors, [], entry)
+
+    def test_run_entry_fails_loud_on_broken_contract(self):
+        # valid=true with a non-number, non-None qoi is a broken wrapper
+        # contract — refused, never fabricated.
+        with self.assertRaises(ValueError):
+            dispatch.homology_search_run_entry(
+                {"valid": True, "qoi": "big", "diagnostics": "x",
+                 "runtime_s": 0.1}
+            )
 
 
 if __name__ == "__main__":

@@ -30,6 +30,7 @@ from tools.qoi_vocab import (
     FBA_STEADY_STATE,
     FIELD_REDUCTION,
     FIXED_SUMMARY,
+    HOMOLOGY_SEARCH,
     MSA_ALIGNMENT,
     NAMED_QUANTITY,
     OPERATION_SET,
@@ -416,6 +417,7 @@ def _validate_regime(regime: Any, vocab, errors: list[str]) -> None:
         DESCRIPTOR_COMPUTATION,
         FBA_STEADY_STATE,
         MSA_ALIGNMENT,
+        HOMOLOGY_SEARCH,
     ):
         _validate_regime_static_small_deflection(regime, vocab.regime, errors)
     else:

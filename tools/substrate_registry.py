@@ -47,6 +47,7 @@ from substrates import (
     CAVITY_2D_CONTRACT,
     COBRAPY_FBA_CONTRACT,
     FENICSX_CANTILEVER_ELASTIC_CONTRACT,
+    HOMOLOGY_SEARCH_CONTRACT,
     MAFFT_CONTRACT,
     NGSPICE_LINEAR_PASSIVE_CONTRACT,
     RDKIT_DESCRIPTOR_CONTRACT,
@@ -280,26 +281,30 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         substrate_id="homology_search",
         wrapper="tools/run_homology_search.py",
         card_path="docs/envelope_card_homology_search.md",
-        maturity=CALIBRATING,
-        routable=False,
+        maturity=MATURE,
+        routable=True,
         cost_tier="low",
         notes=(
-            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): the "
-            "BLAST+HMMER bundle (substrate_id homology_search; tool field). "
-            "BLAST backend (tools/run_homology_search.py) proven real in "
-            "homology-search-prod — known hit e_value 4.36e-58; the "
-            "did-it-work / DB-integrity gate proven by triggering (a broken DB "
-            "-> search-could-not-run, distinct from a clean 0-hits result, since "
-            "blastp exits 0 on a missing DB). Card from real runs "
-            "(docs/envelope_card_homology_search.md, BLAST 2.16.0+). HMMER "
-            "backend wired in the next increment (same substrate, no new row). "
-            "ENROLLED but INERT — runtime maps STAGED in onboarding/"
-            "homology_search/, UNWIRED; contract_for('homology_search') must "
-            "keep raising until a D.4 promotion ruling. Nothing routes here. "
-            "HMMER backend WIRED (2026-07-18): hmmsearch on baked profiles, its "
-            "profile-integrity jail (malformed HMM -> could-not-run, distinct "
-            "from 0-hits) proven; known hit e_value 8.2e-61; pinned HMMER 3.4. "
-            "BLAST path proven unperturbed."
+            "BIO Wave D.4 PROMOTION #2 (owner-ruled 2026-07-19): routable=True "
+            "AND maturity=MATURE flipped TOGETHER — the FOURTH mature substrate. "
+            "HELD from the first D.4 merge for a G03/G05 card fix (the two cases "
+            "were written too close to the e-value-vs-homology boundary and drew "
+            "a correct refine cluster; reframed strictly as similarity-"
+            "significance, gate untouched), then promoted on the trust-dominant "
+            "N=7 re-run (calibration_homology_search_20260719T071928Z.json: "
+            "in-envelope 30 trust / 5 refine / 0 defer — every case MODAL TRUST; "
+            "out 35/35 defer). The 5 residual in-envelope refines are STRUCTURAL "
+            "texture (e_value=significance sits one careful step from the "
+            "homology C1-hole), trust-with-caveat not defer — NOT miscalibration. "
+            "The BLAST+HMMER bundle: ONE substrate, ONE row, signature {database, "
+            "query, tool, quantity}; BLAST known hit e_value 4.36e-58, HMMER "
+            "8.2e-61; the did-it-work / DB+profile-integrity gate proven by "
+            "triggering. Pinned BLAST 2.16.0+ / HMMER 3.4. Runtime maps WIRED: "
+            "contract graduated to substrates.py (HOMOLOGY_SEARCH_CONTRACT, "
+            "re-exported by onboarding/homology_search/contract.py — one source), "
+            "signature/vocab/dispatch wired at this flip. THREE-state wrapper "
+            "(valid=False could-not-run; valid=True/qoi=None clean no-hit; "
+            "valid=True/qoi=e_value a hit), handled by a dedicated run entry."
         ),
     ),
     SubstrateRecord(
@@ -533,6 +538,11 @@ _CONTRACTS: dict[str, str] = {
     "rdkit": RDKIT_DESCRIPTOR_CONTRACT,
     "cobrapy": COBRAPY_FBA_CONTRACT,
     "mafft": MAFFT_CONTRACT,
+    # BIO Wave D.4 promotion #2 (owner, 2026-07-19): homology_search, HELD from
+    # the first merge for a G03/G05 card fix, promotes on the trust-dominant
+    # N=7 re-run (every in-envelope case modal trust; out 35/35 defer). The
+    # BLAST+HMMER bundle — one substrate, one contract.
+    "homology_search": HOMOLOGY_SEARCH_CONTRACT,
 }
 
 
@@ -649,9 +659,10 @@ def routable_ids() -> tuple[str, ...]:
     order. This is the registry's answer to 'what can a run execute on' — it
     is consulted structurally, NOT parsed from a payload's substrate names
     (that would violate the substrate-agnostic invariant). Since the BIO
-    Wave D.4 promotion (owner, 2026-07-19): ('cavity_2d_cfd',
+    Wave D.4 promotion #2 (owner, 2026-07-19): ('cavity_2d_cfd',
     'calculix_cantilever_fea', 'fenicsx_cantilever_elastic',
     'sympy_symbolic_exact', 'ngspice_linear_passive', 'rdkit', 'cobrapy',
-    'mafft') — eight ids, enrollment order preserved; the last three are the
-    first MATURE substrates (rdkit/cobrapy/mafft)."""
+    'homology_search', 'mafft') — nine ids, enrollment order preserved (note
+    homology_search enrolls BEFORE mafft); the last four are the MATURE
+    substrates (rdkit/cobrapy/homology_search/mafft)."""
     return tuple(r.substrate_id for r in _REGISTRY if r.routable)

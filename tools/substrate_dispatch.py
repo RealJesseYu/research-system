@@ -59,6 +59,7 @@ from tools.run_cobrapy import (
 )
 from tools.run_fea import _REQUIRED_FIELDS as _FEA_INPUT_KEYS
 from tools.run_fenicsx import _REQUIRED_FIELDS as _FENICSX_INPUT_KEYS
+from tools.run_homology_search import _REQUIRED_FIELDS as _HS_REQUIRED_FIELDS
 from tools.run_mafft import _REQUIRED_FIELDS as _MAFFT_REQUIRED_FIELDS
 from tools.run_ngspice import _REQUIRED_FIELDS, _REQUIRED_QOI_FIELDS
 from tools.run_rdkit import _REQUIRED_FIELDS as _RDKIT_REQUIRED_FIELDS
@@ -77,6 +78,9 @@ _COBRAPY_CONTENT_KEYS = tuple(
     k for k in (tuple(_COBRAPY_REQUIRED_FIELDS) + tuple(_COBRAPY_OPTIONAL_FIELDS))
     if k != "quantity"
 )
+# homology_search content keys = {database, query, tool} (required minus the
+# threaded 'quantity'). Promotion #2 (owner, 2026-07-19).
+_HS_CONTENT_KEYS = tuple(k for k in _HS_REQUIRED_FIELDS if k != "quantity")
 from tools.run_scipy import (
     OP_FIELDS as _SCIPY_OP_FIELDS,
     UNIVERSAL_OPTIONAL_FIELDS as _SCIPY_UNIVERSAL_OPTIONAL_FIELDS,
@@ -376,6 +380,19 @@ def _mafft_adapter(substrate_id, params, case_name, roles, qoi_request):
     )
 
 
+def _homology_search_adapter(substrate_id, params, case_name, roles, qoi_request):
+    """homology_search (BIO Wave D.4 #2): the fixed-summary threaded adapter
+    over run_homology_search's content keys (imported — {database, query, tool};
+    'quantity' is threaded from the QoI request). The wrapper's DID-IT-WORK /
+    DB+profile-integrity gate distinguishes a search that COULD NOT RUN
+    (valid=False) from a clean no-hit (valid=True, qoi=None) from a hit
+    (valid=True, qoi=e_value) — the wrapper's own three-state summary passes
+    through verbatim."""
+    return _fixed_summary_threaded_adapter(
+        substrate_id, params, case_name, roles, qoi_request, _HS_CONTENT_KEYS
+    )
+
+
 # The run_ngspice summary key set, per the wrapper's own documented return
 # shape (tools/run_ngspice.py:28: {valid, qoi, diagnostics, runtime_s}) —
 # the wrapper defines no constant for it, so the contract line is the cite.
@@ -466,6 +483,8 @@ _ADAPTERS: dict = {
     "rdkit": _rdkit_adapter,
     "cobrapy": _cobrapy_adapter,
     "mafft": _mafft_adapter,
+    # BIO Wave D.4 promotion #2 (owner, 2026-07-19)
+    "homology_search": _homology_search_adapter,
 }
 
 
@@ -556,6 +575,9 @@ _QOI_TRANSLATIONS: dict = {
     "rdkit": _fixed_summary_qoi_translation,
     "cobrapy": _fixed_summary_qoi_translation,
     "mafft": _fixed_summary_qoi_translation,
+    # BIO Wave D.4 promotion #2 (owner, 2026-07-19): same fixed-summary
+    # translation — "quantity" membership-checked against ("e_value",).
+    "homology_search": _fixed_summary_qoi_translation,
 }
 
 
@@ -634,6 +656,82 @@ def _fixed_summary_scalar_run_entry(summary, qoi_error_fallback=None,
     the quantity into the wrapper input, so a valid summary already carries its
     one scalar and an invalid one its named diagnostics."""
     return ngspice_run_entry(summary)
+
+
+# homology_search shares run_ngspice's summary key set (scalar qoi), but adds a
+# THIRD state the scalar constructor cannot map: valid=True with qoi=None (a
+# clean 0-hits run — a real "no significant homolog at this cutoff"), which is
+# NOT an error and NOT a number.
+_HS_SUMMARY_KEYS = ("valid", "qoi", "diagnostics", "runtime_s")
+
+
+def homology_search_run_entry(summary, qoi_error_fallback=None,
+                              qoi_request=None) -> dict:
+    """BIO Wave D.4 #2 (owner, 2026-07-19): the run-entry constructor for
+    homology_search's THREE-state summary {valid, qoi, diagnostics, runtime_s}.
+    Unlike rdkit/cobrapy/mafft (a number whenever valid), a homology search can
+    complete cleanly with NO significant hit — valid=True, qoi=None — a real
+    biological result, not a failure. The mapping:
+      valid=False                 -> converged=False, qoi_error=diagnostics
+                                     (the search COULD NOT RUN — bad DB /
+                                     malformed profile / rejected input);
+      valid=True, qoi=<number>    -> converged=True,  qoi_value=the best e_value;
+      valid=True, qoi=None        -> converged=True,  qoi_error=diagnostics
+                                     (the honest "0 significant hits" line — the
+                                     search RAN, so converged, but there is no
+                                     number to trust; NEVER a fabricated 0).
+    converged := (valid is True) — COMPLETED-AND-PARSED (the DID-IT-WORK gate
+    passed), the same meaning as the scalar constructor. qoi_error_fallback and
+    qoi_request are ignored: the adapter threaded the quantity in and the
+    wrapper's own three-state truth is authoritative. FAIL LOUD (ValueError) on
+    a structurally broken summary — never a default."""
+    if not isinstance(summary, dict):
+        raise ValueError(
+            f"cannot construct a run entry: expected a run_homology_search "
+            f"summary object, got {type(summary).__name__}"
+        )
+    missing = [k for k in _HS_SUMMARY_KEYS if k not in summary]
+    if missing:
+        raise ValueError(
+            "cannot construct a run entry: run_homology_search summary is "
+            f"missing field(s) {', '.join(missing)} — the wrapper contract is "
+            f"exactly {{{', '.join(_HS_SUMMARY_KEYS)}}}; refusing to default"
+        )
+    valid = summary["valid"]
+    if not isinstance(valid, bool):
+        raise ValueError(
+            f"cannot construct a run entry: summary valid must be a bool, "
+            f"got {valid!r}"
+        )
+    runtime_s = summary["runtime_s"]
+    if not isinstance(runtime_s, (int, float)) or isinstance(runtime_s, bool):
+        raise ValueError(
+            f"cannot construct a run entry: summary runtime_s must be a "
+            f"number, got {runtime_s!r}"
+        )
+    entry = {"converged": valid is True, "wall_clock_s": runtime_s}
+    qoi = summary["qoi"]
+    if valid and isinstance(qoi, (int, float)) and not isinstance(qoi, bool):
+        entry["qoi_value"] = qoi
+        return entry
+    # valid=False, OR valid=True with qoi=None (clean no-hit): both carry the
+    # wrapper's own named line as qoi_error; a non-None non-number qoi on a
+    # valid run is a broken contract.
+    if valid and qoi is not None:
+        raise ValueError(
+            f"cannot construct a run entry: summary claims valid=true but qoi "
+            f"is {qoi!r} — the wrapper contract says a valid run carries either "
+            "a numeric e_value or None (a clean no-hit); refusing to fabricate"
+        )
+    diagnostics = summary["diagnostics"]
+    if not isinstance(diagnostics, str) or not diagnostics.strip():
+        raise ValueError(
+            f"cannot construct a run entry: qoi is absent but diagnostics is "
+            f"{diagnostics!r} — a could-not-run or a clean no-hit must carry "
+            "the wrapper's own named line; refusing to invent a qoi_error"
+        )
+    entry["qoi_error"] = diagnostics
+    return entry
 
 
 # The run_scipy summary key set, per the wrapper's own documented return
@@ -844,6 +942,10 @@ _RUN_ENTRY_CONSTRUCTORS: dict = {
     "rdkit": _fixed_summary_scalar_run_entry,
     "cobrapy": _fixed_summary_scalar_run_entry,
     "mafft": _fixed_summary_scalar_run_entry,
+    # BIO Wave D.4 promotion #2 (owner, 2026-07-19): the THREE-state
+    # constructor (a clean no-hit is valid=True/qoi=None -> qoi_error, not a
+    # fabricated number).
+    "homology_search": homology_search_run_entry,
 }
 
 
