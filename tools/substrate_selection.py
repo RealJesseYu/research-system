@@ -109,6 +109,7 @@ from tools.qoi_vocab import vocab_for
 from tools.run_cobrapy import _REQUIRED_FIELDS as _COBRAPY_REQUIRED_FIELDS
 from tools.run_fea import _REQUIRED_FIELDS as _FEA_REQUIRED_FIELDS
 from tools.run_fenicsx import _REQUIRED_FIELDS as _FENICSX_REQUIRED_FIELDS
+from tools.run_homology_search import _REQUIRED_FIELDS as _HS_REQUIRED_FIELDS
 from tools.run_mafft import _REQUIRED_FIELDS as _MAFFT_REQUIRED_FIELDS
 from tools.run_ngspice import _REQUIRED_FIELDS as _NGSPICE_REQUIRED_FIELDS
 from tools.run_rdkit import _REQUIRED_FIELDS as _RDKIT_REQUIRED_FIELDS
@@ -165,6 +166,12 @@ _SIGNATURES: dict[str, frozenset[str]] = {
     "rdkit": frozenset(_RDKIT_REQUIRED_FIELDS),
     "cobrapy": frozenset(_COBRAPY_REQUIRED_FIELDS),
     "mafft": frozenset(_MAFFT_REQUIRED_FIELDS),
+    # BIO Wave D.4 promotion #2 (owner, 2026-07-19): {database, query, tool,
+    # quantity}. The content keys {database, query, tool} are unique to this
+    # substrate, so a real homology spec routes only here; it shares only the
+    # 'quantity' superset key with the other three mature bio substrates
+    # (never a declared param) — no R-B-1 tie. Proven by routing at FOUR mature.
+    "homology_search": frozenset(_HS_REQUIRED_FIELDS),
 }
 
 

@@ -34,7 +34,8 @@ class TestContractSelection(unittest.TestCase):
             registry.routable_ids(),
             ("cavity_2d_cfd", "calculix_cantilever_fea",
              "fenicsx_cantilever_elastic", "sympy_symbolic_exact",
-             "ngspice_linear_passive", "rdkit", "cobrapy", "mafft"),
+             "ngspice_linear_passive", "rdkit", "cobrapy", "homology_search",
+             "mafft"),
         )
         with self.assertRaises(RuntimeError):
             registry.sole_routable_id()
@@ -126,11 +127,14 @@ class TestRoutableContractsBlock(unittest.TestCase):
             + "\n\nROUTABLE SUBSTRATE: ngspice_linear_passive\n"
             + substrates.NGSPICE_LINEAR_PASSIVE_CONTRACT
             # BIO Wave D.4 promotion (owner 2026-07-19): the block grows by the
-            # three new routable contracts, additive-only, in enrollment order.
+            # new routable contracts, additive-only, in ENROLLMENT order —
+            # rdkit, cobrapy, then homology_search (promotion #2) BEFORE mafft.
             + "\n\nROUTABLE SUBSTRATE: rdkit\n"
             + substrates.RDKIT_DESCRIPTOR_CONTRACT
             + "\n\nROUTABLE SUBSTRATE: cobrapy\n"
             + substrates.COBRAPY_FBA_CONTRACT
+            + "\n\nROUTABLE SUBSTRATE: homology_search\n"
+            + substrates.HOMOLOGY_SEARCH_CONTRACT
             + "\n\nROUTABLE SUBSTRATE: mafft\n"
             + substrates.MAFFT_CONTRACT
         )

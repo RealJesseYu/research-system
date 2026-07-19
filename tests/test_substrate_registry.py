@@ -57,14 +57,16 @@ class TestRegistryTable(unittest.TestCase):
         self.assertEqual(cfd.wrapper, "tools/run_cfd.py")
         # provisional is non-mature -> a trust decision on it is human-required
         self.assertFalse(registry.is_mature("cavity_2d_cfd"))
-        # the routable set since the BIO Wave D.4 promotion (owner
-        # 2026-07-19): EIGHT ids in enrollment order — the Packet-B five
-        # plus rdkit, cobrapy, mafft (the first MATURE substrates)
+        # the routable set since the BIO Wave D.4 promotion #2 (owner
+        # 2026-07-19): NINE ids in enrollment order — the Packet-B five plus
+        # rdkit, cobrapy, homology_search, mafft (the four MATURE substrates;
+        # homology_search enrolls BEFORE mafft)
         self.assertEqual(
             registry.routable_ids(),
             ("cavity_2d_cfd", "calculix_cantilever_fea",
              "fenicsx_cantilever_elastic", "sympy_symbolic_exact",
-             "ngspice_linear_passive", "rdkit", "cobrapy", "mafft"),
+             "ngspice_linear_passive", "rdkit", "cobrapy", "homology_search",
+             "mafft"),
         )
 
     def test_sympy_is_calibrating_routable_under_packet_b_phase1(self):
@@ -140,15 +142,23 @@ class TestRegistryTable(unittest.TestCase):
         with self.assertRaises(LookupError):
             registry.contract_for("cas_offinder")
 
-    def test_homology_search_enrolled_calibrating_unroutable_and_inert(self):
-        # BIO Wave D.2 increment 4 (Option A, T2): the BLAST+HMMER bundle, inert.
+    def test_homology_search_promoted_mature_routable_and_wired(self):
+        # BIO Wave D.4 PROMOTION #2 (owner 2026-07-19): HELD from the first
+        # merge for a G03/G05 card fix, promoted on the trust-dominant N=7
+        # re-run (every in-envelope case modal trust; out 35/35 defer).
+        import substrates
         rec = registry.get("homology_search")
-        self.assertEqual(rec.maturity, registry.CALIBRATING)
-        self.assertFalse(rec.routable)
+        self.assertEqual(rec.maturity, registry.MATURE)
+        self.assertTrue(rec.routable)
+        self.assertTrue(registry.is_mature("homology_search"))
         self.assertEqual(rec.wrapper, "tools/run_homology_search.py")
-        self.assertNotIn("homology_search", registry.routable_ids())
-        with self.assertRaises(LookupError):
-            registry.contract_for("homology_search")
+        self.assertIn("homology_search", registry.routable_ids())
+        self.assertIn("BIO Wave D.4 PROMOTION #2", rec.notes)
+        self.assertIn("MODAL TRUST", rec.notes)
+        self.assertIs(
+            registry.contract_for("homology_search"),
+            substrates.HOMOLOGY_SEARCH_CONTRACT,
+        )
 
     def test_mafft_promoted_mature_routable_and_wired(self):
         # BIO Wave D.4 PROMOTION (owner 2026-07-19): clean N=3, msa_alignment.
@@ -229,16 +239,17 @@ class TestRegistryTable(unittest.TestCase):
         # retrieval-provisional is deliberately OUTSIDE the routable ladder
         self.assertNotIn(registry.RETRIEVAL_PROVISIONAL, registry.MATURITY_LADDER)
 
-    def test_exactly_the_bio_three_are_mature(self):
-        # BIO Wave D.4 (owner 2026-07-19): rdkit/cobrapy/mafft are the FIRST
-        # MATURE substrates; every other enrolled substrate is still non-mature
-        # (the old routable five stay calibrating/provisional, so the maturity
-        # hook still gates every trust decision on their account).
+    def test_exactly_the_bio_four_are_mature(self):
+        # BIO Wave D.4 #2 (owner 2026-07-19): rdkit/cobrapy/mafft/
+        # homology_search are the MATURE substrates; every other enrolled
+        # substrate is still non-mature (the old routable five stay
+        # calibrating/provisional, so the maturity hook still gates every
+        # trust decision on their account).
         mature = {
             r.substrate_id for r in registry.all_substrates()
             if registry.is_mature(r.substrate_id)
         }
-        self.assertEqual(mature, {"rdkit", "cobrapy", "mafft"})
+        self.assertEqual(mature, {"rdkit", "cobrapy", "mafft", "homology_search"})
 
     def test_get_unknown_raises(self):
         with self.assertRaises(KeyError):

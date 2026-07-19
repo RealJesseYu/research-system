@@ -155,12 +155,14 @@ class TestFlipRegistry(unittest.TestCase):
             self.assertIn(battery, rec.notes)
 
     def test_routable_set_in_enrollment_order(self):
-        # BIO Wave D.4 (owner 2026-07-19): rdkit/cobrapy/mafft joined the
-        # Packet-B five (enrollment order preserved) — eight routable ids now.
+        # BIO Wave D.4 (owner 2026-07-19): rdkit/cobrapy/homology_search/mafft
+        # joined the Packet-B five (enrollment order preserved, homology_search
+        # before mafft) — nine routable ids now.
         self.assertEqual(
             registry.routable_ids(),
             ("cavity_2d_cfd", FEA, FENICSX, "sympy_symbolic_exact",
-             "ngspice_linear_passive", "rdkit", "cobrapy", "mafft"),
+             "ngspice_linear_passive", "rdkit", "cobrapy", "homology_search",
+             "mafft"),
         )
 
     def test_contract_for_returns_the_graduated_constants(self):
@@ -278,17 +280,17 @@ class TestFlipRegistry(unittest.TestCase):
             [],
         )
 
-    def test_only_the_bio_three_are_mature(self):
+    def test_only_the_bio_four_are_mature(self):
         # BIO Wave D.4 (owner 2026-07-19): the cantilever pair (this flip's
-        # subject) stays non-mature; the first MATURE substrates are exactly
-        # rdkit/cobrapy/mafft.
+        # subject) stays non-mature; the MATURE substrates are exactly
+        # rdkit/cobrapy/mafft/homology_search.
         self.assertFalse(registry.is_mature(FEA))
         self.assertFalse(registry.is_mature(FENICSX))
         mature = {
             r.substrate_id for r in registry.all_substrates()
             if registry.is_mature(r.substrate_id)
         }
-        self.assertEqual(mature, {"rdkit", "cobrapy", "mafft"})
+        self.assertEqual(mature, {"rdkit", "cobrapy", "mafft", "homology_search"})
 
 
 # ---------------------------------------------------------------------------

@@ -49,6 +49,7 @@ from tools.run_cfd import MASK_TYPES, QOI_COMPONENTS, QOI_OPERATIONS, _QOI_FIELD
 from tools.run_cobrapy import QOI_FIELDS as _COBRAPY_QOI_FIELDS
 from tools.run_fea import QOI_FIELDS as _FEA_QOI_FIELDS
 from tools.run_fenicsx import QOI_FIELDS as _FENICSX_QOI_FIELDS
+from tools.run_homology_search import QOI_FIELDS as _HS_QOI_FIELDS
 from tools.run_mafft import QOI_FIELDS as _MAFFT_QOI_FIELDS
 from tools.run_ngspice import _ANALYSIS_FIELDS, _NAME_RE, _QOI_KINDS, _REDUCTIONS
 from tools.run_rdkit import QOI_FIELDS as _RDKIT_QOI_FIELDS
@@ -75,6 +76,9 @@ STATIC_SMALL_DEFLECTION = "static_small_deflection"
 DESCRIPTOR_COMPUTATION = "descriptor_computation"
 FBA_STEADY_STATE = "fba_steady_state"
 MSA_ALIGNMENT = "msa_alignment"
+# BIO Wave D.4 promotion #2 (owner, 2026-07-19): homology_search, same
+# single-{notes} regime family.
+HOMOLOGY_SEARCH = "homology_search"
 
 
 @dataclass(frozen=True)
@@ -216,6 +220,21 @@ class MsaAlignmentRegime:
     object is {"notes": "..."}. The other shapes' keys are rejected by name."""
 
     shape: ClassVar[str] = MSA_ALIGNMENT
+
+    alien_keys: ClassVar[tuple] = (
+        "reynolds_min", "reynolds_max", "analysis_type", "operation",
+    )
+
+
+@dataclass(frozen=True)
+class HomologySearchRegime:
+    """homology_search-class regime semantics (BIO Wave D.4 #2, owner
+    2026-07-19): a query searched against a reference database (BLAST or HMMER)
+    for the statistical significance (e-value) of sequence similarity. No
+    per-case numeric regime axis; the spec's regime object is {"notes": "..."}.
+    The other shapes' keys are rejected by name."""
+
+    shape: ClassVar[str] = HOMOLOGY_SEARCH
 
     alien_keys: ClassVar[tuple] = (
         "reynolds_min", "reynolds_max", "analysis_type", "operation",
@@ -372,6 +391,15 @@ _VOCABS: dict[str, Any] = {
     "mafft": FixedSummaryVocab(
         names=tuple(_MAFFT_QOI_FIELDS),
         regime=MsaAlignmentRegime(),
+    ),
+    # BIO Wave D.4 promotion #2 (owner, 2026-07-19): homology_search is the
+    # fixed-summary shape too — the wrapper's `quantity` typed input is a
+    # membership pick from QOI_FIELDS ("e_value"), and it does the min-reduction
+    # internally (so it is NOT the named-quantity kind/target/reduction shape
+    # the earlier staging note sketched; the wrapper is the source of truth).
+    "homology_search": FixedSummaryVocab(
+        names=tuple(_HS_QOI_FIELDS),
+        regime=HomologySearchRegime(),
     ),
 }
 
