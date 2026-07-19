@@ -1034,3 +1034,34 @@ pre-registered trust labels intact) + an owner re-run, no gate change. The 8
 DEFERRED bio tools are untouched. repo_facts §8 RE-STAMPED (the once-after-D.4
 re-stamp the D.2/D.3 notes deferred): routable 5->8, mature 0->3, enrollment
 19, era 6befb63->5bc037c.
+
+BIO Wave D.4 PROMOTION #2 COMPLETE (2026-07-19, flip commit 3ee3873; era
+ADVANCES 5bc037c -> 3ee3873): homology_search — HELD from the first merge for
+the G03/G05 card fix — PROMOTED on the trust-dominant N=7 re-run
+(calibration_homology_search_20260719T071928Z.json: in-envelope 30 trust / 5
+refine / 0 defer, EVERY in-envelope case MODAL TRUST; out 35/35 defer). The 5
+residual in-envelope refines are STRUCTURAL trust-with-caveat texture
+(e_value=significance sits one careful step from the homology C1-hole), NOT
+miscalibration — G01/G02 deliberately NOT reworded further. routable=True AND
+maturity=MATURE flipped together — the FOURTH and LAST mature substrate this
+environment supports. Routable 8->9, mature 3->4
+(rdkit/cobrapy/mafft/homology_search). Same six-surface recipe, one source
+each; homology_search is fixed-summary shaped like the trio (`quantity`=
+"e_value" threaded into the wrapper input, the min-reduction done internally —
+so FixedSummaryVocab, NOT the earlier staging note's NamedQuantityVocab), with
+signature {database, query, tool, quantity} (the three content keys unique to
+it -> unique routing) and a new HomologySearchRegime. ITS ONE DIFFERENCE: a
+THREE-state wrapper summary — valid=False (could-not-run), valid=True/qoi=e_value
+(a hit), valid=True/qoi=None (a CLEAN NO-HIT, a real 'no homolog at cutoff') —
+handled by a dedicated homology_search_run_entry that maps the no-hit to
+converged=True + qoi_error (the honest line), NEVER a fabricated 0. Proofs
+(tests/test_d4_bio_promotion.py, now 27 tests): the FOUR-tool R-B-1 re-proof (a
+bare quantity-only spec now loud-stops naming all four mature bio substrates;
+homology routes uniquely on {database,query,tool}); growing fixtures
+additive-only again (feasibility_nudge 8->9 blocks, chooser 8->9 ids, in
+enrollment order before mafft; 8-routable state preserved as *_pred4hs); cavity
+byte-identical; acceptance #6; the three-state run entry incl. schema-validity
+and the broken-contract fail-loud guard. Full suite 89/89 files green; FAST
+GREEN. repo_facts §2/§8 RE-STAMPED (routable 8->9, mature 3->4, era
+5bc037c->3ee3873). FINAL bio state: 4 live-and-mature (rdkit, cobrapy, mafft,
+homology_search), 8 deferred/parked unchanged.
