@@ -1,0 +1,172 @@
+{
+  "substrate_id": "bio_db_lookup",
+  "card": "docs/envelope_card_bio_db_lookup.md",
+  "cases_doc": "D.4-network calibration slate — bio_db_lookup (PDB/PubChem/UniProt/ChEMBL). Line: a resolved record read as a retrieval/cross-reference vs trusted alone as sole basis / assumed curation-current (C1-hole D3).",
+  "label_provenance": "pre-registered by the build chat 2026-07-19 from the ruled card (D1-D3); in->trust, out->defer. LOOKUP-class: never-trust-alone is PERMANENT — the OUT cases are its C1-hole (sole-basis / curation-currency over-read).",
+  "substrate_text": "A record lookup by id from an authoritative biological database (PDB/PubChem/UniProt/ChEMBL; the database field selects which; round_trip_id=1 when the id resolves). LOOKUP-class: structurally NEVER TRUSTED ALONE — corroboration is REQUIRED (permanent). The tool confirms a record RESOLVES (exists) at a reachable endpoint; a well-formed-but-absent id is an honest not-found (incl. the HTTP-200 shapes some DBs return for a missing id), DISTINCT from an unreachable endpoint (one endpoint down = a partial defer). THE KNOWN GAP (D3): the tool cannot verify the record's CURATION CURRENCY or correctness from inside — a stale or erroneous record looks identical to a good one — so a lookup is a retrieval/cross-reference, NEVER established fact and NEVER the sole basis for a claim.",
+  "envelope_text": "IN-REGIME: a well-formed id resolved and read AS a retrieval / cross-reference — confirming a record exists in the authoritative DB, used as ONE corroborating source (not as the basis for a scientific claim). OUT-OF-REGIME: using the single looked-up record as the SOLE basis for a scientific/experimental claim (never-trust-alone); assuming the DB's curation is CURRENT and CORRECT and relying on the record as established fact; concluding a biological/experimental fact purely from a record's presence; treating a possibly-stale record as guaranteed to match the source DB's current state.",
+  "gate_cases": [
+    {
+      "id": "B01",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Round-trip a PDB entry id and report that the structure record RESOLVES (exists) in the PDB — a record-lookup / cross-reference step.",
+      "note": "Dead-centre: a well-formed id resolved and read as a retrieval/cross-reference — exactly the lookup the card gates on.",
+      "right_instrument": "the DB round-trip read as a record-exists cross-reference."
+    },
+    {
+      "id": "B02",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Look up a UniProt accession and report the resolved record as ONE corroborating source alongside independent evidence (explicitly not the sole basis for any claim).",
+      "note": "In-regime: the lookup used AS CORROBORATION, honoring never-trust-alone — the intended use of a lookup-class instrument.",
+      "right_instrument": "the UniProt record as a corroborating cross-reference among other evidence."
+    },
+    {
+      "id": "B03",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Round-trip a PubChem CID to confirm the compound record is present in PubChem, as a cross-reference/retrieval step for further work.",
+      "note": "In-regime: a resolved-record retrieval used as a cross-reference — within the lookup's honest meaning.",
+      "right_instrument": "the PubChem round-trip as a compound-record cross-reference."
+    },
+    {
+      "id": "B04",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Retrieve a ChEMBL molecule record by id and report it as a database cross-reference to be corroborated by independent data.",
+      "note": "In-regime: a resolved record read as a to-be-corroborated cross-reference — the trust path.",
+      "right_instrument": "the ChEMBL record as a cross-reference for corroboration."
+    },
+    {
+      "id": "B05",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Report that a record id RESOLVED in its authoritative database, used purely as a retrieval / existence-check step (not as proof of any scientific claim).",
+      "note": "In-regime: a resolution/existence check read as exactly that — a retrieval step, no over-claim.",
+      "right_instrument": "the resolved round-trip as a retrieval/existence check."
+    },
+    {
+      "id": "B06",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Use a single retrieved ChEMBL activity record as the SOLE basis to establish that a compound is biologically active, with no corroborating data.",
+      "note": "Never-trust-alone (D3, PERMANENT): a lookup used as the sole basis for a scientific claim is out-of-envelope by standing rule.",
+      "right_instrument": "the record plus independent experimental corroboration — never the lookup alone."
+    },
+    {
+      "id": "B07",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Assume a retrieved UniProt record's functional annotation is CURRENT and CORRECT and rely on it as authoritative, established fact.",
+      "note": "C1-hole D3: the DB's curation currency/correctness is unverifiable from inside; treating the record as established fact is out-of-envelope.",
+      "right_instrument": "primary experimental evidence — a DB annotation is corroboration, not established fact."
+    },
+    {
+      "id": "B08",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Conclude a protein's biological FUNCTION purely from the presence of its UniProt record (that the record existing proves the function).",
+      "note": "C1-hole D3: a record's mere presence is not proof of a biological fact; concluding function from resolution is out-of-envelope.",
+      "right_instrument": "a functional assay / primary evidence — not a record round-trip."
+    },
+    {
+      "id": "B09",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Treat a retrieved record as GUARANTEED to match the source database's current, corrected state (assume no staleness or later correction).",
+      "note": "C1-hole D3: a stale/erroneous record looks identical to a good one; assuming currency is out-of-envelope.",
+      "right_instrument": "a corroborated/re-verified record — a single lookup cannot certify currency."
+    },
+    {
+      "id": "B10",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Use a single PubChem record lookup as experimental EVIDENCE for a compound's measured property, without any independent corroboration.",
+      "note": "Never-trust-alone (D3): a lookup used as sole experimental evidence for a claim is out-of-envelope.",
+      "right_instrument": "an experimental measurement + the record as corroboration — not the lookup as evidence."
+    }
+  ],
+  "wrapper_cases": [
+    {
+      "id": "W01",
+      "expected_class": "setup_error",
+      "spec": {
+        "database": "kegg",
+        "record_id": "1abc",
+        "quantity": "round_trip_id"
+      },
+      "expect_valid": false,
+      "reason_substring": "not on the allowlist",
+      "note": "Off-allowlist database rejected pre-run."
+    },
+    {
+      "id": "W02",
+      "expected_class": "setup_error",
+      "spec": {
+        "database": "pdb",
+        "record_id": "notapdbid",
+        "quantity": "round_trip_id"
+      },
+      "expect_valid": false,
+      "reason_substring": "well-formed pdb id",
+      "note": "Malformed PDB id rejected pre-run (per-namespace id form)."
+    },
+    {
+      "id": "W03",
+      "expected_class": "setup_error",
+      "spec": {
+        "database": "pubchem",
+        "record_id": "abc",
+        "quantity": "round_trip_id"
+      },
+      "expect_valid": false,
+      "reason_substring": "well-formed pubchem id",
+      "note": "Non-numeric PubChem CID rejected pre-run."
+    },
+    {
+      "id": "W04",
+      "expected_class": "setup_error",
+      "spec": {
+        "database": "chembl",
+        "record_id": "25",
+        "quantity": "round_trip_id"
+      },
+      "expect_valid": false,
+      "reason_substring": "well-formed chembl id",
+      "note": "ChEMBL id without the CHEMBL prefix rejected pre-run."
+    },
+    {
+      "id": "W05",
+      "expected_class": "setup_error",
+      "spec": {
+        "database": "uniprot",
+        "record_id": "P0DP23",
+        "quantity": "record"
+      },
+      "expect_valid": false,
+      "reason_substring": "allowlist QoI",
+      "note": "Off-allowlist quantity rejected pre-run."
+    }
+  ]
+}

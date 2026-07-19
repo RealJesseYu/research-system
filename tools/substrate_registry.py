@@ -473,17 +473,24 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         routable=False,
         cost_tier="low",
         notes=(
-            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): "
-            "DEFERRED — a 4-API network wrapper (PDB/PubChem/UniProt/ChEMBL); no "
-            "endpoint reachable here. The most expensive single wrapper in the "
-            "wave (4 API integrations). Wrapper input gate proven pure-Python "
-            "incl. PER-NAMESPACE id form (database allowlist, record_id form, "
-            "quantity round_trip_id); valid input -> honest DEFERRED, never a "
-            "fabricated record. Card SKELETON, 3A PENDING. UN-DEFER (specific) = "
-            "ALL FOUR endpoints reachable (ONE down = PARTIAL defer, not full). "
+            "BIO Wave D.2 enrollment (Option A) -> D.4-network UN-DEFER "
+            "(owner-ruled 2026-07-19): ALL FOUR endpoints (PDB/PubChem/UniProt/"
+            "ChEMBL) are reachable, so the per-database lookup path is WIRED "
+            "(tools/run_bio_db_lookup.py) and returns a REAL round-trip "
+            "resolution — proven live (probe_endpoints fully_live=true; 4HHB/"
+            "2244/P0DP23/CHEMBL25 all resolve, ~0.07-0.6 s). The per-namespace "
+            "not-found shapes incl. the HTTP-200 traps (PubChem 200-but-no-"
+            "formula; UniProt 200-but-Inactive) are classed not-found, DISTINCT "
+            "from a network failure; the PARTIAL-defer path (one endpoint down -> "
+            "that database defers while others resolve) proven by triggering; "
+            "never a fabricated record. Card §3A FILLED from real calls. "
             "LOOKUP-class: D3 never-trust-alone is PERMANENT (corroboration "
-            "required forever) + the DB's curation currency is unverifiable. "
-            "Runtime maps STAGED, UNWIRED; contract_for raises."
+            "required forever) + the DB's curation currency is unverifiable — "
+            "NOT lifted by un-deferring. Calibration slate staged "
+            "(harness/calibration_cases_bio_db_lookup.json); battery dispatch "
+            "extended. STILL calibrating/routable=False — PROMOTION is a SEPARATE "
+            "later flip on clean gate-track calibration; contract_for raises "
+            "until then."
         ),
     ),
     SubstrateRecord(
