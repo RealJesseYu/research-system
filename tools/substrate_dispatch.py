@@ -53,9 +53,30 @@ from pathlib import PurePosixPath
 
 from stages import stage4_case_builder
 from tools import substrate_registry as registry
+from tools.run_cobrapy import (
+    _OPTIONAL_FIELDS as _COBRAPY_OPTIONAL_FIELDS,
+    _REQUIRED_FIELDS as _COBRAPY_REQUIRED_FIELDS,
+)
 from tools.run_fea import _REQUIRED_FIELDS as _FEA_INPUT_KEYS
 from tools.run_fenicsx import _REQUIRED_FIELDS as _FENICSX_INPUT_KEYS
+from tools.run_mafft import _REQUIRED_FIELDS as _MAFFT_REQUIRED_FIELDS
 from tools.run_ngspice import _REQUIRED_FIELDS, _REQUIRED_QOI_FIELDS
+from tools.run_rdkit import _REQUIRED_FIELDS as _RDKIT_REQUIRED_FIELDS
+
+# BIO Wave D.4 (owner, 2026-07-19): the fixed-summary threaded adapters take
+# the mini-run CONTENT fields as params and THREAD the QoI selector 'quantity'
+# into the wrapper input from the translated request (the ngspice execution
+# pattern). So each content-key set is the wrapper's own required-field set
+# MINUS 'quantity' (imported, never a pasted literal). cobrapy additionally
+# admits its one OPTIONAL typed field (min_growth); the serve-ability signature
+# stays required-only (min_growth not in it), and this admits the full wrapper
+# content vocabulary at the adapter's structural screen.
+_RDKIT_CONTENT_KEYS = tuple(k for k in _RDKIT_REQUIRED_FIELDS if k != "quantity")
+_MAFFT_CONTENT_KEYS = tuple(k for k in _MAFFT_REQUIRED_FIELDS if k != "quantity")
+_COBRAPY_CONTENT_KEYS = tuple(
+    k for k in (tuple(_COBRAPY_REQUIRED_FIELDS) + tuple(_COBRAPY_OPTIONAL_FIELDS))
+    if k != "quantity"
+)
 from tools.run_scipy import (
     OP_FIELDS as _SCIPY_OP_FIELDS,
     UNIVERSAL_OPTIONAL_FIELDS as _SCIPY_UNIVERSAL_OPTIONAL_FIELDS,
@@ -275,6 +296,86 @@ def _fenicsx_adapter(substrate_id, params, case_name, roles, qoi_request):
     )
 
 
+def _fixed_summary_threaded_adapter(substrate_id, params, case_name, roles,
+                                    qoi_request, content_keys):
+    """FIXED-SUMMARY THREADED execution adapter core (BIO Wave D.4, owner
+    2026-07-19). These wrappers (rdkit/cobrapy/mafft) differ from the
+    cantilevers: they take the QoI selector `quantity` as a TYPED INPUT field
+    and return a single SCALAR qoi — the run_ngspice execution shape (the QoI
+    request goes INTO the wrapper input) but with a fixed_summary vocabulary
+    (`quantity` is a membership pick, not the ngspice {kind,target,reduction}).
+    So the adapter THREADS the translated quantity into the wrapper input,
+    exactly as _ngspice_adapter threads the qoi request into ngspice's `qoi`
+    field. case_name and roles are cavity-class concepts, accepted for the
+    uniform signature, unused.
+
+    content_keys is the wrapper's typed-key set MINUS 'quantity' (the threaded
+    field). Structural screen: params must be a dict whose keys are members of
+    content_keys — unknown keys fail loud naming every offender. The translated
+    qoi_request must carry 'quantity' (a fixed-summary request always does once
+    the spec's qoi validated); a missing one fails loud, mirroring the ngspice
+    adapter's refusal to invent a default. CONTENT validation (SMILES
+    parse/sanitize, the model allowlist, the alphabet/input gate, the FBA
+    status gate) is each wrapper's own _validate_input, the single source:
+    content problems come back as honest valid=false summaries. Returns the
+    wrapper summary VERBATIM so stage-4 evidence keeps the full summary."""
+    if not isinstance(params, dict):
+        raise ValueError(
+            f"cannot translate mini-run params: expected an object, got "
+            f"{type(params).__name__}"
+        )
+    unknown = sorted(set(params) - set(content_keys))
+    if unknown:
+        raise ValueError(
+            "cannot translate mini-run params to the fixed-summary typed "
+            f"input: unknown key(s) {', '.join(unknown)} (the wrapper input "
+            f"takes only content keys {', '.join(content_keys)} plus the "
+            "threaded 'quantity')"
+        )
+    if not (isinstance(qoi_request, dict) and "quantity" in qoi_request):
+        raise ValueError(
+            "no translated 'quantity' — fixed-summary threaded execution "
+            "requires one (translate the spec qoi via "
+            "_fixed_summary_qoi_translation); refusing to invent a default"
+        )
+    typed = dict(params)
+    typed["quantity"] = qoi_request["quantity"]
+    return wrapper_callable(substrate_id)(typed)
+
+
+def _rdkit_adapter(substrate_id, params, case_name, roles, qoi_request):
+    """rdkit (BIO Wave D.4): the fixed-summary threaded adapter over
+    run_rdkit's content keys (imported — {smiles}; 'quantity' is threaded from
+    the QoI request). The wrapper parses and sanitizes the molecule; an
+    unparseable SMILES comes back as an honest valid=false summary, never a
+    fabricated descriptor."""
+    return _fixed_summary_threaded_adapter(
+        substrate_id, params, case_name, roles, qoi_request, _RDKIT_CONTENT_KEYS
+    )
+
+
+def _cobrapy_adapter(substrate_id, params, case_name, roles, qoi_request):
+    """cobrapy (BIO Wave D.4): the fixed-summary threaded adapter over
+    run_cobrapy's content keys (imported — {model} plus the optional
+    min_growth; 'quantity' is threaded from the QoI request). The wrapper's
+    STRUCTURAL status gate means a non-optimal LP solve comes back valid=false
+    with qoi None (never the stale objective)."""
+    return _fixed_summary_threaded_adapter(
+        substrate_id, params, case_name, roles, qoi_request, _COBRAPY_CONTENT_KEYS
+    )
+
+
+def _mafft_adapter(substrate_id, params, case_name, roles, qoi_request):
+    """mafft (BIO Wave D.4): the fixed-summary threaded adapter over
+    run_mafft's content keys (imported — {sequences}; 'quantity' is threaded
+    from the QoI request). The wrapper's STRICT INPUT GATE (>=2 alignable
+    same-alphabet sequences, refused pre-run) comes back as an honest
+    valid=false summary, never a trusted alignment of un-alignable input."""
+    return _fixed_summary_threaded_adapter(
+        substrate_id, params, case_name, roles, qoi_request, _MAFFT_CONTENT_KEYS
+    )
+
+
 # The run_ngspice summary key set, per the wrapper's own documented return
 # shape (tools/run_ngspice.py:28: {valid, qoi, diagnostics, runtime_s}) —
 # the wrapper defines no constant for it, so the contract line is the cite.
@@ -360,6 +461,11 @@ _ADAPTERS: dict = {
     # delegation, 2026-07-17)
     "calculix_cantilever_fea": _fea_adapter,
     "fenicsx_cantilever_elastic": _fenicsx_adapter,
+    # BIO Wave D.4 promotion flip (owner, 2026-07-19): three fixed-summary
+    # INPUT-only adapters over each wrapper's own typed-key set.
+    "rdkit": _rdkit_adapter,
+    "cobrapy": _cobrapy_adapter,
+    "mafft": _mafft_adapter,
 }
 
 
@@ -444,6 +550,12 @@ _QOI_TRANSLATIONS: dict = {
     # membership set is per-record (each wrapper's own imported names).
     "calculix_cantilever_fea": _fixed_summary_qoi_translation,
     "fenicsx_cantilever_elastic": _fixed_summary_qoi_translation,
+    # BIO Wave D.4 (owner, 2026-07-19): the same fixed-summary translation —
+    # the ONE machine key "quantity" is membership-checked against each
+    # record's own imported `names`.
+    "rdkit": _fixed_summary_qoi_translation,
+    "cobrapy": _fixed_summary_qoi_translation,
+    "mafft": _fixed_summary_qoi_translation,
 }
 
 
@@ -503,6 +615,24 @@ def _ngspice_run_entry_with_fallback(summary, qoi_error_fallback,
     ruled option V-A) is likewise ignored: the wrapper already extracted
     the one requested quantity — the entry stays byte-identical (proven by
     exact-dict asserts)."""
+    return ngspice_run_entry(summary)
+
+
+def _fixed_summary_scalar_run_entry(summary, qoi_error_fallback=None,
+                                    qoi_request=None) -> dict:
+    """BIO Wave D.4 (owner, 2026-07-19): the run-entry constructor for the
+    rdkit/cobrapy/mafft class. Their wrapper summary shape is BYTE-IDENTICAL to
+    run_ngspice's — {valid, qoi(scalar), diagnostics, runtime_s} — because these
+    wrappers also take the QoI selector as a typed input and return the ONE
+    requested number as a scalar (unlike the cantilevers' dict-of-numbers qoi).
+    So ngspice_run_entry IS the single source (reused, never copied): converged
+    := (valid is True) — COMPLETED-AND-PARSED (a finite descriptor / an optimal
+    LP growth / a well-formed alignment identity); wall_clock_s := runtime_s;
+    valid=False -> converged=False plus qoi_error from diagnostics, NEVER a
+    fabricated qoi_value. NO `state` key (the summaries carry only the boolean
+    valid). qoi_error_fallback and qoi_request are ignored: the adapter threaded
+    the quantity into the wrapper input, so a valid summary already carries its
+    one scalar and an invalid one its named diagnostics."""
     return ngspice_run_entry(summary)
 
 
@@ -708,6 +838,12 @@ _RUN_ENTRY_CONSTRUCTORS: dict = {
     # request-named pick is per-call, the contract mapping identical.
     "calculix_cantilever_fea": fixed_summary_run_entry,
     "fenicsx_cantilever_elastic": fixed_summary_run_entry,
+    # BIO Wave D.4 (owner, 2026-07-19): the SCALAR fixed-summary constructor —
+    # these wrappers return a bare scalar qoi (the ngspice summary shape),
+    # NOT the cantilevers' dict-of-numbers, so ngspice_run_entry is reused.
+    "rdkit": _fixed_summary_scalar_run_entry,
+    "cobrapy": _fixed_summary_scalar_run_entry,
+    "mafft": _fixed_summary_scalar_run_entry,
 }
 
 

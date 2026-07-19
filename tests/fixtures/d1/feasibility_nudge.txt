@@ -809,4 +809,121 @@ field is rejected before anything runs. Component values live inside
 netlist_body in SPICE notation, not as separate parameters.
 
 
+ROUTABLE SUBSTRATE: rdkit
+SUBSTRATE CONTRACT — rdkit, descriptor_computation
+
+1. WHAT THIS IS.
+A deterministic cheminformatics calculator (RDKit) that computes 2D molecular
+descriptors from a single small molecule supplied as a SMILES string. It is an
+ANSWER-class instrument: the descriptor it returns IS its exact computed output
+for the parsed molecule, not a prediction or an estimate. It runs no model, no
+simulation, and no experiment.
+
+2. TYPED INPUT.
+    smiles   : the molecule, a SMILES string RDKit can parse AND sanitize.
+    quantity : which descriptor to return, one of the fixed allowlist below.
+The molecule as written is the parameterization; there is no separate parameter
+dictionary. A SMILES that does not parse-and-sanitize under RDKit's own valence
+model yields no number.
+
+3. REGIME (the (substrate, regime) card unit — descriptor_computation).
+In-regime: a valid, sanitizable, single small organic molecule, and a
+descriptor on the fixed allowlist (2D graph/constitution descriptors only:
+MolWt, ExactMolWt, HeavyAtomCount, NumHDonors, NumHAcceptors,
+NumRotatableBonds, TPSA, MolLogP, NumAromaticRings, RingCount, FractionCSP3,
+NOCount). Out of regime, by construction: any ML-PREDICTED property (solubility,
+ADMET, activity), any 3D/conformer-dependent quantity, reactions, or a
+descriptor outside the allowlist. These are rejected or unrepresentable, not
+approximated.
+
+4. WHAT IT RETURNS.
+One scalar QoI — the requested allowlist descriptor for the molecule — plus a
+bounded diagnostic string. It never returns a raw structure, a descriptor for an
+unparseable molecule, or a non-finite value.
+
+5. QoI EXTRACTION AND THE ONE KNOWN GAP.
+The QoI is the named descriptor, computed deterministically (identical SMILES ->
+identical value). THE KNOWN GAP (uncheckable by the gate): a computed descriptor
+is a PROXY for a molecular property, never a measured one. In particular MolLogP
+is Crippen's COMPUTED logP, not an experimental logP; TPSA is a topological
+estimate of polar surface area, not a measured one. Trust the number as RDKit's
+exact computation of that descriptor; do NOT read it as an experimental
+measurement of the underlying physical property.
+
+
+ROUTABLE SUBSTRATE: cobrapy
+SUBSTRATE CONTRACT — cobrapy, fba_steady_state
+
+1. WHAT THIS IS.
+A constraint-based flux-balance analysis (FBA) calculator (COBRApy + an LP
+solver) that computes the maximum steady-state biomass flux ("growth rate") of a
+genome-scale metabolic model. It is a FILTER-class instrument: the growth it
+reports is a feasible steady-state optimum — a RELATIVE screen for comparing
+models/conditions — NOT a measured in-vivo growth rate. It is a deterministic
+linear program: no kinetics, no regulation, no dynamics.
+
+2. TYPED INPUT.
+    model      : one of the baked allowlist models (a small textbook model and a
+                 genome-scale model of the same organism).
+    quantity   : the QoI to return (the fixed-summary vocabulary; the growth
+                 rate).
+    min_growth : OPTIONAL. A biomass lower-bound feasibility constraint; a value
+                 the network cannot support makes the solve INFEASIBLE.
+
+3. REGIME (the (substrate, regime) card unit — fba_steady_state).
+In-regime: a baked allowlist model, solved at steady state for its maximum
+biomass flux. Out of regime, by construction: kinetics/dynamics (dFBA),
+regulation, transient behaviour, any model outside the allowlist, and any claim
+about an absolute measured growth rate.
+
+4. WHAT IT RETURNS.
+One scalar QoI — the optimal growth rate — gated on the SOLVER STATUS. It never
+returns a growth number for a non-optimal (infeasible / unbounded / errored)
+solve; on any non-optimal status the QoI is absent.
+
+5. THE STATUS GATE AND THE KNOWN GAP.
+The QoI is trustworthy ONLY when the LP status is `optimal`. An FBA solver
+exposes a stale objective value even after an infeasible solve; this substrate
+NEVER surfaces it — non-optimal status yields no number. THE KNOWN GAP
+(uncheckable by the gate): the FBA optimum is a feasible steady-state upper bound
+under the model's stoichiometry and media, NOT a measured growth rate. Trust it
+as a relative feasibility/growth screen; do NOT read it as an experimental
+measurement, and do not assume the model/media/objective suit the question.
+
+
+ROUTABLE SUBSTRATE: mafft
+SUBSTRATE CONTRACT — mafft, msa_alignment
+
+1. WHAT THIS IS.
+A multiple sequence alignment tool (MAFFT): it arranges two or more sequences
+into columns of putative homology. It carries the NARROWEST trust claim of the
+instruments here — an alignment it produces is a heuristic hypothesis about how
+sequences relate, not a determination that the alignment is correct.
+
+2. TYPED INPUT.
+    sequences : a list of >= 2 sequences, all over the SAME alphabet (all
+                protein OR all nucleotide), each non-empty and valid.
+    quantity  : the QoI (the alignment-identity statistic).
+
+3. REGIME (msa_alignment).
+In-regime: >= 2 alignable same-alphabet sequences, aligned, summarized by a
+descriptive identity statistic. Out of regime: alignment CORRECTNESS or
+phylogenetic inference; mixed-alphabet or single-sequence input; scores beyond
+average pairwise identity.
+
+4. WHAT IT RETURNS.
+One scalar QoI — the average pairwise percent identity over the computed
+alignment (DESCRIPTIVE). It returns nothing for un-alignable input (refused
+before running) or a malformed alignment.
+
+5. THE INPUT GATE AND THE KNOWN GAP.
+Alignment is near-total: garbage in yields a well-formed alignment OF the
+garbage. So "an alignment was produced" is NOT evidence it means anything; the
+trustworthiness gate is on the INPUT (>= 2 valid same-alphabet sequences),
+checked before running. THE KNOWN GAP (uncheckable, and it is the whole
+scientific question): a well-formed alignment is a HEURISTIC homology hypothesis,
+guide-tree-dependent — a different tool or setting gives a different alignment.
+Trust the alignment DESCRIPTIVELY, never as the biologically correct one.
+
+
 Prefer hypotheses at least one of these instruments can test as-is.

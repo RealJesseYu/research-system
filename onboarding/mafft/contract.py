@@ -1,41 +1,21 @@
-"""contract.py — STAGED. The model-visible fidelity contract for the
-(mafft, msa_alignment) substrate. NOTHING imports this today.
+"""contract.py — the model-visible fidelity contract for the
+(mafft, msa_alignment) substrate.
 
-Option A: enrolls `calibrating`/`routable=False`, INERT — NOT in `_CONTRACTS`;
-`contract_for("mafft")` MUST keep raising until a D.4 ruling. At promotion the
-text moves to substrates.py as `MAFFT_CONTRACT`.
+STAGING — RESOLVED at the D.4 promotion flip (owner ruling, 2026-07-19, on the
+N=3 clean 30/30 calibration evidence). The runtime CONTRACT constant has
+GRADUATED to substrates.py (its canonical home; re-exported below) and is wired
+into tools/substrate_registry.py `_CONTRACTS` alongside routable=True at
+maturity MATURE — the ngspice R2-flip precedent. ONE source; the line below is
+an import, never a second copy. Before promotion this file WAS the contract's
+home while mafft enrolled `calibrating`/`routable=False` and
+`contract_for("mafft")` raised (Option A, owner-ruled 2026-07-18).
 """
 
-MAFFT_CONTRACT = """SUBSTRATE CONTRACT — mafft, msa_alignment
+import sys as _sys
+from pathlib import Path as _Path
 
-1. WHAT THIS IS.
-A multiple sequence alignment tool (MAFFT): it arranges two or more sequences
-into columns of putative homology. It carries the NARROWEST trust claim of the
-instruments here — an alignment it produces is a heuristic hypothesis about how
-sequences relate, not a determination that the alignment is correct.
+_ROOT = _Path(__file__).resolve().parents[2]
+if str(_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_ROOT))
 
-2. TYPED INPUT.
-    sequences : a list of >= 2 sequences, all over the SAME alphabet (all
-                protein OR all nucleotide), each non-empty and valid.
-    quantity  : the QoI (the alignment-identity statistic).
-
-3. REGIME (msa_alignment).
-In-regime: >= 2 alignable same-alphabet sequences, aligned, summarized by a
-descriptive identity statistic. Out of regime: alignment CORRECTNESS or
-phylogenetic inference; mixed-alphabet or single-sequence input; scores beyond
-average pairwise identity.
-
-4. WHAT IT RETURNS.
-One scalar QoI — the average pairwise percent identity over the computed
-alignment (DESCRIPTIVE). It returns nothing for un-alignable input (refused
-before running) or a malformed alignment.
-
-5. THE INPUT GATE AND THE KNOWN GAP.
-Alignment is near-total: garbage in yields a well-formed alignment OF the
-garbage. So "an alignment was produced" is NOT evidence it means anything; the
-trustworthiness gate is on the INPUT (>= 2 valid same-alphabet sequences),
-checked before running. THE KNOWN GAP (uncheckable, and it is the whole
-scientific question): a well-formed alignment is a HEURISTIC homology hypothesis,
-guide-tree-dependent — a different tool or setting gives a different alignment.
-Trust the alignment DESCRIPTIVELY, never as the biologically correct one.
-"""
+from substrates import MAFFT_CONTRACT  # noqa: E402

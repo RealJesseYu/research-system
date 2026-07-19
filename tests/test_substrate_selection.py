@@ -324,13 +324,20 @@ class TestSpecReading(unittest.TestCase):
         # routable substrate serves it and selection stops loudly — the
         # pre-R-B-1 constrains-nothing convention (bare reads resolving to
         # cavity, a silent enrollment-order pick) is RETIRED. Fired on the
-        # REAL registry: the stop is live before any flip.
+        # REAL registry. BIO Wave D.4 CHANGE (owner 2026-07-19): now that
+        # rdkit/cobrapy/mafft are MATURE, the mature-preferred L2 filter
+        # narrows the nothing-declaring pool to exactly those three, so the
+        # loud stop names the MATURE trio (not cavity) — still a loud stop,
+        # still never a silent pick.
         self.assertEqual(selection.declared_parameter_names(None), frozenset())
         with self.assertRaises(LookupError) as ctx:
             selection.select_substrate(None)
         msg = str(ctx.exception)
         self.assertIn("ambiguous (R-B-1", msg)
-        self.assertIn("cavity_2d_cfd@provisional", msg)
+        self.assertIn("rdkit@mature", msg)
+        self.assertIn("cobrapy@mature", msg)
+        self.assertIn("mafft@mature", msg)
+        self.assertNotIn("cavity_2d_cfd@provisional", msg)
         self.assertIn("stopping before routing", msg)
 
     def test_empty_parameters_spec_stops_loudly_under_r_b_1(self):

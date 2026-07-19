@@ -115,14 +115,15 @@ class TestFlipRegistry(unittest.TestCase):
         self.assertIn("Packet B Phase 1", rec.notes)
         self.assertIn("OperationSetRegime", rec.notes)
 
-    def test_routable_set_is_five_in_enrollment_order(self):
-        # widened at the Packet B Phase 2 flip: the cantilever pair joined
-        # (sympy stays mid-list — enrollment order preserved)
+    def test_routable_set_in_enrollment_order(self):
+        # widened again at the BIO Wave D.4 promotion (owner 2026-07-19):
+        # rdkit/cobrapy/mafft joined the Packet-B five (enrollment order
+        # preserved) — eight routable ids now.
         self.assertEqual(
             registry.routable_ids(),
             ("cavity_2d_cfd", "calculix_cantilever_fea",
              "fenicsx_cantilever_elastic", "sympy_symbolic_exact",
-             "ngspice_linear_passive"),
+             "ngspice_linear_passive", "rdkit", "cobrapy", "mafft"),
         )
 
     def test_contract_is_the_graduated_constant_single_source(self):
@@ -200,10 +201,15 @@ class TestFlipRegistry(unittest.TestCase):
             dispatch.sympy_run_entry,
         )
 
-    def test_no_substrate_is_mature(self):
-        self.assertFalse(
-            any(registry.is_mature(r.substrate_id) for r in registry.all_substrates())
-        )
+    def test_only_the_bio_three_are_mature(self):
+        # BIO Wave D.4 (owner 2026-07-19): sympy (this flip's subject) stays
+        # non-mature; the first MATURE substrates are exactly rdkit/cobrapy/mafft.
+        self.assertFalse(registry.is_mature("sympy_symbolic_exact"))
+        mature = {
+            r.substrate_id for r in registry.all_substrates()
+            if registry.is_mature(r.substrate_id)
+        }
+        self.assertEqual(mature, {"rdkit", "cobrapy", "mafft"})
 
     def test_full_spec_fixture_validates_under_the_production_vocab(self):
         errors = stage2_spec.validate_spec(

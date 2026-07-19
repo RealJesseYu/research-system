@@ -161,13 +161,19 @@ class TestRB1StrictS1OnTheRealRegistry(unittest.TestCase):
     cavity pick) is the exact escape these fire."""
 
     def test_none_spec_stops_loudly(self):
+        # BIO Wave D.4 CHANGE (owner 2026-07-19): with rdkit/cobrapy/mafft
+        # MATURE, the mature-preferred L2 filter narrows the nothing-declaring
+        # pool to exactly those three — the loud stop now names the MATURE trio
+        # (not cavity/sympy/ngspice). Still a loud stop, still never a silent
+        # pick.
         with self.assertRaises(LookupError) as ctx:
             selection.select_substrate(None)
         msg = str(ctx.exception)
         self.assertIn("ambiguous (R-B-1", msg)
-        self.assertIn("cavity_2d_cfd@provisional", msg)
-        self.assertIn("sympy_symbolic_exact@calibrating", msg)
-        self.assertIn("ngspice_linear_passive@calibrating", msg)
+        self.assertIn("rdkit@mature", msg)
+        self.assertIn("cobrapy@mature", msg)
+        self.assertIn("mafft@mature", msg)
+        self.assertNotIn("cavity_2d_cfd@provisional", msg)
 
     def test_zero_change_for_every_wired_substrate_spec(self):
         # The stop changes NOTHING for real single-candidate selections:

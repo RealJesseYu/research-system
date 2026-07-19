@@ -46,9 +46,12 @@ from typing import Any, ClassVar, Pattern
 
 from tools import substrate_registry as registry
 from tools.run_cfd import MASK_TYPES, QOI_COMPONENTS, QOI_OPERATIONS, _QOI_FIELD_RE
+from tools.run_cobrapy import QOI_FIELDS as _COBRAPY_QOI_FIELDS
 from tools.run_fea import QOI_FIELDS as _FEA_QOI_FIELDS
 from tools.run_fenicsx import QOI_FIELDS as _FENICSX_QOI_FIELDS
+from tools.run_mafft import QOI_FIELDS as _MAFFT_QOI_FIELDS
 from tools.run_ngspice import _ANALYSIS_FIELDS, _NAME_RE, _QOI_KINDS, _REDUCTIONS
+from tools.run_rdkit import QOI_FIELDS as _RDKIT_QOI_FIELDS
 from tools.run_scipy import OPERATIONS as _SCIPY_OPERATIONS
 
 FIELD_REDUCTION = "field_reduction"
@@ -66,6 +69,12 @@ REYNOLDS_BAND = "reynolds_band"
 ANALYSIS_TYPE = "analysis_type"
 OPERATION_SET = "operation_set"
 STATIC_SMALL_DEFLECTION = "static_small_deflection"
+# BIO Wave D.4 promotion (owner, 2026-07-19): three single-regime shapes, one
+# per promoted (substrate, regime) card unit — no per-case numeric axis, same
+# family as STATIC_SMALL_DEFLECTION.
+DESCRIPTOR_COMPUTATION = "descriptor_computation"
+FBA_STEADY_STATE = "fba_steady_state"
+MSA_ALIGNMENT = "msa_alignment"
 
 
 @dataclass(frozen=True)
@@ -163,6 +172,51 @@ class StaticSmallDeflectionRegime:
     # ALL three other shapes' spec keys, rejected by name so a
     # wrong-grammar regime block in a cantilever spec fails loudly with a
     # per-substrate reason instead of a bare missing-key complaint.
+    alien_keys: ClassVar[tuple] = (
+        "reynolds_min", "reynolds_max", "analysis_type", "operation",
+    )
+
+
+@dataclass(frozen=True)
+class DescriptorComputationRegime:
+    """rdkit-class regime semantics (BIO Wave D.4, owner 2026-07-19): a single
+    valid/sanitizable small molecule and a 2D allowlist descriptor; there is no
+    per-case numeric regime axis. The spec's regime object is {"notes": "..."} —
+    why the molecule sits inside the allowlist's 2D-descriptor scope. Carries no
+    data members (same family as StaticSmallDeflectionRegime); the other shapes'
+    keys are rejected by name."""
+
+    shape: ClassVar[str] = DESCRIPTOR_COMPUTATION
+
+    alien_keys: ClassVar[tuple] = (
+        "reynolds_min", "reynolds_max", "analysis_type", "operation",
+    )
+
+
+@dataclass(frozen=True)
+class FbaSteadyStateRegime:
+    """cobrapy-class regime semantics (BIO Wave D.4, owner 2026-07-19): a baked
+    allowlist model solved at steady state for its maximum biomass flux. No
+    per-case numeric regime axis; the spec's regime object is {"notes": "..."} —
+    why the FBA screen fits the case. The other shapes' keys are rejected by
+    name."""
+
+    shape: ClassVar[str] = FBA_STEADY_STATE
+
+    alien_keys: ClassVar[tuple] = (
+        "reynolds_min", "reynolds_max", "analysis_type", "operation",
+    )
+
+
+@dataclass(frozen=True)
+class MsaAlignmentRegime:
+    """mafft-class regime semantics (BIO Wave D.4, owner 2026-07-19): >= 2
+    alignable same-alphabet sequences aligned and summarized by a descriptive
+    identity statistic. No per-case numeric regime axis; the spec's regime
+    object is {"notes": "..."}. The other shapes' keys are rejected by name."""
+
+    shape: ClassVar[str] = MSA_ALIGNMENT
+
     alien_keys: ClassVar[tuple] = (
         "reynolds_min", "reynolds_max", "analysis_type", "operation",
     )
@@ -301,6 +355,23 @@ _VOCABS: dict[str, Any] = {
     "fenicsx_cantilever_elastic": FixedSummaryVocab(
         names=tuple(_FENICSX_QOI_FIELDS),
         regime=StaticSmallDeflectionRegime(),
+    ),
+    # BIO Wave D.4 promotion flip (owner, 2026-07-19): all three are the
+    # fixed-summary shape — each wrapper takes NO QoI request yet returns a
+    # fixed named set every valid run, and `names` is each wrapper's OWN
+    # QOI_FIELDS constant, imported (never a pasted copy). Three single-regime
+    # instances, one per (substrate, regime) card unit.
+    "rdkit": FixedSummaryVocab(
+        names=tuple(_RDKIT_QOI_FIELDS),
+        regime=DescriptorComputationRegime(),
+    ),
+    "cobrapy": FixedSummaryVocab(
+        names=tuple(_COBRAPY_QOI_FIELDS),
+        regime=FbaSteadyStateRegime(),
+    ),
+    "mafft": FixedSummaryVocab(
+        names=tuple(_MAFFT_QOI_FIELDS),
+        regime=MsaAlignmentRegime(),
     ),
 }
 

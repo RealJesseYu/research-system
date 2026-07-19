@@ -57,14 +57,14 @@ class TestRegistryTable(unittest.TestCase):
         self.assertEqual(cfd.wrapper, "tools/run_cfd.py")
         # provisional is non-mature -> a trust decision on it is human-required
         self.assertFalse(registry.is_mature("cavity_2d_cfd"))
-        # the routable set since the Packet B Phase 2 flip (build chat
-        # under the owner's standing delegation, 2026-07-17): five ids in
-        # enrollment order — cavity, calculix, fenicsx, sympy, ngspice
+        # the routable set since the BIO Wave D.4 promotion (owner
+        # 2026-07-19): EIGHT ids in enrollment order — the Packet-B five
+        # plus rdkit, cobrapy, mafft (the first MATURE substrates)
         self.assertEqual(
             registry.routable_ids(),
             ("cavity_2d_cfd", "calculix_cantilever_fea",
              "fenicsx_cantilever_elastic", "sympy_symbolic_exact",
-             "ngspice_linear_passive"),
+             "ngspice_linear_passive", "rdkit", "cobrapy", "mafft"),
         )
 
     def test_sympy_is_calibrating_routable_under_packet_b_phase1(self):
@@ -98,30 +98,37 @@ class TestRegistryTable(unittest.TestCase):
         self.assertFalse(rec.routable)
         self.assertFalse(registry.is_mature("code_sklearn_eval"))
 
-    def test_rdkit_enrolled_calibrating_unroutable_and_inert(self):
-        # BIO Wave D.2 (Option A): rdkit enrolls calibrating/routable=False and
-        # is INERT — a registry row only, with NO _CONTRACTS entry, so
-        # contract_for MUST raise (the ngspice-card-8.5 invariant). Runtime
-        # wiring is deferred to D.4 promotion.
+    def test_rdkit_promoted_mature_routable_and_wired(self):
+        # BIO Wave D.4 PROMOTION (owner 2026-07-19): rdkit flipped
+        # routable=True AND maturity=MATURE together — one of the first three
+        # MATURE substrates. contract_for NOW RETURNS (stops raising) the
+        # graduated substrates.py constant, and rdkit is in the routable set.
+        import substrates
         rec = registry.get("rdkit")
-        self.assertEqual(rec.maturity, registry.CALIBRATING)
-        self.assertFalse(rec.routable)
-        self.assertFalse(registry.is_mature("rdkit"))
+        self.assertEqual(rec.maturity, registry.MATURE)
+        self.assertTrue(rec.routable)
+        self.assertTrue(registry.is_mature("rdkit"))
         self.assertEqual(rec.wrapper, "tools/run_rdkit.py")
-        self.assertNotIn("rdkit", registry.routable_ids())
-        with self.assertRaises(LookupError):
-            registry.contract_for("rdkit")
+        self.assertIn("rdkit", registry.routable_ids())
+        self.assertIn("BIO Wave D.4 PROMOTION", rec.notes)
+        self.assertIs(
+            registry.contract_for("rdkit"), substrates.RDKIT_DESCRIPTOR_CONTRACT
+        )
 
-    def test_cobrapy_enrolled_calibrating_unroutable_and_inert(self):
-        # BIO Wave D.2 increment 2 (Option A): same inert enrollment as rdkit.
+    def test_cobrapy_promoted_mature_routable_and_wired(self):
+        # BIO Wave D.4 PROMOTION on the N=7 wash-out (owner 2026-07-19).
+        import substrates
         rec = registry.get("cobrapy")
-        self.assertEqual(rec.maturity, registry.CALIBRATING)
-        self.assertFalse(rec.routable)
-        self.assertFalse(registry.is_mature("cobrapy"))
+        self.assertEqual(rec.maturity, registry.MATURE)
+        self.assertTrue(rec.routable)
+        self.assertTrue(registry.is_mature("cobrapy"))
         self.assertEqual(rec.wrapper, "tools/run_cobrapy.py")
-        self.assertNotIn("cobrapy", registry.routable_ids())
-        with self.assertRaises(LookupError):
-            registry.contract_for("cobrapy")
+        self.assertIn("cobrapy", registry.routable_ids())
+        self.assertIn("BIO Wave D.4 PROMOTION", rec.notes)
+        self.assertIn("34 trust / 1 refine", rec.notes)
+        self.assertIs(
+            registry.contract_for("cobrapy"), substrates.COBRAPY_FBA_CONTRACT
+        )
 
     def test_cas_offinder_enrolled_calibrating_unroutable_and_inert(self):
         # BIO Wave D.2 increment 3 (Option A, DEFERRED): inert like rdkit/cobrapy.
@@ -143,15 +150,17 @@ class TestRegistryTable(unittest.TestCase):
         with self.assertRaises(LookupError):
             registry.contract_for("homology_search")
 
-    def test_mafft_enrolled_calibrating_unroutable_and_inert(self):
-        # BIO Wave D.2 increment 6 (Option A, T2): msa_alignment, inert.
+    def test_mafft_promoted_mature_routable_and_wired(self):
+        # BIO Wave D.4 PROMOTION (owner 2026-07-19): clean N=3, msa_alignment.
+        import substrates
         rec = registry.get("mafft")
-        self.assertEqual(rec.maturity, registry.CALIBRATING)
-        self.assertFalse(rec.routable)
+        self.assertEqual(rec.maturity, registry.MATURE)
+        self.assertTrue(rec.routable)
+        self.assertTrue(registry.is_mature("mafft"))
         self.assertEqual(rec.wrapper, "tools/run_mafft.py")
-        self.assertNotIn("mafft", registry.routable_ids())
-        with self.assertRaises(LookupError):
-            registry.contract_for("mafft")
+        self.assertIn("mafft", registry.routable_ids())
+        self.assertIn("BIO Wave D.4 PROMOTION", rec.notes)
+        self.assertIs(registry.contract_for("mafft"), substrates.MAFFT_CONTRACT)
 
     def test_autodock_vina_enrolled_calibrating_unroutable_and_inert(self):
         # BIO Wave D.2 increment 7 (Option A, DEFERRED — no aarch64 build): inert.
@@ -220,8 +229,16 @@ class TestRegistryTable(unittest.TestCase):
         # retrieval-provisional is deliberately OUTSIDE the routable ladder
         self.assertNotIn(registry.RETRIEVAL_PROVISIONAL, registry.MATURITY_LADDER)
 
-    def test_no_substrate_is_mature_today(self):
-        self.assertFalse(any(registry.is_mature(r.substrate_id) for r in registry.all_substrates()))
+    def test_exactly_the_bio_three_are_mature(self):
+        # BIO Wave D.4 (owner 2026-07-19): rdkit/cobrapy/mafft are the FIRST
+        # MATURE substrates; every other enrolled substrate is still non-mature
+        # (the old routable five stay calibrating/provisional, so the maturity
+        # hook still gates every trust decision on their account).
+        mature = {
+            r.substrate_id for r in registry.all_substrates()
+            if registry.is_mature(r.substrate_id)
+        }
+        self.assertEqual(mature, {"rdkit", "cobrapy", "mafft"})
 
     def test_get_unknown_raises(self):
         with self.assertRaises(KeyError):

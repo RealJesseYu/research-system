@@ -32,7 +32,7 @@
       "acceptable_labels": [
         "trust"
       ],
-      "experiment": "Use hmmer (profile search) against the database and report the best full-sequence e-value as the significance of the profile match.",
+      "experiment": "Use hmmer (profile search) against the database and report the best full-sequence e-value as the statistical SIGNIFICANCE of the sequence similarity found.",
       "note": "In-regime: the HMMER significance of a profile match, read as significance.",
       "right_instrument": "the HMMER profile-search e-value, as match significance."
     },
@@ -52,7 +52,7 @@
       "acceptable_labels": [
         "trust"
       ],
-      "experiment": "Rank two candidate query sequences against the database by their best-hit e-values as a RELATIVE similarity-significance screen.",
+      "experiment": "Search two query sequences against the database with blast and report their best-hit e-values as a RELATIVE comparison of similarity-significance — which similarity is the more statistically significant.",
       "note": "In-regime: a relative significance ranking \u2014 the filter's intended use.",
       "right_instrument": "two BLAST e-values compared relatively for similarity significance."
     },

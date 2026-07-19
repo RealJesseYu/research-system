@@ -26,8 +26,11 @@ from typing import Any
 # substrate name.
 from tools.qoi_vocab import (
     ANALYSIS_TYPE,
+    DESCRIPTOR_COMPUTATION,
+    FBA_STEADY_STATE,
     FIELD_REDUCTION,
     FIXED_SUMMARY,
+    MSA_ALIGNMENT,
     NAMED_QUANTITY,
     OPERATION_SET,
     REYNOLDS_BAND,
@@ -404,7 +407,16 @@ def _validate_regime(regime: Any, vocab, errors: list[str]) -> None:
         _validate_regime_analysis_type(regime, vocab.regime, errors)
     elif vocab.regime.shape == OPERATION_SET:
         _validate_regime_operation_set(regime, vocab.regime, errors)
-    elif vocab.regime.shape == STATIC_SMALL_DEFLECTION:
+    elif vocab.regime.shape in (
+        STATIC_SMALL_DEFLECTION,
+        # BIO Wave D.4 (owner, 2026-07-19): three single-regime shapes that
+        # share the cantilevers' {"notes": "..."} grammar exactly — no
+        # per-case regime axis; the other shapes' keys rejected by name via
+        # the record's own alien_keys. One validator, four shapes.
+        DESCRIPTOR_COMPUTATION,
+        FBA_STEADY_STATE,
+        MSA_ALIGNMENT,
+    ):
         _validate_regime_static_small_deflection(regime, vocab.regime, errors)
     else:
         raise ValueError(f"unknown regime vocabulary shape {vocab.regime.shape!r}")
