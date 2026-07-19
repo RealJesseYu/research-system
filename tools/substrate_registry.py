@@ -293,6 +293,29 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="mafft",
+        wrapper="tools/run_mafft.py",
+        card_path="docs/envelope_card_mafft.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes=(
+            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): MSA "
+            "alignment (tools/run_mafft.py) proven real in mafft-prod "
+            "(alignment_identity 94.4444, deterministic). Alignment is a "
+            "near-TOTAL function (garbage in -> well-formed alignment of garbage "
+            "out), so the did-it-work signal is the STRICT INPUT GATE (>=2 "
+            "alignable same-alphabet sequences, refused PRE-RUN); input jails "
+            "(single-seq, junk residues, mixed alphabet, empty) proven by "
+            "triggering. NARROWEST trust claim in the wave: an alignment used "
+            "DESCRIPTIVELY, not 'the correct' one (C1-hole M4 carries all "
+            "biological-correctness claims). Card from real runs. Pinned MAFFT "
+            "v7.526. ENROLLED but INERT — runtime maps STAGED in onboarding/"
+            "mafft/, UNWIRED; contract_for('mafft') must keep raising until a "
+            "D.4 promotion ruling. Nothing routes here."
+        ),
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",

@@ -38,6 +38,7 @@ class TestRegistryTable(unittest.TestCase):
                 "cobrapy",
                 "cas_offinder",
                 "homology_search",
+                "mafft",
                 "web_search",
             ],
         )
@@ -134,6 +135,16 @@ class TestRegistryTable(unittest.TestCase):
         self.assertNotIn("homology_search", registry.routable_ids())
         with self.assertRaises(LookupError):
             registry.contract_for("homology_search")
+
+    def test_mafft_enrolled_calibrating_unroutable_and_inert(self):
+        # BIO Wave D.2 increment 6 (Option A, T2): msa_alignment, inert.
+        rec = registry.get("mafft")
+        self.assertEqual(rec.maturity, registry.CALIBRATING)
+        self.assertFalse(rec.routable)
+        self.assertEqual(rec.wrapper, "tools/run_mafft.py")
+        self.assertNotIn("mafft", registry.routable_ids())
+        with self.assertRaises(LookupError):
+            registry.contract_for("mafft")
 
     def test_cantilevers_are_calibrating_routable_under_packet_b_phase2(self):
         # the flip's rows: routable=True RULED Packet B Phase 2 (owner
