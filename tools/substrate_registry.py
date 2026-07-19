@@ -364,6 +364,27 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="boltz2",
+        wrapper="tools/run_boltz2.py",
+        card_path="docs/envelope_card_boltz2.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes=(
+            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): "
+            "DEFERRED — Boltz-2 is a GPU neural model with downloaded weights; "
+            "no GPU on this aarch64 host. Wrapper input gate proven pure-Python "
+            "(protein_sequence, quantity in {affinity,rmsd}); valid input -> "
+            "honest DEFERRED, never a fabricated prediction. Card SKELETON, 3A "
+            "PENDING. UN-DEFER (specific) = a GPU host + the PINNED official "
+            "Boltz-2 weights + a KNOWN-ANSWER validation run before any number "
+            "is trusted (mismatched weights = confident garbage). Signature "
+            "{protein_sequence,quantity} SHARES with alphafold_db BY DESIGN (the "
+            "Step-41 L1a pair, distinct regimes) — fires only at D.4. Runtime "
+            "maps STAGED, UNWIRED; contract_for raises."
+        ),
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",

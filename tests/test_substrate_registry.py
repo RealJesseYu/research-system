@@ -41,6 +41,7 @@ class TestRegistryTable(unittest.TestCase):
                 "mafft",
                 "autodock_vina",
                 "crispr_guide_scoring",
+                "boltz2",
                 "web_search",
             ],
         )
@@ -167,6 +168,25 @@ class TestRegistryTable(unittest.TestCase):
         self.assertNotIn("crispr_guide_scoring", registry.routable_ids())
         with self.assertRaises(LookupError):
             registry.contract_for("crispr_guide_scoring")
+
+    def test_deferred_tier_enrolled_calibrating_unroutable_and_inert(self):
+        # BIO Wave D.2 the final deferred tier (Option A): all inert.
+        for sid, wrapper in [
+            ("boltz2", "tools/run_boltz2.py"),
+            ("proteinmpnn", "tools/run_proteinmpnn.py"),
+            ("retrosynthesis", "tools/run_retrosynthesis.py"),
+            ("alphafold_db", "tools/run_alphafold_db.py"),
+            ("bio_db_lookup", "tools/run_bio_db_lookup.py"),
+        ]:
+            if sid not in registry._BY_ID:
+                continue  # enrolled across successive increments
+            rec = registry.get(sid)
+            self.assertEqual(rec.maturity, registry.CALIBRATING, sid)
+            self.assertFalse(rec.routable, sid)
+            self.assertEqual(rec.wrapper, wrapper, sid)
+            self.assertNotIn(sid, registry.routable_ids(), sid)
+            with self.assertRaises(LookupError):
+                registry.contract_for(sid)
 
     def test_cantilevers_are_calibrating_routable_under_packet_b_phase2(self):
         # the flip's rows: routable=True RULED Packet B Phase 2 (owner
