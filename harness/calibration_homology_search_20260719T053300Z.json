@@ -1,0 +1,1827 @@
+{
+  "mode_arg": "auto",
+  "substrate_id": "homology_search",
+  "maturity_at_run": "calibrating",
+  "routable_at_run": false,
+  "timestamp_utc": "2026-07-19T05:41:08Z",
+  "batch_id": "20260719T053300Z",
+  "n_repeats": 7,
+  "gate": {
+    "n_cases": 10,
+    "n_draws": 70,
+    "n_repeats": 7,
+    "confusion": {
+      "in": {
+        "trust": 26,
+        "refine": 9,
+        "defer": 0
+      },
+      "out": {
+        "trust": 0,
+        "refine": 0,
+        "defer": 35
+      }
+    },
+    "confusion_note": "counts over ALL draws (repeats per case); rows sum to n_draws, not n_cases",
+    "hook_witness": {
+      "mode": "auto",
+      "n_gate_cases": 70,
+      "n_raw_trust_or_refine": 35,
+      "n_hook_fired": 35,
+      "hook_fired_matches_raw_trust_refine": true,
+      "routed_trust_case_ids": [],
+      "silent_trust_case_ids": [],
+      "zero_silent_trusts": true,
+      "note": "The hook fires on raw trust/refine only (defer routes nowhere). It is keyed to the registry routable set (currently ['cavity_2d_cfd', 'calculix_cantilever_fea', 'fenicsx_cantilever_elastic', 'sympy_symbolic_exact', 'ngspice_linear_passive'], all non-mature), NOT to the substrate under calibration, which is UNROUTABLE \u2014 see debrief."
+    },
+    "aggregate_in_band": {
+      "n_in_band_draws": 61,
+      "n_draws": 70,
+      "fraction": 0.8714
+    },
+    "n_unanimous_cases": 8,
+    "cases": [
+      {
+        "case_id": "G01",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 7,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust",
+          "trust",
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 7
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 7,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as the statistical significance of sequence similarity \u2014 the exact quantity Karlin-Altschul statistics directly compute and that is validated in-regime \u2014 with no leap to homology, function, or remote homology.",
+            "right_instrument": "BLAST/HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 6.338,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as the statistical significance of sequence similarity from a valid in-regime search \u2014 the quantity the instrument directly and definitionally computes \u2014 with no leap to homology, orthology, function, or remote homology.",
+            "right_instrument": "BLAST/HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 4.701,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as the statistical significance of sequence similarity from a provably-run search \u2014 the exact quantity Karlin-Altschul statistics directly compute \u2014 with no leap to homology, orthology, function, or remote homology.",
+            "right_instrument": "BLAST/HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 4.33,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as the statistical significance of sequence similarity from a provably-valid search \u2014 the exact quantity the Karlin-Altschul statistic directly computes \u2014 and makes no leap to homology, orthology, function, or remote homology.",
+            "right_instrument": "BLAST/HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 4.701,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the Karlin-Altschul e-value strictly as the statistical significance of sequence similarity against a valid database \u2014 the exact quantity the instrument directly computes, staying inside its in-regime envelope and making no homology/orthology/function or remote-homology claim.",
+            "right_instrument": "BLAST/HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 5.769,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as the statistical significance of sequence similarity from a provably-valid run \u2014 the exact quantity Karlin-Altschul statistics directly compute and the tool directly reports, with no homology/function inference that would open a model-to-reality gap.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics, read as a similarity-significance screen",
+            "wall_time_seconds": 5.485,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as the statistical significance of sequence similarity from a provably-completed search \u2014 the exact quantity Karlin-Altschul statistics directly and validatedly compute, staying inside the in-regime envelope and never crossing into the homology/function/remote-homology claims flagged as the known gap.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics (blast backend)",
+            "wall_time_seconds": 5.246,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G02",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 7,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust",
+          "trust",
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 7
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 7,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as statistical significance of sequence similarity from a provably-valid run \u2014 exactly the in-regime quantity the tool directly computes, with no leap to homology, function, or remote homology.",
+            "right_instrument": "BLAST/HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 4.169,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as statistical significance of sequence similarity from a provably-valid search \u2014 the exact in-regime quantity the tool directly computes \u2014 with no claim of homology, orthology, function, or remote homology.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 5.669,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as statistical significance of a similarity screen \u2014 exactly the quantity BLAST directly computes and validates \u2014 with no leap to homology, function, or remote-homology claims.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 6.96,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as the statistical significance of sequence similarity from a provably-run search \u2014 which is exactly the quantity BLAST's Karlin-Altschul statistics directly compute, staying entirely in-regime and making no homology/function/remote-homology claim.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 4.666,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as statistical significance of a similarity screen \u2014 exactly the directly-measured quantity the tool computes and validates in-regime, making no leap to homology, function, or remote-homology detection.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 7.069,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as statistical significance of a sequence match from a provably-valid search \u2014 the instrument directly measures exactly that quantity, staying inside the in-regime envelope and making no homology/function/remote-homology claim.",
+            "right_instrument": "BLAST/HMMER local sequence-homology search with Karlin-Altschul e-value statistics, read as a similarity-significance screen",
+            "wall_time_seconds": 5.658,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as statistical significance of similarity from a provably valid run \u2014 the exact quantity BLAST directly computes and the in-regime use the envelope validates \u2014 with no leap to homology, function, or remote homology.",
+            "right_instrument": "BLAST/HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 4.656,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G03",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 7,
+        "raw_verdicts": [
+          "refine",
+          "refine",
+          "trust",
+          "trust",
+          "refine",
+          "refine",
+          "refine"
+        ],
+        "distribution": {
+          "refine": 5,
+          "trust": 2
+        },
+        "unanimous": false,
+        "modal_verdict": "refine",
+        "n_in_band": 2,
+        "in_band_fraction": 0.2857,
+        "entropy_bits": 0.8631,
+        "draws": [
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": false,
+            "rationale": "A significant profile-HMM e-value is statistical significance of similarity \u2014 a reliable screen \u2014 not a confirmed claim of homology, orthology, or function, so a survivor still needs biological confirmation.",
+            "right_instrument": "HMMER profile search reporting best full-sequence e-value as significance (used as a similarity screen, not a homology/function verdict)",
+            "wall_time_seconds": 5.277,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": false,
+            "rationale": "A significant profile-HMM e-value is statistical significance of similarity, a reliable screen, but not itself proof of biological homology/function \u2014 a residual model-to-reality gap reality could still correct.",
+            "right_instrument": "BLAST/HMMER e-value read strictly as a similarity-significance screen (the named instrument fits for screening, not for a homology/function verdict)",
+            "wall_time_seconds": 6.864,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reports the HMMER full-sequence e-value strictly as the statistical significance of the profile match \u2014 a directly-measured quantity read within the tool's in-regime envelope \u2014 not as a homology/orthology/function claim.",
+            "right_instrument": "HMMER profile search reporting best full-sequence e-value as similarity significance",
+            "wall_time_seconds": 5.872,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reports the e-value strictly as statistical significance of the profile match \u2014 the exact quantity HMMER directly computes via Karlin-Altschul statistics \u2014 with no leap to homology or function, so the in-regime output IS the real answer.",
+            "right_instrument": "HMMER profile search (as named)",
+            "wall_time_seconds": 8.839,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": false,
+            "rationale": "A significant profile-HMM e-value is statistical significance of similarity \u2014 a reliable screen \u2014 but not itself homology, orthology, or function, leaving a residual model-to-reality gap that a survivor must confirm.",
+            "right_instrument": "hmmer profile search (fits as a significance screen; results must be confirmed before any homology/function claim)",
+            "wall_time_seconds": 4.825,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": false,
+            "rationale": "A significant profile-HMM e-value is statistical significance of similarity \u2014 a reliable screen \u2014 not a confirmed statement of homology or function, so a survivor needs downstream confirmation.",
+            "right_instrument": "hmmer (profile search) reporting best full-sequence e-value as significance",
+            "wall_time_seconds": 5.074,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": false,
+            "rationale": "A significant profile-HMM e-value is statistical significance of similarity, a reliable screen whose leap to biological homology/function is a residual model-to-reality gap that must be confirmed.",
+            "right_instrument": "BLAST / HMMER e-value read strictly as similarity significance (as named)",
+            "wall_time_seconds": 7.915,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G04",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 7,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust",
+          "trust",
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 7
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 7,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reports exactly the tool's direct, deterministic output \u2014 no hit crosses the e-value cutoff in a provably-run search \u2014 scoped as a significance screen ('at that cutoff', clean no-hit), not as a biological homology/orthology assertion, so the instrument's read IS the real answer.",
+            "right_instrument": "BLAST / HMMER homology search with Karlin-Altschul e-value statistics (the named instrument fits)",
+            "wall_time_seconds": 29.456,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reports only that the best-hit e-value is above threshold as a similarity-significance screen \u2014 the exact in-regime reading of a provably-run search \u2014 making no homology, function, or remote-homology claim, so the tool's output directly IS the answer.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 9.195,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as a similarity-significance screen (best hit above threshold = clean no-hit), which is exactly the in-regime SIGNIFICANCE measurement the tool directly computes\u2014no homology/function/remote-homology claim is made.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 4.787,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The clean no-hit result is read strictly as significance (no homolog reaches the cutoff), which is exactly what the e-value directly measures \u2014 no model-to-reality gap and no out-of-regime homology/function claim.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 4.49,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The clean no-hit result is read strictly as statistical non-significance of similarity at the stated cutoff \u2014 exactly what the e-value directly measures, not a homology/function inference that would open a model-to-reality gap.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 4.432,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The claim is scoped exactly to the quantity the tool directly computes \u2014 no hit below the significance cutoff in a valid DB \u2014 read as a similarity/significance screen, not extrapolated to homology, function, or remote homology, so the in-regime output IS the real answer.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 17.317,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as a similarity-significance screen and reports a clean no-hit below threshold \u2014 exactly the in-regime significance claim the tool directly computes, with no leap to homology, function, or remote-homology detection.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 6.789,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G05",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 7,
+        "raw_verdicts": [
+          "trust",
+          "refine",
+          "refine",
+          "refine",
+          "refine",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3,
+          "refine": 4
+        },
+        "unanimous": false,
+        "modal_verdict": "refine",
+        "n_in_band": 3,
+        "in_band_fraction": 0.4286,
+        "entropy_bits": 0.9852,
+        "draws": [
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as its native quantity \u2014 a relative significance-of-similarity screen ranking two queries \u2014 which is exactly what the tool directly measures within its in-regime envelope, not a homology/function inference.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 5.287,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": false,
+            "rationale": "A significant e-value is a reliable statistical screen of similarity-significance, but it is a predicted estimate \u2014 inflatable by low-complexity/composition bias and silent on remote homology \u2014 not a directly measured biological truth, so a survivor needs confirmation.",
+            "right_instrument": "BLAST / HMMER e-value similarity-significance screen (as a relative ranking filter)",
+            "wall_time_seconds": 8.19,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": false,
+            "rationale": "A significant e-value is a reliable relative screen of similarity-significance, but the residual gap to biological homology/function means a survivor must be confirmed downstream.",
+            "right_instrument": "BLAST / HMMER e-value similarity-significance screen",
+            "wall_time_seconds": 3.975,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": false,
+            "rationale": "The e-value is a statistical significance-of-similarity screen, so ranking two candidates reliably filters and orders them, but a survivor's biological meaning (homology/function) remains unconfirmed and could be corrected by reality.",
+            "right_instrument": "BLAST / HMMER e-value similarity-significance screen",
+            "wall_time_seconds": 4.342,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": false,
+            "rationale": "A significant e-value is a statistical similarity screen, not a confirmation of biological homology, orthology, or function, so a top-ranked survivor still needs biological confirmation.",
+            "right_instrument": "BLAST/HMMER e-value as a relative similarity-significance screen",
+            "wall_time_seconds": 4.191,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as a relative similarity-significance screen \u2014 the exact quantity the tool directly computes via Karlin-Altschul statistics \u2014 and explicitly avoids the out-of-regime homology/function/remote-homology claims that constitute the known gap.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics",
+            "wall_time_seconds": 4.827,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the e-value strictly as a relative similarity-significance screen to rank two queries \u2014 the exact in-regime quantity the instrument directly computes, with no claim of homology, function, or remote homology.",
+            "right_instrument": "BLAST / HMMER local sequence-homology search with Karlin-Altschul e-value statistics, used as a relative similarity-significance screen",
+            "wall_time_seconds": 5.151,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G06",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 7,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 7
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 7,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A significant e-value measures statistical significance of sequence similarity, which cannot establish orthology or shared molecular function \u2014 exactly the out-of-regime homology/function claim the instrument's known gap forbids.",
+            "right_instrument": "none \u2014 route to human/real experiment (functional homology requires phylogenetic orthology inference plus experimental functional assay)",
+            "wall_time_seconds": 5.652,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The e-value measures statistical significance of sequence similarity, not biological homology, orthology, or shared molecular function \u2014 the exact inference the experiment demands lies squarely outside the instrument's validity.",
+            "right_instrument": "none \u2014 route to human/real experiment (functional homology requires phylogenetic orthology analysis plus experimental functional characterization)",
+            "wall_time_seconds": 4.187,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A BLAST e-value scores statistical significance of sequence similarity and cannot establish orthology or shared molecular function, so it cannot model this experiment at all.",
+            "right_instrument": "none \u2014 route to human/real experiment (functional homology requires phylogenetic/orthology analysis plus experimental functional validation)",
+            "wall_time_seconds": 9.461,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The e-value measures statistical significance of sequence similarity, not biological homology, orthology, or shared molecular function \u2014 the experiment's conclusion lies entirely outside what the instrument can resolve.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 5.836,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A significant e-value is statistical significance of similarity only, which the envelope explicitly marks OUT-OF-REGIME for any claim of homology, orthology, or shared molecular function.",
+            "right_instrument": "none \u2014 route to human/real experiment (experimental functional characterization; sequence homology cannot establish orthology or same molecular function)",
+            "wall_time_seconds": 9.141,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment converts a similarity-significance e-value into a claim of orthology and identical molecular function \u2014 exactly the model-to-reality gap (H5) the instrument explicitly cannot cross.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 9.06,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A BLAST/HMMER e-value measures statistical significance of sequence similarity, not biological homology, orthology, or shared molecular function, so it cannot faithfully model a functional-homolog claim.",
+            "right_instrument": "none \u2014 route to human/real experiment (functional homology requires phylogenetic orthology inference plus experimental functional characterization)",
+            "wall_time_seconds": 4.175,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G07",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 7,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 7
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 7,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A raw pairwise BLAST e-value is mathematically incapable of detecting remote homology between sequences with no significant pairwise similarity \u2014 this is exactly the tool's known out-of-regime failure (H5).",
+            "right_instrument": "profile-HMM / HMMER (or structure-based) remote-homology search \u2014 and any hit still needs human/experimental confirmation of actual homology",
+            "wall_time_seconds": 12.243,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A pairwise BLAST e-value is statistically blind to remote homology between sequences with no significant pairwise similarity \u2014 exactly the out-of-regime claim in gap H5.",
+            "right_instrument": "a profile-HMM remote-homology search (e.g. HMMER/HHsearch against a profile), used as a screen",
+            "wall_time_seconds": 10.702,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A pairwise BLAST e-value is statistically blind to remote homology when there is no significant pairwise similarity, so it cannot model this experiment at all.",
+            "right_instrument": "a profile-HMM (HMMER) or structure-based remote-homology method",
+            "wall_time_seconds": 12.386,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A raw pairwise BLAST e-value is mathematically incapable of detecting remote homology between sequences with no significant pairwise similarity \u2014 this is exactly the out-of-regime H5 gap.",
+            "right_instrument": "a profile-HMM search (HMMER), which is built to detect remote homology a pairwise e-value cannot speak to",
+            "wall_time_seconds": 10.798,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A raw pairwise BLAST e-value provably cannot detect remote homology between sequences with no significant pairwise similarity \u2014 this is the instrument's own stated out-of-regime gap (H5).",
+            "right_instrument": "a profile-HMM search (HMMER), or a structure-based remote-homology method (e.g. HHpred/Foldseek) with human confirmation",
+            "wall_time_seconds": 11.735,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A raw pairwise BLAST e-value is statistically blind to remote homology between sequences with no significant pairwise similarity \u2014 the exact out-of-regime case named in gap H5.",
+            "right_instrument": "a profile-HMM search (HMMER) against a profile/HMM database, which is built to detect remote homology",
+            "wall_time_seconds": 8.584,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Detecting remote homology from a pairwise BLAST e-value where no significant pairwise similarity exists is precisely the out-of-regime task the instrument cannot resolve.",
+            "right_instrument": "a profile-HMM / HMMER (or structure-based) remote-homology search",
+            "wall_time_seconds": 6.96,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G08",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 7,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 7
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 7,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment reads a low e-value caused by low-complexity/composition bias as true biological similarity \u2014 precisely the H5 known-gap artifact the tool cannot faithfully model.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 7.898,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A low e-value driven by a low-complexity/repeat-rich region is a known artifact of composition bias, not evidence of true biological similarity \u2014 exactly the out-of-regime failure mode H5 the envelope excludes.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 8.176,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A low e-value driven by a low-complexity/repeat-rich region is explicitly a known bias artifact (H5), so the search's significance cannot faithfully stand in for true biological similarity here.",
+            "right_instrument": "BLAST/HMMER run with low-complexity masking and composition-bias correction, results confirmed by human review \u2014 the raw e-value alone cannot model this; route to human/real experiment",
+            "wall_time_seconds": 9.001,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A low e-value driven by a low-complexity/repeat-rich region reflects compositional bias, not true similarity, so the instrument cannot faithfully model this claim \u2014 it is the explicit out-of-regime failure mode.",
+            "right_instrument": "none \u2014 route to human/real experiment (requires low-complexity/composition masking and manual homology assessment)",
+            "wall_time_seconds": 9.673,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Reading a low-complexity/composition-biased e-value as evidence of true biological similarity is exactly the H5 known gap and an out-of-regime misuse the instrument cannot faithfully model.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.602,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment reads a low-complexity/composition-biased e-value as true biological similarity, which is precisely the H5 known gap and the out-of-regime failure mode the tool cannot faithfully model.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 6.057,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A low e-value driven by a low-complexity/repeat-rich region is a known artifact of composition bias, not evidence of true biological similarity \u2014 exactly the out-of-regime misread the instrument's own H5 gap warns against.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 7.083,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G09",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 7,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 7
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 7,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "An e-value scores statistical significance of similarity, which can never establish homology/common ancestry as fact \u2014 the claim is a category error outside the instrument's stated regime.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 8.547,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment asserts biological homology/common ancestry as established fact from an e-value, which measures only statistical significance of similarity \u2014 the tool's known-gap H5 and explicitly out-of-regime use.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.552,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment asserts biological homology/common ancestry as established fact, which a Karlin-Altschul e-value cannot establish \u2014 it measures statistical significance of similarity, not homology, exactly the tool's known out-of-regime gap.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.575,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Asserting proven common ancestry (homology as fact) from an e-value is exactly the out-of-regime H5 gap: the e-value measures statistical significance of similarity, not homology, and cannot establish evolutionary descent.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 7.48,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment asks the e-value to prove common evolutionary ancestry, but a Karlin-Altschul e-value measures only statistical significance of sequence similarity \u2014 homology/orthology is explicitly out-of-regime and cannot be read off it.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 7.487,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment asserts biological homology/common ancestry as established fact from an e-value, which measures statistical significance of similarity only \u2014 explicitly the tool's known out-of-regime gap (H5).",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.292,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment asserts established biological homology/common ancestry as fact, but a Karlin-Altschul e-value only measures statistical significance of similarity \u2014 exactly the out-of-regime homology claim the instrument's known gap (H5) forbids.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 6.472,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G10",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 7,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 7
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 7,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A significant e-value against a partial database is a similarity screen and cannot support an absolute claim of no homologs anywhere in nature \u2014 the instrument's own known gap (H5) and out-of-regime list explicitly exclude absolute-completeness/homology assertions.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 7.671,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A significant local-alignment e-value against a partial database is a similarity screen and cannot license an absolute claim of no homologs anywhere in nature \u2014 it is silent about sequences absent from the DB and about homology itself.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.605,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A significant e-value against a partial database is a similarity screen and cannot support a claim of absolute completeness (no homologs anywhere in nature), which is out-of-regime on two counts: homology inference and exhaustiveness over a database that does not contain all of nature.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.523,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A significant e-value against a partial database is a statistical similarity screen that cannot logically support an absolute claim of no homologs anywhere in nature \u2014 both an out-of-regime homology inference and a completeness claim beyond the database searched.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 5.468,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A significant e-value against a partial database is a similarity screen and cannot support an absolute-completeness claim of no homologs anywhere in nature \u2014 that is triply out-of-regime (homology, remoteness, and absoluteness).",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 5.251,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A significant local e-value against a partial database is a similarity screen and cannot speak to homology, function, or the absence of homologs anywhere in nature \u2014 the experiment's conclusion sits entirely outside the instrument's stated regime.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 5.039,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "A search against a partial database can never establish absolute absence of homologs across all of nature \u2014 absence from the DB is not absence in reality, and the tool makes no such universal claim.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 5.869,
+            "reask_attempts": 1
+          }
+        ]
+      }
+    ]
+  },
+  "wrapper_behavior": {
+    "n_cases": 5,
+    "n_passed": 5,
+    "cases": [
+      {
+        "case_id": "W01",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "database 'nr' is not a baked allowlist database (allowed: demo_prot, _broken_selftest)",
+        "reason_substring": "allowlist database",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W02",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "'query' must be a protein sequence (amino-acid letters only) for tool='blast'",
+        "reason_substring": "protein sequence",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W03",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "tool 'diamond' is not supported (allowed: blast, hmmer)",
+        "reason_substring": "not supported",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W04",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "for tool='hmmer', 'query' must be a baked profile name (allowed: demo_hmm, _broken_profile); got 'MKTAY'",
+        "reason_substring": "baked profile name",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W05",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "quantity 'score' is not an allowlist QoI (allowed: e_value)",
+        "reason_substring": "allowlist QoI",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      }
+    ],
+    "note": "scored separately from gate cases; never averaged together"
+  },
+  "cost": {
+    "model_calls": {
+      "model_call": 70,
+      "web_search": 0,
+      "total": 70
+    },
+    "attempts": {
+      "model_call": 70,
+      "web_search": 0,
+      "total": 70
+    },
+    "tokens": {
+      "model_call": {
+        "input_tokens": 146650,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 1456574,
+        "output_tokens": 18886
+      },
+      "web_search": {},
+      "total": {
+        "input_tokens": 146650,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 1456574,
+        "output_tokens": 18886
+      }
+    },
+    "wall_time_seconds": 487.784
+  },
+  "ledger_activity": {
+    "fidelity_entries": 0,
+    "override_entries": 0
+  }
+}
