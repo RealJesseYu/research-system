@@ -316,6 +316,30 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="autodock_vina",
+        wrapper="tools/run_autodock_vina.py",
+        card_path="docs/envelope_card_autodock_vina.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes=(
+            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): "
+            "RE-TIERED T2 -> DEFERRED — AutoDock Vina has NO aarch64 build "
+            "(bioconda 'No entries matching autodock-vina'; pip 'No matching "
+            "distribution ... versions: none'), so it will not install on this "
+            "host. Wrapper (tools/run_autodock_vina.py) written with the "
+            "intended fixed-seed + convergence-gate + input-validation logic; "
+            "the pure-Python INPUT jails are proven now; card SKELETON, section "
+            "3A PENDING-PROVISIONING with a HARD C1-hole (docking_score is a "
+            "relative screen within a human-validated receptor+box; prep + box "
+            "are unvalidated upstream). UN-DEFER needs a DIFFERENT ARCHITECTURE "
+            "(an x86 host where Vina installs) + real 3A + fixed-seed "
+            "determinism + the convergence jail triggered — distinct from "
+            "cas_offinder's validated-environment requirement. Runtime maps "
+            "STAGED in onboarding/autodock_vina/, UNWIRED; contract_for raises."
+        ),
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",

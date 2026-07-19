@@ -39,6 +39,7 @@ class TestRegistryTable(unittest.TestCase):
                 "cas_offinder",
                 "homology_search",
                 "mafft",
+                "autodock_vina",
                 "web_search",
             ],
         )
@@ -145,6 +146,16 @@ class TestRegistryTable(unittest.TestCase):
         self.assertNotIn("mafft", registry.routable_ids())
         with self.assertRaises(LookupError):
             registry.contract_for("mafft")
+
+    def test_autodock_vina_enrolled_calibrating_unroutable_and_inert(self):
+        # BIO Wave D.2 increment 7 (Option A, DEFERRED — no aarch64 build): inert.
+        rec = registry.get("autodock_vina")
+        self.assertEqual(rec.maturity, registry.CALIBRATING)
+        self.assertFalse(rec.routable)
+        self.assertEqual(rec.wrapper, "tools/run_autodock_vina.py")
+        self.assertNotIn("autodock_vina", registry.routable_ids())
+        with self.assertRaises(LookupError):
+            registry.contract_for("autodock_vina")
 
     def test_cantilevers_are_calibrating_routable_under_packet_b_phase2(self):
         # the flip's rows: routable=True RULED Packet B Phase 2 (owner
