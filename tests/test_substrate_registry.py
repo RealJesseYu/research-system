@@ -37,6 +37,7 @@ class TestRegistryTable(unittest.TestCase):
                 "rdkit",
                 "cobrapy",
                 "cas_offinder",
+                "homology_search",
                 "web_search",
             ],
         )
@@ -123,6 +124,16 @@ class TestRegistryTable(unittest.TestCase):
         self.assertNotIn("cas_offinder", registry.routable_ids())
         with self.assertRaises(LookupError):
             registry.contract_for("cas_offinder")
+
+    def test_homology_search_enrolled_calibrating_unroutable_and_inert(self):
+        # BIO Wave D.2 increment 4 (Option A, T2): the BLAST+HMMER bundle, inert.
+        rec = registry.get("homology_search")
+        self.assertEqual(rec.maturity, registry.CALIBRATING)
+        self.assertFalse(rec.routable)
+        self.assertEqual(rec.wrapper, "tools/run_homology_search.py")
+        self.assertNotIn("homology_search", registry.routable_ids())
+        with self.assertRaises(LookupError):
+            registry.contract_for("homology_search")
 
     def test_cantilevers_are_calibrating_routable_under_packet_b_phase2(self):
         # the flip's rows: routable=True RULED Packet B Phase 2 (owner

@@ -267,6 +267,28 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="homology_search",
+        wrapper="tools/run_homology_search.py",
+        card_path="docs/envelope_card_homology_search.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes=(
+            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): the "
+            "BLAST+HMMER bundle (substrate_id homology_search; tool field). "
+            "BLAST backend (tools/run_homology_search.py) proven real in "
+            "homology-search-prod — known hit e_value 4.36e-58; the "
+            "did-it-work / DB-integrity gate proven by triggering (a broken DB "
+            "-> search-could-not-run, distinct from a clean 0-hits result, since "
+            "blastp exits 0 on a missing DB). Card from real runs "
+            "(docs/envelope_card_homology_search.md, BLAST 2.16.0+). HMMER "
+            "backend wired in the next increment (same substrate, no new row). "
+            "ENROLLED but INERT — runtime maps STAGED in onboarding/"
+            "homology_search/, UNWIRED; contract_for('homology_search') must "
+            "keep raising until a D.4 promotion ruling. Nothing routes here."
+        ),
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",
