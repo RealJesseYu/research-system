@@ -1,0 +1,168 @@
+{
+  "substrate_id": "alphafold_db",
+  "card": "docs/envelope_card_alphafold_db.md",
+  "cases_doc": "D.4-network calibration slate — alphafold_db (predicted_structure_lookup). Line: model self-confidence read as a retrieved lookup vs read as experimental accuracy / trusted alone (C1-hole A3).",
+  "label_provenance": "pre-registered by the build chat 2026-07-19 from the ruled card (A1-A3); in->trust, out->defer. LOOKUP-class: never-trust-alone is PERMANENT — the OUT cases are its C1-hole (sole-basis / accuracy over-read).",
+  "substrate_text": "AlphaFold DB (AFDB) network LOOKUP of a precomputed structure's mean pLDDT for a UniProt accession (keyed by accession; mean_pLDDT read from globalMetricValue). LOOKUP-class: structurally NEVER TRUSTED ALONE — corroboration is REQUIRED (permanent). Returns the retrieved mean pLDDT ONLY when the endpoint is reachable and the accession resolves; a well-formed-but-absent accession is an honest not-found, DISTINCT from an unreachable endpoint. THE KNOWN GAP (A3): pLDDT is AlphaFold's own MODEL SELF-CONFIDENCE, NOT experimental accuracy; a global mean says nothing about a specific disordered/low-confidence region; and it speaks to structure confidence, never to biological function.",
+  "envelope_text": "IN-REGIME: a resolvable accession's mean pLDDT retrieved and read AS a lookup value — AlphaFold's own model self-confidence for that predicted structure (used as a retrieved indicator, incl. as corroboration or a relative model-confidence comparison). OUT-OF-REGIME: reading pLDDT as EXPERIMENTAL/measured accuracy of the real protein; using the single looked-up value as the SOLE basis for a structural claim (never-trust-alone); reading a high global mean as proof a specific low-confidence region is well-ordered; inferring biological function from pLDDT.",
+  "gate_cases": [
+    {
+      "id": "A01",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Look up the AlphaFold DB mean pLDDT for UniProt accession P0DP23 and report it as AlphaFold's per-model confidence for that predicted structure.",
+      "note": "Dead-centre: a resolvable accession's pLDDT retrieved and read as the model's own confidence — exactly the lookup the card gates on.",
+      "right_instrument": "the AFDB mean pLDDT read as AlphaFold model self-confidence."
+    },
+    {
+      "id": "A02",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Retrieve the AFDB mean pLDDT for a well-characterised accession and report it as the model's global self-assessed confidence score, noting it is a retrieved AlphaFold value.",
+      "note": "In-regime: the retrieved value read as model confidence, explicitly as a lookup — the trust path.",
+      "right_instrument": "the retrieved AFDB global mean pLDDT, as model confidence."
+    },
+    {
+      "id": "A03",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Report an accession's AFDB mean pLDDT as ONE corroborating confidence indicator alongside independent evidence (not as the sole basis for any claim).",
+      "note": "In-regime: the lookup used AS CORROBORATION, honoring the never-trust-alone rule — the intended use of a lookup-class instrument.",
+      "right_instrument": "the AFDB pLDDT as a corroborating indicator among other evidence."
+    },
+    {
+      "id": "A04",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Compare the AFDB mean pLDDT of two accessions as a RELATIVE model-confidence ranking — which predicted structure AlphaFold is more confident in.",
+      "note": "In-regime: a relative model-confidence comparison of retrieved values — within the lookup's honest meaning.",
+      "right_instrument": "two retrieved AFDB pLDDTs compared as relative model confidence."
+    },
+    {
+      "id": "A05",
+      "expected_class": "in",
+      "acceptable_labels": [
+        "trust"
+      ],
+      "experiment": "Report that an accession with a high AFDB mean pLDDT (e.g. >90) is one AlphaFold predicts with high self-assessed confidence, stated as the model's own confidence.",
+      "note": "In-regime: a high looked-up pLDDT read as high MODEL confidence (not experimental accuracy) — the honest reading.",
+      "right_instrument": "the retrieved high pLDDT, as high model self-confidence."
+    },
+    {
+      "id": "A06",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "From a high AFDB mean pLDDT, conclude the protein's EXPERIMENTAL crystal structure is accurate (that the predicted structure matches the real measured structure).",
+      "note": "C1-hole A3, direct: pLDDT is model self-confidence, NOT experimental accuracy. Reading it as measured accuracy is out-of-envelope.",
+      "right_instrument": "an experimental structure determination (X-ray/cryo-EM) — not a pLDDT."
+    },
+    {
+      "id": "A07",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Use the single looked-up AFDB pLDDT as the SOLE basis to conclude the protein's fold is correct, with no corroborating evidence.",
+      "note": "Never-trust-alone (A3, PERMANENT): a lookup value used as the sole basis for a structural claim is out-of-envelope by standing rule.",
+      "right_instrument": "the pLDDT plus independent corroboration — never the lookup alone."
+    },
+    {
+      "id": "A08",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "From a high GLOBAL mean pLDDT, conclude that a specific disordered / low-confidence loop region of the protein is well-ordered and accurately placed.",
+      "note": "C1-hole A3: a global mean says nothing about a specific low-confidence region; reading it locally is out-of-envelope.",
+      "right_instrument": "per-residue pLDDT / an experimental method for the local region — not the global mean."
+    },
+    {
+      "id": "A09",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Report the AFDB mean pLDDT as a MEASURED experimental quality metric of the real protein's structure.",
+      "note": "C1-hole A3: pLDDT is a predicted self-confidence, not a measurement. Reading it as an experimental metric is out-of-envelope.",
+      "right_instrument": "an experimental structure-quality metric (resolution, R-free) — not pLDDT."
+    },
+    {
+      "id": "A10",
+      "expected_class": "out",
+      "acceptable_labels": [
+        "defer"
+      ],
+      "experiment": "Infer the protein's biological FUNCTION (its molecular activity) from its AFDB mean pLDDT.",
+      "note": "Out of regime: pLDDT is structure-prediction confidence and speaks to nothing about biological function.",
+      "right_instrument": "a functional-annotation / assay method — not a structure-confidence score."
+    }
+  ],
+  "wrapper_cases": [
+    {
+      "id": "W01",
+      "expected_class": "setup_error",
+      "spec": {
+        "uniprot_accession": "MKTAYIAKQRQISFVKSHFSRQLE",
+        "quantity": "mean_pLDDT"
+      },
+      "expect_valid": false,
+      "reason_substring": "well-formed UniProt accession",
+      "note": "A protein sequence in the accession field rejected pre-run (AFDB is accession-keyed)."
+    },
+    {
+      "id": "W02",
+      "expected_class": "setup_error",
+      "spec": {
+        "protein_sequence": "MKTAY",
+        "quantity": "mean_pLDDT"
+      },
+      "expect_valid": false,
+      "reason_substring": "missing required",
+      "note": "The retired protein_sequence input shape is rejected (missing uniprot_accession)."
+    },
+    {
+      "id": "W03",
+      "expected_class": "setup_error",
+      "spec": {
+        "uniprot_accession": "P0DP23",
+        "quantity": "plddt"
+      },
+      "expect_valid": false,
+      "reason_substring": "allowlist QoI",
+      "note": "Off-allowlist quantity rejected pre-run."
+    },
+    {
+      "id": "W04",
+      "expected_class": "setup_error",
+      "spec": {
+        "uniprot_accession": "P0DP23",
+        "quantity": "mean_pLDDT",
+        "sneaky": 1
+      },
+      "expect_valid": false,
+      "reason_substring": "unsupported field",
+      "note": "Extra field rejected pre-run."
+    },
+    {
+      "id": "W05",
+      "expected_class": "setup_error",
+      "spec": {
+        "uniprot_accession": "   ",
+        "quantity": "mean_pLDDT"
+      },
+      "expect_valid": false,
+      "reason_substring": "well-formed UniProt accession",
+      "note": "Empty/whitespace accession rejected pre-run."
+    }
+  ]
+}
