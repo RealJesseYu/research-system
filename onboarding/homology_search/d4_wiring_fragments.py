@@ -40,8 +40,9 @@ select_substrate candidate.
     # QoI translation: named_quantity {kind:evalue,...} + tool field -> the wrapper.
     # run-entry constructor: {state, qoi_value|qoi_error, wall_clock_s}.
 
-NOTE: the HMMER backend of this bundle is wired in the NEXT D.2 increment
-(extends tools/run_homology_search.py's `tool` dispatch + the card §3A); it does
-NOT add a registry row (same substrate).
+NOTE: BOTH backends (blast + hmmer) of this bundle are now wired in
+tools/run_homology_search.py's `tool` dispatch (blast: sequence query vs BLAST
+DB; hmmer: baked profile vs target FASTA, with its own profile+target integrity
+gate). One substrate, one row, one signature {database, query, tool, quantity}.
 """
 # Nothing executable — staged; wired by hand at the D.4 promotion ruling.

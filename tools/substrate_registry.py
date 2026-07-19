@@ -285,7 +285,11 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
             "backend wired in the next increment (same substrate, no new row). "
             "ENROLLED but INERT — runtime maps STAGED in onboarding/"
             "homology_search/, UNWIRED; contract_for('homology_search') must "
-            "keep raising until a D.4 promotion ruling. Nothing routes here."
+            "keep raising until a D.4 promotion ruling. Nothing routes here. "
+            "HMMER backend WIRED (2026-07-18): hmmsearch on baked profiles, its "
+            "profile-integrity jail (malformed HMM -> could-not-run, distinct "
+            "from 0-hits) proven; known hit e_value 8.2e-61; pinned HMMER 3.4. "
+            "BLAST path proven unperturbed."
         ),
     ),
     SubstrateRecord(

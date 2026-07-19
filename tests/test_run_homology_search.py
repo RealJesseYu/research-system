@@ -57,12 +57,12 @@ class PureInputJails(unittest.TestCase):
             _validate_input({"database": "demo_prot", "query": _KNOWN,
                              "tool": "blast", "quantity": "score"})
 
-    def test_hmmer_backend_pending_not_crash(self):
-        # hmmer is a valid bundle tool but not wired this increment: honest refuse.
-        r = run({"database": "demo_prot", "query": _KNOWN, "tool": "hmmer",
-                 "quantity": "e_value"})
-        self.assertFalse(r["valid"])
-        self.assertIn("hmmer", r["diagnostics"].lower())
+    def test_hmmer_query_must_be_a_baked_profile_name(self):
+        # for tool=hmmer, query is a PROFILE name, not a sequence.
+        with self.assertRaises(HomologySearchInputError) as e:
+            _validate_input({"database": "demo_prot", "query": _KNOWN,
+                             "tool": "hmmer", "quantity": "e_value"})
+        self.assertIn("profile", str(e.exception).lower())
 
     def test_vocabularies(self):
         self.assertEqual(QOI_FIELDS, ("e_value",))
@@ -102,6 +102,46 @@ class LiveBlast(unittest.TestCase):
         b = run({"database": "demo_prot", "query": _KNOWN, "tool": "blast",
                  "quantity": "e_value"})
         self.assertEqual(a["qoi"], b["qoi"])
+
+
+@unittest.skipUnless(_LIVE, "homology-search-prod not running — HMMER checks skipped")
+class LiveHmmer(unittest.TestCase):
+    def test_hmmer_known_hit_evalue(self):
+        r = run({"database": "demo_prot", "query": "demo_hmm", "tool": "hmmer",
+                 "quantity": "e_value"})
+        self.assertTrue(r["valid"])
+        self.assertIsNotNone(r["qoi"])
+        self.assertLess(r["qoi"], 1e-10)
+
+    def test_profile_integrity_gate_distinguishes_malformed_hmm_from_no_hits(self):
+        # HMMER's EXTRA integrity surface: a malformed/empty PROFILE -> search
+        # could NOT run -> valid=False, distinct from a clean 0-hits. Proven by
+        # triggering (the analog of BLAST's broken-DB-vs-0-hits, on the profile).
+        r = run({"database": "demo_prot", "query": "_broken_profile",
+                 "tool": "hmmer", "quantity": "e_value"})
+        self.assertFalse(r["valid"])
+        self.assertIsNone(r["qoi"])
+        self.assertIn("could not run", r["diagnostics"].lower())
+
+    def test_target_integrity_gate_distinguishes_bad_target_from_no_hits(self):
+        r = run({"database": "_broken_selftest", "query": "demo_hmm",
+                 "tool": "hmmer", "quantity": "e_value"})
+        self.assertFalse(r["valid"])
+        self.assertIsNone(r["qoi"])
+
+    def test_hmmer_determinism(self):
+        a = run({"database": "demo_prot", "query": "demo_hmm", "tool": "hmmer",
+                 "quantity": "e_value"})
+        b = run({"database": "demo_prot", "query": "demo_hmm", "tool": "hmmer",
+                 "quantity": "e_value"})
+        self.assertEqual(a["qoi"], b["qoi"])
+
+    def test_blast_path_unperturbed_by_the_hmmer_addition(self):
+        # (owner check a): extending the tool dispatch must not move BLAST.
+        r = run({"database": "demo_prot", "query": _KNOWN, "tool": "blast",
+                 "quantity": "e_value"})
+        self.assertTrue(r["valid"])
+        self.assertAlmostEqual(r["qoi"], 4.36e-58, delta=1e-60)
 
 
 if __name__ == "__main__":
