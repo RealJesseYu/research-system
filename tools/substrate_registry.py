@@ -423,6 +423,27 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="alphafold_db",
+        wrapper="tools/run_alphafold_db.py",
+        card_path="docs/envelope_card_alphafold_db.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes=(
+            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): "
+            "DEFERRED — a network lookup against the AlphaFold DB endpoint, not "
+            "reachable/verified here. Wrapper input gate proven pure-Python "
+            "(protein_sequence, quantity mean_pLDDT); valid input -> honest "
+            "DEFERRED, never a fabricated pLDDT. Card SKELETON, 3A PENDING. "
+            "UN-DEFER (specific) = working network + the specific AFDB endpoint "
+            "reachable. LOOKUP-class: A3 never-trust-alone is PERMANENT (a "
+            "standing trust claim, corroboration required forever, not just a "
+            "provisioning gate). Signature {protein_sequence,quantity} SHARES "
+            "with boltz2 BY DESIGN (Step-41 L1a pair, distinct regimes). Runtime "
+            "maps STAGED, UNWIRED; contract_for raises."
+        ),
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",
