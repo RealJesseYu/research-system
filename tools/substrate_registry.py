@@ -340,6 +340,30 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="crispr_guide_scoring",
+        wrapper="tools/run_crispr_guide_scoring.py",
+        card_path="docs/envelope_card_crispr_guide_scoring.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes=(
+            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): "
+            "RE-TIERED T2 -> DEFERRED — no VERIFIED py3 Doench/CFD scorer runs "
+            "here (Azimuth is Python-2 + model-based; no standalone CFD "
+            "package). A SOFTWARE-AVAILABILITY defer (distinct from "
+            "cas_offinder's validated-environment and autodock_vina's x86 "
+            "architecture). Wrapper (tools/run_crispr_guide_scoring.py): the "
+            "pure-Python INPUT gate (20-nt guide, PAM matching the enzyme "
+            "motif, allowlist enzyme) is proven now; a valid input returns the "
+            "honest DEFERRED state, never a fabricated score. Card SKELETON, "
+            "section 3A PENDING. UN-DEFER = a verified py3 Doench/CFD "
+            "scorer/model FROM A TRUSTED SOURCE; hand-transcribing coefficients "
+            "is FORBIDDEN (silent-wrong) — the prohibition is part of the spec. "
+            "Runtime maps STAGED in onboarding/crispr_guide_scoring/, UNWIRED; "
+            "contract_for raises."
+        ),
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",

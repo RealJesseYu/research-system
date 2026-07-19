@@ -40,6 +40,7 @@ class TestRegistryTable(unittest.TestCase):
                 "homology_search",
                 "mafft",
                 "autodock_vina",
+                "crispr_guide_scoring",
                 "web_search",
             ],
         )
@@ -156,6 +157,16 @@ class TestRegistryTable(unittest.TestCase):
         self.assertNotIn("autodock_vina", registry.routable_ids())
         with self.assertRaises(LookupError):
             registry.contract_for("autodock_vina")
+
+    def test_crispr_guide_scoring_enrolled_calibrating_unroutable_and_inert(self):
+        # BIO Wave D.2 increment 8 (Option A, DEFERRED — no verified scorer): inert.
+        rec = registry.get("crispr_guide_scoring")
+        self.assertEqual(rec.maturity, registry.CALIBRATING)
+        self.assertFalse(rec.routable)
+        self.assertEqual(rec.wrapper, "tools/run_crispr_guide_scoring.py")
+        self.assertNotIn("crispr_guide_scoring", registry.routable_ids())
+        with self.assertRaises(LookupError):
+            registry.contract_for("crispr_guide_scoring")
 
     def test_cantilevers_are_calibrating_routable_under_packet_b_phase2(self):
         # the flip's rows: routable=True RULED Packet B Phase 2 (owner
