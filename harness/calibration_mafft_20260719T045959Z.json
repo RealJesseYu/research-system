@@ -1,0 +1,985 @@
+{
+  "mode_arg": "auto",
+  "substrate_id": "mafft",
+  "maturity_at_run": "calibrating",
+  "routable_at_run": false,
+  "timestamp_utc": "2026-07-19T05:03:09Z",
+  "batch_id": "20260719T045959Z",
+  "n_repeats": 3,
+  "gate": {
+    "n_cases": 10,
+    "n_draws": 30,
+    "n_repeats": 3,
+    "confusion": {
+      "in": {
+        "trust": 15,
+        "refine": 0,
+        "defer": 0
+      },
+      "out": {
+        "trust": 0,
+        "refine": 0,
+        "defer": 15
+      }
+    },
+    "confusion_note": "counts over ALL draws (repeats per case); rows sum to n_draws, not n_cases",
+    "hook_witness": {
+      "mode": "auto",
+      "n_gate_cases": 30,
+      "n_raw_trust_or_refine": 15,
+      "n_hook_fired": 15,
+      "hook_fired_matches_raw_trust_refine": true,
+      "routed_trust_case_ids": [],
+      "silent_trust_case_ids": [],
+      "zero_silent_trusts": true,
+      "note": "The hook fires on raw trust/refine only (defer routes nowhere). It is keyed to the registry routable set (currently ['cavity_2d_cfd', 'calculix_cantilever_fea', 'fenicsx_cantilever_elastic', 'sympy_symbolic_exact', 'ngspice_linear_passive'], all non-mature), NOT to the substrate under calibration, which is UNROUTABLE \u2014 see debrief."
+    },
+    "aggregate_in_band": {
+      "n_in_band_draws": 30,
+      "n_draws": 30,
+      "fraction": 1.0
+    },
+    "n_unanimous_cases": 10,
+    "cases": [
+      {
+        "case_id": "G01",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The instrument directly returns the average pairwise percent identity of the alignment it computed, used purely descriptively, so its output IS the real answer to the question asked (what MAFFT computed), with no residual model-to-reality gap.",
+            "right_instrument": "MAFFT MULTIPLE SEQUENCE ALIGNMENT",
+            "wall_time_seconds": 5.429,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The reported statistic is a direct descriptive measurement of the alignment MAFFT actually computed, not a prediction of the biologically-true alignment, so the in-regime output IS the real answer to the question asked.",
+            "right_instrument": "MAFFT MULTIPLE SEQUENCE ALIGNMENT",
+            "wall_time_seconds": 6.001,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The instrument directly reports the average pairwise percent identity of the alignment MAFFT actually computed, used purely descriptively \u2014 so its output IS the real answer to the question asked, not an estimate of some external truth.",
+            "right_instrument": "MAFFT multiple sequence alignment",
+            "wall_time_seconds": 4.47,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G02",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reports the alignment and its average pairwise identity purely descriptively as MAFFT's computed output, so the instrument directly measures exactly the quantity asked and its output IS the answer, with no biological-truth claim invoking the M4 gap.",
+            "right_instrument": "MAFFT MULTIPLE SEQUENCE ALIGNMENT",
+            "wall_time_seconds": 9.93,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The instrument directly returns its own computed alignment and its descriptive average pairwise identity, and the experiment claims exactly that descriptive output with no assertion of biological correctness\u2014so the reported result IS the real answer.",
+            "right_instrument": "MAFFT multiple sequence alignment",
+            "wall_time_seconds": 4.303,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The instrument directly returns MAFFT's own computed alignment and its descriptive average pairwise identity, and the experiment claims exactly that ('as MAFFT's computed output') without asserting biological correctness, so the output IS the answer.",
+            "right_instrument": "MAFFT multiple sequence alignment",
+            "wall_time_seconds": 4.687,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G03",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "Percent identity is a direct arithmetic readout of the alignment MAFFT actually computed and is claimed purely descriptively, so the output literally IS the real answer with no residual model-to-reality gap.",
+            "right_instrument": "MAFFT multiple sequence alignment",
+            "wall_time_seconds": 8.243,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "Percent identity is a deterministic, direct readout of the alignment MAFFT actually computed, and the experiment claims nothing beyond that descriptive fact \u2014 so the instrument's output literally IS the answer with no residual gap to reality.",
+            "right_instrument": "MAFFT MULTIPLE SEQUENCE ALIGNMENT",
+            "wall_time_seconds": 11.177,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The output is a descriptive statistic directly computed over the alignment MAFFT produced, and the claim is scoped to exactly that computed object rather than to biological truth, so the instrument's in-range output IS the answer.",
+            "right_instrument": "MAFFT MULTIPLE SEQUENCE ALIGNMENT",
+            "wall_time_seconds": 4.965,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G04",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The instrument is used purely descriptively to report the average pairwise identity of the alignment MAFFT actually computed, so its output directly IS the reported quantity with no residual model-to-reality gap.",
+            "right_instrument": "MAFFT MULTIPLE SEQUENCE ALIGNMENT",
+            "wall_time_seconds": 4.267,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reports the computed alignment's average pairwise identity purely descriptively \u2014 exactly the in-regime, directly-measured quantity MAFFT outputs, making no claim about biological correctness.",
+            "right_instrument": "MAFFT MULTIPLE SEQUENCE ALIGNMENT",
+            "wall_time_seconds": 7.509,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The output is a descriptive statistic directly computed from the alignment MAFFT actually produced, and the trust claim is scoped strictly to 'what MAFFT computed' \u2014 not to biological correctness \u2014 so the reported identity IS the real answer to the question asked.",
+            "right_instrument": "MAFFT MULTIPLE SEQUENCE ALIGNMENT",
+            "wall_time_seconds": 7.667,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G05",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The claim is purely descriptive \u2014 reporting the alignment and identity statistic MAFFT actually computed \u2014 which the instrument directly measures, with no claim of biological-truth homology that would open a model-to-reality gap.",
+            "right_instrument": "MAFFT MULTIPLE SEQUENCE ALIGNMENT",
+            "wall_time_seconds": 7.342,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The instrument directly returns what MAFFT computed (a well-formed alignment and its descriptive average pairwise identity) and the claim is explicitly confined to that descriptive output, not to biological/homology correctness, so the in-regime output IS the answer.",
+            "right_instrument": "MAFFT MULTIPLE SEQUENCE ALIGNMENT",
+            "wall_time_seconds": 4.328,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The reported quantity is the average pairwise identity of the alignment MAFFT actually computed, used purely descriptively \u2014 the instrument directly measures exactly the claim being made, with no residual gap to a biological-truth it does not claim to reach.",
+            "right_instrument": "MAFFT MULTIPLE SEQUENCE ALIGNMENT",
+            "wall_time_seconds": 10.059,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G06",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment demands the alignment be treated as the CORRECT/biologically-true homology, which is explicitly out-of-regime for a heuristic, guide-tree-dependent descriptive statistic.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 7.528,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment explicitly asserts the heuristic MAFFT alignment is the CORRECT, biologically-true homology \u2014 exactly the out-of-regime claim the instrument disclaims and cannot support.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.603,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment demands the alignment be reported as the CORRECT, biologically-true homology, which is explicitly the out-of-regime claim MAFFT's heuristic, guide-tree-dependent output cannot support.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 6.612,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G07",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment uses the heuristic, guide-tree-dependent alignment as ground-truth evidence of true residue homology, which is exactly the out-of-regime claim MAFFT explicitly disclaims.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.837,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment treats a heuristic, guide-tree-dependent MAFFT alignment as ground-truth evolutionary homology of specific residues \u2014 precisely the out-of-regime claim the instrument explicitly disclaims.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.627,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment treats a heuristic, guide-tree-dependent MAFFT alignment as ground-truth evolutionary homology for specific residues \u2014 the exact out-of-regime claim the instrument explicitly disclaims.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.214,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G08",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Concluding structural equivalence in the folded proteins is an explicitly out-of-regime claim of structural correctness that a descriptive, heuristic sequence alignment cannot support.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 6.326,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "MAFFT's computed alignment is only a heuristic sequence-homology hypothesis and carries no structural claim, so inferring folded-protein structural equivalence is explicitly out-of-regime.",
+            "right_instrument": "none \u2014 route to human/real experiment (structural superposition of experimentally determined or predicted 3D structures, e.g. DALI/TM-align on solved or AlphaFold models)",
+            "wall_time_seconds": 5.742,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment draws a structural-equivalence conclusion, which MAFFT explicitly disclaims \u2014 its alignment is a descriptive heuristic homology hypothesis, not evidence of structural equivalence in folded proteins.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.621,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G09",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment explicitly treats MAFFT's heuristic, guide-tree-dependent alignment columns as the TRUE evolutionary history \u2014 the exact out-of-regime claim the instrument disclaims, since a computed alignment is only a homology hypothesis, not ground truth.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.703,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment treats MAFFT's heuristic, guide-tree-dependent alignment as the TRUE evolutionary history, which is the instrument's explicitly out-of-regime claim (M4).",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 6.323,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment treats MAFFT's heuristic, guide-tree-dependent alignment as the TRUE evolutionary history \u2014 precisely the out-of-regime claim the instrument explicitly disclaims.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 7.756,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G10",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment claims high identity proves the alignment is the biologically-correct/true one, which is exactly the out-of-regime homology-as-ground-truth claim MAFFT's heuristic cannot support.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.517,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment makes the exact out-of-regime claim the instrument forbids \u2014 using MAFFT's heuristic, guide-tree-dependent alignment identity as proof of biologically-correct homology, which it cannot resolve.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 8.461,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment asserts identity proves the alignment is the biologically-correct one, which is explicitly out-of-regime for MAFFT, whose output is a descriptive heuristic homology hypothesis, not ground-truth correctness.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 8.188,
+            "reask_attempts": 1
+          }
+        ]
+      }
+    ]
+  },
+  "wrapper_behavior": {
+    "n_cases": 5,
+    "n_passed": 5,
+    "cases": [
+      {
+        "case_id": "W01",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "alignment needs >= 2 sequences; got 1 \u2014 a single sequence is not an alignment",
+        "reason_substring": ">= 2",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W02",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "sequence #2 is not a valid protein or nucleotide sequence (contains non-residue characters)",
+        "reason_substring": "not a valid protein or nucleotide",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W03",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "sequences mix alphabets (protein and nucleotide) \u2014 they are not alignable together; all sequences must be the same alphabet",
+        "reason_substring": "mix alphabets",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W04",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "'sequences' must be a list of sequence strings",
+        "reason_substring": "must be a list",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W05",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "quantity 'sp_score' is not an allowlist QoI (allowed: alignment_identity)",
+        "reason_substring": "allowlist QoI",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      }
+    ],
+    "note": "scored separately from gate cases; never averaged together"
+  },
+  "cost": {
+    "model_calls": {
+      "model_call": 30,
+      "web_search": 0,
+      "total": 30
+    },
+    "attempts": {
+      "model_call": 30,
+      "web_search": 0,
+      "total": 30
+    },
+    "tokens": {
+      "model_call": {
+        "input_tokens": 62850,
+        "cache_creation_input_tokens": 9983,
+        "cache_read_input_tokens": 615376,
+        "output_tokens": 5852
+      },
+      "web_search": {},
+      "total": {
+        "input_tokens": 62850,
+        "cache_creation_input_tokens": 9983,
+        "cache_read_input_tokens": 615376,
+        "output_tokens": 5852
+      }
+    },
+    "wall_time_seconds": 189.446
+  },
+  "ledger_activity": {
+    "fidelity_entries": 0,
+    "override_entries": 0
+  }
+}

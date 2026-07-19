@@ -1,0 +1,986 @@
+{
+  "mode_arg": "auto",
+  "substrate_id": "cobrapy",
+  "maturity_at_run": "calibrating",
+  "routable_at_run": false,
+  "timestamp_utc": "2026-07-19T05:03:38Z",
+  "batch_id": "20260719T045947Z",
+  "n_repeats": 3,
+  "gate": {
+    "n_cases": 10,
+    "n_draws": 30,
+    "n_repeats": 3,
+    "confusion": {
+      "in": {
+        "trust": 14,
+        "refine": 1,
+        "defer": 0
+      },
+      "out": {
+        "trust": 0,
+        "refine": 0,
+        "defer": 15
+      }
+    },
+    "confusion_note": "counts over ALL draws (repeats per case); rows sum to n_draws, not n_cases",
+    "hook_witness": {
+      "mode": "auto",
+      "n_gate_cases": 30,
+      "n_raw_trust_or_refine": 15,
+      "n_hook_fired": 15,
+      "hook_fired_matches_raw_trust_refine": true,
+      "routed_trust_case_ids": [],
+      "silent_trust_case_ids": [],
+      "zero_silent_trusts": true,
+      "note": "The hook fires on raw trust/refine only (defer routes nowhere). It is keyed to the registry routable set (currently ['cavity_2d_cfd', 'calculix_cantilever_fea', 'fenicsx_cantilever_elastic', 'sympy_symbolic_exact', 'ngspice_linear_passive'], all non-mature), NOT to the substrate under calibration, which is UNROUTABLE \u2014 see debrief."
+    },
+    "aggregate_in_band": {
+      "n_in_band_draws": 29,
+      "n_draws": 30,
+      "fraction": 0.9667
+    },
+    "n_unanimous_cases": 9,
+    "cases": [
+      {
+        "case_id": "G01",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment asks only for the FBA optimum read as a relative feasibility/growth screen \u2014 exactly the deterministic LP quantity the solver directly computes and reports, not an in-vivo growth claim.",
+            "right_instrument": "COBRApy + GLPK FBA on e_coli_core (the named instrument fits)",
+            "wall_time_seconds": 4.492,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment asks only for the FBA optimum as a relative feasibility screen \u2014 exactly the quantity the LP directly computes \u2014 not an in-vivo growth rate, so the instrument's output IS the answer within its stated scope.",
+            "right_instrument": "COBRApy + GLPK flux-balance analysis on e_coli_core",
+            "wall_time_seconds": 4.386,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment reads the FBA optimum exactly as what the deterministic LP directly computes \u2014 a relative steady-state feasibility screen on a well-formed baked model \u2014 which IS the quantity requested, not a predicted proxy for in-vivo growth.",
+            "right_instrument": "COBRApy + GLPK flux-balance analysis on the e_coli_core model",
+            "wall_time_seconds": 6.336,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G02",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "refine",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "refine": 1,
+          "trust": 2
+        },
+        "unanimous": false,
+        "modal_verdict": "trust",
+        "n_in_band": 2,
+        "in_band_fraction": 0.6667,
+        "entropy_bits": 0.9183,
+        "draws": [
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "refine",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": false,
+            "rationale": "Used exactly in-regime as a relative screen, the deterministic LP still yields a stoichiometric feasibility upper bound with an unclosed gap to real growth (no regulation/kinetics/dynamics), so a survivor must be confirmed rather than taken as the real answer.",
+            "right_instrument": "COBRApy/GLPK FBA on iML1515 read as a relative feasibility/growth screen (the named instrument fits)",
+            "wall_time_seconds": 17.569,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment asks only for the FBA optimum read as a relative screen \u2014 exactly the deterministic LP quantity the solver directly computes and reports, not an in-vivo growth rate that reality could correct.",
+            "right_instrument": "COBRApy + GLPK FBA on iML1515",
+            "wall_time_seconds": 5.018,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment asks only for the FBA feasibility optimum read as a relative screen \u2014 exactly the deterministic LP quantity the solver computes and surfaces, with no claim to in-vivo growth that would open a model-to-reality gap.",
+            "right_instrument": "COBRApy + GLPK flux-balance analysis on iML1515",
+            "wall_time_seconds": 8.544,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G03",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment asks only for a relative ranking of the two models' feasible steady-state growth capacities \u2014 the exact deterministic quantity the FBA linear program directly and exactly computes, with no residual model-to-reality gap since no in-vivo rate is claimed.",
+            "right_instrument": "COBRApy + GLPK flux-balance analysis",
+            "wall_time_seconds": 9.268,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment asks only for a relative ranking of the two models' feasible steady-state growth capacities \u2014 a quantity the deterministic LP computes directly and exactly, with no model-to-reality gap because the question is defined purely in model terms.",
+            "right_instrument": "COBRApy + GLPK flux-balance analysis",
+            "wall_time_seconds": 13.593,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment asks only for a relative ranking of the two models' feasible steady-state optima, which the deterministic LP computes exactly and directly \u2014 the FBA-to-in-vivo gap never opens because no in-vivo claim is made.",
+            "right_instrument": "COBRApy + GLPK constraint-based FBA",
+            "wall_time_seconds": 8.912,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G04",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment asks only for an in-model feasibility check plus its relative optimum \u2014 exactly the deterministic LP property FBA directly and exactly computes, with no residual model-to-reality gap because no in-vivo rate is claimed.",
+            "right_instrument": "COBRApy + GLPK flux-balance analysis on e_coli_core",
+            "wall_time_seconds": 12.594,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment asks only whether the deterministic LP admits a non-zero feasible steady-state growth optimum \u2014 a question the FBA solver resolves exactly and reads directly, with no residual model-to-reality gap since no in-vivo rate is claimed.",
+            "right_instrument": "COBRApy + GLPK flux-balance analysis (the named instrument fits)",
+            "wall_time_seconds": 12.068,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment asks only whether a feasible non-zero steady-state growth optimum exists \u2014 a relative feasibility check read directly from the LP's solver status and objective, which is exactly what FBA computes, not an in-vivo growth prediction.",
+            "right_instrument": "COBRApy + GLPK flux-balance analysis on e_coli_core",
+            "wall_time_seconds": 4.962,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G05",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment asks only for the model's own feasible steady-state optimum as a relative, non-measured screen, and the deterministic LP computes exactly that quantity with no residual model-to-reality gap because reality is not being claimed.",
+            "right_instrument": "COBRApy + GLPK flux-balance analysis",
+            "wall_time_seconds": 13.132,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment asks for exactly what the deterministic LP computes \u2014 the feasible steady-state biomass optimum read as a relative capacity screen, not an in-vivo rate \u2014 so the instrument's in-regime output directly IS the requested quantity with no residual model-to-reality gap.",
+            "right_instrument": "COBRApy + GLPK flux-balance analysis on the baked e_coli_core model",
+            "wall_time_seconds": 10.159,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "The experiment asks only for the model's relative FBA optimum, and the deterministic LP directly and exactly computes that quantity \u2014 no in-vivo/measured claim is made, so there is no residual model-to-reality gap.",
+            "right_instrument": "COBRApy + GLPK flux-balance analysis",
+            "wall_time_seconds": 11.263,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G06",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment demands an absolute in-vivo doubling rate, which is explicitly out-of-regime for an FBA optimum that is only a stoichiometric feasibility upper bound with no kinetics, regulation, or dynamics.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 5.671,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment demands an absolute in-vivo doubling rate, but FBA only yields a feasible steady-state stoichiometric upper bound with no kinetics, regulation, or dynamics \u2014 explicitly out-of-regime.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 3.913,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "FBA yields a feasible steady-state stoichiometric upper bound, not a measured in-vivo growth rate, so reading its optimum as an actual bioreactor doubling rate falls squarely out of the instrument's stated regime.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.113,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G07",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Constraining biomass above the achievable maximum forces an infeasible solve, which the instrument explicitly refuses to return a number for \u2014 it cannot model this experiment at all.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.769,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The solve is infeasible/over-constrained \u2014 explicitly out-of-regime \u2014 so the FBA instrument surfaces no number and cannot model this experiment at all.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 6.71,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "An infeasible, over-constrained solve is explicitly out-of-regime and yields no number \u2014 the instrument gates on 'optimal' status and cannot report a growth rate here.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 7.047,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G08",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "FBA computes a single steady-state feasibility optimum with no kinetics, regulation, or dynamics, so it structurally cannot model a time-resolved transient after a nutrient shift.",
+            "right_instrument": "none \u2014 route to human/real experiment (a dynamic/kinetic model such as dFBA or a kinetic ODE metabolic model, not steady-state FBA)",
+            "wall_time_seconds": 5.331,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "FBA is a steady-state LP that models no kinetics, regulation, or dynamics, so it cannot represent time-dependent growth after a nutrient shift.",
+            "right_instrument": "none \u2014 route to human/real experiment (a dynamic/kinetic model such as dFBA or an in-vivo growth assay)",
+            "wall_time_seconds": 6.998,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "FBA computes a steady-state feasibility optimum with no kinetics, dynamics, or regulation, so it cannot model a time-dependent transient growth trajectory after a nutrient shift.",
+            "right_instrument": "none \u2014 route to human/real experiment (a dynamic/kinetic model such as dynamic FBA or an in-vivo growth assay)",
+            "wall_time_seconds": 5.973,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G09",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "FBA resolves only stoichiometric steady-state feasibility and explicitly excludes regulation, so it cannot model growth accounting for transcriptional regulation of the pathways.",
+            "right_instrument": "a regulatory-constrained model (e.g. regulatory FBA/rFBA or an integrated metabolic-regulatory model), or route to a real experiment",
+            "wall_time_seconds": 8.227,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "FBA resolves only steady-state stoichiometry and has no representation of transcriptional regulation, so it cannot model a regulation-dependent growth outcome at all.",
+            "right_instrument": "none \u2014 route to human/real experiment (or a regulatory-constrained method such as a validated regulatory-FBA/kinetic model)",
+            "wall_time_seconds": 6.922,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "FBA optimizes stoichiometric flux with no representation of transcriptional regulation, so it cannot model a regulation-accounting growth outcome at all.",
+            "right_instrument": "a regulatory-constraint method (e.g. regulatory-FBA/PROM or an integrated expression-constrained model), or route to human/real experiment",
+            "wall_time_seconds": 7.686,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G10",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment demands the exact in-vivo growth rate, but an FBA optimum is only a stoichiometric feasibility upper bound with no kinetics, regulation, or dynamics \u2014 explicitly the out-of-regime use the envelope forbids.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 5.151,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The FBA optimum is a stoichiometric steady-state upper bound with no kinetics or regulation, so it cannot yield the absolute in-vivo growth rate a wet-lab will measure \u2014 an explicitly out-of-regime demand.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 5.332,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "An FBA optimum is a stoichiometric feasibility upper bound with no kinetics, regulation, or dynamics, so it cannot yield the exact in-vivo growth rate a wet-lab will measure.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 5.382,
+            "reask_attempts": 1
+          }
+        ]
+      }
+    ]
+  },
+  "wrapper_behavior": {
+    "n_cases": 5,
+    "n_passed": 5,
+    "cases": [
+      {
+        "case_id": "W01",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "model 'not_a_model' is not a baked allowlist model (allowed: e_coli_core, iML1515)",
+        "reason_substring": "allowlist model",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W02",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "quantity 'flux' is not an allowlist QoI (allowed: growth_rate)",
+        "reason_substring": "allowlist QoI",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W03",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "missing required field(s): quantity",
+        "reason_substring": "missing required",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W04",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "unsupported field(s) for cobrapy fba_steady_state: x",
+        "reason_substring": "unsupported field",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W05",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "'min_growth' must be >= 0, got -1.0",
+        "reason_substring": "must be >= 0",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      }
+    ],
+    "note": "scored separately from gate cases; never averaged together"
+  },
+  "cost": {
+    "model_calls": {
+      "model_call": 30,
+      "web_search": 0,
+      "total": 30
+    },
+    "attempts": {
+      "model_call": 30,
+      "web_search": 0,
+      "total": 30
+    },
+    "tokens": {
+      "model_call": {
+        "input_tokens": 62850,
+        "cache_creation_input_tokens": 44076,
+        "cache_read_input_tokens": 594083,
+        "output_tokens": 9268
+      },
+      "web_search": {},
+      "total": {
+        "input_tokens": 62850,
+        "cache_creation_input_tokens": 44076,
+        "cache_read_input_tokens": 594083,
+        "output_tokens": 9268
+      }
+    },
+    "wall_time_seconds": 231.534
+  },
+  "ledger_activity": {
+    "fidelity_entries": 0,
+    "override_entries": 0
+  }
+}

@@ -1,0 +1,985 @@
+{
+  "mode_arg": "auto",
+  "substrate_id": "rdkit",
+  "maturity_at_run": "calibrating",
+  "routable_at_run": false,
+  "timestamp_utc": "2026-07-19T05:02:49Z",
+  "batch_id": "20260719T045938Z",
+  "n_repeats": 3,
+  "gate": {
+    "n_cases": 10,
+    "n_draws": 30,
+    "n_repeats": 3,
+    "confusion": {
+      "in": {
+        "trust": 15,
+        "refine": 0,
+        "defer": 0
+      },
+      "out": {
+        "trust": 0,
+        "refine": 0,
+        "defer": 15
+      }
+    },
+    "confusion_note": "counts over ALL draws (repeats per case); rows sum to n_draws, not n_cases",
+    "hook_witness": {
+      "mode": "auto",
+      "n_gate_cases": 30,
+      "n_raw_trust_or_refine": 15,
+      "n_hook_fired": 15,
+      "hook_fired_matches_raw_trust_refine": true,
+      "routed_trust_case_ids": [],
+      "silent_trust_case_ids": [],
+      "zero_silent_trusts": true,
+      "note": "The hook fires on raw trust/refine only (defer routes nowhere). It is keyed to the registry routable set (currently ['cavity_2d_cfd', 'calculix_cantilever_fea', 'fenicsx_cantilever_elastic', 'sympy_symbolic_exact', 'ngspice_linear_passive'], all non-mature), NOT to the substrate under calibration, which is UNROUTABLE \u2014 see debrief."
+    },
+    "aggregate_in_band": {
+      "n_in_band_draws": 30,
+      "n_draws": 30,
+      "fraction": 1.0
+    },
+    "n_unanimous_cases": 10,
+    "cases": [
+      {
+        "case_id": "G01",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "MolWt of a valid molecule is the tool's exact deterministic computed output being reported as exactly that computed value, with no model-to-reality gap invoked.",
+            "right_instrument": "RDKit deterministic 2D descriptor (MolWt)",
+            "wall_time_seconds": 6.154,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "MolWt of a valid parsed molecule is the tool's exact deterministic computed output used as the computed value itself, not a prediction or proxy for a measured property, so the instrument's output IS the real answer.",
+            "right_instrument": "RDKit computing deterministic 2D molecular descriptors from a valid SMILES",
+            "wall_time_seconds": 4.61,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G01",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "MolWt is a deterministic analytic computation whose in-regime output IS the exact molecular weight of the parsed molecule, not a prediction or measurement with any residual gap to reality.",
+            "right_instrument": "RDKit deterministic 2D descriptor computation (MolWt)",
+            "wall_time_seconds": 5.468,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G02",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "TPSA is the tool's exact deterministic computed output for the parsed molecule \u2014 the descriptor IS the answer, not a prediction or measurement, and the experiment asks for the computed TPSA as such.",
+            "right_instrument": "RDKit computing deterministic 2D molecular descriptors (TPSA)",
+            "wall_time_seconds": 4.155,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "TPSA is an ANSWER-class deterministic computation \u2014 the instrument's output IS the exact computed TPSA of caffeine, and it is reported as the computed value with no claim to be a measured surface area.",
+            "right_instrument": "RDKit deterministic 2D descriptor computation (TPSA)",
+            "wall_time_seconds": 4.928,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G02",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "TPSA is the tool's exact deterministic computed output for the parsed molecule \u2014 it IS the requested computed quantity, not a prediction or a proxy for a measured surface area, and it is reported as the computed TPSA within regime.",
+            "right_instrument": "RDKit deterministic 2D descriptor (TPSA)",
+            "wall_time_seconds": 6.179,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G03",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "HeavyAtomCount is a deterministic graph count read exactly from the parsed valid molecule \u2014 the tool's output IS the answer, not a proxy or prediction.",
+            "right_instrument": "RDKit deterministic 2D descriptor (HeavyAtomCount)",
+            "wall_time_seconds": 4.029,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "HeavyAtomCount is a deterministic graph count that RDKit reads directly from the parsed molecule, so the in-regime output exactly IS the real answer with no model-to-reality gap.",
+            "right_instrument": "RDKit computing DETERMINISTIC 2D molecular descriptors from a single valid, sanitizable small molecule (SMILES).",
+            "wall_time_seconds": 4.958,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G03",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "HeavyAtomCount is a deterministic, exact structural count directly computed from the parsed molecule \u2014 the tool's output IS the answer, with no proxy-to-reality gap for this in-regime, non-measurement quantity.",
+            "right_instrument": "RDKit computing DETERMINISTIC 2D molecular descriptors (HeavyAtomCount)",
+            "wall_time_seconds": 5.134,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G04",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "NumHDonors is a deterministic, analytically-computed graph descriptor whose exact output IS the answer for this valid parsed molecule \u2014 no residual model-to-reality gap since no experimental property is being asserted.",
+            "right_instrument": "RDKit deterministic 2D descriptor computation (NumHDonors)",
+            "wall_time_seconds": 5.791,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "NumHDonors is RDKit's exact deterministic computed output for the parsed molecule and IS the answer being asked for, not a proxy for any measured property.",
+            "right_instrument": "RDKit deterministic 2D descriptor (NumHDonors)",
+            "wall_time_seconds": 3.95,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G04",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "NumHDonors is a deterministic, analytically-computed descriptor whose in-regime output IS the exact answer for the parsed molecule, not a prediction or measurement.",
+            "right_instrument": "RDKit computing deterministic 2D molecular descriptors from a valid SMILES",
+            "wall_time_seconds": 6.325,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G05",
+        "track": "gate",
+        "expected_class": "in",
+        "acceptable_labels": [
+          "trust"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "trust",
+          "trust",
+          "trust"
+        ],
+        "distribution": {
+          "trust": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "trust",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "RingCount is the tool's exact deterministic computed output for the parsed molecule \u2014 the descriptor IS the answer, not a prediction or measurement, and benzene is trivially sanitizable in-regime.",
+            "right_instrument": "RDKit computing DETERMINISTIC 2D molecular descriptors from a single valid, sanitizable small molecule (SMILES)",
+            "wall_time_seconds": 5.261,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "RingCount is the tool's exact deterministic computed output for the parsed molecule \u2014 it directly IS the answer, not a proxy or prediction, and no experimental/measured or 3D interpretation is being asked.",
+            "right_instrument": "RDKit computing deterministic 2D molecular descriptors (RingCount)",
+            "wall_time_seconds": 5.44,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G05",
+            "track": "gate",
+            "expected_class": "in",
+            "acceptable_labels": [
+              "trust"
+            ],
+            "raw_verdict": "trust",
+            "routed_outcome": "defer",
+            "hook_fired": true,
+            "signoff_substrates": [
+              "cavity_2d_cfd@provisional",
+              "calculix_cantilever_fea@calibrating",
+              "fenicsx_cantilever_elastic@calibrating",
+              "sympy_symbolic_exact@calibrating",
+              "ngspice_linear_passive@calibrating"
+            ],
+            "passed": true,
+            "rationale": "RingCount is the tool's exact deterministic computed output for the parsed molecule (the answer IS the descriptor), used in-regime as a computed value with no model-to-reality gap.",
+            "right_instrument": "RDKit deterministic 2D descriptor (RingCount)",
+            "wall_time_seconds": 4.313,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G06",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Crippen MolLogP is a topological computed proxy explicitly out-of-regime when read as an experimental octanol-water partition coefficient, which it does not measure.",
+            "right_instrument": "none \u2014 route to human/real experiment (a physical shake-flask/HPLC logP measurement)",
+            "wall_time_seconds": 9.338,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment reads a Crippen COMPUTED logP as an EXPERIMENTAL octanol-water partition coefficient, which is exactly the instrument's stated out-of-regime misuse.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 5.488,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G06",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment reads a Crippen computed logP as an experimental octanol-water partition coefficient, which is exactly the instrument's stated out-of-regime misuse of a computed proxy as a measurement.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 7.324,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G07",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "RDKit computes deterministic 2D descriptors but does not compute aqueous solubility (logS), which is an ML/empirical-predicted, measurement-class property explicitly outside the instrument's descriptor-only regime.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 9.406,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Aqueous solubility (logS) is an experimental physical property requiring an ML/predictive model, whereas this instrument only computes deterministic 2D descriptor proxies and explicitly excludes ML-predicted properties like solubility.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 11.162,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G07",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "Aqueous solubility (logS) is an ML-predicted/experimental property that lies entirely outside the instrument's deterministic 2D-descriptor output, which computes proxies like MolLogP/TPSA but never resolves or predicts solubility.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 8.747,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G08",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "RDKit's 2D descriptor tool computes no 3D/conformer quantities, so it cannot produce a lowest-energy-conformer radius of gyration at all \u2014 this is explicitly out-of-regime.",
+            "right_instrument": "none \u2014 route to human/real experiment (a 3D conformer generator plus force-field/energy minimization, e.g. RDKit ETKDG embedding + MMFF/quantum optimization computing RadiusOfGyration)",
+            "wall_time_seconds": 6.002,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "RDKit's 2D descriptor tool computes no 3D/conformer quantities, so it cannot produce a lowest-energy-conformer radius of gyration at all \u2014 this is explicitly out-of-regime.",
+            "right_instrument": "a 3D conformer generation and geometry-optimization tool (e.g. RDKit ETKDG embedding + MMFF/UFF minimization, or a QM/MM optimizer) that computes the radius of gyration from the optimized conformer",
+            "wall_time_seconds": 7.862,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G08",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The instrument computes only deterministic 2D descriptors and explicitly excludes 3D/conformer quantities, so it cannot produce a lowest-energy-conformer radius of gyration at all.",
+            "right_instrument": "none \u2014 route to human/real experiment (a 3D conformer-generation + energy-minimization tool, e.g. RDKit ETKDG embedding with MMFF/force-field optimization computing RadiusOfGyration)",
+            "wall_time_seconds": 12.28,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G09",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "TPSA is a topological computed estimate, so it cannot faithfully stand in for an experimentally measured polar surface area \u2014 the model-to-reality gap is exactly what the experiment denies.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 6.765,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "The experiment asks for an experimentally measured polar surface area, but TPSA is a topological computed proxy that never touches a physical measurement \u2014 the exact out-of-regime use the envelope names.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.225,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G09",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "TPSA is a topological computed proxy, so it cannot model an experimentally measured polar surface area at all \u2014 this is exactly the tool's stated out-of-regime misuse.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 4.497,
+            "reask_attempts": 1
+          }
+        ]
+      },
+      {
+        "case_id": "G10",
+        "track": "gate",
+        "expected_class": "out",
+        "acceptable_labels": [
+          "defer"
+        ],
+        "n_repeats": 3,
+        "raw_verdicts": [
+          "defer",
+          "defer",
+          "defer"
+        ],
+        "distribution": {
+          "defer": 3
+        },
+        "unanimous": true,
+        "modal_verdict": "defer",
+        "n_in_band": 3,
+        "in_band_fraction": 1.0,
+        "entropy_bits": 0.0,
+        "draws": [
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "In-vivo oral bioavailability is a 3D/physiological outcome that a deterministic 2D descriptor cannot resolve \u2014 it lies squarely in the instrument's declared out-of-regime zone.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 6.258,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "In-vivo oral bioavailability is a physiological outcome that no deterministic 2D descriptor computes or measures \u2014 the instrument's own stated gap forbids asserting bioavailability from a proxy descriptor.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 8.433,
+            "reask_attempts": 1
+          },
+          {
+            "case_id": "G10",
+            "track": "gate",
+            "expected_class": "out",
+            "acceptable_labels": [
+              "defer"
+            ],
+            "raw_verdict": "defer",
+            "routed_outcome": "defer",
+            "hook_fired": false,
+            "signoff_substrates": [],
+            "passed": true,
+            "rationale": "In-vivo oral bioavailability is a 3D/experimental physiological outcome that a 2D computed descriptor cannot resolve or measure, placing the experiment entirely out of the instrument's stated regime.",
+            "right_instrument": "none \u2014 route to human/real experiment",
+            "wall_time_seconds": 6.474,
+            "reask_attempts": 1
+          }
+        ]
+      }
+    ]
+  },
+  "wrapper_behavior": {
+    "n_cases": 5,
+    "n_passed": 5,
+    "cases": [
+      {
+        "case_id": "W01",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "quantity 'NotADescriptor' is not an allowlist descriptor (allowed: MolWt, ExactMolWt, HeavyAtomCount, NumHDonors, NumHAcceptors, NumRotatableBonds, TPSA, MolLogP, NumAromaticRings, RingCount, FractionCSP3, NOCount)",
+        "reason_substring": "not an allowlist descriptor",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W02",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "'smiles' must be a non-empty string",
+        "reason_substring": "non-empty string",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W03",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "missing required field(s): quantity",
+        "reason_substring": "missing required",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W04",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "unsupported field(s) for rdkit descriptor_computation: sneaky",
+        "reason_substring": "unsupported field",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      },
+      {
+        "case_id": "W05",
+        "track": "wrapper",
+        "expected_class": "setup_error",
+        "wrapper_valid": false,
+        "expect_valid": false,
+        "wrapper_reason": "'smiles' is 5000 bytes, over the 4000-byte cap",
+        "reason_substring": "over the",
+        "reason_matched": true,
+        "passed": true,
+        "wall_time_seconds": 0.0
+      }
+    ],
+    "note": "scored separately from gate cases; never averaged together"
+  },
+  "cost": {
+    "model_calls": {
+      "model_call": 30,
+      "web_search": 0,
+      "total": 30
+    },
+    "attempts": {
+      "model_call": 31,
+      "web_search": 0,
+      "total": 31
+    },
+    "tokens": {
+      "model_call": {
+        "input_tokens": 62850,
+        "cache_creation_input_tokens": 10633,
+        "cache_read_input_tokens": 616676,
+        "output_tokens": 5986
+      },
+      "web_search": {},
+      "total": {
+        "input_tokens": 62850,
+        "cache_creation_input_tokens": 10633,
+        "cache_read_input_tokens": 616676,
+        "output_tokens": 5986
+      }
+    },
+    "wall_time_seconds": 190.966
+  },
+  "ledger_activity": {
+    "fidelity_entries": 0,
+    "override_entries": 0
+  }
+}
