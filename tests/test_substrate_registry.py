@@ -36,6 +36,7 @@ class TestRegistryTable(unittest.TestCase):
                 "ngspice_linear_passive",
                 "rdkit",
                 "cobrapy",
+                "cas_offinder",
                 "web_search",
             ],
         )
@@ -112,6 +113,16 @@ class TestRegistryTable(unittest.TestCase):
         self.assertNotIn("cobrapy", registry.routable_ids())
         with self.assertRaises(LookupError):
             registry.contract_for("cobrapy")
+
+    def test_cas_offinder_enrolled_calibrating_unroutable_and_inert(self):
+        # BIO Wave D.2 increment 3 (Option A, DEFERRED): inert like rdkit/cobrapy.
+        rec = registry.get("cas_offinder")
+        self.assertEqual(rec.maturity, registry.CALIBRATING)
+        self.assertFalse(rec.routable)
+        self.assertEqual(rec.wrapper, "tools/run_cas_offinder.py")
+        self.assertNotIn("cas_offinder", registry.routable_ids())
+        with self.assertRaises(LookupError):
+            registry.contract_for("cas_offinder")
 
     def test_cantilevers_are_calibrating_routable_under_packet_b_phase2(self):
         # the flip's rows: routable=True RULED Packet B Phase 2 (owner

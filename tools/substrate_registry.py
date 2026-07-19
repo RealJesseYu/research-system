@@ -246,6 +246,27 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="cas_offinder",
+        wrapper="tools/run_cas_offinder.py",
+        card_path="docs/envelope_card_cas_offinder.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="low",
+        notes=(
+            "BIO Wave D.2 enrollment (Option A, owner-ruled 2026-07-18): "
+            "RE-TIERED T1 -> DEFERRED — Cas-OFFinder's OpenCL kernel does not "
+            "compute correctly on colima/aarch64 (pocl exits 0 with 0 matches; "
+            "a fabricated '0 off-targets' is the dangerous CRISPR wrong answer). "
+            "Wrapper (tools/run_cas_offinder.py) built with a KNOWN-ANSWER GUARD "
+            "that refuses unless a known-present probe site is found — proven to "
+            "FIRE on this host; input jails proven. Card SKELETON, section 3A "
+            "PENDING-PROVISIONING (no kernel-produced numbers). Pinned: "
+            "cas-offinder 2.4.1 + pocl 7.1 (bioconda, aarch64). Runtime maps "
+            "STAGED in onboarding/cas_offinder/, UNWIRED; contract_for raises. "
+            "Un-defer requires the guard to pass on a validated-kernel host."
+        ),
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",
