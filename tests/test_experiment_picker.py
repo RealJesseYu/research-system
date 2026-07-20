@@ -69,7 +69,7 @@ class TestPickerAccept(unittest.TestCase):
         # The pin is used, this tool only.
         _, kwargs = mock.call_args
         self.assertEqual(kwargs.get("model"), ep.PICKER_MODEL)
-        self.assertEqual(ep.PICKER_MODEL, "claude-opus-4-8")  # owner-ruled all-Opus, 2026-07-20
+        self.assertEqual(ep.PICKER_MODEL, "claude-sonnet-4-6")  # workhorse tier, 2026-07-20
 
 
 class TestPickerReask(unittest.TestCase):

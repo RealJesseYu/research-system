@@ -65,7 +65,7 @@ from web_search import web_search  # noqa: E402
 # Step 18.7 downgrade: all four Generation strategies run on Haiku (the
 # Sonnet proving batch locked the baseline; the kill-rate/k battery is the
 # quality signal for this move).
-HAIKU_MODEL = "claude-opus-4-8"
+SONNET_MODEL = "claude-sonnet-4-6"
 
 TOP_K_PER_SOURCE = 3
 
@@ -522,7 +522,7 @@ def strategy_literature_exploration(
         LITERATURE_SYSTEM_PROMPT,
         stage_input,
         {"required": ["ack_run_id", "hypotheses"]},
-        model=HAIKU_MODEL,
+        model=SONNET_MODEL,
         extra_validator=validator,
         capabilities=FULL,
     )
@@ -592,7 +592,7 @@ def strategy_simulated_debate(
             DEBATE_SYSTEM_PROMPT,
             stage_input,
             {"required": ["ack_run_id", "argument", "hypothesis"]},
-            model=HAIKU_MODEL,
+            model=SONNET_MODEL,
             extra_validator=validator,
             capabilities=FULL,
         )
@@ -652,7 +652,7 @@ def strategy_assumptions_identification(
         ASSUMPTIONS_IDENTIFY_SYSTEM_PROMPT,
         identify_input,
         {"required": ["ack_run_id", "assumptions"]},
-        model=HAIKU_MODEL,
+        model=SONNET_MODEL,
         extra_validator=identify_validator,
         capabilities=FULL,
     )
@@ -699,7 +699,7 @@ def strategy_assumptions_identification(
         ASSUMPTIONS_AGGREGATE_SYSTEM_PROMPT,
         aggregate_input,
         {"required": ["ack_run_id", "hypotheses"]},
-        model=HAIKU_MODEL,
+        model=SONNET_MODEL,
         extra_validator=aggregate_validator,
         capabilities=FULL,
     )
@@ -778,7 +778,7 @@ def strategy_research_expansion(
         EXPANSION_SYSTEM_PROMPT,
         stage_input,
         {"required": ["ack_run_id", "hypotheses"]},
-        model=HAIKU_MODEL,
+        model=SONNET_MODEL,
         extra_validator=validator,
         capabilities=FULL,
     )

@@ -35,7 +35,7 @@ from typing import Any
 from model_call import FULL, call_stage_model
 
 # --- R-19L-1: the picker's model pin, this tool ONLY. ------------------------
-PICKER_MODEL = "claude-opus-4-8"
+PICKER_MODEL = "claude-sonnet-4-6"
 PICKER_STAGE_NAME = "experiment_picker"
 # Hard cap on model attempts: initial call + at most one re-ask, then fallback.
 PICKER_MAX_ATTEMPTS = 2

@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import model_call
 from baton import Baton
 from harness.paper_lint import REQUIRED_HEADING, lint_paper
-from stages import stage6_paper
+from stages import desk_review, stage6_paper
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "paper"
 
@@ -161,7 +161,13 @@ class TestHappyPath(Stage6TestCase):
         # 1 sidecar call + 8 sections x (draft + reflect) + 1 desk screen
         # (2026-07-20) = 18 calls, all on the explicit ruled pin.
         self.assertEqual(len(fake.calls), 18)
-        self.assertEqual(set(fake.models), {stage6_paper.STAGE6_MODEL})
+        # Stage 6 legitimately spans TWO tiers since 2026-07-20: sections are
+        # workhorse drafting, the desk screen is a hard judgment about whether
+        # the paper may stand. Asserting one pin would force them to agree.
+        self.assertEqual(
+            set(fake.models),
+            {stage6_paper.STAGE6_MODEL, desk_review.DESK_REVIEW_MODEL},
+        )
 
         # SIDECAR-FIRST held on every first-pass section call.
         self.assertEqual(len(fake.sidecar_first_observed), 16)

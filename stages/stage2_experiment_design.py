@@ -32,7 +32,7 @@ from tools import substrate_selection
 from tools.qoi_vocab import vocab_for
 from tools.substrate_registry import contract_for
 
-SONNET_MODEL = "claude-opus-4-8"
+SONNET_MODEL = "claude-sonnet-4-6"
 
 # Step 18.5: memory reaches Stage 2. The block is code-composed from journal
 # entries — never model-authored — and framed as instrument lessons, keeping

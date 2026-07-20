@@ -62,7 +62,7 @@ from memory.journal import journal_recent_by_kind
 from stages.desk_review import MAX_DESK_REWRITES, desk_review
 from model_call import call_stage_model, log_stage_call
 
-STAGE6_MODEL = "claude-opus-4-8"  # explicit ruled pin (Step 22)
+STAGE6_MODEL = "claude-sonnet-4-6"  # explicit ruled pin (Step 22)
 
 # The reference seam's mode: "live" (best-effort scholarly retrieval) or
 # "offline" (the canned fixture). Tests and the smoke driver set this to

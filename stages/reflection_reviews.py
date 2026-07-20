@@ -95,11 +95,11 @@ from web_search import web_search  # noqa: E402
 # Haiku; deep verification stays on Sonnet — it feeds a DETERMINISTIC discard
 # with no judgment net downstream, so downgrading it is deferred to its own
 # watched move (see DEEP_VERIFY_MODEL at its sole use site).
-HAIKU_MODEL = "claude-opus-4-8"
-DEEP_VERIFY_MODEL = "claude-opus-4-8"
+SONNET_MODEL = "claude-sonnet-4-6"
+DEEP_VERIFY_MODEL = "claude-sonnet-4-6"
 # Step 17-E ruled pin: review 6 is advisory (no kill path), so it runs on
 # the cheap tier, independent of the other pins.
-REVIEW6_MODEL = "claude-opus-4-8"
+REVIEW6_MODEL = "claude-sonnet-4-6"
 
 TOP_K_PER_SOURCE = 3
 
@@ -532,7 +532,7 @@ def initial_review(
         INITIAL_REVIEW_SYSTEM_PROMPT,
         stage_input,
         {"required": ["ack_run_id", "reviews"]},
-        model=HAIKU_MODEL,
+        model=SONNET_MODEL,
         extra_validator=validator,
         capabilities=FULL,
     )
@@ -610,7 +610,7 @@ def full_review(
             ],
             "enums": {"novelty": ["novel", "known"]},
         },
-        model=HAIKU_MODEL,
+        model=SONNET_MODEL,
         extra_validator=validator,
         capabilities=FULL,
     )
@@ -757,7 +757,7 @@ def observation_review(
                          "accounts_for", "assessment"],
             "enums": {"accounts_for": ["yes", "partially", "no"]},
         },
-        model=HAIKU_MODEL,
+        model=SONNET_MODEL,
         extra_validator=validator,
         capabilities=FULL,
     )
@@ -811,7 +811,7 @@ def simulation_review(
         stage_input,
         {"required": ["ack_run_id", "hypothesis_id", "mental_simulation",
                       "failure_scenarios", "assessment"]},
-        model=HAIKU_MODEL,
+        model=SONNET_MODEL,
         extra_validator=validator,
         capabilities=FULL,
     )
