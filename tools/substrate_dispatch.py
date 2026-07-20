@@ -130,15 +130,102 @@ def wrapper_callable(substrate_id: str):
     return fn
 
 
+# --- artifact capture at the dispatch boundary (2026-07-20) ---------------
+#
+# stages/verification.py can re-run a recorded artifact and check that a claimed
+# number regenerates. It had no caller because nothing emitted artifacts. This
+# is the emitter, and it sits HERE because this is the only place that knows the
+# exact invocation a measurement came from — reconstructing it later from a spec
+# would be a second copy of the translation logic, free to drift from the one
+# that actually ran.
+#
+# Recorded, never reconstructed: each adapter hands _dispatch the input it just
+# built, _dispatch stores it and then makes the call. A recorder that could
+# disagree with the call it describes would be worse than no recorder.
+#
+# The slot is module-level and single-slot because stage 4 executes points
+# strictly sequentially (the same assumption the process-global transcript
+# counter already makes, and on the same parallelization revisit list). The
+# protocol is CLEAR-then-TAKE, so a point whose adapter never reached a wrapper
+# call cannot inherit the previous point's artifact: it takes None, and a
+# measurement with no artifact is reported honestly as unverifiable rather than
+# attributed to someone else's run.
+_LAST_DISPATCH: dict | None = None
+
+# How verification must re-invoke this substrate to regenerate the measurement.
+#   TYPED_DICT — the wrapper takes one typed dict positionally (ngspice, sympy,
+#                the cantilevers, the threaded bio four). The recorded
+#                typed_input IS that dict; re-running is calling the wrapper.
+#   CASE_BUILD — the wrapper takes a built case by name (cavity). The typed
+#                input alone does not regenerate the measurement, because the
+#                case synthesis that produced it happened above the wrapper
+#                call; regeneration re-invokes the ADAPTER, which rebuilds the
+#                case from the recorded params and roles.
+CALL_TYPED_DICT = "typed_dict"
+CALL_CASE_BUILD = "case_build"
+
+
+def clear_dispatch_record() -> None:
+    """Drop any recorded artifact. Called BEFORE an execution attempt so a
+    failed or short-circuited one cannot leave the previous point's artifact
+    behind to be harvested as this point's."""
+    global _LAST_DISPATCH
+    _LAST_DISPATCH = None
+
+
+def take_dispatch_record() -> dict | None:
+    """Pop the artifact for the invocation just made, or None if no wrapper
+    call was reached. Popping (rather than peeking) is what makes a stale read
+    impossible: an artifact can be harvested exactly once, by the point that
+    produced it."""
+    global _LAST_DISPATCH
+    record, _LAST_DISPATCH = _LAST_DISPATCH, None
+    return record
+
+
+def _dispatch(substrate_id, typed_input, *, call_style=CALL_TYPED_DICT,
+              args=None, kwargs=None, adapter_input=None):
+    """Record the artifact for this invocation, then make it.
+
+    Every wrapper call in this module goes through here, so "what was recorded"
+    and "what was run" are the same object by construction rather than by
+    agreement.
+    """
+    global _LAST_DISPATCH
+    call_args = list(args) if args is not None else [typed_input]
+    call_kwargs = dict(kwargs) if kwargs is not None else {}
+    _LAST_DISPATCH = {
+        "kind": "substrate",
+        "substrate_id": substrate_id,
+        "call_style": call_style,
+        "typed_input": typed_input,
+        "adapter_input": adapter_input,
+    }
+    return wrapper_callable(substrate_id)(*call_args, **call_kwargs)
+
+
 def _cavity_adapter(substrate_id, params, case_name, roles, qoi_request):
     """Field-reduction (cavity-class) execution: synthesize the case via the
     builder, then the IDENTICAL wrapper call stage 4 has always made —
     (case_name, qoi_request=...). Late-bound on purpose (builder as a module
     attribute, wrapper resolved at call time) so the seams stay patchable and
     single-sourced. CaseSynthesisError propagates to stage 4's honest
-    halted_synthesis path, exactly as before D.4."""
+    halted_synthesis path, exactly as before D.4.
+
+    The recorded artifact is CASE_BUILD-style: it carries the params and roles
+    the case was synthesized from, because re-running the wrapper against the
+    case dir left on disk would only re-read a case, not regenerate it.
+    """
     stage4_case_builder.build_case(params, case_name, roles=roles)
-    return wrapper_callable(substrate_id)(case_name, qoi_request=qoi_request)
+    return _dispatch(
+        substrate_id,
+        {"case_name": case_name, "qoi_request": qoi_request},
+        call_style=CALL_CASE_BUILD,
+        args=[case_name],
+        kwargs={"qoi_request": qoi_request},
+        adapter_input={"params": params, "case_name": case_name,
+                       "roles": roles, "qoi_request": qoi_request},
+    )
 
 
 def ngspice_qoi_request(spec_qoi) -> dict:
@@ -214,7 +301,7 @@ def _ngspice_adapter(substrate_id, params, case_name, roles, qoi_request):
     typed = {
         k: (qoi_request if k == "qoi" else params[k]) for k in _REQUIRED_FIELDS
     }
-    return wrapper_callable(substrate_id)(typed)
+    return _dispatch(substrate_id, typed)
 
 
 def _sympy_adapter(substrate_id, params, case_name, roles, qoi_request):
@@ -246,7 +333,7 @@ def _sympy_adapter(substrate_id, params, case_name, roles, qoi_request):
             f"unknown key(s) {', '.join(unknown)} (the wrapper input takes "
             f"only keys from {', '.join(_SCIPY_INPUT_KEYS)})"
         )
-    return wrapper_callable(substrate_id)(dict(params))
+    return _dispatch(substrate_id, dict(params))
 
 
 def _cantilever_adapter(substrate_id, params, case_name, roles, qoi_request,
@@ -279,7 +366,7 @@ def _cantilever_adapter(substrate_id, params, case_name, roles, qoi_request,
             f"unknown key(s) {', '.join(unknown)} (the wrapper input takes "
             f"only keys from {', '.join(input_keys)})"
         )
-    return wrapper_callable(substrate_id)(dict(params))
+    return _dispatch(substrate_id, dict(params))
 
 
 def _fea_adapter(substrate_id, params, case_name, roles, qoi_request):
@@ -354,7 +441,7 @@ def _fixed_summary_threaded_adapter(substrate_id, params, case_name, roles,
         )
     typed = dict(params)
     typed["quantity"] = qoi_request["quantity"]
-    return wrapper_callable(substrate_id)(typed)
+    return _dispatch(substrate_id, typed)
 
 
 _THREADED_CONTENT_KEYS: dict[str, tuple] = {

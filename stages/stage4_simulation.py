@@ -60,9 +60,11 @@ from stages.stage4_case_builder import CaseSynthesisError
 from tools.qoi_vocab import vocab_for
 from tools.substrate_dispatch import (
     adapter_for,
+    clear_dispatch_record,
     qoi_translation_for,
     regime_content_inputs,
     run_entry_constructor_for,
+    take_dispatch_record,
 )
 from tools.substrate_selection import select_substrate
 
@@ -167,17 +169,44 @@ def run_one_point(
     """
     if case_name is None:
         case_name = f"{run_id}_run{index}"
+    # CLEAR-then-TAKE (2026-07-20): the artifact this point is about to produce
+    # is recorded at the dispatch boundary, which is the only place that sees
+    # the actual wrapper invocation. Clearing first means a point that halts
+    # before any wrapper call harvests None rather than the previous point's
+    # artifact — an unverifiable measurement is reported as such, never
+    # attributed to a run that did not produce it.
+    clear_dispatch_record()
     try:
         summary = adapter(substrate_id, params, case_name, parameter_roles, qoi_request)
     except CaseSynthesisError as exc:
         halt_reason = f"run {index} of {total}: {exc}"
         _log_line(run_id, f"STAGE4 halted_synthesis at {halt_reason}")
         return None, None, halt_reason
+    artifact = take_dispatch_record()
+    if artifact is None:
+        # The adapter returned without reaching a wrapper call, so nothing here
+        # can regenerate this measurement. Record that fact rather than nothing:
+        # verification then reports the point as unrunnable and COUNTS it. An
+        # omitted record would shrink the denominator instead, which is how an
+        # unverifiable number comes to look like a verified one.
+        artifact = {"kind": "substrate", "substrate_id": substrate_id,
+                    "unrecorded": True}
+    elif isinstance(qoi_request, dict):
+        # The name of the number read out of the summary. Recorded alongside the
+        # inputs because an artifact regenerates a whole summary, and a claim is
+        # about one quantity within it.
+        artifact["quantity"] = qoi_request.get("quantity") or qoi_request.get("field")
+        artifact["qoi_request"] = qoi_request
     evidence_run = {
         "run_index": index,
         "case": case_name,
         "params": params,
         "summary": summary,
+        # EVIDENCE ONLY. The artifact deliberately does NOT enter the payload
+        # run entry: that shape is locked ({converged, qoi_value|qoi_error,
+        # wall_clock_s}) and fixture-pinned byte-identical. Verification reads
+        # artifacts from this evidence file, so the baton lock is untouched.
+        "artifact": artifact,
     }
     payload_run = entry_constructor(summary, qoi_error_fallback, qoi_request)
     # the qoi display tolerates both wrapper shapes: cavity's {value: …}
@@ -194,6 +223,43 @@ def run_one_point(
         f"qoi={qoi_display}",
     )
     return evidence_run, payload_run, None
+
+
+def split_artifacts(evidence_runs: list) -> list:
+    """Lift each point's artifact out of its evidence run into a separate
+    record, and return the records.
+
+    WHY A SEPARATE FILE. results.json is byte-identity-pinned for cavity
+    (tests/fixtures/d4/expected_results.json, re-verified at every substrate
+    wave), and an additive key there would break a pin that exists to catch
+    exactly the kind of quiet drift this build could introduce. Artifacts are
+    their own evidence class, so they get their own file, and the pinned shape
+    is left alone.
+
+    Mutates the evidence runs (popping the in-memory key) so the caller cannot
+    write the artifact into both files and let them disagree later.
+    """
+    artifacts = []
+    for run in evidence_runs:
+        if not isinstance(run, dict):
+            continue
+        artifacts.append({
+            "run_index": run.get("run_index"),
+            "case": run.get("case"),
+            "artifact": run.pop("artifact", None),
+        })
+    return artifacts
+
+
+def write_artifacts(stage_dir: Path, evidence_runs: list) -> None:
+    """Split the artifacts out of the evidence runs and write them beside
+    results.json. Always writes, even when every artifact is None: an absent
+    file and a file recording that nothing was reproducible are different
+    claims, and only the second one is honest about what happened."""
+    records = split_artifacts(evidence_runs)
+    (stage_dir / "artifacts.json").write_text(
+        json.dumps({"runs": records}, indent=2, default=str)
+    )
 
 
 def run(baton: Baton) -> Baton:
@@ -329,6 +395,8 @@ def run(baton: Baton) -> Baton:
     if label == "refine":
         results["flag"] = REFINE_FLAG
         execution_results["flag"] = REFINE_FLAG
+    # Artifacts out first: results.json must keep its pinned shape.
+    write_artifacts(stage_dir, evidence_runs)
     (stage_dir / "results.json").write_text(json.dumps(results, indent=2))
 
     payload = dict(baton.payload)

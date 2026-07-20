@@ -82,15 +82,59 @@ def rerun_artifact(artifact: dict) -> dict:
                 else summary.get("diagnostics")}
 
     if kind == "substrate":
-        from tools.substrate_dispatch import wrapper_callable
+        from tools.substrate_dispatch import (
+            CALL_CASE_BUILD,
+            adapter_for,
+            run_entry_constructor_for,
+            wrapper_callable,
+        )
         sid = artifact.get("substrate_id")
         typed = artifact.get("typed_input")
         if not sid or not isinstance(typed, dict):
             raise ArtifactError(
                 "substrate artifact needs substrate_id and a typed_input object")
-        summary = wrapper_callable(sid)(dict(typed))
-        return {"value": summary.get("qoi"), "error": None if summary.get("valid")
-                else summary.get("diagnostics")}
+
+        if artifact.get("call_style") == CALL_CASE_BUILD:
+            # The measurement came from a wrapper reading a case that was
+            # SYNTHESIZED above the wrapper call. Re-running the wrapper against
+            # the case still on disk would re-read that case, not regenerate it
+            # — it would reproduce a build error as faithfully as a good build.
+            # So regeneration re-invokes the ADAPTER, which rebuilds the case
+            # from the recorded inputs, into a case name of its own so the
+            # original run's evidence is never overwritten.
+            adapter_input = artifact.get("adapter_input")
+            if not isinstance(adapter_input, dict):
+                raise ArtifactError(
+                    f"substrate artifact for {sid!r} is case-build style but "
+                    "carries no adapter_input, so the case it measured cannot "
+                    "be rebuilt")
+            summary = adapter_for(sid)(
+                sid,
+                adapter_input.get("params"),
+                f"{adapter_input.get('case_name')}_verify",
+                adapter_input.get("roles"),
+                adapter_input.get("qoi_request"),
+            )
+        else:
+            summary = wrapper_callable(sid)(dict(typed))
+
+        # THE INSTRUMENT READ STAYS MECHANICAL. The reproduced number is taken
+        # from the summary by the substrate's OWN run-entry constructor — the
+        # same code that read the original measurement — rather than by reaching
+        # for summary["qoi"] here. Those differ: cavity returns {value: ...},
+        # the cantilevers return a dict of named numbers the request selects
+        # from, and homology_search's clean no-hit is a None that is a result
+        # rather than a failure. A second, simpler reader in this file would be
+        # a second opinion about what the instrument said.
+        try:
+            entry = run_entry_constructor_for(sid)(
+                summary, None, artifact.get("qoi_request"))
+        except (ValueError, LookupError, KeyError) as e:
+            return {"value": None, "error": f"could not read the re-run summary: {e}"}
+        if "qoi_value" in entry:
+            return {"value": entry["qoi_value"], "error": None}
+        return {"value": None,
+                "error": entry.get("qoi_error") or "the re-run produced no value"}
 
     raise ArtifactError(
         f"unknown artifact kind {kind!r} — verification can re-run 'code' and "
@@ -156,6 +200,75 @@ def verify_claim(claim: dict, rel_tol: float = DEFAULT_REL_TOL) -> dict:
 
     return {"verified": True, "reason": "reproduced", "original": original,
             "reproduced": reproduced, "rel_error": rel_error}
+
+
+def claims_from_run(run_id: str) -> list:
+    """Collect the run's measured claims as [{value, artifact, label}], read
+    from stage-4 evidence on disk.
+
+    WHY DISK RATHER THAN THE BATON. The payload schema is locked and cumulative
+    — a key added at one boundary is required at every later one — so claims
+    cannot ride the baton without a recorded ruling, and they do not need to:
+    stage 4 already writes the full wrapper summary (results.json) and the
+    artifact that regenerates it (artifacts.json, kept separate so results.json
+    keeps its pinned shape). The two are joined here on run_index.
+
+    The VALUE is taken through the substrate's own run-entry constructor, so the
+    number verified is the number the run recorded, not a second reading of the
+    summary taken here.
+
+    A measured value whose artifact is missing is still returned, deliberately,
+    carrying artifact None: verify_claim reports it as `no_artifact`. Dropping it
+    would quietly shrink the denominator and let an unverifiable measurement pass
+    by never being counted — the "unscreened must never be recorded as passed"
+    failure in a different costume.
+    """
+    from tools.substrate_dispatch import run_entry_constructor_for
+
+    stage_dir = Path("runs") / str(run_id) / "stage4"
+    results_path = stage_dir / "results.json"
+    if not results_path.is_file():
+        return []
+    try:
+        results = json.loads(results_path.read_text())
+    except (ValueError, OSError):
+        return []
+
+    artifacts_by_index = {}
+    artifacts_path = stage_dir / "artifacts.json"
+    if artifacts_path.is_file():
+        try:
+            for record in json.loads(artifacts_path.read_text()).get("runs") or []:
+                if isinstance(record, dict):
+                    artifacts_by_index[record.get("run_index")] = record.get("artifact")
+        except (ValueError, OSError):
+            artifacts_by_index = {}
+
+    claims = []
+    for run in results.get("runs") or []:
+        if not isinstance(run, dict):
+            continue
+        artifact = artifacts_by_index.get(run.get("run_index"))
+        summary = run.get("summary")
+        value = None
+        if isinstance(artifact, dict) and artifact.get("substrate_id"):
+            try:
+                entry = run_entry_constructor_for(artifact["substrate_id"])(
+                    summary, None, artifact.get("qoi_request"))
+                value = entry.get("qoi_value")
+            except (ValueError, LookupError, KeyError, TypeError):
+                value = None
+        if value is None:
+            # No number was measured here (a failed or valueless run). There is
+            # nothing to claim, so there is nothing to verify.
+            continue
+        quantity = artifact.get("quantity") or "qoi"
+        claims.append({
+            "value": value,
+            "artifact": artifact,
+            "label": f"run {run.get('run_index', '?')} {quantity}",
+        })
+    return claims
 
 
 def verify_run(claims: list, run_id: str = None, rel_tol: float = DEFAULT_REL_TOL) -> dict:

@@ -35,6 +35,7 @@ from stages.stage4_simulation import (
     _log_line,
     extract_parameter_roles,
     run_one_point,
+    write_artifacts,
 )
 from tools.experiment_picker import (
     _spec_fixed_and_sweep,
@@ -488,6 +489,9 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
     if label == "refine":
         results["flag"] = REFINE_FLAG
         execution_results["flag"] = REFINE_FLAG
+    # Artifacts out first (same rule as the single-run path): results.json keeps
+    # its pinned shape, and every campaign point's measurement stays verifiable.
+    write_artifacts(stage_dir, evidence_runs)
     (stage_dir / "results.json").write_text(json.dumps(results, indent=2, default=str))
 
     # The campaign audit trail lives OUTSIDE the baton (D2).

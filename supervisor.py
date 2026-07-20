@@ -225,7 +225,75 @@ def record_run_outcome(baton: Baton, how_far: str, retry_on_total_defer: int = 0
     if blank_memory_active():
         extras["blank_memory"] = True
         text = f"[BLANK_MEMORY] {text}"
+    # VERIFICATION (2026-07-20). run_verification_pass stashes its summary on the
+    # baton as a NON-payload attribute — the same channel _maturity_signoff and
+    # _barren_diagnosis use, for the same reason (the payload schema is locked).
+    # Whether the run's numbers survived an independent re-run belongs in the
+    # permanent record, not only in the log: a reader of the journal must be able
+    # to tell a standing paper from one whose numbers did not reproduce.
+    verification = getattr(baton, "_verification", None)
+    if isinstance(verification, dict):
+        extras["verification"] = {
+            "publishable": verification.get("publishable"),
+            "verified": verification.get("verified"),
+            "total": verification.get("total"),
+        }
+        text += (
+            f", verification={verification.get('verified')}/{verification.get('total')}"
+            f" publishable={verification.get('publishable')}"
+        )
     journal_append({"run_id": baton.run_id, "kind": "run_record", "text": text, "extras": extras})
+
+
+def run_verification_pass(logger: Logger, baton: Baton) -> dict:
+    """Re-run every measured claim's artifact and decide whether this run's
+    paper stands. Deterministic Python; no model anywhere in this path.
+
+    Runs after stage 6 and before the run is recorded, on every path that
+    produced a paper. The verdict is logged loudly and stashed on the baton for
+    record_run_outcome.
+
+    FAILS CLOSED. If the pass itself breaks, the run is NOT publishable: an
+    unverified paper must never be recorded as a verified one, which is the same
+    failure the desk screen had when a malformed reviewer reply returned "pass".
+    The distinction between "checked and failed" and "could not be checked"
+    survives in the reason, because they call for different responses — but
+    neither one lets a paper stand.
+    """
+    from stages.verification import claims_from_run, verify_run
+
+    try:
+        claims = claims_from_run(baton.run_id)
+        summary = verify_run(claims, run_id=baton.run_id)
+    except Exception as e:  # noqa: BLE001 — see FAILS CLOSED above
+        summary = {
+            "total": 0, "verified": 0, "failed": 0, "publishable": False,
+            "verdicts": [],
+            "error": f"the verification pass could not run: {type(e).__name__}: {e}",
+        }
+        logger.log(f"VERIFICATION ERROR: {summary['error']} — run is NOT publishable")
+
+    baton._verification = summary
+
+    if summary.get("publishable"):
+        logger.log(
+            f"VERIFICATION: {summary['verified']}/{summary['total']} claims "
+            "independently reproduced — the paper's numbers stand."
+        )
+    else:
+        failed = [
+            f"{v.get('label')}: {v.get('reason')}"
+            for v in summary.get("verdicts", []) if not v.get("verified")
+        ]
+        detail = "; ".join(failed) if failed else (
+            summary.get("error") or summary.get("note") or "no verifiable claims"
+        )
+        logger.log(
+            f"VERIFICATION FAILED: {summary.get('verified', 0)}/"
+            f"{summary.get('total', 0)} claims reproduced — THIS PAPER DOES NOT "
+            f"STAND as a verified result [{detail}]"
+        )
+    return summary
 
 
 def _run_dir_for(baton: Baton) -> Path:
@@ -1633,9 +1701,12 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
     # line. Stage 6 returning without raising means the paper passed lint.
     if forced_exit_reason == "loop_bound":
         paper_path = run_dir / "stage6" / "paper.md"
+        verification = run_verification_pass(logger, baton)
+        standing = "stands" if verification.get("publishable") else "DOES NOT STAND"
         logger.log(
             f"FORCED-EXIT (loop_bound): paper -> {paper_path} ; "
-            "lint verdict=clean (stage 6 completed lint-clean)"
+            f"lint verdict=clean (stage 6 completed lint-clean) ; "
+            f"verification: paper {standing}"
         )
         logger.log(
             f"=== supervisor run {baton.run_id} ended (loop bound, forced exit "
@@ -1645,8 +1716,18 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
         record_run_outcome(baton, "completed_loop_bound_forced_exit", retry_used)
         return
 
+    # After stage 6, before the run is declared complete: every number this run
+    # would publish must survive an independent re-run of the artifact that
+    # produced it.
+    verification = run_verification_pass(logger, baton)
+    standing = (
+        "paper stands (all claims reproduced)"
+        if verification.get("publishable")
+        else "PAPER DOES NOT STAND (claims unverified)"
+    )
     logger.log(
-        f"=== supervisor run {baton.run_id} complete: {len(baton.history)} history entries ==="
+        f"=== supervisor run {baton.run_id} complete: {len(baton.history)} "
+        f"history entries; {standing} ==="
     )
     # 19-lite/retry build: a "completed" run that is nonetheless a total defer
     # (defer verdict, nothing executed) is NOT a clean exit — leave a memo. A
