@@ -214,6 +214,75 @@ class TestCapabilityAndCost(BenchBase):
         self.assertFalse(out["reasoning"].startswith("fallback:"))
 
 
+class TestTheRealCallPath(BenchBase):
+    """The bench agent's ACTUAL call assembly, with only the transport faked.
+
+    Everything else is real: the capability guard runs, the transcript is
+    written before the call fires, the validator is enforced inside the door's
+    re-ask loop. This is the plumbing a live outing would otherwise discover the
+    expensive way.
+    """
+
+    def _call(self, replies, spec=None):
+        sent = []
+        queue = list(replies)
+
+        def transport(system_prompt, user_turn, model, *args, **kwargs):
+            sent.append(user_turn)
+            return queue.pop(0)
+
+        with unittest.mock.patch.object(model_call, "_invoke_transport", transport):
+            out = bench.propose_bench_actions(
+                spec if spec is not None else _failing_spec(),
+                [{"point": {"min_growth": 0.0},
+                  "qoi_error": "input rejected: model 'iJO1366' is not a baked "
+                               "allowlist model (allowed: e_coli_core, iML1515)"}],
+                5,
+                context={"substrate_id": "cobrapy",
+                         "wrapper_path": "tools/run_cobrapy.py",
+                         "qoi_request": {"quantity": "growth_rate"},
+                         "iteration": 2},
+            )
+        return out, sent
+
+    def test_the_guard_admits_this_stage_and_the_call_completes(self):
+        reply = json.dumps({
+            "reasoning": "the allowlist rejected iJO1366; using a permitted model",
+            "points": [{"min_growth": 0.0}],
+            "predicted_qoi_per_point": [0.87],
+        })
+        out, sent = self._call([reply])
+        self.assertEqual(out["points"], [{"min_growth": 0.0}])
+        self.assertFalse(out["stop"])
+
+    def test_the_agent_is_shown_the_diagnostic_and_where_to_read_the_constraint(self):
+        reply = json.dumps({"reasoning": "r", "points": [{"min_growth": 0.1}],
+                            "predicted_qoi_per_point": [None]})
+        _out, sent = self._call([reply])
+        self.assertIn("allowlist", sent[0])
+        self.assertIn("tools/run_cobrapy.py", sent[0])
+
+    def test_a_malformed_proposal_is_re_asked_not_accepted(self):
+        bad = json.dumps({"reasoning": "r", "points": [{"min_growth": 0.1}],
+                          "predicted_qoi_per_point": []})  # length mismatch
+        good = json.dumps({"reasoning": "fixed", "points": [{"min_growth": 0.1}],
+                           "predicted_qoi_per_point": [0.5]})
+        out, sent = self._call([bad, good])
+        self.assertEqual(len(sent), 2, "the bad proposal should have been re-asked")
+        self.assertIn("read positionally", sent[1])
+        self.assertEqual(out["predicted_qoi_per_point"], [0.5])
+
+    def test_a_spec_repair_survives_the_round_trip(self):
+        repaired = _failing_spec("iML1515")
+        reply = json.dumps({
+            "reasoning": "repairing the model to an allowlisted one",
+            "points": [{"min_growth": 0.0}], "predicted_qoi_per_point": [None],
+            "revised_spec": repaired,
+        })
+        out, _sent = self._call([reply])
+        self.assertEqual(out["revised_spec"]["regime"]["model"], "iML1515")
+
+
 class TestDiagnosticsReachTheAgent(BenchBase):
     def test_wrapper_diagnostics_are_passed_through_verbatim(self):
         """The whole design turns on this string arriving intact — a summarized
