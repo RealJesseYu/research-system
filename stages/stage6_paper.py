@@ -47,6 +47,7 @@ STAGE_MODEL_CALL lines, and an ack_run_id echo check.
 
 from __future__ import annotations
 
+import re
 import json
 from pathlib import Path
 
@@ -58,6 +59,7 @@ from harness.paper_lint import (
     validate_validation_items,
 )
 from memory.journal import journal_recent_by_kind
+from stages.desk_review import MAX_DESK_REWRITES, desk_review
 from model_call import call_stage_model, log_stage_call
 
 STAGE6_MODEL = "claude-opus-4-8"  # explicit ruled pin (Step 22)
@@ -129,8 +131,12 @@ _SECTION_GUIDANCE = {
         "does not carry."
     ),
     "References": (
-        "A numbered markdown list of the provided references: ref id, source, "
-        "title. If no references were provided, state that honestly in one line."
+        "A numbered markdown list of ONLY the references actually cited in "
+        "this paper's body: ref id, source, title. A reference that is "
+        "provided but not cited anywhere is NOT part of this paper's "
+        "references and must be omitted — retrieval returns candidates, not a "
+        "bibliography, and listing an uncited or off-topic source is a defect. "
+        "If nothing was cited, state that honestly in one line."
     ),
 }
 
@@ -393,6 +399,73 @@ def _draft_section(
     return data["section_markdown"]
 
 
+def cited_ref_ids(sections: dict) -> set[str]:
+    """The ref ids actually cited in the paper BODY (every section except
+    References itself). Ids are cited in brackets per the draft prompt, so a
+    bare word boundary match on R<n> is the detection — deliberately generous,
+    because over-detecting keeps a reference that is arguably used while
+    under-detecting would delete a legitimate citation's entry."""
+    body = "\n".join(
+        text for name, text in sections.items()
+        if name != "References" and isinstance(text, str)
+    )
+    return set(re.findall(r"\bR\d+\b", body))
+
+
+def prune_uncited_references(sections: dict, refs: list) -> tuple[dict, list]:
+    """Delete from the References section every entry the body never cites.
+
+    Run 20260720T080610Z shipped an E. coli metabolic paper whose reference
+    list was a CMS/LHCb dimuon-decay paper, an ATLAS detector-performance
+    paper, and an IceCube/LIGO neutrino search — none cited anywhere in the
+    body, and none related to the subject. They arrived because arXiv's
+    full-sentence all: queries return off-topic noise (a KNOWN issue since
+    Step 17 chunk 3) and the References prompt said to list every reference
+    PROVIDED rather than every reference USED.
+
+    This is code, not prompt text, because an irrelevant citation is a desk
+    rejection on its own and 'anything we can't afford to have broken goes in
+    code'. Returns (sections, dropped) — sections with a rebuilt References
+    body, and the dropped records for the log. A paper citing nothing gets an
+    honest one-line References section rather than a fabricated list.
+    """
+    cited = cited_ref_ids(sections)
+    kept = [r for r in refs if r.get("ref") in cited]
+    dropped = [r for r in refs if r.get("ref") not in cited]
+    if not dropped:
+        return sections, []
+    sections = dict(sections)
+    if kept:
+        sections["References"] = "\n\n".join(
+            f"{n}. {r.get('ref')} ({r.get('year', 'n.d.')}). "
+            f"{r.get('source', '')}. {r.get('title', '')}".strip()
+            for n, r in enumerate(kept, start=1)
+        )
+    else:
+        sections["References"] = (
+            "No references are cited in this paper: the retrieved literature "
+            "was not relevant to the work reported here."
+        )
+    return sections, dropped
+
+
+def _write_pruned(run_id: str, paper_path, sections: dict, refs: list) -> None:
+    """Assemble and write the paper with uncited references pruned.
+
+    Pruning happens at WRITE time and never mutates the working `sections`
+    dict, so a lint regeneration always feeds back the model's own section
+    text rather than a pruned copy of it.
+    """
+    pruned, dropped = prune_uncited_references(sections, refs)
+    if dropped:
+        _log(
+            run_id,
+            f"REFS_PRUNED {len(dropped)} uncited reference(s) dropped from the "
+            f"paper: {', '.join(str(r.get('ref')) for r in dropped)}",
+        )
+    paper_path.write_text(assemble_paper(pruned))
+
+
 def assemble_paper(sections: dict) -> str:
     """Code-authored assembly: Title and Abstract as-is (it carries its own
     '# ' title line), every other section under a code-written '## ' heading
@@ -441,7 +514,7 @@ def run(baton: Baton) -> Baton:
 
     sections = {name: _draft_section(run_id, name, section_base(name))
                 for name in SECTION_NAMES}
-    paper_path.write_text(assemble_paper(sections))
+    _write_pruned(run_id, paper_path, sections, refs)
 
     # Lint-with-error-feedback: regenerate ONLY what failed, bounded.
     failures = lint_paper(run_id)
@@ -473,7 +546,7 @@ def run(baton: Baton) -> Baton:
             sections[name] = _draft_section(
                 run_id, name, section_base(name), lint_feedback=feedback
             )
-        paper_path.write_text(assemble_paper(sections))
+        _write_pruned(run_id, paper_path, sections, refs)
         failures = lint_paper(run_id)
 
     if failures:
@@ -484,10 +557,50 @@ def run(baton: Baton) -> Baton:
             f"Failures: {failures}"
         )
 
+    # DESK-REJECTION SCREEN (owner-ruled 2026-07-20). The lint is mechanical —
+    # headings present, sidecar well-formed. This asks the different question:
+    # would a handling editor send this out for review? A manuscript defect
+    # ("rewrite") is repaired here, bounded; a manuscript the experiment itself
+    # cannot support ("redesign") is stashed for the supervisor, which owns
+    # loop-backs. Both routes only ever fire on an actual reject.
+    execution_results = baton.payload.get("execution_results") or {}
+    review = desk_review(run_id, paper_path.read_text(), execution_results)
+    rewrites = 0
+    while (
+        review["desk_reject"]
+        and review["remedy"] == "rewrite"
+        and rewrites < MAX_DESK_REWRITES
+    ):
+        rewrites += 1
+        _log(run_id, f"DESK_REVIEW rewrite {rewrites}/{MAX_DESK_REWRITES}")
+        for name in SECTION_NAMES:
+            sections[name] = _draft_section(
+                run_id, name, section_base(name),
+                lint_feedback=[
+                    "A journal editor desk-rejected the previous draft for: "
+                    + "; ".join(review["reasons"])
+                    + ". Fix this without overstating what was measured."
+                ],
+            )
+        _write_pruned(run_id, paper_path, sections, refs)
+        if lint_paper(run_id):
+            break  # a rewrite that breaks the lint is worse; keep the lint-clean text
+        review = desk_review(run_id, paper_path.read_text(), execution_results)
+
+    (stage_dir / "desk_review.json").write_text(json.dumps(review, indent=2))
+    if review["desk_reject"]:
+        # NON-payload attribute (the payload schema is locked), same channel as
+        # the barren diagnosis. The supervisor decides what to do about it.
+        baton._desk_reject = review
+
     baton.add_history(
         "stage6_paper",
         f"paper written: fidelity_class={fidelity_class}, "
         f"{len(sidecar['validation_items'])} validation item(s), "
-        f"{len(SECTION_NAMES)} sections, lint clean",
+        f"{len(SECTION_NAMES)} sections, lint clean, "
+        # Three states, never two: an UNSCREENED paper must never be recorded
+        # as having passed the screen. That conflation is precisely how a
+        # quality gate silently stops being one.
+        f"desk_screen={'unscreened' if not review.get('checked') else ('reject' if review['desk_reject'] else 'pass')}",
     )
     return baton

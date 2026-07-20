@@ -119,6 +119,15 @@ CRASH_RECOVERY_ENV = "CRASH_RECOVERY"
 RETRY_ON_BARREN_ENV = "RETRY_ON_BARREN"
 MAX_BARREN_REDESIGNS = 2
 
+# DESK-REJECTION REDESIGN (owner-ruled 2026-07-20). Stage 6 screens its own
+# finished paper the way a handling editor would (stages/desk_review.py) and
+# repairs manuscript-level defects itself. When the editor's remedy is
+# "redesign" — the experiment cannot support any paper — the fix is upstream,
+# so the supervisor loops back to stage 2 on its own bounded counter, exactly
+# as the barren gate does. Same default-on rule and the same opt-out shape.
+RETRY_ON_DESK_REJECT_ENV = "RETRY_ON_DESK_REJECT"
+MAX_DESK_REDESIGNS = 1
+
 _UNSET = object()  # sentinel: no pending nudge-env restore
 
 # Gate-5 override letters -> iterate decisions (Step 16).
@@ -1310,6 +1319,8 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
     # DEFAULT ON in both modes (owner instruction) — opt OUT with RETRY_ON_BARREN=0.
     barren_enabled = os.environ.get(RETRY_ON_BARREN_ENV, "1") != "0"
     barren_redesigns_used = 0
+    desk_enabled = os.environ.get(RETRY_ON_DESK_REJECT_ENV, "1") != "0"
+    desk_redesigns_used = 0
     pending_nudge_restore = _UNSET  # env value to restore after the retried pass
     crash_loopbacks_used = 0  # wide fix: bounded crash -> ideation recoveries
     # Crash recovery mirrors retry_enabled EXACTLY: auto mode + env opt-in only.
@@ -1571,6 +1582,49 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
                         continue
                 # enacted == "exit" (or a loop-bound forced exit): fall through
                 # to stage 6 exactly as before.
+
+        # DESK-REJECTION REDESIGN. Stage 6 already repaired whatever it could
+        # by rewriting; reaching here means the editor judged the underlying
+        # experiment incapable of supporting a paper. That is an upstream fix,
+        # so it loops back to stage 2 carrying the editor's reasons. Budget
+        # spent => the paper stands with the rejection recorded beside it,
+        # rather than looping forever chasing an editor's approval.
+        if stage_number == 6 and desk_enabled:
+            review = getattr(baton, "_desk_reject", None)
+            if review and review.get("remedy") == "redesign":
+                reasons = "; ".join(review.get("reasons") or []) or "?"
+                if desk_redesigns_used >= MAX_DESK_REDESIGNS:
+                    logger.log(
+                        f"DESK REJECT: redesign budget spent "
+                        f"({desk_redesigns_used}/{MAX_DESK_REDESIGNS}) — paper "
+                        f"stands with the rejection recorded [{reasons}]"
+                    )
+                else:
+                    desk_redesigns_used += 1
+                    logger.log(
+                        f"DESK REJECT (remedy=redesign): [{reasons}] — "
+                        f"redesigning ({desk_redesigns_used}/"
+                        f"{MAX_DESK_REDESIGNS}), looping back to stage 2"
+                    )
+                    baton._barren_diagnosis = {
+                        "status": "desk_rejected",
+                        "reason": (
+                            "A journal editor desk-rejected the paper this "
+                            "experiment produced: " + reasons
+                        ),
+                        "distinct_errors": [],
+                        "runs_attempted": 0,
+                        "runs_with_data": 0,
+                    }
+                    baton._desk_reject = None
+                    i = apply_loopback_surgery(logger, baton, "back_to_design")
+                    enforce_boundary_schema(
+                        logger,
+                        baton,
+                        f"gate 1 (desk redesign {desk_redesigns_used})",
+                        schemas.validate_payload_post_gate1,
+                    )
+                    continue
 
         i += 1
 

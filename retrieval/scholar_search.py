@@ -115,24 +115,102 @@ def _http_get(url: str, headers: dict[str, str], what: str, retries: int = MAX_R
     )
 
 
+# arXiv's all: field ORs the terms of an unquoted multi-word query, so a
+# full-sentence hypothesis statement scores enormous, heavily-indexed papers
+# (CMS, ATLAS, IceCube) above anything on the actual subject. Known since Step
+# 17 chunk 3, where the models correctly declined to cite the noise; run
+# 20260720T080610Z then shipped an E. coli paper whose entire reference list
+# was three particle-physics collaborations, because nothing downstream
+# rechecked relevance. ANDing the salient terms is the fix at the source.
+_ARXIV_STOPWORDS = frozenset("""
+a an the and or but if then than that this these those of in on at to for from
+by with without within into over under as is are was were be been being it its
+we our you your they their he she his her i me my do does did doing have has
+had having will would shall should can could may might must not no nor so such
+about above below between through during before after here there when where why
+how all any both each few more most other some only own same too very just also
+""".split())
+
+# The relaxation ladder, measured live against arXiv 2026-07-20 on the FBA
+# hypothesis sentence from run 20260720T080610Z:
+#   8 terms -> 0 hits (over-constrained)
+#   5 terms -> on-topic (metabolic-network steady-state growth; E. coli
+#              metabolism scaling) — the first rung that actually works
+#   4 terms -> drifts off topic (solar maximum, glass transition)
+#   3 terms -> noise again
+# So 6 is the opening bid and the ladder relaxes only when a rung returns
+# NOTHING, never to widen an already-answered query. Recall is preserved
+# without paying the precision cost up front.
+_ARXIV_MAX_TERMS = 6
+_ARXIV_TERM_LADDER = (6, 5, 4)
+
+
+def build_arxiv_query(query: str, max_terms: int | None = None) -> str:
+    """Turn free text into an arXiv search_query that stays on topic.
+
+    Content words are ANDed inside all:, so every hit must match all of them;
+    stopwords are dropped and order is preserved. A query with no content
+    words left (or already carrying arXiv field syntax) falls back to the
+    original all: form rather than issuing something empty.
+
+    Pure — no I/O, so the term selection is unit-testable without a network.
+    """
+    text = (query or "").strip()
+    if not text:
+        return ""
+    if ":" in text and any(
+        text.startswith(p) for p in ("all:", "ti:", "abs:", "au:", "cat:")
+    ):
+        return text  # already field-qualified; caller knows what it wants
+    limit = _ARXIV_MAX_TERMS if max_terms is None else max_terms
+    words = re.findall(r"[A-Za-z][A-Za-z0-9_-]+", text)
+    terms, seen = [], set()
+    for w in words:
+        lw = w.lower()
+        if lw in _ARXIV_STOPWORDS or lw in seen or len(lw) < 3:
+            continue
+        seen.add(lw)
+        terms.append(w)
+        if len(terms) >= limit:
+            break
+    if not terms:
+        return f"all:{text}"
+    return " AND ".join(f"all:{t}" for t in terms)
+
+
 def search_arxiv(query: str, top_k: int = 3) -> list[dict]:
     """Search arXiv by relevance and return at most top_k bounded records.
 
     Each record is {"source": "arxiv:<id>", "title", "year",
     "snippet": <abstract capped at SNIPPET_CAP chars>}.
+
+    The query is narrowed by build_arxiv_query before it is sent (see the note
+    there on why a raw full-sentence all: query returns off-topic noise), and
+    relaxed down _ARXIV_TERM_LADDER only while a rung returns NOTHING. An
+    empty list is an honest result — arXiv genuinely has nothing matching —
+    and is never padded with lower-relevance hits.
     """
     if not query or not query.strip():
         raise ValueError("search_arxiv: query must be a non-empty string")
     if top_k < 1:
         raise ValueError(f"search_arxiv: top_k must be >= 1, got {top_k}")
 
+    for rung in _ARXIV_TERM_LADDER:
+        records = _search_arxiv_once(build_arxiv_query(query, rung), top_k)
+        if records:
+            return records
+    return []
+
+
+def _search_arxiv_once(search_query: str, top_k: int) -> list[dict]:
+    """One throttled arXiv request for an already-built search_query."""
     global _last_arxiv_request_monotonic
     since_last = time.monotonic() - _last_arxiv_request_monotonic
     if since_last < ARXIV_MIN_INTERVAL_SECONDS:
         time.sleep(ARXIV_MIN_INTERVAL_SECONDS - since_last)
 
     params = {
-        "search_query": f"all:{query.strip()}",
+        "search_query": search_query,
         "start": 0,
         "max_results": top_k,
         "sortBy": "relevance",
@@ -280,16 +358,30 @@ def _reconstruct_abstract(inverted_index: dict) -> str:
     return " ".join(word for _, word in placed)
 
 
+# OpenAlex's search= endpoint parses a small set of characters as query
+# operators and returns HTTP 400 on a bare occurrence of any of them. Probed
+# live against api.openalex.org (each char embedded in a normal query):
+# EXACTLY these four reject — "!" (NOT), "*" (wildcard), "?" (wildcard), "|"
+# (OR). Every other ASCII punctuation mark (including — : ( ) . , and long
+# queries) passes. "|" was the Step-18 alt-domain root cause (2026-07-13);
+# "?" was the FBA-domain root cause (2026-07-19, a natural question-phrased
+# domain). Kept as an evidence-based SET so the next operator char is one
+# entry, not another incident.
+_OPENALEX_SEARCH_REJECT = ("!", "*", "?", "|")
+
+
 def _sanitize_openalex_search(query: str) -> str:
-    """OpenAlex rejects a literal "|" in search= with HTTP 400 — the server
-    parses it as malformed OR syntax (confirmed live 2026-07-13; the root
-    cause of the two Step-18 alt-domain aborts). Replace each pipe with a
-    single space, then collapse the doubled spaces that creates. Only "|" is
-    touched; pipe-free queries pass through byte-identical."""
+    """Make `query` safe for OpenAlex search= by replacing each operator
+    character OpenAlex rejects (see _OPENALEX_SEARCH_REJECT) with a single
+    space, then collapsing the doubled spaces that creates. This touches ONLY
+    the literature search string — never the model-visible domain/hypothesis
+    text, which flows to the prompts unchanged. A query free of every reject
+    character passes through byte-identical."""
     text = query.strip()
-    if "|" not in text:
+    if not any(ch in text for ch in _OPENALEX_SEARCH_REJECT):
         return text
-    text = text.replace("|", " ")
+    for ch in _OPENALEX_SEARCH_REJECT:
+        text = text.replace(ch, " ")
     while "  " in text:
         text = text.replace("  ", " ")
     return text.strip()

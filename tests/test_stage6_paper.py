@@ -56,13 +56,15 @@ FAKE_ITEMS = {
 
 class FakeTransport:
     """Answers every stage-6 call with valid JSON, keyed off the stage_input
-    the stage assembled (sidecar task vs section draft/reflect). Records
+    the stage assembled (sidecar task vs section draft/reflect vs the
+    2026-07-20 desk screen). Records
     every (stage_input, model) pair for assertions."""
 
     def __init__(self):
         self.calls: list[dict] = []
         self.models: list[str] = []
         self.sidecar_first_observed: list[bool] = []
+        self.desk_reviews: list[dict] = []
 
     def __call__(self, system_prompt: str, user_turn: str, model: str) -> str:
         payload = json.loads(user_turn)
@@ -76,6 +78,15 @@ class FakeTransport:
                     "ack_run_id": run_id,
                     "validation_items": FAKE_ITEMS[stage_input["fidelity_class"]],
                 }
+            )
+        # A desk-screen call (2026-07-20): the paper exists by now, and the
+        # fake passes it so the happy path stays a happy path. The reject
+        # routes have their own tests against real reviewer output.
+        if "manuscript_markdown" in stage_input:
+            self.desk_reviews.append(stage_input)
+            return json.dumps(
+                {"ack_run_id": run_id, "desk_reject": False,
+                 "reasons": [], "remedy": "none"}
             )
         # A section call: SIDECAR-FIRST means the sidecar file must already
         # exist on disk while the paper does not yet (checked on every
@@ -147,9 +158,9 @@ class TestHappyPath(Stage6TestCase):
         run_id = "s6-trust"
         baton, fake = self.run_stage(run_id, "verdict_trust.json")
 
-        # 1 sidecar call + 8 sections x (draft + reflect) = 17 calls, all
-        # on the explicit ruled pin.
-        self.assertEqual(len(fake.calls), 17)
+        # 1 sidecar call + 8 sections x (draft + reflect) + 1 desk screen
+        # (2026-07-20) = 18 calls, all on the explicit ruled pin.
+        self.assertEqual(len(fake.calls), 18)
         self.assertEqual(set(fake.models), {stage6_paper.STAGE6_MODEL})
 
         # SIDECAR-FIRST held on every first-pass section call.
@@ -286,7 +297,7 @@ class TestLintFeedbackLoop(Stage6TestCase):
             baton = stage6_paper.run(baton)
         # 17 first-pass calls + regeneration: 1 sidecar + draft/reflect of
         # the sidecar-derived What Humans Must Validate section = 20.
-        self.assertEqual(len(fake.calls), 20)
+        self.assertEqual(len(fake.calls), 21)  # +1 desk screen
         regen_calls = fake.calls[17:]
         self.assertEqual(regen_calls[0]["task"], "validation_sidecar")
         self.assertEqual(
@@ -317,7 +328,7 @@ class TestLintFeedbackLoop(Stage6TestCase):
             stage6_paper, "lint_paper", lambda rid: next(lint_results)
         ):
             stage6_paper.run(baton)
-        self.assertEqual(len(fake.calls), 19)  # 17 + draft/reflect of one section
+        self.assertEqual(len(fake.calls), 20)  # 17 + one section redraft + desk screen
         self.assertEqual(fake.calls[17]["section"], REQUIRED_HEADING)
         self.assertEqual(
             fake.calls[17]["lint_errors_to_fix"], ["synthetic heading defect"]
