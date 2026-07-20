@@ -95,11 +95,11 @@ from web_search import web_search  # noqa: E402
 # Haiku; deep verification stays on Sonnet — it feeds a DETERMINISTIC discard
 # with no judgment net downstream, so downgrading it is deferred to its own
 # watched move (see DEEP_VERIFY_MODEL at its sole use site).
-HAIKU_MODEL = "claude-haiku-4-5-20251001"
-DEEP_VERIFY_MODEL = "claude-sonnet-4-6"
+HAIKU_MODEL = "claude-opus-4-8"
+DEEP_VERIFY_MODEL = "claude-opus-4-8"
 # Step 17-E ruled pin: review 6 is advisory (no kill path), so it runs on
 # the cheap tier, independent of the other pins.
-REVIEW6_MODEL = "claude-haiku-4-5-20251001"
+REVIEW6_MODEL = "claude-opus-4-8"
 
 TOP_K_PER_SOURCE = 3
 

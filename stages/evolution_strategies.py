@@ -78,7 +78,7 @@ from scholar_search import search_openalex  # noqa: E402
 
 # Explicit ruled pin: Evolution emits on Sonnet regardless of Generation's
 # Step-18.7 Haiku downgrade — variant authorship is judged worth the tier.
-EVOLUTION_MODEL = "claude-sonnet-4-6"
+EVOLUTION_MODEL = "claude-opus-4-8"
 EVOLUTION_MAX_VARIANTS = 2
 
 # Variant 2's strategy rotates over these; variant 1 is always simplification.

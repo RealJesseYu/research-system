@@ -60,7 +60,7 @@ from harness.paper_lint import (
 from memory.journal import journal_recent_by_kind
 from model_call import call_stage_model, log_stage_call
 
-STAGE6_MODEL = "claude-haiku-4-5-20251001"  # explicit ruled pin (Step 22)
+STAGE6_MODEL = "claude-opus-4-8"  # explicit ruled pin (Step 22)
 
 # The reference seam's mode: "live" (best-effort scholarly retrieval) or
 # "offline" (the canned fixture). Tests and the smoke driver set this to

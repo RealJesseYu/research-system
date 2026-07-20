@@ -97,6 +97,28 @@ FEASIBILITY_NUDGE_ENV = "FEASIBILITY_NUDGE"
 # FIRST occurrence — memo + crashed run_record + exit 1 — exactly as before this
 # fix. Naming matches the no-prefix style of RETRY_ON_TOTAL_DEFER / FEASIBILITY_NUDGE.
 CRASH_RECOVERY_ENV = "CRASH_RECOVERY"
+
+# BARREN-RUN REDESIGN (owner-ruled 2026-07-20, after run 20260720T080610Z).
+# A "barren" run is one that reached the end of stage 4 having produced ZERO
+# usable measurements: every mini-run came back with a qoi_error and no run
+# yielded a value, or synthesis halted before anything executed. Such a run is
+# not a scientific result — there is nothing to think about and nothing to
+# write up — so it must NEVER be allowed to reach stage 5/6 and become a paper
+# about its own failure. It loops back to stage 2 carrying the VERBATIM
+# execution diagnostics, so the redesign is a diagnosis and not a re-roll.
+#
+# DEFAULT ON, BOTH MODES — a deliberate departure from the opt-in convention of
+# RETRY_ON_TOTAL_DEFER / CRASH_RECOVERY, per the owner's explicit instruction
+# that this must not require being asked for. Set RETRY_ON_BARREN=0 to disable.
+#
+# The budget is its OWN counter, independent of MAX_LOOPBACKS: a barren run is
+# an executional failure, not the thought layer's scientific judgment, and
+# spending the scientific loop budget on plumbing would starve the real loop.
+# When the budget is spent the run ends HONESTLY (no paper is fabricated) —
+# a bounded retry, never an unbounded reroll.
+RETRY_ON_BARREN_ENV = "RETRY_ON_BARREN"
+MAX_BARREN_REDESIGNS = 2
+
 _UNSET = object()  # sentinel: no pending nudge-env restore
 
 # Gate-5 override letters -> iterate decisions (Step 16).
@@ -230,6 +252,61 @@ def is_total_defer(baton: Baton) -> bool:
     runs = exec_res.get("runs")
     zero_executed = not runs  # None / missing / empty list -> nothing ran
     return verdict == "defer" and zero_executed
+
+
+def is_barren(baton: Baton) -> bool:
+    """True iff stage 4 finished having produced ZERO usable measurements.
+
+    Three shapes qualify (all: no run anywhere yielded a value):
+      * status 'executed' with runs present, every one carrying qoi_error —
+        run 20260720T080610Z's shape: three cobrapy solves rejected on a
+        missing typed field before the solver started;
+      * status 'halted_synthesis' — the spec could not be turned into a case,
+        so nothing executed at all;
+      * any other non-defer status with no run carrying a qoi_value.
+
+    NOT barren, deliberately:
+      * skipped_defer — a defer verdict is the fidelity gate working; that path
+        belongs to is_total_defer, which has its own ruled retry;
+      * a PARTIALLY barren run — if even one run returned a value there IS
+        data, and an absent value elsewhere may be the finding itself (a
+        cobrapy infeasibility onset is a result, not a failure). Barren means
+        the run measured NOTHING, not that something came back empty.
+    """
+    exec_res = baton.payload.get("execution_results") or {}
+    status = exec_res.get("status")
+    if status == "skipped_defer":
+        return False
+    runs = exec_res.get("runs") or []
+    if any("qoi_value" in r for r in runs):
+        return False  # at least one real measurement — there is data
+    return status == "halted_synthesis" or bool(runs)
+
+
+def barren_diagnosis(baton: Baton) -> dict:
+    """The verbatim, model-free diagnosis carried back to stage 2 on a barren
+    loop-back. Composed by deterministic Python from what stage 4 recorded —
+    no paraphrase, because the actionable content of 'input rejected: missing
+    required field(s): model' lives in its exact wording and a prose summary
+    would launder it away.
+
+    Distinct errors are de-duplicated (three identical rejections are ONE
+    lesson, and repeating it three times would only crowd the context).
+    """
+    exec_res = baton.payload.get("execution_results") or {}
+    errors, seen = [], set()
+    for r in exec_res.get("runs") or []:
+        err = r.get("qoi_error")
+        if err and err not in seen:
+            seen.add(err)
+            errors.append(err)
+    return {
+        "status": exec_res.get("status"),
+        "reason": exec_res.get("reason"),
+        "distinct_errors": errors,
+        "runs_attempted": len(exec_res.get("runs") or []),
+        "runs_with_data": 0,
+    }
 
 
 def apply_substrate_maturity_hook(logger: Logger, baton: Baton, mode: str) -> None:
@@ -1230,6 +1307,9 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
     # => the retry branch is never entered and control flow is byte-identical.
     retry_used = 0
     retry_enabled = mode == "auto" and os.environ.get(RETRY_ON_TOTAL_DEFER_ENV) == "1"
+    # DEFAULT ON in both modes (owner instruction) — opt OUT with RETRY_ON_BARREN=0.
+    barren_enabled = os.environ.get(RETRY_ON_BARREN_ENV, "1") != "0"
+    barren_redesigns_used = 0
     pending_nudge_restore = _UNSET  # env value to restore after the retried pass
     crash_loopbacks_used = 0  # wide fix: bounded crash -> ideation recoveries
     # Crash recovery mirrors retry_enabled EXACTLY: auto mode + env opt-in only.
@@ -1328,6 +1408,46 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
         # the signoff requirement for the run record + the gate-5 display.
         if stage_number == 3:
             apply_substrate_maturity_hook(logger, baton, mode)
+
+        # BARREN-RUN REDESIGN (2026-07-20). Fires the moment stage 4 returns,
+        # BEFORE the thought layer or the paper agent can spend a call on a run
+        # that measured nothing. A barren run is an executional failure, so it
+        # goes back to stage 2 (the spec is what needs fixing — the hypothesis
+        # and the chosen instrument were never tested) carrying the verbatim
+        # diagnostics. Budget spent => the run ends honestly rather than
+        # producing a paper about its own plumbing.
+        if stage_number == 4 and barren_enabled and is_barren(baton):
+            diagnosis = barren_diagnosis(baton)
+            errs = "; ".join(diagnosis["distinct_errors"]) or diagnosis.get("reason") or "?"
+            if barren_redesigns_used >= MAX_BARREN_REDESIGNS:
+                logger.log(
+                    f"BARREN RUN: {diagnosis['runs_attempted']} run(s), 0 with data "
+                    f"[{errs}] — redesign budget spent "
+                    f"({barren_redesigns_used}/{MAX_BARREN_REDESIGNS}); ending the "
+                    "run honestly rather than writing a paper with no data"
+                )
+                write_failure_memo_safe(logger, run_dir)
+                record_run_outcome(baton, "halted_barren_budget_spent", retry_used)
+                return
+            barren_redesigns_used += 1
+            logger.log(
+                f"BARREN RUN: {diagnosis['runs_attempted']} run(s) executed, 0 "
+                f"produced a value [{errs}] — NOT writing this up; redesigning "
+                f"({barren_redesigns_used}/{MAX_BARREN_REDESIGNS}), looping back "
+                "to stage 2 with the verbatim execution diagnostics"
+            )
+            # NON-payload attribute: the payload schema is locked (Step 15), and
+            # this rides the same channel as _maturity_signoff. Stage 2 reads it
+            # off the baton and composes it into its input.
+            baton._barren_diagnosis = diagnosis
+            i = apply_loopback_surgery(logger, baton, "back_to_design")
+            enforce_boundary_schema(
+                logger,
+                baton,
+                f"gate 1 (barren redesign {barren_redesigns_used})",
+                schemas.validate_payload_post_gate1,
+            )
+            continue
 
         if i in GATE_AFTER_STAGE_INDEX:
             gate_name = f"after_stage_{stage_number}"

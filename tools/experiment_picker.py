@@ -35,7 +35,7 @@ from typing import Any
 from model_call import call_stage_model
 
 # --- R-19L-1: the picker's model pin, this tool ONLY. ------------------------
-PICKER_MODEL = "claude-sonnet-4-6"
+PICKER_MODEL = "claude-opus-4-8"
 PICKER_STAGE_NAME = "experiment_picker"
 # Hard cap on model attempts: initial call + at most one re-ask, then fallback.
 PICKER_MAX_ATTEMPTS = 2
@@ -342,3 +342,109 @@ def propose_next_points(spec: Any, prior_results: Any, budget_remaining: Any) ->
         f"uniform-coverage fallback."
     )
     return _uniform_coverage_fallback(spec, budget_remaining)
+
+
+# ---------------------------------------------------------------------------
+# Step 29 feature #1: a deterministic active-learning planner for the campaign
+# STRATEGIES socket. Same (spec, prior_results, budget_remaining) -> {points,
+# reasoning, predicted_qoi_per_point} contract as propose_next_points, so it
+# drops into the socket as a one-line registration. ZERO model calls: it fits a
+# piecewise-linear surrogate over prior observations and samples where that
+# surrogate is least resolved, predicting the sample by linear interpolation —
+# a real prediction the campaign's numeric compare then tests (a match means
+# the surrogate holds there and the region is resolved). Never raises; never
+# emits a 'fallback:'-tagged reasoning (that string is reserved for the silent
+# degradation the campaign refuses).
+# ---------------------------------------------------------------------------
+
+
+def _adaptive_result(name: str, x: float, predicted, reasoning: str) -> dict:
+    return {
+        "points": [{name: x}],
+        "reasoning": reasoning,
+        "predicted_qoi_per_point": [predicted],
+    }
+
+
+def propose_adaptive_points(spec: Any, prior_results: Any, budget_remaining: Any) -> dict:
+    """Active-learning planner: sample where the observed QoI is least resolved.
+
+    Bootstrap samples the two endpoints of the primary sweep range; thereafter
+    it proposes the midpoint of the adjacent observed pair with the largest QoI
+    change (the least-resolved sub-interval), predicting it by linear
+    interpolation. An already-resolved region (the informative midpoint
+    coincides with an existing sample) returns no points — an honest, bounded
+    stop. Deterministic and model-free.
+    """
+    fixed, sweep = _spec_fixed_and_sweep(spec)
+    try:
+        budget = max(int(budget_remaining), 0)
+    except (TypeError, ValueError):
+        budget = 0
+    if budget <= 0 or not sweep:
+        return {
+            "points": [],
+            "reasoning": "adaptive: no declared sweep range or no budget remaining; nothing to propose.",
+            "predicted_qoi_per_point": [],
+        }
+
+    # Primary sweep parameter, chosen deterministically (first by sorted name).
+    name = sorted(sweep)[0]
+    raw_lo, raw_hi = sweep[name]
+    lo, hi = float(min(raw_lo, raw_hi)), float(max(raw_lo, raw_hi))
+    span = hi - lo
+    eps = abs(span) * 1e-9 if span else 1e-9
+
+    # Observed (x, y) at this parameter, from prior numeric results only.
+    observed: list[tuple[float, float]] = []
+    for r in prior_results or []:
+        if not isinstance(r, dict):
+            continue
+        pt = r.get("point")
+        x = pt.get(name) if isinstance(pt, dict) else None
+        y = r.get("qoi_value")
+        if (
+            isinstance(x, (int, float))
+            and not isinstance(x, bool)
+            and isinstance(y, (int, float))
+            and not isinstance(y, bool)
+        ):
+            observed.append((float(x), float(y)))
+    observed.sort()
+
+    if not observed:
+        return _adaptive_result(
+            name, lo, None, f"adaptive: bootstrap at sweep '{name}' lower endpoint {lo}."
+        )
+    if len(observed) == 1:
+        x0 = observed[0][0]
+        target = hi if abs(x0 - lo) <= abs(x0 - hi) else lo  # the far endpoint
+        return _adaptive_result(
+            name, target, None, f"adaptive: second endpoint at sweep '{name}' = {target}."
+        )
+
+    # >=2 observed: midpoint of the widest-change adjacent sub-interval.
+    best = None  # (score, xmid, y_interp)
+    for (x1, y1), (x2, y2) in zip(observed, observed[1:]):
+        if abs(x2 - x1) <= eps:
+            continue
+        score = abs(y2 - y1)
+        xmid = (x1 + x2) / 2.0
+        y_interp = (y1 + y2) / 2.0
+        if best is None or score > best[0]:
+            best = (score, xmid, y_interp)
+
+    if best is None:
+        return {
+            "points": [],
+            "reasoning": f"adaptive: sweep '{name}' region resolved; no informative midpoint remains.",
+            "predicted_qoi_per_point": [],
+        }
+    _score, xmid, y_interp = best
+    return _adaptive_result(
+        name,
+        xmid,
+        y_interp,
+        f"adaptive: refining widest-change interval at sweep '{name}' midpoint {xmid} "
+        f"(linear prediction {y_interp}).",
+    )

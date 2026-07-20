@@ -289,7 +289,7 @@ class TestEvolveAndReview(TmpRunDirTest):
             prov = r["provenance"]
             self.assertEqual(set(prov), {"parent_ids", "strategy", "model"})
             self.assertEqual(prov["model"], EVOLUTION_MODEL)
-            self.assertEqual(EVOLUTION_MODEL, "claude-sonnet-4-6")
+            self.assertEqual(EVOLUTION_MODEL, "claude-opus-4-8")  # owner-ruled all-Opus, 2026-07-20
             self.assertTrue(set(prov["parent_ids"]) <= parent_ids)
             self.assertTrue(r["accepted"])
             self.assertIsNone(r["reject_reason"])

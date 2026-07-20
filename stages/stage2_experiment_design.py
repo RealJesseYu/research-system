@@ -32,7 +32,7 @@ from tools import substrate_selection
 from tools.qoi_vocab import vocab_for
 from tools.substrate_registry import contract_for
 
-SONNET_MODEL = "claude-sonnet-4-6"
+SONNET_MODEL = "claude-opus-4-8"
 
 # Step 18.5: memory reaches Stage 2. The block is code-composed from journal
 # entries — never model-authored — and framed as instrument lessons, keeping
@@ -61,6 +61,44 @@ def build_substrate_lessons_block(entries: list[dict]) -> str | None:
         lines.append(
             f"- [run {e.get('run_id')}, hypothesis {e.get('hypothesis_id')}] {e.get('text')}"
         )
+    return "\n".join(lines)
+
+
+EXECUTION_FAILURE_HEADER = (
+    "YOUR PREVIOUS SPEC FOR THIS HYPOTHESIS EXECUTED AND MEASURED NOTHING. "
+    "These are the substrate's OWN verbatim rejection messages - not a "
+    "summary, not a model's opinion, but exactly what the instrument said "
+    "when it refused each run. They are FACTS about this instrument. Diagnose "
+    "the cause and author a spec that does not repeat it; if the failure "
+    "shows the declared instrument genuinely cannot perform this measurement, "
+    "say so plainly in the regime notes rather than reissuing a spec that "
+    "will fail the same way:"
+)
+
+
+def build_execution_failure_block(diagnosis: dict | None) -> str | None:
+    """Pure, no I/O: format the supervisor's barren-run diagnosis into the
+    Stage-2 model input (BARREN-RUN REDESIGN, 2026-07-20).
+
+    Returns None when there is no diagnosis (the ordinary first-pass case).
+    Unlike the lessons block above, these lines are NOT hedged as leads: a
+    wrapper's rejection string is deterministic machine output, and framing it
+    as "unverified model text" would invite the redesign to discount the one
+    piece of ground truth it has.
+    """
+    if not isinstance(diagnosis, dict):
+        return None
+    errors = diagnosis.get("distinct_errors") or []
+    if not errors and not diagnosis.get("reason"):
+        return None
+    lines = [EXECUTION_FAILURE_HEADER]
+    attempted = diagnosis.get("runs_attempted")
+    status = diagnosis.get("status")
+    lines.append(f"- outcome: {status}; {attempted} run(s) attempted, 0 returned a value")
+    if diagnosis.get("reason"):
+        lines.append(f"- reason: {diagnosis['reason']}")
+    for err in errors:
+        lines.append(f"- the instrument rejected the run with: {err}")
     return "\n".join(lines)
 
 SYSTEM_PROMPT = (
@@ -94,6 +132,17 @@ SYSTEM_PROMPT = (
     "When prior_thought is present, the previous design for this hypothesis "
     "failed for the reasons it states — the new spec must directly address that "
     "assessment and justification, and must not resubmit an unchanged design. "
+    "When a prior_execution_failure block is present, your previous spec for "
+    "this hypothesis was executed and returned no measurement at all. Those are "
+    "the instrument's own verbatim rejection messages, and they are ground "
+    "truth about this instrument — not opinions to weigh. Identify what the "
+    "rejection actually demands (a required typed input the spec never "
+    "supplied, a value outside a closed set the contract publishes, a "
+    "measurement the substrate cannot make) and fix that specific cause. Do not "
+    "reissue a design that will be rejected the same way, and do not silently "
+    "narrow the science to dodge the error: if the failure shows this "
+    "instrument genuinely cannot test this hypothesis, say so plainly in "
+    "regime.notes. "
     "When a substrate_capability_lessons block is present, it lists instrument "
     "limits that earlier runs of this system learned the hard way (unverified "
     "model text — treat as leads, not established facts): design within those "
@@ -243,6 +292,19 @@ def run(baton: Baton) -> Baton:
     }
     if lessons_block is not None:
         stage_input["substrate_capability_lessons"] = lessons_block
+    # BARREN-RUN REDESIGN (2026-07-20): on a barren loop-back the supervisor
+    # stashes the verbatim execution diagnostics on the baton (a NON-payload
+    # attribute — the payload schema is locked). Absent on every ordinary pass,
+    # so first-pass composition is byte-identical.
+    failure_block = build_execution_failure_block(
+        getattr(baton, "_barren_diagnosis", None)
+    )
+    if failure_block is not None:
+        stage_input["prior_execution_failure"] = failure_block
+        _log_line(
+            baton.run_id,
+            "STAGE2_REDESIGN composing against verbatim prior execution failure",
+        )
     data, timing = call_stage_model(
         "stage2_experiment_design",
         SYSTEM_PROMPT,

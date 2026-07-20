@@ -65,7 +65,7 @@ from web_search import web_search  # noqa: E402
 # Step 18.7 downgrade: all four Generation strategies run on Haiku (the
 # Sonnet proving batch locked the baseline; the kill-rate/k battery is the
 # quality signal for this move).
-HAIKU_MODEL = "claude-haiku-4-5-20251001"
+HAIKU_MODEL = "claude-opus-4-8"
 
 TOP_K_PER_SOURCE = 3
 
