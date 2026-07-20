@@ -22,7 +22,11 @@ from model_call import _write_transcript
 
 
 class TestWriteTranscript(unittest.TestCase):
-    def test_five_keys_and_exact_serialized_input(self):
+    def test_eight_keys_and_exact_serialized_input(self):
+        """Five keys became eight on 2026-07-20 (capabilities, allowed_tools,
+        max_turns). The profile is evidence, not decoration: the same input run
+        SEALED and run FULL are different experiments, and a reader who cannot
+        tell which one produced a record cannot judge the result."""
         with tempfile.TemporaryDirectory() as tmp:
             old_cwd = os.getcwd()
             os.chdir(tmp)
@@ -44,8 +48,15 @@ class TestWriteTranscript(unittest.TestCase):
                         "timestamp_utc",
                         "system_prompt",
                         "stage_input_serialized",
+                        "capabilities",
+                        "allowed_tools",
+                        "max_turns",
                     },
                 )
+                # Default is unchanged: a call that does not opt in is sealed.
+                self.assertEqual(data["capabilities"], "sealed")
+                self.assertEqual(data["allowed_tools"], [])
+                self.assertEqual(data["max_turns"], 1)
                 self.assertEqual(data["stage_input_serialized"], serialized)
                 self.assertEqual(data["stage_name"], "stage_x_test")
                 self.assertEqual(data["model"], "model-y")

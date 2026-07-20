@@ -34,7 +34,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from model_call import call_stage_model, log_stage_call
+from model_call import FULL, call_stage_model, log_stage_call
 
 # Explicit ruled pin: meta-review is a hard judgment call (Opus), regardless
 # of the Step-18.7 Haiku downgrades elsewhere in stage 1.
@@ -301,6 +301,7 @@ def build_meta_review(run_id: str, round_index: int, round_record: dict) -> dict
             {"required": ["ack_run_id", *(f for f, _cap in _LIST_FIELDS), "research_overview"]},
             model=META_REVIEW_MODEL,
             extra_validator=meta_review_validator,
+            capabilities=FULL,
         )
         if data["ack_run_id"] != run_id:
             raise RuntimeError(

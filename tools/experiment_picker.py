@@ -32,7 +32,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from model_call import call_stage_model
+from model_call import FULL, call_stage_model
 
 # --- R-19L-1: the picker's model pin, this tool ONLY. ------------------------
 PICKER_MODEL = "claude-opus-4-8"
@@ -323,6 +323,7 @@ def propose_next_points(spec: Any, prior_results: Any, budget_remaining: Any) ->
                 call_input,
                 {},  # permissive door-schema; strict validation is done here
                 model=PICKER_MODEL,
+                capabilities=FULL,
             )
         except Exception as exc:  # transport/parse exhaustion — degrade, never crash
             last_error = f"model call failed: {exc}"

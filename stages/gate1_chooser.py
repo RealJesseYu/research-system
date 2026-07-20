@@ -40,7 +40,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from model_call import call_stage_model, log_stage_call
+from model_call import FULL, call_stage_model, log_stage_call
 from tools.substrate_registry import routable_contracts_block, routable_ids
 
 # Step-23 ruled pin: the chooser is a hard judgment, so it rides Opus.
@@ -225,6 +225,7 @@ def choose_hypothesis(run_id: str, hypotheses: list, run_dir: Path) -> dict:
             SCHEMA,
             model=CHOOSER_MODEL,
             extra_validator=make_choice_validator(valid_ids),
+            capabilities=FULL,
         )
         log_stage_call(run_id, "gate1_chooser", timing)
         if data["ack_run_id"] != run_id:

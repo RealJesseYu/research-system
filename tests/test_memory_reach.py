@@ -157,7 +157,7 @@ class TestStage2MemoryReach(JournalFixtureCase):
         captured: list[dict] = []
 
         def fake_call(stage_name, system_prompt, stage_input, schema,
-                      model=None, extra_validator=None):
+                      model=None, extra_validator=None, **kwargs):
             captured.append(stage_input)
             return (
                 {"ack_run_id": stage_input["run_id"], "spec": minimal_spec()},
@@ -244,7 +244,7 @@ class TestDeadEndsRideInitialReview(JournalFixtureCase):
         calls = {"n": 0}
 
         def fake_call(stage_name, system_prompt, stage_input, schema,
-                      model=None, extra_validator=None):
+                      model=None, extra_validator=None, **kwargs):
             calls["n"] += 1
             captured.append(stage_input)
             reviews = [

@@ -26,7 +26,7 @@ from pathlib import Path
 
 from baton import Baton
 from memory.journal import journal_recent_by_kind
-from model_call import call_stage_model, log_stage_call
+from model_call import FULL, call_stage_model, log_stage_call
 from stages.stage2_spec import validate_spec
 from tools import substrate_selection
 from tools.qoi_vocab import vocab_for
@@ -316,6 +316,7 @@ def run(baton: Baton) -> Baton:
             vocab_for(baton.payload["substrate_id"]),
             baton.payload["substrate_id"],
         ),
+        capabilities=FULL,
     )
 
     if data["ack_run_id"] != baton.run_id:

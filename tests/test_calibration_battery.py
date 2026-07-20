@@ -295,7 +295,7 @@ class TestOldPathUnchangedByThePatch(unittest.TestCase):
         captured: list[str] = []
 
         def _fake_call(stage, prompt, stage_input, schema, model=None,
-                       extra_validator=None):
+                       extra_validator=None, **kwargs):
             captured.append(json.dumps(stage_input, sort_keys=True))
             return ({"verdict": {"label": "defer", "rationale": "stub",
                                  "right_instrument": "stub"}}, {"attempts": 1})

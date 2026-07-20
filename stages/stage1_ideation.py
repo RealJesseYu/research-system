@@ -106,7 +106,7 @@ from pathlib import Path
 
 from baton import Baton
 from memory.journal import journal_recent_by_kind
-from model_call import call_stage_model, log_stage_call
+from model_call import FULL, call_stage_model, log_stage_call
 from stages import tournament
 from stages.evolution_strategies import evolve_and_review
 from stages.generation_strategies import generate_candidate_pool
@@ -356,6 +356,7 @@ def _single_turn_judge(
         rank_input,
         rank_schema,
         model=OPUS_MODEL,
+        capabilities=FULL,
     )
     _check_verdict(rank_data, run_id, h_a, h_b, f"tournament judge {pair_name}")
     log_stage_call(run_id, "stage1_tournament_judge", rank_timing)
@@ -406,6 +407,7 @@ def _debate_once(
             {"required": ["ack_run_id", "argument"]},
             model=OPUS_MODEL,
             extra_validator=argument_validator,
+            capabilities=FULL,
         )
         if data["ack_run_id"] != run_id:
             raise RuntimeError(
@@ -439,6 +441,7 @@ def _debate_once(
         judge_input,
         judge_schema,
         model=OPUS_MODEL,
+        capabilities=FULL,
     )
     _check_verdict(judge_data, run_id, h_a, h_b, f"debate judge {pair_name}")
     log_stage_call(run_id, "stage1_tournament_debate_turn3", judge_timing)

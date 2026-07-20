@@ -60,7 +60,7 @@ import random
 import sys
 from pathlib import Path
 
-from model_call import call_stage_model, log_stage_call
+from model_call import FULL, call_stage_model, log_stage_call
 from stages.reflection_reviews import (
     deep_verification_review,
     full_review,
@@ -222,6 +222,7 @@ def simplification(run_id: str, domain: str, parent: dict) -> dict:
         {"required": ["ack_run_id", "statement", "rationale"]},
         model=EVOLUTION_MODEL,
         extra_validator=_variant_validator,
+        capabilities=FULL,
     )
     _check_ack(data, run_id, "simplification")
     log_stage_call(run_id, "stage1_evolution_simplification", timing)
@@ -246,6 +247,7 @@ def grounding_enhancement(
         {"required": ["ack_run_id", "statement", "rationale"]},
         model=EVOLUTION_MODEL,
         extra_validator=_variant_validator,
+        capabilities=FULL,
     )
     _check_ack(data, run_id, "grounding_enhancement")
     log_stage_call(run_id, "stage1_evolution_grounding", timing)
@@ -273,6 +275,7 @@ def combination(run_id: str, domain: str, parents: list[dict]) -> dict:
         {"required": ["ack_run_id", "statement", "rationale"]},
         model=EVOLUTION_MODEL,
         extra_validator=_variant_validator,
+        capabilities=FULL,
     )
     _check_ack(data, run_id, "combination")
     log_stage_call(run_id, "stage1_evolution_combination", timing)
@@ -289,6 +292,7 @@ def out_of_box(run_id: str, domain: str, parent: dict) -> dict:
         {"required": ["ack_run_id", "statement", "rationale"]},
         model=EVOLUTION_MODEL,
         extra_validator=_variant_validator,
+        capabilities=FULL,
     )
     _check_ack(data, run_id, "out_of_box")
     log_stage_call(run_id, "stage1_evolution_out_of_box", timing)

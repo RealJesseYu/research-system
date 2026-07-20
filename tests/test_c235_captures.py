@@ -153,7 +153,7 @@ def compose_chooser_retry(reply_text: str) -> tuple[str, str]:
     captured: dict = {}
     calls = {"n": 0}
 
-    def _transport(stage_name, stage_input, system_prompt, user_turn, model):
+    def _transport(stage_name, stage_input, system_prompt, user_turn, model, *args, **kwargs):
         calls["n"] += 1
         if calls["n"] == 1:
             return reply_text
@@ -435,7 +435,7 @@ def compose_stage2_retry(baton_fixture: str, reply_text: str) -> tuple[str, str]
     captured: dict = {}
     calls = {"n": 0}
 
-    def _transport(stage_name, stage_input, system_prompt, user_turn, model):
+    def _transport(stage_name, stage_input, system_prompt, user_turn, model, *args, **kwargs):
         calls["n"] += 1
         if calls["n"] == 1:
             return reply_text

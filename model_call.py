@@ -17,14 +17,25 @@ the validation error appended, and fail loudly after 3 total attempts.
 from __future__ import annotations
 
 import asyncio
+import inspect
 import json
 import re
 import time
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage, TextBlock, query
+from claude_agent_sdk import (
+    AssistantMessage,
+    ClaudeAgentOptions,
+    ResultMessage,
+    TextBlock,
+    ToolResultBlock,
+    ToolUseBlock,
+    UserMessage,
+    query,
+)
 
+import capability_guard
 import cost_meter
 
 HAIKU_MODEL = "claude-haiku-4-5-20251001"
@@ -35,6 +46,88 @@ _DISALLOWED_TOOLS = [
     "Bash", "Read", "Write", "Edit", "Glob", "Grep",
     "WebSearch", "WebFetch", "ToolSearch",
 ]
+
+# ---------------------------------------------------------------------------
+# CAPABILITY PROFILES (owner-ruled 2026-07-20 — the autonomy inversion).
+#
+# Until now every stage went through this door with allowed_tools=[] and
+# max_turns=1: one blind shot, no way to look anything up, no way to see a
+# result and react. That was not an oversight — it is what "the supervisor is
+# deterministic Python", "typed batons, never transcripts" and "tool output
+# summarized at the wrapper" require. But it was applied to EVERY stage, when
+# it was only ever needed on the path that produces measurements.
+#
+# Two different activities were being governed by one rule:
+#
+#   EXECUTION  — where a number comes from. Must be reproducible and auditable,
+#                because a fabricated measurement is fraud, not a bug. Stays
+#                sealed, exactly as before.
+#   DISCOVERY  — reading, searching, exploring, deciding what is worth asking.
+#                Produces context, never claims. Sealing it bought nothing and
+#                cost the project its premise.
+#
+# The guarantee that mattered does not move with the tools: it is re-sited at
+# the END, in the verification pass, where every number that reaches a paper
+# must come with an artifact that regenerates it. Permission up front is
+# replaced by verification at the back.
+#
+# SEALED is the default, so every existing call site is byte-identical until
+# it explicitly opts in.
+# ---------------------------------------------------------------------------
+
+
+class Capabilities:
+    """What one stage may do at this door. Frozen by convention — profiles are
+    module constants and must never be mutated in place, or a stage could
+    silently widen another stage's powers."""
+
+    __slots__ = ("name", "allowed_tools", "max_turns")
+
+    def __init__(self, name: str, allowed_tools: tuple, max_turns: int):
+        self.name = name
+        self.allowed_tools = tuple(allowed_tools)
+        self.max_turns = max_turns
+
+    @property
+    def uses_tools(self) -> bool:
+        return bool(self.allowed_tools)
+
+    def __repr__(self) -> str:  # appears in transcripts and logs
+        return f"Capabilities({self.name!r}, tools={list(self.allowed_tools)}, max_turns={self.max_turns})"
+
+
+# SEALED — the historical behavior: one turn, no tools. Kept for one narrow
+# purpose only (see the pairing table in capability_guard.py): a stage that
+# JUDGES A MEASUREMENT must not be able to look up the answer it is grading.
+# It is no longer the default for anything else.
+SEALED = Capabilities("sealed", (), 1)
+
+# FULL — a Claude Code agent, undiminished. This is what a stage gets now.
+#
+# There is no tiering here, deliberately. An earlier version of this file split
+# capability into "discovery" (read and search) and "builder" (also write and
+# run), which was just a smaller cage with more moving parts: an agent that
+# must ask permission to write a file is not autonomous, it is supervised. The
+# unit of this system is a Claude Code agent, and a Claude Code agent loops,
+# reads, searches, writes code and runs it. Anything less is the thing that
+# made every stage in this project a blind one-shot function.
+#
+# The turn budget is high rather than unlimited for the same reason the campaign
+# budget is: a loop that never terminates produces nothing. It is a backstop,
+# not a leash.
+FULL = Capabilities(
+    "full",
+    ("WebSearch", "WebFetch", "Read", "Glob", "Grep", "Write", "Edit", "Bash",
+     "NotebookEdit", "TodoWrite"),
+    200,
+)
+
+# Retained as aliases so nothing that already named them breaks; both now mean
+# FULL. The distinction they encoded was not a real one.
+DISCOVERY = FULL
+BUILDER = FULL
+
+PROFILES = {p.name: p for p in (SEALED, FULL)}
 
 
 class SchemaValidationError(Exception):
@@ -64,18 +157,39 @@ def validate_schema(data: Any, schema: dict) -> None:
             )
 
 
-async def _ask_once(system_prompt: str, user_turn: str, model: str) -> str:
-    """Send exactly one isolated, tool-free turn to `model` and return its raw text reply."""
+async def _ask_once(
+    system_prompt: str, user_turn: str, model: str,
+    capabilities: "Capabilities" = None, action_trail: list = None,
+    stage_name: str = "unknown",
+) -> str:
+    """Send one isolated turn (or, under a tool-bearing profile, one bounded
+    agentic loop) to `model` and return its final text reply.
+
+    When `action_trail` is provided it is filled with every tool use and tool
+    result observed. That is not optional bookkeeping: a sealed call is fully
+    described by its assembled input, so the transcript alone reproduces it,
+    but a tool-bearing call does things the input does not determine. Without
+    the trail, "transcripts are write-only evidence" would quietly become
+    false the moment a stage was given a tool — the audit trail would name the
+    question and lose the entire investigation.
+    """
+    caps = capabilities or SEALED
     # Step 16.6 chunk 2: record the ATTEMPT before the SDK call fires, so a
     # transport failure mid-stream still leaves a trace in the meter.
     cost_meter.record_attempt("model_call")
     options = ClaudeAgentOptions(
         model=model,
         system_prompt=system_prompt,
-        allowed_tools=[],
-        disallowed_tools=_DISALLOWED_TOOLS,
+        allowed_tools=list(caps.allowed_tools),
+        # Everything not explicitly granted stays blocked, so a widened profile
+        # can never silently inherit a tool nobody listed.
+        disallowed_tools=[t for t in _DISALLOWED_TOOLS if t not in caps.allowed_tools],
         setting_sources=[],
-        max_turns=1,
+        max_turns=caps.max_turns,
+        # The guard consults every tool call before it runs. Sealed calls make
+        # no tool calls, so attaching it there would be dead weight.
+        **({"can_use_tool": capability_guard.make_can_use_tool(stage_name)}
+           if caps.uses_tools else {}),
     )
     parts: list[str] = []
     result_usage = None
@@ -84,13 +198,52 @@ async def _ask_once(system_prompt: str, user_turn: str, model: str) -> str:
             for block in message.content:
                 if isinstance(block, TextBlock):
                     parts.append(block.text)
+                elif action_trail is not None and isinstance(block, ToolUseBlock):
+                    action_trail.append({
+                        "kind": "tool_use",
+                        "tool": block.name,
+                        "input": _bounded(block.input),
+                    })
+        elif isinstance(message, UserMessage) and action_trail is not None:
+            # Tool RESULTS arrive as user-role messages. They are bounded here
+            # because a raw result (a full web page, a directory listing) is
+            # exactly the unbounded tool output the architecture forbids from
+            # reaching any downstream reader.
+            content = message.content
+            if isinstance(content, list):
+                for block in content:
+                    if isinstance(block, ToolResultBlock):
+                        action_trail.append({
+                            "kind": "tool_result",
+                            "content": _bounded(block.content),
+                        })
         elif isinstance(message, ResultMessage):
             result_usage = message.usage
     # Step 16.6: the ONE observing touch at this door — count the completed
     # call (+ SDK-reported usage) into the shared cost meter. Observation
     # only; the return value is untouched.
     cost_meter.record_call("model_call", result_usage)
+    # Under a tool profile the model's LAST text block is its answer; earlier
+    # blocks are narration between tool calls and would corrupt the JSON parse
+    # if concatenated. A sealed call has exactly one block, so joining and
+    # taking the last are identical there — the default path is unchanged.
+    if caps.uses_tools and parts:
+        return parts[-1].strip()
     return "".join(parts).strip()
+
+
+MAX_TRAIL_CHARS = 2000
+
+
+def _bounded(value) -> str:
+    """Render any tool input/result as a bounded string for the action trail."""
+    try:
+        text = value if isinstance(value, str) else json.dumps(value, default=str)
+    except (TypeError, ValueError):
+        text = str(value)
+    if len(text) <= MAX_TRAIL_CHARS:
+        return text
+    return text[:MAX_TRAIL_CHARS] + f" [...truncated, {len(text)} chars total]"
 
 
 # Backoff before transport retry 1 and retry 2 (Step 16: initial attempt +
@@ -99,11 +252,35 @@ async def _ask_once(system_prompt: str, user_turn: str, model: str) -> str:
 TRANSPORT_RETRY_BACKOFFS = (2.0, 5.0)
 
 
-def _invoke_transport(system_prompt: str, user_turn: str, model: str) -> str:
+def _invoke_transport(
+    system_prompt: str, user_turn: str, model: str,
+    capabilities: "Capabilities" = None, action_trail: list = None,
+    stage_name: str = "unknown",
+) -> str:
     """The ONE SDK invocation seam — exactly the old asyncio.run(_ask_once(...))
     call site, factored out (Step 16, disclosed) so tests can substitute a
-    fake transport by patching this function."""
-    return asyncio.run(_ask_once(system_prompt, user_turn, model))
+    fake transport by patching this function.
+
+    capabilities/action_trail are keyword-optional and default to the sealed
+    behavior, so every existing fake transport with the three-argument
+    signature keeps working untouched."""
+    return asyncio.run(
+        _ask_once(system_prompt, user_turn, model, capabilities, action_trail,
+                  stage_name)
+    )
+
+
+def _seam_accepts_capabilities() -> bool:
+    """True when the current _invoke_transport can take the capability
+    arguments. Recomputed per call because the seam is monkeypatched at
+    runtime; a cached answer would be wrong for the next test."""
+    try:
+        params = inspect.signature(_invoke_transport).parameters
+    except (TypeError, ValueError):
+        return False
+    if any(p.kind is inspect.Parameter.VAR_POSITIONAL for p in params.values()):
+        return True
+    return "capabilities" in params
 
 
 def _log_transport_retry(stage_name: str, stage_input: dict, retry_number: int, exc: Exception) -> None:
@@ -125,7 +302,8 @@ def _log_transport_retry(stage_name: str, stage_input: dict, retry_number: int, 
 
 
 def _transport_with_retry(
-    stage_name: str, stage_input: dict, system_prompt: str, user_turn: str, model: str
+    stage_name: str, stage_input: dict, system_prompt: str, user_turn: str, model: str,
+    capabilities: "Capabilities" = None, action_trail: list = None,
 ) -> str:
     """Bounded transport retry around _invoke_transport (Step 16).
 
@@ -137,11 +315,29 @@ def _transport_with_retry(
     original exception unwrapped. The validation re-ask counter is
     UNTOUCHED: transport retries correct DELIVERY, the validation loop
     corrects CONTENT — the two bounds never interact."""
-    for transport_try in range(1 + len(TRANSPORT_RETRY_BACKOFFS)):
+    # A TOOLED call is NOT idempotent: it may already have written files or run
+    # commands before the transport died, and blindly replaying the whole
+    # agentic loop would re-commit every one of those side effects with nothing
+    # rolling them back or even noticing. A sealed call has no side effects, so
+    # it keeps the full retry budget it has always had.
+    tooled = capabilities is not None and capabilities is not SEALED and capabilities.uses_tools
+    budget = 0 if tooled else len(TRANSPORT_RETRY_BACKOFFS)
+
+    for transport_try in range(1 + budget):
         try:
+            # The seam is patched by fakes throughout the test suite, and
+            # those fakes were written against the historical 3-argument
+            # signature. Pass only what the current callable actually accepts,
+            # so adding capabilities did not silently invalidate every
+            # contract test by making it raise TypeError instead of asserting.
+            if _seam_accepts_capabilities():
+                return _invoke_transport(
+                    system_prompt, user_turn, model, capabilities, action_trail,
+                    stage_name,
+                )
             return _invoke_transport(system_prompt, user_turn, model)
         except Exception as exc:
-            if transport_try == len(TRANSPORT_RETRY_BACKOFFS):
+            if transport_try == budget:
                 raise
             _log_transport_retry(stage_name, stage_input, transport_try + 1, exc)
             time.sleep(TRANSPORT_RETRY_BACKOFFS[transport_try])
@@ -214,6 +410,7 @@ def _write_transcript(
     stage_input: dict,
     stage_input_serialized: str,
     model: str,
+    capabilities: "Capabilities" = SEALED,
 ) -> None:
     """Write the fully assembled model input to runs/<run_id>/transcripts/.
 
@@ -247,9 +444,53 @@ def _write_transcript(
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "system_prompt": system_prompt,
         "stage_input_serialized": stage_input_serialized,
+        # The profile is part of the evidence: the same input under SEALED and
+        # under BUILDER are different experiments, and a reader who cannot tell
+        # them apart cannot judge the result.
+        "capabilities": capabilities.name,
+        "allowed_tools": list(capabilities.allowed_tools),
+        "max_turns": capabilities.max_turns,
     }
     with open(transcripts_dir / f"{_TRANSCRIPT_SEQ:04d}_{stage_name}.json", "w") as f:
         json.dump(record, f, indent=2)
+
+
+def _append_action_trail(
+    stage_name: str, stage_input: dict, attempt: int, trail: list
+) -> None:
+    """Append one attempt's tool-use trail beside its transcript.
+
+    A separate <seq>_<stage>.actions.json rather than a rewrite of the
+    transcript, because the transcript is written BEFORE the call and that
+    write-first property is what makes it survive a crash. Rewriting it
+    afterwards would trade a guarantee for tidiness.
+
+    Still write-only evidence: nothing in the project may read these back into
+    a model input or stage logic.
+    """
+    run_id = stage_input.get("run_id") if isinstance(stage_input, dict) else None
+    if not run_id:
+        return
+    transcripts_dir = Path("runs") / str(run_id) / "transcripts"
+    transcripts_dir.mkdir(parents=True, exist_ok=True)
+    path = transcripts_dir / f"{_TRANSCRIPT_SEQ:04d}_{stage_name}.actions.json"
+    existing = []
+    if path.is_file():
+        try:
+            existing = json.loads(path.read_text())
+        except (ValueError, OSError):
+            existing = []
+    existing.append({"attempt": attempt, "actions": trail})
+    with open(path, "w") as f:
+        json.dump(existing, f, indent=2)
+    tools_used = [a["tool"] for a in trail if a.get("kind") == "tool_use"]
+    line = (
+        f"ACTIONS stage={stage_name} attempt={attempt} "
+        f"tool_calls={len(tools_used)} tools={sorted(set(tools_used))}"
+    )
+    print(line)
+    with open(Path("runs") / str(run_id) / "log.txt", "a") as f:
+        f.write(line + "\n")
 
 
 def _log_reask(stage_name: str, stage_input: dict, attempt: int, error: str) -> None:
@@ -278,6 +519,7 @@ def call_stage_model(
     schema: dict,
     model: str = HAIKU_MODEL,
     extra_validator: Optional[Callable[[dict], list[str]]] = None,
+    capabilities: "Capabilities" = SEALED,
 ) -> tuple[dict, dict]:
     """Call `model` for one stage, enforcing isolation and schema, with bounded re-asks.
 
@@ -290,11 +532,20 @@ def call_stage_model(
     {"model": ..., "duration_seconds": ..., "attempts": N, "fence_stripped": bool}.
     Raises RuntimeError after MAX_ATTEMPTS total failed attempts.
     """
+    # Enforced BEFORE anything else: a stage whose role forbids tools must not
+    # even assemble a tooled call. Raises CapabilityPairingError.
+    capability_guard.assert_profile_allowed(stage_name, capabilities.name)
+
     start = time.monotonic()
     user_turn = json.dumps(stage_input)
     # The input is now fully assembled; record it verbatim before the call.
-    _write_transcript(stage_name, system_prompt, stage_input, user_turn, model)
+    _write_transcript(stage_name, system_prompt, stage_input, user_turn, model,
+                      capabilities)
     last_error = ""
+    # Filled by the transport under a tool profile; appended to the transcript
+    # after the call so the evidence covers what the stage DID, not only what
+    # it was asked. Stays empty (and unwritten) for a sealed call.
+    action_trail: list = []
 
     for attempt in range(1, MAX_ATTEMPTS + 1):
         if attempt > 1:
@@ -302,7 +553,13 @@ def call_stage_model(
                 {"original_input": stage_input, "validation_error": last_error}
             )
 
-        reply = _transport_with_retry(stage_name, stage_input, system_prompt, user_turn, model)
+        reply = _transport_with_retry(
+            stage_name, stage_input, system_prompt, user_turn, model,
+            capabilities, action_trail,
+        )
+        if action_trail:
+            _append_action_trail(stage_name, stage_input, attempt, action_trail)
+            action_trail = []
         # Step 18.7: attribute this COMPLETED call to its stage (the door-level
         # record_call cannot see stage_name). Observation only.
         cost_meter.record_stage_call(stage_name)
@@ -348,6 +605,7 @@ def call_stage_model(
             "duration_seconds": round(duration, 3),
             "attempts": attempt,
             "fence_stripped": fence_stripped,
+            "capabilities": capabilities.name,
         }
         return data, timing_info
 

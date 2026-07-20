@@ -80,7 +80,7 @@ import sys
 from pathlib import Path
 
 from memory.journal import journal_recent_by_kind
-from model_call import call_stage_model, log_stage_call
+from model_call import FULL, call_stage_model, log_stage_call
 from tools.substrate_registry import routable_contracts_block
 
 _RETRIEVAL_DIR = Path(__file__).resolve().parent.parent / "retrieval"
@@ -534,6 +534,7 @@ def initial_review(
         {"required": ["ack_run_id", "reviews"]},
         model=HAIKU_MODEL,
         extra_validator=validator,
+        capabilities=FULL,
     )
     _check_ack(data, run_id, "initial_review")
     log_stage_call(run_id, "stage1_reflection_initial", timing)
@@ -611,6 +612,7 @@ def full_review(
         },
         model=HAIKU_MODEL,
         extra_validator=validator,
+        capabilities=FULL,
     )
     _check_ack(data, run_id, f"full_review {hypothesis['id']}")
     _check_hypothesis_id(data, run_id, hypothesis["id"], f"full_review {hypothesis['id']}")
@@ -692,6 +694,7 @@ def deep_verification_review(
                       "fundamental_flaw", "summary"]},
         model=DEEP_VERIFY_MODEL,
         extra_validator=validator,
+        capabilities=FULL,
     )
     _check_ack(data, run_id, f"deep_verification {hypothesis['id']}")
     _check_hypothesis_id(data, run_id, hypothesis["id"], f"deep_verification {hypothesis['id']}")
@@ -756,6 +759,7 @@ def observation_review(
         },
         model=HAIKU_MODEL,
         extra_validator=validator,
+        capabilities=FULL,
     )
     _check_ack(data, run_id, f"observation_review {hypothesis['id']}")
     _check_hypothesis_id(data, run_id, hypothesis["id"], f"observation_review {hypothesis['id']}")
@@ -809,6 +813,7 @@ def simulation_review(
                       "failure_scenarios", "assessment"]},
         model=HAIKU_MODEL,
         extra_validator=validator,
+        capabilities=FULL,
     )
     _check_ack(data, run_id, f"simulation_review {hypothesis['id']}")
     _check_hypothesis_id(data, run_id, hypothesis["id"], f"simulation_review {hypothesis['id']}")
@@ -873,6 +878,7 @@ def recurrent_tournament_review(
         {"required": ["ack_run_id", "hypothesis_id", "observations", "carried_concerns"]},
         model=REVIEW6_MODEL,
         extra_validator=validator,
+        capabilities=FULL,
     )
     _check_ack(data, run_id, f"tournament_review {hypothesis['id']}")
     _check_hypothesis_id(

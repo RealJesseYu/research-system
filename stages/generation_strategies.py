@@ -50,7 +50,7 @@ import sys
 from pathlib import Path
 
 import cost_meter
-from model_call import call_stage_model, log_stage_call
+from model_call import FULL, call_stage_model, log_stage_call
 from tools.substrate_registry import routable_contracts_block
 from tools.substrate_selection import capability_table
 
@@ -524,6 +524,7 @@ def strategy_literature_exploration(
         {"required": ["ack_run_id", "hypotheses"]},
         model=HAIKU_MODEL,
         extra_validator=validator,
+        capabilities=FULL,
     )
     _check_ack(data, run_id, "literature_exploration")
     log_stage_call(run_id, "stage1_generation_literature", timing)
@@ -593,6 +594,7 @@ def strategy_simulated_debate(
             {"required": ["ack_run_id", "argument", "hypothesis"]},
             model=HAIKU_MODEL,
             extra_validator=validator,
+            capabilities=FULL,
         )
         _check_ack(data, run_id, f"simulated_debate turn {turn}")
         log_stage_call(run_id, f"stage1_generation_debate_turn{turn}", timing)
@@ -652,6 +654,7 @@ def strategy_assumptions_identification(
         {"required": ["ack_run_id", "assumptions"]},
         model=HAIKU_MODEL,
         extra_validator=identify_validator,
+        capabilities=FULL,
     )
     _check_ack(identify_data, run_id, "assumptions_identify")
     log_stage_call(run_id, "stage1_generation_assumptions_identify", identify_timing)
@@ -698,6 +701,7 @@ def strategy_assumptions_identification(
         {"required": ["ack_run_id", "hypotheses"]},
         model=HAIKU_MODEL,
         extra_validator=aggregate_validator,
+        capabilities=FULL,
     )
     _check_ack(aggregate_data, run_id, "assumptions_aggregate")
     log_stage_call(run_id, "stage1_generation_assumptions_aggregate", aggregate_timing)
@@ -776,6 +780,7 @@ def strategy_research_expansion(
         {"required": ["ack_run_id", "hypotheses"]},
         model=HAIKU_MODEL,
         extra_validator=validator,
+        capabilities=FULL,
     )
     _check_ack(data, run_id, "research_expansion")
     log_stage_call(run_id, "stage1_generation_expansion", timing)

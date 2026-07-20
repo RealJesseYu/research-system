@@ -83,10 +83,27 @@ MAX_CODE_BYTES = 100_000
 # (a stale artifact silently feeding the next run is the failure this prevents),
 # --network none so a result can never depend on the internet, and hard resource
 # caps so a runaway script cannot take the machine down with it.
+# The jail set is taken from tools/run_code.py (Step 28.5), which hardened
+# these against escape tests. This wrapper differs from that one in exactly one
+# respect and it is the important one: run_code.py generates its runner from a
+# FIXED TEMPLATE and states "it RUNS code, it never WRITES code" — no LLM may
+# author what executes. This wrapper deliberately accepts MODEL-AUTHORED code,
+# which is the whole point of the autonomy inversion, and therefore needs at
+# least the jails the template-only path already carries.
+#
+# --read-only + a writable bind for the run dir only: the script may write its
+# result and nothing else. --pids-limit bounds a fork bomb. --memory-swap equal
+# to --memory disables swap, so the memory cap is real rather than advisory.
+MEMORY_MB = 4096
+PIDS_LIMIT = 256
+TMPFS_MB = 512
 DOCKER_RUN_FLAGS = [
     "--rm",
-    "--network", "none",
-    "--memory", "4g",
+    "--network=none",
+    f"--memory={MEMORY_MB}m", f"--memory-swap={MEMORY_MB}m",
+    f"--pids-limit={PIDS_LIMIT}",
+    "--read-only",
+    f"--tmpfs=/tmp:size={TMPFS_MB}m",
     "--cpus", "2",
 ]
 
