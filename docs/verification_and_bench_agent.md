@@ -94,6 +94,36 @@ drives an agent that confidently predicts `999.0`; the record keeps the
 instrument's own number and the prediction stays a prediction, compared
 numerically.
 
+### A zero-measurement campaign may not call itself "executed"
+
+Found after the first three commits, while checking a suspected fail-open in the
+barren gate. **The suspicion was wrong** — the locked schema already catches it —
+and checking is what surfaced the actual defect.
+
+`schemas.py` requires that "execution_results with status executed must carry at
+least one run entry". A campaign producing zero runs was reporting
+`{status: "executed", runs: []}`, which fails the post-stage-4 boundary, and the
+supervisor treats a failed boundary as a **broken invariant** and halts the run
+with `sys.exit(1)`. Correct for a corrupt baton; wrong for what actually
+happened.
+
+Two routes reached it:
+
+* **added by this build** — the bench agent concluding "this instrument cannot
+  test this hypothesis" on iteration 1, which the design explicitly asks it to
+  say out loud. A real scientific finding, recorded as a corrupted baton.
+* **pre-existing** — any planner returning zero points on its first call, which
+  `propose_adaptive_points` does whenever a spec declares no sweep or the region
+  already reads as resolved.
+
+Both now report `halted_synthesis` with a reason naming what stopped it — the
+one status in the locked vocabulary meaning "nothing ran, and here is why".
+`skipped_defer` would misreport the cause as a defer verdict, and a status of its
+own would need a ruling on a locked schema, which is not this build's to make.
+The barren gate now correctly sees these runs as barren rather than passing them
+to stage 5. Pinned by two tests asserting the real boundary validator returns
+clean.
+
 ### A real gap fixed on the way
 
 The campaign path never received the regime-input threading the single-run path

@@ -27,6 +27,8 @@ sys.path.insert(0, str(ROOT))
 
 import capability_guard  # noqa: E402
 import model_call  # noqa: E402
+import schemas  # noqa: E402
+import supervisor  # noqa: E402
 import tools.bench_agent as bench  # noqa: E402
 import tools.experiment_picker as ep  # noqa: E402
 from baton import Baton  # noqa: E402
@@ -390,6 +392,54 @@ class TestAgentStop(BenchBase):
         summary = self._summary(run_id)
         self.assertEqual(summary["termination_reason"], "agent_stopped")
         self.assertEqual(summary["iterations_used"], 0)
+
+    def test_a_campaign_that_measured_nothing_does_not_claim_it_executed(self):
+        """The locked schema says an 'executed' result must carry at least one
+        run, so a zero-run 'executed' baton fails the post-stage-4 boundary and
+        the supervisor halts the run as a BROKEN INVARIANT. An agent concluding
+        'this instrument cannot test this hypothesis' — which the design asks it
+        to say out loud — would have been recorded as a corrupted baton."""
+        run_id = "bench-nothing"
+        self._cleanup(run_id)
+
+        def stopper(spec, prior_results, budget_remaining, context=None):
+            return {"points": [], "predicted_qoi_per_point": [], "stop": True,
+                    "stop_reason": "no scalar-transport physics on this instrument",
+                    "reasoning": "the instrument cannot represent the mechanism"}
+
+        self._register("nothing", stopper)
+        baton = _cobrapy_baton(run_id, _failing_spec("iML1515"))
+        with unittest.mock.patch.object(cc, "select_substrate", lambda s: "cobrapy"):
+            out = cc.run_campaign(baton, strategy_key="nothing")
+
+        er = out.payload["execution_results"]
+        self.assertEqual(er["status"], "halted_synthesis")
+        self.assertEqual(er["runs"], [])
+        # the honest record says what stopped it, not just that it stopped
+        self.assertIn("no scalar-transport physics", er["reason"])
+        # THE PROOF: the baton survives the real locked boundary
+        self.assertEqual(schemas.validate_payload_post_stage4(out.payload), [])
+        # and the barren gate now sees it for what it is
+        self.assertTrue(supervisor.is_barren(out))
+
+    def test_the_pre_existing_empty_proposal_route_is_covered_too(self):
+        """propose_adaptive_points returns zero points whenever a spec declares
+        no sweep — so this route into a schema-invalid baton predates the bench
+        agent and is fixed by the same change."""
+        run_id = "bench-nopoints"
+        self._cleanup(run_id)
+        self._register("empty", lambda s, p, b: {
+            "points": [], "predicted_qoi_per_point": [],
+            "reasoning": "adaptive: no declared sweep range"})
+
+        baton = _cobrapy_baton(run_id, _failing_spec("iML1515"))
+        with unittest.mock.patch.object(cc, "select_substrate", lambda s: "cobrapy"):
+            out = cc.run_campaign(baton, strategy_key="empty")
+
+        self.assertEqual(out.payload["execution_results"]["status"], "halted_synthesis")
+        self.assertEqual(schemas.validate_payload_post_stage4(out.payload), [])
+        self.assertIn("no_points_proposed",
+                      out.payload["execution_results"]["reason"])
 
 
 class TestTheAcceptanceCase(BenchBase):

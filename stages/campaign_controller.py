@@ -431,6 +431,7 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
     termination_reason: str | None = None
 
     spec_revisions: list = []
+    agent_stop_reason: str | None = None
 
     while iters_used < MAX_CAMPAIGN_ITERS:
         budget_remaining = MAX_CAMPAIGN_ITERS - iters_used
@@ -486,8 +487,8 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
             # findings, and both are recorded as the agent's own call rather than
             # dressed up as budget exhaustion.
             termination_reason = "agent_stopped"
-            stop_reason = proposal.get("stop_reason") or "(no reason given)"
-            _log_line(run_id, f"CAMPAIGN stopped by the bench agent: {stop_reason}")
+            agent_stop_reason = proposal.get("stop_reason") or "(no reason given)"
+            _log_line(run_id, f"CAMPAIGN stopped by the bench agent: {agent_stop_reason}")
             break
 
         points = proposal.get("points", []) if isinstance(proposal, dict) else []
@@ -630,7 +631,30 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
     # of failures and real runs is an honest 'executed' carrying the runs that
     # succeeded (failures are evidence, never fabricated run entries).
     all_failed = bool(synthesis_failures) and not payload_runs
-    status = "halted_synthesis" if all_failed else "executed"
+    # A CAMPAIGN THAT MEASURED NOTHING MAY NOT CALL ITSELF 'executed'.
+    #
+    # The locked schema says so outright — "execution_results with status
+    # executed must carry at least one run entry" — so this was not a matter of
+    # taste: a zero-run 'executed' baton fails the post-stage-4 boundary, and the
+    # supervisor treats a failed boundary as a BROKEN INVARIANT and halts the run
+    # with sys.exit(1). That is the correct response to a corrupt baton and the
+    # wrong response to what actually happened here.
+    #
+    # Two routes reach it. The one this build added: the bench agent concluding
+    # "this instrument cannot test this hypothesis" on the first iteration, which
+    # the design explicitly asks it to say out loud — a real finding recorded as
+    # a corrupted baton. The one that was already here: any planner returning
+    # zero points on its first call, which propose_adaptive_points does whenever
+    # a spec declares no sweep or the region already reads as resolved.
+    #
+    # halted_synthesis is the honest status available in the locked vocabulary
+    # ('executed' | 'skipped_defer' | 'halted_synthesis'): it is the one that
+    # means "nothing ran, and here is why", and its shape carries the reason that
+    # says which of these it was. skipped_defer would misreport the cause as a
+    # defer verdict. A status of its own would need a ruling on a locked schema,
+    # which is not this build's to make.
+    measured_nothing = not payload_runs
+    status = "halted_synthesis" if (all_failed or measured_nothing) else "executed"
     if all_failed and termination_reason in (None, "budget_exhausted", "no_points_proposed"):
         termination_reason = "all_points_failed_synthesis"
 
@@ -679,6 +703,18 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
         reason = f"all {len(synthesis_failures)} attempted point(s) failed case synthesis"
         results["reason"] = reason
         execution_results["reason"] = reason
+    elif measured_nothing:
+        # The schema requires a non-empty reason with this status, and it is
+        # required for the right reason: "nothing ran" is only an honest record
+        # if it says what stopped it.
+        reason = (
+            f"the campaign ended before any point was measured "
+            f"({termination_reason})"
+        )
+        if agent_stop_reason:
+            reason += f": {agent_stop_reason}"
+        results["reason"] = reason
+        execution_results["reason"] = reason
     if qoi_error_fallback is not None:
         results["qoi_translation_error"] = qoi_error_fallback
     if label == "refine":
@@ -718,6 +754,8 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
             f"campaign halted: all {len(synthesis_failures)} attempted point(s) failed "
             f"case synthesis ({termination_reason})"
         )
+    elif measured_nothing:
+        note = f"campaign measured nothing: {results['reason']}"
     else:
         converged = sum(1 for r in payload_runs if r.get("converged"))
         extracted = sum(1 for r in payload_runs if "qoi_value" in r)
