@@ -131,6 +131,33 @@ class TestSocketWidenedNotReplaced(BenchBase):
         self.assertEqual(seen["context"]["substrate_id"], "cobrapy")
 
 
+class TestReachableFromARealRun(BenchBase):
+    """A strategy registered in the socket but selectable by nothing is built
+    and switched off — which is how the campaign loop itself sat dormant behind
+    an unset flag."""
+
+    def test_default_is_still_the_deterministic_planner(self):
+        with unittest.mock.patch.dict("os.environ", {}, clear=False):
+            import os
+            os.environ.pop("CAMPAIGN_STRATEGY", None)
+            self.assertEqual(cc.resolve_strategy_key(), "propose_next_points")
+
+    def test_the_environment_can_select_the_bench_agent(self):
+        with unittest.mock.patch.dict("os.environ",
+                                      {"CAMPAIGN_STRATEGY": "bench_agent"}):
+            self.assertEqual(cc.resolve_strategy_key(), "bench_agent")
+
+    def test_a_typo_stops_the_run_rather_than_silently_sweeping(self):
+        run_id = "bench-typo"
+        self._cleanup(run_id)
+        baton = _cobrapy_baton(run_id, _failing_spec("iML1515"))
+        with unittest.mock.patch.dict("os.environ",
+                                      {"CAMPAIGN_STRATEGY": "bench_agnet"}):
+            with unittest.mock.patch.object(cc, "select_substrate", lambda s: "cobrapy"):
+                with self.assertRaises(KeyError):
+                    cc.run_campaign(baton)
+
+
 class TestProposalValidation(BenchBase):
     """The agent's answer is checked in code, not hoped for in the prompt."""
 

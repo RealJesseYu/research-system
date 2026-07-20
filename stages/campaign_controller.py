@@ -160,6 +160,24 @@ class CampaignDegraded(RuntimeError):
     degradation LOUDLY (T5) rather than dressing a fallback as a real plan."""
 
 
+def resolve_strategy_key() -> str:
+    """Which campaign strategy a run uses: CAMPAIGN_STRATEGY when set, else the
+    deterministic default.
+
+    The same opt-in idiom as RESEARCH_CAMPAIGN and CAMPAIGN_MAX_ITERS, and for
+    the same reason: stage4_simulation.run calls run_campaign with no strategy
+    argument, so without this the agentic strategy would be registered in the
+    socket and unreachable from any real run — built but switched off by nothing
+    at all, which is how the campaign loop itself sat dormant behind an unset
+    flag.
+
+    An unknown name is NOT silently defaulted: run_campaign raises on it, so a
+    typo in the environment stops the run instead of quietly delivering a sweep
+    where a scientist was asked for.
+    """
+    return os.environ.get("CAMPAIGN_STRATEGY", "").strip() or DEFAULT_STRATEGY
+
+
 def campaign_enabled() -> bool:
     """True iff the RESEARCH_CAMPAIGN opt-in flag is set truthy (D5)."""
     return os.environ.get(CAMPAIGN_ENV, "").strip().lower() in ("1", "true", "yes", "on")
@@ -393,7 +411,9 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
 
     base = _base_params(spec)
 
-    strategy_key = strategy_key or DEFAULT_STRATEGY
+    # An explicit argument wins (the side doors and tests pass one); otherwise
+    # the environment decides, defaulting to the deterministic planner.
+    strategy_key = strategy_key or resolve_strategy_key()
     if strategy_key not in STRATEGIES:
         raise KeyError(
             f"campaign_controller: strategy {strategy_key!r} is not registered; "
