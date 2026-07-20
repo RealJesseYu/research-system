@@ -25,6 +25,7 @@ default single-run path in stage4_simulation.run stays byte-identical.
 
 from __future__ import annotations
 
+import inspect
 import json
 import os
 from pathlib import Path
@@ -43,10 +44,12 @@ from tools.experiment_picker import (
     propose_adaptive_points,
     propose_next_points,
 )
+from tools.bench_agent import propose_bench_actions
 from tools.qoi_vocab import vocab_for
 from tools.substrate_dispatch import (
     adapter_for,
     qoi_translation_for,
+    regime_content_inputs,
     run_entry_constructor_for,
 )
 from tools.substrate_selection import select_substrate
@@ -108,7 +111,47 @@ STRATEGIES = {
     # that samples where the observed QoI is least resolved. A second competing
     # planner is exactly this one-line registration — no judge, no tournament.
     "adaptive_refine": propose_adaptive_points,
+    # 2026-07-20: the experimenting agent. Registered BESIDE the deterministic
+    # planners, not instead of them — the socket now carries both a sweep and a
+    # scientist, and which one runs is a choice rather than a rewrite.
+    "bench_agent": propose_bench_actions,
 }
+
+# What a strategy may return BEYOND the original {points, reasoning,
+# predicted_qoi_per_point}. The socket widened because the old contract could
+# only express "sample here": a strategy that may repair the spec or decide the
+# experiment is finished has nothing to say in three keys.
+#
+# Widened ADDITIVELY, and consumed defensively: a planner that returns none of
+# these behaves exactly as it did before, which is why the deterministic
+# planners needed no change.
+_STRATEGY_EXTRA_KEYS = ("revised_spec", "stop", "stop_reason")
+
+
+def _strategy_accepts_context(strategy) -> bool:
+    """True when this strategy's signature can take the `context` keyword.
+
+    The same introspection idiom model_call uses for its transport seam, and for
+    the same reason: widening a socket by changing how everyone is CALLED breaks
+    every fake written against the old arity, and those fakes raise TypeError
+    instead of asserting — a whole family of contract tests would go silently
+    vacuous. So the three positional arguments never move, and richer context is
+    offered only to strategies that ask for it.
+    """
+    try:
+        params = inspect.signature(strategy).parameters
+    except (TypeError, ValueError):
+        return False
+    if any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()):
+        return True
+    return "context" in params
+
+
+def _invoke_strategy(strategy, spec, prior_results, budget_remaining, context):
+    """Call a strategy under the widened socket."""
+    if _strategy_accepts_context(strategy):
+        return strategy(spec, prior_results, budget_remaining, context=context)
+    return strategy(spec, prior_results, budget_remaining)
 
 
 class CampaignDegraded(RuntimeError):
@@ -185,6 +228,97 @@ def check_success_criterion(success_criterion, actual_qoi) -> dict:
     return out
 
 
+def _wrapper_path(substrate_id: str) -> str | None:
+    """The repo-relative source path of the routed instrument's wrapper, so a
+    bench agent can READ the constraint that rejected it instead of guessing.
+    Never raises: an unresolvable path just means the agent gets no pointer."""
+    try:
+        from tools import substrate_registry as registry
+        return registry.get(substrate_id).wrapper
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _resolve_for_spec(spec, carried_id: str) -> dict:
+    """Resolve everything execution needs FROM a spec: the structurally selected
+    substrate, its adapter and entry constructor, the translated QoI request, the
+    regime-declared instrument inputs, and the base point.
+
+    Extracted as a function because the spec is no longer fixed for the life of a
+    campaign. When the bench agent repairs it, every one of these must be
+    re-derived from the NEW spec — a repaired spec with a stale QoI translation
+    or a stale substrate routing is how a campaign would quietly measure the
+    wrong thing with the right-looking evidence.
+
+    The R-23.5-4 agreement check runs here, so it runs again on every revision:
+    if a repair changes what the spec structurally routes to, that disagrees with
+    the instrument the gate decided, and execution stops loudly rather than
+    silently switching instruments mid-campaign.
+    """
+    substrate_id = select_substrate(spec)
+    if substrate_id != carried_id:
+        raise RuntimeError(
+            f"campaign_controller: substrate agreement check failed — "
+            f"spec-derived selection {substrate_id!r} != gate-decided payload "
+            f"substrate_id {carried_id!r}; stopping before execution."
+        )
+    vocab = vocab_for(substrate_id)
+    translate = qoi_translation_for(substrate_id)
+    qoi_name = spec.get("qoi", {}).get("name") if isinstance(spec.get("qoi"), dict) else None
+    qoi_request, refusal = translate(spec.get("qoi"), vocab)
+    return {
+        "substrate_id": substrate_id,
+        "adapter": adapter_for(substrate_id),
+        "entry_constructor": run_entry_constructor_for(substrate_id),
+        "parameter_roles": extract_parameter_roles(spec.get("parameters")),
+        "qoi_request": qoi_request,
+        "qoi_error_fallback": (
+            None if qoi_request is not None
+            else f"QoI {qoi_name!r} not extractable by contract: {refusal}"
+        ),
+        # REGIME-DECLARED INSTRUMENT INPUTS. The single-run path threads these
+        # (2026-07-20) and the campaign path did not, so a campaign on a threaded
+        # substrate reproduced run 20260720T080610Z exactly: `model` sat in the
+        # spec's regime block, never reached the wrapper, and every point was
+        # rejected "missing required field(s): model" before the solver ran.
+        # Merged UNDER each point's own params, so a swept value always wins.
+        "regime_inputs": regime_content_inputs(spec, substrate_id),
+    }
+
+
+def _revise_spec(spec, revised, carried_id: str, run_id: str) -> tuple:
+    """Adopt a bench-agent spec repair, or refuse it and keep the old spec.
+
+    Returns (spec, resolved, note). A revision must survive the SAME locked
+    validator stage 2's output survives — the schema is not relaxed because the
+    author is downstream. A revision that fails validation, or that would route
+    to a different instrument than the gate decided, is REFUSED and the campaign
+    continues on the previous spec with the refusal recorded; the alternative is
+    letting an agent edit its way out of the schema that makes its output
+    checkable.
+    """
+    from stages.stage2_spec import validate_spec
+
+    try:
+        errors = validate_spec(revised, revised.get("hypothesis_id"),
+                               vocab_for(select_substrate(revised)))
+    except Exception as e:  # noqa: BLE001 — an unroutable revision is a refusal
+        errors = [f"the revised spec could not be validated: {type(e).__name__}: {e}"]
+    if errors:
+        _log_line(run_id, f"CAMPAIGN spec revision REFUSED (spec unchanged): {errors}")
+        return spec, None, f"revision refused: {errors}"
+
+    try:
+        resolved = _resolve_for_spec(revised, carried_id)
+    except RuntimeError as e:
+        _log_line(run_id, f"CAMPAIGN spec revision REFUSED (spec unchanged): {e}")
+        return spec, None, f"revision refused: {e}"
+
+    _log_line(run_id, "CAMPAIGN spec revised by the bench agent (re-validated, "
+                      "instrument agreement re-checked)")
+    return revised, resolved, "revision accepted"
+
+
 def _base_params(spec) -> dict:
     """The authored base point the proposed points override (REUSING the
     authored spec): the first authored mini-run, else the spec's fixed values.
@@ -245,26 +379,17 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
     # does NOT carry the agreement check; the campaign resolves them here, once,
     # for every iteration.
     spec = baton.payload["experiment_spec"]
-    substrate_id = select_substrate(spec)
     carried_id = baton.payload["substrate_id"]
-    if substrate_id != carried_id:
-        raise RuntimeError(
-            f"campaign_controller: substrate agreement check failed — "
-            f"spec-derived selection {substrate_id!r} != gate-decided payload "
-            f"substrate_id {carried_id!r}; stopping before execution."
-        )
-    adapter = adapter_for(substrate_id)
-    vocab = vocab_for(substrate_id)
-    translate = qoi_translation_for(substrate_id)
-    entry_constructor = run_entry_constructor_for(substrate_id)
-    parameter_roles = extract_parameter_roles(spec.get("parameters"))
-    qoi_name = spec.get("qoi", {}).get("name") if isinstance(spec.get("qoi"), dict) else None
-    qoi_request, refusal = translate(spec.get("qoi"), vocab)
-    qoi_error_fallback = (
-        None
-        if qoi_request is not None
-        else f"QoI {qoi_name!r} not extractable by contract: {refusal}"
-    )
+    resolved = _resolve_for_spec(spec, carried_id)
+    substrate_id = resolved["substrate_id"]
+    adapter = resolved["adapter"]
+    entry_constructor = resolved["entry_constructor"]
+    parameter_roles = resolved["parameter_roles"]
+    qoi_request = resolved["qoi_request"]
+    qoi_error_fallback = resolved["qoi_error_fallback"]
+    regime_inputs = resolved["regime_inputs"]
+    if regime_inputs:
+        _log_line(run_id, f"CAMPAIGN regime inputs threaded: {sorted(regime_inputs)}")
 
     base = _base_params(spec)
 
@@ -285,9 +410,25 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
     synthesis_failures: list = []
     termination_reason: str | None = None
 
+    spec_revisions: list = []
+
     while iters_used < MAX_CAMPAIGN_ITERS:
         budget_remaining = MAX_CAMPAIGN_ITERS - iters_used
-        proposal = strategy(spec, prior_results, budget_remaining)
+        # The context a bench agent needs to diagnose a failure: which instrument
+        # it is on, where that instrument's source lives so it can read the
+        # constraint that rejected it, and what the spec's QoI translated to.
+        # Deterministic planners never see it (their signature does not ask).
+        context = {
+            "run_id": run_id,
+            "iteration": iters_used + 1,
+            "substrate_id": substrate_id,
+            "wrapper_path": _wrapper_path(substrate_id),
+            "qoi_request": qoi_request,
+            "qoi_error": qoi_error_fallback,
+            "regime_inputs": regime_inputs,
+        }
+        proposal = _invoke_strategy(strategy, spec, prior_results, budget_remaining,
+                                    context)
 
         # T5: the planner's fallback is a SILENT degradation to uniform
         # coverage (a printed NOTICE only). The campaign surfaces it LOUDLY and
@@ -299,6 +440,35 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
                 f"fallback ({reasoning!r}); refusing to proceed as silent uniform "
                 "coverage."
             )
+
+        # --- the widened socket, consumed defensively ------------------------
+        # A planner that returns none of these keys behaves exactly as before.
+        revised = proposal.get("revised_spec") if isinstance(proposal, dict) else None
+        if isinstance(revised, dict):
+            spec, new_resolved, note = _revise_spec(spec, revised, carried_id, run_id)
+            spec_revisions.append({"iteration": iters_used + 1, "outcome": note})
+            if new_resolved is not None:
+                # Adopt the repair WHOLE: every derived value comes from the new
+                # spec, so nothing downstream is left pointing at the old one.
+                resolved = new_resolved
+                substrate_id = resolved["substrate_id"]
+                adapter = resolved["adapter"]
+                entry_constructor = resolved["entry_constructor"]
+                parameter_roles = resolved["parameter_roles"]
+                qoi_request = resolved["qoi_request"]
+                qoi_error_fallback = resolved["qoi_error_fallback"]
+                regime_inputs = resolved["regime_inputs"]
+                base = _base_params(spec)
+
+        if isinstance(proposal, dict) and proposal.get("stop"):
+            # The agent decided the campaign is done — either it has the data or
+            # the instrument genuinely cannot answer the question. Both are real
+            # findings, and both are recorded as the agent's own call rather than
+            # dressed up as budget exhaustion.
+            termination_reason = "agent_stopped"
+            stop_reason = proposal.get("stop_reason") or "(no reason given)"
+            _log_line(run_id, f"CAMPAIGN stopped by the bench agent: {stop_reason}")
+            break
 
         points = proposal.get("points", []) if isinstance(proposal, dict) else []
         predicted_list = (
@@ -314,7 +484,8 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
                 break
             iters_used += 1
             index = iters_used
-            params = {**base, **(point if isinstance(point, dict) else {})}
+            params = {**regime_inputs, **base,
+                      **(point if isinstance(point, dict) else {})}
             case_name = f"{run_id}_campaign_iter{index}"
 
             evidence_run, payload_run, halt = run_one_point(
@@ -477,6 +648,10 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
         "iterations_used": iters_used,
         "expectation_summary": expectation_summary,
         "synthesis_failures": synthesis_failures,
+        # The repairs the bench agent made to its own spec, accepted or refused.
+        # Evidence, never the baton: a campaign that had to fix the experiment
+        # before it could run one should say so on the record.
+        "spec_revisions": spec_revisions,
         "runs": evidence_runs,
     }
     execution_results = {"status": status, "runs": payload_runs}
@@ -506,6 +681,7 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
                 "rel_tol": CAMPAIGN_REL_TOL,
                 "synthesis_failures": len(synthesis_failures),
                 "expectation_summary": expectation_summary,
+                "spec_revisions": spec_revisions,
                 "iterations": iteration_records,
             },
             indent=2,

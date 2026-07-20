@@ -1,0 +1,50 @@
+{
+  "hypothesis_id": "h5",
+  "title": "FBA max-growth invariance and sharp infeasibility onset under min-growth lower bound",
+  "objective": "Sweep the min_growth biomass lower-bound from zero to beyond the unconstrained FBA optimum to empirically confirm LP-theoretic invariance of the maximum growth rate and locate the sharp infeasibility threshold that operationalizes as the minimum-productivity guardrail for strain-design workflows.",
+  "parameters": [
+    {
+      "name": "min_growth",
+      "role": "sweep",
+      "units": "h\u207b\u00b9",
+      "min": 0.0,
+      "max": 0.9
+    }
+  ],
+  "qoi": {
+    "name": "maximum biomass flux",
+    "units": "h\u207b\u00b9",
+    "definition": "The LP-optimal steady-state biomass flux returned by each FBA solve under the given min_growth lower-bound constraint; absent (infeasible LP status) when the lower bound cannot be satisfied by the network stoichiometry and declared medium.",
+    "how_extracted": "The cobrapy fba_steady_state substrate returns a scalar growth_rate per solve when LP status is optimal; the collection of these values across the min_growth sweep is tested for numerical invariance, and the lowest min_growth value yielding no return (infeasible status) identifies the infeasibility onset.",
+    "quantity": "growth_rate"
+  },
+  "success_criterion": {
+    "statement": "Every feasible solve (min_growth strictly below the unconstrained optimum obtained at min_growth=0.0) returns a growth_rate within 1e-4 h\u207b\u00b9 of that reference value, confirming LP invariance; AND the first min_growth value at or above the unconstrained optimum yields no growth_rate (infeasible LP status), confirming the sharp threshold. Both criteria must hold in two independent identical sweeps to confirm repeatability across solver instantiations.",
+    "threshold": 0.87,
+    "direction": "above",
+    "expected_value": 0.873,
+    "tolerance": 0.0001
+  },
+  "regime": {
+    "model": "iJO1366",
+    "notes": "In-regime: iJO1366 genome-scale E. coli model on aerobic glucose minimal (M9) medium, steady-state FBA maximising biomass flux. The unconstrained LP optimum is approximately 0.873 h\u207b\u00b9 under standard iJO1366/M9-aerobic settings; the exact value is solver- and model-version-dependent and is treated as unknown a priori \u2014 the sweep upper bound of 0.90 h\u207b\u00b9 is set roughly 3% above the expected optimum to ensure at least one infeasible solve is obtained regardless of small version-to-version shifts. Out of regime: kinetics/dynamics (dFBA), regulatory constraints, transient behaviour, any model outside the allowlist, and any reading of the returned value as a measured in-vivo rate. Addressing prior design failures directly: (1) 'model' and 'quantity' are NOT declared as parameters \u2014 the harness rejects non-numeric fixed-parameter values; model is declared here in regime.model and the quantity is conveyed via qoi.quantity per this substrate's machine-readable vocabulary. (2) mini_experiment runs assign only the single declared parameter min_growth. (3) qoi.quantity='growth_rate' replaces the rejected field/operation keys that belong to a different substrate class. The substrate_capability_lessons advising 'emit model=iJO1366 per run' as a per-run parameter are superseded by the harness's own validation rule prohibiting non-numeric parameter values; model identity is instead fixed in regime.model."
+  },
+  "mini_experiment": {
+    "runs": [
+      {
+        "min_growth": 0.0
+      },
+      {
+        "min_growth": 0.4
+      },
+      {
+        "min_growth": 0.88
+      }
+    ],
+    "expected_observation": "Run 1 (min_growth=0.0) establishes the unconstrained optimum, expected approximately 0.873 h\u207b\u00b9. Run 2 (min_growth=0.40) should return the same value to within 1e-4 h\u207b\u00b9, demonstrating invariance at an intermediate lower bound well below the optimum. Run 3 (min_growth=0.88) should return no growth_rate (infeasible LP status), since 0.88 h\u207b\u00b9 exceeds the expected unconstrained optimum."
+  },
+  "full_experiment": {
+    "design": "Sweep min_growth over 30 values: 20 values linearly spaced in [0.0, 0.85] h\u207b\u00b9 to sample the invariant regime broadly, then 10 values linearly spaced in (0.85, 0.90] h\u207b\u00b9 at approximately 0.005 h\u207b\u00b9 spacing to localise the infeasibility onset. The unconstrained optimum is taken from the min_growth=0.0 run; all feasible solves are checked for growth_rate within 1e-4 h\u207b\u00b9 of that reference value. The infeasibility onset is identified as the lowest min_growth yielding no growth_rate return. A second identical 30-run sweep is then executed to test repeatability across solver instantiations; the infeasibility-onset values from both sweeps must agree to within one fine-resolution step (0.005 h\u207b\u00b9). The operational guardrail is defined as the confirmed infeasibility-onset value minus a 2\u00d7 typical LP solver-tolerance margin (~2e-6 h\u207b\u00b9).",
+    "estimated_run_count": 60
+  }
+}
