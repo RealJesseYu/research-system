@@ -175,8 +175,12 @@ class TestChooserEnvelope(unittest.TestCase):
         validator = self._validator()
         self.assertEqual(len(validator(reply_alien)), 1)
         self.assertEqual(validator(reply_cavity), [])
+        # The live-read seam moved routable_ids -> permitted_ids when the
+        # run-scoped substrate constraint landed: the validator still reads the
+        # registry LIVE at validation time (this test's whole point), through
+        # the function that also applies the constraint.
         with patch.object(
-            gate1_chooser, "routable_ids", lambda: ("alien_substrate",)
+            gate1_chooser, "permitted_ids", lambda: ("alien_substrate",)
         ):
             self.assertEqual(validator(reply_alien), [])
             self.assertEqual(len(validator(reply_cavity)), 1)

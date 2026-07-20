@@ -182,7 +182,10 @@ def route_node(node) -> str:
         # applies in full, including its loud stop.
         return select_substrate(spec)
 
-    routable = registry.routable_ids()
+    # permitted_ids(): a named node is exempt from R-B-1's ambiguity stop, NOT
+    # from a run-scoped constraint. Naming an instrument the run was forbidden
+    # is the most direct way a constraint could be bypassed, so it stops here.
+    routable = registry.permitted_ids()
     if named not in routable:
         raise LookupError(
             f"chain node names substrate {named!r}, which is not routable — "

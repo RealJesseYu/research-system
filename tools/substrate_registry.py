@@ -40,6 +40,7 @@ pipeline to route to them.
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 
 from substrates import (
@@ -597,15 +598,24 @@ def routable_contracts_block() -> str:
     one (the D.1.1 direction: all routable contracts at Stage-1 surfaces,
     task-typed selection at Stage-2/Step-35).
 
-    Deterministic pure function of the registry: loops routable_ids() in
+    Deterministic pure function of the registry: loops permitted_ids() in
     enrollment order and emits, per substrate, a minimal fixed header naming
     the substrate_id and then contract_for(id) VERBATIM — never a paraphrase,
     never a pasted copy. No timestamps, fixed separators, byte-stable.
     FAIL LOUD inherits from contract_for: a routable substrate without a
-    wired contract cannot compose — the LookupError escapes."""
+    wired contract cannot compose — the LookupError escapes.
+
+    Reads permitted_ids() rather than routable_ids() so a run-scoped
+    constraint narrows this block too. That HONORS R5 rather than departing
+    from it: the ruling's point is that the block shows every instrument the
+    run could route to, never a pre-selected one, and under a constraint the
+    excluded instruments are precisely the ones the run cannot reach.
+    Grounding ideation in a contract whose substrate routing will refuse is
+    how you get a hypothesis that cannot be run. Unconstrained, this is
+    byte-identical to the all-routable block."""
     return "\n\n".join(
         "ROUTABLE SUBSTRATE: " + sid + "\n" + contract_for(sid)
-        for sid in routable_ids()
+        for sid in permitted_ids()
     )
 
 
@@ -678,3 +688,103 @@ def routable_ids() -> tuple[str, ...]:
     homology_search enrolls BEFORE mafft); the last four are the MATURE
     substrates (rdkit/cobrapy/homology_search/mafft)."""
     return tuple(r.substrate_id for r in _REGISTRY if r.routable)
+
+
+# --- RUN-SCOPED SUBSTRATE CONSTRAINT --------------------------------------
+# A caller may restrict which of the routable substrates THIS RUN may reach,
+# so a goal-level constraint ("only use cobrapy") is enforced AT ROUTING
+# rather than merely stated in a prompt and ignored by every decision after
+# it. Before this, a constraint in the goal text reached the ideation model
+# and evaporated: every routing surface read the full routable set.
+#
+# THIS IS A RUNTIME NARROWING OF AN UNCHANGED REGISTRY. Rows are never
+# mutated — maturity and routable stay governance facts that change only by
+# editing this file under a recorded ruling (see the header). routable_ids()
+# keeps its registry meaning, unnarrowed, because "what is routable" is a
+# fact about the system and "what may this run reach" is a fact about the
+# run. permitted_ids() is the second question, and it is the one every
+# routing surface should ask.
+#
+# With the variable unset, permitted_ids() == routable_ids() and every
+# consumer sees exactly what it saw before. That byte-identity is the
+# property the whole change rests on.
+#
+# The channel is the environment, matching RESEARCH_CAMPAIGN /
+# CAMPAIGN_MAX_ITERS / BLANK_MEMORY, and chosen so that a controller
+# dispatching runs as subprocesses hands each run its constraints the same
+# way it hands them everything else.
+ALLOWED_SUBSTRATES_ENV = "ALLOWED_SUBSTRATES"
+
+
+def allowed_constraint() -> frozenset[str] | None:
+    """The run-scoped allow-set parsed from the environment, or None when the
+    run is unconstrained.
+
+    Unset, empty, or whitespace-only => None (unconstrained), matching the
+    convention every other env flag in this project follows. A value that has
+    content but names an id this registry does not enroll RAISES, and so does
+    one that parses to nothing (e.g. ",,,"): a constraint that names something
+    nonexistent is a caller error, and silently dropping it would produce
+    exactly the failure this feature exists to prevent — a constraint that
+    reads as binding and is not.
+
+    Names are comma-separated; surrounding whitespace is tolerated.
+    """
+    raw = os.environ.get(ALLOWED_SUBSTRATES_ENV, "")
+    if not raw.strip():
+        return None
+    names = tuple(part.strip() for part in raw.split(",") if part.strip())
+    if not names:
+        raise RuntimeError(
+            f"{ALLOWED_SUBSTRATES_ENV}={raw!r} parses to no substrate names. "
+            "Set it to a comma-separated list of enrolled substrate ids, or "
+            "unset it to leave the run unconstrained — it is never treated as "
+            "an empty allow-set, because a constraint that silently permits "
+            "everything is the failure this setting exists to prevent."
+        )
+    unknown = sorted(n for n in names if n not in _BY_ID)
+    if unknown:
+        raise RuntimeError(
+            f"{ALLOWED_SUBSTRATES_ENV} names substrate(s) this registry does "
+            f"not enroll: {unknown}. Enrolled ids are "
+            f"{[r.substrate_id for r in _REGISTRY]}. A constraint naming a "
+            "substrate that does not exist is a caller error, not an empty "
+            "restriction — fix the name, or enroll the substrate under a "
+            "recorded ruling; stopping before routing."
+        )
+    return frozenset(names)
+
+
+def permitted_ids() -> tuple[str, ...]:
+    """The substrate ids THIS RUN may route to: routable_ids() narrowed by the
+    run-scoped constraint, enrollment order preserved.
+
+    This is what every routing surface should consult — selection, the
+    contract blocks composed into model inputs, the gate-1 chooser's
+    validator, chain-node routing, and the human instrument prompt. Asking
+    routable_ids() instead is how a constraint becomes decorative.
+
+    Unconstrained => returns routable_ids() unchanged. Constrained to a set
+    that leaves NO routable substrate => RAISES, naming both sides. There is
+    no fallback: a run that may reach nothing must stop loudly rather than
+    quietly widen back to the full set.
+
+    Deliberately calls routable_ids() rather than reading _REGISTRY directly,
+    so the existing test seams that patch routable_ids keep working.
+    """
+    routable = routable_ids()
+    allowed = allowed_constraint()
+    if allowed is None:
+        return routable
+    permitted = tuple(sid for sid in routable if sid in allowed)
+    if not permitted:
+        parked = sorted(allowed - set(routable))
+        raise RuntimeError(
+            f"{ALLOWED_SUBSTRATES_ENV}={sorted(allowed)} leaves no routable "
+            f"substrate for this run: the routable set is {list(routable)}, and "
+            f"the constrained id(s) {parked} are enrolled but not routable. "
+            "Constrain the run to at least one routable substrate, or promote "
+            "one under a recorded ruling; stopping before routing. The "
+            "constraint is never widened back to the full routable set."
+        )
+    return permitted

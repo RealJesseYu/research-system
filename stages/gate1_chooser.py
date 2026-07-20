@@ -41,7 +41,7 @@ import json
 from pathlib import Path
 
 from model_call import FULL, call_stage_model, log_stage_call
-from tools.substrate_registry import routable_contracts_block, routable_ids
+from tools.substrate_registry import permitted_ids, routable_contracts_block
 
 # Step-23 ruled pin: the chooser is a hard judgment, so it rides Opus.
 CHOOSER_MODEL = "claude-opus-4-8"
@@ -122,10 +122,14 @@ def make_choice_validator(valid_ids: set) -> callable:
                 f"chosen_id must be exactly one of {sorted(valid_ids)}; "
                 f"got {parsed.get('chosen_id')!r}."
             )
-        # R-23.5-1 (owner, 2026-07-17): membership is checked against
-        # routable_ids() read LIVE from the registry at validation time —
-        # never a hardcoded list (one runtime source of truth, no third copy).
-        live_routable = routable_ids()
+        # R-23.5-1 (owner, 2026-07-17): membership is checked against the
+        # registry read LIVE at validation time — never a hardcoded list (one
+        # runtime source of truth, no third copy). permitted_ids() rather than
+        # routable_ids() so a run-scoped constraint is enforced at the gate as
+        # well as at routing: the chooser is shown only the permitted contracts,
+        # and an answer outside them is rejected into the re-ask loop rather
+        # than travelling the payload to be caught three stages later.
+        live_routable = permitted_ids()
         if parsed.get("substrate_id") not in live_routable:
             errors.append(
                 f"substrate_id must be exactly one of {list(live_routable)}; "

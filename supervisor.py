@@ -225,6 +225,22 @@ def record_run_outcome(baton: Baton, how_far: str, retry_on_total_defer: int = 0
     if blank_memory_active():
         extras["blank_memory"] = True
         text = f"[BLANK_MEMORY] {text}"
+    # SUBSTRATE CONSTRAINT disclosure. A run restricted to a subset of the
+    # routable substrates must say so permanently: a reader comparing two runs
+    # has to be able to tell "this instrument was never chosen" from "this
+    # instrument was never offered". Unconstrained (the default) => the key is
+    # absent and the record is byte-identical to the pre-constraint shape.
+    # Never raises: a malformed constraint has already stopped the run long
+    # before this point, and a record must not fail to be written.
+    try:
+        from tools import substrate_registry as registry
+
+        constrained_to = registry.allowed_constraint()
+    except Exception:  # noqa: BLE001
+        constrained_to = None
+    if constrained_to is not None:
+        extras["allowed_substrates"] = sorted(constrained_to)
+        text += f", allowed_substrates=[{', '.join(sorted(constrained_to))}]"
     # VERIFICATION (2026-07-20). run_verification_pass stashes its summary on the
     # baton as a NON-payload attribute — the same channel _maturity_signoff and
     # _barren_diagnosis use, for the same reason (the payload schema is locked).
@@ -1075,7 +1091,10 @@ def _prompt_gate1_instrument(
     entry of the exact current entry shape, beside the rank entry."""
     from tools import substrate_registry as registry
 
-    routable = registry.routable_ids()
+    # permitted_ids(): the human is offered only the instruments this run is
+    # allowed to reach. Listing a forbidden one and rejecting the answer after
+    # the fact would be a worse gate than not offering it.
+    routable = registry.permitted_ids()
     chooser_read = (
         chooser_record.get("substrate_id")
         if isinstance(chooser_record, dict)
@@ -1749,6 +1768,20 @@ def main() -> None:
     logger = Logger(run_dir / "log.txt")
 
     logger.log(f"=== supervisor run {run_id} starting in mode={args.mode} ===")
+
+    # The constraint is resolved and announced BEFORE stage 1 composes any
+    # prompt, so a malformed one stops the run before it spends a model call,
+    # and a valid one is the first thing a reader of log.txt sees.
+    from tools import substrate_registry as registry
+
+    _constrained = registry.allowed_constraint()
+    if _constrained is not None:
+        logger.log(
+            f"SUBSTRATE CONSTRAINT: this run may route only to "
+            f"{sorted(_constrained)} — permitted set is "
+            f"{list(registry.permitted_ids())} "
+            f"(from {registry.ALLOWED_SUBSTRATES_ENV})"
+        )
 
     baton = Baton(
         run_id=run_id,

@@ -189,6 +189,27 @@ _SIGNATURES: dict[str, frozenset[str]] = {
 }
 
 
+def _constraint_note() -> str:
+    """A sentence naming the run-scoped constraint, or "" when unconstrained.
+
+    Appended to selection failures so a caller who restricted the run can tell
+    "nothing can measure this" apart from "nothing you allowed can measure
+    this". Never raises: a failure message must not fail.
+    """
+    try:
+        allowed = registry.allowed_constraint()
+    except Exception:  # noqa: BLE001 — diagnostics must never mask the real error
+        return ""
+    if allowed is None:
+        return ""
+    return (
+        f" NOTE: this run is CONSTRAINED to {sorted(allowed)} "
+        f"({registry.ALLOWED_SUBSTRATES_ENV}), so instruments outside that set "
+        "were never considered — widen or lift the constraint if the spec "
+        "genuinely needs one of them."
+    )
+
+
 def signature_for(substrate_id: str) -> frozenset[str]:
     """The parameter signature for one substrate. FAIL LOUD (contract_for's
     style): a substrate with no wired signature raises LookupError — selection
@@ -243,7 +264,9 @@ def capability_table() -> str:
     Both ride the nudge — prose for judgment, table for the hard edges.
     """
     lines = []
-    for sid in registry.routable_ids():
+    # permitted_ids(), not routable_ids(): a run constrained to a subset must
+    # not be told it can vary knobs on an instrument routing will refuse.
+    for sid in registry.permitted_ids():
         try:
             varies = sorted(signature_for(sid))
         except LookupError:
@@ -336,8 +359,12 @@ def select_substrate(spec: dict | None) -> str:
     intended (L0-surviving) substrate — L1a/L1b therefore never drop that
     substrate; they only drop wrong-grammar near-neighbours.
     """
-    routable = registry.routable_ids()
-    for sid in routable:
+    # permitted_ids(), not routable_ids(): a run-scoped constraint narrows what
+    # this run may reach, and routing is where that constraint has to bite. It
+    # raises loudly if the constraint leaves nothing routable. Unconstrained,
+    # this is routable_ids() and every path below is unchanged.
+    permitted = registry.permitted_ids()
+    for sid in permitted:
         registry.contract_for(sid)  # LookupError: routable without a contract
         signature_for(sid)          # LookupError: routable without a signature
         # NOT probed here: vocab_for. Tried 2026-07-20 and reverted — the
@@ -348,18 +375,23 @@ def select_substrate(spec: dict | None) -> str:
 
     # L0 — SERVE-ABILITY (unchanged): declared names ⊆ signature.
     names = declared_parameter_names(spec)
-    candidates = [sid for sid in routable if names <= signature_for(sid)]
+    candidates = [sid for sid in permitted if names <= signature_for(sid)]
     if not candidates:
         unserved = {
-            sid: sorted(names - signature_for(sid)) for sid in routable
+            sid: sorted(names - signature_for(sid)) for sid in permitted
         }
+        # The unconstrained message is unchanged. A constraint appends its own
+        # sentence rather than rewording this one, so the failure never reads
+        # as "no instrument can do this" when the truth is "no instrument you
+        # allowed can do this" — a distinction the caller has to see.
+        constraint_note = _constraint_note()
         raise LookupError(
             f"no routable substrate can serve this spec: declared parameters "
             f"{sorted(names)} exceed every routable signature — per substrate, "
             f"the unserved names are {unserved}. Selection must NOT fall back "
             "to cavity (or any substrate) for a spec it cannot serve — route "
             "the spec to a substrate whose vocabulary covers it, or enroll "
-            "and wire one under a recorded ruling."
+            "and wire one under a recorded ruling." + constraint_note
         )
 
     # L1a — TASK-CLASS by REGIME-SHAPE (Step 41). Narrow a shared-signature

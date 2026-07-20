@@ -54,6 +54,12 @@ from stages.stage4_case_builder import CaseSynthesisError
 from tools.qoi_vocab import vocab_for
 from tools.substrate_selection import select_substrate
 
+# The chain build's own commit ("Chain runner v1: two-node routing +
+# weakest-link aggregation"). The era claim below is a claim about THAT BUILD,
+# so it is proven against that commit's diff rather than against whatever
+# happens to be in the working tree today.
+CHAIN_BUILD_COMMIT = "5c890f4"
+
 # The single-node production surface. The chain path is a NEW module; if any
 # of these moved, the era claim is false.
 FROZEN_SURFACE = (
@@ -155,9 +161,20 @@ def _tmp_cwd():
 class TestT1EraHolds(unittest.TestCase):
 
     def test_production_surface_byte_identical_to_head(self):
-        """The chain build touched NO file on the single-node path."""
+        """The chain build touched NO file on the single-node path.
+
+        Checked against the CHAIN BUILD'S OWN COMMIT, because that is what the
+        claim is about. This used to compare the working tree against HEAD,
+        which does not prove it: that form only asks whether the tree is
+        currently clean, so it went green the instant anything was committed
+        and fired on any later, unrelated edit to these files. Two of them
+        (stage4_simulation.py, substrate_dispatch.py) have legitimately moved
+        since, in the verification and bench-agent builds, and the old form
+        never noticed either one. Pinned to the commit, the claim is durable.
+        """
         changed = subprocess.run(
-            ["git", "diff", "--name-only", "HEAD", "--", *FROZEN_SURFACE],
+            ["git", "diff", "--name-only",
+             f"{CHAIN_BUILD_COMMIT}^", CHAIN_BUILD_COMMIT, "--", *FROZEN_SURFACE],
             cwd=ROOT, capture_output=True, text=True, check=True,
         ).stdout.split()
         self.assertEqual(
