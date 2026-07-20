@@ -65,6 +65,18 @@ MAX_GATE1_INVALID_ANSWERS = 3
 # per run; a further non-exit decision forces a stop with a recommendation.
 MAX_LOOPBACKS = 2
 
+# Wide crash-recovery fix (2026-07-19): an UNCAUGHT stage exception no longer
+# hard-exits the run. It is journaled as a dead-end (the same learned_summary
+# channel stage 5's back_to_ideation uses, so the next ideation round remembers
+# and avoids it) and loops back to ideation, at most this many times per run.
+# This is its OWN bounded budget, independent of MAX_LOOPBACKS (graceful gate-5
+# loop-backs) and the total-defer retry. On exhaustion the run takes the honest
+# terminal halt (memo + crashed run_record + exit) that predated this fix — a
+# data-less crash cannot be turned into a real paper, so bounded recovery is the
+# guarantee, not a fabricated deliverable. This deliberately softens the
+# loud-halt doctrine for the crash path, on owner request.
+MAX_CRASH_LOOPBACKS = 2
+
 # 19-lite / retry build: retry-on-total-defer. Auto mode ONLY, env-gated,
 # DEFAULT OFF. A "total defer" is a run terminating with ZERO executed solver
 # runs and a final fidelity verdict class of "defer" — the pipeline produced
@@ -77,6 +89,14 @@ MAX_TOTAL_DEFER_RETRIES = 1
 # The Generation feasibility-nudge switch (stages/generation_strategies.py reads
 # this env at call time); the retry forces it on for the retried pass only.
 FEASIBILITY_NUDGE_ENV = "FEASIBILITY_NUDGE"
+# Crash-recovery gate (mirrors retry-on-total-defer EXACTLY). Auto mode ONLY,
+# env-gated, DEFAULT OFF. When CRASH_RECOVERY=1 (auto mode), an uncaught stage
+# crash loops back to Stage 1 up to MAX_CRASH_LOOPBACKS times (journaling a
+# dead-end each round) before the honest terminal halt. In human mode, or on
+# default (env unset), the loopback is never entered: a crash halts LOUD on the
+# FIRST occurrence — memo + crashed run_record + exit 1 — exactly as before this
+# fix. Naming matches the no-prefix style of RETRY_ON_TOTAL_DEFER / FEASIBILITY_NUDGE.
+CRASH_RECOVERY_ENV = "CRASH_RECOVERY"
 _UNSET = object()  # sentinel: no pending nudge-env restore
 
 # Gate-5 override letters -> iterate decisions (Step 16).
@@ -106,6 +126,18 @@ STAGE_BOUNDARY_VALIDATORS = {
     4: schemas.validate_payload_post_stage4,
     5: schemas.validate_payload_post_stage5,
 }
+
+
+class StageCrashed(Exception):
+    """Raised by run_single_stage when a stage function raises (wide crash-
+    recovery fix, 2026-07-19). Carries the stage name and the original
+    exception so run_relay can decide recover-vs-halt — the terminal
+    memo/record/exit no longer happens inside run_single_stage."""
+
+    def __init__(self, stage_name: str, original: BaseException):
+        self.stage_name = stage_name
+        self.original = original
+        super().__init__(str(original))
 
 
 class Logger:
@@ -206,17 +238,23 @@ def apply_substrate_maturity_hook(logger: Logger, baton: Baton, mode: str) -> No
     produced and validated, BEFORE stage 4 consumes it.
 
     A trust decision is a trust/refine verdict (a defer verdict routes to no
-    substrate, so there is nothing to gate). The substrates a run may route to
-    are read STRUCTURALLY from the registry's routable set — never parsed from
-    the payload's substrate names, which would violate the substrate-agnostic
-    invariant. (The routable set is the registry's to state — see
-    tools/substrate_registry.py; every routable substrate today is
-    non-mature.)
+    substrate, so there is nothing to gate).
 
-    If ANY routable substrate is non-mature the trust decision is human-
-    required: a NEEDS_HUMAN_SIGNOFF line is logged (a display) and the fact is
-    stashed on the baton (a NON-payload attribute — the payload schema is
-    locked) so every terminal run_record and the human gate carry it.
+    OWNER RULING (2026-07-19): the restriction is LIFTED for a MATURE routed
+    substrate. The run's routed substrate is the gate-1 decision the payload
+    carries — substrate_id (Step 23.5, R-23.5-4; the SAME field stage 3's
+    agreement check reads) — and when it is mature a trust/refine verdict
+    STANDS in both modes: no signoff, no downgrade. Reading substrate_id as a
+    registry KEY for its maturity is a structural query (is_mature), not a
+    substrate-name branch, so the substrate-agnostic invariant holds. A
+    missing or unknown id falls through to the conservative check below.
+
+    Otherwise (routed substrate non-mature, or unknown/missing): the run is
+    still gated on the non-mature routable set — if ANY routable substrate is
+    non-mature the trust decision is human-required: a NEEDS_HUMAN_SIGNOFF line
+    is logged (a display) and the fact is stashed on the baton (a NON-payload
+    attribute — the payload schema is locked) so every terminal run_record and
+    the human gate carry it.
 
     Mode behavior:
       * human — the verdict is UNTOUCHED. A human sits at every gate; the
@@ -240,6 +278,18 @@ def apply_substrate_maturity_hook(logger: Logger, baton: Baton, mode: str) -> No
     label = verdict.get("label")
     if label not in ("trust", "refine"):
         return  # not a trust decision — a defer verdict routes to no substrate
+
+    # OWNER RULING (2026-07-19): a MATURE routed substrate lifts the restriction
+    # — the verdict stands untouched, both modes. Keyed on the routed
+    # substrate_id (registry lookup, not a name branch); unknown/missing falls
+    # through to the conservative global check.
+    routed = baton.payload.get("substrate_id")
+    if isinstance(routed, str):
+        try:
+            if registry.is_mature(routed):
+                return
+        except KeyError:
+            pass  # unknown id -> conservative: keep the restriction
 
     non_mature = [sid for sid in registry.routable_ids() if not registry.is_mature(sid)]
     if not non_mature:
@@ -291,17 +341,19 @@ def enforce_boundary_schema(logger: Logger, baton: Baton, boundary: str, validat
 def run_single_stage(logger: Logger, baton: Baton, name: str, stage_fn) -> Baton:
     """Run one stage with a crash catch (Step 16, JC1b). Deterministic Python.
 
-    INVARIANT: every run that starts leaves a run_record, no matter how it
-    ends. Before this catch, a stage exception killed the process before
-    record_run_outcome (first fired live in the Step-15 crashed demo
-    20260706T054646Z). Now: durable STAGE-CRASH line (stage, exception
-    class, message, last ~5 traceback lines), a "crashed" run_record with
-    the exception summary, exit 1.
+    Logs the crash — durable STAGE-CRASH line (stage, exception class, message,
+    last ~5 traceback lines) — and re-raises it as StageCrashed for run_relay
+    to handle. WIDE FIX (2026-07-19): the terminal memo/record/exit moved OUT
+    of here. run_relay now journals the crash as a dead-end and loops back to
+    ideation while its crash-recovery budget lasts, and only takes the honest
+    terminal halt (memo + "crashed" run_record + exit 1) once the budget is
+    spent — so every run that starts STILL leaves a run_record no matter how
+    it ends, but a crash gets bounded recovery first.
 
     Designed loud halts that surface as exceptions — e.g. stage 1's
     zero-survivors RuntimeError, or a model-call loud halt after 3 re-asks —
-    are recorded under the same "crashed" status with their honest message;
-    refining that taxonomy waits for evidence.
+    take the same recovery-then-halt path with their honest message; refining
+    that taxonomy waits for evidence.
     """
     try:
         return stage_fn(baton)
@@ -312,14 +364,64 @@ def run_single_stage(logger: Logger, baton: Baton, name: str, stage_fn) -> Baton
         )
         for tb_line in traceback.format_exc().splitlines()[-5:]:
             logger.log(f"STAGE-CRASH | {tb_line}")
-        write_failure_memo_safe(logger, _run_dir_for(baton))
-        record_run_outcome(
-            baton, f"crashed at {name}: {type(exc).__name__}: {first_line}"
-        )
+        raise StageCrashed(name, exc)
+
+
+def journal_crash_dead_end(logger: Logger, baton: Baton, crash: StageCrashed) -> None:
+    """WIDE FIX (crash recovery): journal a learned_summary dead-end so the
+    NEXT ideation round remembers this crash and avoids re-proposing what hit
+    it. Reflection's initial review reads recent learned_summary entries as its
+    prior_dead_ends block (stages/reflection_reviews.py), so this code-authored
+    entry rides the EXACT channel a stage-5 back_to_ideation dead-end uses — the
+    crash becomes a lesson, not a silent death.
+
+    ONLY a HYPOTHESIS-ATTRIBUTABLE crash is journaled: a chosen_hypothesis must
+    exist in the payload (the crash happened at/after gate 1, so there is a
+    specific approach to avoid). A crash BEFORE gate 1 — e.g. a stage-1
+    retrieval/transport failure like an OpenAlex 400 — is NOT a scientific dead
+    end; writing an 'unknown-hypothesis' lesson would both mislead ideation and
+    churn the learned_summary memory baseline (the kill-rate md5 pin). Such a
+    crash still loops back and retries; it just leaves no false lesson.
+
+    Never raises: a failed journal write is logged and swallowed, like the memo."""
+    chosen = baton.payload.get("chosen_hypothesis")
+    if not (isinstance(chosen, dict) and chosen.get("id")):
         logger.log(
-            f"=== supervisor run {baton.run_id} CRASHED at stage {name} ==="
+            "CRASH-RECOVERY: no chosen_hypothesis — crash is not a scientific "
+            "dead-end (pre-gate-1 / infrastructure), no learned_summary journaled"
         )
-        sys.exit(1)
+        return
+    try:
+        hid = chosen["id"]
+        statement = (chosen.get("statement") or "").strip()
+        reason = (
+            str(crash.original).splitlines()[0]
+            if str(crash.original)
+            else type(crash.original).__name__
+        )
+        if len(reason) > 240:
+            reason = reason[:240].rstrip() + "…"
+        text = (
+            f"DEAD END (crash recovery): the approach behind hypothesis {hid} "
+            f"crashed at {crash.stage_name} and could not be modeled by any "
+            f"available instrument. Reason: {reason}"
+        )
+        if statement:
+            text += f" (hypothesis: {statement})"
+        text += " Avoid re-proposing an approach that needs what this one needed."
+        journal_append(
+            {
+                "kind": "learned_summary",
+                "run_id": baton.run_id,
+                "hypothesis_id": hid,
+                "text": text,
+            }
+        )
+        logger.log(f"CRASH-RECOVERY: journaled dead-end learned_summary for {hid}")
+    except Exception as exc:  # never let record-keeping break recovery
+        logger.log(
+            f"CRASH-RECOVERY: dead-end journal skipped ({type(exc).__name__}: {exc})"
+        )
 
 
 def build_gate2_header(payload: dict) -> str:
@@ -1110,12 +1212,63 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
     retry_used = 0
     retry_enabled = mode == "auto" and os.environ.get(RETRY_ON_TOTAL_DEFER_ENV) == "1"
     pending_nudge_restore = _UNSET  # env value to restore after the retried pass
+    crash_loopbacks_used = 0  # wide fix: bounded crash -> ideation recoveries
+    # Crash recovery mirrors retry_enabled EXACTLY: auto mode + env opt-in only.
+    # Off (human mode, or env unset) => the loopback guard is never true and a
+    # crash takes the loud terminal halt on the FIRST occurrence.
+    crash_recovery_enabled = mode == "auto" and os.environ.get(CRASH_RECOVERY_ENV) == "1"
     i = 0
     while i < len(stages):
         name, stage_fn = stages[i]
         stage_number = i + 1
 
-        baton = run_single_stage(logger, baton, name, stage_fn)
+        try:
+            baton = run_single_stage(logger, baton, name, stage_fn)
+        except StageCrashed as crash:
+            # WIDE FIX (crash recovery): an uncaught stage crash is NOT a hard
+            # exit. While budget remains, journal the crash as a dead-end (so
+            # the retried ideation round remembers and avoids it) and loop back
+            # to stage 1 with the payload reduced to {domain} — the same
+            # back_to_ideation shape apply_loopback_surgery produces. This is
+            # the "run into a problem -> go back, remember it, avoid it next
+            # round" path the owner intended. Budget spent -> the honest
+            # terminal halt (memo + crashed run_record + exit 1) that predated
+            # this fix, so every run still leaves a run_record.
+            if crash_recovery_enabled and crash_loopbacks_used < MAX_CRASH_LOOPBACKS:
+                crash_loopbacks_used += 1
+                journal_crash_dead_end(logger, baton, crash)
+                baton.payload = {"domain": baton.payload["domain"]}
+                baton.validate()
+                logger.log(
+                    f"CRASH-RECOVERY: crash at {crash.stage_name} — looping back "
+                    f"to ideation (recovery {crash_loopbacks_used} of "
+                    f"{MAX_CRASH_LOOPBACKS}); payload reduced to {{domain}}"
+                )
+                i = 0
+                continue
+            first_line = (
+                str(crash.original).splitlines()[0] if str(crash.original) else ""
+            )
+            halt_reason = (
+                f"budget spent ({MAX_CRASH_LOOPBACKS})"
+                if crash_recovery_enabled
+                else "disabled (default; auto+env only)"
+            )
+            logger.log(
+                f"CRASH-RECOVERY: {halt_reason} — honest terminal halt "
+                f"at {crash.stage_name}"
+            )
+            write_failure_memo_safe(logger, run_dir)
+            record_run_outcome(
+                baton,
+                f"crashed at {crash.stage_name}: "
+                f"{type(crash.original).__name__}: {first_line}",
+            )
+            logger.log(
+                f"=== supervisor run {baton.run_id} CRASHED at stage "
+                f"{crash.stage_name} ==="
+            )
+            sys.exit(1)
         baton.validate()
 
         # 19-lite/retry build: the retried ideation pass ran with the nudge

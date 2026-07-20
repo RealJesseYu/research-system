@@ -102,6 +102,45 @@ class TestAutoModeDowngrade(unittest.TestCase):
         self.assertEqual(b.payload["fidelity_verdict"]["label"], "defer")
 
 
+class TestMatureRoutedBypass(unittest.TestCase):
+    """OWNER RULING (2026-07-19): when the run's routed substrate (payload
+    substrate_id) is MATURE, a trust/refine verdict STANDS in both modes —
+    no downgrade, no signoff — even while non-mature substrates remain
+    routable. Keyed on the routed substrate, not the global routable set."""
+
+    def _routed_baton(self, mode: str, label: str, substrate_id: str) -> Baton:
+        b = _baton(mode, label)
+        b.payload["substrate_id"] = substrate_id
+        return b
+
+    def test_mature_routed_trust_stands_in_auto(self):
+        b = self._routed_baton("auto", "trust", "cobrapy")  # cobrapy is mature
+        logger = CaptureLogger()
+        supervisor.apply_substrate_maturity_hook(logger, b, "auto")
+        self.assertEqual(b.payload["fidelity_verdict"]["label"], "trust")
+        self.assertFalse(hasattr(b, "_maturity_signoff"))
+        self.assertEqual(logger.lines, [])
+
+    def test_mature_routed_refine_stands_in_auto(self):
+        b = self._routed_baton("auto", "refine", "rdkit")  # rdkit is mature
+        supervisor.apply_substrate_maturity_hook(CaptureLogger(), b, "auto")
+        self.assertEqual(b.payload["fidelity_verdict"]["label"], "refine")
+        self.assertFalse(hasattr(b, "_maturity_signoff"))
+
+    def test_non_mature_routed_still_downgrades_in_auto(self):
+        # A non-mature routed substrate keeps the existing safety behavior.
+        b = self._routed_baton("auto", "trust", "cavity_2d_cfd")  # provisional
+        supervisor.apply_substrate_maturity_hook(CaptureLogger(), b, "auto")
+        self.assertEqual(b.payload["fidelity_verdict"]["label"], "defer")
+        self.assertTrue(b._maturity_signoff["required"])
+
+    def test_unknown_routed_id_falls_through_conservatively(self):
+        # An unknown id must not silently lift the restriction.
+        b = self._routed_baton("auto", "trust", "not_a_real_substrate")
+        supervisor.apply_substrate_maturity_hook(CaptureLogger(), b, "auto")
+        self.assertEqual(b.payload["fidelity_verdict"]["label"], "defer")
+
+
 class TestNoOpPaths(unittest.TestCase):
     def test_defer_verdict_is_not_a_trust_decision(self):
         b = _baton("auto", "defer")
