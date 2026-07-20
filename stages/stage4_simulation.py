@@ -133,7 +133,79 @@ def _log_line(run_id: str, line: str) -> None:
         f.write(line + "\n")
 
 
+def run_one_point(
+    run_id: str,
+    index: int,
+    total: int,
+    params: dict,
+    *,
+    substrate_id: str,
+    adapter,
+    entry_constructor,
+    parameter_roles: dict,
+    qoi_request,
+    qoi_error_fallback,
+    case_name: str | None = None,
+) -> tuple[dict | None, dict | None, str | None]:
+    """Execute ONE mini-experiment point through the ALREADY-RESOLVED substrate
+    adapter — a PURE extraction of stage 4's per-point loop body.
+
+    Dispatch is hoisted: the caller resolves substrate_id / adapter /
+    entry_constructor / parameter_roles / qoi_request / qoi_error_fallback ONCE
+    (including the R-23.5-4 agreement check) and passes them in, so this
+    function branches on no substrate name and does no re-derivation. The
+    campaign controller (Step 29) reuses it to run proposed points beside the
+    single-run path.
+
+    Returns (evidence_run, payload_run, halt_reason):
+      * on a CaseSynthesisError -> (None, None, halt_reason) — the caller stops;
+      * otherwise -> (evidence_run, payload_run, None).
+    The caller owns accumulation and the halt break, exactly as the inline loop
+    did. Side-effect order (adapter call -> entry constructed -> STAGE4 log) is
+    preserved byte-for-byte.
+    """
+    if case_name is None:
+        case_name = f"{run_id}_run{index}"
+    try:
+        summary = adapter(substrate_id, params, case_name, parameter_roles, qoi_request)
+    except CaseSynthesisError as exc:
+        halt_reason = f"run {index} of {total}: {exc}"
+        _log_line(run_id, f"STAGE4 halted_synthesis at {halt_reason}")
+        return None, None, halt_reason
+    evidence_run = {
+        "run_index": index,
+        "case": case_name,
+        "params": params,
+        "summary": summary,
+    }
+    payload_run = entry_constructor(summary, qoi_error_fallback, qoi_request)
+    # the qoi display tolerates both wrapper shapes: cavity's {value: …}
+    # object and ngspice's bare scalar/null (cavity output unchanged)
+    raw_qoi = summary.get("qoi")
+    if isinstance(raw_qoi, dict):
+        qoi_display = raw_qoi.get("value", "n/a")
+    else:
+        qoi_display = raw_qoi if raw_qoi is not None else "n/a"
+    _log_line(
+        run_id,
+        f"STAGE4 run {index}/{total} case={case_name} "
+        f"status={summary.get('status')} converged={summary.get('converged')} "
+        f"qoi={qoi_display}",
+    )
+    return evidence_run, payload_run, None
+
+
 def run(baton: Baton) -> Baton:
+    # Step 29 opt-in (D5): when the RESEARCH_CAMPAIGN flag is set, this stage is
+    # the campaign controller (a stage-4-equivalent producing ONE consolidated
+    # result). The import is lazy so the default path pays nothing structural
+    # and there is no import cycle (campaign_controller imports run_one_point
+    # from here). With the flag unset the single-run path below is unchanged.
+    from stages.campaign_controller import campaign_enabled, run_campaign
+
+    if campaign_enabled():
+        return run_campaign(baton)
+
     verdict = baton.payload["fidelity_verdict"]
     label = verdict["label"]
     stage_dir = Path("runs") / baton.run_id / "stage4"
@@ -201,44 +273,29 @@ def run(baton: Baton) -> Baton:
     halt_reason: str | None = None
 
     for index, params in enumerate(mini_runs, start=1):
-        case_name = f"{baton.run_id}_run{index}"
-        try:
-            # the selected substrate's adapter: for cavity, build_case + the
-            # identical wrapper call this loop always made (D.4 dispatch)
-            summary = adapter(
-                substrate_id, params, case_name, parameter_roles, qoi_request
-            )
-        except CaseSynthesisError as exc:
-            halt_reason = f"run {index} of {len(mini_runs)}: {exc}"
-            _log_line(baton.run_id, f"STAGE4 halted_synthesis at {halt_reason}")
-            break
-        evidence_runs.append(
-            {
-                "run_index": index,
-                "case": case_name,
-                "params": params,
-                "summary": summary,
-            }
-        )
-        # qoi_request joined the uniform constructor signature ADDITIVELY at
-        # Packet B Phase 2.0 (ruled option V-A): fixed-summary substrates
-        # return several named numbers and the constructor must know which
-        # one the spec requested; cavity/ngspice/sympy constructors ignore
-        # it — their entries are byte-identical (exact-dict asserts).
-        payload_runs.append(entry_constructor(summary, qoi_error_fallback, qoi_request))
-        # the qoi display tolerates both wrapper shapes: cavity's {value: …}
-        # object and ngspice's bare scalar/null (cavity output unchanged)
-        raw_qoi = summary.get("qoi")
-        if isinstance(raw_qoi, dict):
-            qoi_display = raw_qoi.get("value", "n/a")
-        else:
-            qoi_display = raw_qoi if raw_qoi is not None else "n/a"
-        _log_line(
+        # PURE extraction (Step 29): the per-point loop body is run_one_point,
+        # with dispatch hoisted above. qoi_request joined the uniform
+        # constructor signature ADDITIVELY at Packet B Phase 2.0 (ruled option
+        # V-A): fixed-summary substrates return several named numbers and the
+        # constructor must know which one the spec requested; cavity/ngspice/
+        # sympy constructors ignore it — their entries are byte-identical.
+        evidence_run, payload_run, halt = run_one_point(
             baton.run_id,
-            f"STAGE4 run {index}/{len(mini_runs)} case={case_name} "
-            f"status={summary.get('status')} converged={summary.get('converged')} "
-            f"qoi={qoi_display}",
+            index,
+            len(mini_runs),
+            params,
+            substrate_id=substrate_id,
+            adapter=adapter,
+            entry_constructor=entry_constructor,
+            parameter_roles=parameter_roles,
+            qoi_request=qoi_request,
+            qoi_error_fallback=qoi_error_fallback,
         )
+        if halt is not None:
+            halt_reason = halt
+            break
+        evidence_runs.append(evidence_run)
+        payload_runs.append(payload_run)
 
     status = "halted_synthesis" if halt_reason else "executed"
     results = {
