@@ -39,6 +39,7 @@ from stages.stage4_simulation import (
 from tools.experiment_picker import (
     _spec_fixed_and_sweep,
     analytic_estimate,
+    propose_adaptive_points,
     propose_next_points,
 )
 from tools.qoi_vocab import vocab_for
@@ -53,9 +54,44 @@ from tools.substrate_selection import select_substrate
 CAMPAIGN_ENV = "RESEARCH_CAMPAIGN"
 
 # Budget is ITERATIONS ONLY (P5) — the integer-counter idiom of MAX_LOOPBACKS.
-# No dollar/model-call accounting (out of scope). Stays 4 until evidence demands
-# otherwise.
-MAX_CAMPAIGN_ITERS = 4
+# No dollar/model-call accounting (out of scope).
+#
+# RAISED 4 -> 100 (owner instruction 2026-07-20: "make it unlimited, I don't
+# care how many tokens I burn"). Set CAMPAIGN_MAX_ITERS to override, and to 0
+# for genuinely unbounded — the campaign then runs until the planner stops
+# proposing points, which is its real convergence signal.
+#
+# The default is high-but-finite rather than infinite for one reason, and it is
+# not cost: an unterminating campaign never reaches stage 5 or stage 6, so it
+# produces no paper at all. A bound is what converts spend into a deliverable.
+# 100 is chosen so a fast substrate (cobrapy solves in ~1-2 s) can explore
+# freely; on a slow one (a 600 s-timeout CFD case) 100 points is many hours, so
+# set CAMPAIGN_MAX_ITERS deliberately there rather than inheriting this.
+_DEFAULT_MAX_CAMPAIGN_ITERS = 100
+
+
+# "Unbounded" is a very large INT, never float("inf"): the budget is passed to
+# the planner as budget_remaining and into log lines, and a float there would
+# contaminate arithmetic and print as "inf" in evidence. No campaign reaches a
+# billion solver points.
+UNBOUNDED_ITERS = 10**9
+
+
+def _resolve_max_iters() -> int:
+    """The iteration budget: CAMPAIGN_MAX_ITERS when set (0 => unbounded),
+    else the default. Read at import, so a run's budget is fixed for its
+    lifetime and cannot drift mid-campaign."""
+    raw = os.environ.get("CAMPAIGN_MAX_ITERS", "").strip()
+    if not raw:
+        return _DEFAULT_MAX_CAMPAIGN_ITERS
+    try:
+        value = int(raw)
+    except ValueError:
+        return _DEFAULT_MAX_CAMPAIGN_ITERS
+    return UNBOUNDED_ITERS if value <= 0 else value
+
+
+MAX_CAMPAIGN_ITERS = _resolve_max_iters()
 
 # The numeric compare tolerance (relative). Pure Python; no model call (D3/T3).
 CAMPAIGN_REL_TOL = 0.05
@@ -67,6 +103,10 @@ CAMPAIGN_REL_TOL = 0.05
 DEFAULT_STRATEGY = "propose_next_points"
 STRATEGIES = {
     "propose_next_points": propose_next_points,
+    # Step 29 feature #1: a deterministic active-learning planner (model-free)
+    # that samples where the observed QoI is least resolved. A second competing
+    # planner is exactly this one-line registration — no judge, no tournament.
+    "adaptive_refine": propose_adaptive_points,
 }
 
 
@@ -97,6 +137,51 @@ def compare_prediction(predicted_qoi, actual_qoi, rel_tol: float = CAMPAIGN_REL_
     denom = max(abs(actual_qoi), 1e-12)
     rel_error = abs(predicted_qoi - actual_qoi) / denom
     return {"matched": rel_error <= rel_tol, "reason": "compared", "rel_error": rel_error}
+
+
+def _isnum(v) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def check_success_criterion(success_criterion, actual_qoi) -> dict:
+    """Step 29 feature #2: evaluate an observation against the spec's
+    success_criterion — the FIRST consumer of the two-sided expectation the
+    schema has carried unconsumed since Step 15 (stage2_spec._validate_success_
+    criterion). Reads the field; never requires it; the locked schema is
+    unchanged.
+
+    Returns a record with the single-sided threshold pass AND, when the optional
+    two-sided expectation (expected_value ± tolerance) is present, the
+    within-band confirmation. `anomaly` is True when a point PASSES the headline
+    threshold but falls OUTSIDE the declared expectation band — the
+    'passes but 3x-too-high' case the single-sided criterion is blind to (the
+    recorded anomaly-blindness watch). Pure Python, never raises, no model call.
+    """
+    out: dict = {"present": False, "two_sided": False,
+                 "meets_threshold": None, "within_expectation": None, "anomaly": False}
+    if not isinstance(success_criterion, dict):
+        return out
+    out["present"] = True
+    numeric = _isnum(actual_qoi)
+    threshold = success_criterion.get("threshold")
+    direction = success_criterion.get("direction")
+    out["threshold"] = threshold
+    out["direction"] = direction
+    if numeric and _isnum(threshold):
+        if direction == "above":
+            out["meets_threshold"] = actual_qoi >= threshold
+        elif direction == "below":
+            out["meets_threshold"] = actual_qoi <= threshold
+    ev = success_criterion.get("expected_value")
+    tol = success_criterion.get("tolerance")
+    if _isnum(ev) and _isnum(tol):
+        out["two_sided"] = True
+        out["expected_value"] = ev
+        out["tolerance"] = tol
+        if numeric:
+            out["within_expectation"] = (ev - tol) <= actual_qoi <= (ev + tol)
+    out["anomaly"] = out["meets_threshold"] is True and out["within_expectation"] is False
+    return out
 
 
 def _base_params(spec) -> dict:
@@ -196,8 +281,8 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
     evidence_runs: list = []
     payload_runs: list = []
     iteration_records: list = []
+    synthesis_failures: list = []
     termination_reason: str | None = None
-    halt_reason: str | None = None
 
     while iters_used < MAX_CAMPAIGN_ITERS:
         budget_remaining = MAX_CAMPAIGN_ITERS - iters_used
@@ -245,14 +330,38 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
                 case_name=case_name,
             )
             if halt is not None:
-                halt_reason = halt
-                termination_reason = "halted_synthesis"
-                rec = {"iteration": index, "point": point, "params": params, "halt_reason": halt}
-                iteration_records.append(rec)
+                # Step 29 feature #4: a single case-synthesis failure no longer
+                # halts the whole campaign. Record the failed point (as evidence
+                # and as a signal the planner can avoid), spend the iteration
+                # against the budget, and CONTINUE — the same "hit a problem ->
+                # remember it -> keep going" idiom crash-recovery uses. Only an
+                # all-points-failed campaign ends as halted_synthesis, below.
+                failure = {
+                    "iteration": index,
+                    "point": point,
+                    "params": params,
+                    "synthesis_error": halt,
+                }
+                synthesis_failures.append(failure)
+                iteration_records.append(failure)
                 (campaign_dir / f"iteration_{index}.json").write_text(
-                    json.dumps(rec, indent=2, default=str)
+                    json.dumps(failure, indent=2, default=str)
                 )
-                break
+                prior_results.append(
+                    {
+                        "point": point,
+                        "qoi_value": None,
+                        "qoi_error": None,
+                        "converged": False,
+                        "synthesis_error": halt,
+                    }
+                )
+                _log_line(
+                    run_id,
+                    f"CAMPAIGN iter {index}/{MAX_CAMPAIGN_ITERS} synthesis_failed "
+                    f"(continuing within budget): {halt}",
+                )
+                continue
 
             evidence_runs.append(evidence_run)
             payload_runs.append(payload_run)
@@ -267,6 +376,11 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
             estimate = analytic_estimate(spec, point if isinstance(point, dict) else {})
             actual_qoi = payload_run.get("qoi_value")
             comparison = compare_prediction(predicted_qoi, actual_qoi)
+            # feature #2: test the observation against the spec's own claim.
+            expectation = check_success_criterion(
+                spec.get("success_criterion") if isinstance(spec, dict) else None,
+                actual_qoi,
+            )
 
             rec = {
                 "iteration": index,
@@ -279,6 +393,7 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
                 "qoi_error": payload_run.get("qoi_error"),
                 "converged": payload_run.get("converged"),
                 "comparison": comparison,
+                "success_criterion_check": expectation,
             }
             iteration_records.append(rec)
             (campaign_dir / f"iteration_{index}.json").write_text(
@@ -295,8 +410,17 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
             _log_line(
                 run_id,
                 f"CAMPAIGN iter {index}/{MAX_CAMPAIGN_ITERS} strategy={strategy_key} "
-                f"matched={comparison['matched']} ({comparison['reason']})",
+                f"matched={comparison['matched']} ({comparison['reason']}) "
+                f"within_expectation={expectation['within_expectation']}"
+                + (" ANOMALY" if expectation["anomaly"] else ""),
             )
+            # Stop precedence: the spec's OWN two-sided claim (feature #2) is a
+            # stronger signal than the planner's self-prediction. A confirmed
+            # observation supports the hypothesis at this regime -> stop; else a
+            # matched prediction means the surrogate is resolved here -> stop.
+            if expectation["two_sided"] and expectation["within_expectation"] is True:
+                termination_reason = "expectation_confirmed"
+                break
             if comparison["matched"]:
                 termination_reason = "prediction_within_tolerance"
                 break
@@ -310,7 +434,35 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
         termination_reason = "budget_exhausted"
 
     # --- consolidate into ONE stage-4-equivalent result --------------------
-    status = "halted_synthesis" if halt_reason else "executed"
+    # feature #4: only an all-points-failed campaign is halted_synthesis; a mix
+    # of failures and real runs is an honest 'executed' carrying the runs that
+    # succeeded (failures are evidence, never fabricated run entries).
+    all_failed = bool(synthesis_failures) and not payload_runs
+    status = "halted_synthesis" if all_failed else "executed"
+    if all_failed and termination_reason in (None, "budget_exhausted", "no_points_proposed"):
+        termination_reason = "all_points_failed_synthesis"
+
+    # feature #2: aggregate the hypothesis-confirmation signal for the record.
+    within = sum(
+        1 for r in iteration_records
+        if r.get("success_criterion_check", {}).get("within_expectation") is True
+    )
+    outside = sum(
+        1 for r in iteration_records
+        if r.get("success_criterion_check", {}).get("within_expectation") is False
+    )
+    anomalies = sum(
+        1 for r in iteration_records if r.get("success_criterion_check", {}).get("anomaly")
+    )
+    expectation_summary = {
+        "criterion_present": isinstance(spec, dict) and isinstance(spec.get("success_criterion"), dict),
+        "two_sided": any(
+            r.get("success_criterion_check", {}).get("two_sided") for r in iteration_records
+        ),
+        "within_expectation": within,
+        "outside_expectation": outside,
+        "anomalies": anomalies,
+    }
 
     # results.json is EVIDENCE (may carry campaign detail); the payload's
     # execution_results is the LOCKED shape and carries NONE of it (D2).
@@ -322,12 +474,15 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
         "strategy": strategy_key,
         "termination_reason": termination_reason,
         "iterations_used": iters_used,
+        "expectation_summary": expectation_summary,
+        "synthesis_failures": synthesis_failures,
         "runs": evidence_runs,
     }
     execution_results = {"status": status, "runs": payload_runs}
-    if halt_reason:
-        results["reason"] = halt_reason
-        execution_results["reason"] = halt_reason
+    if all_failed:
+        reason = f"all {len(synthesis_failures)} attempted point(s) failed case synthesis"
+        results["reason"] = reason
+        execution_results["reason"] = reason
     if qoi_error_fallback is not None:
         results["qoi_translation_error"] = qoi_error_fallback
     if label == "refine":
@@ -345,6 +500,8 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
                 "iterations_used": iters_used,
                 "termination_reason": termination_reason,
                 "rel_tol": CAMPAIGN_REL_TOL,
+                "synthesis_failures": len(synthesis_failures),
+                "expectation_summary": expectation_summary,
                 "iterations": iteration_records,
             },
             indent=2,
@@ -356,17 +513,22 @@ def run_campaign(baton: Baton, strategy_key: str | None = None) -> Baton:
     payload["execution_results"] = execution_results
     baton.payload = payload
 
-    if halt_reason:
+    if all_failed:
         note = (
-            f"campaign halted: case synthesis after {iters_used} iteration(s) "
-            f"({termination_reason})"
+            f"campaign halted: all {len(synthesis_failures)} attempted point(s) failed "
+            f"case synthesis ({termination_reason})"
         )
     else:
         converged = sum(1 for r in payload_runs if r.get("converged"))
         extracted = sum(1 for r in payload_runs if "qoi_value" in r)
         note = (
             f"campaign executed {len(payload_runs)} point(s): {converged} converged, "
-            f"{extracted} QoI extracted; stop={termination_reason}"
+            f"{extracted} QoI extracted"
         )
+        if synthesis_failures:
+            note += f"; {len(synthesis_failures)} failed synthesis"
+        if anomalies:
+            note += f"; {anomalies} anomaly(ies)"
+        note += f"; stop={termination_reason}"
     baton.add_history("stage4_simulation", note)
     return baton
