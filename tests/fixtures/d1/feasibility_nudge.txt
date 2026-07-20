@@ -984,9 +984,12 @@ MACHINE CAPABILITY TABLE — the ONLY parameter names each instrument can accept
   cobrapy
       can vary   : min_growth, model, quantity
       can measure: growth_rate
+      model MUST be one of: e_coli_core, iML1515
   homology_search
       can vary   : database, quantity, query, tool
       can measure: e_value
+      database MUST be one of: demo_prot, _broken_selftest
+      tool MUST be one of: blast, hmmer
   mafft
       can vary   : quantity, sequences
       can measure: alignment_identity

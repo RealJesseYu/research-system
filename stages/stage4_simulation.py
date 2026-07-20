@@ -61,6 +61,7 @@ from tools.qoi_vocab import vocab_for
 from tools.substrate_dispatch import (
     adapter_for,
     qoi_translation_for,
+    regime_content_inputs,
     run_entry_constructor_for,
 )
 from tools.substrate_selection import select_substrate
@@ -268,6 +269,21 @@ def run(baton: Baton) -> Baton:
     if qoi_request is None:
         _log_line(baton.run_id, f"STAGE4 qoi_request=none ({qoi_error_fallback})")
 
+    # REGIME-DECLARED INSTRUMENT INPUTS (2026-07-20). A threaded wrapper takes
+    # categorical instance selectors — cobrapy's `model` — that validate_spec
+    # forbids as parameters, so a spec declares them in its regime block and
+    # they had no way to reach the wrapper: run 20260720T080610Z was rejected
+    # 'missing required field(s): model' on all three mini-runs before the
+    # solver ran. Merged UNDER each mini-run's own params, so a swept value
+    # always wins; {} for every non-threaded substrate, leaving cavity,
+    # ngspice and sympy dispatch byte-identical.
+    regime_inputs = regime_content_inputs(spec, substrate_id)
+    if regime_inputs:
+        _log_line(
+            baton.run_id,
+            f"STAGE4 regime inputs threaded: {sorted(regime_inputs)}",
+        )
+
     evidence_runs: list[dict] = []
     payload_runs: list[dict] = []
     halt_reason: str | None = None
@@ -283,7 +299,7 @@ def run(baton: Baton) -> Baton:
             baton.run_id,
             index,
             len(mini_runs),
-            params,
+            {**regime_inputs, **params},
             substrate_id=substrate_id,
             adapter=adapter,
             entry_constructor=entry_constructor,

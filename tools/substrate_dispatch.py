@@ -357,6 +357,55 @@ def _fixed_summary_threaded_adapter(substrate_id, params, case_name, roles,
     return wrapper_callable(substrate_id)(typed)
 
 
+_THREADED_CONTENT_KEYS: dict[str, tuple] = {
+    "rdkit": _RDKIT_CONTENT_KEYS,
+    "cobrapy": _COBRAPY_CONTENT_KEYS,
+    "mafft": _MAFFT_CONTENT_KEYS,
+    "homology_search": _HS_CONTENT_KEYS,
+}
+
+
+def content_keys_for(substrate_id: str) -> tuple:
+    """The typed CONTENT keys a threaded wrapper accepts (its required and
+    optional fields minus the threaded 'quantity'), or () for a substrate
+    that is not threaded-shaped.
+
+    PUBLIC SINCE 2026-07-20, for stage 4's regime-input threading. A threaded
+    wrapper's content keys divide into two kinds and only one of them can
+    reach the wrapper through mini-run params: NUMERIC knobs a spec declares
+    and sweeps (cobrapy's min_growth), and CATEGORICAL instrument-instance
+    selectors it cannot (cobrapy's `model` — validate_spec rejects categorical
+    parameters by design, so a spec's only place for it is the regime block).
+    Run 20260720T080610Z hit the consequence: model="iJO1366" sat in
+    spec.regime, every mini-run reached cobrapy without it, and all three were
+    rejected 'missing required field(s): model' before the solver ran. The
+    spec was not wrong — there was nowhere else to put it and nothing to
+    carry it across.
+    """
+    return _THREADED_CONTENT_KEYS.get(substrate_id, ())
+
+
+def regime_content_inputs(spec, substrate_id: str) -> dict:
+    """The instrument-instance values a spec declared in its regime block that
+    the routed wrapper accepts as typed content input — {} when there are
+    none, when the substrate is not threaded-shaped, or when the spec has no
+    regime object. Pure, never raises.
+
+    This is the carriage the paragraph above describes. Only keys the wrapper
+    itself declares are taken, so a regime's prose members (notes, numeric
+    bounds, anything else) can never leak into a wrapper input; and mini-run
+    params always WIN on a collision, so a swept value is never overridden by
+    a regime default.
+    """
+    keys = content_keys_for(substrate_id)
+    if not keys or not isinstance(spec, dict):
+        return {}
+    regime = spec.get("regime")
+    if not isinstance(regime, dict):
+        return {}
+    return {k: regime[k] for k in keys if k in regime}
+
+
 def _rdkit_adapter(substrate_id, params, case_name, roles, qoi_request):
     """rdkit (BIO Wave D.4): the fixed-summary threaded adapter over
     run_rdkit's content keys (imported — {smiles}; 'quantity' is threaded from

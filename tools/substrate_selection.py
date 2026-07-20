@@ -106,6 +106,7 @@ from stages.stage4_case_builder import BUILDABLE_PARAMS, REYNOLDS_KEY
 from stages.stage2_spec import _validate_qoi, _validate_regime
 from tools import substrate_registry as registry
 from tools.qoi_vocab import vocab_for
+from tools.run_cobrapy import MODEL_ALLOWLIST as _COBRAPY_MODEL_ALLOWLIST
 from tools.run_cobrapy import (
     _OPTIONAL_FIELDS as _COBRAPY_OPTIONAL_FIELDS,
     _REQUIRED_FIELDS as _COBRAPY_REQUIRED_FIELDS,
@@ -113,6 +114,8 @@ from tools.run_cobrapy import (
 from tools.run_fea import _REQUIRED_FIELDS as _FEA_REQUIRED_FIELDS
 from tools.run_fenicsx import _REQUIRED_FIELDS as _FENICSX_REQUIRED_FIELDS
 from tools.run_homology_search import _REQUIRED_FIELDS as _HS_REQUIRED_FIELDS
+from tools.run_homology_search import DATABASE_PATHS as _HS_DATABASE_PATHS
+from tools.run_homology_search import TOOLS as _HS_TOOLS
 from tools.run_mafft import _REQUIRED_FIELDS as _MAFFT_REQUIRED_FIELDS
 from tools.run_ngspice import _REQUIRED_FIELDS as _NGSPICE_REQUIRED_FIELDS
 from tools.run_rdkit import _REQUIRED_FIELDS as _RDKIT_REQUIRED_FIELDS
@@ -204,6 +207,23 @@ def signature_for(substrate_id: str) -> frozenset[str]:
         )
 
 
+# Categorical typed inputs whose legal values are a CLOSED SET the wrapper
+# enforces, imported from each wrapper's own constant (never a pasted copy).
+# Added 2026-07-20: run 20260720T080610Z authored model="iJO1366" — a real and
+# famous E. coli model, simply not one of the two baked into the image — and
+# every mini-run was rejected. The contract said "one of the baked allowlist
+# models" and never named them, so the value was unguessable from what stage 2
+# was shown. A closed set the caller cannot see is a trap; these belong in the
+# machine table beside the parameter names.
+_CATEGORICAL_VALUES: dict[str, dict[str, tuple]] = {
+    "cobrapy": {"model": tuple(_COBRAPY_MODEL_ALLOWLIST)},
+    "homology_search": {
+        "tool": tuple(_HS_TOOLS),
+        "database": tuple(_HS_DATABASE_PATHS),
+    },
+}
+
+
 def capability_table() -> str:
     """The MACHINE capability surface for every routable substrate, as a
     compact table: exactly which parameter names each instrument can vary and
@@ -233,11 +253,14 @@ def capability_table() -> str:
             measures = ", ".join(names) if names else "(see contract)"
         except Exception:
             measures = "(see contract)"
-        lines.append(
+        block = (
             f"  {sid}\n"
             f"      can vary   : {', '.join(varies)}\n"
             f"      can measure: {measures}"
         )
+        for key, values in sorted(_CATEGORICAL_VALUES.get(sid, {}).items()):
+            block += f"\n      {key} MUST be one of: {', '.join(values)}"
+        lines.append(block)
     return (
         "MACHINE CAPABILITY TABLE — the ONLY parameter names each instrument "
         "can accept, and the ONLY quantities it can return. This is the exact "
