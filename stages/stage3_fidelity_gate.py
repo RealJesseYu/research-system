@@ -189,10 +189,20 @@ def run(baton: Baton) -> Baton:
     # rendered verdict. The rationale is already the gate's one-sentence
     # summary (summarize-at-the-source); outcome stays null until Step 21.
     # Purely observational: nothing about the returned baton changes.
+    #
+    # `substrate` is the ROUTED id (2026-07-20 fix). It used to be parsed off
+    # the contract's header line, which failed two ways: the four MATURE bio
+    # contracts head with an em dash, not "SUBSTRATE CONTRACT:", so every bio
+    # verdict banked substrate=null (run 20260719T231117Z trusted cobrapy and
+    # recorded nothing); and where the parse DID work it yielded the header's
+    # display name, not the id — cavity's header says "cavity_2d" while its
+    # registry id is "cavity_2d_cfd" — so entries were never joinable against
+    # the registry. selected_id is the structurally-selected id, already
+    # agreement-checked against the payload above; it needs no parsing.
     fidelity_append(
         run_id=baton.run_id,
         verdict=verdict["label"],
-        substrate=_contract_substrate_name(substrate_contract),
+        substrate=selected_id,
         rationale=verdict["rationale"],
     )
 
