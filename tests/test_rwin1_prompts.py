@@ -133,14 +133,31 @@ class ReflectionFullReviewGrounding(unittest.TestCase):
 
 
 class FeasibilityNudgeSeam(unittest.TestCase):
-    def test_switch_off_by_default(self):
+    def test_switch_on_by_default(self):
+        # DEFAULT FLIPPED 2026-07-20: unset -> ON. The seam shipped default-off
+        # as plumbing and stayed off through every run to date, so ideation
+        # never routinely saw what the instruments accept. There is no run for
+        # which not knowing helps.
         with patch.dict(os.environ, _clean_env(), clear=True):
-            # default off -> generation inputs get no feasibility_nudge field
+            self.assertTrue(gs._feasibility_nudge_on())
+
+    def test_switch_off_explicitly(self):
+        # off stays reachable by env, for the A/B the seam was built for
+        with patch.dict(os.environ, {**_clean_env(), "FEASIBILITY_NUDGE": "off"}, clear=True):
             self.assertFalse(gs._feasibility_nudge_on())
 
     def test_switch_on(self):
         with patch.dict(os.environ, {**_clean_env(), "FEASIBILITY_NUDGE": "on"}, clear=True):
             self.assertTrue(gs._feasibility_nudge_on())
+
+    def test_capability_table_is_in_the_block(self):
+        # the hard-edge half of the nudge: contracts explain, the table binds
+        block = gs.build_feasibility_nudge("rwin1-no-such-run")
+        self.assertIn("MACHINE CAPABILITY TABLE", block)
+        # cobrapy's real knobs, as the router sees them — the exact surface
+        # run 20260719T231117Z violated with glucose_lb/oxygen_lb
+        self.assertIn("can vary   : min_growth, model, quantity", block)
+        self.assertIn("can measure: growth_rate", block)
 
     def test_block_content(self):
         # no failure memo on disk for a fresh run id -> block is header +

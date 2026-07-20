@@ -962,4 +962,33 @@ guide-tree-dependent — a different tool or setting gives a different alignment
 Trust the alignment DESCRIPTIVELY, never as the biologically correct one.
 
 
-Prefer hypotheses at least one of these instruments can test as-is.
+MACHINE CAPABILITY TABLE — the ONLY parameter names each instrument can accept, and the ONLY quantities it can return. This is the exact set the router checks against; a hypothesis needing anything not listed here CANNOT BE RUN, no matter how good the science is.
+  cavity_2d_cfd
+      can vary   : cavity_length, end_time, kinematic_viscosity, lid_velocity, mesh_resolution, reynolds_number, time_step
+      can measure: (see contract)
+  calculix_cantilever_fea
+      can vary   : E, height, length, mesh_density, nu, tip_load, width
+      can measure: tip_displacement, max_von_mises
+  fenicsx_cantilever_elastic
+      can vary   : E, element_degree, height, length, mesh_density, nu, tip_load, width
+      can measure: tip_displacement, max_von_mises
+  sympy_symbolic_exact
+      can vary   : assumptions, expression, func, ics, lower, operation, order, point, symbols, upper, var
+      can measure: (see contract)
+  ngspice_linear_passive
+      can vary   : analysis, netlist_body, qoi
+      can measure: (see contract)
+  rdkit
+      can vary   : quantity, smiles
+      can measure: MolWt, ExactMolWt, HeavyAtomCount, NumHDonors, NumHAcceptors, NumRotatableBonds, TPSA, MolLogP, NumAromaticRings, RingCount, FractionCSP3, NOCount
+  cobrapy
+      can vary   : min_growth, model, quantity
+      can measure: growth_rate
+  homology_search
+      can vary   : database, quantity, query, tool
+      can measure: e_value
+  mafft
+      can vary   : quantity, sequences
+      can measure: alignment_identity
+
+HARD CONSTRAINT, not a preference. Every hypothesis you propose must be testable AS-IS by at least one instrument above — meaning the experiment that would test it varies ONLY parameter names listed in that instrument's 'can vary' line, and its quantity of interest is one of that instrument's 'can measure' entries. Before you write a hypothesis, name the instrument that would test it and check both lines. A hypothesis requiring a knob or a measurement not listed there cannot be run at all and is worth nothing here, however novel or well-motivated — propose a different one that fits an instrument as it actually is. Do not assume a parameter exists because it would be physically sensible, and do not rename a parameter to make it look like one that is listed.

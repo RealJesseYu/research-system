@@ -64,6 +64,7 @@ import substrates
 import supervisor
 from baton import Baton
 from stages.stage2_spec import _validate_qoi, _validate_regime
+from stages.stage4_case_builder import CaseSynthesisError
 from tools import run_cobrapy, run_homology_search, run_mafft, run_rdkit
 from tools import substrate_dispatch as dispatch
 from tools import substrate_registry as registry
@@ -163,13 +164,22 @@ class TestWirings(unittest.TestCase):
             self.assertIs(vocab.names, tuple(_WRAPPERS[sid].QOI_FIELDS), sid)
             self.assertIsInstance(vocab.regime, _REGIME_CLASS[sid], sid)
 
-    def test_signatures_are_wrapper_required_fields(self):
+    def test_signatures_are_wrapper_required_plus_optional_fields(self):
+        # A serve-ability signature is every parameter the wrapper honors —
+        # required AND optional (the sympy precedent). Narrow crash fix
+        # (2026-07-19): cobrapy's optional min_growth — its only declarable
+        # numeric knob — MUST be in the signature, or every real cobrapy spec
+        # is unroutable and crashes at stage 3. rdkit/mafft have no optional
+        # fields, so their signatures equal _REQUIRED_FIELDS.
         for sid in BIO:
+            optional = frozenset(getattr(_WRAPPERS[sid], "_OPTIONAL_FIELDS", ()))
             self.assertEqual(
                 selection.signature_for(sid),
-                frozenset(_WRAPPERS[sid]._REQUIRED_FIELDS),
+                frozenset(_WRAPPERS[sid]._REQUIRED_FIELDS) | optional,
                 sid,
             )
+        # The fix is specifically that min_growth is now serve-able on cobrapy.
+        self.assertIn("min_growth", selection.signature_for("cobrapy"))
 
     def test_dispatch_maps_resolve_to_the_threaded_family(self):
         for sid in BIO:
@@ -208,6 +218,19 @@ class TestRoutingNoTie(unittest.TestCase):
             select_substrate({"parameters": [{"name": "reynolds_number"}]}),
             "cavity_2d_cfd",
         )
+
+    def test_min_growth_sweep_routes_to_cobrapy_not_crash(self):
+        # The exact stage-3 crash shape from runs/20260719T175242Z: a spec whose
+        # only declared parameter is cobrapy's optional numeric knob min_growth.
+        # Before the narrow fix this raised LookupError (unroutable) and crashed
+        # the run; it must now route uniquely to cobrapy.
+        spec = {
+            "parameters": [{"name": "min_growth"}],
+            "regime": {"notes": "in-regime by construction"},
+            "qoi": {"name": "growth", "units": "1/h", "definition": "d",
+                    "how_extracted": "h", "quantity": "growth_rate"},
+        }
+        self.assertEqual(select_substrate(spec), "cobrapy")
 
     def test_shared_quantity_key_is_only_a_signature_superset_no_tie(self):
         # 'quantity' is in all three signatures (each wrapper's required set),
@@ -286,7 +309,9 @@ class TestThreadedAdapterAndScalarEntry(unittest.TestCase):
         )
 
     def test_adapter_rejects_unknown_params_by_name(self):
-        with self.assertRaises(ValueError) as ctx:
+        # CaseSynthesisError since 2026-07-20 — see the note on the sibling
+        # test below; still names every offender.
+        with self.assertRaises(CaseSynthesisError) as ctx:
             dispatch._rdkit_adapter(
                 "rdkit", {"smiles": "CCO", "temperature": 300}, "c", {},
                 {"quantity": "MolWt"},
@@ -294,7 +319,12 @@ class TestThreadedAdapterAndScalarEntry(unittest.TestCase):
         self.assertIn("temperature", str(ctx.exception))
 
     def test_adapter_fails_loud_without_a_translated_quantity(self):
-        with self.assertRaises(ValueError) as ctx:
+        # 2026-07-20: still fails LOUD, but as CaseSynthesisError — the type
+        # stage 4 already catches into its honest halted_synthesis path. As a
+        # bare ValueError this escaped stage 4 and terminated the whole run
+        # (20260719T231117Z, twice). "Cannot execute this spec" is a halt
+        # reason, never a crash.
+        with self.assertRaises(CaseSynthesisError) as ctx:
             dispatch._mafft_adapter(
                 "mafft", {"sequences": ["AAAA", "AAAT"]}, "c", {}, None
             )
@@ -364,13 +394,32 @@ class TestFixturesAdditiveOnly(unittest.TestCase):
             self.assertIn(
                 header + getattr(substrates, _ALL_CONTRACT_CONST[sid]), block
             )
-        # cumulative additive-only: every pre-D.4 (pred4) line still present.
-        pred4 = (D1 / "feasibility_nudge_pred4.txt").read_text().splitlines()
+        # cumulative additive-only: every pre-D.4 (pred4) CONTRACT line still
+        # present. SCOPE NARROWED 2026-07-20 — the guard exists so a promotion
+        # can never silently drop contract text, and it still fails on any
+        # such drop. The nudge's trailing INSTRUCTION sentence is not contract
+        # text and is deliberately revisable: it was replaced this date (the
+        # superseded "Prefer …" line, exempted below by exact string) because
+        # "prefer" did not bind — run 20260719T231117Z received the full nudge
+        # and still authored an unservable spec. Prior state preserved
+        # append-only at feasibility_nudge_precap.txt.
+        superseded_instructions = {
+            "Prefer hypotheses at least one of these instruments can test as-is.",
+        }
         current = set((D1 / "feasibility_nudge.txt").read_text().splitlines())
-        self.assertEqual([ln for ln in pred4 if ln not in current], [])
+
+        def dropped(fixture: str) -> list[str]:
+            lines = (D1 / fixture).read_text().splitlines()
+            return [
+                ln for ln in lines
+                if ln not in current and ln not in superseded_instructions
+            ]
+
+        self.assertEqual(dropped("feasibility_nudge_pred4.txt"), [])
         # this-merge additive-only: nothing dropped vs the 8-routable snapshot.
-        pred4hs = (D1 / "feasibility_nudge_pred4hs.txt").read_text().splitlines()
-        self.assertEqual([ln for ln in pred4hs if ln not in current], [])
+        self.assertEqual(dropped("feasibility_nudge_pred4hs.txt"), [])
+        # and nothing dropped vs the immediately-prior 9-routable snapshot
+        self.assertEqual(dropped("feasibility_nudge_precap.txt"), [])
 
     def test_chooser_retry_id_list_grows_additive_only(self):
         import re

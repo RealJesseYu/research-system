@@ -106,7 +106,10 @@ from stages.stage4_case_builder import BUILDABLE_PARAMS, REYNOLDS_KEY
 from stages.stage2_spec import _validate_qoi, _validate_regime
 from tools import substrate_registry as registry
 from tools.qoi_vocab import vocab_for
-from tools.run_cobrapy import _REQUIRED_FIELDS as _COBRAPY_REQUIRED_FIELDS
+from tools.run_cobrapy import (
+    _OPTIONAL_FIELDS as _COBRAPY_OPTIONAL_FIELDS,
+    _REQUIRED_FIELDS as _COBRAPY_REQUIRED_FIELDS,
+)
 from tools.run_fea import _REQUIRED_FIELDS as _FEA_REQUIRED_FIELDS
 from tools.run_fenicsx import _REQUIRED_FIELDS as _FENICSX_REQUIRED_FIELDS
 from tools.run_homology_search import _REQUIRED_FIELDS as _HS_REQUIRED_FIELDS
@@ -157,14 +160,22 @@ _SIGNATURES: dict[str, frozenset[str]] = {
     "calculix_cantilever_fea": frozenset(_FEA_REQUIRED_FIELDS),
     "fenicsx_cantilever_elastic": frozenset(_FENICSX_REQUIRED_FIELDS),
     # BIO Wave D.4 promotion flip (owner, 2026-07-19): each wrapper's own
-    # _REQUIRED_FIELDS, imported. All three are pairwise DISJOINT from each
-    # other and from every existing signature (rdkit {smiles,quantity};
-    # cobrapy {model,quantity} — min_growth is optional and NOT in
-    # _REQUIRED_FIELDS, so it is not part of the serve-ability signature;
-    # mafft {sequences,quantity}), so no spec any two can serve — no new
-    # R-B-1 tie. Proven by test, not asserted.
+    # typed-key vocabulary, imported. A serve-ability signature is EVERY
+    # parameter name the wrapper honors — required AND optional — exactly as
+    # sympy_symbolic_exact above already includes its UNIVERSAL_OPTIONAL_FIELDS.
+    # CORRECTION (2026-07-19, narrow crash fix): the D.4 flip wired cobrapy's
+    # signature from _REQUIRED_FIELDS ALONE, excluding its one optional field
+    # min_growth. But min_growth is the ONLY numeric knob cobrapy exposes, so
+    # it is the only parameter a validated spec can ever DECLARE for it (model
+    # and quantity are categorical — validate_spec rejects them as parameters).
+    # That made cobrapy unroutable for every real spec: the moment stage 2 swept
+    # min_growth, serve-ability found no substrate and select_substrate raised,
+    # crashing the run at stage 3 (runs/20260719T175242Z). Including the optional
+    # field restores routability and adds NO new R-B-1 tie: min_growth is unique
+    # to cobrapy (rdkit {smiles,quantity}; mafft {sequences,quantity}; the only
+    # shared key remains the never-declared superset 'quantity'). Proven by test.
     "rdkit": frozenset(_RDKIT_REQUIRED_FIELDS),
-    "cobrapy": frozenset(_COBRAPY_REQUIRED_FIELDS),
+    "cobrapy": frozenset(_COBRAPY_REQUIRED_FIELDS) | frozenset(_COBRAPY_OPTIONAL_FIELDS),
     "mafft": frozenset(_MAFFT_REQUIRED_FIELDS),
     # BIO Wave D.4 promotion #2 (owner, 2026-07-19): {database, query, tool,
     # quantity}. The content keys {database, query, tool} are unique to this
@@ -191,6 +202,49 @@ def signature_for(substrate_id: str) -> frozenset[str]:
             "tools/substrate_selection.py from the substrate's own vocabulary "
             "under a recorded ruling before routing to this substrate."
         )
+
+
+def capability_table() -> str:
+    """The MACHINE capability surface for every routable substrate, as a
+    compact table: exactly which parameter names each instrument can vary and
+    which quantities it can measure. Deterministic pure function of the same
+    _SIGNATURES and qoi_vocab records selection and validation read — never a
+    paraphrase, never a second copy of the rule.
+
+    WHY THIS EXISTS (2026-07-20). Stage-1's feasibility nudge shipped the
+    routable CONTRACTS — nine blocks of prose — under the instruction "prefer
+    hypotheses at least one of these instruments can test as-is". Prose does
+    not bind and "prefer" does not enforce: run 20260719T231117Z received the
+    full nudge and still authored a cobrapy experiment sweeping glucose_lb and
+    oxygen_lb, knobs no routable substrate exposes, which nothing detected
+    until select_substrate raised three stages downstream. The contracts
+    explain what an instrument IS, which ideation needs; this table states
+    what it ACCEPTS, in the same vocabulary the serve-ability check applies.
+    Both ride the nudge — prose for judgment, table for the hard edges.
+    """
+    lines = []
+    for sid in registry.routable_ids():
+        try:
+            varies = sorted(signature_for(sid))
+        except LookupError:
+            continue
+        try:
+            names = getattr(vocab_for(sid), "names", None)
+            measures = ", ".join(names) if names else "(see contract)"
+        except Exception:
+            measures = "(see contract)"
+        lines.append(
+            f"  {sid}\n"
+            f"      can vary   : {', '.join(varies)}\n"
+            f"      can measure: {measures}"
+        )
+    return (
+        "MACHINE CAPABILITY TABLE — the ONLY parameter names each instrument "
+        "can accept, and the ONLY quantities it can return. This is the exact "
+        "set the router checks against; a hypothesis needing anything not "
+        "listed here CANNOT BE RUN, no matter how good the science is.\n"
+        + "\n".join(lines)
+    )
 
 
 def declared_parameter_names(spec: dict | None) -> frozenset[str]:
@@ -263,6 +317,11 @@ def select_substrate(spec: dict | None) -> str:
     for sid in routable:
         registry.contract_for(sid)  # LookupError: routable without a contract
         signature_for(sid)          # LookupError: routable without a signature
+        # NOT probed here: vocab_for. Tried 2026-07-20 and reverted — the
+        # selection-level test seams register minimal substrates with a
+        # contract and signature and no vocabulary on purpose, and a missing
+        # vocabulary already fails loud one stage later at stage-2
+        # composition. Symmetry was not worth weakening those seams.
 
     # L0 — SERVE-ABILITY (unchanged): declared names ⊆ signature.
     names = declared_parameter_names(spec)

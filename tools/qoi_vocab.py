@@ -47,12 +47,18 @@ from typing import Any, ClassVar, Pattern
 from tools import substrate_registry as registry
 from tools.run_cfd import MASK_TYPES, QOI_COMPONENTS, QOI_OPERATIONS, _QOI_FIELD_RE
 from tools.run_cobrapy import QOI_FIELDS as _COBRAPY_QOI_FIELDS
+from tools.run_cobrapy import _REQUIRED_FIELDS as _COBRAPY_REQ
 from tools.run_fea import QOI_FIELDS as _FEA_QOI_FIELDS
+from tools.run_fea import _REQUIRED_FIELDS as _FEA_REQ
 from tools.run_fenicsx import QOI_FIELDS as _FENICSX_QOI_FIELDS
+from tools.run_fenicsx import _REQUIRED_FIELDS as _FENICSX_REQ
 from tools.run_homology_search import QOI_FIELDS as _HS_QOI_FIELDS
+from tools.run_homology_search import _REQUIRED_FIELDS as _HS_REQ
 from tools.run_mafft import QOI_FIELDS as _MAFFT_QOI_FIELDS
+from tools.run_mafft import _REQUIRED_FIELDS as _MAFFT_REQ
 from tools.run_ngspice import _ANALYSIS_FIELDS, _NAME_RE, _QOI_KINDS, _REDUCTIONS
 from tools.run_rdkit import QOI_FIELDS as _RDKIT_QOI_FIELDS
+from tools.run_rdkit import _REQUIRED_FIELDS as _RDKIT_REQ
 from tools.run_scipy import OPERATIONS as _SCIPY_OPERATIONS
 
 FIELD_REDUCTION = "field_reduction"
@@ -312,12 +318,27 @@ class FixedSummaryVocab:
     fallback path), exactly like an absent machine-key set in the cavity
     grammar. Machine keys from EITHER other grammar are rejected by name.
     The record carries the substrate's regime-semantics member — the
-    regime rides the vocab record in every shape (R-23.5-5)."""
+    regime rides the vocab record in every shape (R-23.5-5).
+
+    quantity_required SPLITS THE SHAPE'S TWO EXECUTION CLASSES (2026-07-20,
+    from the 20260719T231117Z terminal halt). The cantilevers take NO QoI
+    request and return every named number regardless, so an absent
+    "quantity" is genuinely optional there — the paragraph above holds. The
+    BIO Wave D.4 four (rdkit/cobrapy/mafft/homology_search) thread
+    `quantity` into the wrapper as a TYPED INPUT — the wrapper CANNOT RUN
+    without it — so for them an absent "quantity" is not "no QoI
+    extracted", it is an unexecutable spec. Left optional, that spec
+    validated clean, cleared the fidelity gate on a trust verdict, and only
+    failed at execution as an uncaught ValueError out of the threaded
+    adapter, twice, burning the whole crash-recovery budget. The flag is a
+    PROPERTY OF THE RECORD, so validation still dispatches on shape and
+    never on a substrate name (R-28H-1)."""
 
     shape: ClassVar[str] = FIXED_SUMMARY
 
     names: tuple         # the wrapper's own fixed QoI-name set, in order
     regime: Any          # the substrate's regime-semantics record
+    quantity_required: bool = False   # DERIVE via threads_quantity — see below
 
     # BOTH other machine-key grammars' keys, rejected by name ("quantity"
     # is this shape's own and appears in no other grammar).
@@ -325,6 +346,23 @@ class FixedSummaryVocab:
         "field", "operation", "component", "mask",   # field-reduction grammar
         "kind", "target", "reduction",                # named-quantity grammar
     )
+
+
+def threads_quantity(required_fields) -> bool:
+    """Does this wrapper take `quantity` as a TYPED INPUT (so it cannot run
+    without one), rather than returning every named number regardless?
+
+    DERIVED, NEVER DECLARED (2026-07-20). quantity_required first shipped as
+    a hand-set flag on the four bio records, which meant the next substrate
+    onboarded in that shape would reproduce run 20260719T231117Z exactly by
+    the ordinary act of forgetting a keyword argument — a trap laid for a
+    future self. The wrapper's own _REQUIRED_FIELDS already states the fact;
+    reading it here keeps the single-source discipline the whole module is
+    built on and makes the flag impossible to get wrong. Verified across
+    every wired wrapper: the four threaded bio tools carry 'quantity',
+    neither cantilever does.
+    """
+    return "quantity" in tuple(required_fields or ())
 
 
 # substrate_id -> its QoI-vocabulary record, mirroring _CONTRACTS (registry)
@@ -370,27 +408,38 @@ _VOCABS: dict[str, Any] = {
     "calculix_cantilever_fea": FixedSummaryVocab(
         names=tuple(_FEA_QOI_FIELDS),
         regime=StaticSmallDeflectionRegime(),
+        quantity_required=threads_quantity(_FEA_REQ),
     ),
     "fenicsx_cantilever_elastic": FixedSummaryVocab(
         names=tuple(_FENICSX_QOI_FIELDS),
         regime=StaticSmallDeflectionRegime(),
+        quantity_required=threads_quantity(_FENICSX_REQ),
     ),
     # BIO Wave D.4 promotion flip (owner, 2026-07-19): all three are the
     # fixed-summary shape — each wrapper takes NO QoI request yet returns a
     # fixed named set every valid run, and `names` is each wrapper's OWN
     # QOI_FIELDS constant, imported (never a pasted copy). Three single-regime
     # instances, one per (substrate, regime) card unit.
+    # quantity_required (2026-07-20): DERIVED from each wrapper's own
+    # _REQUIRED_FIELDS via threads_quantity — all four bio wrappers take
+    # `quantity` as a TYPED INPUT, so absent it the wrapper cannot run at
+    # all and stage 2 must be corrected in-run rather than crashing at
+    # execution. Derived, not declared, so onboarding a fifth cannot
+    # reintroduce the bug by forgetting a keyword argument.
     "rdkit": FixedSummaryVocab(
         names=tuple(_RDKIT_QOI_FIELDS),
         regime=DescriptorComputationRegime(),
+        quantity_required=threads_quantity(_RDKIT_REQ),
     ),
     "cobrapy": FixedSummaryVocab(
         names=tuple(_COBRAPY_QOI_FIELDS),
         regime=FbaSteadyStateRegime(),
+        quantity_required=threads_quantity(_COBRAPY_REQ),
     ),
     "mafft": FixedSummaryVocab(
         names=tuple(_MAFFT_QOI_FIELDS),
         regime=MsaAlignmentRegime(),
+        quantity_required=threads_quantity(_MAFFT_REQ),
     ),
     # BIO Wave D.4 promotion #2 (owner, 2026-07-19): homology_search is the
     # fixed-summary shape too — the wrapper's `quantity` typed input is a
@@ -400,6 +449,7 @@ _VOCABS: dict[str, Any] = {
     "homology_search": FixedSummaryVocab(
         names=tuple(_HS_QOI_FIELDS),
         regime=HomologySearchRegime(),
+        quantity_required=threads_quantity(_HS_REQ),
     ),
 }
 

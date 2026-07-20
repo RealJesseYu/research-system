@@ -28,6 +28,7 @@ from baton import Baton
 from memory.journal import journal_recent_by_kind
 from model_call import call_stage_model, log_stage_call
 from stages.stage2_spec import validate_spec
+from tools import substrate_selection
 from tools.qoi_vocab import vocab_for
 from tools.substrate_registry import contract_for
 
@@ -128,13 +129,53 @@ SCHEMA = {"required": ["ack_run_id", "spec"]}
 ENVELOPE_FIELDS = ("ack_run_id", "spec")
 
 
-def _make_extra_validator(chosen_id: str, vocab):
+def _serve_ability_errors(spec, substrate_id: str) -> list[str]:
+    """SERVE-ABILITY, CHECKED AT AUTHORING TIME (2026-07-20). The spec's
+    declared parameter names must be a subset of the routed substrate's
+    signature — the SAME L0 predicate substrate_selection applies at stage 3,
+    read from the same signature_for source (never a second copy of the rule).
+
+    WHY IT MOVED HERE. Stage 3's L0 failure is a LookupError, i.e. a crash,
+    and it fires AFTER stage 2 has returned and the baton has been snapshotted
+    — far too late to correct the only thing that could be wrong, which is the
+    spec stage 2 just wrote. Run 20260719T231117Z died exactly this way: a
+    cobrapy spec declaring glucose_lb/oxygen_lb, parameters that substrate has
+    no knob for, authored 40 minutes before anything noticed. Checked here it
+    is an ordinary re-ask: the model is told which names the instrument cannot
+    accept and writes a servable spec on the next attempt.
+
+    Never raises — an unknown/unwired substrate_id is left to the loud raisers
+    that already own that failure at stage 3; this returns [] rather than
+    inventing a second opinion about enrollment.
+    """
+    try:
+        signature = substrate_selection.signature_for(substrate_id)
+        declared = substrate_selection.declared_parameter_names(spec)
+    except Exception:
+        return []
+    unserved = sorted(declared - signature)
+    if not unserved:
+        return []
+    return [
+        f"the parameter(s) {', '.join(repr(n) for n in unserved)} cannot be "
+        f"run by this instrument — it accepts only "
+        f"{', '.join(sorted(signature))}. Redesign the experiment to vary "
+        f"only parameters the instrument actually exposes; do not rename "
+        f"these to fit, and do not keep a parameter the instrument cannot "
+        f"apply. If the hypothesis genuinely requires varying them, say so "
+        f"in the design rationale and build the experiment around what this "
+        f"instrument can vary."
+    ]
+
+
+def _make_extra_validator(chosen_id: str, vocab, substrate_id: str):
     """Deep validator handed to call_stage_model: the reply envelope must be
     exactly {ack_run_id, spec}, and the spec must pass validate_spec for the
     chosen hypothesis under the substrate's OWN QoI vocabulary (R-23.5-4:
     resolved from the payload's gate-decided substrate_id — the cavity
     vocab is the same record the old bare call resolved to, so cavity
-    retry surfaces are byte-identical). Returns plain-language error
+    retry surfaces are byte-identical), AND be servable by that substrate
+    (2026-07-20; see _serve_ability_errors). Returns plain-language error
     strings, empty = valid.
     """
 
@@ -146,6 +187,7 @@ def _make_extra_validator(chosen_id: str, vocab):
             if key not in ENVELOPE_FIELDS
         ]
         errors.extend(validate_spec(parsed["spec"], chosen_id, vocab))
+        errors.extend(_serve_ability_errors(parsed["spec"], substrate_id))
         return errors
 
     return check
@@ -208,7 +250,9 @@ def run(baton: Baton) -> Baton:
         SCHEMA,
         model=SONNET_MODEL,
         extra_validator=_make_extra_validator(
-            chosen["id"], vocab_for(baton.payload["substrate_id"])
+            chosen["id"],
+            vocab_for(baton.payload["substrate_id"]),
+            baton.payload["substrate_id"],
         ),
     )
 

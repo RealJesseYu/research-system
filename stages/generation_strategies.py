@@ -52,6 +52,7 @@ from pathlib import Path
 import cost_meter
 from model_call import call_stage_model, log_stage_call
 from tools.substrate_registry import routable_contracts_block
+from tools.substrate_selection import capability_table
 
 _RETRIEVAL_DIR = Path(__file__).resolve().parent.parent / "retrieval"
 if str(_RETRIEVAL_DIR) not in sys.path:
@@ -86,15 +87,32 @@ TOP_K_PER_SOURCE = 3
 FEASIBILITY_NUDGE_ENV = "FEASIBILITY_NUDGE"
 FEASIBILITY_NUDGE_HEADER = "FEASIBILITY NUDGE"
 FEASIBILITY_NUDGE_INSTRUCTION = (
-    "Prefer hypotheses at least one of these instruments can test as-is."
+    "HARD CONSTRAINT, not a preference. Every hypothesis you propose must be "
+    "testable AS-IS by at least one instrument above — meaning the experiment "
+    "that would test it varies ONLY parameter names listed in that "
+    "instrument's 'can vary' line, and its quantity of interest is one of "
+    "that instrument's 'can measure' entries. Before you write a hypothesis, "
+    "name the instrument that would test it and check both lines. A "
+    "hypothesis requiring a knob or a measurement not listed there cannot be "
+    "run at all and is worth nothing here, however novel or well-motivated — "
+    "propose a different one that fits an instrument as it actually is. Do "
+    "not assume a parameter exists because it would be physically sensible, "
+    "and do not rename a parameter to make it look like one that is listed."
 )
 FEASIBILITY_MEMO_CAP = 2000
 
 
 def _feasibility_nudge_on() -> bool:
-    """R-WIN-1 switch: env FEASIBILITY_NUDGE == 'on' turns the nudge on;
-    anything else (unset, 'off') leaves it off. Read at call time."""
-    return os.environ.get(FEASIBILITY_NUDGE_ENV, "off") == "on"
+    """R-WIN-1 switch: env FEASIBILITY_NUDGE == 'off' turns the nudge OFF;
+    anything else (unset, 'on') leaves it ON. Read at call time.
+
+    DEFAULT FLIPPED TO ON, 2026-07-20. It shipped default-off as plumbing and
+    stayed that way; the supervisor forced it on only for a retried ideation
+    pass. There is no run for which ideation is better off NOT knowing what
+    the instruments accept — an unnudged pool can only produce hypotheses
+    that die later. Off remains reachable by env for the A/B the seam was
+    built for."""
+    return os.environ.get(FEASIBILITY_NUDGE_ENV, "on") != "off"
 
 
 def read_recent_failure_memo(run_id: str) -> str | None:
@@ -119,12 +137,26 @@ def read_recent_failure_memo(run_id: str) -> str | None:
 def build_feasibility_nudge(run_id: str) -> str:
     """The FEASIBILITY NUDGE block: header + the registry's all-routable
     contract block (every routable contract verbatim — single source of
-    truth) + the most recent failure memo for this run when one exists + one
-    instruction sentence to prefer as-is-testable hypotheses."""
+    truth) + THE MACHINE CAPABILITY TABLE + the most recent failure memo for
+    this run when one exists + the instruction.
+
+    THE TABLE JOINED THE BLOCK 2026-07-20. Contracts alone are prose: they
+    describe what an instrument IS across paragraphs of caveats, and a
+    hypothesis can read them cover to cover and still name a knob that does
+    not exist (run 20260719T231117Z, glucose_lb/oxygen_lb on cobrapy). The
+    table states the accepted parameter names and returnable quantities as
+    the router itself sees them, so the hard edges are legible at a glance
+    rather than inferable from nine contracts. Contracts still lead — they
+    carry the judgment the table cannot.
+    """
     # R5 (owner, 2026-07-17): Stage-1 surfaces carry ALL routable contracts —
     # the D.1.1 cavity pin is retired here; selection stays a Stage-2/Step-35
     # design (P8 pin unmoved).
-    parts = [FEASIBILITY_NUDGE_HEADER + ":", routable_contracts_block()]
+    parts = [
+        FEASIBILITY_NUDGE_HEADER + ":",
+        routable_contracts_block(),
+        capability_table(),
+    ]
     memo = read_recent_failure_memo(run_id)
     if memo:
         parts.append("MOST RECENT FAILURE MEMO FOR THIS RUN:\n" + memo)

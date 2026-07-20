@@ -322,22 +322,32 @@ def _fixed_summary_threaded_adapter(substrate_id, params, case_name, roles,
     parse/sanitize, the model allowlist, the alphabet/input gate, the FBA
     status gate) is each wrapper's own _validate_input, the single source:
     content problems come back as honest valid=false summaries. Returns the
-    wrapper summary VERBATIM so stage-4 evidence keeps the full summary."""
+    wrapper summary VERBATIM so stage-4 evidence keeps the full summary.
+
+    ALL THREE STRUCTURAL REFUSALS RAISE CaseSynthesisError (2026-07-20), not
+    a bare ValueError: each one means "this spec cannot be executed by this
+    substrate", which is precisely stage 4's honest halted_synthesis path —
+    the relay records the reason and moves on. Raised as ValueError they
+    escaped stage 4's own except clause and terminated the run
+    (20260719T231117Z, twice, exhausting the crash-recovery budget on a
+    condition that was never a crash). qoi_vocab's quantity_required now
+    catches the missing-quantity case at stage 2, so this is the net under
+    that, not the primary guard."""
     if not isinstance(params, dict):
-        raise ValueError(
+        raise stage4_case_builder.CaseSynthesisError(
             f"cannot translate mini-run params: expected an object, got "
             f"{type(params).__name__}"
         )
     unknown = sorted(set(params) - set(content_keys))
     if unknown:
-        raise ValueError(
+        raise stage4_case_builder.CaseSynthesisError(
             "cannot translate mini-run params to the fixed-summary typed "
             f"input: unknown key(s) {', '.join(unknown)} (the wrapper input "
             f"takes only content keys {', '.join(content_keys)} plus the "
             "threaded 'quantity')"
         )
     if not (isinstance(qoi_request, dict) and "quantity" in qoi_request):
-        raise ValueError(
+        raise stage4_case_builder.CaseSynthesisError(
             "no translated 'quantity' — fixed-summary threaded execution "
             "requires one (translate the spec qoi via "
             "_fixed_summary_qoi_translation); refusing to invent a default"

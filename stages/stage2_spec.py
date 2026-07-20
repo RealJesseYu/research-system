@@ -323,7 +323,22 @@ def _validate_qoi_fixed_summary(qoi: dict, vocab, errors: list[str], label: str)
     wrapper's own imported name set. Absent is valid: it declares the QoI
     not extractable (the honest qoi_error fallback path), mirroring the
     cavity grammar's absent-machine-keys semantics. Foreign grammars'
-    machine keys are rejected by name by the common alien-key check above."""
+    machine keys are rejected by name by the common alien-key check above.
+
+    THE EXCEPTION (2026-07-20): when the record sets quantity_required, the
+    wrapper threads `quantity` as a typed input and cannot run without one,
+    so an absent key is an unexecutable spec, NOT an honest not-extractable
+    declaration. Caught here, the existing re-ask loop repairs it in-run in
+    seconds; left to execution it surfaced as an uncaught adapter ValueError
+    after the fidelity gate had already spent a trust verdict on it."""
+    if getattr(vocab, "quantity_required", False) and "quantity" not in qoi:
+        errors.append(
+            f"{label} is missing the machine-readable 'quantity' key, which "
+            f"this instrument requires: it takes the quantity as a typed "
+            f"input and cannot run without one. Set {label}.quantity to one "
+            f"of {sorted(vocab.names)}. Note this is a SEPARATE key from "
+            f"{label}.name — the prose name does not select the quantity."
+        )
     if "quantity" in qoi and qoi["quantity"] not in vocab.names:
         errors.append(
             f"{label} quantity must be one of {sorted(vocab.names)} — the "

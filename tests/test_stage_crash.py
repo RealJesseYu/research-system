@@ -308,7 +308,15 @@ class TestCrashRecoveryLoopsBack(RelayCrashRecoveryCase):
         self.assertEqual(stubs.reached_stage6, 1)  # produced a paper
         self.assertEqual(len(dead_ends), 2)
         for entry in dead_ends:
-            self.assertIn("DEAD END (crash recovery)", entry["text"])
+            # WORDING CORRECTED 2026-07-20: the entry no longer asserts the
+            # approach "could not be modeled by any available instrument" —
+            # the supervisor cannot know that, and on 20260719T231117Z the
+            # claim was false twice over (a missing QoI key, not an
+            # instrument limit). It now states the crash and marks the cause
+            # unattributed, so Reflection cannot discard good science on it.
+            self.assertIn("CRASH (recovery loop-back)", entry["text"])
+            self.assertIn("CAUSE NOT ATTRIBUTED", entry["text"])
+            self.assertNotIn("could not be modeled", entry["text"])
             self.assertIn("stage3_fidelity_gate", entry["text"])
         self.assertIn(
             "CRASH-RECOVERY: crash at stage3_fidelity_gate — looping back "

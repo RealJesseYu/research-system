@@ -401,14 +401,33 @@ def journal_crash_dead_end(logger: Logger, baton: Baton, crash: StageCrashed) ->
         )
         if len(reason) > 240:
             reason = reason[:240].rstrip() + "…"
+        # WORDING CORRECTED 2026-07-20. This used to assert the approach
+        # "could not be modeled by any available instrument" and instruct
+        # ideation to avoid it. The supervisor CANNOT know that: a crash is
+        # just as likely a defect in this system as a limit of the
+        # instrument, and on 20260719T231117Z it was exactly that — a missing
+        # QoI key crashed stage 4 twice and wrote two entries condemning the
+        # only two hypotheses in the run that had EARNED TRUST from the
+        # fidelity gate. Reflection's initial review discards candidates that
+        # re-propose a dead end, so a false entry does not merely mislead; it
+        # kills the run's best science on the next attempt. The entry now
+        # records what is actually known — the crash, the stage, the reason —
+        # and explicitly flags the cause as unattributed.
         text = (
-            f"DEAD END (crash recovery): the approach behind hypothesis {hid} "
-            f"crashed at {crash.stage_name} and could not be modeled by any "
-            f"available instrument. Reason: {reason}"
+            f"CRASH (recovery loop-back): the run crashed at "
+            f"{crash.stage_name} while pursuing hypothesis {hid}. Reason: "
+            f"{reason}"
         )
         if statement:
             text += f" (hypothesis: {statement})"
-        text += " Avoid re-proposing an approach that needs what this one needed."
+        text += (
+            " CAUSE NOT ATTRIBUTED: this may be a limitation of the available "
+            "instruments OR a defect in the system itself — a crash alone "
+            "does not distinguish them. Do NOT treat this as proof the "
+            "approach is unworkable, and do not discard a candidate solely "
+            "for resembling it. Prefer a formulation that avoids whatever "
+            "the stated reason names, if one is available."
+        )
         journal_append(
             {
                 "kind": "learned_summary",
