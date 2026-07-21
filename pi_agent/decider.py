@@ -9,25 +9,28 @@ one Opus turn per decision, through the same call_stage_model door every stage
 uses (transcript discipline, bounded re-asks, cost attribution, isolation).
 
 WHAT IT CHOOSES, AND WHAT IT DOES NOT. The decider picks the QUESTION to point
-the next run at and the KIND of move. It does NOT pick the instrument — the run's
-own gate-1 chooser does that, from the permitted set the study's constraint
-allows — and it does NOT touch a measurement. It reads OUTCOMES (did the paper
-stand, what did the arc show), which are the sealed judges' outputs, and decides
-what to do about them. That keeps it firmly on the permitted side of
-capability_guard: it is above execution, never inside it. "Revising the
-hypothesis" is expressed as choosing a different next_domain — each run forms its
-own hypotheses from the question it is given, so a new question IS a revision.
+the next run at, the KIND of move, and — optionally — the INSTRUMENT to force for
+that move (from a menu of what each tool can measure), or it leaves the run to
+choose. It reads RESULTS (the verified findings each move measured, and whether
+its paper stood) and decides what to do about them. The one thing it does not do
+is produce or restate a measurement: a number of record comes from the instrument
+and its verification, never from the PI. That is the whole and only boundary —
+above execution it is a full researcher. "Revising the hypothesis" is expressed
+as choosing a different next_domain; each run re-forms its hypotheses from the
+question it is given, so a new question IS a revision.
 
-THE MENU, HONESTLY. v1 offers run_single and run_campaign. The chain move exists
-at the dispatch layer (pi_agent.dispatch) but its fidelity verdicts need a live
-stage-3 source that is not wired yet, so the decider is not offered a move it
-cannot honestly dispatch. When that source lands, run_chain joins the menu here.
+THE MENU. run_single and run_campaign. (The two-tool chain exists at the dispatch
+layer but its fidelity verdicts need a live stage-3 source that is not wired yet,
+so it is not offered until it can be honestly dispatched.)
 
-CAPABILITY. v1 runs SEALED: one reasoned turn over the arc it is given, no tools.
-The tool-using research (literature, retrieval) happens INSIDE the moves it
-dispatches — each run does its own grounded ideation. Giving the PI FULL so it
-can read literature directly before choosing is the natural next expansion; it is
-deliberately not taken here, to bound the highest-spend layer's first version.
+CAPABILITY. The PI runs FULL — a Claude Code agent, undiminished: web search,
+shell, files, up to 200 turns. It is the researcher, so it is as capable as any
+Claude Code agent (the same restoration the ideation/design/bench stages got):
+it may read the literature, run code to sanity-check an idea, and reason with
+tools before it commits to the next move. The ONLY stages that stay sealed are
+the ones that produce or JUDGE a measurement (the fidelity gate, execution, the
+thought layer, the desk review) — the PI is none of those. It directs the work
+and reads verified results; it never produces a measurement of record itself.
 
 EVIDENCE. Each decision is written to studies/<id>/decisions/decide<N>.json — the
 PI's reasoning trail, kept with the study rather than in runs/. (A consequence:
@@ -42,12 +45,13 @@ import json
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from model_call import SEALED, call_stage_model
+from model_call import FULL, call_stage_model
 
 # Opus: choosing the next move is a hard judgment (CLAUDE.md model roles).
 PI_DECIDER_MODEL = "claude-opus-4-8"
-# NOT a sealed-prefixed name: the decider is above execution, so it is allowed a
-# profile — v1 simply chooses SEALED. The name records that it is the PI layer.
+# NOT a sealed-prefixed name: the decider is above execution, so capability_guard
+# permits it the FULL profile it now uses. The name records that it is the PI
+# layer, and that it is allowed to roam.
 PI_DECIDER_STAGE = "pi_decider"
 
 DECISION_VALUES = ("run_single", "run_campaign", "stop")
@@ -213,7 +217,7 @@ def decide(
         SCHEMA,
         model=model,
         extra_validator=validator,
-        capabilities=SEALED,
+        capabilities=FULL,
     )
     _record_decision(study, len(arc) + 1, stage_input, data, timing)
     return data
