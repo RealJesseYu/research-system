@@ -985,6 +985,14 @@ the metrics dict out for you when the script exits, so referencing a path is a
 common way to silently lose the number. The requested `quantity` names which
 key in `metrics` is the quantity of interest.
 
+This instrument exposes NO adjustable parameters: the spec's `parameters` list
+MUST be empty ([]). Write every setting your experiment needs — a hyperparameter,
+a seed, a fold count — as a literal INSIDE the code, never as a declared
+parameter (the instrument accepts only `code` and `quantity`, so any declared
+parameter is rejected). Name the QoI with `qoi.quantity` set to the exact metric
+key your code assigns in `metrics`; this instrument uses NO `field`, `operation`,
+or `component` keys — those belong to other instruments and are rejected here.
+
 3. REGIME (python_experiment, code_execution).
 In-regime: a single deterministic computation whose result is a named scalar
 your code assigns into the `metrics` dict. Seed any randomness so the result
