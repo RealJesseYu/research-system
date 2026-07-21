@@ -214,11 +214,132 @@ def rerun_artifact(artifact: dict) -> dict:
         return {"value": None,
                 "error": entry.get("qoi_error") or "the re-run produced no value"}
 
+    if kind == "composition":
+        return _execute_composition(artifact)
+
     raise ArtifactError(
-        f"unknown artifact kind {kind!r} — verification can re-run 'code' and "
-        "'substrate' artifacts; anything else cannot be independently "
-        "reproduced and so cannot support a claim"
+        f"unknown artifact kind {kind!r} — verification can re-run 'code', "
+        "'substrate', and 'composition' artifacts; anything else cannot be "
+        "independently reproduced and so cannot support a claim"
     )
+
+
+# ---------------------------------------------------------------------------
+# Composition — one experiment that CALLS several tools and combines their
+# scalars (Phase 1, R-COMP-1..5; docs/memo_phase1_composition.md).
+#
+# A composition is a recipe of primitive steps plus a combine. Running it and
+# RE-running it are the same code path (this function), so verification cannot
+# drift from execution: the number a composition produces is the number
+# verification regenerates, by construction. The recipe records the WIRING, not
+# the intermediate values — every step is re-executed and every reference is
+# re-resolved from the RE-RUN scalars, so a nondeterministic step is caught
+# rather than masked. No model anywhere in here (verification purity); the only
+# model-authored code is the sealed `code` steps, run in the --network=none
+# sandbox exactly as a standalone code artifact is.
+# ---------------------------------------------------------------------------
+def _validate_recipe(artifact: dict) -> tuple:
+    """Structurally check a composition recipe, or raise ArtifactError. Returns
+    (steps, combine). A malformed recipe is a broken artifact, not a failed
+    experiment — it raises, like every other unrunnable-artifact case."""
+    steps = artifact.get("steps")
+    combine = artifact.get("combine")
+    if not isinstance(steps, list) or not steps:
+        raise ArtifactError(
+            "composition artifact needs a non-empty 'steps' list")
+    seen = set()
+    for i, step in enumerate(steps):
+        if not isinstance(step, dict):
+            raise ArtifactError(f"composition step {i} is not an object")
+        sid = step.get("step_id")
+        if not isinstance(sid, str) or not sid:
+            raise ArtifactError(f"composition step {i} has no string 'step_id'")
+        if sid in seen:
+            raise ArtifactError(f"composition step_id {sid!r} is not unique")
+        seen.add(sid)
+        if step.get("kind") not in ("code", "substrate"):
+            raise ArtifactError(
+                f"composition step {sid!r} must be a 'code' or 'substrate' "
+                f"step, got kind {step.get('kind')!r}")
+    if not isinstance(combine, dict):
+        raise ArtifactError("composition artifact needs a 'combine' object")
+    if combine.get("kind") != "code":
+        raise ArtifactError(
+            "composition 'combine' must be a 'code' step — the combine is the "
+            "one place the recipe's step scalars are reduced to a final number")
+    if not combine.get("code") or not combine.get("quantity"):
+        raise ArtifactError("composition 'combine' needs 'code' and 'quantity'")
+    refs = combine.get("inputs")
+    if not isinstance(refs, list) or not all(isinstance(r, str) for r in refs):
+        raise ArtifactError(
+            "composition 'combine' needs an 'inputs' list of step_id strings")
+    unknown = [r for r in refs if r not in seen]
+    if unknown:
+        raise ArtifactError(
+            f"composition combine references unknown step(s) {unknown} — the "
+            f"declared steps are {sorted(seen)}")
+    return steps, combine
+
+
+def _combine_code(combine: dict, resolved: dict) -> str:
+    """Assemble the combine's sealed code: a deterministic `inputs = {...}`
+    literal of the (re-run) upstream scalars, then the author's combine body.
+    json.dumps of floats is round-trip exact, so the injected literal carries
+    the reproduced numbers without loss."""
+    return "inputs = " + json.dumps(resolved) + "\n" + combine["code"]
+
+
+def _execute_composition(artifact: dict) -> dict:
+    """Run every step, resolve the combine's inputs from the step scalars, run
+    the combine. Returns {value, error} like every other artifact re-runner. A
+    step that fails to produce a number fails the whole composition — a
+    composed number standing on a step that did not run is exactly the
+    fabrication this pass exists to catch."""
+    steps, combine = _validate_recipe(artifact)
+
+    scalars = {}
+    for step in steps:
+        result = rerun_artifact(step)  # code / substrate — the existing runners
+        if result["error"] is not None:
+            return {"value": None,
+                    "error": (f"composition step {step['step_id']!r} did not "
+                              f"produce a value: {result['error']}")}
+        if not _isnum(result["value"]):
+            return {"value": None,
+                    "error": (f"composition step {step['step_id']!r} produced "
+                              f"a non-numeric value {result['value']!r}")}
+        scalars[step["step_id"]] = result["value"]
+
+    resolved = {ref: scalars[ref] for ref in combine["inputs"]}
+    return rerun_artifact({
+        "kind": "code",
+        "code": _combine_code(combine, resolved),
+        "quantity": combine["quantity"],
+    })
+
+
+def run_composition(recipe: dict) -> dict:
+    """Execute a composition recipe and hand back everything a caller needs to
+    record it as a verifiable claim: the final value, the recipe itself as the
+    re-runnable artifact, and the intermediate step scalars (which an
+    experimenter reads to decide its next move). Deterministic, no model.
+
+    The returned `artifact` IS the recipe, unchanged — so verify_claim later
+    re-runs the identical thing. Intermediate scalars are surfaced for the
+    caller but are NOT stored in the artifact: the recipe records wiring, not
+    values, so verification re-derives them (R-COMP-3/4)."""
+    steps, combine = _validate_recipe(recipe)
+    scalars = {}
+    for step in steps:
+        result = rerun_artifact(step)
+        scalars[step["step_id"]] = result["value"]
+        if result["error"] is not None:
+            return {"value": None, "artifact": recipe, "steps": scalars,
+                    "error": (f"composition step {step['step_id']!r} did not "
+                              f"produce a value: {result['error']}")}
+    final = _execute_composition(recipe)
+    return {"value": final["value"], "artifact": recipe, "steps": scalars,
+            "error": final["error"]}
 
 
 def verify_claim(claim: dict, rel_tol: float = DEFAULT_REL_TOL) -> dict:
@@ -285,6 +406,19 @@ def verify_claim(claim: dict, rel_tol: float = DEFAULT_REL_TOL) -> dict:
     if artifact.get("kind") == "code":
         planted = hardcoded_metric_reason(
             artifact.get("code") or "", artifact.get("quantity") or "")
+        if planted:
+            return {"verified": False, "reason": "hardcoded_constant",
+                    "detail": planted, "original": original,
+                    "reproduced": reproduced, "rel_error": rel_error}
+
+    # A composition's combine is model-authored code too — the same tripwire
+    # applies to it. A combine that only ever writes its final metric as a
+    # compile-time constant reproduces perfectly while measuring nothing about
+    # the steps it claims to compose.
+    if artifact.get("kind") == "composition":
+        combine = artifact.get("combine") or {}
+        planted = hardcoded_metric_reason(
+            combine.get("code") or "", combine.get("quantity") or "")
         if planted:
             return {"verified": False, "reason": "hardcoded_constant",
                     "detail": planted, "original": original,
