@@ -952,3 +952,47 @@ of SIMILARITY, not homology, orthology, or function; low-complexity and
 composition bias also inflate significance. Trust the e-value as a
 similarity-significance screen, not as a homology/function determination.
 """
+
+
+PYTHON_EXPERIMENT_CONTRACT = """INSTRUMENT: python_experiment — a general code-execution experiment.
+
+1. WHAT IT IS.
+A `direct`-class instrument: caller-authored Python, executed once in an
+ephemeral, no-network, resource-capped container, reporting named scalar
+metrics. Its fidelity is the fidelity of the code — it measures exactly what
+the code computes. It supports an ML / algorithms / numerical paper the way a
+solver supports a physics one: train a model and report its accuracy, run an
+algorithm and report its runtime or error, evaluate a method and report its
+score.
+
+2. WHAT YOU CONTROL.
+The experiment is the `code` (authored in the spec's regime block) plus the
+`quantity` (the QoI: the name of the metric to read). The script imports what
+it needs (numpy / scipy / sklearn / pandas are available) and MUST write a JSON
+object {"metrics": {"<name>": <number>, ...}} to the sanctioned result path.
+The requested `quantity` names which of those metrics is the quantity of
+interest.
+
+3. REGIME (python_experiment, code_execution).
+In-regime: a single deterministic computation whose result is a named scalar
+the code writes to the metrics file. Seed any randomness so the result
+reproduces — the measurement is re-run independently and a value that does not
+reproduce does not stand. Out of regime: anything needing the network, anything
+whose result is not a reported scalar metric, and anything that depends on
+state carried between runs (each run is a fresh container).
+
+4. WHAT IT RETURNS.
+One scalar QoI — the requested metric — returned ONLY when the script provably
+ran and wrote that metric. A script that crashes, times out, writes nothing,
+writes malformed JSON, or omits the requested metric produces NO number: an
+honest valid=false summary with diagnostics, never a fabricated value.
+
+5. THE DID-IT-WORK GATE AND THE KNOWN GAP.
+The result is read from the metrics file the code wrote, never parsed from
+stdout — a number in prose would be a convention the wrapper invented. THE
+KNOWN GAP (uncheckable at the wrapper): the code is only as correct as it is
+authored; the wrapper guarantees the number is the one the code reported and
+that it reproduces on re-run, NOT that the code measures what the hypothesis
+claims. That judgment is the fidelity gate's, and the reproduction is
+verification's — the wrapper's job is that the number is real and repeatable.
+"""

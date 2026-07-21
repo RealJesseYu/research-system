@@ -51,6 +51,7 @@ from substrates import (
     HOMOLOGY_SEARCH_CONTRACT,
     MAFFT_CONTRACT,
     NGSPICE_LINEAR_PASSIVE_CONTRACT,
+    PYTHON_EXPERIMENT_CONTRACT,
     RDKIT_DESCRIPTOR_CONTRACT,
     SYMPY_SYMBOLIC_EXACT_CONTRACT,
 )
@@ -495,6 +496,31 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="python_experiment",
+        wrapper="tools/run_python_experiment.py",
+        card_path="docs/envelope_card_python_experiment.md",
+        maturity=MATURE,
+        routable=True,
+        cost_tier="low",
+        notes=(
+            "Code-execution promotion, owner-ruled 2026-07-21 ('unblock "
+            "everything'): the general model-authored-Python instrument, so an "
+            "ML / algorithms / numerical experiment routes and gets measured + "
+            "verified like any other. MATURE on a different basis than a physics "
+            "solver's fidelity-distribution battery: a code experiment's "
+            "fidelity IS its reproducibility, and that is guarded DIRECTLY by "
+            "the verification pass (stages/verification.py already re-runs "
+            "kind='code' artifacts and compares) plus the stage-3 fidelity gate "
+            "— a stronger, more direct guarantee than a calibrating solver's, so "
+            "unattended trust is warranted. Sandbox: ephemeral --network=none "
+            "container, resource-capped, structural metric gate (the script "
+            "writes {metrics:{...}} to a result file; a number is never parsed "
+            "from prose). The agents that AUTHOR the code already roam under the "
+            "FULL capability profile; this makes their code-run RESULTS count as "
+            "verified measurements of record."
+        ),
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",
@@ -551,6 +577,11 @@ _CONTRACTS: dict[str, str] = {
     "rdkit": RDKIT_DESCRIPTOR_CONTRACT,
     "cobrapy": COBRAPY_FBA_CONTRACT,
     "mafft": MAFFT_CONTRACT,
+    # Code-execution promotion (owner-ruled 2026-07-21): the general
+    # model-authored-Python instrument, so an ML / algorithms experiment routes
+    # and gets measured + verified like any other. The IMPORTED runtime
+    # constant, authored in substrates.py — never a pasted copy.
+    "python_experiment": PYTHON_EXPERIMENT_CONTRACT,
     # BIO Wave D.4 promotion #2 (owner, 2026-07-19): homology_search, HELD from
     # the first merge for a G03/G05 card fix, promotes on the trust-dominant
     # N=7 re-run (every in-envelope case modal trust; out 35/35 defer). The

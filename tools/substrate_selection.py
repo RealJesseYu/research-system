@@ -118,6 +118,7 @@ from tools.run_homology_search import DATABASE_PATHS as _HS_DATABASE_PATHS
 from tools.run_homology_search import TOOLS as _HS_TOOLS
 from tools.run_mafft import _REQUIRED_FIELDS as _MAFFT_REQUIRED_FIELDS
 from tools.run_ngspice import _REQUIRED_FIELDS as _NGSPICE_REQUIRED_FIELDS
+from tools.run_python_experiment import _REQUIRED_FIELDS as _PYEXP_REQUIRED_FIELDS
 from tools.run_rdkit import _REQUIRED_FIELDS as _RDKIT_REQUIRED_FIELDS
 from tools.run_scipy import (
     OP_FIELDS as _SCIPY_OP_FIELDS,
@@ -186,6 +187,11 @@ _SIGNATURES: dict[str, frozenset[str]] = {
     # 'quantity' superset key with the other three mature bio substrates
     # (never a declared param) — no R-B-1 tie. Proven by routing at FOUR mature.
     "homology_search": frozenset(_HS_REQUIRED_FIELDS),
+    # python_experiment (owner-ruled 2026-07-21): {code, quantity}. `code` is
+    # the experiment (rides the regime block, threaded like cobrapy's model);
+    # `quantity` is the metric to read. Unique content key `code` -> unique
+    # routing; a bare quantity-only spec falls through to R-B-1's loud stop.
+    "python_experiment": frozenset(_PYEXP_REQUIRED_FIELDS),
 }
 
 

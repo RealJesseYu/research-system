@@ -212,8 +212,11 @@ class TestT5AmbiguityStopStillFires(unittest.TestCase):
             select_substrate(_ambiguous_spec())
         message = str(ctx.exception)
         self.assertIn("ambiguous (R-B-1", message)
-        self.assertIn("4 candidates", message)
-        for sid in ("rdkit", "cobrapy", "homology_search", "mafft"):
+        # +python_experiment (code-execution promotion, 2026-07-21): a bare spec
+        # is served by it too, and it is mature, so it joins the tie-break set —
+        # five mature candidates now.
+        self.assertIn("5 candidates", message)
+        for sid in ("rdkit", "cobrapy", "homology_search", "mafft", "python_experiment"):
             self.assertIn(sid, message)
 
     def test_unnamed_chain_node_is_not_exempt(self):

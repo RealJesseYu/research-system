@@ -321,7 +321,7 @@ class C2bChooserRetryBirth(unittest.TestCase):
             "['cavity_2d_cfd', 'calculix_cantilever_fea', "
             "'fenicsx_cantilever_elastic', 'sympy_symbolic_exact', "
             "'ngspice_linear_passive', 'rdkit', 'cobrapy', 'homology_search', "
-            "'mafft']; got 'web_search'.",
+            "'mafft', 'python_experiment']; got 'web_search'.",  # +code-exec 2026-07-21
             validation_error,
         )
         self.assertEqual(validation_error.count(" (raw reply: "), 1)

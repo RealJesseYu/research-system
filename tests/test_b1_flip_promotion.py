@@ -125,7 +125,7 @@ class TestFlipRegistry(unittest.TestCase):
             ("cavity_2d_cfd", "calculix_cantilever_fea",
              "fenicsx_cantilever_elastic", "sympy_symbolic_exact",
              "ngspice_linear_passive", "rdkit", "cobrapy", "homology_search",
-             "mafft"),
+             "mafft", "python_experiment"),  # +code-execution, 2026-07-21
         )
 
     def test_contract_is_the_graduated_constant_single_source(self):
@@ -212,7 +212,10 @@ class TestFlipRegistry(unittest.TestCase):
             r.substrate_id for r in registry.all_substrates()
             if registry.is_mature(r.substrate_id)
         }
-        self.assertEqual(mature, {"rdkit", "cobrapy", "mafft", "homology_search"})
+        self.assertEqual(
+            mature,
+            {"rdkit", "cobrapy", "mafft", "homology_search", "python_experiment"},
+        )  # +code-execution promotion, 2026-07-21
 
     def test_full_spec_fixture_validates_under_the_production_vocab(self):
         errors = stage2_spec.validate_spec(

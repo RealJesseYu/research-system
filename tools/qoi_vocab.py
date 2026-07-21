@@ -65,6 +65,14 @@ FIELD_REDUCTION = "field_reduction"
 NAMED_QUANTITY = "named_quantity"
 SYMBOLIC_RESULT = "symbolic_result"
 FIXED_SUMMARY = "fixed_summary"
+# Code-execution class (python_experiment, owner-ruled 2026-07-21): like the
+# fixed-summary threaded shape, the wrapper takes `quantity` as a typed input
+# and returns ONE scalar. The difference is that the metric set is OPEN — the
+# experiment's own code defines what it measures, so `quantity` is any
+# non-empty metric name, not a member of a fixed list. A code experiment
+# authors both the code and the metric it reads, so there is no vocabulary to
+# enumerate.
+OPEN_SCALAR = "open_scalar"
 
 # Regime-semantics shapes (R-23.5-5, owner 2026-07-17): "regime" remains
 # REQUIRED in every spec; its MEANING is per-substrate. The semantics ride
@@ -85,6 +93,12 @@ MSA_ALIGNMENT = "msa_alignment"
 # BIO Wave D.4 promotion #2 (owner, 2026-07-19): homology_search, same
 # single-{notes} regime family.
 HOMOLOGY_SEARCH = "homology_search"
+# Code-execution regime (python_experiment, owner-ruled 2026-07-21): the regime
+# block carries the experiment's `code` (its only carriage — validate_spec
+# rejects non-numeric parameters, the same reason cobrapy's `model` rides the
+# regime) plus notes. Threaded to the wrapper by regime_content_inputs, exactly
+# as the bio categorical selectors are.
+CODE_EXECUTION = "code_execution"
 
 
 @dataclass(frozen=True)
@@ -248,6 +262,22 @@ class HomologySearchRegime:
 
 
 @dataclass(frozen=True)
+class CodeExecutionRegime:
+    """python_experiment-class regime semantics (owner-ruled 2026-07-21): a
+    single deterministic computation whose result is a named scalar the code
+    writes. The regime object is {"code": "<python>", "notes": "..."} — `code`
+    is the experiment itself (its only carriage, like cobrapy's `model`),
+    threaded to the wrapper by regime_content_inputs. The other shapes' keys
+    are rejected by name."""
+
+    shape: ClassVar[str] = CODE_EXECUTION
+
+    alien_keys: ClassVar[tuple] = (
+        "reynolds_min", "reynolds_max", "analysis_type", "operation",
+    )
+
+
+@dataclass(frozen=True)
 class FieldReductionVocab:
     """A reduction-over-a-field vocabulary (cavity class). Members are the
     wrapper's own objects — the record adds structure, never content."""
@@ -342,6 +372,33 @@ class FixedSummaryVocab:
 
     # BOTH other machine-key grammars' keys, rejected by name ("quantity"
     # is this shape's own and appears in no other grammar).
+    alien_keys: ClassVar[tuple] = (
+        "field", "operation", "component", "mask",   # field-reduction grammar
+        "kind", "target", "reduction",                # named-quantity grammar
+    )
+
+
+@dataclass(frozen=True)
+class OpenScalarVocab:
+    """An open-scalar vocabulary (python_experiment class, owner-ruled
+    2026-07-21): like the fixed-summary threaded shape, the wrapper takes
+    `quantity` as a typed input and returns ONE scalar — but the metric set is
+    OPEN. A code experiment authors both its code and the metric it reads, so
+    there is NO enumerable name list: `quantity` is any non-empty metric name,
+    validated as a non-empty string rather than by membership. `quantity` is
+    always required (the wrapper cannot run without knowing which metric to
+    read). Foreign grammars' machine keys are rejected by name."""
+
+    shape: ClassVar[str] = OPEN_SCALAR
+
+    regime: Any          # the substrate's regime-semantics record
+
+    # There is no fixed name set — the instrument menu shows this as "any
+    # scalar metric the experiment's code reports". Kept as an attribute so
+    # readers of the record (e.g. the PI's instrument menu) find it absent-open
+    # rather than crashing on a missing field.
+    names: tuple = ()
+
     alien_keys: ClassVar[tuple] = (
         "field", "operation", "component", "mask",   # field-reduction grammar
         "kind", "target", "reduction",                # named-quantity grammar
@@ -451,6 +508,10 @@ _VOCABS: dict[str, Any] = {
         regime=HomologySearchRegime(),
         quantity_required=threads_quantity(_HS_REQ),
     ),
+    # python_experiment (owner-ruled 2026-07-21): the open-scalar shape — the
+    # wrapper threads `quantity` like the bio four, but the metric it names is
+    # authored by the experiment's own code, so there is no fixed name set.
+    "python_experiment": OpenScalarVocab(regime=CodeExecutionRegime()),
 }
 
 

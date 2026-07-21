@@ -35,7 +35,7 @@ class TestContractSelection(unittest.TestCase):
             ("cavity_2d_cfd", "calculix_cantilever_fea",
              "fenicsx_cantilever_elastic", "sympy_symbolic_exact",
              "ngspice_linear_passive", "rdkit", "cobrapy", "homology_search",
-             "mafft"),
+             "mafft", "python_experiment"),  # +code-execution, 2026-07-21
         )
         with self.assertRaises(RuntimeError):
             registry.sole_routable_id()
@@ -137,6 +137,10 @@ class TestRoutableContractsBlock(unittest.TestCase):
             + substrates.HOMOLOGY_SEARCH_CONTRACT
             + "\n\nROUTABLE SUBSTRATE: mafft\n"
             + substrates.MAFFT_CONTRACT
+            # Code-execution promotion (owner-ruled 2026-07-21): python_experiment
+            # is enrolled last among the routable, so its block comes last.
+            + "\n\nROUTABLE SUBSTRATE: python_experiment\n"
+            + substrates.PYTHON_EXPERIMENT_CONTRACT
         )
         self.assertEqual(registry.routable_contracts_block(), expected)
 

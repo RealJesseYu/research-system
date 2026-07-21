@@ -162,7 +162,7 @@ class TestFlipRegistry(unittest.TestCase):
             registry.routable_ids(),
             ("cavity_2d_cfd", FEA, FENICSX, "sympy_symbolic_exact",
              "ngspice_linear_passive", "rdkit", "cobrapy", "homology_search",
-             "mafft"),
+             "mafft", "python_experiment"),  # +code-execution, 2026-07-21
         )
 
     def test_contract_for_returns_the_graduated_constants(self):
@@ -290,7 +290,10 @@ class TestFlipRegistry(unittest.TestCase):
             r.substrate_id for r in registry.all_substrates()
             if registry.is_mature(r.substrate_id)
         }
-        self.assertEqual(mature, {"rdkit", "cobrapy", "mafft", "homology_search"})
+        self.assertEqual(
+            mature,
+            {"rdkit", "cobrapy", "mafft", "homology_search", "python_experiment"},
+        )  # +code-execution promotion, 2026-07-21
 
 
 # ---------------------------------------------------------------------------

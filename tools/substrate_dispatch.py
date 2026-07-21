@@ -62,6 +62,7 @@ from tools.run_fenicsx import _REQUIRED_FIELDS as _FENICSX_INPUT_KEYS
 from tools.run_homology_search import _REQUIRED_FIELDS as _HS_REQUIRED_FIELDS
 from tools.run_mafft import _REQUIRED_FIELDS as _MAFFT_REQUIRED_FIELDS
 from tools.run_ngspice import _REQUIRED_FIELDS, _REQUIRED_QOI_FIELDS
+from tools.run_python_experiment import _REQUIRED_FIELDS as _PYEXP_REQUIRED_FIELDS
 from tools.run_rdkit import _REQUIRED_FIELDS as _RDKIT_REQUIRED_FIELDS
 
 # BIO Wave D.4 (owner, 2026-07-19): the fixed-summary threaded adapters take
@@ -81,6 +82,10 @@ _COBRAPY_CONTENT_KEYS = tuple(
 # homology_search content keys = {database, query, tool} (required minus the
 # threaded 'quantity'). Promotion #2 (owner, 2026-07-19).
 _HS_CONTENT_KEYS = tuple(k for k in _HS_REQUIRED_FIELDS if k != "quantity")
+# python_experiment content keys = {code} (required minus the threaded
+# 'quantity'). `code` rides the regime block and threads like cobrapy's model.
+# Owner-ruled 2026-07-21.
+_PYEXP_CONTENT_KEYS = tuple(k for k in _PYEXP_REQUIRED_FIELDS if k != "quantity")
 from tools.run_scipy import (
     OP_FIELDS as _SCIPY_OP_FIELDS,
     UNIVERSAL_OPTIONAL_FIELDS as _SCIPY_UNIVERSAL_OPTIONAL_FIELDS,
@@ -449,6 +454,7 @@ _THREADED_CONTENT_KEYS: dict[str, tuple] = {
     "cobrapy": _COBRAPY_CONTENT_KEYS,
     "mafft": _MAFFT_CONTENT_KEYS,
     "homology_search": _HS_CONTENT_KEYS,
+    "python_experiment": _PYEXP_CONTENT_KEYS,
 }
 
 
@@ -512,6 +518,18 @@ def _cobrapy_adapter(substrate_id, params, case_name, roles, qoi_request):
     with qoi None (never the stale objective)."""
     return _fixed_summary_threaded_adapter(
         substrate_id, params, case_name, roles, qoi_request, _COBRAPY_CONTENT_KEYS
+    )
+
+
+def _python_experiment_adapter(substrate_id, params, case_name, roles, qoi_request):
+    """python_experiment (owner-ruled 2026-07-21): the same threaded adapter as
+    the bio four — {code} is the content (threaded from the regime block by
+    stage 4), 'quantity' (the metric name) is threaded from the QoI request.
+    The wrapper runs the code in an ephemeral no-network container and reads the
+    requested metric; a script that crashes, times out, or omits the metric
+    comes back as an honest valid=false summary, never a fabricated number."""
+    return _fixed_summary_threaded_adapter(
+        substrate_id, params, case_name, roles, qoi_request, _PYEXP_CONTENT_KEYS
     )
 
 
@@ -631,6 +649,8 @@ _ADAPTERS: dict = {
     "mafft": _mafft_adapter,
     # BIO Wave D.4 promotion #2 (owner, 2026-07-19)
     "homology_search": _homology_search_adapter,
+    # python_experiment (owner-ruled 2026-07-21): the same threaded adapter.
+    "python_experiment": _python_experiment_adapter,
 }
 
 
@@ -705,6 +725,28 @@ def _fixed_summary_qoi_translation(spec_qoi, vocab):
     return {"quantity": quantity}, None
 
 
+def _open_scalar_qoi_translation(spec_qoi, vocab):
+    """Open-scalar (python_experiment class) translation, owner-ruled
+    2026-07-21. Like the fixed-summary translation, the ONE machine key is
+    "quantity" — but the metric set is OPEN, authored by the experiment's own
+    code, so any non-empty string is a valid metric name (no membership check).
+    A missing or non-string quantity is an honest refusal, never a guess; the
+    wrapper reports valid=false if the code never wrote that metric."""
+    if not isinstance(spec_qoi, dict):
+        return None, (
+            f"spec qoi must be an object, got {type(spec_qoi).__name__} — "
+            "refusing to invent a request"
+        )
+    quantity = spec_qoi.get("quantity")
+    if not (isinstance(quantity, str) and quantity.strip()):
+        return None, (
+            "spec qoi carries no non-empty 'quantity' — an open-scalar request "
+            "names which metric the experiment's code writes; free-text "
+            "definitions are not translated"
+        )
+    return {"quantity": quantity}, None
+
+
 _QOI_TRANSLATIONS: dict = {
     "cavity_2d_cfd": _cavity_qoi_translation,
     "ngspice_linear_passive": _ngspice_qoi_translation,
@@ -724,6 +766,9 @@ _QOI_TRANSLATIONS: dict = {
     # BIO Wave D.4 promotion #2 (owner, 2026-07-19): same fixed-summary
     # translation — "quantity" membership-checked against ("e_value",).
     "homology_search": _fixed_summary_qoi_translation,
+    # python_experiment (owner-ruled 2026-07-21): the open-scalar translation —
+    # "quantity" is any non-empty metric name the experiment's code writes.
+    "python_experiment": _open_scalar_qoi_translation,
 }
 
 
@@ -1092,6 +1137,10 @@ _RUN_ENTRY_CONSTRUCTORS: dict = {
     # constructor (a clean no-hit is valid=True/qoi=None -> qoi_error, not a
     # fabricated number).
     "homology_search": homology_search_run_entry,
+    # python_experiment (owner-ruled 2026-07-21): the wrapper summary is the
+    # scalar {valid, qoi, diagnostics, runtime_s} shape — the same scalar
+    # run-entry as the bio trio (valid=False -> qoi_error, never a fabrication).
+    "python_experiment": _fixed_summary_scalar_run_entry,
 }
 
 

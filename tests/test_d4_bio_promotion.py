@@ -126,14 +126,16 @@ class TestFlipRegistry(unittest.TestCase):
             ("cavity_2d_cfd", "calculix_cantilever_fea",
              "fenicsx_cantilever_elastic", "sympy_symbolic_exact",
              "ngspice_linear_passive", "rdkit", "cobrapy", "homology_search",
-             "mafft"),
+             "mafft", "python_experiment"),  # +code-execution, 2026-07-21
         )
 
     def test_exactly_the_bio_four_are_mature(self):
         # promotion #2 (2026-07-19) added homology_search to the mature set.
         mature = {r.substrate_id for r in registry.all_substrates()
                   if registry.is_mature(r.substrate_id)}
-        self.assertEqual(mature, set(BIO) | {"homology_search"})
+        self.assertEqual(
+            mature, set(BIO) | {"homology_search", "python_experiment"}
+        )  # +code-execution promotion, 2026-07-21
 
     def test_contract_for_returns_graduated_constants_single_source(self):
         for sid in BIO:
@@ -428,13 +430,16 @@ class TestFixturesAdditiveOnly(unittest.TestCase):
             err = json.loads((C235 / path).read_text())["validation_error"]
             return set(eval(re.search(r"exactly one of (\[[^\]]*\])", err).group(1)))
         new = ids("chooser_retry_user_turn_v235.txt")
-        # cumulative vs pre-D.4: the four bio ids added, nothing removed.
+        # cumulative vs pre-D.4: the four bio ids added, plus python_experiment
+        # (code-execution promotion, owner-ruled 2026-07-21, added on top);
+        # nothing removed.
         pred4 = ids("chooser_retry_user_turn_v235_pred4.txt")
-        self.assertEqual(new - pred4, set(BIO) | {"homology_search"})
+        self.assertEqual(new - pred4, set(BIO) | {"homology_search", "python_experiment"})
         self.assertEqual(pred4 - new, set())
-        # this-merge vs the 8-routable snapshot: exactly homology_search added.
+        # this-merge vs the 8-routable snapshot: homology_search added at D.4 #2,
+        # python_experiment added at the code-execution promotion — both additive.
         pred4hs = ids("chooser_retry_user_turn_v235_pred4hs.txt")
-        self.assertEqual(new - pred4hs, {"homology_search"})
+        self.assertEqual(new - pred4hs, {"homology_search", "python_experiment"})
         self.assertEqual(pred4hs - new, set())
 
 

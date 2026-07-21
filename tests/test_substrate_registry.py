@@ -46,6 +46,10 @@ class TestRegistryTable(unittest.TestCase):
                 "retrosynthesis",
                 "alphafold_db",
                 "bio_db_lookup",
+                # Code-execution promotion (owner-ruled 2026-07-21): enrolled
+                # just before web_search (web_search stays last, outside the
+                # routable ladder).
+                "python_experiment",
                 "web_search",
             ],
         )
@@ -61,12 +65,14 @@ class TestRegistryTable(unittest.TestCase):
         # 2026-07-19): NINE ids in enrollment order — the Packet-B five plus
         # rdkit, cobrapy, homology_search, mafft (the four MATURE substrates;
         # homology_search enrolls BEFORE mafft)
+        # + python_experiment (code-execution promotion, owner-ruled
+        # 2026-07-21) — the tenth routable id, enrolled last before web_search.
         self.assertEqual(
             registry.routable_ids(),
             ("cavity_2d_cfd", "calculix_cantilever_fea",
              "fenicsx_cantilever_elastic", "sympy_symbolic_exact",
              "ngspice_linear_passive", "rdkit", "cobrapy", "homology_search",
-             "mafft"),
+             "mafft", "python_experiment"),
         )
 
     def test_sympy_is_calibrating_routable_under_packet_b_phase1(self):
@@ -249,7 +255,13 @@ class TestRegistryTable(unittest.TestCase):
             r.substrate_id for r in registry.all_substrates()
             if registry.is_mature(r.substrate_id)
         }
-        self.assertEqual(mature, {"rdkit", "cobrapy", "mafft", "homology_search"})
+        # + python_experiment (code-execution promotion, owner-ruled
+        # 2026-07-21): mature on the reproducibility basis (verification re-runs
+        # its code artifacts directly), so five mature substrates now.
+        self.assertEqual(
+            mature,
+            {"rdkit", "cobrapy", "mafft", "homology_search", "python_experiment"},
+        )
 
     def test_get_unknown_raises(self):
         with self.assertRaises(KeyError):

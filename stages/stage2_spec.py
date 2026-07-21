@@ -26,6 +26,7 @@ from typing import Any
 # substrate name.
 from tools.qoi_vocab import (
     ANALYSIS_TYPE,
+    CODE_EXECUTION,
     DESCRIPTOR_COMPUTATION,
     FBA_STEADY_STATE,
     FIELD_REDUCTION,
@@ -33,6 +34,7 @@ from tools.qoi_vocab import (
     HOMOLOGY_SEARCH,
     MSA_ALIGNMENT,
     NAMED_QUANTITY,
+    OPEN_SCALAR,
     OPERATION_SET,
     REYNOLDS_BAND,
     STATIC_SMALL_DEFLECTION,
@@ -218,6 +220,8 @@ def _validate_qoi(qoi: Any, vocab, errors: list[str], label: str = "qoi") -> Non
         _validate_qoi_symbolic_result(qoi, vocab, errors, label)
     elif vocab.shape == FIXED_SUMMARY:
         _validate_qoi_fixed_summary(qoi, vocab, errors, label)
+    elif vocab.shape == OPEN_SCALAR:
+        _validate_qoi_open_scalar(qoi, vocab, errors, label)
     else:  # a vocab record with an unknown shape is a broken invariant
         raise ValueError(f"unknown QoI vocabulary shape {vocab.shape!r}")
 
@@ -347,6 +351,28 @@ def _validate_qoi_fixed_summary(qoi: dict, vocab, errors: list[str], label: str)
         )
 
 
+def _validate_qoi_open_scalar(qoi: dict, vocab, errors: list[str], label: str) -> None:
+    """The open-scalar (python_experiment-class) machine-key check: the wrapper
+    threads `quantity` as a typed input and cannot run without one, but the
+    metric set is OPEN — the experiment's code names it — so `quantity` is any
+    non-empty string, validated as such rather than against a fixed list.
+    Foreign grammars' machine keys are rejected by name by the common alien-key
+    check above."""
+    if "quantity" not in qoi:
+        errors.append(
+            f"{label} is missing the machine-readable 'quantity' key, which "
+            "this instrument requires: it takes the metric name as a typed "
+            f"input and cannot run without one. Set {label}.quantity to the "
+            "name of the metric your experiment's code writes to its metrics "
+            f"file. Note this is a SEPARATE key from {label}.name."
+        )
+    elif not (isinstance(qoi["quantity"], str) and qoi["quantity"].strip()):
+        errors.append(
+            f"{label} quantity must be a non-empty metric name (a string); "
+            f"got {qoi['quantity']!r}."
+        )
+
+
 def _validate_qois(qois: Any, vocab, errors: list[str]) -> None:
     """Optional VECTOR of qoi objects (Multi-QoI build, part B). Present-only;
     each entry is validated exactly like the single `qoi` (same required
@@ -435,8 +461,37 @@ def _validate_regime(regime: Any, vocab, errors: list[str]) -> None:
         HOMOLOGY_SEARCH,
     ):
         _validate_regime_static_small_deflection(regime, vocab.regime, errors)
+    elif vocab.regime.shape == CODE_EXECUTION:
+        _validate_regime_code_execution(regime, vocab.regime, errors)
     else:
         raise ValueError(f"unknown regime vocabulary shape {vocab.regime.shape!r}")
+
+
+def _validate_regime_code_execution(regime: Any, reg, errors: list[str]) -> None:
+    """Code-execution regime semantics (python_experiment, owner-ruled
+    2026-07-21): the regime object carries the experiment itself — a non-empty
+    `code` string (the Python to run) plus `notes` — and no per-case numeric
+    axis. `code` is threaded to the wrapper by regime_content_inputs, the same
+    carriage cobrapy's `model` uses. Foreign grammars' keys are rejected by
+    name (reg.alien_keys)."""
+    if not isinstance(regime, dict):
+        errors.append("regime must be an object with code and notes.")
+        return
+    if "notes" not in regime:
+        errors.append("regime is missing 'notes'.")
+    code = regime.get("code")
+    if not (isinstance(code, str) and code.strip()):
+        errors.append(
+            "regime must carry 'code': the non-empty Python source of the "
+            "experiment (it is the experiment, and the only place a spec can "
+            f"carry it); got {code!r}."
+        )
+    alien = sorted(k for k in reg.alien_keys if k in regime)
+    if alien:
+        errors.append(
+            f"regime carries the key(s) {', '.join(repr(k) for k in alien)}, "
+            "which belong to another substrate class's regime grammar; remove them."
+        )
 
 
 def _validate_regime_reynolds_band(regime: Any, errors: list[str]) -> None:

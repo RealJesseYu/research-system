@@ -962,6 +962,50 @@ guide-tree-dependent — a different tool or setting gives a different alignment
 Trust the alignment DESCRIPTIVELY, never as the biologically correct one.
 
 
+ROUTABLE SUBSTRATE: python_experiment
+INSTRUMENT: python_experiment — a general code-execution experiment.
+
+1. WHAT IT IS.
+A `direct`-class instrument: caller-authored Python, executed once in an
+ephemeral, no-network, resource-capped container, reporting named scalar
+metrics. Its fidelity is the fidelity of the code — it measures exactly what
+the code computes. It supports an ML / algorithms / numerical paper the way a
+solver supports a physics one: train a model and report its accuracy, run an
+algorithm and report its runtime or error, evaluate a method and report its
+score.
+
+2. WHAT YOU CONTROL.
+The experiment is the `code` (authored in the spec's regime block) plus the
+`quantity` (the QoI: the name of the metric to read). The script imports what
+it needs (numpy / scipy / sklearn / pandas are available) and MUST write a JSON
+object {"metrics": {"<name>": <number>, ...}} to the sanctioned result path.
+The requested `quantity` names which of those metrics is the quantity of
+interest.
+
+3. REGIME (python_experiment, code_execution).
+In-regime: a single deterministic computation whose result is a named scalar
+the code writes to the metrics file. Seed any randomness so the result
+reproduces — the measurement is re-run independently and a value that does not
+reproduce does not stand. Out of regime: anything needing the network, anything
+whose result is not a reported scalar metric, and anything that depends on
+state carried between runs (each run is a fresh container).
+
+4. WHAT IT RETURNS.
+One scalar QoI — the requested metric — returned ONLY when the script provably
+ran and wrote that metric. A script that crashes, times out, writes nothing,
+writes malformed JSON, or omits the requested metric produces NO number: an
+honest valid=false summary with diagnostics, never a fabricated value.
+
+5. THE DID-IT-WORK GATE AND THE KNOWN GAP.
+The result is read from the metrics file the code wrote, never parsed from
+stdout — a number in prose would be a convention the wrapper invented. THE
+KNOWN GAP (uncheckable at the wrapper): the code is only as correct as it is
+authored; the wrapper guarantees the number is the one the code reported and
+that it reproduces on re-run, NOT that the code measures what the hypothesis
+claims. That judgment is the fidelity gate's, and the reproduction is
+verification's — the wrapper's job is that the number is real and repeatable.
+
+
 MACHINE CAPABILITY TABLE — the ONLY parameter names each instrument can accept, and the ONLY quantities it can return. This is the exact set the router checks against; a hypothesis needing anything not listed here CANNOT BE RUN, no matter how good the science is.
   cavity_2d_cfd
       can vary   : cavity_length, end_time, kinematic_viscosity, lid_velocity, mesh_resolution, reynolds_number, time_step
@@ -993,5 +1037,8 @@ MACHINE CAPABILITY TABLE — the ONLY parameter names each instrument can accept
   mafft
       can vary   : quantity, sequences
       can measure: alignment_identity
+  python_experiment
+      can vary   : code, quantity
+      can measure: (see contract)
 
 HARD CONSTRAINT, not a preference. Every hypothesis you propose must be testable AS-IS by at least one instrument above — meaning the experiment that would test it varies ONLY parameter names listed in that instrument's 'can vary' line, and its quantity of interest is one of that instrument's 'can measure' entries. Before you write a hypothesis, name the instrument that would test it and check both lines. A hypothesis requiring a knob or a measurement not listed there cannot be run at all and is worth nothing here, however novel or well-motivated — propose a different one that fits an instrument as it actually is. Do not assume a parameter exists because it would be physically sensible, and do not rename a parameter to make it look like one that is listed.
