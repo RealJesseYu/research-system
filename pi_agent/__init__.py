@@ -35,6 +35,12 @@ from pi_agent.study import (
     study_arc,
     study_findings,
 )
+from pi_agent.decider import (
+    DECISION_VALUES,
+    decide,
+    make_decision_validator,
+)
+from pi_agent.loop import investigate
 
 __all__ = [
     "Move",
@@ -54,4 +60,8 @@ __all__ = [
     "run_study_move",
     "study_arc",
     "study_findings",
+    "DECISION_VALUES",
+    "decide",
+    "make_decision_validator",
+    "investigate",
 ]
