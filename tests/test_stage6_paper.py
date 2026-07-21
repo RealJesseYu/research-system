@@ -1,9 +1,10 @@
 """
 test_stage6_paper.py — standalone tests of the real Paper stage (Step 22).
 Deterministic, ZERO model calls: model_call._invoke_transport (the factored
-transport seam, per test_transport_retry.py) is patched with fakes, the
-journal read-side is patched with canned summaries, and the reference seam
-runs in offline mode against tests/fixtures/refs_canned.json.
+transport seam, per test_transport_retry.py) is patched with fakes and the
+reference seam runs in offline mode against tests/fixtures/refs_canned.json.
+The paper's only learned summary is this run's own (carried on the baton's
+thought object) — no global-journal read to patch (memory-bleed fix).
 
 Run directly: venv/bin/python3 tests/test_stage6_paper.py
 """
@@ -28,11 +29,6 @@ from harness.paper_lint import REQUIRED_HEADING, lint_paper
 from stages import desk_review, stage6_paper
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "paper"
-
-CANNED_SUMMARIES = [
-    {"kind": "learned_summary", "run_id": "prev1", "text": "newest canned lesson"},
-    {"kind": "learned_summary", "run_id": "prev2", "text": "older canned lesson"},
-]
 
 FAKE_ITEMS = {
     "trust": [
@@ -111,13 +107,10 @@ class Stage6TestCase(unittest.TestCase):
         os.chdir(self._tmp.name)
         self._old_refs_mode = stage6_paper.REFS_MODE
         stage6_paper.REFS_MODE = "offline"
-        self._patches = [
-            patch.object(
-                stage6_paper,
-                "journal_recent_by_kind",
-                lambda kind, limit=3: CANNED_SUMMARIES,
-            ),
-        ]
+        # The paper no longer reads the global journal (memory-bleed fix,
+        # 2026-07-21): its only learned summary is this run's own, carried on
+        # the baton's thought object — so there is no journal seam to patch.
+        self._patches = []
         for p in self._patches:
             p.start()
 

@@ -5,8 +5,10 @@ and an in-process lint with bounded error-feedback regeneration. The
 frozen signature run(baton: Baton) -> Baton is unchanged.
 
 Inputs are EXACTLY three (ruled): the baton's stage-5 object (thought +
-iterate_decision), journal_recent_by_kind("learned_summary", limit=3),
-and the run's stage-3 verdict read from disk
+iterate_decision) — from which THIS run's own learned_summary is the only
+learned summary the paper sees (memory-bleed fix, 2026-07-21: the global
+journal read was removed after a cross-run lesson bled into an unrelated
+paper) — and the run's stage-3 verdict read from disk
 (runs/<run_id>/stage3/verdict.json) — plus references obtained through
 the ONE seam function gather_references (offline mode reads
 tests/fixtures/refs_canned.json; live mode is best-effort scholarly
@@ -58,7 +60,6 @@ from harness.paper_lint import (
     lint_paper,
     validate_validation_items,
 )
-from memory.journal import journal_recent_by_kind
 from stages.desk_review import MAX_DESK_REWRITES, desk_review
 from model_call import call_stage_model, log_stage_call
 
@@ -482,7 +483,14 @@ def run(baton: Baton) -> Baton:
     iterate_decision = baton.payload["iterate_decision"]
     verdict = _load_verdict(run_id)
     fidelity_class = verdict["label"]
-    summaries = journal_recent_by_kind("learned_summary", limit=3)
+    # MEMORY-BLEED FIX (2026-07-21). The paper is grounded in THIS run's own
+    # takeaway — the thought layer's learned_summary — NOT the global journal's
+    # recent learned_summaries. Feeding cross-run entries here was the
+    # "learned-summary poison" made real: a cobrapy operational note from an
+    # unrelated run wrote itself into a Random Forest paper's Background (run
+    # fullchain-20260721T130413Z). A paper stands on its own experiment; other
+    # runs' lessons are steering for ideation/design, never prose for this paper.
+    summaries = [{"text": thought["learned_summary"]}]
     refs = gather_references(thought["learned_summary"], run_id)
     _log(
         run_id,
