@@ -27,6 +27,7 @@ from pathlib import Path
 from baton import Baton
 from memory.journal import journal_recent_by_kind
 from model_call import FULL, call_stage_model, log_stage_call
+from tools.run_python_experiment import run_python_experiment
 from stages.stage2_spec import validate_spec
 from tools import substrate_selection
 from tools.qoi_vocab import vocab_for
@@ -217,15 +218,73 @@ def _serve_ability_errors(spec, substrate_id: str) -> list[str]:
     ]
 
 
-def _make_extra_validator(chosen_id: str, vocab, substrate_id: str):
+def _code_execution_errors(spec, substrate_id: str, runner) -> list[str]:
+    """AUTHORING-TIME EXECUTION CHECK (python_experiment only, 2026-07-21).
+
+    After the spec is shape- and vocabulary-valid, actually RUN the authored
+    code ONCE in the sealed container — the exact {code}+quantity stage 4 would
+    dispatch (regime.code, qoi.quantity; see substrate_dispatch's
+    _python_experiment_adapter). On an honest execution failure (a crash, a
+    timeout, a missing metric) return the wrapper's own bounded diagnostic, so
+    call_stage_model re-asks and the MODEL fixes its own code. This is the SAME
+    authoring-time-re-ask pattern as _serve_ability_errors — the check is just
+    'does the code actually run and write the metric' — and it is worth a run
+    because a code bug caught here costs seconds, while the same bug caught at
+    stage 4 burns an Opus fidelity call plus a whole barren relay pass (and one
+    of only MAX_LOOPBACKS macro redesigns).
+
+    ARCHITECTURE. The container run is deterministic tool output, not a model
+    call, so the validator stays model-free. Its result is used ONLY as
+    pass/fail for authoring and is discarded — stage 2 never produces the
+    measurement of record; stage 4 runs the code again for that. Only the
+    wrapper's already-bounded diagnostic flows back, so the summarize-at-the-
+    wrapper invariant holds.
+
+    A no-op (returns []) for every non-code substrate, so their authoring is
+    byte-identical.
+    """
+    if substrate_id != "python_experiment":
+        return []
+    if not isinstance(spec, dict):
+        return []
+    regime = spec.get("regime")
+    qoi = spec.get("qoi")
+    code = regime.get("code") if isinstance(regime, dict) else None
+    quantity = qoi.get("quantity") if isinstance(qoi, dict) else None
+    # validate_spec already guarantees both for a code_execution spec; if either
+    # is somehow absent the cheap checks already reported it, so do not run.
+    if not (isinstance(code, str) and code.strip()):
+        return []
+    if not (isinstance(quantity, str) and quantity.strip()):
+        return []
+
+    summary = runner({"code": code, "quantity": quantity})
+    if summary.get("valid"):
+        return []
+    return [
+        "the authored code was executed once in the sealed container and did "
+        f"not produce the metric {quantity!r}. The instrument reported "
+        "verbatim: "
+        f"{summary.get('diagnostics') or '(no diagnostic)'}. Fix the code so it "
+        "runs cleanly and writes that metric into the results; do not change "
+        "the science to dodge a bug."
+    ]
+
+
+def _make_extra_validator(chosen_id: str, vocab, substrate_id: str,
+                          runner=run_python_experiment):
     """Deep validator handed to call_stage_model: the reply envelope must be
     exactly {ack_run_id, spec}, and the spec must pass validate_spec for the
     chosen hypothesis under the substrate's OWN QoI vocabulary (R-23.5-4:
     resolved from the payload's gate-decided substrate_id — the cavity
     vocab is the same record the old bare call resolved to, so cavity
     retry surfaces are byte-identical), AND be servable by that substrate
-    (2026-07-20; see _serve_ability_errors). Returns plain-language error
-    strings, empty = valid.
+    (2026-07-20; see _serve_ability_errors), AND — for python_experiment only —
+    its authored code must actually RUN and write the metric (2026-07-21; see
+    _code_execution_errors). Returns plain-language error strings, empty = valid.
+
+    `runner` is injected so unit tests can drive the code check with no
+    container; production uses run_python_experiment.
     """
 
     def check(parsed: dict) -> list[str]:
@@ -237,6 +296,12 @@ def _make_extra_validator(chosen_id: str, vocab, substrate_id: str):
         ]
         errors.extend(validate_spec(parsed["spec"], chosen_id, vocab))
         errors.extend(_serve_ability_errors(parsed["spec"], substrate_id))
+        # Execute the code ONLY when the cheap checks all passed — never spin a
+        # container for a spec that is already shape-invalid.
+        if not errors:
+            errors.extend(
+                _code_execution_errors(parsed["spec"], substrate_id, runner)
+            )
         return errors
 
     return check
