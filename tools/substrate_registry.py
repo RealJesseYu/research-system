@@ -70,6 +70,18 @@ MATURITY_LADDER = (CALIBRATING, PROVISIONAL, MATURE)
 # The one and only maturity a trust decision may proceed on unattended.
 TRUSTWORTHY = MATURE
 
+# --- instrument class (Phase 3, R-ROUTE-1; docs/memo_phase3_routing.md) -----
+# Whether a substrate is an EXACT tool (deterministic: re-running IS the check,
+# with no unresolved model-to-reality gap in the quantity it reports) or an
+# APPROXIMATE physical/statistical instrument that can converge to a
+# confidently WRONG number — the only class for which the fidelity gate earns
+# its keep (manifest §1). This is a structural fact upper layers READ; they
+# never branch on a substrate_id. It is trust-bearing, so it changes only by a
+# recorded ruling, exactly like maturity/routable.
+EXACT = "exact"
+APPROXIMATE = "approximate"
+INSTRUMENT_CLASSES = (EXACT, APPROXIMATE)
+
 
 @dataclass(frozen=True)
 class SubstrateRecord:
@@ -92,6 +104,22 @@ class SubstrateRecord:
     # branch. Opt-in, default False: a new substrate is never an anchor until
     # declared one under a recorded ruling.
     frozen_anchor: bool = False
+    # The instrument class (Phase 3, R-ROUTE-1). Defaults to APPROXIMATE — the
+    # fail-SAFE direction: the failure mode we refuse is SKIPPING the fidelity
+    # gate on something that needed it, so a substrate is treated as
+    # confidently-wrong-capable until it is explicitly declared EXACT under a
+    # ruling. Only a substrate whose reported quantity cannot be confidently
+    # wrong (re-running fully catches any error) is marked EXACT.
+    instrument_class: str = APPROXIMATE
+
+    def __post_init__(self):
+        # Fail loud at import if a record carries an unknown class — a
+        # trust-bearing fact is never silently accepted (frozen dataclass, so
+        # this validates without mutating).
+        if self.instrument_class not in INSTRUMENT_CLASSES:
+            raise ValueError(
+                f"substrate {self.substrate_id!r} has instrument_class "
+                f"{self.instrument_class!r}, not one of {INSTRUMENT_CLASSES}")
 
 
 # The registry itself. Order is the enrollment order and is preserved by
@@ -216,6 +244,7 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
     ),
     SubstrateRecord(
         substrate_id="rdkit",
+        instrument_class=EXACT,  # deterministic cheminformatics descriptors
         wrapper="tools/run_rdkit.py",
         card_path="docs/envelope_card_rdkit.md",
         maturity=MATURE,
@@ -237,6 +266,7 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
     ),
     SubstrateRecord(
         substrate_id="cobrapy",
+        instrument_class=EXACT,  # deterministic FBA linear-program optimum
         wrapper="tools/run_cobrapy.py",
         card_path="docs/envelope_card_cobrapy.md",
         maturity=MATURE,
@@ -281,6 +311,7 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
     ),
     SubstrateRecord(
         substrate_id="homology_search",
+        instrument_class=EXACT,  # deterministic sequence search
         wrapper="tools/run_homology_search.py",
         card_path="docs/envelope_card_homology_search.md",
         maturity=MATURE,
@@ -311,6 +342,7 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
     ),
     SubstrateRecord(
         substrate_id="mafft",
+        instrument_class=EXACT,  # deterministic multiple-sequence alignment
         wrapper="tools/run_mafft.py",
         card_path="docs/envelope_card_mafft.md",
         maturity=MATURE,
@@ -497,6 +529,7 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
     ),
     SubstrateRecord(
         substrate_id="python_experiment",
+        instrument_class=EXACT,  # sealed deterministic code sandbox
         wrapper="tools/run_python_experiment.py",
         card_path="docs/envelope_card_python_experiment.md",
         maturity=MATURE,
@@ -705,6 +738,32 @@ def is_frozen_anchor(substrate_id: str) -> bool:
     id (via _BY_ID) — an unenrolled substrate is never silently treated as
     anything, same fail-loud discipline as the rest of the registry."""
     return _BY_ID[substrate_id].frozen_anchor
+
+
+def instrument_class_of(substrate_id: str) -> str:
+    """The instrument class (EXACT | APPROXIMATE) of one substrate (Phase 3,
+    R-ROUTE-1). Read structurally, never parsed from a substrate name. Raises
+    KeyError on an unknown id (via _BY_ID) — same fail-loud discipline as the
+    rest of the registry."""
+    return _BY_ID[substrate_id].instrument_class
+
+
+def is_approximate(substrate_id: str) -> bool:
+    """True when the substrate is an APPROXIMATE instrument — one that can
+    converge to a confidently wrong number (R-ROUTE-1). Written as
+    'not EXACT' so anything that is not explicitly the exact class is treated
+    as approximate: the fail-safe direction, matching the record's default.
+    Raises KeyError on an unknown id (fail loud)."""
+    return instrument_class_of(substrate_id) != EXACT
+
+
+def fidelity_gate_applies(substrate_id: str) -> bool:
+    """R-ROUTE-2: the fidelity gate fires iff the routed instrument is
+    APPROXIMATE. For an EXACT tool 'is this valid here?' is a non-question —
+    re-running IS the check — so the gate is a non-question to skip (honestly,
+    with a recorded note; never silently). This is the one predicate a router
+    consults; it never branches on a substrate name."""
+    return is_approximate(substrate_id)
 
 
 def routable_ids() -> tuple[str, ...]:

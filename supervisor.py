@@ -128,6 +128,16 @@ MAX_BARREN_REDESIGNS = 2
 RETRY_ON_DESK_REJECT_ENV = "RETRY_ON_DESK_REJECT"
 MAX_DESK_REDESIGNS = 1
 
+# PHASE 3 — the exact-tool experiment path (R-ROUTE-4; docs/memo_phase3_routing.md).
+# OFF by default: unset => the production pipeline is byte-identical (static
+# stages 2-5 + fidelity gate for every run). Set EXACT_ROUTE=1 to enable the
+# routed path — and even then ONLY a run whose gate-1 instrument is EXACT takes
+# it; an approximate instrument always keeps the static pipeline + fidelity gate.
+# Deliberately opt-in for its first outings, per the run-venue discipline: the
+# experimenter's live behaviour is validated from a Terminal before it is the
+# default. The flip to default-on is its own recorded decision.
+EXACT_ROUTE_ENV = "EXACT_ROUTE"
+
 _UNSET = object()  # sentinel: no pending nudge-env restore
 
 # Gate-5 override letters -> iterate decisions (Step 16).
@@ -1376,7 +1386,72 @@ def apply_loopback_surgery(logger: Logger, baton: Baton, enacted: str) -> int:
     return re_enter_index
 
 
-def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=None) -> None:
+def exact_route_active() -> bool:
+    """True when the exact-tool experiment path is enabled (EXACT_ROUTE=1).
+    Off by default => the static pipeline runs for every run, byte-identical."""
+    return os.environ.get(EXACT_ROUTE_ENV) == "1"
+
+
+def routed_instrument_is_exact(baton: Baton) -> bool:
+    """R-ROUTE-4: does gate 1's chosen instrument take the experimenter path?
+    Reads the substrate_id off the post-gate-1 payload and asks the registry its
+    class — never a substrate-name branch. Missing/unknown id => False (keep the
+    static path): the routed path is entered only on a POSITIVE exact answer, so
+    an ambiguity can never skip the fidelity gate."""
+    from tools import substrate_registry as registry
+
+    sid = baton.payload.get("substrate_id")
+    if not sid:
+        return False
+    try:
+        return not registry.is_approximate(sid)
+    except KeyError:
+        return False
+
+
+def run_exact_route(logger: Logger, baton: Baton, run_dir: Path, mode: str,
+                    exact_strategy=None) -> None:
+    """The exact-tool experiment path: the experimenter loop REPLACES static
+    stages 2-5 (R-ROUTE-3), the fidelity gate is a non-question skipped honestly
+    (R-ROUTE-2). Deterministic supervisor code: the STRATEGY holds the model
+    (compose_agent in production, a scripted strategy in tests), and every number
+    of record still comes from run_composition + verify_claim inside the loop.
+
+    Ends the run here — it does not fall through to stages 2-5. The verified
+    investigation summary (runs/<id>/investigation.json) and the recorded
+    fidelity skip (runs/<id>/fidelity_route.json) are the honest artifacts of
+    what reproduced; the full stage-6 paper agent over a routed result is a later
+    brick (R-ROUTE-5), so a routed run records its outcome and stops rather than
+    pretending a paper stage it does not yet feed."""
+    from stages.experiment_route import run_exact_investigation
+
+    strategy = exact_strategy
+    if strategy is None:
+        from tools.compose_agent import propose_composition_probe
+        strategy = propose_composition_probe
+
+    sid = baton.payload.get("substrate_id")
+    logger.log(
+        f"EXACT ROUTE: instrument {sid} is exact — the experimenter loop replaces "
+        "stages 2-5; fidelity gate skipped as a non-question (R-ROUTE-2)"
+    )
+    result = run_exact_investigation(strategy, run_id=baton.run_id)
+    summary = result["investigation"]
+    logger.log(
+        f"EXACT ROUTE: investigation ran {summary['iterations']} probe(s), "
+        f"{summary['verified']} verified, publishable={result['publishable']}"
+    )
+    how_far = (
+        "completed exact-route investigation (publishable)"
+        if result["publishable"]
+        else "completed exact-route investigation (nothing publishable)"
+    )
+    record_run_outcome(baton, how_far)
+    logger.log(f"=== supervisor run {baton.run_id} {how_far} ===")
+
+
+def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=None,
+              exact_strategy=None) -> None:
     """The stage relay with loop control (Step 16). Deterministic Python.
 
     Runs the stages in order; at gate 5 the enacted iterate decision drives
@@ -1569,6 +1644,15 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
                     f"gate 1{pass_label}",
                     schemas.validate_payload_post_gate1,
                 )
+                # PHASE 3 (R-ROUTE-2/3/4): the exact-tool experiment path. Off by
+                # default; when EXACT_ROUTE=1 AND gate 1 chose an EXACT
+                # instrument, the experimenter loop REPLACES static stages 2-5
+                # and the run ends here. An approximate instrument (or the flag
+                # unset) never enters this branch — it keeps the static pipeline
+                # + fidelity gate, byte-identical.
+                if exact_route_active() and routed_instrument_is_exact(baton):
+                    run_exact_route(logger, baton, run_dir, mode, exact_strategy)
+                    return
             elif gate_name == "after_stage_2":
                 should_continue = run_gate(logger, baton, mode, gate_name)
                 if not should_continue:
