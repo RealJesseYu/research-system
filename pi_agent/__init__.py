@@ -24,6 +24,17 @@ from pi_agent.dispatch import (
     invoke_move,
     read_run_result,
 )
+from pi_agent.study import (
+    Study,
+    create_study,
+    load_study,
+    move_count,
+    next_move_run_id,
+    record_move,
+    run_study_move,
+    study_arc,
+    study_findings,
+)
 
 __all__ = [
     "Move",
@@ -34,4 +45,13 @@ __all__ = [
     "dispatch_run",
     "invoke_move",
     "read_run_result",
+    "Study",
+    "create_study",
+    "load_study",
+    "move_count",
+    "next_move_run_id",
+    "record_move",
+    "run_study_move",
+    "study_arc",
+    "study_findings",
 ]

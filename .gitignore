@@ -1,5 +1,6 @@
 venv/
 runs/
+studies/
 __pycache__/
 .DS_Store
 /cases/
