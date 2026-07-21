@@ -39,6 +39,7 @@ verdict travels with the claim so a reader can make it too.
 
 from __future__ import annotations
 
+import ast
 import json
 import math
 from pathlib import Path
@@ -56,6 +57,83 @@ class ArtifactError(ValueError):
 
 def _isnum(v) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def _rhs_is_constant(node) -> bool:
+    """True if an expression node is a compile-time constant — a literal or
+    arithmetic on literals, with no name, call, or subscript feeding it. A
+    computed metric fails this (it reaches for data through a Name or Call); a
+    number written straight into the source passes it."""
+    try:
+        ast.literal_eval(node)
+        return True
+    except (ValueError, TypeError, SyntaxError):
+        return False
+
+
+def _const_str(node):
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    return None
+
+
+def _iter_metric_rhs(tree, quantity: str):
+    """Classify every place the code sets metrics[quantity] as 'const' (its RHS
+    is a compile-time constant) or 'computed' (anything else). Covers the two
+    idioms that actually occur — metrics['q'] = ... and metrics = {'q': ...} —
+    and counts augmented assignment (metrics['q'] += ...) as computed, since it
+    derives from a prior value."""
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for tgt in node.targets:
+                if (isinstance(tgt, ast.Subscript)
+                        and isinstance(tgt.value, ast.Name)
+                        and tgt.value.id == "metrics"
+                        and _const_str(tgt.slice) == quantity):
+                    yield "const" if _rhs_is_constant(node.value) else "computed"
+                if (isinstance(tgt, ast.Name) and tgt.id == "metrics"
+                        and isinstance(node.value, ast.Dict)):
+                    for k, v in zip(node.value.keys, node.value.values):
+                        if _const_str(k) == quantity:
+                            yield "const" if _rhs_is_constant(v) else "computed"
+        elif isinstance(node, ast.AugAssign):
+            tgt = node.target
+            if (isinstance(tgt, ast.Subscript)
+                    and isinstance(tgt.value, ast.Name)
+                    and tgt.value.id == "metrics"
+                    and _const_str(tgt.slice) == quantity):
+                yield "computed"
+
+
+def hardcoded_metric_reason(code: str, quantity: str):
+    """Return a reason string when the claimed metric is only ever set to a
+    compile-time constant — a number written into the source rather than
+    computed — or None when at least one assignment computes it (benefit of the
+    doubt) or the code cannot be parsed.
+
+    THIS IS A TRIPWIRE, NOT A PROOF, and deliberately model-free (verification
+    holds no second opinion). It catches the blatant fabrication a re-run cannot
+    — a constant reproduces perfectly — but an obfuscated constant (float(0.99),
+    a constant hidden behind a helper) still passes here; judging whether code
+    genuinely computes what a hypothesis claims is a judgment this pass does not
+    make. What it guarantees is narrow and real: a bare hardcoded number is not
+    recorded as a measurement.
+    """
+    if not isinstance(code, str) or not isinstance(quantity, str):
+        return None
+    try:
+        tree = ast.parse(code)
+    except (SyntaxError, ValueError):
+        return None
+    kinds = list(_iter_metric_rhs(tree, quantity))
+    if kinds and all(k == "const" for k in kinds):
+        return (
+            f"the reported metric {quantity!r} is assigned a compile-time "
+            "constant in the code — it reproduces because the number is written "
+            "into the source, not because it was computed. A hardcoded value is "
+            "not a measurement."
+        )
+    return None
 
 
 def rerun_artifact(artifact: dict) -> dict:
@@ -197,6 +275,20 @@ def verify_claim(claim: dict, rel_tol: float = DEFAULT_REL_TOL) -> dict:
             ),
             "original": original, "reproduced": reproduced, "rel_error": rel_error,
         }
+
+    # THE NUMBER REPRODUCES — but a hardcoded constant reproduces perfectly too.
+    # For a code artifact, reject a claim whose metric is only ever written as a
+    # compile-time constant: re-running proves recording, not computation, and a
+    # number planted in the source is the one fabrication re-execution cannot
+    # catch. Tripwire only (see hardcoded_metric_reason); substrate artifacts,
+    # whose typed inputs run a real instrument, are unaffected.
+    if artifact.get("kind") == "code":
+        planted = hardcoded_metric_reason(
+            artifact.get("code") or "", artifact.get("quantity") or "")
+        if planted:
+            return {"verified": False, "reason": "hardcoded_constant",
+                    "detail": planted, "original": original,
+                    "reproduced": reproduced, "rel_error": rel_error}
 
     return {"verified": True, "reason": "reproduced", "original": original,
             "reproduced": reproduced, "rel_error": rel_error}
