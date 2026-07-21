@@ -82,12 +82,20 @@ def _cost_snapshot() -> dict:
 
 def _move_from_decision(decision: dict, study: Any) -> Move:
     """Build the dispatchable Move from a validated decision. The decider only
-    emits run_single / run_campaign; a stop never reaches here."""
+    emits run_single / run_campaign; a stop never reaches here.
+
+    When the PI named an instrument, the move is narrowed to it (a one-element
+    allow-set) — run_study_move enforces that this is within the study's outer
+    bound, and the run's gate-1 chooser is then forced to that instrument. A
+    null instrument leaves the move unconstrained beyond the study, so the run
+    chooses for itself from the permitted set."""
     mtype = _DECISION_TO_MOVE_TYPE[decision["decision"]]
+    instrument = decision.get("instrument")
     return Move(
         type=mtype,
         domain=decision["next_domain"],
         mode=study.mode,
+        allowed_substrates=[instrument] if instrument else None,
     )
 
 

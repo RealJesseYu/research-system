@@ -192,6 +192,7 @@ def record_move(
     """
     seq = move_count(study) + 1
     m = move_result.as_dict() if hasattr(move_result, "as_dict") else dict(move_result)
+    raw = m.get("raw") or {}
     entry = {
         "seq": seq,
         "at": _utc_now(),
@@ -199,7 +200,12 @@ def record_move(
         "run_id": m.get("run_id"),
         "succeeded": m.get("succeeded"),
         "outcome": m.get("outcome"),
-        "publishable": (m.get("raw") or {}).get("publishable"),
+        "publishable": raw.get("publishable"),
+        # The run's VERIFIED findings — the values it measured and whether each
+        # reproduced — travel into the arc so the PI decides the next move from
+        # results, not just from pass/fail. Empty for a run that measured nothing
+        # or halted before verification.
+        "results": raw.get("findings") or [],
         "finding": finding,
     }
     study.dir.mkdir(parents=True, exist_ok=True)
@@ -224,6 +230,7 @@ def study_findings(study: Study) -> list:
                 "run_id": e.get("run_id"),
                 "succeeded": e.get("succeeded"),
                 "outcome": e.get("outcome"),
+                "results": e.get("results") or [],
                 "finding": e.get("finding"),
             }
         )
@@ -258,22 +265,29 @@ def run_study_move(
     if invoke is None:
         from pi_agent.dispatch import invoke_move as invoke
 
-    # Constraint spans the arc. A study that named a substrate set governs every
-    # move; a move must not quietly widen it. If a move already carries a
-    # DIFFERENT non-empty constraint, that is a caller error — refuse rather
-    # than silently override, because which one wins would otherwise be luck.
+    # The study's constraint is the OUTER BOUND of the whole arc; a move may
+    # NARROW within it — the PI choosing a specific instrument for this move —
+    # but never EXCEED it. A move that names a substrate outside the study's
+    # set is refused loudly (that would breach the boundary the caller set); a
+    # move that names a subset is honored (that is the PI picking its tool); a
+    # move that names nothing inherits the study's full set.
     if study.allowed_substrates:
-        if move.allowed_substrates and set(move.allowed_substrates) != set(
-            study.allowed_substrates
-        ):
-            raise ValueError(
-                f"move constrains substrates to {sorted(move.allowed_substrates)} "
-                f"but its study {study.study_id!r} is constrained to "
-                f"{sorted(study.allowed_substrates)}; a study's constraint governs "
-                "its whole arc. Drop the move-level constraint or run it outside "
-                "this study."
-            )
-        move.allowed_substrates = list(study.allowed_substrates)
+        study_set = set(study.allowed_substrates)
+        if move.allowed_substrates:
+            move_set = set(move.allowed_substrates)
+            outside = sorted(move_set - study_set)
+            if outside:
+                raise ValueError(
+                    f"move constrains substrates to {sorted(move.allowed_substrates)}, "
+                    f"which reaches outside its study's bound {sorted(study.allowed_substrates)} "
+                    f"— {outside} is not permitted by study {study.study_id!r}. A move may "
+                    "narrow the study's constraint (pick a specific instrument) but never "
+                    "widen it. Choose within the study's set, or open a study whose bound "
+                    "includes it."
+                )
+            # Honor the move's narrower pick as-is (the PI's chosen instrument).
+        else:
+            move.allowed_substrates = list(study.allowed_substrates)
 
     if not getattr(move, "run_id", None):
         move.run_id = next_move_run_id(study)

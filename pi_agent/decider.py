@@ -63,21 +63,26 @@ The moves available to you:
 - "run_campaign": an iterated experiment that sweeps and refines around a question under its own budget. Use it when a question needs several related measurements, not one.
 - "stop": end the investigation. Choose this when the goal is answered, when the arc has converged, or when further moves are unlikely to help (for example, repeated halts that a new question would not fix). Do not spend moves for their own sake.
 
-You never inspect or reinterpret a measurement. You read OUTCOMES — did the paper stand, what did the move conclude — and decide what to do about them. "Revising the hypothesis" means asking a sharper next question: each run re-forms its hypotheses from the question you give it.
+CHOOSING THE INSTRUMENT. You are given an INSTRUMENT MENU: the substrates available to this study, and for each one what it can vary and what it can measure. For a run move you MAY name one instrument from that menu — set "instrument" to its substrate_id — when the result so far, or the nature of the question, tells you a particular tool is right (for example, a surprising result that points to a different measurement). If you leave "instrument" null, the run picks the instrument itself from the same menu. You may only name an instrument that is on the menu; naming one that is not is refused.
 
-Reply ONLY with JSON of the form {"ack": "<the study_id you were given>", "reading": "<one or two sentences: what the most recent move's result showed, and what it means for the goal; null if no moves have run yet>", "decision": "run_single" | "run_campaign" | "stop", "rationale": "<1-3 sentences: why this next move, or why stop>", "next_domain": "<the exact question the next run should investigate; required unless the decision is stop, otherwise null>", "stop_reason": "<why the investigation is complete or should end; required only when the decision is stop, otherwise null>"} — no other fields anywhere."""
+You read RESULTS, not raw measurements. Each arc entry carries the run's verified findings — the values it measured and whether each one independently reproduced — plus whether its paper stood. Reason over those. You never re-run or restate a number yourself: a measurement of record always comes from the instrument and its verification, never from you. "Revising the hypothesis" means asking a sharper next question: each run re-forms its hypotheses from the question you give it.
 
-SCHEMA = {"required": ["ack", "reading", "decision", "rationale", "next_domain", "stop_reason"]}
+Reply ONLY with JSON of the form {"ack": "<the study_id you were given>", "reading": "<one or two sentences: what the most recent move's result showed, and what it means for the goal; null if no moves have run yet>", "decision": "run_single" | "run_campaign" | "stop", "rationale": "<1-3 sentences: why this next move, or why stop>", "next_domain": "<the exact question the next run should investigate; required unless the decision is stop, otherwise null>", "instrument": "<a substrate_id from the instrument menu to force for this move, or null to let the run choose; always null when the decision is stop>", "stop_reason": "<why the investigation is complete or should end; required only when the decision is stop, otherwise null>"} — no other fields anywhere."""
 
-_ENVELOPE_FIELDS = ("ack", "reading", "decision", "rationale", "next_domain", "stop_reason")
+SCHEMA = {"required": ["ack", "reading", "decision", "rationale", "next_domain", "instrument", "stop_reason"]}
+
+_ENVELOPE_FIELDS = ("ack", "reading", "decision", "rationale", "next_domain", "instrument", "stop_reason")
 
 
-def make_decision_validator(study_id: str, arc_len: int) -> Callable[[dict], list]:
-    """The deep validator handed to the door: envelope is exactly the six
+def make_decision_validator(
+    study_id: str, arc_len: int, choosable_instruments: tuple = ()
+) -> Callable[[dict], list]:
+    """The deep validator handed to the door: envelope is exactly the seven
     fields, ack echoes the study_id, decision is in the enum, a run_* decision
-    carries a non-empty next_domain, a stop carries a non-empty stop_reason, and
+    carries a non-empty next_domain, a stop carries a non-empty stop_reason,
     once at least one move has run the reading must be a non-empty string (turn 1
-    may leave it null). Plain-language errors, empty = valid."""
+    may leave it null), and a named instrument must be one the study can reach.
+    Plain-language errors, empty = valid."""
 
     def validator(parsed: dict) -> list:
         errors = [
@@ -107,6 +112,17 @@ def make_decision_validator(study_id: str, arc_len: int) -> Callable[[dict], lis
             sr = parsed.get("stop_reason")
             if not isinstance(sr, str) or not sr.strip():
                 errors.append("stop_reason must be a non-empty string when the decision is stop.")
+        # instrument: null (let the run choose) is always valid; a named one
+        # must be on the menu the study can reach, and only for a run move.
+        instrument = parsed.get("instrument")
+        if instrument is not None:
+            if decision == "stop":
+                errors.append("instrument must be null when the decision is stop.")
+            elif choosable_instruments and instrument not in choosable_instruments:
+                errors.append(
+                    f"instrument must be one of the menu {list(choosable_instruments)} "
+                    f"(or null to let the run choose); got {instrument!r}."
+                )
         if arc_len > 0:
             reading = parsed.get("reading")
             if not isinstance(reading, str) or not reading.strip():
@@ -119,14 +135,52 @@ def make_decision_validator(study_id: str, arc_len: int) -> Callable[[dict], lis
     return validator
 
 
+def choosable_instruments(study: Any) -> tuple:
+    """The substrate ids this study's moves may name: the study's own set when
+    it is constrained, else every routable id. The outer bound the PI chooses
+    within."""
+    from tools import substrate_registry as registry
+
+    if study.allowed_substrates:
+        return tuple(study.allowed_substrates)
+    try:
+        return registry.routable_ids()
+    except Exception:  # noqa: BLE001
+        return ()
+
+
+def instrument_menu(study: Any) -> list:
+    """What each choosable instrument can vary and measure — so the PI reasons
+    over the tools, not just their names, when it picks one. Built from the same
+    registry/signature/vocab the router uses; never raises (an instrument whose
+    signature or vocab is unwired is simply skipped)."""
+    from tools.substrate_selection import signature_for
+    from tools.qoi_vocab import vocab_for
+
+    menu = []
+    for sid in choosable_instruments(study):
+        try:
+            varies = sorted(signature_for(sid))
+        except Exception:  # noqa: BLE001
+            continue
+        try:
+            names = getattr(vocab_for(sid), "names", None)
+            measures = list(names) if names else []
+        except Exception:  # noqa: BLE001
+            measures = []
+        menu.append({"substrate_id": sid, "can_vary": varies, "can_measure": measures})
+    return menu
+
+
 def build_decider_input(study: Any, arc: list, budget: dict) -> dict:
-    """The exact input the decider reasons over. Pure. Carries no run_id key on
-    purpose (see the module docstring): the decision is PI-layer evidence, not a
-    run's transcript."""
+    """The exact input the decider reasons over. Pure over the study's disk
+    state. Carries no run_id key on purpose (see the module docstring): the
+    decision is PI-layer evidence, not a run's transcript."""
     return {
         "study_id": study.study_id,
         "goal": study.goal,
         "instrument_constraint": study.allowed_substrates,  # null = unconstrained
+        "instrument_menu": instrument_menu(study),
         "available_move_types": ["run_single", "run_campaign"],
         "budget": budget,
         "arc_so_far": arc,
@@ -149,7 +203,9 @@ def decide(
     it and ends the study honestly rather than pretending a decision was made.
     """
     stage_input = build_decider_input(study, arc, budget)
-    validator = make_decision_validator(study.study_id, len(arc))
+    validator = make_decision_validator(
+        study.study_id, len(arc), choosable_instruments(study)
+    )
     data, timing = call(
         PI_DECIDER_STAGE,
         SYSTEM_PROMPT,

@@ -45,7 +45,7 @@ class TestDecisionValidator(unittest.TestCase):
         base = {
             "ack": "study-1", "reading": "the last run stood", "decision": "run_single",
             "rationale": "open a sharper line", "next_domain": "does X hold at low Y?",
-            "stop_reason": None,
+            "instrument": None, "stop_reason": None,
         }
         base.update(over)
         return base
@@ -83,6 +83,21 @@ class TestDecisionValidator(unittest.TestCase):
     def test_extra_fields_are_rejected(self):
         errs = self._v()(self._ok(surprise="x"))
         self.assertTrue(any("not allowed" in e for e in errs))
+
+    def test_a_named_instrument_must_be_on_the_menu(self):
+        v = decider.make_decision_validator("study-1", 1, ("cobrapy", "rdkit"))
+        self.assertEqual(v(self._ok(instrument="cobrapy")), [])         # on menu
+        errs = v(self._ok(instrument="cavity_2d_cfd"))                   # off menu
+        self.assertTrue(any("instrument must be one of the menu" in e for e in errs))
+
+    def test_a_null_instrument_is_always_valid(self):
+        v = decider.make_decision_validator("study-1", 1, ("cobrapy",))
+        self.assertEqual(v(self._ok(instrument=None)), [])
+
+    def test_instrument_must_be_null_on_stop(self):
+        v = decider.make_decision_validator("study-1", 1, ("cobrapy",))
+        errs = v(self._ok(decision="stop", next_domain=None, stop_reason="done", instrument="cobrapy"))
+        self.assertTrue(any("instrument must be null" in e for e in errs))
 
 
 # --------------------------------------------------------------------------
@@ -123,6 +138,21 @@ class TestDecide(unittest.TestCase):
         self.assertEqual(payload["budget"]["moves_used"], 1)
         self.assertEqual(payload["arc_so_far"], [{"seq": 1}])
         self.assertNotIn("run_id", payload)  # no runs/ transcript pollution
+
+    def test_decider_input_carries_the_instrument_menu(self):
+        st = S.create_study("g3", allowed_substrates=["cobrapy"], study_id="study-menu", studies_root=self.root)
+        payload = decider.build_decider_input(st, [], {"moves_used": 0, "max_moves": 3})
+        menu = payload["instrument_menu"]
+        self.assertEqual([m["substrate_id"] for m in menu], ["cobrapy"])
+        # The PI reasons over what the tool does, not just its name.
+        self.assertIn("can_measure", menu[0])
+        self.assertIn("can_vary", menu[0])
+
+    def test_unconstrained_study_menu_is_every_routable_instrument(self):
+        from tools import substrate_registry as registry
+        st = S.create_study("g4", study_id="study-open", studies_root=self.root)
+        ids = [m["substrate_id"] for m in decider.build_decider_input(st, [], {})["instrument_menu"]]
+        self.assertEqual(set(ids), set(registry.routable_ids()))
 
 
 # --------------------------------------------------------------------------
@@ -246,6 +276,47 @@ class TestInvestigate(unittest.TestCase):
         st = S.load_study("study-con", studies_root=self.root)
         self.assertEqual(st.allowed_substrates, ["cobrapy"])
 
+    def test_a_named_instrument_narrows_the_dispatched_move(self):
+        # The PI picks an instrument for the move; it reaches the move as a
+        # one-element allow-set (which the run's chooser is then forced to).
+        captured = {}
+
+        def capturing_run_move(study, move, finding=None, runs_root=None):
+            captured["allowed"] = move.allowed_substrates
+            return S.record_move(
+                study, MoveResult(move.type.value, "r", True, "completed", {"publishable": True}),
+                finding=finding,
+            )
+
+        script = [
+            {"decision": "run_single", "rationale": "the surprise points to FEA",
+             "next_domain": "does bending stress explain it?", "instrument": "cobrapy"},
+            {"decision": "stop", "rationale": "done", "stop_reason": "answered"},
+        ]
+        loop.investigate("g", allowed_substrates=["cobrapy", "rdkit"], studies_root=self.root,
+                         decide=self._scripted_decider(script), run_move=capturing_run_move,
+                         study_id="study-pick")
+        self.assertEqual(captured["allowed"], ["cobrapy"])
+
+    def test_a_null_instrument_leaves_the_move_for_the_run_to_choose(self):
+        captured = {}
+
+        def capturing_run_move(study, move, finding=None, runs_root=None):
+            captured["allowed"] = move.allowed_substrates
+            return S.record_move(
+                study, MoveResult(move.type.value, "r", True, "completed", {"publishable": True}),
+                finding=finding,
+            )
+
+        script = [
+            {"decision": "run_single", "rationale": "open", "next_domain": "q", "instrument": None},
+            {"decision": "stop", "rationale": "done", "stop_reason": "answered"},
+        ]
+        loop.investigate("g", studies_root=self.root,
+                         decide=self._scripted_decider(script), run_move=capturing_run_move,
+                         study_id="study-nopick")
+        self.assertIsNone(captured["allowed"])
+
 
 # --------------------------------------------------------------------------
 # THE REAL PATH: decide() through the actual door, only the transport faked.
@@ -273,6 +344,7 @@ class TestRealDeciderPathTransportFaked(unittest.TestCase):
             "decision": "run_single",
             "rationale": "open the investigation on the core question",
             "next_domain": "is LP-predicted growth invariant just below the optimum?",
+            "instrument": None,
             "stop_reason": None,
         })
 

@@ -98,6 +98,7 @@ class RunResult:
     needs_human_signoff: bool = False
     allowed_substrates: Optional[list] = None
     paper_path: Optional[str] = None
+    findings: list = field(default_factory=list)
 
     @property
     def completed(self) -> bool:
@@ -119,6 +120,7 @@ class RunResult:
             "needs_human_signoff": self.needs_human_signoff,
             "allowed_substrates": self.allowed_substrates,
             "paper_path": self.paper_path,
+            "findings": self.findings,
             "completed": self.completed,
         }
 
@@ -153,19 +155,17 @@ def read_run_result(
         publishable = verification.get("publishable")
         verified = verification.get("verified")
         total = verification.get("total")
-    else:
-        # Fall back to verification.json on disk if the record lacked it.
-        vpath = run_dir / "verification.json"
-        if vpath.is_file():
-            try:
-                import json
 
-                vdata = json.loads(vpath.read_text())
-                publishable = vdata.get("publishable")
-                verified = vdata.get("verified")
-                total = vdata.get("total")
-            except Exception:  # noqa: BLE001 — reading a result must not fail
-                pass
+    # verification.json carries the per-claim VERDICTS — the measured values and
+    # whether each one reproduced. The run_record extras carry only the summary
+    # counts, so the actual FINDINGS (the data the PI reads to decide the next
+    # move) are read from disk. Falls back to the summary counts too when the
+    # record lacked them.
+    findings, disk_summary = _read_verification(run_dir)
+    if publishable is None and disk_summary:
+        publishable = disk_summary.get("publishable")
+        verified = disk_summary.get("verified")
+        total = disk_summary.get("total")
 
     paper = run_dir / "stage6" / "paper.md"
     paper_path = str(paper) if paper.is_file() else None
@@ -183,7 +183,54 @@ def read_run_result(
         needs_human_signoff=bool(extras.get("needs_human_signoff")) if isinstance(extras, dict) else False,
         allowed_substrates=extras.get("allowed_substrates") if isinstance(extras, dict) else None,
         paper_path=paper_path,
+        findings=findings,
     )
+
+
+# The PI reads FINDINGS, not raw measurements. A finding is a value that already
+# came out of the deterministic wrapper and was independently re-run by the
+# verification pass — reading it is not touching a measurement, it is reading a
+# result that already survived reproduction. The `verified` flag on each finding
+# is the load-bearing signal: a value that did NOT reproduce is surfaced too, so
+# the PI can see a shaky result rather than have it silently dropped.
+_MAX_FINDINGS = 40
+
+
+def _read_verification(run_dir: Path) -> tuple:
+    """(findings, summary) from runs/<id>/verification.json, or ([], None) when
+    the run never reached verification. Never raises — reading a result must not
+    fail. Each finding is {label, value, verified, reason}, value being the
+    reproduced number when it verified else the originally recorded one."""
+    import json
+
+    vpath = Path(run_dir) / "verification.json"
+    if not vpath.is_file():
+        return [], None
+    try:
+        vdata = json.loads(vpath.read_text())
+    except Exception:  # noqa: BLE001
+        return [], None
+
+    findings = []
+    for v in (vdata.get("verdicts") or [])[:_MAX_FINDINGS]:
+        if not isinstance(v, dict):
+            continue
+        verified = bool(v.get("verified"))
+        value = v.get("reproduced") if verified else v.get("original")
+        findings.append(
+            {
+                "label": v.get("label"),
+                "value": value,
+                "verified": verified,
+                "reason": v.get("reason"),
+            }
+        )
+    summary = {
+        "publishable": vdata.get("publishable"),
+        "verified": vdata.get("verified"),
+        "total": vdata.get("total"),
+    }
+    return findings, summary
 
 
 # --------------------------------------------------------------------------

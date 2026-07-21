@@ -64,9 +64,12 @@ class TestReadRunResult(unittest.TestCase):
     def tearDown(self):
         self._tmp.cleanup()
 
-    def _write_verification(self, publishable, verified, total):
+    def _write_verification(self, publishable, verified, total, verdicts=None):
         (self.run_dir / "verification.json").write_text(
-            json.dumps({"publishable": publishable, "verified": verified, "total": total})
+            json.dumps({
+                "publishable": publishable, "verified": verified, "total": total,
+                "verdicts": verdicts or [],
+            })
         )
 
     def _write_paper(self):
@@ -147,6 +150,25 @@ class TestReadRunResult(unittest.TestCase):
         self.assertEqual(d["outcome"], "completed")
         self.assertTrue(d["publishable"])
         self.assertTrue(d["completed"])
+        self.assertIn("findings", d)
+
+    def test_verified_findings_are_surfaced_as_the_results_the_pi_reads(self):
+        # The measured VALUES, each flagged verified — this is the data the PI
+        # decides from, not just pass/fail. A verified finding reports the
+        # reproduced value; an unverified one is surfaced too, flagged.
+        self._write_verification(True, 1, 2, verdicts=[
+            {"label": "run 1 growth_rate", "verified": True, "original": 0.87, "reproduced": 0.87, "reason": "reproduced"},
+            {"label": "run 2 flux", "verified": False, "original": 2.1, "reproduced": 9.9, "reason": "mismatch"},
+        ])
+        r = read_run_result(self.run_dir, "r", 0, _run_record("completed"))
+        self.assertEqual(len(r.findings), 2)
+        self.assertEqual(r.findings[0], {"label": "run 1 growth_rate", "value": 0.87, "verified": True, "reason": "reproduced"})
+        self.assertFalse(r.findings[1]["verified"])          # a shaky result, surfaced not hidden
+        self.assertEqual(r.findings[1]["value"], 2.1)        # the recorded value when it did not reproduce
+
+    def test_a_run_without_verification_has_no_findings(self):
+        r = read_run_result(self.run_dir, "r", 0, _run_record("halted_barren_budget_spent"))
+        self.assertEqual(r.findings, [])
 
 
 class TestBuildRunEnv(unittest.TestCase):

@@ -70,11 +70,21 @@ class TestIdentity(StudyCase):
 
 
 class TestArc(StudyCase):
-    def _mr(self, run_id, succeeded, outcome, publishable=None):
+    def _mr(self, run_id, succeeded, outcome, publishable=None, findings=None):
         return MoveResult(
             move_type="single", run_id=run_id, succeeded=succeeded,
-            outcome=outcome, raw={"publishable": publishable},
+            outcome=outcome, raw={"publishable": publishable, "findings": findings or []},
         )
+
+    def test_run_findings_travel_into_the_arc(self):
+        st = self.mk(study_id="study-results")
+        S.record_move(st, self._mr("m1", True, "completed", True, findings=[
+            {"label": "growth_rate", "value": 0.87, "verified": True},
+        ]), finding="baseline established")
+        entry = S.study_findings(st)[0]
+        self.assertEqual(entry["results"][0]["value"], 0.87)
+        self.assertTrue(entry["results"][0]["verified"])
+        self.assertEqual(entry["finding"], "baseline established")
 
     def test_arc_is_empty_before_the_first_move(self):
         st = self.mk()
@@ -159,19 +169,26 @@ class TestRunStudyMove(StudyCase):
         self.assertEqual(arc[0]["finding"], "first result")
         self.assertEqual(arc[0]["run_id"], "study-rec-m1")
 
-    def test_a_conflicting_move_constraint_is_refused_not_silently_overridden(self):
-        st = self.mk(allowed_substrates=["cobrapy"], study_id="study-conflict")
+    def test_a_move_reaching_outside_the_study_bound_is_refused(self):
+        st = self.mk(allowed_substrates=["cobrapy"], study_id="study-outside")
         with self.assertRaises(ValueError) as ctx:
             S.run_study_move(st, Move(MoveType.SINGLE, domain="q", allowed_substrates=["rdkit"]),
                              invoke=self._fake_invoke({}))
-        self.assertIn("whole arc", str(ctx.exception))
+        self.assertIn("outside", str(ctx.exception))
 
-    def test_a_matching_move_constraint_is_allowed(self):
-        st = self.mk(allowed_substrates=["cobrapy"], study_id="study-match")
+    def test_a_move_may_narrow_within_the_study_bound(self):
+        # The PI picking a specific instrument from a study that allows several.
+        st = self.mk(allowed_substrates=["cobrapy", "rdkit"], study_id="study-narrow")
         cap = {}
-        S.run_study_move(st, Move(MoveType.SINGLE, domain="q", allowed_substrates=["cobrapy"]),
+        S.run_study_move(st, Move(MoveType.SINGLE, domain="q", allowed_substrates=["rdkit"]),
                          invoke=self._fake_invoke(cap))
-        self.assertEqual(cap["move"].allowed_substrates, ["cobrapy"])
+        self.assertEqual(cap["move"].allowed_substrates, ["rdkit"])   # narrowed, not widened
+
+    def test_a_move_with_no_constraint_inherits_the_full_study_bound(self):
+        st = self.mk(allowed_substrates=["cobrapy", "rdkit"], study_id="study-inherit")
+        cap = {}
+        S.run_study_move(st, Move(MoveType.SINGLE, domain="q"), invoke=self._fake_invoke(cap))
+        self.assertEqual(cap["move"].allowed_substrates, ["cobrapy", "rdkit"])
 
     def test_successive_moves_get_distinct_run_ids(self):
         st = self.mk(study_id="study-seq")
