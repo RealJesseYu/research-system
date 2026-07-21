@@ -1760,9 +1760,21 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=["human", "auto"], default="human")
     parser.add_argument("--domain", required=True, help="the research domain to seed this run with")
+    # A caller that dispatches runs as subprocesses (the PI control layer) needs
+    # to know the run dir BEFORE the child mints it, so it can read the result
+    # back. An explicit --run-id lets the caller choose it; omitted, behavior is
+    # byte-identical to before (make_run_id()). A caller-supplied id that
+    # collides with an existing run dir is the caller's error — the dir is
+    # created with exist_ok, the same as a make_run_id() collision would be.
+    parser.add_argument(
+        "--run-id",
+        default=None,
+        help="use this run id (and runs/<run-id>/) instead of a fresh "
+        "timestamp; for a controller that must locate the run's evidence",
+    )
     args = parser.parse_args()
 
-    run_id = make_run_id()
+    run_id = args.run_id or make_run_id()
     run_dir = Path("runs") / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     logger = Logger(run_dir / "log.txt")
