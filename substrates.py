@@ -967,15 +967,18 @@ score.
 
 2. WHAT YOU CONTROL.
 The experiment is the `code` (authored in the spec's regime block) plus the
-`quantity` (the QoI: the name of the metric to read). The script imports what
-it needs (numpy / scipy / sklearn / pandas are available) and MUST write a JSON
-object {"metrics": {"<name>": <number>, ...}} to the sanctioned result path.
-The requested `quantity` names which of those metrics is the quantity of
-interest.
+`quantity` (the QoI: the name of the metric to read). The harness gives your
+code a pre-existing dict named `metrics`; import what you need (numpy / scipy /
+sklearn / pandas are available), compute your result, and ASSIGN it into that
+dict — for example, metrics["accuracy"] = 0.97. Do NOT open a file, print the
+answer, or write to any result path or environment variable: the harness writes
+the metrics dict out for you when the script exits, so referencing a path is a
+common way to silently lose the number. The requested `quantity` names which
+key in `metrics` is the quantity of interest.
 
 3. REGIME (python_experiment, code_execution).
 In-regime: a single deterministic computation whose result is a named scalar
-the code writes to the metrics file. Seed any randomness so the result
+your code assigns into the `metrics` dict. Seed any randomness so the result
 reproduces — the measurement is re-run independently and a value that does not
 reproduce does not stand. Out of regime: anything needing the network, anything
 whose result is not a reported scalar metric, and anything that depends on
@@ -988,8 +991,8 @@ writes malformed JSON, or omits the requested metric produces NO number: an
 honest valid=false summary with diagnostics, never a fabricated value.
 
 5. THE DID-IT-WORK GATE AND THE KNOWN GAP.
-The result is read from the metrics file the code wrote, never parsed from
-stdout — a number in prose would be a convention the wrapper invented. THE
+The result is read from the `metrics` dict your code populated, never parsed
+from stdout — a number in prose would be a convention the wrapper invented. THE
 KNOWN GAP (uncheckable at the wrapper): the code is only as correct as it is
 authored; the wrapper guarantees the number is the one the code reported and
 that it reproduces on re-run, NOT that the code measures what the hypothesis
