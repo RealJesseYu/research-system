@@ -109,7 +109,11 @@ from memory.journal import journal_recent_by_kind
 from model_call import FULL, call_stage_model, log_stage_call
 from stages import tournament
 from stages.evolution_strategies import evolve_and_review
-from stages.generation_strategies import generate_candidate_pool
+from stages.generation_strategies import (
+    gather_literature_evidence,
+    generate_candidate_pool,
+    strategy_literature_exploration,
+)
 from stages.meta_review import (
     append_rounds_entry,
     build_meta_review,
@@ -709,7 +713,65 @@ def _run_round(
     }
 
 
-def run(baton: Baton, rounds: int | None = None) -> Baton:
+def _run_quick(baton: Baton) -> Baton:
+    """QUICK ideation (depth='quick') — the cheap path. ONE generation strategy
+    (literature_exploration) delivered directly, with NO reflection, tournament,
+    evolution, or rounds. The full Co-Scientist apparatus is depth='full' and is
+    chosen only when the PI or the human asks for the spend
+    (docs/architecture_collapse_manifest.md §2/§4). Same delivered contract
+    {hypotheses, hypotheses_ranked} so gate 1 and everything downstream are
+    unchanged; the order is generation order — a cheap ordering, not a tournament
+    ranking. Memory read and literature grounding mirror the full path exactly."""
+    domain = baton.payload["domain"]
+    run_dir = Path("runs") / baton.run_id / "stage1"
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    memory_entries = journal_recent_by_kind("learned_summary", 3)
+    (run_dir / "retrieved_memory.json").write_text(json.dumps(memory_entries, indent=2))
+    memory_block = build_memory_block(memory_entries)
+    _log(
+        baton.run_id,
+        f"STAGE1_MEMORY retrieved {len(memory_entries)} learned_summary entries",
+    )
+
+    literature_refs = gather_literature_evidence(baton.run_id, domain, run_dir)
+    candidates, _number_warnings = strategy_literature_exploration(
+        baton.run_id, domain, literature_refs, memory_block
+    )
+    hypotheses = [
+        {"id": f"h{n}", "statement": c["statement"], "rationale": c["rationale"]}
+        for n, c in enumerate(candidates, start=1)
+    ]
+    (run_dir / "quick_ideation.json").write_text(
+        json.dumps({"domain": domain, "depth": "quick", "hypotheses": hypotheses}, indent=2)
+    )
+    _log(
+        baton.run_id,
+        f"STAGE1_QUICK depth=quick: {len(hypotheses)} literature-grounded "
+        "hypotheses (one strategy; no reflection/tournament/evolution/rounds)",
+    )
+
+    baton.payload["hypotheses"] = hypotheses
+    baton.payload["hypotheses_ranked"] = True
+    baton.add_history(
+        "stage1_ideation",
+        f"quick ideation (depth=quick): {len(hypotheses)} literature-grounded "
+        "hypotheses, no reflection/tournament/evolution",
+    )
+    return baton
+
+
+def run(baton: Baton, rounds: int | None = None, depth: str = "full") -> Baton:
+    """depth='full' (default) runs the whole Co-Scientist apparatus; depth='quick'
+    runs one literature-grounded generation and delivers it directly (the PI or
+    the human chooses per docs/architecture_collapse_manifest.md). The default
+    stays 'full' so existing callers/tests are byte-behaviour-unchanged; the
+    supervisor/PI wiring that makes 'quick' the runtime default is the next step."""
+    if depth not in ("quick", "full"):
+        raise ValueError(f"depth must be 'quick' or 'full', got {depth!r}")
+    if depth == "quick":
+        return _run_quick(baton)
+
     rounds = ROUNDS if rounds is None else rounds
     domain = baton.payload["domain"]
     run_dir = Path("runs") / baton.run_id / "stage1"
