@@ -191,9 +191,27 @@ async def _ask_once(
         **({"can_use_tool": capability_guard.make_can_use_tool(stage_name)}
            if caps.uses_tools else {}),
     )
+    # The SDK requires STREAMING input (an AsyncIterable) whenever a
+    # can_use_tool callback is attached — a bare string prompt is rejected with
+    # "can_use_tool callback requires streaming mode". Sealed calls have no
+    # callback and keep the plain string path unchanged. For tool-bearing calls
+    # we wrap the single user turn in a one-message stream that mirrors the exact
+    # envelope the SDK builds for a string prompt; stream_input ends input when
+    # the generator is exhausted, so the bounded agentic loop still runs once.
+    prompt_arg = user_turn
+    if caps.uses_tools:
+        async def _single_turn_stream():
+            yield {
+                "type": "user",
+                "message": {"role": "user", "content": user_turn},
+                "parent_tool_use_id": None,
+                "session_id": "",
+            }
+        prompt_arg = _single_turn_stream()
+
     parts: list[str] = []
     result_usage = None
-    async for message in query(prompt=user_turn, options=options):
+    async for message in query(prompt=prompt_arg, options=options):
         if isinstance(message, AssistantMessage):
             for block in message.content:
                 if isinstance(block, TextBlock):
