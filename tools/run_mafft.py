@@ -66,6 +66,9 @@ class MafftInputError(ValueError):
 
 
 _REQUIRED_FIELDS = ("sequences", "quantity")
+# emit_artifacts (Phase 4, R-ART-7): opt-in file emit — the aligned FASTA under
+# caller-chosen bare filenames. Optional; absent => byte-identical to before.
+_ALLOWED_FIELDS = _REQUIRED_FIELDS + ("emit_artifacts",)
 QOI_FIELDS = ("alignment_identity",)
 
 _AA_RE = re.compile(r"^[ACDEFGHIKLMNPQRSTVWY]+$", re.IGNORECASE)      # protein
@@ -90,7 +93,7 @@ def _validate_input(spec: dict) -> dict:
     missing = [k for k in _REQUIRED_FIELDS if k not in spec]
     if missing:
         raise MafftInputError(f"missing required field(s): {', '.join(missing)}")
-    extra = [k for k in spec if k not in _REQUIRED_FIELDS]
+    extra = [k for k in spec if k not in _ALLOWED_FIELDS]
     if extra:
         raise MafftInputError(f"unsupported field(s): {', '.join(sorted(extra))}")
 
@@ -129,8 +132,22 @@ def _validate_input(spec: dict) -> dict:
         raise MafftInputError(
             f"quantity {spec['quantity']!r} is not an allowlist QoI "
             f"(allowed: {', '.join(QOI_FIELDS)})")
+
+    # Phase 4 (R-ART-7): opt-in file emit. A composition step may ask for the
+    # aligned FASTA under one or more bare filenames. Validated here, before the
+    # run; absent (every existing caller), nothing changes.
+    emit_raw = spec.get("emit_artifacts") or []
+    if not isinstance(emit_raw, list):
+        raise MafftInputError("'emit_artifacts' must be a list of filenames")
+    emit_names = []
+    for n in emit_raw:
+        if not isinstance(n, str) or n != Path(n).name or n in ("", ".", ".."):
+            raise MafftInputError(
+                f"emit_artifacts name {n!r} must be a bare filename (no path parts)")
+        emit_names.append(n)
+
     return {"sequences": cleaned, "alphabet": alphabets.pop(),
-            "quantity": spec["quantity"]}
+            "quantity": spec["quantity"], "emit_artifacts": emit_names}
 
 
 def preflight() -> str | None:
@@ -269,9 +286,17 @@ def run_mafft(spec: dict) -> dict:
                    f"sequence(s), length {len(aligned[0])}; "
                    f"alignment_identity (avg pairwise %id) = {ident:.4f} "
                    f"[DESCRIPTIVE — a heuristic alignment, not 'the correct' one]")
-    return {"valid": True, "qoi": round(ident, 6),
-            "diagnostics": diagnostics[:MAX_DIAG_CHARS],
-            "runtime_s": round(time.time() - wall_start, 3)}
+    result = {"valid": True, "qoi": round(ident, 6),
+              "diagnostics": diagnostics[:MAX_DIAG_CHARS],
+              "runtime_s": round(time.time() - wall_start, 3)}
+    # R-ART-7: opt-in emit. MAFFT has exactly one emittable artifact — the
+    # aligned FASTA it just produced (`out`, already in-hand as captured stdout,
+    # so nothing new is read from disk). Return it under each requested name.
+    # Only present when asked: a normal call is the byte-identical 4-key summary.
+    if clean["emit_artifacts"]:
+        fasta_bytes = out.encode("utf-8")
+        result["artifacts"] = {name: fasta_bytes for name in clean["emit_artifacts"]}
+    return result
 
 
 # CLI: venv/bin/python3 tools/run_mafft.py  (aligns three similar sequences)

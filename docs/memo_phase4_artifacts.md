@@ -144,3 +144,36 @@ FASTA→query); (c) large/binary artifacts, size caps, and retention under the
 The decision is recorded (this file). The first Phase-4 code brick builds against
 R-ART-1..5, proven by a test before the next — a genuine code→code file hand-off,
 run and independently reproduced end-to-end, on the real sandbox.
+
+---
+
+## Amendment — R-ART-7 (2026-07-21): a mature substrate emits a file (mafft)
+
+Wakes R-ART-6(a). R-ART-5 proved the channel code→code; this lets a **mature
+substrate** put a real file into the channel, so a hand-off is genuinely
+tool→tool. Grounded in `tools/run_mafft.py`: MAFFT's aligned FASTA is already
+**in-hand as captured stdout** (`out`, `run_mafft.py:244/257`), so emitting it is
+returning content the wrapper already holds — this sidesteps the spike's on-disk
+concerns (§6.2: concurrent writes, retry/stale-artifact) entirely, since nothing
+new is read from disk.
+
+**R-ART-7 — mafft emits its alignment, OPT-IN and ADDITIVE.** `run_mafft` accepts
+an optional `emit_artifacts` field (a list of filenames). When present on a
+successful alignment, the return carries an extra `artifacts: {name: <aligned
+FASTA bytes>}`. **Absent (every existing call), the return is the byte-identical
+4-key summary** — the mature bio family's uniform shape is preserved for all
+current callers; only a composition step that asks for the file sees the extra
+key. The QoI, the strict input gate, the trust claim, and the diagnostics are
+untouched.
+
+**R-ART-7b — the composition captures a substrate step's emitted file.** A
+`substrate` step may now declare `emits`; the orchestrator threads the wrapper's
+returned `artifacts` exactly as it does a code step's, and a downstream **code**
+step consumes them. Verification re-runs the substrate step and re-derives the
+file (MAFFT is deterministic for fixed input, so it reproduces; a
+nondeterministic aligner would be caught, not masked — R-ART-4).
+
+**Still deferred (R-ART-6b):** a substrate *consuming* a file needs a per-consumer
+**resolver** (reduce the file to the consumer's typed input — e.g. mafft FASTA →
+homology query string, whose closed-key gate rejects a raw handle). Substrate→code
+is proven here; substrate→substrate waits on that resolver, its own brick.

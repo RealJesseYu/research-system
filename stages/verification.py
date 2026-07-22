@@ -275,10 +275,9 @@ def _validate_recipe(artifact: dict) -> tuple:
                 raise ArtifactError(
                     f"composition step {sid!r} 'emits' must be a list of bare "
                     "filenames (no path parts)")
-            if kind != "code":
-                raise ArtifactError(
-                    f"composition step {sid!r} only a code step may emit a file "
-                    "artifact (a substrate emitting a file is deferred, R-ART-6)")
+            # Both a code step and an emitting substrate (R-ART-7) may emit; a
+            # substrate that does not support emitting simply returns no
+            # artifact and the completeness check below fails it loudly.
         emits_by_step[sid] = set(emits or [])
 
         consumes = step.get("consumes")
@@ -341,7 +340,8 @@ def _run_one_step(step: dict, consumed: dict) -> tuple:
     ({value, error}, {name: bytes} emitted). A code step with file I/O goes
     through run_python_experiment's file channel; every other step is the
     existing per-artifact runner, byte-identical. No model."""
-    if step.get("kind") == "code" and (consumed or step.get("emits")):
+    kind = step.get("kind")
+    if kind == "code" and (consumed or step.get("emits")):
         from tools.run_python_experiment import run_python_experiment
         for field in ("code", "quantity"):
             if not step.get(field):
@@ -356,6 +356,40 @@ def _run_one_step(step: dict, consumed: dict) -> tuple:
         result = {"value": summary.get("qoi"),
                   "error": None if summary.get("valid") else summary.get("diagnostics")}
         return result, (summary.get("artifacts") or {})
+
+    if kind == "substrate" and step.get("emits"):
+        # R-ART-7: an emitting substrate. Same mechanical read as rerun_artifact's
+        # substrate branch (the scalar is taken by the substrate's OWN run-entry
+        # constructor, never a second reader here), plus the wrapper's returned
+        # artifacts captured for downstream steps. A substrate may not CONSUME a
+        # file yet (needs a resolver, R-ART-6b), so no input injection here.
+        from tools.substrate_dispatch import (
+            CALL_CASE_BUILD,
+            run_entry_constructor_for,
+            wrapper_callable,
+        )
+        sid = step.get("substrate_id")
+        typed = step.get("typed_input")
+        if not sid or not isinstance(typed, dict):
+            raise ArtifactError(
+                "substrate artifact needs substrate_id and a typed_input object")
+        if step.get("call_style") == CALL_CASE_BUILD:
+            raise ArtifactError(
+                f"case-build substrate step {sid!r} cannot emit a file artifact "
+                "yet (R-ART-6)")
+        request = dict(typed)
+        request["emit_artifacts"] = list(step["emits"])
+        summary = wrapper_callable(sid)(request)
+        try:
+            entry = run_entry_constructor_for(sid)(
+                summary, None, step.get("qoi_request"))
+        except (ValueError, LookupError, KeyError) as e:
+            return {"value": None, "error": f"could not read the summary: {e}"}, {}
+        if "qoi_value" in entry:
+            return {"value": entry["qoi_value"], "error": None}, (summary.get("artifacts") or {})
+        return {"value": None,
+                "error": entry.get("qoi_error") or "the step produced no value"}, {}
+
     return rerun_artifact(step), {}
 
 

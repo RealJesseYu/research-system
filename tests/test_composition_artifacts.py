@@ -27,7 +27,12 @@ from stages.verification import (  # noqa: E402
     run_composition,
     verify_claim,
 )
+from tools.run_mafft import run_mafft  # noqa: E402
 from tools.run_python_experiment import run_python_experiment  # noqa: E402
+
+_MAFFT_SEQS = ["MKTAYIAKQRQISFVKSHFSRQLE",
+               "MKTAYIAKQRAISFVKSHFSRQLE",
+               "MKTAYIAKQRQISFVKSHYSRQLE"]
 
 
 def _handoff_recipe():
@@ -112,6 +117,64 @@ class TestFileHandoff(unittest.TestCase):
         self.assertEqual(out["value"], 6.0)
 
 
+class TestSubstrateEmit(unittest.TestCase):
+    """R-ART-7: a MATURE substrate (mafft) emits its file, a code step consumes
+    it — a genuine tool->tool hand-off, independently reproduced. Real
+    mafft-prod container."""
+
+    @classmethod
+    def setUpClass(cls):
+        probe = run_mafft({"sequences": _MAFFT_SEQS, "quantity": "alignment_identity"})
+        if not probe["valid"]:
+            raise unittest.SkipTest(f"mafft unavailable: {probe['diagnostics']}")
+
+    def test_the_default_summary_is_byte_identical_four_keys(self):
+        """The mature bio family's uniform shape is preserved for every existing
+        caller — the emit is opt-in, so an ordinary call gains nothing."""
+        d = run_mafft({"sequences": _MAFFT_SEQS, "quantity": "alignment_identity"})
+        self.assertEqual(set(d.keys()), {"valid", "qoi", "diagnostics", "runtime_s"})
+
+    def test_emit_adds_the_alignment_artifact_only_when_asked(self):
+        e = run_mafft({"sequences": _MAFFT_SEQS, "quantity": "alignment_identity",
+                       "emit_artifacts": ["aln.fasta"]})
+        self.assertIn("artifacts", e)
+        self.assertTrue(e["artifacts"]["aln.fasta"].startswith(b">"))  # FASTA
+
+    def test_a_bad_emit_name_is_refused(self):
+        e = run_mafft({"sequences": _MAFFT_SEQS, "quantity": "alignment_identity",
+                       "emit_artifacts": ["../escape.fa"]})
+        self.assertFalse(e["valid"])
+        self.assertIn("bare filename", e["diagnostics"])
+
+    def _substrate_to_code_recipe(self):
+        return {"kind": "composition",
+                "steps": [
+                    {"step_id": "align", "kind": "substrate", "substrate_id": "mafft",
+                     "call_style": "typed_dict",
+                     "typed_input": {"sequences": _MAFFT_SEQS,
+                                     "quantity": "alignment_identity"},
+                     "quantity": "alignment_identity",
+                     "qoi_request": {"quantity": "alignment_identity"},
+                     "emits": ["aln.fasta"]},
+                    {"step_id": "count", "kind": "code",
+                     "code": ("rows=[l for l in open('aln.fasta').read().splitlines() "
+                              "if l.startswith('>')]\nmetrics['n']=float(len(rows))"),
+                     "quantity": "n",
+                     "consumes": [{"step_id": "align", "name": "aln.fasta"}]},
+                ],
+                "combine": {"kind": "code",
+                            "code": "metrics['out']=inputs['align'] + inputs['count']",
+                            "quantity": "out", "inputs": ["align", "count"]}}
+
+    def test_substrate_to_code_handoff_runs_and_reproduces(self):
+        out = run_composition(self._substrate_to_code_recipe())
+        self.assertIsNone(out["error"], out["error"])
+        self.assertEqual(out["steps"]["count"], 3.0)       # the file had 3 records
+        verdict = verify_claim({"value": out["value"], "artifact": out["artifact"]})
+        self.assertTrue(verdict["verified"], verdict)      # mafft re-run, file re-derived
+        self.assertEqual(verdict["reason"], "reproduced")
+
+
 class TestRecipeValidation(unittest.TestCase):
     """Malformed hand-offs are re-asked at recipe validation — call-free, no
     container is touched."""
@@ -145,13 +208,20 @@ class TestRecipeValidation(unittest.TestCase):
                                "quantity": "o", "inputs": ["b"]}},
                   "does not emit it")
 
-    def test_a_substrate_step_may_not_emit_a_file(self):
+    def test_a_substrate_step_may_not_consume_a_file(self):
+        """R-ART-7 lets a substrate EMIT, but consuming a file still needs the
+        per-consumer resolver (R-ART-6b, deferred), so a substrate consume is
+        refused."""
         self._bad({"kind": "composition",
-                   "steps": [{"step_id": "a", "kind": "substrate",
-                              "substrate_id": "rdkit", "emits": ["x.txt"]}],
+                   "steps": [{"step_id": "a", "kind": "code", "emits": ["x.txt"],
+                              "code": "open('x.txt','w').write('x')\nmetrics['a']=1.0",
+                              "quantity": "a"},
+                             {"step_id": "b", "kind": "substrate",
+                              "substrate_id": "rdkit",
+                              "consumes": [{"step_id": "a", "name": "x.txt"}]}],
                    "combine": {"kind": "code", "code": "metrics['o']=inputs['a']",
                                "quantity": "o", "inputs": ["a"]}},
-                  "only a code step may emit")
+                  "only a code step may consume")
 
     def test_a_path_traversal_name_is_refused(self):
         self._bad({"kind": "composition",
