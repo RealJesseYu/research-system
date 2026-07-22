@@ -64,7 +64,11 @@ reproduced, and only then decide to scale up, switch tools, or stop. That
 small-before-big judgment is yours, read off the verified results you are given —
 there is no threshold hidden in the harness.
 
-A RECIPE is data, not prose. It is a list of `steps` plus one `combine`:
+A RECIPE is data, not prose. The recipe object itself MUST carry a top-level
+"kind": "composition", then its "steps" and "combine":
+  {"kind": "composition", "steps": [ ...one entry per step below... ],
+   "combine": { ...the combine below... }}
+Its parts:
   * a `substrate` step calls one instrument:
       {"step_id": "<unique>", "kind": "substrate", "substrate_id": "<routable id>",
        "call_style": "typed_dict",
