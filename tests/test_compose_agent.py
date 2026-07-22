@@ -208,6 +208,39 @@ class TestThePromptTeachesFileHandoff(unittest.TestCase):
             self.assertIn(token, ca.SYSTEM_PROMPT)
 
 
+class TestTheGoalReachesTheExperimenter(unittest.TestCase):
+    """R-DIR-1: a research question threads through run_investigation to the
+    model, so a director can tell the experimenter WHAT to investigate."""
+
+    def test_the_prompt_references_the_research_question(self):
+        self.assertIn("research_question", ca.SYSTEM_PROMPT)
+
+    def test_the_goal_in_state_reaches_the_model_input(self):
+        sent = []
+
+        def transport(system_prompt, user_turn, model, *args, **kwargs):
+            sent.append(user_turn)
+            return json.dumps({"reasoning": "r", "recipe": _code_composition(),
+                               "predicted_value": None})
+
+        with unittest.mock.patch.object(model_call, "_invoke_transport", transport):
+            ca.propose_composition_probe(
+                {"measurements": [], "budget_remaining": 3, "iteration": 0,
+                 "goal": "does ethanol weigh more than water"})
+        self.assertIn("research_question", sent[0])
+        self.assertIn("does ethanol weigh more than water", sent[0])
+
+    def test_run_investigation_threads_the_goal_into_state(self):
+        seen = {}
+
+        def strat(state):
+            seen["goal"] = state.get("goal")
+            return {"stop": True, "stop_reason": "just checking the state"}
+
+        run_investigation(strat, max_iters=1, goal="my question")
+        self.assertEqual(seen["goal"], "my question")
+
+
 class TestNeverRaises(unittest.TestCase):
     def test_a_transport_failure_stops_honestly_rather_than_guessing(self):
         def explode(*a, **k):

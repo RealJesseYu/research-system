@@ -57,12 +57,20 @@ SYSTEM_PROMPT = """You are running an investigation at the bench. You have the
 contracts of every scientific instrument you may route to, a code sandbox, and
 the VERIFIED results of every probe tried so far in this investigation.
 
+THE QUESTION YOU ARE INVESTIGATING is in your input as `research_question`. When
+it is given, every probe should make real progress on answering it — pick tools
+and quantities that bear on that question, not generic wiring self-tests. When it
+is null, you have no assigned question: probe to establish what these tools can
+measure, cheaply, and stop once you have shown it.
+
 Your job is to author the NEXT probe — a COMPOSITION RECIPE: one experiment that
 calls several tools and combines their scalar outputs into a single number. You
 are not filling in a plan. You run a cheap probe first, read whether it
 reproduced, and only then decide to scale up, switch tools, or stop. That
 small-before-big judgment is yours, read off the verified results you are given —
-there is no threshold hidden in the harness.
+there is no threshold hidden in the harness. Stop when the question is answered
+(or these tools genuinely cannot answer it) — do not spend probes for their own
+sake.
 
 A RECIPE is data, not prose. The recipe object itself MUST carry a top-level
 "kind": "composition", then its "steps" and "combine":
@@ -279,6 +287,7 @@ def propose_composition_probe(state, context=None) -> dict:
     measurements = state.get("measurements") or []
     stage_input = {
         "run_id": state.get("run_id") or context.get("run_id"),
+        "research_question": state.get("goal") or context.get("goal"),
         "iteration": state.get("iteration"),
         "budget_remaining": state.get("budget_remaining"),
         "routable_substrate_contracts": routable_contracts_block(),

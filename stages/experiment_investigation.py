@@ -107,15 +107,20 @@ def _measure(recipe: dict, predicted, rel_tol: float) -> dict:
 
 def run_investigation(strategy, *, max_iters: int = 8,
                       rel_tol: float = DEFAULT_REL_TOL,
-                      run_id: str = None) -> dict:
+                      run_id: str = None, goal: str = None) -> dict:
     """Drive an investigation: strategy proposes probes, the controller runs and
     verifies each, verified results feed the next decision. Deterministic; no
     model in this loop (the strategy may hold one — that is its business, and its
     proposals are still only measured here).
 
     `strategy(state) -> action` is called each iteration with
-    state = {"measurements": [...], "budget_remaining": int, "iteration": int}.
+    state = {"measurements": [...], "budget_remaining": int, "iteration": int,
+             "goal": <the research question or None>}.
     It returns a stop action or a probe action (see _validate_action).
+
+    `goal` is the research question the investigation pursues (R-DIR-1). When a
+    director dispatches an investigation it names the question here; a standalone
+    probe leaves it None and the experimenter self-directs.
 
     Returns a summary with the measurements and a `publishable` flag that is true
     only when at least one probe ran and every probe that ran reproduced — an
@@ -130,6 +135,7 @@ def run_investigation(strategy, *, max_iters: int = 8,
             "measurements": measurements,
             "budget_remaining": max_iters - iteration,
             "iteration": iteration,
+            "goal": goal,
         }
         action = _validate_action(strategy(state))
         if action["stop"]:

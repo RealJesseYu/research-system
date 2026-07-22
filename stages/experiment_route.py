@@ -53,7 +53,7 @@ def _fidelity_skip_record() -> dict:
 
 def run_exact_investigation(strategy, *, max_iters: int = 8,
                             rel_tol: float = DEFAULT_REL_TOL,
-                            run_id: str = None) -> dict:
+                            run_id: str = None, goal: str = None) -> dict:
     """Drive an exact-tool investigation: record the fidelity skip, then host the
     experimenter loop. Deterministic; no model in this function.
 
@@ -70,7 +70,7 @@ def run_exact_investigation(strategy, *, max_iters: int = 8,
             (run_dir / "fidelity_route.json").write_text(json.dumps(fidelity, indent=2))
 
     summary = run_investigation(strategy, max_iters=max_iters, rel_tol=rel_tol,
-                                run_id=run_id)
+                                run_id=run_id, goal=goal)
     return {
         "fidelity": fidelity,
         "investigation": summary,

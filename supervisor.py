@@ -1433,11 +1433,18 @@ def run_exact_route(logger: Logger, baton: Baton, run_dir: Path, mode: str,
         strategy = propose_composition_probe
 
     sid = baton.payload.get("substrate_id")
+    # The research question for the experimenter (R-DIR-1): the chosen
+    # hypothesis' statement, falling back to the domain — whatever the gate left
+    # on the payload. Never raises: a missing field just yields None (the
+    # experimenter self-directs).
+    chosen = baton.payload.get("chosen_hypothesis") or {}
+    goal = (chosen.get("statement") if isinstance(chosen, dict) else None) \
+        or baton.payload.get("domain")
     logger.log(
         f"EXACT ROUTE: instrument {sid} is exact — the experimenter loop replaces "
         "stages 2-5; fidelity gate skipped as a non-question (R-ROUTE-2)"
     )
-    result = run_exact_investigation(strategy, run_id=baton.run_id)
+    result = run_exact_investigation(strategy, run_id=baton.run_id, goal=goal)
     summary = result["investigation"]
     logger.log(
         f"EXACT ROUTE: investigation ran {summary['iterations']} probe(s), "
