@@ -1465,8 +1465,20 @@ def run_exact_route(logger: Logger, baton: Baton, run_dir: Path, mode: str,
     logger.log(f"=== supervisor run {baton.run_id} {how_far} ===")
 
 
+def _stages_with_ideation_depth(stages, ideation_depth: str):
+    """Step ④.1: return a new stages list where the 'stage1_ideation' callable is
+    invoked with depth=ideation_depth; every other stage is passed through
+    unchanged (same object). Applied only to the production STAGES — test stubs
+    pass their own stages and are never rebound."""
+    return [
+        (name, (lambda b, _fn=fn: _fn(b, depth=ideation_depth))
+               if name == "stage1_ideation" else fn)
+        for name, fn in stages
+    ]
+
+
 def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=None,
-              exact_strategy=None) -> None:
+              exact_strategy=None, ideation_depth: str = "quick") -> None:
     """The stage relay with loop control (Step 16). Deterministic Python.
 
     Runs the stages in order; at gate 5 the enacted iterate decision drives
@@ -1485,6 +1497,15 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
     the module STAGES.
     """
     stages = STAGES if stages is None else stages
+    # Step ④.1 (docs/plan_step4_free_the_entrance.md): the supervisor chooses the
+    # ideation depth, default 'quick' (one literature-grounded generation, same
+    # delivered contract) — the full Co-Scientist apparatus is opt-in via
+    # --ideation-depth full. Bind depth into the PRODUCTION stage-1 callable only;
+    # test stubs pass their own `stages` and are left byte-identical (their
+    # stage-1 fn takes only `baton`). stage1_ideation.run's OWN default stays
+    # 'full', protecting the kill-rate battery and direct callers.
+    if stages is STAGES:
+        stages = _stages_with_ideation_depth(stages, ideation_depth)
     execution_counts: dict[int, int] = {}
     loopbacks_used = 0
     forced_exit_reason = None  # R-14-G2: set to "loop_bound" on a cap exit
@@ -1871,6 +1892,15 @@ def main() -> None:
         help="use this run id (and runs/<run-id>/) instead of a fresh "
         "timestamp; for a controller that must locate the run's evidence",
     )
+    # Step ④.1: ideation depth, default 'quick' (the whole apparatus is opt-in).
+    parser.add_argument(
+        "--ideation-depth",
+        choices=["quick", "full"],
+        default="quick",
+        help="'quick' (default): one literature-grounded generation, delivered "
+        "directly. 'full': the whole Co-Scientist apparatus (generation "
+        "strategies, six reviews, tournament, evolution, meta-review, rounds).",
+    )
     args = parser.parse_args()
 
     run_id = args.run_id or make_run_id()
@@ -1902,7 +1932,7 @@ def main() -> None:
     )
     baton.validate()
 
-    run_relay(logger, baton, run_dir, args.mode)
+    run_relay(logger, baton, run_dir, args.mode, ideation_depth=args.ideation_depth)
 
 
 if __name__ == "__main__":
