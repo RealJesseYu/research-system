@@ -52,13 +52,25 @@ onboarding/cobrapy/
 onboarding/mafft/
 onboarding/homology_search/
 ```
-- **Runtime refs:** none — no module imports `onboarding.*` (audit). The
-  dependency runs the other way (onboarding re-exports the contract *from*
-  `substrates.py`), so deleting these dirs cannot orphan a live contract.
+- **Runtime refs:** none FOR THESE FOUR — they are the *graduated* tools whose
+  contract constant lives in `substrates.py` and whose onboarding `contract.py`
+  merely re-exports it (dead direction), so deleting the dirs cannot orphan a
+  live contract. **CORRECTION (2026-07-22):** onboarding is NOT uniformly
+  authoring-only — for `fenicsx` (`substrates.py:707`) and `sympy`
+  (`run_scipy.py:76`) the onboarding `contract.py` is **path-loaded at runtime**
+  and is load-bearing. Those are approximate tools, out of scope, and were NOT
+  deleted. The safe-to-delete property is specific to the graduated four, not
+  onboarding in general. Verified: none of the four appear in any runtime
+  path-load.
 - **Dangling after delete:** prose `notes` in `substrate_registry.py`
   (:263, :286, :337, :365, :607) mention `onboarding/<tool>/contract.py`. Stale
   comment text only. Optional scrub = Tier 3.
-- **Test impact:** none — no test imports these dirs.
+- **Test impact:** `tests/test_d4_bio_promotion.py::test_onboarding_modules_reexport_the_same_object`
+  imports `onboarding.{rdkit,cobrapy,mafft}.contract` via an f-string (missed by
+  the literal-path grep). It tests the now-deleted re-export shim; removed with
+  the shims. The real single-source invariant
+  (`test_contract_for_returns_graduated_constants_single_source`,
+  registry→`substrates.py`) stays and is strictly stronger with the copy gone.
 
 ### 1c. Calibration report artifacts (7 files)
 ```

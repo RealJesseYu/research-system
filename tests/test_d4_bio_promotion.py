@@ -145,17 +145,13 @@ class TestFlipRegistry(unittest.TestCase):
                 sid,
             )
 
-    def test_onboarding_modules_reexport_the_same_object(self):
-        # the graduated constant's canonical home is substrates.py; the
-        # onboarding contract module re-exports it (one source, never a copy).
-        import importlib
-        for sid in BIO:
-            mod = importlib.import_module(f"onboarding.{sid}.contract")
-            self.assertIs(
-                getattr(mod, _CONTRACT_CONST[sid]),
-                getattr(substrates, _CONTRACT_CONST[sid]),
-                sid,
-            )
+    # (M2 Tier 1, 2026-07-22) the onboarding re-export shims for rdkit/cobrapy/
+    # mafft were deleted — for these GRADUATED tools the canonical home is
+    # substrates.py and the shim was an authoring-only duplicate. The
+    # single-source invariant is now guarded (more strongly) by
+    # test_contract_for_returns_graduated_constants_single_source above: with no
+    # onboarding copy left, there is literally one source. The old
+    # test_onboarding_modules_reexport_the_same_object was removed with the shims.
 
 
 class TestWirings(unittest.TestCase):

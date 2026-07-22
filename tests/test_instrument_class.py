@@ -54,17 +54,6 @@ class TestClassificationIsCorrect(unittest.TestCase):
             self.assertTrue(reg.is_approximate(sid), sid)
 
 
-class TestFidelityGateApplies(unittest.TestCase):
-    """R-ROUTE-2: the gate fires iff the instrument is approximate."""
-
-    def test_it_fires_for_an_approximate_instrument(self):
-        self.assertTrue(reg.fidelity_gate_applies("cavity_2d_cfd"))
-
-    def test_it_is_a_non_question_for_an_exact_tool(self):
-        for sid in EXPECTED_EXACT:
-            self.assertFalse(reg.fidelity_gate_applies(sid), sid)
-
-
 class TestFailSafeAndFailLoud(unittest.TestCase):
     def test_the_default_class_is_approximate(self):
         """The fail-safe direction: a substrate declared with no class is

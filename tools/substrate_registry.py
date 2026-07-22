@@ -757,15 +757,6 @@ def is_approximate(substrate_id: str) -> bool:
     return instrument_class_of(substrate_id) != EXACT
 
 
-def fidelity_gate_applies(substrate_id: str) -> bool:
-    """R-ROUTE-2: the fidelity gate fires iff the routed instrument is
-    APPROXIMATE. For an EXACT tool 'is this valid here?' is a non-question —
-    re-running IS the check — so the gate is a non-question to skip (honestly,
-    with a recorded note; never silently). This is the one predicate a router
-    consults; it never branches on a substrate name."""
-    return is_approximate(substrate_id)
-
-
 def routable_ids() -> tuple[str, ...]:
     """The substrate ids the pipeline may route execution to, in enrollment
     order. This is the registry's answer to 'what can a run execute on' — it
