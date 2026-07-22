@@ -177,3 +177,34 @@ nondeterministic aligner would be caught, not masked — R-ART-4).
 **resolver** (reduce the file to the consumer's typed input — e.g. mafft FASTA →
 homology query string, whose closed-key gate rejects a raw handle). Substrate→code
 is proven here; substrate→substrate waits on that resolver, its own brick.
+
+---
+
+## Amendment — R-ART-8 (2026-07-21): the resolver — a substrate consumes a file
+
+Wakes R-ART-6b. Completes the tool↔tool file story: one substrate's file feeds
+another substrate. Grounded in `tools/run_homology_search.py`: its typed input is
+a closed-key gate whose `query` is a protein **sequence string**, and it writes
+`query.fa` itself (`:254`) — so a raw file handle is rejected (spike M5). The
+**resolver** reduces the upstream file to that typed field.
+
+**R-ART-8 — a substrate consume carries a deterministic `resolve` block.** A
+`substrate` step may now `consumes` an upstream artifact **with a `resolve`
+{into, method}**: the orchestrator reads the upstream file, applies the named
+deterministic reducer, and sets `typed_input[into]` before the wrapper call. No
+model in the reducer (verification purity); the reducers live in a small
+registry, added on evidence. First reducer: `fasta_first_ungapped` (aligned FASTA
+→ the first record's ungapped sequence — the natural homology query). A **code**
+consume still injects the file as-is and takes no `resolve`; a **substrate**
+consume **must** name a known reducer, else the recipe is refused.
+
+**Proven:** mafft aligns → emits FASTA → homology_search consumes it (resolver →
+`query`) → e_value, one composed number, independently reproduced (both real
+containers re-run, the file re-derived, the number regenerates — R-ART-4). This
+is the first genuine two-instrument science chain with no code step between them.
+
+**Still deferred, on evidence:** more reducer methods (other artifact types /
+target fields); case-build-style substrate steps in the file channel; and
+persisting artifacts to `runs/<id>/artifacts/` with the R-ART-2 sha256 evidence
+guard (the in-memory channel is enough for the chain; the on-disk provenance
+record is its own brick when a run_id threads through).

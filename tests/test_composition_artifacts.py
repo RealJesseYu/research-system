@@ -27,6 +27,7 @@ from stages.verification import (  # noqa: E402
     run_composition,
     verify_claim,
 )
+from tools.run_homology_search import run_homology_search  # noqa: E402
 from tools.run_mafft import run_mafft  # noqa: E402
 from tools.run_python_experiment import run_python_experiment  # noqa: E402
 
@@ -175,6 +176,66 @@ class TestSubstrateEmit(unittest.TestCase):
         self.assertEqual(verdict["reason"], "reproduced")
 
 
+class TestSubstrateToSubstrateChain(unittest.TestCase):
+    """R-ART-8: mafft's file feeds homology_search through a resolver — the first
+    two-instrument science chain with no code step between them. Real
+    mafft-prod + homology-search-prod containers."""
+
+    @classmethod
+    def setUpClass(cls):
+        a = run_mafft({"sequences": _MAFFT_SEQS, "quantity": "alignment_identity"})
+        b = run_homology_search({"database": "demo_prot", "query": _MAFFT_SEQS[0],
+                                 "tool": "blast", "quantity": "e_value"})
+        if not (a["valid"] and b["valid"]):
+            raise unittest.SkipTest("mafft/homology unavailable")
+
+    def _chain(self):
+        return {"kind": "composition",
+                "steps": [
+                    {"step_id": "align", "kind": "substrate", "substrate_id": "mafft",
+                     "call_style": "typed_dict",
+                     "typed_input": {"sequences": _MAFFT_SEQS,
+                                     "quantity": "alignment_identity"},
+                     "quantity": "alignment_identity",
+                     "qoi_request": {"quantity": "alignment_identity"},
+                     "emits": ["aln.fasta"]},
+                    {"step_id": "search", "kind": "substrate",
+                     "substrate_id": "homology_search", "call_style": "typed_dict",
+                     "typed_input": {"database": "demo_prot", "tool": "blast",
+                                     "quantity": "e_value"},
+                     "quantity": "e_value", "qoi_request": {"quantity": "e_value"},
+                     "consumes": [{"step_id": "align", "name": "aln.fasta",
+                                   "resolve": {"into": "query",
+                                               "method": "fasta_first_ungapped"}}]},
+                ],
+                "combine": {"kind": "code", "code": "metrics['out']=inputs['search']",
+                            "quantity": "out", "inputs": ["search"]}}
+
+    def test_the_two_instrument_chain_runs_and_reproduces(self):
+        out = run_composition(self._chain())
+        self.assertIsNone(out["error"], out["error"])
+        self.assertGreater(out["steps"]["align"], 0.0)     # mafft aligned
+        self.assertLess(out["steps"]["search"], 1e-3)      # homology found a hit
+        self.assertEqual(out["value"], out["steps"]["search"])
+        verdict = verify_claim({"value": out["value"], "artifact": out["artifact"]})
+        self.assertTrue(verdict["verified"], verdict)      # BOTH containers re-run
+        self.assertEqual(verdict["reason"], "reproduced")
+
+
+class TestResolver(unittest.TestCase):
+    """The reducer is pure, deterministic, no container."""
+
+    def test_fasta_first_ungapped_strips_gaps_and_takes_the_first_record(self):
+        from stages.verification import _resolve_fasta_first_ungapped
+        fasta = b">s0\nMKT-AY\n>s1\nMK-TAI\n"
+        self.assertEqual(_resolve_fasta_first_ungapped(fasta), "MKTAY")
+
+    def test_an_empty_artifact_is_refused(self):
+        from stages.verification import _resolve_fasta_first_ungapped
+        with self.assertRaises(ArtifactError):
+            _resolve_fasta_first_ungapped(b">s0\n\n")
+
+
 class TestRecipeValidation(unittest.TestCase):
     """Malformed hand-offs are re-asked at recipe validation — call-free, no
     container is touched."""
@@ -208,10 +269,10 @@ class TestRecipeValidation(unittest.TestCase):
                                "quantity": "o", "inputs": ["b"]}},
                   "does not emit it")
 
-    def test_a_substrate_step_may_not_consume_a_file(self):
-        """R-ART-7 lets a substrate EMIT, but consuming a file still needs the
-        per-consumer resolver (R-ART-6b, deferred), so a substrate consume is
-        refused."""
+    def test_a_substrate_consume_without_a_resolve_is_refused(self):
+        """R-ART-8: a substrate consumes via a deterministic reducer, so a
+        substrate consume MUST carry a known 'resolve' {into, method} — a raw
+        file handle it cannot use is refused at validation."""
         self._bad({"kind": "composition",
                    "steps": [{"step_id": "a", "kind": "code", "emits": ["x.txt"],
                               "code": "open('x.txt','w').write('x')\nmetrics['a']=1.0",
@@ -221,7 +282,21 @@ class TestRecipeValidation(unittest.TestCase):
                               "consumes": [{"step_id": "a", "name": "x.txt"}]}],
                    "combine": {"kind": "code", "code": "metrics['o']=inputs['a']",
                                "quantity": "o", "inputs": ["a"]}},
-                  "only a code step may consume")
+                  "needs a 'resolve'")
+
+    def test_a_substrate_consume_with_an_unknown_method_is_refused(self):
+        self._bad({"kind": "composition",
+                   "steps": [{"step_id": "a", "kind": "code", "emits": ["x.txt"],
+                              "code": "open('x.txt','w').write('x')\nmetrics['a']=1.0",
+                              "quantity": "a"},
+                             {"step_id": "b", "kind": "substrate",
+                              "substrate_id": "rdkit",
+                              "consumes": [{"step_id": "a", "name": "x.txt",
+                                            "resolve": {"into": "smiles",
+                                                        "method": "no_such_reducer"}}]}],
+                   "combine": {"kind": "code", "code": "metrics['o']=inputs['a']",
+                               "quantity": "o", "inputs": ["a"]}},
+                  "known method")
 
     def test_a_path_traversal_name_is_refused(self):
         self._bad({"kind": "composition",

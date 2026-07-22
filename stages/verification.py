@@ -285,10 +285,6 @@ def _validate_recipe(artifact: dict) -> tuple:
             if not isinstance(consumes, list):
                 raise ArtifactError(
                     f"composition step {sid!r} 'consumes' must be a list")
-            if kind != "code" and consumes:
-                raise ArtifactError(
-                    f"composition step {sid!r} only a code step may consume a "
-                    "file artifact (R-ART-6)")
             for c in consumes:
                 if (not isinstance(c, dict) or not _is_bare_name(c.get("name"))
                         or not isinstance(c.get("step_id"), str)):
@@ -303,10 +299,27 @@ def _validate_recipe(artifact: dict) -> tuple:
                     raise ArtifactError(
                         f"composition step {sid!r} consumes {c['name']!r} from "
                         f"{c['step_id']!r}, which does not emit it")
-                if "as" in c and not _is_bare_name(c.get("as")):
-                    raise ArtifactError(
-                        f"composition step {sid!r} 'consumes' rename 'as' must be "
-                        "a bare filename")
+                # A CODE step injects the file as-is (optional 'as' rename, no
+                # 'resolve'); a SUBSTRATE step reduces the file to a typed field
+                # via a known 'resolve' {into, method} — R-ART-8.
+                resolve = c.get("resolve")
+                if kind == "substrate":
+                    if (not isinstance(resolve, dict)
+                            or not _is_bare_name(resolve.get("into"))
+                            or resolve.get("method") not in _ARTIFACT_RESOLVERS):
+                        raise ArtifactError(
+                            f"composition step {sid!r} a substrate consume needs a "
+                            "'resolve' {into, method} with a known method (one of "
+                            f"{sorted(_ARTIFACT_RESOLVERS)})")
+                else:  # code step
+                    if resolve is not None:
+                        raise ArtifactError(
+                            f"composition step {sid!r} a code consume injects the "
+                            "file as-is and takes no 'resolve'")
+                    if "as" in c and not _is_bare_name(c.get("as")):
+                        raise ArtifactError(
+                            f"composition step {sid!r} 'consumes' rename 'as' must "
+                            "be a bare filename")
     if not isinstance(combine, dict):
         raise ArtifactError("composition artifact needs a 'combine' object")
     if combine.get("kind") != "code":
@@ -327,6 +340,35 @@ def _validate_recipe(artifact: dict) -> tuple:
     return steps, combine
 
 
+def _resolve_fasta_first_ungapped(artifact_bytes: bytes) -> str:
+    """Reduce an aligned FASTA to the FIRST record's UNGAPPED sequence — the
+    natural query for a homology search (R-ART-8). Deterministic, no model;
+    gaps ('-') are stripped so the result is a bare residue string the consumer
+    accepts. Raises ArtifactError if the artifact holds no sequence."""
+    text = artifact_bytes.decode("utf-8", errors="replace")
+    seq_lines, started = [], False
+    for line in text.splitlines():
+        if line.startswith(">"):
+            if started:
+                break            # end of the first record
+            started = True
+        elif started and line.strip():
+            seq_lines.append(line.strip())
+    seq = "".join(seq_lines).replace("-", "")
+    if not seq:
+        raise ArtifactError(
+            "resolver 'fasta_first_ungapped' found no sequence in the artifact")
+    return seq
+
+
+# The deterministic artifact reducers (R-ART-8). name -> bytes->typed value.
+# Added on evidence; the registry is the single place a substrate-consume method
+# is looked up, so an unknown method is refused at recipe validation.
+_ARTIFACT_RESOLVERS = {
+    "fasta_first_ungapped": _resolve_fasta_first_ungapped,
+}
+
+
 def _is_bare_name(name) -> bool:
     """A file-artifact name is a bare filename: non-empty, no path separators,
     not a directory dot-name. The recipe-side guard that mirrors the sandbox's
@@ -335,11 +377,13 @@ def _is_bare_name(name) -> bool:
             and "\\" not in name and name not in (".", ".."))
 
 
-def _run_one_step(step: dict, consumed: dict) -> tuple:
-    """Run one composition step, injecting any consumed files, and return
-    ({value, error}, {name: bytes} emitted). A code step with file I/O goes
-    through run_python_experiment's file channel; every other step is the
-    existing per-artifact runner, byte-identical. No model."""
+def _run_one_step(step: dict, consumed: list) -> tuple:
+    """Run one composition step, wiring any consumed artifacts in, and return
+    ({value, error}, {name: bytes} emitted). `consumed` is a list of
+    {as, bytes, resolve} descriptors. A code step gets the files injected as-is;
+    a substrate step reduces each via its resolver into a typed field (R-ART-8).
+    Every non-file step is the existing per-artifact runner, byte-identical. No
+    model."""
     kind = step.get("kind")
     if kind == "code" and (consumed or step.get("emits")):
         from tools.run_python_experiment import run_python_experiment
@@ -348,7 +392,7 @@ def _run_one_step(step: dict, consumed: dict) -> tuple:
                 raise ArtifactError(f"code artifact is missing {field!r}")
         spec = {"code": step["code"], "quantity": step["quantity"]}
         if consumed:
-            spec["input_files"] = consumed
+            spec["input_files"] = {c["as"]: c["bytes"] for c in consumed}
         emits = step.get("emits") or []
         if emits:
             spec["output_files"] = list(emits)
@@ -357,12 +401,12 @@ def _run_one_step(step: dict, consumed: dict) -> tuple:
                   "error": None if summary.get("valid") else summary.get("diagnostics")}
         return result, (summary.get("artifacts") or {})
 
-    if kind == "substrate" and step.get("emits"):
-        # R-ART-7: an emitting substrate. Same mechanical read as rerun_artifact's
-        # substrate branch (the scalar is taken by the substrate's OWN run-entry
-        # constructor, never a second reader here), plus the wrapper's returned
-        # artifacts captured for downstream steps. A substrate may not CONSUME a
-        # file yet (needs a resolver, R-ART-6b), so no input injection here.
+    if kind == "substrate" and (step.get("emits") or consumed):
+        # An emitting/consuming substrate (R-ART-7/8). Same mechanical read as
+        # rerun_artifact's substrate branch (the scalar is taken by the
+        # substrate's OWN run-entry constructor, never a second reader here);
+        # consumed files are reduced by their resolver into typed fields, and
+        # the wrapper's returned artifacts are captured for downstream steps.
         from tools.substrate_dispatch import (
             CALL_CASE_BUILD,
             run_entry_constructor_for,
@@ -375,10 +419,14 @@ def _run_one_step(step: dict, consumed: dict) -> tuple:
                 "substrate artifact needs substrate_id and a typed_input object")
         if step.get("call_style") == CALL_CASE_BUILD:
             raise ArtifactError(
-                f"case-build substrate step {sid!r} cannot emit a file artifact "
-                "yet (R-ART-6)")
+                f"case-build substrate step {sid!r} cannot emit or consume a file "
+                "artifact yet (R-ART-6)")
         request = dict(typed)
-        request["emit_artifacts"] = list(step["emits"])
+        for c in consumed:
+            reduce = _ARTIFACT_RESOLVERS[c["resolve"]["method"]]  # validated present
+            request[c["resolve"]["into"]] = reduce(c["bytes"])
+        if step.get("emits"):
+            request["emit_artifacts"] = list(step["emits"])
         summary = wrapper_callable(sid)(request)
         try:
             entry = run_entry_constructor_for(sid)(
@@ -405,15 +453,16 @@ def _run_steps(steps: list) -> tuple:
     artifacts: dict = {}  # step_id -> {name: bytes}, held in-memory this run only
     for step in steps:
         sid = step["step_id"]
-        consumed: dict = {}
+        consumed: list = []  # [{as, bytes, resolve}] — descriptors for this step
         for c in step.get("consumes") or []:
             up, name = c["step_id"], c["name"]
-            as_name = c.get("as", name)
             if up not in artifacts or name not in artifacts[up]:
                 return scalars, (f"composition step {sid!r} consumes artifact "
                                  f"{name!r} from step {up!r}, which did not "
                                  "produce it")
-            consumed[as_name] = artifacts[up][name]
+            consumed.append({"as": c.get("as", name),
+                             "bytes": artifacts[up][name],
+                             "resolve": c.get("resolve")})
         result, emitted = _run_one_step(step, consumed)
         if result["error"] is not None:
             return scalars, (f"composition step {sid!r} did not produce a value: "
