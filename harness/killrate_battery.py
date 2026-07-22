@@ -87,7 +87,7 @@ DOMAINS = {"same": SAME_DOMAIN, "alt": ALT_DOMAIN}
 # indent=2) -> md5[:8]); covers the three most recent learned summaries
 # (run 20260714T152314Z, hypothesis ev1). This begins the R-WIN-1
 # comparability era. Prior eras: 073ff57e (18-prep), 373c886b (diag4a).
-EXPECTED_MEMORY_MD5 = "cf9bb3a2"
+EXPECTED_MEMORY_MD5 = "04d721c8"
 
 DEFAULT_REPEATS = 2          # PROVING size: 2 repeats x 2 domains = 4 runs
 MAX_RELAUNCHES = 2           # extra attempts after an ABORTED run, per slot
