@@ -91,13 +91,13 @@ _CASE_FILES = {
     "fenicsx_cantilever_elastic": "calibration_cases_fenicsx_cantilever_elastic.json",
     "sympy_symbolic_exact": "calibration_cases_sympy_symbolic_exact.json",
     "ngspice_linear_passive": "calibration_cases_ngspice_linear_passive.json",
-    # BIO Wave D.3: the four runnable-here bio tools (rdkit/cobrapy/mafft run in
-    # their own -prod containers; homology_search wraps blast+hmmer). The eight
-    # deferred bio tools get NO battery until un-deferred (never a stub battery).
-    "rdkit": "calibration_cases_rdkit.json",
-    "cobrapy": "calibration_cases_cobrapy.json",
-    "homology_search": "calibration_cases_homology_search.json",
-    "mafft": "calibration_cases_mafft.json",
+    # (M2 Tier 2, 2026-07-22) rdkit/cobrapy/mafft/homology_search — the mature
+    # EXACT tools — were REMOVED from the battery: they route through the
+    # experimenter loop (M1, EXACT_ROUTE default-on) and re-running a
+    # deterministic tool IS the check, so calibration is a non-question for them.
+    # Their promotion provenance is preserved in the registry notes + git
+    # history. The eight deferred bio tools get NO battery until un-deferred
+    # (never a stub battery).
     # BIO Wave D.4-network un-defer (owner-ruled 2026-07-19): the two
     # network-blocked lookups, un-deferred once network access was available.
     # LOOKUP-class, PERMANENTLY never-trust-alone (a standing card property,
@@ -166,22 +166,9 @@ def _wrapper_validator(substrate_id: str):
         from tools.run_ngspice import NgspiceInputError, _validate_input
 
         return _validate_input, NgspiceInputError
-    if substrate_id == "rdkit":
-        from tools.run_rdkit import RdkitInputError, _validate_input
-
-        return _validate_input, RdkitInputError
-    if substrate_id == "cobrapy":
-        from tools.run_cobrapy import CobrapyInputError, _validate_input
-
-        return _validate_input, CobrapyInputError
-    if substrate_id == "homology_search":
-        from tools.run_homology_search import HomologySearchInputError, _validate_input
-
-        return _validate_input, HomologySearchInputError
-    if substrate_id == "mafft":
-        from tools.run_mafft import MafftInputError, _validate_input
-
-        return _validate_input, MafftInputError
+    # (M2 Tier 2, 2026-07-22) rdkit/cobrapy/mafft/homology_search branches
+    # removed with their case files — those mature EXACT tools no longer
+    # calibrate through the battery (they route through the experimenter loop).
     if substrate_id == "alphafold_db":
         from tools.run_alphafold_db import AlphaFoldDBInputError, _validate_input
 
