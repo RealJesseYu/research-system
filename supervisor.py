@@ -129,13 +129,13 @@ RETRY_ON_DESK_REJECT_ENV = "RETRY_ON_DESK_REJECT"
 MAX_DESK_REDESIGNS = 1
 
 # PHASE 3 — the exact-tool experiment path (R-ROUTE-4; docs/memo_phase3_routing.md).
-# OFF by default: unset => the production pipeline is byte-identical (static
-# stages 2-5 + fidelity gate for every run). Set EXACT_ROUTE=1 to enable the
-# routed path — and even then ONLY a run whose gate-1 instrument is EXACT takes
-# it; an approximate instrument always keeps the static pipeline + fidelity gate.
-# Deliberately opt-in for its first outings, per the run-venue discipline: the
-# experimenter's live behaviour is validated from a Terminal before it is the
-# default. The flip to default-on is its own recorded decision.
+# DEFAULT-ON since M1 (2026-07-21; docs/memo_m1_exact_route_default.md): a run
+# whose gate-1 instrument is EXACT takes the experimenter loop in place of static
+# stages 2-5 + the fidelity gate. An approximate instrument ALWAYS keeps the
+# static pipeline + fidelity gate (routed_instrument_is_exact returns False for
+# it), so the approximate path — cavity/calculix/fenicsx — is byte-identical.
+# Set EXACT_ROUTE=0 to force the legacy static path for exact tools too (a
+# transition kill-switch: a one-line rollback of the M1 default-on decision).
 EXACT_ROUTE_ENV = "EXACT_ROUTE"
 
 _UNSET = object()  # sentinel: no pending nudge-env restore
@@ -1387,9 +1387,12 @@ def apply_loopback_surgery(logger: Logger, baton: Baton, enacted: str) -> int:
 
 
 def exact_route_active() -> bool:
-    """True when the exact-tool experiment path is enabled (EXACT_ROUTE=1).
-    Off by default => the static pipeline runs for every run, byte-identical."""
-    return os.environ.get(EXACT_ROUTE_ENV) == "1"
+    """True unless explicitly disabled (EXACT_ROUTE=0). DEFAULT-ON since M1
+    (2026-07-21): an exact-tool run takes the experimenter loop; static stages
+    2-5 + the fidelity gate are reserved for approximate instruments. Set
+    EXACT_ROUTE=0 to force the legacy static path for exact tools too (a
+    transition kill-switch). See docs/memo_m1_exact_route_default.md."""
+    return os.environ.get(EXACT_ROUTE_ENV, "1") != "0"
 
 
 def routed_instrument_is_exact(baton: Baton) -> bool:
@@ -1656,12 +1659,12 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
                     f"gate 1{pass_label}",
                     schemas.validate_payload_post_gate1,
                 )
-                # PHASE 3 (R-ROUTE-2/3/4): the exact-tool experiment path. Off by
-                # default; when EXACT_ROUTE=1 AND gate 1 chose an EXACT
-                # instrument, the experimenter loop REPLACES static stages 2-5
-                # and the run ends here. An approximate instrument (or the flag
-                # unset) never enters this branch — it keeps the static pipeline
-                # + fidelity gate, byte-identical.
+                # PHASE 3 (R-ROUTE-2/3/4): the exact-tool experiment path.
+                # Default-on since M1; when gate 1 chose an EXACT instrument (and
+                # EXACT_ROUTE is not set to 0), the experimenter loop REPLACES
+                # static stages 2-5 and the run ends here. An approximate
+                # instrument never enters this branch — it keeps the static
+                # pipeline + fidelity gate, byte-identical.
                 if exact_route_active() and routed_instrument_is_exact(baton):
                     run_exact_route(logger, baton, run_dir, mode, exact_strategy)
                     return

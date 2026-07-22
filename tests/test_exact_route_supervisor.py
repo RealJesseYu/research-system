@@ -1,9 +1,10 @@
 """test_exact_route_supervisor.py — the exact-tool path wired into the supervisor.
 
-Phase 3, R-ROUTE-4 (docs/memo_phase3_routing.md). Proves the contained branch at
-gate 1: when EXACT_ROUTE=1 AND gate 1 chose an EXACT instrument, the experimenter
+Phase 3, R-ROUTE-4 (docs/memo_phase3_routing.md); default-on since M1
+(docs/memo_m1_exact_route_default.md). Proves the contained branch at gate 1:
+when gate 1 chose an EXACT instrument (and EXACT_ROUTE is not 0), the experimenter
 loop REPLACES static stages 2-5 and the run ends there; an approximate instrument
-(or the flag unset) keeps the static pipeline + fidelity gate, unchanged.
+(or EXACT_ROUTE=0) keeps the static pipeline + fidelity gate, unchanged.
 
 Call-free: zero model calls, zero docker. The gate-1 chooser is patched (as in
 test_loop_controller) and the experimenter strategy is a SCRIPTED code-only
@@ -65,7 +66,10 @@ class ExactRouteCase(unittest.TestCase):
                       created_at="2026-07-21T00:00:00+00:00", mode="auto",
                       payload={"domain": "stub domain"})
         outcomes: list[str] = []
-        env = {"EXACT_ROUTE": "1"} if flag_on else {}
+        # Default-on since M1: set the env explicitly either way so an ambient
+        # EXACT_ROUTE can never leak in — "1" arms the route, "0" is the
+        # kill-switch that forces the legacy static path.
+        env = {"EXACT_ROUTE": "1"} if flag_on else {"EXACT_ROUTE": "0"}
         with patch.dict("os.environ", env, clear=False), patch(
             "supervisor.record_run_outcome",
             side_effect=lambda b, how_far, retry=0: outcomes.append(how_far),
@@ -75,9 +79,6 @@ class ExactRouteCase(unittest.TestCase):
                 "chosen_id": hyps[0]["id"], "substrate_id": substrate_id,
                 "fallback": False},
         ):
-            if not flag_on:
-                import os
-                os.environ.pop("EXACT_ROUTE", None)
             run_relay(logger, baton, run_dir, "auto",
                       stages=stubs.stages(), exact_strategy=strategy)
         self.baton = baton
@@ -133,12 +134,14 @@ class TestBranchPredicatesGateTheRoute(unittest.TestCase):
         return Baton(run_id="pred", created_at="2026-07-21T00:00:00+00:00",
                      mode="auto", payload=payload)
 
-    def test_the_flag_is_off_by_default_so_production_is_unchanged(self):
+    def test_the_route_is_on_by_default_with_a_kill_switch(self):
+        # M1 (2026-07-21): default-on. Unset and "1" both arm the route; only
+        # EXACT_ROUTE=0 forces the legacy static path.
         import os
         from supervisor import exact_route_active
         with patch.dict("os.environ", {}, clear=False):
             os.environ.pop("EXACT_ROUTE", None)
-            self.assertFalse(exact_route_active())
+            self.assertTrue(exact_route_active())
         with patch.dict("os.environ", {"EXACT_ROUTE": "1"}):
             self.assertTrue(exact_route_active())
         with patch.dict("os.environ", {"EXACT_ROUTE": "0"}):
