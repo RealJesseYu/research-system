@@ -78,6 +78,11 @@ DEFAULT_TIMEOUT_SECONDS = 300
 MAX_TIMEOUT_SECONDS = 1800
 MAX_DIAG_CHARS = 800
 MAX_CODE_BYTES = 100_000
+# Cap on a single captured/injected file artifact (Phase 4, R-ART-5). File
+# hand-off between composition steps moves bytes host-side through the existing
+# run-dir bind; a cap keeps one step from exhausting host memory. Small on
+# purpose — the first brick passes modest files; raise it on evidence.
+MAX_ARTIFACT_BYTES = 8 * 1024 * 1024
 
 # An ephemeral container per run: --rm so nothing persists between experiments
 # (a stale artifact silently feeding the next run is the failure this prevents),
@@ -113,7 +118,14 @@ class PythonExperimentInputError(ValueError):
 
 
 _REQUIRED_FIELDS = ("code", "quantity")
-_OPTIONAL_FIELDS = ("timeout_s",)
+# input_files / output_files (Phase 4, R-ART-5): file-artifact hand-off between
+# composition steps. input_files are written into the sandbox's run dir BEFORE
+# the run (the script reads them from its working dir); output_files are the
+# named files the wrapper captures back from that dir AFTER the run. Both move
+# host-side through the EXISTING writable bind — the sandbox stays
+# --network=none --read-only, reaching nothing new. Optional and default-absent:
+# a call without them is byte-identical to before.
+_OPTIONAL_FIELDS = ("timeout_s", "input_files", "output_files")
 
 # The harness preamble. Prepended to caller code so the script always has a
 # sanctioned way to report metrics, and so `metrics` exists even if the code
@@ -183,7 +195,31 @@ def _validate_input(spec: dict) -> dict:
         raise PythonExperimentInputError(
             f"'timeout_s' must be between 1 and {MAX_TIMEOUT_SECONDS}, got {timeout}")
 
-    return {"code": code, "quantity": quantity.strip(), "timeout_s": timeout}
+    # Phase 4 (R-ART-5): optional file-artifact I/O. Names are validated to be
+    # bare filenames here, before anything is written into the run dir.
+    input_files_raw = spec.get("input_files") or {}
+    if not isinstance(input_files_raw, dict):
+        raise PythonExperimentInputError("'input_files' must be a {name: bytes} object")
+    input_files = {}
+    for name, data in input_files_raw.items():
+        safe = _safe_artifact_name(name)
+        if isinstance(data, str):
+            data = data.encode("utf-8")
+        if not isinstance(data, (bytes, bytearray)):
+            raise PythonExperimentInputError(
+                f"'input_files[{name!r}]' must be bytes or str, got {type(data).__name__}")
+        if len(data) > MAX_ARTIFACT_BYTES:
+            raise PythonExperimentInputError(
+                f"'input_files[{name!r}]' is over the {MAX_ARTIFACT_BYTES}-byte cap")
+        input_files[safe] = bytes(data)
+
+    output_files_raw = spec.get("output_files") or []
+    if not isinstance(output_files_raw, list):
+        raise PythonExperimentInputError("'output_files' must be a list of filenames")
+    output_files = [_safe_artifact_name(n) for n in output_files_raw]
+
+    return {"code": code, "quantity": quantity.strip(), "timeout_s": timeout,
+            "input_files": input_files, "output_files": output_files}
 
 
 def _clip(text: str) -> str:
@@ -197,6 +233,43 @@ def _clip(text: str) -> str:
 
 def _isnum(v) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+_RESERVED_NAMES = frozenset({SCRIPT_NAME, RESULT_NAME})
+
+
+def _safe_artifact_name(name) -> str:
+    """A file-artifact name must be a BARE filename — no path separators, no
+    '..', not absolute, and not one of the harness's own files. This is the
+    guard against a recipe writing outside the run dir or clobbering the script
+    / result file through the file channel."""
+    if not isinstance(name, str) or not name.strip():
+        raise PythonExperimentInputError("a file-artifact name must be a non-empty string")
+    if name != Path(name).name or name in ("", ".", ".."):
+        raise PythonExperimentInputError(
+            f"file-artifact name {name!r} must be a bare filename (no path parts)")
+    if name in _RESERVED_NAMES:
+        raise PythonExperimentInputError(
+            f"file-artifact name {name!r} is reserved by the harness")
+    return name
+
+
+def _capture_output_files(host_dir: Path, names) -> tuple[dict, str | None]:
+    """Read the declared output files back from the run dir. Returns
+    ({name: bytes}, error). A file that exceeds MAX_ARTIFACT_BYTES fails the
+    whole run (an honest error, never a truncated artifact); a declared file
+    that is simply absent is left out — the caller checks completeness."""
+    captured: dict = {}
+    for name in names:
+        p = host_dir / name
+        if not p.is_file():
+            continue
+        data = p.read_bytes()
+        if len(data) > MAX_ARTIFACT_BYTES:
+            return {}, (f"output file {name!r} is {len(data)} bytes, over the "
+                        f"{MAX_ARTIFACT_BYTES}-byte artifact cap")
+        captured[name] = data
+    return captured, None
 
 
 def run_python_experiment(spec: dict) -> dict:
@@ -213,6 +286,11 @@ def run_python_experiment(spec: dict) -> dict:
         (host_dir / SCRIPT_NAME).write_text(
             _preamble(clean["timeout_s"]) + clean["code"]
         )
+        # R-ART-5: place any consumed artifacts in the run dir BEFORE the run,
+        # so the script reads them from its working directory. Names were
+        # validated to be bare filenames in _validate_input.
+        for name, data in clean["input_files"].items():
+            (host_dir / name).write_bytes(data)
         cmd = [
             "docker", "--context", DOCKER_CONTEXT, "run", *DOCKER_RUN_FLAGS,
             "-v", f"{host_dir}:{WORKDIR_CONTAINER}",
@@ -245,6 +323,11 @@ def run_python_experiment(spec: dict) -> dict:
 
         result_file = host_dir / RESULT_NAME
         raw = result_file.read_text() if result_file.is_file() else None
+        # R-ART-5: capture declared output artifacts BEFORE the tempdir is
+        # cleaned. Bytes are held in-memory for the composition orchestrator;
+        # they never enter a baton or a model prompt (files off the baton).
+        captured_artifacts, capture_error = _capture_output_files(
+            host_dir, clean["output_files"])
 
     runtime = round(time.monotonic() - started, 3)
     tail = _clip((proc.stderr or proc.stdout or ""))
@@ -305,7 +388,16 @@ def run_python_experiment(spec: dict) -> dict:
             "runtime_s": runtime,
         }
 
-    return {
+    # An oversized artifact fails the run: a step that could not hand off its
+    # file did not do what it declared, so no QoI is reported (R-ART-5).
+    if capture_error is not None:
+        return {
+            "valid": False, "qoi": None, "metrics": metrics,
+            "diagnostics": f"the experiment ran but {capture_error}",
+            "runtime_s": runtime,
+        }
+
+    result = {
         "valid": True, "qoi": float(value), "metrics": metrics,
         "diagnostics": (
             f"experiment completed in {runtime} s; reported "
@@ -313,3 +405,7 @@ def run_python_experiment(spec: dict) -> dict:
         ),
         "runtime_s": runtime,
     }
+    # Only present when artifacts were requested — a normal call is byte-identical.
+    if clean["output_files"]:
+        result["artifacts"] = captured_artifacts
+    return result

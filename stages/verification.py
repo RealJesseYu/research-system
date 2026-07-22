@@ -248,6 +248,7 @@ def _validate_recipe(artifact: dict) -> tuple:
         raise ArtifactError(
             "composition artifact needs a non-empty 'steps' list")
     seen = set()
+    emits_by_step: dict = {}
     for i, step in enumerate(steps):
         if not isinstance(step, dict):
             raise ArtifactError(f"composition step {i} is not an object")
@@ -256,11 +257,57 @@ def _validate_recipe(artifact: dict) -> tuple:
             raise ArtifactError(f"composition step {i} has no string 'step_id'")
         if sid in seen:
             raise ArtifactError(f"composition step_id {sid!r} is not unique")
+        prior = set(seen)  # steps declared BEFORE this one (for consume ordering)
         seen.add(sid)
-        if step.get("kind") not in ("code", "substrate"):
+        kind = step.get("kind")
+        if kind not in ("code", "substrate"):
             raise ArtifactError(
                 f"composition step {sid!r} must be a 'code' or 'substrate' "
-                f"step, got kind {step.get('kind')!r}")
+                f"step, got kind {kind!r}")
+
+        # Phase 4 (R-ART-5): file-artifact emits/consumes. Only code steps may
+        # move files (a substrate emitting a file is R-ART-6, deferred). A
+        # consume must name a bare file an EARLIER step actually emits, so a
+        # malformed hand-off is re-asked, never run.
+        emits = step.get("emits")
+        if emits is not None:
+            if not isinstance(emits, list) or not all(_is_bare_name(n) for n in emits):
+                raise ArtifactError(
+                    f"composition step {sid!r} 'emits' must be a list of bare "
+                    "filenames (no path parts)")
+            if kind != "code":
+                raise ArtifactError(
+                    f"composition step {sid!r} only a code step may emit a file "
+                    "artifact (a substrate emitting a file is deferred, R-ART-6)")
+        emits_by_step[sid] = set(emits or [])
+
+        consumes = step.get("consumes")
+        if consumes is not None:
+            if not isinstance(consumes, list):
+                raise ArtifactError(
+                    f"composition step {sid!r} 'consumes' must be a list")
+            if kind != "code" and consumes:
+                raise ArtifactError(
+                    f"composition step {sid!r} only a code step may consume a "
+                    "file artifact (R-ART-6)")
+            for c in consumes:
+                if (not isinstance(c, dict) or not _is_bare_name(c.get("name"))
+                        or not isinstance(c.get("step_id"), str)):
+                    raise ArtifactError(
+                        f"composition step {sid!r} each 'consumes' entry needs a "
+                        "'step_id' and a bare 'name'")
+                if c["step_id"] not in prior:
+                    raise ArtifactError(
+                        f"composition step {sid!r} consumes from {c['step_id']!r}, "
+                        "which is not an earlier step")
+                if c["name"] not in emits_by_step.get(c["step_id"], set()):
+                    raise ArtifactError(
+                        f"composition step {sid!r} consumes {c['name']!r} from "
+                        f"{c['step_id']!r}, which does not emit it")
+                if "as" in c and not _is_bare_name(c.get("as")):
+                    raise ArtifactError(
+                        f"composition step {sid!r} 'consumes' rename 'as' must be "
+                        "a bare filename")
     if not isinstance(combine, dict):
         raise ArtifactError("composition artifact needs a 'combine' object")
     if combine.get("kind") != "code":
@@ -281,6 +328,85 @@ def _validate_recipe(artifact: dict) -> tuple:
     return steps, combine
 
 
+def _is_bare_name(name) -> bool:
+    """A file-artifact name is a bare filename: non-empty, no path separators,
+    not a directory dot-name. The recipe-side guard that mirrors the sandbox's
+    _safe_artifact_name, so a bad name is caught at recipe validation."""
+    return (isinstance(name, str) and name != "" and "/" not in name
+            and "\\" not in name and name not in (".", ".."))
+
+
+def _run_one_step(step: dict, consumed: dict) -> tuple:
+    """Run one composition step, injecting any consumed files, and return
+    ({value, error}, {name: bytes} emitted). A code step with file I/O goes
+    through run_python_experiment's file channel; every other step is the
+    existing per-artifact runner, byte-identical. No model."""
+    if step.get("kind") == "code" and (consumed or step.get("emits")):
+        from tools.run_python_experiment import run_python_experiment
+        for field in ("code", "quantity"):
+            if not step.get(field):
+                raise ArtifactError(f"code artifact is missing {field!r}")
+        spec = {"code": step["code"], "quantity": step["quantity"]}
+        if consumed:
+            spec["input_files"] = consumed
+        emits = step.get("emits") or []
+        if emits:
+            spec["output_files"] = list(emits)
+        summary = run_python_experiment(spec)
+        result = {"value": summary.get("qoi"),
+                  "error": None if summary.get("valid") else summary.get("diagnostics")}
+        return result, (summary.get("artifacts") or {})
+    return rerun_artifact(step), {}
+
+
+def _run_steps(steps: list) -> tuple:
+    """Run every step in order, threading file artifacts between them, and
+    return (scalars, error). The SAME executor runs a composition and re-runs it
+    under verification, so every consumed file is RE-DERIVED from the re-run
+    producer — never a recorded or stored copy (R-ART-3/4). A step that fails,
+    goes non-numeric, or does not emit what it declared fails the whole
+    composition — a composed number standing on a step that did not deliver is
+    exactly the fabrication this pass exists to catch."""
+    scalars: dict = {}
+    artifacts: dict = {}  # step_id -> {name: bytes}, held in-memory this run only
+    for step in steps:
+        sid = step["step_id"]
+        consumed: dict = {}
+        for c in step.get("consumes") or []:
+            up, name = c["step_id"], c["name"]
+            as_name = c.get("as", name)
+            if up not in artifacts or name not in artifacts[up]:
+                return scalars, (f"composition step {sid!r} consumes artifact "
+                                 f"{name!r} from step {up!r}, which did not "
+                                 "produce it")
+            consumed[as_name] = artifacts[up][name]
+        result, emitted = _run_one_step(step, consumed)
+        if result["error"] is not None:
+            return scalars, (f"composition step {sid!r} did not produce a value: "
+                             f"{result['error']}")
+        if not _isnum(result["value"]):
+            return scalars, (f"composition step {sid!r} produced a non-numeric "
+                             f"value {result['value']!r}")
+        for name in step.get("emits") or []:
+            if name not in emitted:
+                return scalars, (f"composition step {sid!r} declared it emits "
+                                 f"{name!r} but did not write it")
+        scalars[sid] = result["value"]
+        artifacts[sid] = emitted
+    return scalars, None
+
+
+def _run_combine(combine: dict, scalars: dict) -> dict:
+    """Resolve the combine's inputs from the step scalars and run it. The one
+    place the recipe's step scalars are reduced to a final number."""
+    resolved = {ref: scalars[ref] for ref in combine["inputs"]}
+    return rerun_artifact({
+        "kind": "code",
+        "code": _combine_code(combine, resolved),
+        "quantity": combine["quantity"],
+    })
+
+
 def _combine_code(combine: dict, resolved: dict) -> str:
     """Assemble the combine's sealed code: a deterministic `inputs = {...}`
     literal of the (re-run) upstream scalars, then the author's combine body.
@@ -290,32 +416,16 @@ def _combine_code(combine: dict, resolved: dict) -> str:
 
 
 def _execute_composition(artifact: dict) -> dict:
-    """Run every step, resolve the combine's inputs from the step scalars, run
-    the combine. Returns {value, error} like every other artifact re-runner. A
-    step that fails to produce a number fails the whole composition — a
-    composed number standing on a step that did not run is exactly the
-    fabrication this pass exists to catch."""
+    """Run every step (threading file artifacts between them), resolve the
+    combine's inputs from the step scalars, run the combine. Returns
+    {value, error} like every other artifact re-runner. A step that fails to
+    produce a number — or to emit a file it declared — fails the whole
+    composition."""
     steps, combine = _validate_recipe(artifact)
-
-    scalars = {}
-    for step in steps:
-        result = rerun_artifact(step)  # code / substrate — the existing runners
-        if result["error"] is not None:
-            return {"value": None,
-                    "error": (f"composition step {step['step_id']!r} did not "
-                              f"produce a value: {result['error']}")}
-        if not _isnum(result["value"]):
-            return {"value": None,
-                    "error": (f"composition step {step['step_id']!r} produced "
-                              f"a non-numeric value {result['value']!r}")}
-        scalars[step["step_id"]] = result["value"]
-
-    resolved = {ref: scalars[ref] for ref in combine["inputs"]}
-    return rerun_artifact({
-        "kind": "code",
-        "code": _combine_code(combine, resolved),
-        "quantity": combine["quantity"],
-    })
+    scalars, error = _run_steps(steps)
+    if error is not None:
+        return {"value": None, "error": error}
+    return _run_combine(combine, scalars)
 
 
 def run_composition(recipe: dict) -> dict:
@@ -327,17 +437,14 @@ def run_composition(recipe: dict) -> dict:
     The returned `artifact` IS the recipe, unchanged — so verify_claim later
     re-runs the identical thing. Intermediate scalars are surfaced for the
     caller but are NOT stored in the artifact: the recipe records wiring, not
-    values, so verification re-derives them (R-COMP-3/4)."""
+    values, so verification re-derives them (R-COMP-3/4). File artifacts thread
+    between steps in-memory for this one execution (R-ART-5); they are never
+    stored in the recipe, so a re-run re-derives every file too."""
     steps, combine = _validate_recipe(recipe)
-    scalars = {}
-    for step in steps:
-        result = rerun_artifact(step)
-        scalars[step["step_id"]] = result["value"]
-        if result["error"] is not None:
-            return {"value": None, "artifact": recipe, "steps": scalars,
-                    "error": (f"composition step {step['step_id']!r} did not "
-                              f"produce a value: {result['error']}")}
-    final = _execute_composition(recipe)
+    scalars, error = _run_steps(steps)
+    if error is not None:
+        return {"value": None, "artifact": recipe, "steps": scalars, "error": error}
+    final = _run_combine(combine, scalars)
     return {"value": final["value"], "artifact": recipe, "steps": scalars,
             "error": final["error"]}
 
