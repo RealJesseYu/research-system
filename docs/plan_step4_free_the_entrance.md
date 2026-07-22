@@ -31,22 +31,27 @@ always calls it with the `full` default.
 - **Risk:** low. Same downstream contract; gate 1 and stages 2–6 unchanged;
   test seam (stub stages) untouched. Reversible with the flag.
 
-### ④.2 — A free-deciding director as the entry. **[the heart — next]**
-**Restriction removed:** the arc is a hardcoded sequence; no agent decides what
-to do next. `pi_agent/` exists but its only moves are to dispatch a *whole
-fixed-pipeline supervisor run* as a subprocess.
-- **Change:** widen the director's action space (manifest §6-step-5) so that,
-  given a goal + memory/arc, it can dispatch an **investigation** directly — the
-  experimenter loop is the investigation primitive — and choose the ideation
-  depth for it. Keep it **thin**: a free agent that picks {investigate this
-  question, stop} from goal+arc, NOT a growing typed menu of moves (plan §C1 —
-  "if you catch yourself adding move #4/#5/#6 as special cases, stop").
-- **Risk:** medium/high — this is the real architectural move. Design fork to
-  settle before building: does the director reuse `run_exact_route`'s
-  investigation as the primitive it calls with a goal, or a new lean entry that
-  skips gate-1 entirely? (Leaning: the experimenter loop IS the primitive; the
-  director hands it a goal, and ideation becomes a *tool the director calls for
-  candidates* when it wants breadth — not a mandatory first stage.)
+### ④.2 — Make the free director runnable as THE entry. **[building now]**
+**CORRECTION (2026-07-22, verified in code):** the free-deciding director is
+**already built and tested**, not "not started" as an earlier draft said —
+`pi_agent/loop.py investigate(goal, *, allowed_substrates, mode, max_moves)`:
+open a study → loop [free Opus decides the next question/move/instrument over the
+arc (`decider.py`) → dispatch it (`dispatch.py`) → record] until the PI judges it
+done or the hard `max_moves` ceiling → write a study report. Tests:
+`test_pi_loop`, `test_pi_dispatch`, `test_pi_study`, `test_pi_gate`. Do NOT
+rebuild it (plan §"DO NOT rebuild").
+**What is actually missing:**
+- **④.2a — a CLI entry [this brick].** `investigate()` is a library function
+  with no `__main__`/argparse, so "give it a goal and walk away" is not a runnable
+  command; the owner runs `supervisor.py` (a single run) instead. Add
+  `python -m pi_agent --goal "..."` wrapping the existing tested `investigate()`.
+  Small, safe (new entry point, no behavior change), tested.
+- **④.2b (later, lower priority):** each director move dispatches a *full
+  `supervisor.py` pipeline run* (`_default_command`), so the experimenter loop is
+  reached only inside a dispatched run (post-M1, for exact instruments), behind
+  that run's ideation + gate-1. Making the experimenter a first-class director
+  move is possible but less urgent now that M1 already routes dispatched runs to
+  it. Keep it **thin** — no growing typed menu (plan §C1).
 
 ### ④.3 — De-funnel gate 1 (no forced single hypothesis + single instrument).
 **Restriction removed:** every run collapses to ONE hypothesis and ONE instrument
