@@ -36,7 +36,7 @@ not decoration.
 from __future__ import annotations
 
 from model_call import call_stage_model
-from stages.verification import ArtifactError, _validate_recipe
+from stages.verification import _ARTIFACT_RESOLVERS, ArtifactError, _validate_recipe
 from tools.bench_agent import BENCH
 from tools.substrate_registry import (
     is_approximate,
@@ -83,6 +83,26 @@ Its parts:
       {"kind": "code",
        "code": "metrics['out'] = inputs['<step_id>'] / inputs['<step_id>']",
        "quantity": "out", "inputs": ["<step_id>", ...]}
+
+FILE HAND-OFF (optional — for a real tool->tool pipeline, not just scalars). A
+step may pass a FILE to a later step, on TOP of its scalar. This is how you build
+a genuine chain — e.g. align sequences, then search the alignment:
+  * a step declares files it writes with  "emits": ["<bare filename>", ...].
+    - a CODE step writes the file to its working directory (e.g.
+      open('data.txt','w').write(...)) and lists it in "emits".
+    - a SUBSTRATE step emits only if its wrapper supports it (e.g. mafft emits
+      its aligned FASTA); list the filename(s) in "emits".
+  * a later step consumes an upstream file with  "consumes": [...]:
+    - into a CODE step: {"step_id": "<producer>", "name": "<file>",
+      "as": "<optional rename>"} — the file appears in its working directory to
+      open() and read.
+    - into a SUBSTRATE step: {"step_id": "<producer>", "name": "<file>",
+      "resolve": {"into": "<a typed_input field>", "method": "<reducer>"}} — a
+      substrate cannot take a raw file, so a reducer turns the file into one of
+      its typed fields. The reducer names available to you are in your input as
+      `artifact_resolver_methods`.
+  A consume must name a file an EARLIER step actually emits. Every file is
+  re-derived on verification, so a nondeterministic producer is caught.
 
 The recipe records the WIRING, never intermediate values: every step re-runs and
 every reference re-resolves on verification, so a number that does not reproduce
@@ -264,6 +284,7 @@ def propose_composition_probe(state, context=None) -> dict:
         "routable_substrate_contracts": routable_contracts_block(),
         "exact_instruments_you_may_compose": [
             sid for sid in routable_ids() if not is_approximate(sid)],
+        "artifact_resolver_methods": sorted(_ARTIFACT_RESOLVERS),
         "prior_probes": _prior_probe_digest(measurements),
         "probes_run_so_far": len(measurements),
     }

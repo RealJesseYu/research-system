@@ -142,6 +142,43 @@ class TestProposalValidation(unittest.TestCase):
                               "quantity": "o", "inputs": ["s"]}}
         self.assertEqual(self._errs({"reasoning": "r", "recipe": recipe}), [])
 
+    def test_a_code_to_code_file_recipe_passes(self):
+        recipe = {"kind": "composition",
+                  "steps": [{"step_id": "p", "kind": "code",
+                             "code": "open('d.txt','w').write('x')\nmetrics['a']=1.0",
+                             "quantity": "a", "emits": ["d.txt"]},
+                            {"step_id": "c", "kind": "code",
+                             "code": "metrics['b']=float(len(open('d.txt').read()))",
+                             "quantity": "b",
+                             "consumes": [{"step_id": "p", "name": "d.txt"}]}],
+                  "combine": {"kind": "code", "code": "metrics['o']=inputs['c']",
+                              "quantity": "o", "inputs": ["c"]}}
+        self.assertEqual(self._errs({"reasoning": "file chain", "recipe": recipe}), [])
+
+    def test_a_substrate_to_substrate_file_chain_passes(self):
+        """mafft (emits) -> homology_search (consumes via resolver). Both are
+        exact-class, so the chain fits the exact-only boundary."""
+        recipe = {"kind": "composition",
+                  "steps": [{"step_id": "align", "kind": "substrate",
+                             "substrate_id": "mafft", "call_style": "typed_dict",
+                             "typed_input": {"sequences": ["MKTA", "MKTA"],
+                                             "quantity": "alignment_identity"},
+                             "quantity": "alignment_identity",
+                             "emits": ["aln.fasta"]},
+                            {"step_id": "search", "kind": "substrate",
+                             "substrate_id": "homology_search",
+                             "call_style": "typed_dict",
+                             "typed_input": {"database": "demo_prot", "tool": "blast",
+                                             "quantity": "e_value"},
+                             "quantity": "e_value",
+                             "consumes": [{"step_id": "align", "name": "aln.fasta",
+                                           "resolve": {"into": "query",
+                                                       "method": "fasta_first_ungapped"}}]}],
+                  "combine": {"kind": "code", "code": "metrics['o']=inputs['search']",
+                              "quantity": "o", "inputs": ["search"]}}
+        self.assertEqual(self._errs({"reasoning": "align then search",
+                                     "recipe": recipe}), [])
+
     def test_a_code_step_without_code_or_quantity_is_refused(self):
         recipe = {"kind": "composition",
                   "steps": [{"step_id": "s", "kind": "code"}],
@@ -163,6 +200,12 @@ class TestCapabilityAndProfile(unittest.TestCase):
         self.assertEqual(ca.BENCH.allowed_tools, model_call.FULL.allowed_tools)
         self.assertLess(ca.BENCH.max_turns, model_call.FULL.max_turns)
         self.assertEqual(model_call.FULL.max_turns, 200)
+
+
+class TestThePromptTeachesFileHandoff(unittest.TestCase):
+    def test_the_system_prompt_describes_emits_consumes_and_resolve(self):
+        for token in ("emits", "consumes", "resolve", "FILE HAND-OFF"):
+            self.assertIn(token, ca.SYSTEM_PROMPT)
 
 
 class TestNeverRaises(unittest.TestCase):
@@ -221,6 +264,9 @@ class TestTheRealCallPath(unittest.TestCase):
             self.assertIn(sid, sent[0])
         # it is told which instruments it may actually compose (exact only)
         self.assertIn("exact_instruments_you_may_compose", sent[0])
+        # and which artifact reducers it may name for a substrate file consume
+        self.assertIn("artifact_resolver_methods", sent[0])
+        self.assertIn("fasta_first_ungapped", sent[0])
         # and it can see what it already tried
         self.assertIn("reproduced", sent[0])
 
@@ -274,6 +320,35 @@ class TestDrivesTheRealLoop(unittest.TestCase):
         # the prediction is kept only as a prediction, compared not recorded
         self.assertEqual(m["predicted"], 6.0)
         self.assertEqual(m["prediction_abs_error"], 0.0)
+
+    def test_the_experimenter_can_drive_a_file_chain_through_the_loop(self):
+        """The capability we ship: a proposed code->code FILE recipe runs and
+        verifies end-to-end through run_investigation (files re-derived)."""
+        file_recipe = {
+            "kind": "composition",
+            "steps": [{"step_id": "p", "kind": "code",
+                       "code": "open('v.txt','w').write('1,2,3,4')\nmetrics['n']=4.0",
+                       "quantity": "n", "emits": ["v.txt"]},
+                      {"step_id": "c", "kind": "code",
+                       "code": ("metrics['s']=float(len(open('v.txt').read().split(',')))"),
+                       "quantity": "s",
+                       "consumes": [{"step_id": "p", "name": "v.txt"}]}],
+            "combine": {"kind": "code", "code": "metrics['out']=inputs['c']",
+                        "quantity": "out", "inputs": ["c"]}}
+        replies = [
+            json.dumps({"reasoning": "author a file chain", "recipe": file_recipe,
+                        "predicted_value": 4.0}),
+            json.dumps({"reasoning": "done", "recipe": None, "stop": True,
+                        "stop_reason": "the file chain reproduced"}),
+        ]
+        with unittest.mock.patch.object(
+                model_call, "_invoke_transport", self._transport_for(replies)):
+            summary = run_investigation(ca.propose_composition_probe, max_iters=4)
+        self.assertTrue(summary["publishable"])
+        m = summary["measurements"][0]
+        self.assertTrue(m["verified"])
+        self.assertEqual(m["reason"], "reproduced")
+        self.assertEqual(m["value"], 4.0)         # the consumer read the emitted file
 
     def test_a_stated_value_is_ignored_only_the_recipe_s_number_stands(self):
         """The hard boundary end-to-end: the agent predicts nonsense loudly and
