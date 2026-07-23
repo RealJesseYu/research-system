@@ -402,6 +402,34 @@ def extract_single_fenced_block(reply: str) -> str | None:
     return inner.strip()
 
 
+def extract_json_object(reply: str) -> str | None:
+    """Prose-wrapped-object tolerance. Pure function, no I/O.
+
+    A FULL/tooled agent that does real work NARRATES, then emits its JSON with
+    no fence — 'Both methods agree.\\n\\n{...}'. strip_fence and
+    extract_single_fenced_block only handle fences, so such a reply burns the
+    whole re-ask budget (first seen live: the free_experimenter Collatz run,
+    2026-07-23). Return the substring of the LAST top-level {...} in the reply
+    that parses as JSON, or None. Uses json.JSONDecoder.raw_decode so braces
+    inside strings are handled correctly; 'last wins' picks the final result
+    object when prose earlier in the reply also contains a JSON-looking span.
+    """
+    decoder = json.JSONDecoder()
+    found = None
+    idx = 0
+    while True:
+        start = reply.find("{", idx)
+        if start == -1:
+            break
+        try:
+            _obj, end = decoder.raw_decode(reply, start)
+            found = reply[start:end]
+            idx = end
+        except json.JSONDecodeError:
+            idx = start + 1
+    return found
+
+
 def _log_fence_note(stage_name: str, stage_input: dict) -> None:
     """Durably record a fenced reply the moment it is seen, before any parse.
 
@@ -598,6 +626,12 @@ def call_stage_model(
                 # content (prose around the fence tolerated). None means no
                 # rescue — re-raise the original error, existing behavior.
                 block = extract_single_fenced_block(reply)
+                if block is None:
+                    # No fence — a full/tooled agent narrated then emitted raw
+                    # JSON. Extract the embedded object (prime-directive reality:
+                    # a free agent that does real work explains itself). None =>
+                    # no rescue, re-raise (existing behavior).
+                    block = extract_json_object(reply)
                 if block is None:
                     raise
                 data = json.loads(block)

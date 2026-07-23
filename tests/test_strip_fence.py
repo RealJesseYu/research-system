@@ -26,7 +26,12 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import model_call
-from model_call import call_stage_model, extract_single_fenced_block, strip_fence
+from model_call import (
+    call_stage_model,
+    extract_json_object,
+    extract_single_fenced_block,
+    strip_fence,
+)
 
 FIXTURE_PATH = (
     Path(__file__).resolve().parent / "fixtures" / "smoke6_prose_wrapped_reply.txt"
@@ -121,6 +126,46 @@ class TestSingleFenceProseTolerance(unittest.TestCase):
                     {"input": "x"},
                     {"required": ["ack_run_id"]},
                 )
+
+
+class TestProseWrappedObjectTolerance(unittest.TestCase):
+    """A FULL/tooled agent narrates then emits raw JSON with no fence — first
+    seen live in the free_experimenter Collatz run (2026-07-23). extract_json_object
+    recovers the embedded object; call_stage_model must then parse on attempt 1."""
+
+    def test_recovers_object_after_prose(self):
+        reply = 'Both methods agree.\n\n**Results:** max 350.\n\n{"a": 1, "b": 2}'
+        self.assertEqual(extract_json_object(reply), '{"a": 1, "b": 2}')
+
+    def test_braces_inside_strings_do_not_fool_it(self):
+        reply = 'prose {not json} more\n\n{"reproduce": "run f.py (prints {x})", "ok": true}'
+        obj = json.loads(extract_json_object(reply))
+        self.assertEqual(obj["reproduce"], "run f.py (prints {x})")
+        self.assertTrue(obj["ok"])
+
+    def test_last_object_wins(self):
+        reply = '{"draft": 1} then I revised\n\n{"final": 2}'
+        self.assertEqual(extract_json_object(reply), '{"final": 2}')
+
+    def test_no_object_returns_none(self):
+        self.assertIsNone(extract_json_object("just prose, no json at all"))
+
+    def test_call_stage_model_rescues_a_prose_wrapped_reply(self):
+        # the real free_experimenter shape: narration, then the JSON result
+        reply = ('Both an independent method and the re-run agree.\n\n'
+                 '{"summary": "computed collatz", "findings": '
+                 '[{"label": "max", "value": 350, "verified": true, '
+                 '"reproduce": "python3 verify.py"}], "publishable": true}')
+        with patch.object(model_call, "_invoke_transport", return_value=reply):
+            data, timing = call_stage_model(
+                "tolerance_test_stage",
+                "system prompt",
+                {"input": "x"},
+                {"required": ["summary", "publishable"]},
+            )
+        self.assertEqual(timing["attempts"], 1)
+        self.assertTrue(data["publishable"])
+        self.assertEqual(data["findings"][0]["value"], 350)
 
 
 if __name__ == "__main__":
