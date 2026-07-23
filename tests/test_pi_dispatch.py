@@ -9,8 +9,8 @@ journaling — is read faithfully rather than invented.
 NO LIVE PIPELINE. The subprocess dispatch is exercised against a STUB run
 script that writes the exact evidence layout a real run leaves, and the journal
 record is supplied through an injection seam. read_run_result and build_run_env
-are pure and tested directly. The chain move is proven to route into run_chain
-with the supplied verdict_fn by patching run_chain — no solver, no model call.
+are pure and tested directly. (The in-process CHAIN move was purged with the
+free-agent purge, 2026-07-23 — a free agent composes tools directly.)
 
 Run directly: venv/bin/python3 tests/test_pi_dispatch.py
 """
@@ -338,43 +338,6 @@ class TestInvokeMove(unittest.TestCase):
     def test_a_run_move_without_a_domain_raises(self):
         with self.assertRaises(ValueError):
             invoke_move(Move(MoveType.SINGLE), dispatch=lambda *a, **k: None)
-
-    def test_chain_move_routes_into_run_chain_with_the_supplied_verdict_fn(self):
-        chain = {"nodes": [{"substrate_id": "rdkit", "spec": {}},
-                           {"substrate_id": "cobrapy", "spec": {}}]}
-
-        def my_verdict_fn(index, node, substrate_id):
-            return "trust"
-
-        fake_record = {"status": "executed",
-                       "chain_verdict": {"label": "refine"}, "nodes": []}
-        with mock.patch("stages.chain_runner.run_chain", return_value=fake_record) as rc:
-            res = invoke_move(Move(MoveType.CHAIN, chain=chain, verdict_fn=my_verdict_fn,
-                                   run_id="chain-1"))
-        rc.assert_called_once()
-        _, kwargs = rc.call_args
-        self.assertIs(kwargs["verdict_fn"], my_verdict_fn)   # NOT fabricated
-        self.assertEqual(res.move_type, "chain")
-        self.assertTrue(res.succeeded)                       # executed
-        self.assertEqual(res.outcome, "executed:refine")     # weakest-link verdict
-
-    def test_chain_halt_is_a_readable_non_success(self):
-        fake_record = {"status": "halted_synthesis", "reason": "node 0: boom", "nodes": []}
-        with mock.patch("stages.chain_runner.run_chain", return_value=fake_record):
-            res = invoke_move(Move(MoveType.CHAIN,
-                                   chain={"nodes": [{}, {}]},
-                                   verdict_fn=lambda *a: "trust"))
-        self.assertFalse(res.succeeded)
-        self.assertEqual(res.outcome, "halted_synthesis")
-
-    def test_chain_move_without_a_verdict_fn_raises_rather_than_fabricating(self):
-        with self.assertRaises(ValueError) as ctx:
-            invoke_move(Move(MoveType.CHAIN, chain={"nodes": [{}, {}]}))
-        self.assertIn("verdict_fn", str(ctx.exception))
-
-    def test_chain_move_without_a_chain_raises(self):
-        with self.assertRaises(ValueError):
-            invoke_move(Move(MoveType.CHAIN, verdict_fn=lambda *a: "trust"))
 
 
 class TestSupervisorAcceptsRunId(unittest.TestCase):

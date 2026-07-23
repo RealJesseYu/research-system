@@ -32,7 +32,6 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from stages import chain_runner  # noqa: E402
 from tools import substrate_registry as registry  # noqa: E402
 from tools import substrate_selection as selection  # noqa: E402
 
@@ -127,18 +126,6 @@ class TestConstraintNarrows(ConstraintCase):
         table = selection.capability_table()
         self.assertIn("cobrapy", table)
         self.assertNotIn("cavity_2d_cfd", table)
-
-    def test_chain_node_naming_a_forbidden_substrate_stops_loudly(self):
-        # A named chain node is exempt from R-B-1's ambiguity stop, NOT from
-        # the constraint — naming an instrument directly is the most obvious
-        # way a constraint could be bypassed.
-        self.constrain("cobrapy")
-        with self.assertRaises(LookupError) as ctx:
-            chain_runner.route_node(
-                {"substrate_id": "cavity_2d_cfd", "spec": {"parameters": []}}
-            )
-        self.assertIn("not routable", str(ctx.exception))
-        self.assertIn("cobrapy", str(ctx.exception))
 
 
 class TestConstraintFailsLoud(ConstraintCase):

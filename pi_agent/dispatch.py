@@ -28,17 +28,14 @@ is itself a signal: the run died without journaling (the watched external-kill
 scenario), and read_run_result reports has_run_record=False rather than
 inventing an outcome.
 
-THE MOVE MENU. A PI dispatches three kinds of move through one interface:
-  - SINGLE   — one whole relay run.
-  - CAMPAIGN — the same relay with the campaign loop enabled (an env flag on
+THE MOVE MENU. A PI dispatches two kinds of move through one interface:
+  - SINGLE   — one whole free-agent run.
+  - CAMPAIGN — the same run with the campaign loop enabled (an env flag on
                the same subprocess; NOT a different code path here).
-  - CHAIN    — one experiment spanning two substrates, run in-process via
-               stages.chain_runner.run_chain. A chain's fidelity verdicts are a
-               judgment, so run_chain demands a verdict_fn with NO default and
-               this layer keeps that discipline: a CHAIN move MUST carry a
-               verdict source; nothing is fabricated. Wiring that source to the
-               live stage-3 gate is a later increment (it spends a model call
-               per node and cannot be exercised offline).
+  (The old in-process CHAIN move — one experiment spanning two REGISTERED
+  substrates via the deleted stage pipeline — was PURGED 2026-07-23 with the
+  free-agent purge. A free agent that needs several tools just calls them
+  directly; a caged chain of registered substrates is strictly less than that.)
 
 THE ONE BOUNDARY THIS LAYER KEEPS. It decides WHICH run to start and reads WHAT
 came back. It never reaches inside a run to touch a measurement — the sealed
@@ -363,7 +360,6 @@ class MoveType(str, enum.Enum):
 
     SINGLE = "single"
     CAMPAIGN = "campaign"
-    CHAIN = "chain"
 
 
 @dataclass
@@ -371,10 +367,7 @@ class Move:
     """One move request. The fields used depend on `type`:
 
       SINGLE / CAMPAIGN — domain (required), mode, allowed_substrates,
-        campaign_max_iters (CAMPAIGN only), extra_env.
-      CHAIN — chain (the {nodes:[...]} object) and verdict_fn (REQUIRED, no
-        default: a chain's verdicts are a judgment this layer will not
-        manufacture), plus optional run_id / allowed_substrates.
+        campaign_max_iters (CAMPAIGN only), extra_env, optional run_id.
 
     Validation is deferred to invoke_move so a Move can be constructed and
     inspected before it is run.
@@ -386,17 +379,15 @@ class Move:
     allowed_substrates: Optional[list] = None
     campaign_max_iters: Optional[int] = None
     extra_env: Optional[dict] = None
-    chain: Optional[dict] = None
-    verdict_fn: Optional[Callable] = None
     run_id: Optional[str] = None
 
 
 @dataclass
 class MoveResult:
     """The uniform envelope every move returns. `raw` carries the move-specific
-    structured result (a RunResult.as_dict() for run moves, the chain record for
-    a chain); `outcome` and `succeeded` are the normalized read a decision-maker
-    branches on without knowing the move type."""
+    structured result (a RunResult.as_dict() for run moves); `outcome` and
+    `succeeded` are the normalized read a decision-maker branches on without
+    knowing the move type."""
 
     move_type: str
     run_id: str
@@ -422,13 +413,12 @@ def invoke_move(
 ) -> MoveResult:
     """Run any move through one interface and return one envelope.
 
-    SINGLE / CAMPAIGN dispatch a subprocess run; CHAIN runs in-process through
-    stages.chain_runner.run_chain with the move's supplied verdict_fn. `dispatch`
-    is an injection seam for testing the run moves without a live subprocess.
+    SINGLE / CAMPAIGN dispatch a subprocess run. `dispatch` is an injection seam
+    for testing the run moves without a live subprocess.
 
-    Raises ValueError on a malformed move (a run move with no domain, a chain
-    move with no chain or no verdict source) — a controller error, caught loudly
-    here rather than producing an empty or fabricated result.
+    Raises ValueError on a malformed move (a run move with no domain) — a
+    controller error, caught loudly here rather than producing an empty or
+    fabricated result.
     """
     if move.type in (MoveType.SINGLE, MoveType.CAMPAIGN):
         if not move.domain:
@@ -453,34 +443,6 @@ def invoke_move(
             succeeded=succeeded,
             outcome=result.outcome,
             raw=result.as_dict(),
-        )
-
-    if move.type == MoveType.CHAIN:
-        if not isinstance(move.chain, dict):
-            raise ValueError("a chain move requires a chain object {nodes: [...]}.")
-        if move.verdict_fn is None:
-            raise ValueError(
-                "a chain move requires a verdict_fn: a chain's fidelity verdicts "
-                "are a judgment, and this layer will not manufacture one — supply "
-                "the verdict source (the live stage-3 gate adapter, or a test "
-                "double). Same discipline run_chain itself holds."
-            )
-        rid = move.run_id or _mint_run_id()
-        from stages import chain_runner
-
-        record = chain_runner.run_chain(rid, move.chain, verdict_fn=move.verdict_fn)
-        # A chain "succeeded" as a move when it executed both nodes (a halt is a
-        # real, readable outcome, but not something the arc builds on).
-        succeeded = record.get("status") == "executed"
-        outcome = record.get("status")
-        if succeeded and isinstance(record.get("chain_verdict"), dict):
-            outcome = f"executed:{record['chain_verdict'].get('label')}"
-        return MoveResult(
-            move_type=move.type.value,
-            run_id=rid,
-            succeeded=succeeded,
-            outcome=outcome,
-            raw=record,
         )
 
     raise ValueError(f"unknown move type: {move.type!r}")
