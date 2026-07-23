@@ -1517,6 +1517,21 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
     # 'full', protecting the kill-rate battery and direct callers.
     if using_production:
         stages = _stages_with_ideation_depth(stages, ideation_depth)
+    # PRIME DIRECTIVE (CLAUDE.md): the FREE experimenter IS the system. A
+    # production run goes STRAIGHT to the free agent — a full agent with every
+    # tool and connector plus the substrate-tools catalogue — with NO gate-1
+    # collapse, NO stages 2-5, NO registry gate. The domain is the goal.
+    # Set LEGACY_PIPELINE=1 to force the old static pipeline (transitional
+    # kill-switch until that pipeline is deleted). Stub tests pass explicit
+    # `stages` (using_production False) and keep the legacy path — the seam the
+    # old pipeline is still tested through.
+    if using_production and os.environ.get("LEGACY_PIPELINE") != "1":
+        logger.log(
+            "FREE EXPERIMENTER (default entry): the free agent investigates the "
+            "domain directly — no gate-1 / stages 2-5 pipeline (PRIME DIRECTIVE)"
+        )
+        run_exact_route(logger, baton, run_dir, mode, free_investigate)
+        return
     # Step ④.3 (docs/design_step4_3_defunnel.md): de-funnel the entrance. When the
     # run is scoped to an all-exact toolset, SKIP ideation + gate 1 entirely and
     # hand the experimenter the domain/question directly, composing the permitted
