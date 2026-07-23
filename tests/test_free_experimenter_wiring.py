@@ -146,5 +146,44 @@ class TestIdeationRoute(unittest.TestCase):
         self.assertEqual(goal, "cavity mixing")
 
 
+class TestPaperRoute(unittest.TestCase):
+    """OPTIONAL paper route: after the free investigation, write up the
+    wall-verified findings. Best-effort — off by default, injected here."""
+
+    def _run(self, *, paper, paper_fn):
+        def fake_free(goal, run_id=None):
+            return {"goal": goal, "summary": "s", "findings": [],
+                    "publishable": False}
+
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        run_dir = Path(tmp.name)
+        logger = Logger(run_dir / "log.txt")
+        baton = Baton(run_id="paper-test",
+                      created_at="2026-07-23T00:00:00+00:00", mode="auto",
+                      payload={"domain": "cavity mixing"})
+        with patch("supervisor.record_run_outcome", side_effect=lambda *a, **k: None):
+            run_relay(logger, baton, run_dir, "auto", free_investigate=fake_free,
+                      paper=paper, paper_fn=paper_fn)
+        return (run_dir / "log.txt").read_text()
+
+    def test_paper_writer_is_called_after_the_investigation(self):
+        called = {}
+
+        def fake_paper(run_id):
+            called["run_id"] = run_id
+            return {"paper_path": f"runs/{run_id}/paper.md"}
+
+        log = self._run(paper=True, paper_fn=fake_paper)
+        self.assertEqual(called["run_id"], "paper-test")
+        self.assertIn("PAPER ROUTE: wrote", log)
+
+    def test_off_by_default_no_paper(self):
+        called = {}
+        self._run(paper=False,
+                  paper_fn=lambda rid: called.setdefault("hit", True))
+        self.assertNotIn("hit", called)
+
+
 if __name__ == "__main__":
     unittest.main()

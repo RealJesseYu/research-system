@@ -191,7 +191,8 @@ def _default_ideate(baton: Baton) -> Baton:
 
 
 def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str,
-              free_investigate=None, ideate: bool = False, ideate_fn=None) -> None:
+              free_investigate=None, ideate: bool = False, ideate_fn=None,
+              paper: bool = False, paper_fn=None) -> None:
     """PRIME DIRECTIVE (CLAUDE.md): the FREE experimenter IS the system. A
     production run goes STRAIGHT to the free agent — a full agent with every tool
     and connector plus the substrate-tools catalogue — investigating the domain
@@ -232,6 +233,20 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str,
             )
     run_exact_route(logger, baton, run_dir, mode, free_investigate)
 
+    # OPTIONAL PAPER ROUTE (paper=True): after the investigation and its
+    # wall-verification, write up the run as a paper (+figures) from the
+    # VERIFIED findings. Best-effort — a failed write-up never undoes the run.
+    if paper:
+        write_paper = paper_fn
+        if write_paper is None:
+            from stages.free_paper import write_free_paper as write_paper
+        logger.log("PAPER ROUTE: writing up the verified findings as a paper")
+        outcome = write_paper(baton.run_id)
+        if outcome.get("paper_path"):
+            logger.log(f"PAPER ROUTE: wrote {outcome['paper_path']}")
+        else:
+            logger.log(f"PAPER ROUTE: no paper written ({outcome.get('error')})")
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -255,6 +270,13 @@ def main() -> None:
         help="OPTIONAL route: run the Co-Scientist hypothesis apparatus first "
         "(generation x reviews x tournament x evolution) and seed the free agent "
         "with the ranked hypotheses. Heavier (many model calls); off by default.",
+    )
+    parser.add_argument(
+        "--paper",
+        action="store_true",
+        help="OPTIONAL route: after the investigation, write it up as a paper "
+        "(+figures) from the WALL-VERIFIED findings into runs/<id>/paper.md. "
+        "Off by default.",
     )
     args = parser.parse_args()
 
@@ -287,7 +309,8 @@ def main() -> None:
     )
     baton.validate()
 
-    run_relay(logger, baton, run_dir, args.mode, ideate=args.ideate)
+    run_relay(logger, baton, run_dir, args.mode, ideate=args.ideate,
+              paper=args.paper)
 
 
 if __name__ == "__main__":
