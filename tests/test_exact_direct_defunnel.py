@@ -29,26 +29,11 @@ from supervisor import Logger, run_is_all_exact_constrained, run_relay  # noqa: 
 from test_loop_controller import StubRelay  # noqa: E402
 
 
-def _code_composition():
-    return {
-        "kind": "composition",
-        "steps": [{"step_id": "a", "kind": "code",
-                   "code": "metrics['a'] = 2.0", "quantity": "a"}],
-        "combine": {"kind": "code", "code": "metrics['out'] = inputs['a'] * 3",
-                    "quantity": "out", "inputs": ["a"]},
-    }
-
-
-class _ScriptedExperimenter:
-    def __init__(self):
-        self.calls = 0
-
-    def __call__(self, state):
-        self.calls += 1
-        if not state["measurements"]:
-            return {"recipe": _code_composition(), "predicted_value": 6.0,
-                    "reasoning": "cheap exact probe"}
-        return {"stop": True, "stop_reason": "reproduced; enough"}
+def _fake_free_result(goal):
+    return {"goal": goal, "summary": "s",
+            "findings": [{"label": "a", "value": 1, "verified": True,
+                          "reproduce": "f.py"}],
+            "publishable": True}
 
 
 class TestConstraintPredicate(unittest.TestCase):
@@ -81,7 +66,12 @@ class TestDefunnelBranch(unittest.TestCase):
         baton = Baton(run_id="defunnel-test",
                       created_at="2026-07-22T00:00:00+00:00", mode="auto",
                       payload={"domain": "characterize descriptor space"})
-        strat = _ScriptedExperimenter()
+        seen = {}
+
+        def fake_free(goal, run_id=None):
+            seen["goal"] = goal
+            return _fake_free_result(goal)
+
         outcomes: list[str] = []
         with patch.dict("os.environ",
                         {"EXACT_ROUTE": "1",
@@ -91,19 +81,20 @@ class TestDefunnelBranch(unittest.TestCase):
             side_effect=lambda b, how_far, retry=0: outcomes.append(how_far),
         ):
             run_relay(logger, baton, run_dir, "auto",
-                      stages=stubs.stages(), exact_strategy=strat)
+                      stages=stubs.stages(), free_investigate=fake_free)
 
         log = (run_dir / "log.txt").read_text()
         self.assertIn("EXACT-DIRECT", log)
-        # the experimenter drove (probe, then stop) — the domain was the goal
-        self.assertGreaterEqual(strat.calls, 2)
+        # the free experimenter got the domain as its goal (no gate-1 hypothesis)
+        self.assertEqual(seen["goal"], "characterize descriptor space")
+        self.assertIn("FREE EXPERIMENTER", log)
         # ideation + gate 1 + the static stages were all SKIPPED
         self.assertEqual(stubs.stage2_inputs, [])
         self.assertEqual(stubs.stage6_calls, 0)
         self.assertEqual(baton.history, [])  # no stage ran at all
-        # the run ended with a routed outcome
+        # the run ended with a free-investigation outcome
         self.assertEqual(len(outcomes), 1)
-        self.assertIn("exact-route investigation", outcomes[0])
+        self.assertIn("free investigation", outcomes[0])
 
 
 if __name__ == "__main__":

@@ -31,33 +31,25 @@ from supervisor import Logger, run_relay  # noqa: E402
 from test_loop_controller import StubRelay  # noqa: E402
 
 
-def _code_composition(a=2.0, factor=3.0):
-    return {
-        "kind": "composition",
-        "steps": [{"step_id": "a", "kind": "code",
-                   "code": f"metrics['a'] = {a}", "quantity": "a"}],
-        "combine": {"kind": "code",
-                    "code": f"metrics['out'] = inputs['a'] * {factor}",
-                    "quantity": "out", "inputs": ["a"]},
-    }
-
-
-class _ScriptedExperimenter:
-    """Stands in for compose_agent: one exact code probe, then stop."""
+class _FakeFreeInvestigator:
+    """Stands in for the free experimenter (brick 4a): records the goal it was
+    given and returns a verified finding. No substrate cage, no composition."""
 
     def __init__(self):
         self.calls = 0
+        self.goal = None
 
-    def __call__(self, state):
+    def __call__(self, goal, run_id=None):
         self.calls += 1
-        if not state["measurements"]:
-            return {"recipe": _code_composition(), "predicted_value": 6.0,
-                    "reasoning": "cheap exact probe"}
-        return {"stop": True, "stop_reason": "reproduced; enough"}
+        self.goal = goal
+        return {"goal": goal, "summary": "s",
+                "findings": [{"label": "a", "value": 1, "verified": True,
+                              "reproduce": "f.py"}],
+                "publishable": True}
 
 
 class ExactRouteCase(unittest.TestCase):
-    def drive(self, *, substrate_id: str, flag_on: bool, strategy=None):
+    def drive(self, *, substrate_id: str, flag_on: bool, free_investigate=None):
         stubs = StubRelay(["exit"])  # decisions unused when the route ends early
         self._tmp = tempfile.TemporaryDirectory()
         run_dir = Path(self._tmp.name)
@@ -80,7 +72,7 @@ class ExactRouteCase(unittest.TestCase):
                 "fallback": False},
         ):
             run_relay(logger, baton, run_dir, "auto",
-                      stages=stubs.stages(), exact_strategy=strategy)
+                      stages=stubs.stages(), free_investigate=free_investigate)
         self.baton = baton
         return stubs, run_dir, outcomes, (run_dir / "log.txt").read_text()
 
@@ -89,37 +81,40 @@ class ExactRouteCase(unittest.TestCase):
             self._tmp.cleanup()
 
 
-class TestExactInstrumentTakesTheExperimenterPath(ExactRouteCase):
+class TestExactInstrumentTakesTheFreeExperimenter(ExactRouteCase):
     def test_the_route_fires_and_ends_the_run_after_gate_1(self):
-        strat = _ScriptedExperimenter()
+        free = _FakeFreeInvestigator()
         stubs, _run_dir, outcomes, log = self.drive(
-            substrate_id="rdkit", flag_on=True, strategy=strat)
+            substrate_id="rdkit", flag_on=True, free_investigate=free)
 
-        # the branch fired
-        self.assertIn("EXACT ROUTE", log)
+        # the exact instrument routed to the FREE experimenter (brick 4a)
+        self.assertIn("FREE EXPERIMENTER", log)
         self.assertIn("publishable=True", log)
-        # the experimenter actually drove (probe, then stop)
-        self.assertGreaterEqual(strat.calls, 2)
+        # the free experimenter drove, with the gate-1 hypothesis as its goal
+        self.assertEqual(free.calls, 1)
+        self.assertIsNotNone(free.goal)
         # stages 2-6 were REPLACED — none of the static stages ran
         self.assertEqual(stubs.stage2_inputs, [])
         self.assertEqual(stubs.stage6_calls, 0)
-        # the run ended with a routed outcome
+        # the run ended with a free-investigation outcome
         self.assertEqual(len(outcomes), 1)
-        self.assertIn("exact-route investigation", outcomes[0])
+        self.assertIn("free investigation", outcomes[0])
         self.assertIn("publishable", outcomes[0])
-        # the static-path history stops at stage 1 — no stage-2..6 entries
+        # history stops at stage 1 — no stage-2..6 entries
         stages_run = [h["stage"] for h in self.baton.history]
         self.assertEqual(stages_run, ["stage1_ideation"])
 
 
 class TestApproximateInstrumentKeepsTheStaticPipeline(ExactRouteCase):
-    def test_flag_on_but_approximate_runs_the_full_static_pipeline(self):
-        """Cavity is approximate — it must NOT take the experimenter path even
-        with the flag on; it keeps stages 2-5 + the fidelity gate."""
+    def test_approximate_instrument_runs_the_full_static_pipeline(self):
+        """Cavity is approximate — it must NOT take the free/experimenter path;
+        it keeps stages 2-5 + the fidelity gate (the free experimenter is never
+        called)."""
+        free = _FakeFreeInvestigator()
         stubs, _run_dir, outcomes, log = self.drive(
-            substrate_id="cavity_2d_cfd", flag_on=True,
-            strategy=_ScriptedExperimenter())
-        self.assertNotIn("EXACT ROUTE", log)
+            substrate_id="cavity_2d_cfd", flag_on=True, free_investigate=free)
+        self.assertNotIn("FREE EXPERIMENTER", log)
+        self.assertEqual(free.calls, 0)
         # the static pipeline ran end to end (stage 2 authored, stage 6 acked)
         self.assertEqual(len(stubs.stage2_inputs), 1)
         self.assertEqual(stubs.stage6_calls, 1)
