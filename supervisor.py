@@ -143,6 +143,23 @@ def run_exact_route(logger: Logger, baton: Baton, run_dir: Path, mode: str,
     goal = (chosen.get("statement") if isinstance(chosen, dict) else None) \
         or baton.payload.get("domain")
 
+    # IDEATION ROUTE: when a structured ideation pass produced ranked hypotheses,
+    # hand the free agent the WHOLE ranked set as candidate leads (breadth
+    # preserved — it chooses what to pursue and is not caged to one). Absent
+    # (the default free path) => goal is the bare domain, unchanged.
+    hyps = baton.payload.get("hypotheses")
+    if isinstance(hyps, list) and hyps and not chosen:
+        leads = "\n".join(
+            f"  {i + 1}. {h.get('statement')}"
+            for i, h in enumerate(hyps) if isinstance(h, dict) and h.get("statement")
+        )
+        if leads:
+            goal = (
+                f"{goal}\n\nA structured ideation pass produced these candidate "
+                f"hypotheses, ranked strongest-first:\n{leads}\n\nInvestigate the "
+                f"most promising one(s); you are not restricted to them."
+            )
+
     logger.log(
         "FREE EXPERIMENTER: investigating the goal directly — no substrate cage, "
         "every tool and connector on the table (PRIME DIRECTIVE)"
@@ -163,21 +180,56 @@ def run_exact_route(logger: Logger, baton: Baton, run_dir: Path, mode: str,
     logger.log(f"=== supervisor run {baton.run_id} {how_far} ===")
 
 
+def _default_ideate(baton: Baton) -> Baton:
+    """The Co-Scientist ideation apparatus (stage1_ideation, depth='full'):
+    generation across four strategies -> six reviews -> Elo tournament ->
+    evolution -> meta-review, up to ROUNDS rounds. Populates
+    baton.payload['hypotheses'] with a ranked, pressure-tested set. Imported
+    lazily so a run that does not use the route pays nothing for it."""
+    from stages import stage1_ideation
+    return stage1_ideation.run(baton, depth="full")
+
+
 def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str,
-              free_investigate=None) -> None:
+              free_investigate=None, ideate: bool = False, ideate_fn=None) -> None:
     """PRIME DIRECTIVE (CLAUDE.md): the FREE experimenter IS the system. A
     production run goes STRAIGHT to the free agent — a full agent with every tool
     and connector plus the substrate-tools catalogue — investigating the domain
     directly, with NO gate-1 collapse, NO static stages 2-5, NO registry gate.
 
-    The old deterministic six-stage relay + three human gates + bounded loop-back
-    machinery was DELETED 2026-07-23 (the free-agent purge); this thin entry is
-    all that remains. `free_investigate` is injected in tests; production defaults
-    to stages.free_experimenter.run_free_investigation (via run_exact_route)."""
+    OPTIONAL IDEATION ROUTE (ideate=True): first run the Co-Scientist hypothesis
+    apparatus and hand the free agent the tournament-ranked, evolution-refined
+    hypotheses as candidate leads — strong hypotheses feeding a free
+    investigation, NOT a gate (the agent sees the whole ranked set and is not
+    restricted to one). Best-effort: an ideation failure falls back to the bare
+    domain and the run continues. `ideate_fn` is injected in tests.
+
+    The old deterministic six-stage relay + gates + loop-back machinery was
+    DELETED 2026-07-23 (the free-agent purge). `free_investigate` is injected in
+    tests; production defaults to run_free_investigation (via run_exact_route)."""
     logger.log(
         "FREE EXPERIMENTER (default entry): the free agent investigates the "
         "domain directly — no gate-1 / stages 2-5 pipeline (PRIME DIRECTIVE)"
     )
+    if ideate:
+        run_fn = ideate_fn or _default_ideate
+        try:
+            logger.log(
+                "IDEATION ROUTE: generating ranked hypotheses via the "
+                "Co-Scientist apparatus (generation x reviews x tournament x "
+                "evolution)"
+            )
+            baton = run_fn(baton)
+            n = len(baton.payload.get("hypotheses") or [])
+            logger.log(
+                f"IDEATION ROUTE: {n} ranked hypotheses produced — handing the "
+                "full set to the free agent as candidate leads"
+            )
+        except Exception as e:  # noqa: BLE001 — ideation is best-effort
+            logger.log(
+                f"IDEATION ROUTE: ideation failed ({type(e).__name__}: {e}) — "
+                "falling back to the bare domain; the run continues"
+            )
     run_exact_route(logger, baton, run_dir, mode, free_investigate)
 
 
@@ -196,6 +248,13 @@ def main() -> None:
         default=None,
         help="use this run id (and runs/<run-id>/) instead of a fresh "
         "timestamp; for a controller that must locate the run's evidence",
+    )
+    parser.add_argument(
+        "--ideate",
+        action="store_true",
+        help="OPTIONAL route: run the Co-Scientist hypothesis apparatus first "
+        "(generation x reviews x tournament x evolution) and seed the free agent "
+        "with the ranked hypotheses. Heavier (many model calls); off by default.",
     )
     args = parser.parse_args()
 
@@ -228,7 +287,7 @@ def main() -> None:
     )
     baton.validate()
 
-    run_relay(logger, baton, run_dir, args.mode)
+    run_relay(logger, baton, run_dir, args.mode, ideate=args.ideate)
 
 
 if __name__ == "__main__":
