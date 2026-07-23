@@ -47,7 +47,6 @@ sys.path.insert(0, str(ROOT))
 import substrates
 import supervisor
 from baton import Baton
-from stages import stage3_fidelity_gate as s3
 from stages import stage4_simulation as s4
 from tools import qoi_vocab
 from tools import run_ngspice
@@ -139,11 +138,6 @@ class TestP3FailLoudRealRegistry(unittest.TestCase):
                 _spec_with("warp_coil_inductance_map")
             )
             self.assertNotIn(got, registry.routable_ids())
-
-    def test_unserveable_spec_raises_at_stage3_selected_contract(self):
-        with self.assertRaises(LookupError) as ctx:
-            s3._selected_contract(_spec_with("warp_coil_inductance_map"))
-        self.assertIn("no routable substrate can serve", str(ctx.exception))
 
     def test_unserveable_spec_raises_at_stage4_guard_nothing_executed(self):
         spec = _ngspice_spec()

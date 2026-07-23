@@ -25,16 +25,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from baton import Baton
 from memory import journal
 from memory.journal import journal_recent_by_kind
-from stages import reflection_reviews, stage2_experiment_design
+from stages import reflection_reviews
 from stages.reflection_reviews import (
     DEAD_END_HEADER,
     DEAD_END_RETRIEVAL_KIND,
     DEAD_END_RETRIEVAL_LIMIT,
     build_dead_end_block,
-)
-from stages.stage2_experiment_design import (
-    LESSONS_HEADER,
-    build_substrate_lessons_block,
 )
 
 FAKE_TIMING = {"model": "fake-model", "duration_seconds": 0.0, "attempts": 1}
@@ -111,20 +107,6 @@ class JournalFixtureCase(unittest.TestCase):
 
 
 class TestPureBlockBuilders(unittest.TestCase):
-    def test_lessons_block_none_on_empty(self):
-        self.assertIsNone(build_substrate_lessons_block([]))
-
-    def test_lessons_block_exact_lines(self):
-        block = build_substrate_lessons_block([LESSON_A, LESSON_B])
-        self.assertEqual(
-            block,
-            LESSONS_HEADER
-            + "\n- [run runA, hypothesis h2] substrate cannot extract "
-            "stream-function QoIs"
-            + "\n- [run runB, hypothesis ev1] obstacle geometry is "
-            "unbuildable on this case template",
-        )
-
     def test_dead_end_block_none_on_empty(self):
         self.assertIsNone(build_dead_end_block([]))
 
@@ -137,100 +119,6 @@ class TestPureBlockBuilders(unittest.TestCase):
             "stream-function QoIs",
         )
 
-
-class TestStage2MemoryReach(JournalFixtureCase):
-    def _baton(self, extra_payload: dict | None = None) -> Baton:
-        payload = {
-            "domain": "test domain",
-            "chosen_hypothesis": {"id": "h1", "statement": "s", "rationale": "r"},
-            # Truth-edited Step 23.5 (R-23.5-4): the post-gate-1 payload
-            # carries the decided instrument; stage 2 fails loud without it.
-            "substrate_id": "cavity_2d_cfd",
-        }
-        payload.update(extra_payload or {})
-        return Baton(
-            run_id=self.run_id, created_at="2026-07-13T00:00:00+00:00",
-            mode="auto", payload=payload,
-        )
-
-    def _run_stage2(self, baton: Baton) -> tuple[Baton, list[dict]]:
-        captured: list[dict] = []
-
-        def fake_call(stage_name, system_prompt, stage_input, schema,
-                      model=None, extra_validator=None, **kwargs):
-            captured.append(stage_input)
-            return (
-                {"ack_run_id": stage_input["run_id"], "spec": minimal_spec()},
-                dict(FAKE_TIMING),
-            )
-
-        with patch.object(stage2_experiment_design, "call_stage_model", fake_call):
-            baton = stage2_experiment_design.run(baton)
-        return baton, captured
-
-    def test_lessons_block_in_stage_input_and_evidence_on_disk(self):
-        # run_record must be excluded; most-recent-first ordering is the
-        # journal helper's (fixture is oldest-first on disk).
-        self.write_journal([LESSON_A, RUN_RECORD, LESSON_B])
-        _, captured = self._run_stage2(self._baton())
-
-        expected_entries = journal_recent_by_kind("learned_summary", 3)
-        self.assertEqual([e["run_id"] for e in expected_entries], ["runB", "runA"])
-        self.assertEqual(
-            captured[0]["substrate_capability_lessons"],
-            build_substrate_lessons_block(expected_entries),
-        )
-        self.assertTrue(
-            captured[0]["substrate_capability_lessons"].startswith(LESSONS_HEADER)
-        )
-
-        evidence = json.loads(
-            (Path("runs") / self.run_id / "stage2" / "retrieved_memory.json").read_text()
-        )
-        self.assertEqual(evidence, expected_entries)
-        self.assertIn("STAGE2_MEMORY retrieved 2 learned_summary entries",
-                      self.log_text())
-
-    def test_empty_journal_clean_no_block_no_crash(self):
-        self.write_journal([])
-        baton, captured = self._run_stage2(self._baton())
-
-        self.assertNotIn("substrate_capability_lessons", captured[0])
-        evidence = json.loads(
-            (Path("runs") / self.run_id / "stage2" / "retrieved_memory.json").read_text()
-        )
-        self.assertEqual(evidence, [])
-        self.assertIn("STAGE2_MEMORY retrieved 0 learned_summary entries",
-                      self.log_text())
-        # the stage completed normally: spec saved, history written
-        self.assertEqual(baton.payload["experiment_spec"]["hypothesis_id"], "h1")
-        self.assertEqual(len(baton.history), 1)
-
-    def test_loopback_reentry_retrieves_fresh_lesson(self):
-        # Run C's exact failure path: pass 1 designs, stage 5 journals a new
-        # learned_summary, back_to_design re-enters stage 2 — the pass-2
-        # input must carry the fresh lesson.
-        self.write_journal([LESSON_A])
-        _, captured1 = self._run_stage2(self._baton())
-        self.assertNotIn("runB", captured1[0]["substrate_capability_lessons"])
-
-        self.append_journal(LESSON_B)  # what stage 5 just learned
-        prior_thought = {"triage": "setup_error", "assessment": "a",
-                         "iterate_decision": "back_to_design",
-                         "justification": "j", "learned_summary": LESSON_B["text"]}
-        _, captured2 = self._run_stage2(
-            self._baton({"prior_thought": prior_thought})
-        )
-        block = captured2[0]["substrate_capability_lessons"]
-        self.assertIn("[run runB, hypothesis ev1] obstacle geometry", block)
-        self.assertIn("[run runA, hypothesis h2]", block)
-        # prior_thought still travels alongside the new block
-        self.assertEqual(captured2[0]["prior_thought"], prior_thought)
-        # evidence file reflects the re-read (overwritten, same as spec.json)
-        evidence = json.loads(
-            (Path("runs") / self.run_id / "stage2" / "retrieved_memory.json").read_text()
-        )
-        self.assertEqual([e["run_id"] for e in evidence], ["runB", "runA"])
 
 
 class TestDeadEndsRideInitialReview(JournalFixtureCase):

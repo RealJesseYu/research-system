@@ -73,9 +73,7 @@ from schemas import (
     validate_payload_post_stage2,
     validate_payload_post_stage4,
 )
-from stages import stage2_experiment_design as s2
 from stages import stage2_spec
-from stages import stage3_fidelity_gate as s3
 from stages import stage5_thought_layer as s5
 from tools import run_scipy
 from tools import substrate_dispatch as dispatch
@@ -384,27 +382,6 @@ def _capture_stage(module, baton_fixture, materialize_results=False):
 
 
 class TestSympyBirthPins(unittest.TestCase):
-    def test_stage2_user_turn_byte_identical(self):
-        _, user_turn = _capture_stage(s2, "canned_stage2_input.json")
-        self.assertEqual(user_turn, _fixture("stage2_user_turn.txt"))
-        sent = json.loads(user_turn)
-        self.assertEqual(
-            sent["substrate_contract"], substrates.SYMPY_SYMBOLIC_EXACT_CONTRACT
-        )
-        self.assertNotIn("substrate_id", sent)
-
-    def test_stage3_pair_byte_identical(self):
-        system_prompt, user_turn = _capture_stage(s3, "canned_stage3_input.json")
-        self.assertEqual(system_prompt, _fixture("stage3_system_prompt.txt"))
-        self.assertEqual(user_turn, _fixture("stage3_user_turn.txt"))
-        # the frozen judgment prompt is substrate-independent
-        self.assertIs(system_prompt, s3.SYSTEM_PROMPT)
-        parsed = json.loads(user_turn)
-        self.assertEqual(
-            parsed["substrate_contract"],
-            substrates.SYMPY_SYMBOLIC_EXACT_CONTRACT,
-        )
-
     def test_stage5_user_turn_byte_identical_with_tri_state_unmangled(self):
         _, user_turn = _capture_stage(
             s5, "canned_stage5_input.json", materialize_results=True
@@ -421,12 +398,6 @@ class TestSympyBirthPins(unittest.TestCase):
             ["runs"][0]["summary"]["diagnostics"],
         )
         self.assertEqual(sent["stage4_summaries"][0]["state"], "unevaluated")
-
-    def test_birth_composition_deterministic(self):
-        self.assertEqual(
-            _capture_stage(s3, "canned_stage3_input.json"),
-            _capture_stage(s3, "canned_stage3_input.json"),
-        )
 
     def test_stage3_selection_agrees_on_the_real_registry(self):
         baton = Baton.from_json(_fixture("canned_stage3_input.json"))

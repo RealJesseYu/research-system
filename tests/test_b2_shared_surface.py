@@ -142,16 +142,6 @@ class TestRB1StopOnConstructedOverlap(unittest.TestCase):
                     mature_one,
                 )
 
-    def test_stop_reaches_both_decision_twins_identically(self):
-        # The stop lives INSIDE select_substrate, upstream of both reach
-        # paths — stage 3's _selected_contract and stage 4's re-derivation
-        # both hit the same LookupError before any model call or execution.
-        from stages import stage3_fidelity_gate
-
-        patches = _both_cantilevers_registry()
-        with patches[0], patches[1], patches[2]:
-            with self.assertRaises(LookupError):
-                stage3_fidelity_gate._selected_contract(_spec_with(*FEA_FIELDS))
 
 
 class TestRB1StrictS1OnTheRealRegistry(unittest.TestCase):

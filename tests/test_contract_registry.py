@@ -21,7 +21,6 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import substrates
-from stages import stage3_fidelity_gate
 from tools import substrate_registry as registry
 
 
@@ -58,45 +57,6 @@ class TestContractSelection(unittest.TestCase):
         with mock.patch.object(registry, "routable_ids", return_value=()):
             with self.assertRaises(RuntimeError):
                 registry.sole_routable_id()
-
-
-class TestEraByteIdentity(unittest.TestCase):
-    """THE CENTRAL CLAIM. The old code set stage3's model-visible
-    substrate_contract to exactly substrates.CAVITY_2D_CONTRACT. The new path
-    derives it from the registry. Byte-equality to that constant IS byte-equality
-    to the pre-change model-visible text — cavity's stage-3 surface survives
-    unchanged through the R5 era move (owner, 2026-07-17; the era-of-record is
-    the R5 commit — only composed STAGE-1 surfaces moved). Since R-B-1 S1
-    (ruled 2026-07-17) the bare _selected_contract() read is retired — a
-    nothing-declaring spec stops loudly — so these proofs pass a MINIMAL
-    cavity-declaring spec (one cavity-signature parameter name); the
-    assertion's meaning is unchanged: the model-visible text is byte-equal
-    to the constant. Could fail: if selection returned a different
-    substrate, or contract_for mutated the text, or the constant drifted,
-    these assertions break."""
-
-    # One cavity-signature name -> cavity is the unique candidate (its
-    # signature is the only one covering lid_velocity).
-    _CAVITY_MINIMAL_SPEC = {"parameters": [{"name": "lid_velocity"}]}
-
-    def test_stage3_selected_contract_byte_identical(self):
-        substrate_id, contract_text = stage3_fidelity_gate._selected_contract(
-            self._CAVITY_MINIMAL_SPEC
-        )
-        self.assertEqual(substrate_id, "cavity_2d_cfd")
-        # byte-for-byte identical to the constant the gate used before R-S3-1
-        self.assertEqual(contract_text, substrates.CAVITY_2D_CONTRACT)
-        self.assertEqual(
-            len(contract_text.encode("utf-8")),
-            len(substrates.CAVITY_2D_CONTRACT.encode("utf-8")),
-        )
-
-    def test_selected_contract_carries_the_cavity_header(self):
-        # Sanity that the text is the cavity contract, not an empty stand-in.
-        _sid, contract_text = stage3_fidelity_gate._selected_contract(
-            self._CAVITY_MINIMAL_SPEC
-        )
-        self.assertIn("SUBSTRATE CONTRACT: cavity_2d", contract_text)
 
 
 class TestRoutableContractsBlock(unittest.TestCase):

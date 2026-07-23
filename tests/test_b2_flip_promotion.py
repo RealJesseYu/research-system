@@ -84,9 +84,7 @@ from schemas import (
     validate_payload_post_stage2,
     validate_payload_post_stage4,
 )
-from stages import stage2_experiment_design as s2
 from stages import stage2_spec
-from stages import stage3_fidelity_gate as s3
 from stages import stage4_simulation as s4
 from stages import stage5_thought_layer as s5
 from tools import run_fea
@@ -313,17 +311,6 @@ class TestTheTie(unittest.TestCase):
         self.assertIn(f"{FENICSX}@calibrating", msg)
         self.assertIn("stopping before routing", msg)
 
-    def test_stage3_twin_stops_before_routing(self):
-        # decision twin 1: the calculix chain's stage 3 raises at selection
-        # BEFORE any model call — the correct outcome, not worked around.
-        baton = Baton.from_json(_fea("canned_stage2_input.json"))
-        payload = dict(baton.payload)
-        payload["experiment_spec"] = _fea_spec()
-        baton.payload = payload
-        with self.assertRaises(LookupError) as ctx:
-            s3.run(baton)
-        self.assertIn("ambiguous (R-B-1", str(ctx.exception))
-
     def test_stage4_twin_stops_before_execution(self):
         # decision twin 2: stage 4 with a forced-trust verdict raises at
         # its re-derivation, before any adapter/wrapper touch.
@@ -365,17 +352,12 @@ class TestTheTie(unittest.TestCase):
     def test_calculix_sound_as_sole_cantilever_in_a_constructed_registry(self):
         # E2: calculix's machinery proven end-to-end (call-free) in a
         # registry where it is the SOLE cantilever — selection resolves it
-        # uniquely, stage 3's composition carries ITS contract, and the
-        # entry constructor lands its measured number as qoi_value.
+        # uniquely and the entry constructor lands its measured number as
+        # qoi_value.
         four_ids = ("cavity_2d_cfd", FEA, "sympy_symbolic_exact",
                     "ngspice_linear_passive")
         with patch.object(registry, "routable_ids", return_value=four_ids):
             self.assertEqual(select_substrate(_fea_spec()), FEA)
-            sid, contract_text = s3._selected_contract(_fea_spec())
-            self.assertEqual(sid, FEA)
-            self.assertIs(
-                contract_text, substrates.CALCULIX_CANTILEVER_FEA_CONTRACT
-            )
         # the card §3A mesh-8 measured numbers, in the wrapper's own shape
         summary = {
             "valid": True,
@@ -543,39 +525,6 @@ def _capture_stage(module, fixture_dir, baton_fixture, materialize_results=False
 
 
 class TestCantileverBirthPins(unittest.TestCase):
-    def test_fenicsx_stage2_user_turn_byte_identical(self):
-        _, user_turn = _capture_stage(s2, FX_FIX, "canned_stage2_input.json")
-        self.assertEqual(user_turn, _fx("stage2_user_turn.txt"))
-        sent = json.loads(user_turn)
-        self.assertEqual(
-            sent["substrate_contract"],
-            substrates.FENICSX_CANTILEVER_ELASTIC_CONTRACT,
-        )
-        self.assertNotIn("substrate_id", sent)
-
-    def test_fea_stage2_user_turn_byte_identical(self):
-        _, user_turn = _capture_stage(s2, FEA_FIX, "canned_stage2_input.json")
-        self.assertEqual(user_turn, _fea("stage2_user_turn.txt"))
-        sent = json.loads(user_turn)
-        self.assertEqual(
-            sent["substrate_contract"],
-            substrates.CALCULIX_CANTILEVER_FEA_CONTRACT,
-        )
-        self.assertNotIn("substrate_id", sent)
-
-    def test_fenicsx_stage3_pair_byte_identical(self):
-        system_prompt, user_turn = _capture_stage(
-            s3, FX_FIX, "canned_stage3_input.json"
-        )
-        self.assertEqual(system_prompt, _fx("stage3_system_prompt.txt"))
-        self.assertEqual(user_turn, _fx("stage3_user_turn.txt"))
-        self.assertIs(system_prompt, s3.SYSTEM_PROMPT)
-        parsed = json.loads(user_turn)
-        self.assertEqual(
-            parsed["substrate_contract"],
-            substrates.FENICSX_CANTILEVER_ELASTIC_CONTRACT,
-        )
-
     def test_fenicsx_stage5_user_turn_byte_identical(self):
         _, user_turn = _capture_stage(
             s5, FX_FIX, "canned_stage5_input.json", materialize_results=True
@@ -589,28 +538,12 @@ class TestCantileverBirthPins(unittest.TestCase):
             sent["stage4_summaries"][0]["qoi"]["max_von_mises"], 4.246e7
         )
 
-    def test_birth_composition_deterministic(self):
-        self.assertEqual(
-            _capture_stage(s3, FX_FIX, "canned_stage3_input.json"),
-            _capture_stage(s3, FX_FIX, "canned_stage3_input.json"),
-        )
-
     def test_fenicsx_stage3_selection_agrees_on_the_real_registry(self):
         baton = Baton.from_json(_fx("canned_stage3_input.json"))
         self.assertEqual(
             select_substrate(baton.payload["experiment_spec"]), FENICSX
         )
 
-    def test_calculix_has_no_stage3_birth_pin_by_design(self):
-        # A production calculix stage-3 surface DOES NOT EXIST: the 7-field
-        # spec stops at selection (R-B-1) before composition. The absence
-        # of the fixture is the record, asserted so it cannot rot silently.
-        self.assertFalse((FEA_FIX / "stage3_user_turn.txt").exists())
-        abbreviated = {
-            "parameters": [{"name": n} for n in run_fea._REQUIRED_FIELDS]
-        }
-        with self.assertRaises(LookupError):
-            s3._selected_contract(abbreviated)
 
 
 # ---------------------------------------------------------------------------

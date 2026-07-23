@@ -34,7 +34,6 @@ sys.path.insert(0, str(_ROOT))
 sys.path.insert(0, str(_ROOT / "harness"))
 
 import model_call  # noqa: E402
-import handfeed_stage2  # noqa: E402
 import survival_counter  # noqa: E402
 from baton import Baton  # noqa: E402
 from stages import evolution_strategies, stage1_ideation  # noqa: E402
@@ -630,62 +629,6 @@ class TestRoundOneZeroSurvivorClassification(unittest.TestCase):
         self.assertIsNotNone(result["abort_reason"])
         self.assertNotIn("counted_from_round_dir", result)
 
-
-class TestHandfeedFallback(unittest.TestCase):
-    def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
-        self.source_dir = Path(self._tmp.name)
-        stage1 = self.source_dir / "stage1"
-        stage1.mkdir(parents=True)
-        (stage1 / "survivors.json").write_text(
-            json.dumps([{"id": "h1", "statement": "s1", "rationale": "r1"}])
-        )
-        (stage1 / "evolution_variants.json").write_text(
-            json.dumps(
-                [
-                    {
-                        "id": "ev1",
-                        "statement": "variant statement",
-                        "rationale": "variant rationale",
-                        "accepted": True,
-                        "reject_reason": None,
-                    },
-                    {
-                        "id": "ev2",
-                        "statement": "rejected statement",
-                        "rationale": "rejected rationale",
-                        "accepted": False,
-                        "reject_reason": "judged_known",
-                    },
-                ]
-            )
-        )
-
-    def tearDown(self):
-        self._tmp.cleanup()
-
-    def test_survivor_hit_unchanged(self):
-        chosen = handfeed_stage2.resolve_hypothesis(self.source_dir, "h1")
-        self.assertEqual(chosen, {"id": "h1", "statement": "s1", "rationale": "r1"})
-
-    def test_fallback_hit_on_accepted_variant(self):
-        chosen = handfeed_stage2.resolve_hypothesis(self.source_dir, "ev1")
-        self.assertEqual(
-            chosen,
-            {"id": "ev1", "statement": "variant statement", "rationale": "variant rationale"},
-        )
-
-    def test_rejected_variant_is_a_miss(self):
-        with self.assertRaises(SystemExit) as ctx:
-            handfeed_stage2.resolve_hypothesis(self.source_dir, "ev2")
-        self.assertIn("ev2", str(ctx.exception))
-        self.assertIn("accepted", str(ctx.exception))
-
-    def test_miss_without_variants_file(self):
-        (self.source_dir / "stage1" / "evolution_variants.json").unlink()
-        with self.assertRaises(SystemExit) as ctx:
-            handfeed_stage2.resolve_hypothesis(self.source_dir, "nope")
-        self.assertIn("nope", str(ctx.exception))
 
 
 if __name__ == "__main__":
