@@ -214,13 +214,34 @@ def rerun_artifact(artifact: dict) -> dict:
         return {"value": None,
                 "error": entry.get("qoi_error") or "the re-run produced no value"}
 
+    if kind == "workspace_file":
+        # The free experimenter saves the code that produced a number as a FILE
+        # in its per-run workspace (runs/<id>/workspace/) and names it here. We
+        # re-run that exact file through the SAME deterministic, no-network code
+        # sandbox as an inline `code` artifact — the file IS the artifact of
+        # record. `path` is resolved to absolute by the claim builder (where the
+        # run's workspace is known), so this stays a pure re-execution.
+        from tools.run_python_experiment import run_python_experiment
+        path = artifact.get("path")
+        quantity = artifact.get("quantity")
+        if not path or not quantity:
+            raise ArtifactError(
+                "workspace_file artifact needs 'path' and 'quantity'")
+        p = Path(path)
+        if not p.is_file():
+            return {"value": None,
+                    "error": f"workspace file {path!r} not found — nothing to re-run"}
+        summary = run_python_experiment({"code": p.read_text(), "quantity": quantity})
+        return {"value": summary.get("qoi"), "error": None if summary.get("valid")
+                else summary.get("diagnostics")}
+
     if kind == "composition":
         return _execute_composition(artifact)
 
     raise ArtifactError(
         f"unknown artifact kind {kind!r} — verification can re-run 'code', "
-        "'substrate', and 'composition' artifacts; anything else cannot be "
-        "independently reproduced and so cannot support a claim"
+        "'substrate', 'workspace_file', and 'composition' artifacts; anything "
+        "else cannot be independently reproduced and so cannot support a claim"
     )
 
 
@@ -593,9 +614,17 @@ def verify_claim(claim: dict, rel_tol: float = DEFAULT_REL_TOL) -> dict:
     # number planted in the source is the one fabrication re-execution cannot
     # catch. Tripwire only (see hardcoded_metric_reason); substrate artifacts,
     # whose typed inputs run a real instrument, are unaffected.
-    if artifact.get("kind") == "code":
-        planted = hardcoded_metric_reason(
-            artifact.get("code") or "", artifact.get("quantity") or "")
+    if artifact.get("kind") in ("code", "workspace_file"):
+        # For a workspace_file the code lives in the file, not the artifact; read
+        # it back so a planted constant is caught the same as for inline code.
+        if artifact.get("kind") == "code":
+            code_src = artifact.get("code") or ""
+        else:
+            try:
+                code_src = Path(artifact.get("path") or "").read_text()
+            except OSError:
+                code_src = ""
+        planted = hardcoded_metric_reason(code_src, artifact.get("quantity") or "")
         if planted:
             return {"verified": False, "reason": "hardcoded_constant",
                     "detail": planted, "original": original,

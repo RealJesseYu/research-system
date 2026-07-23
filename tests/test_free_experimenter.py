@@ -15,11 +15,13 @@ Call-free: the FULL agent is injected as a fake `call`.
 
 from __future__ import annotations
 
+import copy
 import json
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -31,12 +33,14 @@ from stages.free_experimenter import (  # noqa: E402
     _validate_free_result,
     run_free_investigation,
 )
+from stages.verification import ArtifactError, rerun_artifact  # noqa: E402
 
 _FAKE_RESULT = {
     "summary": "descriptor space is ~4-dimensional",
     "findings": [
         {"label": "n_pc_90", "value": 4, "verified": True,
-         "reproduce": "python pca.py"},
+         "reproduce": "python pca.py",
+         "artifact": {"file": "pca.py", "quantity": "n_pc_90"}},
         {"label": "hypothesis_X", "value": "inconclusive", "verified": False,
          "reproduce": ""},
     ],
@@ -45,7 +49,30 @@ _FAKE_RESULT = {
 
 
 def _fake_call(*args, **kwargs):
-    return _FAKE_RESULT, {"model": "fake"}
+    return copy.deepcopy(_FAKE_RESULT), {"model": "fake"}
+
+
+def _fake_verify_by_artifact(claims, run_id=None):
+    """A stand-in wall: a claim reproduces IFF it carries an artifact (mirroring
+    the real wall's no_artifact verdict), and writes the director-shaped
+    verification.json exactly as verify_run does."""
+    verdicts = []
+    for i, c in enumerate(claims):
+        ok = c.get("artifact") is not None
+        verdicts.append({
+            "claim_index": i, "label": c.get("label"), "verified": ok,
+            "reproduced": c.get("value") if ok else None,
+            "original": c.get("value"),
+            "reason": "reproduced" if ok else "no_artifact",
+        })
+    n_ok = sum(1 for v in verdicts if v["verified"])
+    summary = {"total": len(verdicts), "verified": n_ok,
+               "failed": len(verdicts) - n_ok,
+               "publishable": n_ok == len(verdicts), "verdicts": verdicts}
+    if run_id:
+        (Path("runs") / str(run_id) / "verification.json").write_text(
+            json.dumps(summary))
+    return summary
 
 
 class TestFreeInvestigation(unittest.TestCase):
@@ -64,19 +91,21 @@ class TestFreeInvestigation(unittest.TestCase):
             cwd = os.getcwd()
             os.chdir(d)
             try:
-                run_free_investigation("q", run_id="freerun", call=_fake_call)
+                # the WALL (injected here) writes verification.json and its
+                # verdicts are what the director reads.
+                run_free_investigation("q", run_id="freerun", call=_fake_call,
+                                       verify=_fake_verify_by_artifact)
                 record = {"extras": {"how_far": "completed free investigation"}}
                 rr = read_run_result(Path("runs") / "freerun", "freerun", 0, record)
             finally:
                 os.chdir(cwd)
-        # the director reads the verified finding's value straight through
+        # the director reads the verified CLAIM's reproduced value straight through
         self.assertTrue(rr.publishable)
         self.assertEqual(rr.verified, 1)
-        self.assertEqual(rr.total, 2)
+        self.assertEqual(rr.total, 1)          # the one kept claim (the caveat is not one)
         labels = {f["label"]: f for f in rr.findings}
         self.assertEqual(labels["n_pc_90"]["value"], 4)
         self.assertTrue(labels["n_pc_90"]["verified"])
-        self.assertFalse(labels["hypothesis_X"]["verified"])
 
 
 class TestPerRunWorkspace(unittest.TestCase):
@@ -100,7 +129,8 @@ class TestPerRunWorkspace(unittest.TestCase):
             os.chdir(d)
             try:
                 (Path("runs") / "wsrun").mkdir(parents=True)
-                run_free_investigation("q", run_id="wsrun", call=recording_call)
+                run_free_investigation("q", run_id="wsrun", call=recording_call,
+                                       verify=_fake_verify_by_artifact)
                 ws = Path("runs") / "wsrun" / "workspace"
                 self.assertTrue(ws.is_dir())                    # dir created
                 self.assertEqual(seen["cwd"], str(ws.resolve()))  # cwd active in-call
@@ -162,6 +192,107 @@ class TestWorkspaceOptionKwargs(unittest.TestCase):
         with model_call.agent_workspace("/tmp/ws"):
             self.assertEqual(model_call._AGENT_CWD.get(), "/tmp/ws")
         self.assertIsNone(model_call._AGENT_CWD.get())
+
+
+class TestControllerReVerify(unittest.TestCase):
+    """The verification wall is AUTHORITATIVE: its re-run, not the agent's
+    self-report, sets `verified`, and it can only REMOVE `publishable`."""
+
+    def _run(self, result, verify):
+        import os
+        with tempfile.TemporaryDirectory() as d:
+            cwd = os.getcwd()
+            os.chdir(d)
+            try:
+                (Path("runs") / "rv").mkdir(parents=True)
+                return run_free_investigation(
+                    "q", run_id="rv",
+                    call=lambda *a, **k: (copy.deepcopy(result), {"model": "f"}),
+                    verify=verify)
+            finally:
+                os.chdir(cwd)
+
+    def test_wall_rejection_overrides_a_false_self_report(self):
+        # the agent CLAIMED verified; the wall says the number did not reproduce
+        result_in = {"summary": "s", "publishable": True, "findings": [
+            {"label": "m", "value": 4, "verified": True, "reproduce": "x",
+             "artifact": {"file": "m.py", "quantity": "m"}}]}
+
+        def rejecting_verify(claims, run_id=None):
+            verdicts = [{"claim_index": 0, "label": "m", "verified": False,
+                         "reason": "mismatch", "original": 4, "reproduced": 7}]
+            summary = {"total": 1, "verified": 0, "failed": 1,
+                       "publishable": False, "verdicts": verdicts}
+            (Path("runs") / str(run_id) / "verification.json").write_text(
+                json.dumps(summary))
+            return summary
+
+        out = self._run(result_in, rejecting_verify)
+        self.assertFalse(out["findings"][0]["verified"])  # downgraded by the wall
+        self.assertFalse(out["publishable"])              # trust removed
+
+    def test_wall_confirmation_keeps_publishable_and_ignores_caveats(self):
+        out = self._run(_FAKE_RESULT, _fake_verify_by_artifact)
+        self.assertTrue(out["publishable"])                # claim reproduced
+        self.assertTrue(out["findings"][0]["verified"])    # confirmed claim
+        self.assertFalse(out["findings"][1]["verified"])   # honest caveat, untouched
+
+    def test_no_run_dir_keeps_self_report_no_wall(self):
+        # no run_id -> no workspace, no wall -> the agent's report is unchanged
+        out = run_free_investigation(
+            "q", call=lambda *a, **k: (copy.deepcopy(_FAKE_RESULT), {"model": "f"}))
+        self.assertTrue(out["findings"][0]["verified"])
+        self.assertTrue(out["publishable"])
+
+
+class TestArtifactRequiredForVerified(unittest.TestCase):
+    def test_verified_finding_without_an_artifact_is_flagged(self):
+        errs = _validate_free_result({"findings": [
+            {"label": "m", "value": 1, "verified": True, "reproduce": "x"}],
+            "publishable": True})
+        self.assertTrue(any("artifact" in e for e in errs))
+
+    def test_substrate_artifact_satisfies_the_requirement(self):
+        errs = _validate_free_result({"findings": [
+            {"label": "m", "value": 1, "verified": True, "reproduce": "x",
+             "artifact": {"substrate_id": "rdkit", "typed_input": {},
+                          "quantity": "tpsa"}}], "publishable": True})
+        self.assertEqual(errs, [])
+
+    def test_unverified_finding_needs_no_artifact(self):
+        errs = _validate_free_result({"findings": [
+            {"label": "note", "value": "qualitative", "verified": False}],
+            "publishable": False})
+        self.assertEqual(errs, [])
+
+
+class TestWorkspaceFileArtifact(unittest.TestCase):
+    """The wall's new 'workspace_file' kind re-runs the saved file through the
+    same deterministic code sandbox as an inline code artifact."""
+
+    def test_reads_the_file_and_reruns_it_as_code(self):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "m.py"
+            code = "metrics = {}\nmetrics['m'] = 4\n"
+            f.write_text(code)
+            with patch("tools.run_python_experiment.run_python_experiment",
+                       return_value={"valid": True, "qoi": 4.0}) as rpe:
+                out = rerun_artifact(
+                    {"kind": "workspace_file", "path": str(f), "quantity": "m"})
+            # it ran the FILE's contents through the code sandbox
+            self.assertEqual(rpe.call_args.args[0]["code"], code)
+            self.assertEqual(rpe.call_args.args[0]["quantity"], "m")
+            self.assertEqual(out, {"value": 4.0, "error": None})
+
+    def test_missing_file_is_an_honest_rerun_error_not_a_crash(self):
+        out = rerun_artifact(
+            {"kind": "workspace_file", "path": "/no/such/file.py", "quantity": "m"})
+        self.assertIsNone(out["value"])
+        self.assertIn("not found", out["error"])
+
+    def test_missing_path_or_quantity_raises(self):
+        with self.assertRaises(ArtifactError):
+            rerun_artifact({"kind": "workspace_file", "quantity": "m"})
 
 
 class TestHonestyValidator(unittest.TestCase):

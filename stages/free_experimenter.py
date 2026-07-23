@@ -39,7 +39,12 @@ Investigate the QUESTION in your input. Work small-before-big: run a cheap check
 
 EVERY result you KEEP must be reproducible: save the code or artifact that produced it into your workspace and say how to re-run it. A number or result you cannot reproduce, you must not claim — report it as unverified instead of dropping it. This is about honesty of a kept result; it never limits which tools you use to get there.
 
-Return ONLY JSON of the form: {"summary": "<what you found and what it means for the question>", "findings": [{"label": "<what this measures>", "value": <number or short string>, "verified": <true if you reproduced it>, "reproduce": "<how / which saved file to re-run>"}], "publishable": <true only if the question is answered and every kept finding reproduced>} — no other fields anywhere."""
+INDEPENDENT RE-VERIFICATION. After you finish, a deterministic pass with NO model in it re-runs each finding you mark verified and regenerates its number from the ARTIFACT you name — its verdict, not your say-so, decides what stands. So for every finding you mark "verified": true, give a re-runnable "artifact":
+- computed in code: save a self-contained Python file in your workspace that assigns your value to a metrics dict — `metrics["<quantity>"] = <value>` (define `metrics = {}` yourself so the file also runs standalone; it must be deterministic and need no network) — and reference it as "artifact": {"file": "<name>.py", "quantity": "<quantity>"}. The file's computed value must equal the "value" you report.
+- produced by a specialized tool from the catalogue: "artifact": {"substrate_id": "<id>", "typed_input": {<the exact typed inputs>}, "quantity": "<metric name>"}.
+A finding you cannot back with a re-runnable artifact must be reported with "verified": false — an honest caveat is fine, it just is not counted as reproduced.
+
+Return ONLY JSON of the form: {"summary": "<what you found and what it means for the question>", "findings": [{"label": "<what this measures>", "value": <number or short string>, "verified": <true ONLY if you supply a re-runnable artifact>, "reproduce": "<how / which saved file to re-run>", "artifact": {"file": "<name>.py", "quantity": "<name>"} }], "publishable": <true only if the question is answered and every kept finding reproduced>} — omit "artifact" only on findings you mark "verified": false; no other fields anywhere."""
 
 SCHEMA = {"required": ["summary", "findings", "publishable"]}
 
@@ -65,39 +70,70 @@ def _validate_free_result(data: dict) -> list[str]:
             errors.append(
                 f"findings[{i}] is marked verified but has no 'reproduce' — a "
                 "kept result must say how to re-run it.")
+        if f.get("verified") and not _has_rerunnable_artifact(f.get("artifact")):
+            errors.append(
+                f"findings[{i}] is marked verified but carries no re-runnable "
+                "'artifact' ({file, quantity} for a saved code file, or "
+                "{substrate_id, typed_input, quantity} for a tool) — an "
+                "independent re-run must be able to regenerate the value.")
     if not isinstance(data.get("publishable"), bool):
         errors.append("'publishable' must be a boolean.")
     return errors
 
 
-def _verification_record(result: dict) -> dict:
-    """Map the free result into the shape the PI director reads
-    (pi_agent.dispatch._read_verification): {verdicts, publishable, verified,
-    total}. So a free investigation feeds the director's arc exactly as any run."""
-    findings = result.get("findings") or []
-    verdicts = []
-    for f in findings:
-        verified = bool(f.get("verified"))
-        verdicts.append({
+def _has_rerunnable_artifact(art) -> bool:
+    """True when `art` names something the wall can independently re-run: a saved
+    workspace code file (file + quantity) or a substrate call (substrate_id +
+    quantity)."""
+    if not isinstance(art, dict):
+        return False
+    if art.get("file") and art.get("quantity"):
+        return True
+    return bool(art.get("substrate_id") and art.get("quantity"))
+
+
+def _finding_artifact(art, workspace) -> Optional[dict]:
+    """Translate a finding's model-authored `artifact` into the verification
+    wall's artifact shape, or None. A code file becomes a workspace_file artifact
+    with its path resolved ABSOLUTE against the run's workspace (where run_id is
+    known), so the wall's rerun stays a pure re-execution; a substrate artifact
+    is passed straight to the substrate kind."""
+    if not isinstance(art, dict):
+        return None
+    if art.get("file"):
+        path = art["file"]
+        if workspace is not None:
+            path = str((Path(workspace) / art["file"]).resolve())
+        return {"kind": "workspace_file", "path": path,
+                "quantity": art.get("quantity")}
+    if art.get("substrate_id"):
+        out = {"kind": "substrate"}
+        out.update({k: v for k, v in art.items()})
+        return out
+    return None
+
+
+def _claims_from_findings(findings: list, workspace) -> list:
+    """One wall claim per finding: {value, artifact, label}. A finding with no
+    re-runnable artifact carries artifact None, which the wall reports as
+    'no_artifact' rather than dropping (an unverifiable claim must be counted,
+    not silently shrink the denominator)."""
+    return [
+        {
+            "value": f.get("value"),
+            "artifact": _finding_artifact(f.get("artifact"), workspace),
             "label": f.get("label"),
-            "verified": verified,
-            "reproduced": f.get("value") if verified else None,
-            "original": f.get("value"),
-            "reason": f.get("reproduce"),
-        })
-    return {
-        "verdicts": verdicts,
-        "publishable": bool(result.get("publishable")),
-        "verified": sum(1 for f in findings if f.get("verified")),
-        "total": len(findings),
-    }
+        }
+        for f in findings
+    ]
 
 
-def run_free_investigation(goal, *, run_id=None, call=None) -> dict:
+def run_free_investigation(goal, *, run_id=None, call=None, verify=None) -> dict:
     """Host a FREE FULL agent on `goal` and return its structured result. `call`
-    is injected for tests; production uses call_stage_model with the FULL profile
-    (every tool + connector). Writes runs/<run_id>/free_investigation.json and a
-    director-readable verification.json when run_id names an existing run dir.
+    and `verify` are injected for tests; production uses call_stage_model (FULL
+    profile — every tool + connector) and stages.verification.verify_run. Writes
+    runs/<run_id>/free_investigation.json and a director-readable
+    verification.json when run_id names an existing run dir.
 
     NO substrate cage: the agent is not handed a substrate menu and is not
     constrained to a composition recipe — it investigates directly."""
@@ -114,12 +150,11 @@ def run_free_investigation(goal, *, run_id=None, call=None) -> dict:
     # dir; otherwise workspace stays None and the agent keeps the default cwd
     # (call-free tests are byte-identical). model_call sets PYTHONPATH to the
     # repo root under the workspace, so `from tools.run_X import ...` still works.
+    run_dir = Path("runs") / str(run_id) if run_id else None
     workspace = None
-    if run_id:
-        run_dir = Path("runs") / str(run_id)
-        if run_dir.is_dir():
-            workspace = (run_dir / "workspace").resolve()
-            workspace.mkdir(exist_ok=True)
+    if run_dir is not None and run_dir.is_dir():
+        workspace = (run_dir / "workspace").resolve()
+        workspace.mkdir(exist_ok=True)
     with agent_workspace(workspace):
         data, _timing = call(
             FREE_STAGE_NAME,
@@ -136,11 +171,32 @@ def run_free_investigation(goal, *, run_id=None, call=None) -> dict:
         "findings": data.get("findings") or [],
         "publishable": bool(data.get("publishable")),
     }
-    if run_id:
-        run_dir = Path("runs") / str(run_id)
-        if run_dir.is_dir():
-            (run_dir / "free_investigation.json").write_text(
-                json.dumps(result, indent=2))
-            (run_dir / "verification.json").write_text(
-                json.dumps(_verification_record(result), indent=2))
+    if run_dir is not None and run_dir.is_dir():
+        # CONTROLLER RE-VERIFY (the wall is authoritative). A deterministic,
+        # no-model pass re-runs each finding's saved artifact and its verdict —
+        # not the agent's self-report — sets `verified`. It can only REMOVE
+        # trust: a number the agent claimed verified that does not reproduce
+        # drops the run's `publishable`; an honest unverified finding is a
+        # caveat, not a claim, and never gates. verify_run writes the
+        # director-readable verification.json.
+        if verify is None:
+            from stages.verification import verify_run
+            verify = verify_run
+        # The CLAIMS are the findings the agent kept as verified; each must
+        # reproduce. A finding marked verified:false is an honest caveat, not a
+        # claim — it is left untouched and never gates publishability.
+        claimed = [(i, f) for i, f in enumerate(result["findings"])
+                   if f.get("verified")]
+        claims = _claims_from_findings([f for _, f in claimed], workspace)
+        summary = verify(claims, run_id=str(run_id))  # writes verification.json
+        by_index = {v.get("claim_index"): v for v in summary.get("verdicts", [])}
+        all_reproduce = True
+        for claim_i, (finding_i, _f) in enumerate(claimed):
+            wall_verified = bool(by_index.get(claim_i, {}).get("verified"))
+            if not wall_verified:
+                all_reproduce = False
+            result["findings"][finding_i]["verified"] = wall_verified
+        result["publishable"] = bool(result["publishable"]) and all_reproduce
+        (run_dir / "free_investigation.json").write_text(
+            json.dumps(result, indent=2))
     return result
