@@ -110,6 +110,7 @@ def investigate(
     runs_root: Path = Path("runs"),
     decide: Callable = None,
     run_move: Callable = None,
+    run_fan: Callable = None,
 ) -> dict:
     """Run one investigation to completion and return its report.
 
@@ -127,6 +128,8 @@ def investigate(
         from pi_agent.decider import decide as decide
     if run_move is None:
         from pi_agent.study import run_study_move as run_move
+    if run_fan is None:
+        from pi_agent.study import run_study_fan as run_fan
 
     study = create_study(
         goal,
@@ -170,6 +173,27 @@ def investigate(
                 "detail": decision.get("stop_reason"),
             }
             break
+
+        if decision.get("decision") == "run_fan":
+            # BROAD cycle: several competing sub-questions tested in parallel,
+            # each its own run, all recorded before the next decision reads them.
+            # Capped to the remaining move budget so a fan can never overrun the
+            # hard ceiling — a fan of N spends N of the budget.
+            remaining = max_moves - moves_used
+            domains = [
+                d for d in (decision.get("fan_domains") or [])
+                if isinstance(d, str) and d.strip()
+            ][:remaining]
+            fan_moves = [
+                Move(type=MoveType.SINGLE, domain=d, mode=study.mode)
+                for d in domains
+            ]
+            run_fan(
+                study, fan_moves,
+                findings=[decision.get("rationale")] * len(fan_moves),
+                runs_root=runs_root,
+            )
+            continue
 
         move = _move_from_decision(decision, study)
         # The finding recorded with the move is the PI's going-in reasoning; the

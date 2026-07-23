@@ -55,7 +55,7 @@ PI_DECIDER_MODEL = model_for("heavy")
 # layer, and that it is allowed to roam.
 PI_DECIDER_STAGE = "pi_decider"
 
-DECISION_VALUES = ("run_single", "run_campaign", "stop")
+DECISION_VALUES = ("run_single", "run_campaign", "run_fan", "stop")
 
 SYSTEM_PROMPT = """You are the principal investigator of an autonomous research system. You hold one goal for an entire investigation, and you drive it by choosing a sequence of experiments — an arc — where each experiment follows from what the last ones showed.
 
@@ -66,17 +66,18 @@ Each move you choose becomes a full pipeline run on its own. You do NOT design t
 The moves available to you:
 - "run_single": one experiment answering one question. Use it to open a line, or to test a specific new question raised by a previous result.
 - "run_campaign": an iterated experiment that sweeps and refines around a question under its own budget. Use it when a question needs several related measurements, not one.
+- "run_fan": several experiments AT ONCE, in parallel — one per competing sub-question or rival hypothesis. Use it to explore a cycle BROADLY rather than one line at a time: when the next step is not one question but two-to-four that deserve testing side by side (rival mechanisms, a parameter's extremes, competing explanations). Put the questions in "fan_domains"; they run concurrently, each as its own run, and you synthesise their results together on your next turn. Each fan run counts as one move against your budget, and each picks its own instrument. Prefer a fan when you would otherwise waste moves testing the same alternatives one after another.
 - "stop": end the investigation. Choose this when the goal is answered, when the arc has converged, or when further moves are unlikely to help (for example, repeated halts that a new question would not fix). Do not spend moves for their own sake.
 
 CHOOSING THE INSTRUMENT. You are given an INSTRUMENT MENU: the substrates available to this study, and for each one what it can vary and what it can measure. For a run move you MAY name one instrument from that menu — set "instrument" to its substrate_id — when the result so far, or the nature of the question, tells you a particular tool is right (for example, a surprising result that points to a different measurement). If you leave "instrument" null, the run picks the instrument itself from the same menu. You may only name an instrument that is on the menu; naming one that is not is refused.
 
 You read RESULTS, not raw measurements. Each arc entry carries the run's verified findings — the values it measured and whether each one independently reproduced — plus whether its paper stood. Reason over those. You never re-run or restate a number yourself: a measurement of record always comes from the instrument and its verification, never from you. "Revising the hypothesis" means asking a sharper next question: each run re-forms its hypotheses from the question you give it.
 
-Reply ONLY with JSON of the form {"ack": "<the study_id you were given>", "reading": "<one or two sentences: what the most recent move's result showed, and what it means for the goal; null if no moves have run yet>", "decision": "run_single" | "run_campaign" | "stop", "rationale": "<1-3 sentences: why this next move, or why stop>", "next_domain": "<the exact question the next run should investigate; required unless the decision is stop, otherwise null>", "instrument": "<a substrate_id from the instrument menu to force for this move, or null to let the run choose; always null when the decision is stop>", "stop_reason": "<why the investigation is complete or should end; required only when the decision is stop, otherwise null>"} — no other fields anywhere."""
+Reply ONLY with JSON of the form {"ack": "<the study_id you were given>", "reading": "<one or two sentences: what the most recent move's result showed, and what it means for the goal; null if no moves have run yet>", "decision": "run_single" | "run_campaign" | "run_fan" | "stop", "rationale": "<1-3 sentences: why this next move, or why stop>", "next_domain": "<the exact question the next run should investigate; required for run_single/run_campaign, null for run_fan or stop>", "fan_domains": ["<question>", ...], "instrument": "<a substrate_id from the instrument menu to force for this move, or null to let the run choose; always null for run_fan and stop>", "stop_reason": "<why the investigation is complete or should end; required only when the decision is stop, otherwise null>"} — fan_domains is a list of 2-4 parallel questions when the decision is run_fan, otherwise null; no other fields anywhere."""
 
-SCHEMA = {"required": ["ack", "reading", "decision", "rationale", "next_domain", "instrument", "stop_reason"]}
+SCHEMA = {"required": ["ack", "reading", "decision", "rationale", "next_domain", "fan_domains", "instrument", "stop_reason"]}
 
-_ENVELOPE_FIELDS = ("ack", "reading", "decision", "rationale", "next_domain", "instrument", "stop_reason")
+_ENVELOPE_FIELDS = ("ack", "reading", "decision", "rationale", "next_domain", "fan_domains", "instrument", "stop_reason")
 
 
 def make_decision_validator(
@@ -113,16 +114,27 @@ def make_decision_validator(
                     "next_domain must be a non-empty question when the decision is "
                     "run_single or run_campaign."
                 )
+        elif decision == "run_fan":
+            fd = parsed.get("fan_domains")
+            if (not isinstance(fd, list) or len(fd) < 2
+                    or not all(isinstance(x, str) and x.strip() for x in fd)):
+                errors.append(
+                    "fan_domains must be a list of at least 2 non-empty questions "
+                    "when the decision is run_fan (each becomes one parallel run)."
+                )
         elif decision == "stop":
             sr = parsed.get("stop_reason")
             if not isinstance(sr, str) or not sr.strip():
                 errors.append("stop_reason must be a non-empty string when the decision is stop.")
         # instrument: null (let the run choose) is always valid; a named one
-        # must be on the menu the study can reach, and only for a run move.
+        # must be on the menu the study can reach, and only for a single/campaign
+        # move (a fan run picks its own instrument; a stop makes no move).
         instrument = parsed.get("instrument")
         if instrument is not None:
-            if decision == "stop":
-                errors.append("instrument must be null when the decision is stop.")
+            if decision in ("stop", "run_fan"):
+                errors.append(
+                    f"instrument must be null when the decision is {decision} "
+                    "(a fan run picks its own instrument; a stop makes no move).")
             elif choosable_instruments and instrument not in choosable_instruments:
                 errors.append(
                     f"instrument must be one of the menu {list(choosable_instruments)} "

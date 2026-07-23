@@ -271,11 +271,25 @@ def run_study_move(
     # set is refused loudly (that would breach the boundary the caller set); a
     # move that names a subset is honored (that is the PI picking its tool); a
     # move that names nothing inherits the study's full set.
+    _apply_study_bounds(study, move)
+    if not getattr(move, "run_id", None):
+        move.run_id = next_move_run_id(study)
+
+    result = invoke(move, runs_root=runs_root)
+    record_move(study, result, finding=finding)
+    return result
+
+
+def _apply_study_bounds(study: "Study", move: Any) -> None:
+    """Stamp the study's constraint and mode onto a move (shared by single moves
+    and fan moves). The study's allowed_substrates is the OUTER BOUND: a move may
+    NARROW within it (the PI picking a specific instrument) but a move naming a
+    substrate outside it is refused loudly; a move naming none inherits the full
+    set. The study's mode is carried unless the move deliberately set another."""
     if study.allowed_substrates:
         study_set = set(study.allowed_substrates)
         if move.allowed_substrates:
-            move_set = set(move.allowed_substrates)
-            outside = sorted(move_set - study_set)
+            outside = sorted(set(move.allowed_substrates) - study_set)
             if outside:
                 raise ValueError(
                     f"move constrains substrates to {sorted(move.allowed_substrates)}, "
@@ -288,14 +302,62 @@ def run_study_move(
             # Honor the move's narrower pick as-is (the PI's chosen instrument).
         else:
             move.allowed_substrates = list(study.allowed_substrates)
-
-    if not getattr(move, "run_id", None):
-        move.run_id = next_move_run_id(study)
-
-    # Carry the study's mode unless the move deliberately set another.
     if getattr(move, "mode", "auto") == "auto" and study.mode != "auto":
         move.mode = study.mode
 
-    result = invoke(move, runs_root=runs_root)
-    record_move(study, result, finding=finding)
-    return result
+
+def run_study_fan(
+    study: "Study",
+    moves: list,
+    *,
+    findings: Optional[list] = None,
+    invoke: Callable = None,
+    runs_root: Path = Path("runs"),
+    max_parallel: int = 4,
+) -> list:
+    """Run several moves CONCURRENTLY as one fan, then record them in the arc in
+    order — the PI testing competing sub-questions in parallel in a single cycle.
+
+    Concurrency is made safe here, not left to luck: run-ids are pre-assigned
+    sequentially (<study_id>-m<N>, distinct per move, so two runs never share a
+    dir), the subprocess invokes run in a bounded thread pool (each move is an
+    external process, so threads are the right tool), and the results are
+    appended to arc.jsonl SEQUENTIALLY afterward, so the append-only arc is never
+    written concurrently. A move that raises is caught and recorded as a failed
+    result the PI reads next cycle — one bad run never sinks the fan. Returns the
+    results in move order."""
+    if invoke is None:
+        from pi_agent.dispatch import invoke_move as invoke
+    import concurrent.futures
+
+    base = move_count(study) + 1
+    prepared = []
+    for i, move in enumerate(moves):
+        _apply_study_bounds(study, move)
+        move.run_id = f"{study.study_id}-m{base + i}"  # distinct, no collision
+        prepared.append(move)
+
+    results: list = [None] * len(prepared)
+
+    def _one(i_and_move):
+        i, move = i_and_move
+        try:
+            return i, invoke(move, runs_root=runs_root)
+        except Exception as e:  # noqa: BLE001 — a failed run is a result, not a fan crash
+            return i, {
+                "move_type": getattr(getattr(move, "type", None), "value", "single"),
+                "run_id": getattr(move, "run_id", None),
+                "succeeded": False,
+                "outcome": f"dispatch_error: {type(e).__name__}: {e}",
+                "raw": {},
+            }
+
+    workers = max(1, min(max_parallel, len(prepared) or 1))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as ex:
+        for i, res in ex.map(_one, list(enumerate(prepared))):
+            results[i] = res
+
+    for i, result in enumerate(results):
+        f = findings[i] if findings and i < len(findings) else None
+        record_move(study, result, finding=f)
+    return results

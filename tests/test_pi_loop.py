@@ -344,6 +344,7 @@ class TestRealDeciderPathTransportFaked(unittest.TestCase):
             "decision": "run_single",
             "rationale": "open the investigation on the core question",
             "next_domain": "is LP-predicted growth invariant just below the optimum?",
+            "fan_domains": None,
             "instrument": None,
             "stop_reason": None,
         })
