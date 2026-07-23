@@ -64,7 +64,12 @@ def _validate_action(action) -> dict:
         if not str(action.get("stop_reason") or "").strip():
             raise InvestigationError(
                 "'stop' is true, so 'stop_reason' must say why the investigation ends")
+        # `aborted` (Defect B) distinguishes an ERROR stop (e.g. the compose agent
+        # was unreachable after its retries) from a JUDGED stop (the strategy
+        # decided the question is answered). An aborted run does not stand even if
+        # every probe that ran reproduced. Absent => a normal judged stop.
         return {"stop": True, "stop_reason": action["stop_reason"],
+                "aborted": bool(action.get("aborted")),
                 "reasoning": action.get("reasoning", "")}
 
     recipe = action.get("recipe")
@@ -129,6 +134,7 @@ def run_investigation(strategy, *, max_iters: int = 8,
     measurements = []
     stop_reason = None
     stopped_by_budget = False
+    aborted = False
 
     for iteration in range(max_iters):
         state = {
@@ -140,6 +146,7 @@ def run_investigation(strategy, *, max_iters: int = 8,
         action = _validate_action(strategy(state))
         if action["stop"]:
             stop_reason = action["stop_reason"]
+            aborted = action.get("aborted", False)
             break
         record = _measure(action["recipe"], action["predicted_value"], rel_tol)
         record["iteration"] = iteration
@@ -158,7 +165,13 @@ def run_investigation(strategy, *, max_iters: int = 8,
         # publishable mirrors verify_run: something ran, and everything that ran
         # reproduced. A probe that failed to verify sinks the whole run's claim
         # to standing, exactly as one bad claim sinks a single-artifact paper.
-        "publishable": bool(measurements) and len(verified) == len(measurements),
+        # AND (Defect B): an ERROR-aborted run does not stand even if its probes
+        # reproduced — it was truncated, not concluded. The verified numbers are
+        # still recorded (the director reads them); the run is just not claimed.
+        "publishable": (bool(measurements)
+                        and len(verified) == len(measurements)
+                        and not aborted),
+        "aborted": aborted,
         "stopped_by_budget": stopped_by_budget,
         "stop_reason": stop_reason,
     }

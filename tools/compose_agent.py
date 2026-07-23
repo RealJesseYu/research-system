@@ -52,6 +52,13 @@ from tools.substrate_registry import (
 COMPOSE_STAGE_NAME = "experiment_compose_agent"
 COMPOSE_MODEL = "claude-opus-4-8"
 
+# Bounded transport retry for the tooled compose call (2026-07-22 director-run
+# fix, Defect A). call_stage_model does NOT retry BENCH/tooled calls, so a single
+# transient SDK/transport glitch on one probe proposal used to abort a whole
+# investigation. Proposing a probe is idempotent (no side effects), so re-issuing
+# the same call is safe; we retry a bounded number of times before giving up.
+COMPOSE_MAX_TRANSPORT_ATTEMPTS = 3
+
 
 SYSTEM_PROMPT = """You are running an investigation at the bench. You have the
 contracts of every scientific instrument you may route to, a code sandbox, and
@@ -298,22 +305,39 @@ def propose_composition_probe(state, context=None) -> dict:
         "probes_run_so_far": len(measurements),
     }
 
-    try:
-        data, _timing = call_stage_model(
-            COMPOSE_STAGE_NAME,
-            SYSTEM_PROMPT,
-            stage_input,
-            {},  # permissive at the door; the real check is the validator below
-            model=COMPOSE_MODEL,
-            extra_validator=_validate_proposal,
-            capabilities=BENCH,
-        )
-    except Exception as e:  # noqa: BLE001 — a tooled call gets no transport retry
+    # Bounded transport retry (Defect A): a transient SDK/transport glitch on one
+    # probe proposal must not abort the whole arc. Validation failures are handled
+    # INSIDE call_stage_model's re-ask loop; this retry is only for a whole-call
+    # transport exception. Only after the attempts are exhausted do we stop — and
+    # then as an ABORT (aborted=True), which sinks publishability (Defect B): a run
+    # truncated by an error is not a standing result even if its probes reproduced.
+    data = None
+    last_exc = None
+    for _attempt in range(COMPOSE_MAX_TRANSPORT_ATTEMPTS):
+        try:
+            data, _timing = call_stage_model(
+                COMPOSE_STAGE_NAME,
+                SYSTEM_PROMPT,
+                stage_input,
+                {},  # permissive at the door; the real check is the validator below
+                model=COMPOSE_MODEL,
+                extra_validator=_validate_proposal,
+                capabilities=BENCH,
+            )
+            last_exc = None
+            break
+        except Exception as e:  # noqa: BLE001
+            last_exc = e
+    if last_exc is not None:
         return {
             "recipe": None,
             "predicted_value": None,
             "stop": True,
-            "stop_reason": f"compose agent unavailable: {type(e).__name__}: {e}",
+            "aborted": True,
+            "stop_reason": (
+                f"compose agent unavailable after {COMPOSE_MAX_TRANSPORT_ATTEMPTS} "
+                f"attempts: {type(last_exc).__name__}: {last_exc}"
+            ),
             "reasoning": (
                 "the compose agent could not be reached, so the investigation "
                 "stops here rather than continuing on an unverified guess"
