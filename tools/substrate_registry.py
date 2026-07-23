@@ -757,6 +757,34 @@ def is_approximate(substrate_id: str) -> bool:
     return instrument_class_of(substrate_id) != EXACT
 
 
+def substrate_tools_catalog() -> str:
+    """A plain-text catalog of the specialized tools the FREE experimenter MAY
+    reach for (PRIME DIRECTIVE: substrates are optional tools, never a gate).
+
+    One line per routable substrate — its id, its validated wrapper module, and a
+    caveat where the tool is APPROXIMATE (can converge to a confidently-wrong
+    number). This is INFORMATION, not a limit: the header says so, and the agent
+    may equally use code, the web, a connector, or anything else. The interface is
+    NOT restated here (no second table) — the agent reads the wrapper source or
+    contract_for('<id>') for it, which it is smart enough to do."""
+    lines = [
+        "SPECIALIZED TOOLS you MAY reach for (optional conveniences, NOT a "
+        "boundary): each runs a validated wrapper for a task that is awkward in "
+        "plain code (a solver, a cheminformatics library, a bioinformatics "
+        "pipeline). Read the wrapper source, or contract_for('<id>') in "
+        "tools/substrate_registry.py, for the exact interface, then call it. You "
+        "are NOT limited to these — use any code, tool, or connector that helps.",
+    ]
+    for sid in routable_ids():
+        rec = _BY_ID[sid]
+        tag = (" — APPROXIMATE: can converge to a confidently WRONG number; "
+               "sanity-check it, don't trust it blindly"
+               if is_approximate(sid) else " — deterministic (re-running IS the "
+               "check)")
+        lines.append(f"- {sid}  [wrapper: {rec.wrapper}]{tag}")
+    return "\n".join(lines)
+
+
 def routable_ids() -> tuple[str, ...]:
     """The substrate ids the pipeline may route execution to, in enrollment
     order. This is the registry's answer to 'what can a run execute on' — it

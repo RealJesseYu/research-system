@@ -102,5 +102,26 @@ class TestCapabilityProfile(unittest.TestCase):
         capability_guard.assert_profile_allowed(FREE_STAGE_NAME, FULL.name)
 
 
+class TestToolCatalogExposedOptionally(unittest.TestCase):
+    """Substrates are OPTIONAL tools the free agent may reach for (PRIME
+    DIRECTIVE) — the prompt lists them with an approximate caveat and an explicit
+    'not a boundary' framing, never as a gate."""
+
+    def test_prompt_lists_tools_as_optional_with_caveats(self):
+        captured = {}
+
+        def capture_call(stage, sysprompt, inp, schema, **kw):
+            captured["sp"] = sysprompt
+            return _FAKE_RESULT, {"model": "fake"}
+
+        run_free_investigation("q", call=capture_call)
+        sp = captured["sp"]
+        self.assertIn("SPECIALIZED TOOLS", sp)
+        self.assertIn("NOT a boundary", sp)         # optional, not a gate
+        self.assertIn("rdkit", sp)                  # a deterministic tool
+        self.assertIn("cavity_2d_cfd", sp)          # an approximate tool
+        self.assertIn("confidently WRONG", sp)      # the approximate caveat
+
+
 if __name__ == "__main__":
     unittest.main()

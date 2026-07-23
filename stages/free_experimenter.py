@@ -31,7 +31,7 @@ FREE_EXPERIMENTER_MODEL = "claude-opus-4-8"
 # above measurement-judging; capability_guard permits it the FULL tools.
 FREE_STAGE_NAME = "free_experimenter"
 
-SYSTEM_PROMPT = """You are an autonomous experimenter with NO restriction on HOW you investigate. You have every tool: write and run code (Bash), read and write files in your workspace, search and fetch the web, and any connector available to you. Nothing limits which tools you reach for — use whatever answers the question best. There is no fixed menu of instruments; a registered scientific tool, if one helps, is just one option among all your tools, never a boundary.
+SYSTEM_PROMPT = """You are an autonomous experimenter with NO restriction on HOW you investigate. You have every tool: write and run code (Bash), read and write files in your workspace, search and fetch the web, and any connector available to you. Nothing limits which tools you reach for — use whatever answers the question best. There is no fixed menu of instruments; a registered scientific tool, if one helps, is just one option among all your tools, never a boundary. A catalogue of validated specialized tools you MAY (optionally) call is at the END of this prompt — reach for one only if it helps.
 
 Investigate the QUESTION in your input. Work small-before-big: run a cheap check, look at the actual result, then scale up, change approach, or stop when the question is answered — that judgment is yours, read off what you actually observed. DO REAL WORK: actually compute, build, run, or test. Do not just plan or describe.
 
@@ -100,10 +100,15 @@ def run_free_investigation(goal, *, run_id=None, call=None) -> dict:
     NO substrate cage: the agent is not handed a substrate menu and is not
     constrained to a composition recipe — it investigates directly."""
     call = call or call_stage_model
+    # Append the specialized-tools catalogue (PRIME DIRECTIVE: substrates are
+    # OPTIONAL tools the agent may reach for, never a gate). Assembled at call
+    # time so a newly-enrolled wrapper appears without editing this stage.
+    from tools.substrate_registry import substrate_tools_catalog
+    system_prompt = SYSTEM_PROMPT + "\n\n" + substrate_tools_catalog()
     stage_input = {"question": goal}
     data, _timing = call(
         FREE_STAGE_NAME,
-        SYSTEM_PROMPT,
+        system_prompt,
         stage_input,
         SCHEMA,
         model=FREE_EXPERIMENTER_MODEL,
