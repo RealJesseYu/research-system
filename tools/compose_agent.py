@@ -40,8 +40,8 @@ from stages.verification import _ARTIFACT_RESOLVERS, ArtifactError, _validate_re
 from tools.bench_agent import BENCH
 from tools.substrate_registry import (
     is_approximate,
+    permitted_ids,
     routable_contracts_block,
-    routable_ids,
 )
 
 # NOT a stage3/4/5/6* name, deliberately: capability_guard forbids the
@@ -237,15 +237,20 @@ def _validate_proposal(proposal) -> list:
     # each step's payload. Check the payloads too, so a substrate step missing
     # its input — or naming an un-routable instrument — is re-asked rather than
     # raising out of run_composition and destroying the investigation.
-    routable = set(routable_ids())
+    # permitted_ids() = routable narrowed by this run's constraint (unconstrained
+    # => identical to routable_ids). Using it makes the study's allowed_substrates
+    # actually BIND the experimenter's tool menu — asking routable_ids() instead
+    # is how a constraint becomes decorative (registry docstring; the ④.3
+    # de-funnel relies on this binding).
+    permitted = set(permitted_ids())
     for step in steps:
         sid_label = step.get("step_id")
         if step.get("kind") == "substrate":
             sid = step.get("substrate_id")
-            if sid not in routable:
+            if sid not in permitted:
                 errors.append(
                     f"step {sid_label!r} routes to {sid!r}, which is not a "
-                    f"routable instrument (routable: {sorted(routable)})")
+                    f"permitted instrument for this run (permitted: {sorted(permitted)})")
             elif is_approximate(sid):
                 # R-ROUTE-3 (docs/memo_phase3_routing.md): the experimenter loop
                 # IS the exact-tool path. An APPROXIMATE instrument can converge
@@ -299,7 +304,7 @@ def propose_composition_probe(state, context=None) -> dict:
         "budget_remaining": state.get("budget_remaining"),
         "routable_substrate_contracts": routable_contracts_block(),
         "exact_instruments_you_may_compose": [
-            sid for sid in routable_ids() if not is_approximate(sid)],
+            sid for sid in permitted_ids() if not is_approximate(sid)],
         "artifact_resolver_methods": sorted(_ARTIFACT_RESOLVERS),
         "prior_probes": _prior_probe_digest(measurements),
         "probes_run_so_far": len(measurements),

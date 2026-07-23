@@ -1412,6 +1412,26 @@ def routed_instrument_is_exact(baton: Baton) -> bool:
         return False
 
 
+def run_is_all_exact_constrained() -> bool:
+    """Step ④.3 (docs/design_step4_3_defunnel.md): True when this run is scoped
+    (ALLOWED_SUBSTRATES) to a NON-EMPTY set of substrates that are ALL exact.
+    That is the de-funnel trigger — the experimenter can compose the whole
+    permitted exact set with no fidelity gate and no need for gate 1 to pick one
+    instrument, so the run skips ideation + gate 1 and investigates the domain
+    directly. Unconstrained, or ANY permitted substrate approximate/unknown =>
+    False (keep ideation → gate 1 → the fidelity pipeline; the fail-safe
+    direction, matching routed_instrument_is_exact)."""
+    from tools import substrate_registry as registry
+
+    constrained = registry.allowed_constraint()
+    if not constrained:
+        return False
+    try:
+        return all(not registry.is_approximate(sid) for sid in constrained)
+    except KeyError:
+        return False
+
+
 def run_exact_route(logger: Logger, baton: Baton, run_dir: Path, mode: str,
                     exact_strategy=None) -> None:
     """The exact-tool experiment path: the experimenter loop REPLACES static
@@ -1443,8 +1463,10 @@ def run_exact_route(logger: Logger, baton: Baton, run_dir: Path, mode: str,
     chosen = baton.payload.get("chosen_hypothesis") or {}
     goal = (chosen.get("statement") if isinstance(chosen, dict) else None) \
         or baton.payload.get("domain")
+    instrument_desc = (f"instrument {sid} is exact" if sid
+                       else "run scoped to an all-exact toolset (④.3 direct)")
     logger.log(
-        f"EXACT ROUTE: instrument {sid} is exact — the experimenter loop replaces "
+        f"EXACT ROUTE: {instrument_desc} — the experimenter loop replaces "
         "stages 2-5; fidelity gate skipped as a non-question (R-ROUTE-2)"
     )
     result = run_exact_investigation(strategy, run_id=baton.run_id, goal=goal)
@@ -1508,6 +1530,7 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
     `stages` is a test seam (stub stages, no model calls); production uses
     the module STAGES.
     """
+    using_production = stages is None
     stages = STAGES if stages is None else stages
     # Step ④.1 (docs/plan_step4_free_the_entrance.md): the supervisor chooses the
     # ideation depth, default 'quick' (one literature-grounded generation, same
@@ -1516,8 +1539,23 @@ def run_relay(logger: Logger, baton: Baton, run_dir: Path, mode: str, stages=Non
     # test stubs pass their own `stages` and are left byte-identical (their
     # stage-1 fn takes only `baton`). stage1_ideation.run's OWN default stays
     # 'full', protecting the kill-rate battery and direct callers.
-    if stages is STAGES:
+    if using_production:
         stages = _stages_with_ideation_depth(stages, ideation_depth)
+    # Step ④.3 (docs/design_step4_3_defunnel.md): de-funnel the entrance. When the
+    # run is scoped to an all-exact toolset, SKIP ideation + gate 1 entirely and
+    # hand the experimenter the domain/question directly, composing the permitted
+    # exact set — no collapse to one hypothesis + one instrument. Gated on the
+    # constraint (not production-only, so it is exercisable via the test seam with
+    # a scripted strategy); unconstrained or any-approximate runs never trigger it
+    # and keep ideation → gate 1 byte-identical. The exact route ends the run and
+    # never forms the post-gate-1 payload, so the locked schema is untouched.
+    if exact_route_active() and run_is_all_exact_constrained():
+        logger.log(
+            "EXACT-DIRECT (④.3): run scoped to an all-exact toolset — skipping "
+            "ideation + gate 1; the experimenter investigates the domain directly"
+        )
+        run_exact_route(logger, baton, run_dir, mode, exact_strategy)
+        return
     execution_counts: dict[int, int] = {}
     loopbacks_used = 0
     forced_exit_reason = None  # R-14-G2: set to "loop_bound" on a cap exit

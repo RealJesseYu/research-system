@@ -104,7 +104,11 @@ class TestProposalValidation(unittest.TestCase):
                   "combine": {"kind": "code", "code": "metrics['o']=inputs['s']",
                               "quantity": "o", "inputs": ["s"]}}
         errs = self._errs({"reasoning": "r", "recipe": recipe})
-        self.assertTrue(any("not a routable instrument" in e for e in errs))
+        # ④.3: the menu is now permitted_ids (routable narrowed by the run's
+        # constraint); unconstrained it equals routable, so this unknown tool is
+        # still refused — with the permitted-for-this-run wording.
+        self.assertTrue(any("not a permitted instrument for this run" in e
+                            for e in errs))
 
     def test_a_substrate_step_without_typed_input_is_refused(self):
         # rdkit is a real routable instrument, so this isolates the missing input
