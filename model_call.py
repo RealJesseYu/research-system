@@ -17,8 +17,11 @@ the validation error appended, and fail loudly after 3 total attempts.
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import contextvars
 import inspect
 import json
+import os
 import re
 import time
 from pathlib import Path
@@ -41,6 +44,50 @@ import cost_meter
 HAIKU_MODEL = "claude-haiku-4-5-20251001"
 
 MAX_ATTEMPTS = 3
+
+# The repo root — used to keep substrate wrappers (tools.run_*) importable from
+# a tooled agent whose cwd is a per-run workspace elsewhere on disk.
+_PROJECT_ROOT = Path(__file__).resolve().parent
+
+# Per-run WORKSPACE for a TOOLED agent (the free experimenter). The caller sets
+# it via agent_workspace(); a tooled call then runs with the SDK cwd there, so
+# the agent's Bash/Read/Write land in runs/<id>/workspace/ instead of the repo
+# root. Ambient (a ContextVar) rather than threaded through the transport-retry
+# seam, which does signature introspection a new positional arg would disturb.
+# None (the default) => the SDK's own cwd (the repo root), so every SEALED stage
+# and every non-workspace call is byte-identical to before.
+_AGENT_CWD: "contextvars.ContextVar[Optional[str]]" = contextvars.ContextVar(
+    "agent_cwd", default=None
+)
+
+
+@contextlib.contextmanager
+def agent_workspace(path):
+    """Run the tooled calls inside this block with the agent's working directory
+    set to `path` (its private per-run workspace). `path=None` is a no-op — the
+    agent keeps the default cwd (repo root). Sealed calls make no tool calls, so
+    this never affects them."""
+    token = _AGENT_CWD.set(str(path) if path else None)
+    try:
+        yield
+    finally:
+        _AGENT_CWD.reset(token)
+
+
+def _workspace_option_kwargs(uses_tools: bool) -> dict:
+    """The cwd + env kwargs for ClaudeAgentOptions when a tooled agent has an
+    active workspace; {} otherwise (SDK default cwd, byte-identical old path).
+
+    PYTHONPATH is set to the repo root (prepended to any inherited value) so a
+    substrate wrapper import — `from tools.run_rdkit import run_rdkit` — still
+    resolves from the workspace. The SDK MERGES this env onto the inherited
+    process env, so PATH and everything else survive."""
+    cwd = _AGENT_CWD.get()
+    if not (uses_tools and cwd):
+        return {}
+    existing = os.environ.get("PYTHONPATH", "")
+    pythonpath = str(_PROJECT_ROOT) + (os.pathsep + existing if existing else "")
+    return {"cwd": cwd, "env": {"PYTHONPATH": pythonpath}}
 
 _DISALLOWED_TOOLS = [
     "Bash", "Read", "Write", "Edit", "Glob", "Grep",
@@ -190,6 +237,10 @@ async def _ask_once(
         # no tool calls, so attaching it there would be dead weight.
         **({"can_use_tool": capability_guard.make_can_use_tool(stage_name)}
            if caps.uses_tools else {}),
+        # Per-run workspace: an isolated cwd (+ PYTHONPATH to the repo root) when
+        # the caller wrapped this in agent_workspace(); {} otherwise, so the
+        # default-cwd path is unchanged.
+        **_workspace_option_kwargs(caps.uses_tools),
     )
     # The SDK requires STREAMING input (an AsyncIterable) whenever a
     # can_use_tool callback is attached — a bare string prompt is rejected with

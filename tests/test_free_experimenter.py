@@ -79,6 +79,91 @@ class TestFreeInvestigation(unittest.TestCase):
         self.assertFalse(labels["hypothesis_X"]["verified"])
 
 
+class TestPerRunWorkspace(unittest.TestCase):
+    """The free agent runs in an isolated per-run workspace (runs/<id>/workspace/)
+    so its artifacts land there, not in the repo root. free_experimenter creates
+    the dir and activates model_call.agent_workspace() around the call."""
+
+    def test_workspace_created_and_active_during_the_call(self):
+        import os
+
+        import model_call
+        seen = {}
+
+        def recording_call(stage, sp, inp, schema, **kw):
+            # the workspace cwd is active for the DURATION of the call
+            seen["cwd"] = model_call._AGENT_CWD.get()
+            return _FAKE_RESULT, {"model": "fake"}
+
+        with tempfile.TemporaryDirectory() as d:
+            cwd = os.getcwd()
+            os.chdir(d)
+            try:
+                (Path("runs") / "wsrun").mkdir(parents=True)
+                run_free_investigation("q", run_id="wsrun", call=recording_call)
+                ws = Path("runs") / "wsrun" / "workspace"
+                self.assertTrue(ws.is_dir())                    # dir created
+                self.assertEqual(seen["cwd"], str(ws.resolve()))  # cwd active in-call
+            finally:
+                os.chdir(cwd)
+        # the context is reset once the call returns
+        self.assertIsNone(model_call._AGENT_CWD.get())
+
+    def test_no_run_id_keeps_the_default_cwd(self):
+        import model_call
+        seen = {}
+
+        def recording_call(stage, sp, inp, schema, **kw):
+            seen["cwd"] = model_call._AGENT_CWD.get()
+            return _FAKE_RESULT, {"model": "fake"}
+
+        run_free_investigation("q", call=recording_call)  # no run_id
+        self.assertIsNone(seen["cwd"])  # default cwd — byte-identical old path
+
+    def test_prompt_tells_the_agent_about_its_workspace(self):
+        captured = {}
+
+        def capture_call(stage, sysprompt, inp, schema, **kw):
+            captured["sp"] = sysprompt
+            return _FAKE_RESULT, {"model": "fake"}
+
+        run_free_investigation("q", call=capture_call)
+        self.assertIn("YOUR WORKSPACE", captured["sp"])
+        self.assertIn("relative paths", captured["sp"])
+        self.assertIn("from tools.run_rdkit import run_rdkit", captured["sp"])
+
+
+class TestWorkspaceOptionKwargs(unittest.TestCase):
+    """model_call: the cwd + PYTHONPATH the SDK gets for a tooled workspace call.
+    PYTHONPATH leads with the repo root so `from tools.run_X import ...` resolves
+    from the workspace; the SDK merges it onto the inherited env."""
+
+    def test_empty_without_an_active_workspace(self):
+        import model_call
+        self.assertEqual(model_call._workspace_option_kwargs(uses_tools=True), {})
+
+    def test_empty_for_a_sealed_call_even_inside_a_workspace(self):
+        import model_call
+        with model_call.agent_workspace("/tmp/ws"):
+            self.assertEqual(
+                model_call._workspace_option_kwargs(uses_tools=False), {})
+
+    def test_cwd_and_pythonpath_for_a_tooled_workspace_call(self):
+        import model_call
+        with model_call.agent_workspace("/tmp/ws"):
+            kw = model_call._workspace_option_kwargs(uses_tools=True)
+        self.assertEqual(kw["cwd"], "/tmp/ws")
+        self.assertTrue(
+            kw["env"]["PYTHONPATH"].startswith(str(model_call._PROJECT_ROOT)))
+
+    def test_context_manager_sets_and_resets(self):
+        import model_call
+        self.assertIsNone(model_call._AGENT_CWD.get())
+        with model_call.agent_workspace("/tmp/ws"):
+            self.assertEqual(model_call._AGENT_CWD.get(), "/tmp/ws")
+        self.assertIsNone(model_call._AGENT_CWD.get())
+
+
 class TestHonestyValidator(unittest.TestCase):
     def test_verified_finding_must_say_how_to_reproduce(self):
         errs = _validate_free_result({

@@ -23,7 +23,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from model_call import FULL, call_stage_model
+from model_call import FULL, agent_workspace, call_stage_model
 
 # Opus: the experimenter is the hard creative/analytic work (CLAUDE.md roles).
 FREE_EXPERIMENTER_MODEL = "claude-opus-4-8"
@@ -32,6 +32,8 @@ FREE_EXPERIMENTER_MODEL = "claude-opus-4-8"
 FREE_STAGE_NAME = "free_experimenter"
 
 SYSTEM_PROMPT = """You are an autonomous experimenter with NO restriction on HOW you investigate. You have every tool: write and run code (Bash), read and write files in your workspace, search and fetch the web, and any connector available to you. Nothing limits which tools you reach for — use whatever answers the question best. There is no fixed menu of instruments; a registered scientific tool, if one helps, is just one option among all your tools, never a boundary. A catalogue of validated specialized tools you MAY (optionally) call is at the END of this prompt — reach for one only if it helps.
+
+YOUR WORKSPACE: your current working directory is a private, initially-empty workspace for this run. Create and run every file there using relative paths (e.g. write "solve.py", run "python solve.py") — everything you save persists as this run's reproducible record. The specialized tools in the catalogue below remain importable from here exactly as shown (e.g. `from tools.run_rdkit import run_rdkit`).
 
 Investigate the QUESTION in your input. Work small-before-big: run a cheap check, look at the actual result, then scale up, change approach, or stop when the question is answered — that judgment is yours, read off what you actually observed. DO REAL WORK: actually compute, build, run, or test. Do not just plan or describe.
 
@@ -106,15 +108,28 @@ def run_free_investigation(goal, *, run_id=None, call=None) -> dict:
     from tools.substrate_registry import substrate_tools_catalog
     system_prompt = SYSTEM_PROMPT + "\n\n" + substrate_tools_catalog()
     stage_input = {"question": goal}
-    data, _timing = call(
-        FREE_STAGE_NAME,
-        system_prompt,
-        stage_input,
-        SCHEMA,
-        model=FREE_EXPERIMENTER_MODEL,
-        extra_validator=_validate_free_result,
-        capabilities=FULL,
-    )
+    # Per-run workspace: give the agent an isolated cwd (runs/<id>/workspace/) so
+    # its artifacts land there, reproducible-in-place with the run evidence,
+    # instead of polluting the repo root. Only when run_id names an existing run
+    # dir; otherwise workspace stays None and the agent keeps the default cwd
+    # (call-free tests are byte-identical). model_call sets PYTHONPATH to the
+    # repo root under the workspace, so `from tools.run_X import ...` still works.
+    workspace = None
+    if run_id:
+        run_dir = Path("runs") / str(run_id)
+        if run_dir.is_dir():
+            workspace = (run_dir / "workspace").resolve()
+            workspace.mkdir(exist_ok=True)
+    with agent_workspace(workspace):
+        data, _timing = call(
+            FREE_STAGE_NAME,
+            system_prompt,
+            stage_input,
+            SCHEMA,
+            model=FREE_EXPERIMENTER_MODEL,
+            extra_validator=_validate_free_result,
+            capabilities=FULL,
+        )
     result = {
         "goal": goal,
         "summary": data.get("summary"),
