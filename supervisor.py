@@ -1456,6 +1456,18 @@ def run_exact_route(logger: Logger, baton: Baton, run_dir: Path, mode: str,
     report_path = write_report(result, baton.run_id)
     if report_path is not None:
         logger.log(f"EXACT ROUTE: wrote report -> {report_path.name}")
+    # Stash the verification summary on the baton (NON-payload attribute, the same
+    # channel the static path's run_verification_pass uses) so record_run_outcome
+    # writes it into the run_record extras — the journal record of a routed run
+    # carries publishable/verified/total exactly as a static run's does, and the
+    # PI director is no longer blind to the result (2026-07-22 live-run fix).
+    from stages.experiment_report import build_verification
+    _v = build_verification(result)
+    baton._verification = {
+        "publishable": _v["publishable"],
+        "verified": _v["verified"],
+        "total": _v["total"],
+    }
     how_far = (
         "completed exact-route investigation (publishable)"
         if result["publishable"]

@@ -124,6 +124,41 @@ def render_report(result: dict) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def build_verification(result: dict) -> dict:
+    """Map a routed exact-tool investigation into the SAME shape the static
+    pipeline's verification.json uses (read by pi_agent.dispatch._read_verification),
+    so the PI director reads a routed run's verified findings exactly as it reads a
+    static run's. Pure and deterministic — the verification already happened inside
+    the experimenter loop (each probe re-run with no model); this only surfaces it
+    in the standard file so the director's arc is evidence-driven, not blind.
+
+    _read_verification takes value = reproduced when verified else original, so a
+    verified probe carries its reproduced number and an unreproduced one is still
+    surfaced (as `original`) rather than silently dropped."""
+    inv = result.get("investigation") or {}
+    measurements = inv.get("measurements") or []
+    verdicts = []
+    for m in measurements:
+        combine = (m.get("recipe") or {}).get("combine") or {}
+        label = combine.get("quantity") or f"probe {m.get('iteration')}"
+        verified = bool(m.get("verified"))
+        verdicts.append({
+            "label": label,
+            "verified": verified,
+            "reproduced": m.get("value") if verified else None,
+            "original": m.get("value"),
+            "reason": (f"reproduced (rel_error {m.get('rel_error')})" if verified
+                       else (m.get("produce_error") or m.get("reason")
+                             or "did not reproduce")),
+        })
+    return {
+        "verdicts": verdicts,
+        "publishable": bool(result.get("publishable")),
+        "verified": sum(1 for m in measurements if m.get("verified")),
+        "total": len(measurements),
+    }
+
+
 def write_report(result: dict, run_id: str) -> Path | None:
     """Render the routed-run report and write it to
     runs/<run_id>/exact_route_report.md. Returns the path, or None when the run
@@ -138,4 +173,9 @@ def write_report(result: dict, run_id: str) -> Path | None:
     # A machine-readable sibling too, so a later reader (or the PI) consumes the
     # verified facts without re-parsing prose.
     (run_dir / "exact_route_report.json").write_text(json.dumps(result, indent=2))
+    # verification.json in the STATIC pipeline's shape, so the PI director reads a
+    # routed run's verified findings through the same channel it already uses —
+    # the fix for the "director is blind to results" gap (2026-07-22 live run).
+    (run_dir / "verification.json").write_text(
+        json.dumps(build_verification(result), indent=2))
     return path
