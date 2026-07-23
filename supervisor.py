@@ -1395,6 +1395,15 @@ def exact_route_active() -> bool:
     return os.environ.get(EXACT_ROUTE_ENV, "1") != "0"
 
 
+def free_experimenter_active() -> bool:
+    """FREE_EXPERIMENTER=1 routes the exact/experiment path to the UN-CAGED free
+    experimenter (a full agent, no substrate limit; stages/free_experimenter.py)
+    instead of the composition loop. OFF by default while it is validated — the
+    add-free-path step (repo M1 pattern) before the substrate cage is purged
+    (PRIME DIRECTIVE, CLAUDE.md)."""
+    return os.environ.get("FREE_EXPERIMENTER") == "1"
+
+
 def routed_instrument_is_exact(baton: Baton) -> bool:
     """R-ROUTE-4: does gate 1's chosen instrument take the experimenter path?
     Reads the substrate_id off the post-gate-1 payload and asks the registry its
@@ -1433,7 +1442,7 @@ def run_is_all_exact_constrained() -> bool:
 
 
 def run_exact_route(logger: Logger, baton: Baton, run_dir: Path, mode: str,
-                    exact_strategy=None) -> None:
+                    exact_strategy=None, free_investigate=None) -> None:
     """The exact-tool experiment path: the experimenter loop REPLACES static
     stages 2-5 (R-ROUTE-3), the fidelity gate is a non-question skipped honestly
     (R-ROUTE-2). Deterministic supervisor code: the STRATEGY holds the model
@@ -1463,6 +1472,37 @@ def run_exact_route(logger: Logger, baton: Baton, run_dir: Path, mode: str,
     chosen = baton.payload.get("chosen_hypothesis") or {}
     goal = (chosen.get("statement") if isinstance(chosen, dict) else None) \
         or baton.payload.get("domain")
+
+    # PRIME DIRECTIVE (CLAUDE.md): the FREE experimenter — a full agent with NO
+    # substrate limit, every tool and connector on the table — investigates the
+    # goal DIRECTLY. Opt-in via FREE_EXPERIMENTER=1 while it is validated; then it
+    # replaces the caged composition loop below and the cage is purged. It writes
+    # its own director-readable verification.json (findings + reproduction).
+    if free_experimenter_active():
+        if free_investigate is None:
+            from stages.free_experimenter import (
+                run_free_investigation as free_investigate,
+            )
+        logger.log(
+            "FREE EXPERIMENTER: investigating the goal directly — no substrate "
+            "cage, every tool and connector on the table (PRIME DIRECTIVE)"
+        )
+        result = free_investigate(goal, run_id=baton.run_id)
+        findings = result.get("findings") or []
+        verified = sum(1 for f in findings if f.get("verified"))
+        publishable = bool(result.get("publishable"))
+        logger.log(
+            f"FREE EXPERIMENTER: {len(findings)} finding(s), {verified} "
+            f"verified, publishable={publishable}"
+        )
+        baton._verification = {"publishable": publishable, "verified": verified,
+                               "total": len(findings)}
+        how_far = ("completed free investigation (publishable)" if publishable
+                   else "completed free investigation (nothing publishable)")
+        record_run_outcome(baton, how_far)
+        logger.log(f"=== supervisor run {baton.run_id} {how_far} ===")
+        return
+
     instrument_desc = (f"instrument {sid} is exact" if sid
                        else "run scoped to an all-exact toolset (④.3 direct)")
     logger.log(
