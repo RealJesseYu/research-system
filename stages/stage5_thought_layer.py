@@ -47,8 +47,9 @@ from baton import Baton
 from memory.journal import journal_append
 from model_call import call_stage_model, log_stage_call
 from tools import substrate_registry as registry
+from models import model_for  # model-tier resolver
 
-OPUS_MODEL = "claude-opus-4-8"
+OPUS_MODEL = model_for("heavy")
 
 # The six CORE keys, always present, in assembly order. This stays exactly six
 # so the frozen anchor's (cavity's) turn keeps its byte-identical shape and

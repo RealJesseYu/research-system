@@ -278,7 +278,37 @@ def main() -> None:
         "(+figures) from the WALL-VERIFIED findings into runs/<id>/paper.md. "
         "Off by default.",
     )
+    # Model selection: two (three) knobs. heavy = experimenter/director/paper/
+    # hard judgments (default Opus); light = generation/reviews/evolution
+    # (default Sonnet); triage = web search / sealed passes (default Haiku).
+    # Each takes an alias (opus/sonnet/haiku) or a full model id.
+    parser.add_argument(
+        "--model-heavy", default=None,
+        help="model for the HEAVY tier — the experimenter, director, paper, and "
+        "hard judgments. Alias (opus/sonnet/haiku) or a full id. For an all-Opus "
+        "run: --model-heavy opus --model-light opus.",
+    )
+    parser.add_argument(
+        "--model-light", default=None,
+        help="model for the LIGHT workhorse tier — hypothesis generation, the "
+        "review chain, evolution (default sonnet).",
+    )
+    parser.add_argument(
+        "--model-triage", default=None,
+        help="model for the TRIAGE tier — web search and sealed low-stakes "
+        "passes (default haiku).",
+    )
     args = parser.parse_args()
+
+    # Set the model-tier knobs BEFORE anything that pins a model is imported
+    # (every model-bearing module is imported lazily, downstream of here), so a
+    # flag takes effect everywhere. Env vars RESEARCH_MODEL_HEAVY/LIGHT/TRIAGE do
+    # the same and are the fully-reliable route (set before launch).
+    import models
+    for _tier, _val in (("heavy", args.model_heavy), ("light", args.model_light),
+                        ("triage", args.model_triage)):
+        if _val:
+            models.set_tier(_tier, _val)
 
     run_id = args.run_id or make_run_id()
     run_dir = Path("runs") / run_id
@@ -286,6 +316,10 @@ def main() -> None:
     logger = Logger(run_dir / "log.txt")
 
     logger.log(f"=== supervisor run {run_id} starting in mode={args.mode} ===")
+    logger.log(
+        f"MODELS: heavy={models.model_for('heavy')} "
+        f"light={models.model_for('light')} triage={models.model_for('triage')}"
+    )
 
     # The constraint is resolved and announced BEFORE the experimenter starts, so
     # a malformed one stops the run early and a valid one is the first thing a

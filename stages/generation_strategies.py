@@ -61,11 +61,12 @@ if str(_RETRIEVAL_DIR) not in sys.path:
 from scholar_search import search_arxiv, search_openalex, search_semantic_scholar  # noqa: E402
 from search import search_index  # noqa: E402
 from web_search import web_search  # noqa: E402
+from models import model_for  # model-tier resolver
 
 # Step 18.7 downgrade: all four Generation strategies run on Haiku (the
 # Sonnet proving batch locked the baseline; the kill-rate/k battery is the
 # quality signal for this move).
-SONNET_MODEL = "claude-sonnet-4-6"
+SONNET_MODEL = model_for("light")
 
 TOP_K_PER_SOURCE = 3
 

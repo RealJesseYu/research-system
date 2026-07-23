@@ -29,8 +29,9 @@ import json
 from pathlib import Path
 
 from model_call import call_stage_model, log_stage_call
+from models import model_for  # model-tier resolver
 
-DESK_REVIEW_MODEL = "claude-opus-4-8"
+DESK_REVIEW_MODEL = model_for("heavy")
 
 # Bounded so a paper the reviewer keeps disliking cannot spin forever. Two
 # rewrites is the same budget the lint loop gets.

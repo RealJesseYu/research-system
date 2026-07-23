@@ -90,16 +90,17 @@ if str(_RETRIEVAL_DIR) not in sys.path:
 from scholar_search import search_arxiv, search_openalex, search_semantic_scholar  # noqa: E402
 from search import search_index  # noqa: E402
 from web_search import web_search  # noqa: E402
+from models import model_for  # model-tier resolver
 
 # Step 18.7 downgrade: initial/full/observation/simulation reviews run on
 # Haiku; deep verification stays on Sonnet — it feeds a DETERMINISTIC discard
 # with no judgment net downstream, so downgrading it is deferred to its own
 # watched move (see DEEP_VERIFY_MODEL at its sole use site).
-SONNET_MODEL = "claude-sonnet-4-6"
-DEEP_VERIFY_MODEL = "claude-sonnet-4-6"
+SONNET_MODEL = model_for("light")
+DEEP_VERIFY_MODEL = model_for("light")
 # Step 17-E ruled pin: review 6 is advisory (no kill path), so it runs on
 # the cheap tier, independent of the other pins.
-REVIEW6_MODEL = "claude-sonnet-4-6"
+REVIEW6_MODEL = model_for("light")
 
 TOP_K_PER_SOURCE = 3
 

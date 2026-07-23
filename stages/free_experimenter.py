@@ -24,9 +24,10 @@ import json
 from pathlib import Path
 
 from model_call import FULL, agent_workspace, call_stage_model
+from models import model_for  # model-tier resolver
 
 # Opus: the experimenter is the hard creative/analytic work (CLAUDE.md roles).
-FREE_EXPERIMENTER_MODEL = "claude-opus-4-8"
+FREE_EXPERIMENTER_MODEL = model_for("heavy")
 # NON-sealed name on purpose: the free experimenter ROAMS (FULL profile). It is
 # above measurement-judging; capability_guard permits it the FULL tools.
 FREE_STAGE_NAME = "free_experimenter"

@@ -45,8 +45,9 @@ if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
 import cost_meter  # noqa: E402
+from models import model_for  # model-tier resolver
 
-HAIKU_MODEL = "claude-haiku-4-5-20251001"
+HAIKU_MODEL = model_for("triage")
 MAX_TURNS = 6  # enough turns to search and read before answering
 SNIPPET_CAP = 1400
 

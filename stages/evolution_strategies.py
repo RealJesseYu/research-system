@@ -75,10 +75,11 @@ if str(_RETRIEVAL_DIR) not in sys.path:
     sys.path.insert(0, str(_RETRIEVAL_DIR))
 
 from scholar_search import search_openalex  # noqa: E402
+from models import model_for  # model-tier resolver
 
 # Explicit ruled pin: Evolution emits on Sonnet regardless of Generation's
 # Step-18.7 Haiku downgrade — variant authorship is judged worth the tier.
-EVOLUTION_MODEL = "claude-sonnet-4-6"
+EVOLUTION_MODEL = model_for("light")
 EVOLUTION_MAX_VARIANTS = 2
 
 # Variant 2's strategy rotates over these; variant 1 is always simplification.

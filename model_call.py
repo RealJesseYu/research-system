@@ -40,8 +40,9 @@ from claude_agent_sdk import (
 
 import capability_guard
 import cost_meter
+from models import model_for  # model-tier resolver
 
-HAIKU_MODEL = "claude-haiku-4-5-20251001"
+HAIKU_MODEL = model_for("triage")
 
 MAX_ATTEMPTS = 3
 

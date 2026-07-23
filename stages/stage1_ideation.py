@@ -122,8 +122,9 @@ from stages.meta_review import (
     empty_feedback,
 )
 from stages.reflection_reviews import reflect_on_pool
+from models import model_for  # model-tier resolver
 
-OPUS_MODEL = "claude-opus-4-8"
+OPUS_MODEL = model_for("heavy")
 
 RANKING_SYSTEM_PROMPT_V2 = (
     "You are a comparative-judge stage in an autonomous research pipeline, evaluating two "

@@ -46,9 +46,10 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 
 from model_call import FULL, call_stage_model
+from models import model_for  # model-tier resolver
 
 # Opus: choosing the next move is a hard judgment (CLAUDE.md model roles).
-PI_DECIDER_MODEL = "claude-opus-4-8"
+PI_DECIDER_MODEL = model_for("heavy")
 # NOT a sealed-prefixed name: the decider is above execution, so capability_guard
 # permits it the FULL profile it now uses. The name records that it is the PI
 # layer, and that it is allowed to roam.

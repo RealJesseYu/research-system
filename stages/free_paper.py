@@ -26,8 +26,9 @@ import shutil
 from pathlib import Path
 
 from model_call import FULL, agent_workspace, call_stage_model
+from models import model_for  # model-tier resolver
 
-PAPER_MODEL = "claude-opus-4-8"
+PAPER_MODEL = model_for("heavy")
 PAPER_STAGE_NAME = "free_paper"
 
 SYSTEM_PROMPT = """You are writing a short scientific paper from a COMPLETED investigation you did not run. You are given the GOAL, the VERIFIED FINDINGS — numbers an independent, no-model re-run has already reproduced (these, and ONLY these, are trustworthy results) — and the UNVERIFIED findings (things that did not reproduce or could not be checked). Your current working directory is the run's workspace: it holds the code and artifacts that produced the findings. Read them, and run code (e.g. matplotlib) to GENERATE FIGURES from that data where a figure genuinely helps.

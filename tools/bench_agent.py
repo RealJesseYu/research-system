@@ -43,6 +43,7 @@ from __future__ import annotations
 import os
 
 from model_call import FULL, Capabilities, call_stage_model
+from models import model_for  # model-tier resolver
 
 # NOT a stage4* name, deliberately and necessarily: capability_guard forbids any
 # stage whose name begins with "stage4" from holding tools, because a stage that
@@ -50,7 +51,7 @@ from model_call import FULL, Capabilities, call_stage_model
 # measurements — it proposes what to measure, and the controller measures. That
 # distinction is the whole argument for letting it roam, so the name records it.
 BENCH_STAGE_NAME = "experiment_bench_agent"
-BENCH_MODEL = "claude-opus-4-8"
+BENCH_MODEL = model_for("heavy")
 
 
 def _max_turns() -> int:

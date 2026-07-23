@@ -35,10 +35,11 @@ import json
 from pathlib import Path
 
 from model_call import FULL, call_stage_model, log_stage_call
+from models import model_for  # model-tier resolver
 
 # Explicit ruled pin: meta-review is a hard judgment call (Opus), regardless
 # of the Step-18.7 Haiku downgrades elsewhere in stage 1.
-META_REVIEW_MODEL = "claude-opus-4-8"
+META_REVIEW_MODEL = model_for("heavy")
 
 # The standing pattern, verbatim per the Step 17-E ruling — sent to the
 # meta-review call as its own input field every round.
