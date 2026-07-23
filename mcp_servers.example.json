@@ -1,0 +1,16 @@
+{
+  "_comment": "Copy this to mcp_servers.json (gitignored) to give the FREE experimenter one or more MCP connectors. The map is exactly the SDK's mcp_servers argument: {\"<name>\": <McpServerConfig>}. Each configured server's tools are permitted to the free agent as mcp__<name>; the capability guard still vets every call, so a connector can never reach memory/, runs/, or credentials. Remove this file (or leave only mcp_servers.example.json) to run with no connectors — the default, byte-identical path.",
+
+  "_example_stdio_local_tool": {
+    "type": "stdio",
+    "command": "python",
+    "args": ["-m", "my_cad_mcp_server"],
+    "env": { "CAD_LICENSE": "..." }
+  },
+
+  "_example_http_remote_api": {
+    "type": "http",
+    "url": "https://mcp.example.com/some-domain-tool",
+    "headers": { "Authorization": "Bearer ${SOME_TOKEN}" }
+  }
+}

@@ -89,6 +89,50 @@ def _workspace_option_kwargs(uses_tools: bool) -> dict:
     pythonpath = str(_PROJECT_ROOT) + (os.pathsep + existing if existing else "")
     return {"cwd": cwd, "env": {"PYTHONPATH": pythonpath}}
 
+
+# Optional MCP CONNECTORS for a TOOLED agent (the free experimenter). A project
+# file, mcp_servers.json, lists MCP servers the free agent may reach — a CAD
+# tool, a domain API, anything speaking the Model Context Protocol — as a
+# {"<name>": {<McpServerConfig>}} map (the exact dict the SDK's mcp_servers
+# takes: stdio {type,command,args,env} or http/sse {type,url,headers}). Absent
+# or empty => no connectors, byte-identical. Gitignored: it may carry URLs and
+# keys. Each configured server's tools are permitted as mcp__<name>; the
+# capability guard still vets every call, so a connector cannot reach memory/,
+# runs/, or credentials. This is the path to genuinely-new, domain-agnostic
+# capability — the owner drops in a connector config, no code change.
+_MCP_CONFIG_PATH = _PROJECT_ROOT / "mcp_servers.json"
+
+
+def load_mcp_servers(path=None) -> dict:
+    """The {name: config} MCP-server map from mcp_servers.json, or {} when the
+    file is absent, empty, or malformed. NEVER raises — a broken connector
+    config must not take down every run; it degrades to no connectors."""
+    path = Path(path) if path else _MCP_CONFIG_PATH
+    try:
+        if not path.is_file():
+            return {}
+        data = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {}
+    # Tolerate either a bare {name: config} map or {"servers": {...}}.
+    if isinstance(data, dict) and isinstance(data.get("servers"), dict):
+        data = data["servers"]
+    return data if isinstance(data, dict) else {}
+
+
+def _mcp_option_kwargs(uses_tools: bool) -> tuple:
+    """(options_kwargs, extra_allowed_tools) wiring the configured MCP connectors
+    into a tooled call; ({}, []) when the call is sealed or none are configured.
+    strict_mcp_config keeps the agent to OUR configured servers only — never
+    whatever a stray user/project settings file happens to define."""
+    if not uses_tools:
+        return {}, []
+    servers = load_mcp_servers()
+    if not servers:
+        return {}, []
+    allowed = [f"mcp__{name}" for name in servers]
+    return {"mcp_servers": servers, "strict_mcp_config": True}, allowed
+
 _DISALLOWED_TOOLS = [
     "Bash", "Read", "Write", "Edit", "Glob", "Grep",
     "WebSearch", "WebFetch", "ToolSearch",
@@ -224,10 +268,13 @@ async def _ask_once(
     # Step 16.6 chunk 2: record the ATTEMPT before the SDK call fires, so a
     # transport failure mid-stream still leaves a trace in the meter.
     cost_meter.record_attempt("model_call")
+    # Optional MCP connectors: extra allowed tools (mcp__<name>) plus the
+    # mcp_servers/strict_mcp_config kwargs, empty unless mcp_servers.json exists.
+    mcp_kwargs, mcp_allowed = _mcp_option_kwargs(caps.uses_tools)
     options = ClaudeAgentOptions(
         model=model,
         system_prompt=system_prompt,
-        allowed_tools=list(caps.allowed_tools),
+        allowed_tools=list(caps.allowed_tools) + mcp_allowed,
         # Everything not explicitly granted stays blocked, so a widened profile
         # can never silently inherit a tool nobody listed.
         disallowed_tools=[t for t in _DISALLOWED_TOOLS if t not in caps.allowed_tools],
@@ -241,6 +288,9 @@ async def _ask_once(
         # the caller wrapped this in agent_workspace(); {} otherwise, so the
         # default-cwd path is unchanged.
         **_workspace_option_kwargs(caps.uses_tools),
+        # Configured MCP connectors (a CAD tool, a domain API, …); {} unless
+        # mcp_servers.json is present, so the no-connector path is unchanged.
+        **mcp_kwargs,
     )
     # The SDK requires STREAMING input (an AsyncIterable) whenever a
     # can_use_tool callback is attached — a bare string prompt is rejected with

@@ -5,6 +5,7 @@ __pycache__/
 .DS_Store
 /cases/
 .env
+mcp_servers.json
 harness/last_run.json
 harness/killrate_last_run.json
 harness/positional_last_run.json

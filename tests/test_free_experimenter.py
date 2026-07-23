@@ -295,6 +295,56 @@ class TestWorkspaceFileArtifact(unittest.TestCase):
             rerun_artifact({"kind": "workspace_file", "quantity": "m"})
 
 
+class TestMcpConnectorWiring(unittest.TestCase):
+    """Optional MCP connectors for the free agent: mcp_servers.json -> the SDK's
+    mcp_servers + the mcp__<name> allowed tools. Absent => byte-identical no-MCP."""
+
+    def test_load_absent_file_is_empty(self):
+        import model_call
+        self.assertEqual(model_call.load_mcp_servers("/no/such/mcp.json"), {})
+
+    def test_load_reads_a_bare_map(self):
+        import model_call
+        servers = {"cad": {"type": "stdio", "command": "x"}}
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "mcp.json"
+            p.write_text(json.dumps(servers))
+            self.assertEqual(model_call.load_mcp_servers(p), servers)
+
+    def test_load_unwraps_a_servers_key(self):
+        import model_call
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "mcp.json"
+            p.write_text(json.dumps({"servers": {"cad": {"type": "stdio"}}}))
+            self.assertEqual(model_call.load_mcp_servers(p),
+                             {"cad": {"type": "stdio"}})
+
+    def test_load_malformed_is_empty_not_a_crash(self):
+        import model_call
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "mcp.json"
+            p.write_text("{not json")
+            self.assertEqual(model_call.load_mcp_servers(p), {})
+
+    def test_kwargs_empty_for_a_sealed_call(self):
+        import model_call
+        self.assertEqual(model_call._mcp_option_kwargs(uses_tools=False), ({}, []))
+
+    def test_kwargs_empty_when_no_connector_configured(self):
+        import model_call
+        with patch.object(model_call, "load_mcp_servers", return_value={}):
+            self.assertEqual(model_call._mcp_option_kwargs(uses_tools=True), ({}, []))
+
+    def test_kwargs_wire_servers_and_allow_their_tools(self):
+        import model_call
+        servers = {"cad": {"type": "stdio", "command": "x"}}
+        with patch.object(model_call, "load_mcp_servers", return_value=servers):
+            kwargs, allowed = model_call._mcp_option_kwargs(uses_tools=True)
+        self.assertEqual(kwargs["mcp_servers"], servers)
+        self.assertTrue(kwargs["strict_mcp_config"])
+        self.assertEqual(allowed, ["mcp__cad"])
+
+
 class TestHonestyValidator(unittest.TestCase):
     def test_verified_finding_must_say_how_to_reproduce(self):
         errs = _validate_free_result({
