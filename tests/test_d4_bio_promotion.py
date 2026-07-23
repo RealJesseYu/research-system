@@ -350,35 +350,6 @@ class TestEscapes(unittest.TestCase):
             self.assertTrue(any("quantity must be one of" in e for e in errors), sid)
 
 
-class TestAcceptance6(unittest.TestCase):
-    """Proof (d): the maturity hook never names a promoted MATURE substrate in
-    its signoff set — a trust verdict is not force-downgraded on ITS account.
-    (The old non-mature five still gate the run; the hook stays global.)"""
-
-    class _L:
-        def __init__(self):
-            self.lines: list[str] = []
-
-        def log(self, m):
-            self.lines.append(m)
-
-    def test_mature_substrates_excluded_from_signoff_both_modes(self):
-        for mode in ("human", "auto"):
-            baton = Baton(
-                run_id="acc6", created_at="t", mode=mode,
-                payload={"fidelity_verdict": {
-                    "label": "trust", "rationale": "r", "right_instrument": "yes"}},
-            )
-            supervisor.apply_substrate_maturity_hook(self._L(), baton, mode)
-            signoff = getattr(baton, "_maturity_signoff", None)
-            named = signoff["substrates"] if signoff else []
-            for sid in BIO:
-                self.assertFalse(
-                    any(s.startswith(sid + "@") for s in named),
-                    f"{sid} must not appear in the signoff set ({mode})",
-                )
-
-
 _ALL_CONTRACT_CONST = dict(
     _CONTRACT_CONST, homology_search="HOMOLOGY_SEARCH_CONTRACT"
 )

@@ -37,8 +37,6 @@ from tools.qoi_vocab import vocab_for
 
 # R-23.5-5a: validate_spec's vocab argument is required at every call site.
 CAVITY_VOCAB = vocab_for("cavity_2d_cfd")
-from stages import gate1_chooser as gc
-
 
 # A real, untouched on-disk spec (a stage-2 output) to prove back-compat.
 _REAL_SPEC_PATH = ROOT / "runs" / "20260703T035155Z" / "stage2" / "spec.json"
@@ -75,15 +73,6 @@ class ContractContent(unittest.TestCase):
         # the old single-shot / whole-domain-only framing is amended away
         self.assertNotIn("single-shot: one QoI per run", c)
         self.assertNotIn("no field sampling beyond the volume reductions", c)
-
-    def test_consumer_sees_new_sentences_by_import(self):
-        # the block a live consumer composes carries the new capability text —
-        # proves it travels by IMPORT, not by a stale pasted copy.
-        with patch.dict(os.environ, {}, clear=False):
-            block = gc.instrument_contract_block()
-        self.assertIn(CAVITY_2D_CONTRACT, block)
-        self.assertIn("VECTOR of", block)
-        self.assertIn("COMPACT FIELD EXPORT", block)
 
 
 class SchemaBackCompat(unittest.TestCase):

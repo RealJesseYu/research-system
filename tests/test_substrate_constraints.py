@@ -32,7 +32,7 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from stages import chain_runner, gate1_chooser  # noqa: E402
+from stages import chain_runner  # noqa: E402
 from tools import substrate_registry as registry  # noqa: E402
 from tools import substrate_selection as selection  # noqa: E402
 
@@ -127,38 +127,6 @@ class TestConstraintNarrows(ConstraintCase):
         table = selection.capability_table()
         self.assertIn("cobrapy", table)
         self.assertNotIn("cavity_2d_cfd", table)
-
-    def test_gate1_validator_rejects_a_forbidden_instrument(self):
-        # The chooser is only SHOWN cobrapy, but if it answers with a permitted-
-        # looking id outside the constraint the validator must reject it into
-        # the re-ask loop rather than let it travel the payload.
-        self.constrain("cobrapy")
-        validator = gate1_chooser.make_choice_validator({"h1"})
-        reply = {
-            "ack_run_id": "r1",
-            "chosen_id": "h1",
-            "substrate_id": "cavity_2d_cfd",  # routable, but NOT permitted
-            "reasoning": "fine",
-        }
-        errors = validator(reply)
-        self.assertEqual(len(errors), 1)
-        self.assertIn("cobrapy", errors[0])
-        self.assertNotIn("cavity_2d_cfd'", errors[0].split("got")[0])
-
-    def test_gate1_validator_accepts_a_permitted_instrument(self):
-        self.constrain("cobrapy")
-        validator = gate1_chooser.make_choice_validator({"h1"})
-        self.assertEqual(
-            validator(
-                {
-                    "ack_run_id": "r1",
-                    "chosen_id": "h1",
-                    "substrate_id": "cobrapy",
-                    "reasoning": "fine",
-                }
-            ),
-            [],
-        )
 
     def test_chain_node_naming_a_forbidden_substrate_stops_loudly(self):
         # A named chain node is exempt from R-B-1's ambiguity stop, NOT from

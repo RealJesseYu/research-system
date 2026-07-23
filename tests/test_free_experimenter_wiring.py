@@ -69,13 +69,9 @@ class TestRunExactRouteIsFree(unittest.TestCase):
 
 
 class TestProductionDefaultsToFree(unittest.TestCase):
-    """A production run (stages=None) goes STRAIGHT to the free agent — no gate-1,
-    no stages 2-5 (PRIME DIRECTIVE). LEGACY_PIPELINE=1 is the transitional
-    kill-switch back to the old pipeline."""
-
-    class _StageReached(Exception):
-        """Raised by the patched stage runner so the legacy pipeline stops at the
-        first stage instead of making real model calls."""
+    """A production run goes STRAIGHT to the free agent — no gate-1, no stages
+    2-5 (PRIME DIRECTIVE). The static pipeline and its LEGACY_PIPELINE kill-switch
+    were DELETED 2026-07-23 (the free-agent purge); free is the only path."""
 
     def _baton_logger(self):
         tmp = tempfile.TemporaryDirectory()
@@ -93,22 +89,8 @@ class TestProductionDefaultsToFree(unittest.TestCase):
                    side_effect=lambda *a, **k: called.__setitem__("free", True)), \
                 patch.dict("os.environ", {}, clear=False):
             os.environ.pop("LEGACY_PIPELINE", None)
-            run_relay(logger, baton, run_dir, "auto")  # stages=None => production
+            run_relay(logger, baton, run_dir, "auto")  # production => free
         self.assertTrue(called["free"])
-
-    def test_legacy_kill_switch_skips_free(self):
-        logger, baton, run_dir = self._baton_logger()
-        called = {"free": False}
-        # legacy: free is skipped and the static pipeline starts — patch the stage
-        # runner so it stops at the first stage (no real model calls).
-        with patch("supervisor.run_exact_route",
-                   side_effect=lambda *a, **k: called.__setitem__("free", True)), \
-                patch("supervisor.run_single_stage",
-                      side_effect=self._StageReached), \
-                patch.dict("os.environ", {"LEGACY_PIPELINE": "1"}, clear=False):
-            with self.assertRaises(self._StageReached):
-                run_relay(logger, baton, run_dir, "auto")
-        self.assertFalse(called["free"])  # free NOT taken; legacy pipeline ran
 
 
 if __name__ == "__main__":

@@ -123,25 +123,6 @@ class TestP2DoneWhenLive(unittest.TestCase):
             "ngspice_linear_passive",
         )
 
-    def test_hook_fires_human_mode_signoff_verdict_untouched(self):
-        b = _trust_baton("human", _ngspice_spec(), "flip-p2-human")
-        logger = CaptureLogger()
-        supervisor.apply_substrate_maturity_hook(logger, b, "human")
-        self.assertEqual(b.payload["fidelity_verdict"]["label"], "trust")
-        joined = "\n".join(logger.lines)
-        self.assertIn("NEEDS_HUMAN_SIGNOFF", joined)
-        self.assertIn("ngspice_linear_passive@calibrating", joined)
-        self.assertTrue(b._maturity_signoff["required"])
-
-    def test_hook_fires_auto_mode_trust_downgraded_to_defer(self):
-        b = _trust_baton("auto", _ngspice_spec(), "flip-p2-auto")
-        logger = CaptureLogger()
-        supervisor.apply_substrate_maturity_hook(logger, b, "auto")
-        self.assertEqual(b.payload["fidelity_verdict"]["label"], "defer")
-        joined = "\n".join(logger.lines)
-        self.assertIn("MATURITY_DOWNGRADE [auto]", joined)
-        self.assertIn("ngspice_linear_passive@calibrating", joined)
-
     def test_cavity_spec_selects_cavity_deterministic(self):
         spec = _spec_with("lid_velocity", "end_time")
         first = selection.select_substrate(spec)

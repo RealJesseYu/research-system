@@ -419,8 +419,6 @@ class TestAgentStop(BenchBase):
         self.assertIn("no scalar-transport physics", er["reason"])
         # THE PROOF: the baton survives the real locked boundary
         self.assertEqual(schemas.validate_payload_post_stage4(out.payload), [])
-        # and the barren gate now sees it for what it is
-        self.assertTrue(supervisor.is_barren(out))
 
     def test_the_pre_existing_empty_proposal_route_is_covered_too(self):
         """propose_adaptive_points returns zero points whenever a spec declares

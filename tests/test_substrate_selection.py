@@ -176,36 +176,6 @@ class TestNgspiceOnlySpec(unittest.TestCase):
                 "ngspice_linear_passive",
             )
 
-    def test_b_hook_fires_auto_downgrade_for_non_mature_pick(self):
-        # (b) proven, not assumed: the maturity hook sees the routable set
-        # containing the non-mature pick and DOWNGRADES trust -> defer in auto.
-        patches = _cavity_ngspice_registry()
-        with patches[0], patches[1], patches[2]:
-            b = _trust_baton("auto")
-            logger = CaptureLogger()
-            supervisor.apply_substrate_maturity_hook(logger, b, "auto")
-            self.assertEqual(b.payload["fidelity_verdict"]["label"], "defer")
-            joined = "\n".join(logger.lines)
-            self.assertIn("NEEDS_HUMAN_SIGNOFF", joined)
-            self.assertIn("ngspice_linear_passive@calibrating", joined)
-            self.assertIn("MATURITY_DOWNGRADE [auto]", joined)
-            self.assertTrue(b._maturity_signoff["required"])
-            self.assertIn(
-                "ngspice_linear_passive@calibrating",
-                b._maturity_signoff["substrates"],
-            )
-
-    def test_b_hook_fires_human_signoff_verdict_untouched(self):
-        patches = _cavity_ngspice_registry()
-        with patches[0], patches[1], patches[2]:
-            b = _trust_baton("human")
-            logger = CaptureLogger()
-            supervisor.apply_substrate_maturity_hook(logger, b, "human")
-            self.assertEqual(b.payload["fidelity_verdict"]["label"], "trust")
-            self.assertIn(
-                "ngspice_linear_passive@calibrating", "\n".join(logger.lines)
-            )
-            self.assertTrue(b._maturity_signoff["required"])
 
 
 class TestNoServerRaises(unittest.TestCase):
