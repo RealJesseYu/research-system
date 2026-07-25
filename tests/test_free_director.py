@@ -375,7 +375,7 @@ class TestFreeInvestigate(unittest.TestCase):
         def run_move(study, move, finding=None, runs_root=None):
             captured.setdefault("domains", []).append(move.domain)
             findings = None
-            if move.domain == "measure part A":
+            if move.domain.startswith("measure part A"):
                 findings = [{"label": "massA", "value": 3.2, "verified": True}]
             raw = {"publishable": True}
             if findings:
@@ -411,7 +411,7 @@ class TestFreeInvestigate(unittest.TestCase):
         def run_move(study, move, finding=None, runs_root=None):
             captured.setdefault("domains", []).append(move.domain)
             raw = {"publishable": True}
-            if move.domain == "make the sequence":
+            if move.domain.startswith("make the sequence"):
                 raw["findings"] = [{"label": "len", "value": 4.0, "verified": True}]
                 raw["reusable_artifacts"] = [{"name": "seq.fasta", "producer": prod}]
             return S.record_move(
@@ -441,7 +441,7 @@ class TestFreeInvestigate(unittest.TestCase):
 
         def run_move(study, move, finding=None, runs_root=None):
             raw = {"publishable": True}
-            if move.domain == "make data":
+            if move.domain.startswith("make data"):
                 raw["reusable_artifacts"] = [{"name": "d.csv", "producer": prod}]
             return S.record_move(
                 study,

@@ -55,15 +55,16 @@ def _move_from_action(action: dict, study: Any) -> Move:
     selects the iterated sweep; a named instrument narrows the run to it (else the
     run chooses from the study's permitted set).
 
-    The question carries the study's verified file producers (_carry_domain), so a
-    move BUILDS ON what earlier moves built instead of reconstructing it from the
-    director's prose. Nothing to carry => the question is the director's, verbatim.
+    The question travels as a full BRIEF (_brief): the study goal, what is already
+    established, why this experiment now, the freedom to deviate, and the verified
+    file producers to build on. A run used to receive one line and no idea what
+    investigation it belonged to.
     """
     instrument = action.get("instrument")
     mtype = MoveType.CAMPAIGN if action.get("campaign") else MoveType.SINGLE
     return Move(
         type=mtype,
-        domain=_carry_domain(action["domain"], study),
+        domain=_brief(action["domain"], study, action),
         mode=study.mode,
         allowed_substrates=[instrument] if instrument else None,
     )
@@ -152,6 +153,57 @@ def _carry_domain(domain: str, study: Any) -> str:
     plus the study's carried file producers. Byte-identical to `domain` when the
     study has carried nothing — a first move in a fresh study is unchanged."""
     return domain + _carry_block(_integration_context(study)["files"])
+
+
+# How many established results travel into a brief. Bounded so a long study does
+# not bury the question it is asking.
+MAX_BRIEFED_FINDINGS = 12
+
+
+def _brief(domain: str, study: Any, action: dict) -> str:
+    """The full briefing a dispatched experiment receives.
+
+    A run used to get ONE LINE — the director's question, nothing else. It did not
+    know the study's goal, what had already been established, or why it was being
+    asked this now. A researcher handing work to a colleague would never do that,
+    and a Claude Code session started by a human gets far more context than this,
+    which is the floor the experimenter must never fall below.
+
+    Everything here is information the director ALREADY produces (the goal, the
+    arc's verified findings, its own reasoning and reading), so no action-schema
+    change is needed — it was simply being thrown away at the door. Pure over its
+    inputs; never raises."""
+    context = _integration_context(study)
+    parts = [domain, "\n\n---\nCONTEXT FOR THIS EXPERIMENT (you are one move of a "
+                     "larger investigation):"]
+    parts.append(f"\n\nTHE OVERALL GOAL: {study.goal}")
+
+    established = context["parts"][:MAX_BRIEFED_FINDINGS]
+    if established:
+        lines = "".join(
+            f"\n  - {p.get('label')} = {p.get('value')}" for p in established)
+        parts.append(
+            "\n\nALREADY ESTABLISHED (each independently re-run and reproduced — "
+            f"treat as settled, do not redo):{lines}")
+    else:
+        parts.append("\n\nALREADY ESTABLISHED: nothing yet — this is the first "
+                     "result the investigation will have.")
+
+    reading = action.get("reading")
+    if isinstance(reading, str) and reading.strip():
+        parts.append(f"\n\nWHAT THE LAST MOVE SHOWED: {reading.strip()}")
+
+    reasoning = action.get("reasoning")
+    if isinstance(reasoning, str) and reasoning.strip():
+        parts.append(f"\n\nWHY THIS EXPERIMENT, NOW: {reasoning.strip()}")
+
+    parts.append(
+        "\n\nYou are not restricted to the literal question above — it is what the "
+        "investigation needs, not a script. If the honest answer requires a "
+        "different measurement, a cheaper probe first, or reporting that the "
+        "question is malformed, do that and say so.")
+    parts.append(_carry_block(context["files"]))
+    return "".join(parts)
 
 
 def _integration_domain(goal: str, detail: Optional[str], context: dict) -> str:

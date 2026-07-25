@@ -135,11 +135,16 @@ class TestRunExperimentCarries(CarryTestCase):
         self.assertTrue(move.domain.startswith("optimize the gripper"))
         self.assertIn("arm.json", move.domain)
 
-    def test_move_domain_untouched_when_nothing_carried(self):
+    def test_no_carry_block_when_nothing_was_built_yet(self):
+        """The move now always carries a BRIEF (goal, what is established, why
+        now) — that is the point of _brief. What must NOT appear with an empty
+        study is the carried-work block, since there is no work to build on."""
         study = self._study()
         move = FD._move_from_action(
             {"action": "run_experiment", "domain": "optimize the gripper"}, study)
-        self.assertEqual(move.domain, "optimize the gripper")
+        self.assertTrue(move.domain.startswith("optimize the gripper"))
+        self.assertNotIn("WORK ALREADY BUILT", move.domain)
+        self.assertIn("nothing yet", move.domain)
 
 
 # --------------------------------------------------------------------------
@@ -233,6 +238,64 @@ class TestBoundaryHolds(CarryTestCase):
             self.assertEqual(set(item), {"name", "producer"})
         # An unverified finding never becomes a carried claim.
         self.assertNotIn("9.9", out)
+
+
+# --------------------------------------------------------------------------
+# The experiment BRIEF. A run used to receive one line and no idea what
+# investigation it belonged to — below what a human starting a Claude Code
+# session would provide, which is the floor the experimenter must never
+# fall below.
+# --------------------------------------------------------------------------
+
+class TestExperimentBrief(CarryTestCase):
+    def _brief(self, study, **over):
+        action = {"action": "run_experiment", "domain": "measure X",
+                  "reasoning": "cheap probe before scaling",
+                  "reading": "the last run showed Y"}
+        action.update(over)
+        return FD._brief(action["domain"], study, action)
+
+    def test_the_question_leads(self):
+        self.assertTrue(self._brief(self._study()).startswith("measure X"))
+
+    def test_the_run_learns_the_overall_goal(self):
+        """It is one move of an investigation and must know which one."""
+        study = self._study("does the arm design hold?")
+        self.assertIn("does the arm design hold?", self._brief(study))
+
+    def test_established_results_travel_and_are_marked_settled(self):
+        study = self._study()
+        _record(study, results=[{"label": "reach", "value": 0.42, "verified": True}])
+        out = self._brief(study)
+        self.assertIn("reach = 0.42", out)
+        self.assertIn("do not redo", out)
+
+    def test_unverified_findings_are_never_presented_as_established(self):
+        study = self._study()
+        _record(study, results=[{"label": "guess", "value": 9.9, "verified": False}])
+        self.assertNotIn("9.9", self._brief(study))
+
+    def test_a_first_move_says_so_rather_than_implying_prior_work(self):
+        self.assertIn("nothing yet", self._brief(self._study()))
+
+    def test_the_directors_reasoning_and_reading_travel(self):
+        out = self._brief(self._study())
+        self.assertIn("cheap probe before scaling", out)
+        self.assertIn("the last run showed Y", out)
+
+    def test_the_run_is_told_it_may_deviate(self):
+        """The question is what the investigation needs, not a script."""
+        self.assertIn("not restricted to the literal question",
+                      self._brief(self._study()))
+
+    def test_carried_artifacts_still_ride_along(self):
+        study = self._study()
+        _record(study, artifacts=[_producer("arm.json")])
+        self.assertIn("arm.json", self._brief(study))
+
+    def test_a_bare_action_does_not_crash_the_brief(self):
+        out = FD._brief("q", self._study(), {})
+        self.assertIn("THE OVERALL GOAL", out)
 
 
 if __name__ == "__main__":
