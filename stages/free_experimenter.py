@@ -48,6 +48,8 @@ INDEPENDENT RE-VERIFICATION. After you finish, a deterministic pass with NO mode
 - produced by a specialized tool from the catalogue: "artifact": {"substrate_id": "<id>", "typed_input": {<the exact typed inputs>}, "quantity": "<metric name>"}.
 A finding you cannot back with a re-runnable artifact must be reported with "verified": false — an honest caveat is fine, it just is not counted as reproduced.
 
+TOLERANCE. The re-run must match your value almost exactly by default, which is right for arithmetic. Some legitimate quantities do not survive that: iteration counts to convergence, solver-evaluation counts, ratios built from them, and anything else whose value depends on where a loop happens to stop can shift slightly between machines. If your quantity is one of those, add "tolerance": <relative, e.g. 0.01> to that finding and it will be judged within that band instead. Use it only where the quantity genuinely warrants it — a value that needs a loose band to reproduce is a weaker result, and a value that still misses is reported as an honest caveat rather than forced through.
+
 REUSABLE FILE ARTIFACTS (optional). If your investigation produces a FILE that a LATER, separate investigation could reuse — a sequence, an alignment, a dataset, a structure, a trained model — declare it under "reusable_artifacts" so it can cross into a downstream study. Each is {"name": "<a bare filename>", "producer": <a recipe step that RE-EMITS the file>}. The producer is self-contained and deterministic (no network): either {"kind": "code", "code": "<python that WRITES the file and also sets metrics['<quantity>'] = <number>>", "quantity": "<a scalar name>", "emits": ["<the filename>"]} or {"kind": "substrate", "substrate_id": "<id>", "typed_input": {...}, "emits": ["<the filename>"]}. The file travels as this RE-RUNNABLE producer, NEVER as stored bytes: a downstream study regenerates it by re-running the producer, and an independent pass will reject any producer that does not actually re-write its file. Only declare a file whose producer re-creates it from scratch. Omit "reusable_artifacts" entirely if your work produces no such reusable file.
 
 Return ONLY JSON of the form: {"summary": "<what you found and what it means for the question>", "findings": [{"label": "<what this measures>", "value": <number or short string>, "verified": <true ONLY if you supply a re-runnable artifact>, "reproduce": "<how / which saved file to re-run>", "artifact": {"file": "<name>.py", "quantity": "<name>"} }], "reusable_artifacts": [{"name": "<file>", "producer": {"kind": "code", "code": "...", "quantity": "...", "emits": ["<file>"]}}], "publishable": <true only if the question is answered and every kept finding reproduced>} — omit "artifact" only on findings you mark "verified": false, and omit "reusable_artifacts" entirely if you produce no reusable file; no other fields anywhere."""
@@ -141,6 +143,9 @@ def _claims_from_findings(findings: list, workspace) -> list:
             "value": f.get("value"),
             "artifact": _finding_artifact(f.get("artifact"), workspace),
             "label": f.get("label"),
+            # A per-finding tolerance for convergence-dependent quantities; the
+            # wall clamps it and ignores junk, so passing it through is safe.
+            "tolerance": f.get("tolerance"),
         }
         for f in findings
     ]
@@ -235,13 +240,22 @@ def run_free_investigation(goal, *, run_id=None, call=None, verify=None, gate=No
         claims = _claims_from_findings([f for _, f in claimed], workspace)
         summary = verify(claims, run_id=str(run_id))  # writes verification.json
         by_index = {v.get("claim_index"): v for v in summary.get("verdicts", [])}
-        all_reproduce = True
+        any_reproduced = False
         for claim_i, (finding_i, _f) in enumerate(claimed):
             wall_verified = bool(by_index.get(claim_i, {}).get("verified"))
-            if not wall_verified:
-                all_reproduce = False
+            if wall_verified:
+                any_reproduced = True
             result["findings"][finding_i]["verified"] = wall_verified
-        result["publishable"] = bool(result["publishable"]) and all_reproduce
+        # A run stands if SOMETHING stood (owner ruling 2026-07-25). This used to
+        # require EVERY claim to reproduce, so one shaky side-metric sank a run
+        # carrying ten reproduced results and reported it as having achieved
+        # nothing — verification gating execution instead of recording it. The
+        # wall's authority is unchanged: it still overwrites each finding's
+        # verified flag, and a failed claim is now an honest caveat rather than a
+        # veto. No claims at all (an investigation that measured nothing) leaves
+        # the agent's own judgment intact.
+        if claimed:
+            result["publishable"] = bool(result["publishable"]) and any_reproduced
         (run_dir / "free_investigation.json").write_text(
             json.dumps(result, indent=2))
     return result
