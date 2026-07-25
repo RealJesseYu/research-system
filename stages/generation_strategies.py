@@ -268,11 +268,21 @@ def _unsupported_numbers(statement: str, cited_texts: list[str]) -> list[float]:
 
 LITERATURE_SYSTEM_PROMPT = (
     "You are the literature-exploration generation strategy inside the Ideation stage of an "
-    "autonomous research pipeline. You are given a research domain and literature snippets "
-    "retrieved live for it, each tagged with a ref id. Propose exactly "
-    f"{LITERATURE_HYPOTHESIS_COUNT} hypotheses that are grounded in those snippets without "
-    "merely restating them, each one concrete enough to be tested by a simulation, and each "
-    "citing the ref ids of the snippets that ground it. "
+    "autonomous research pipeline. You are given a research domain and some literature "
+    "snippets that were pre-fetched for it, each tagged with a ref id.\n\n"
+    "READ THE LITERATURE YOURSELF. The pre-fetched snippets are a STARTING POINT, not the "
+    "boundary of what exists — they come from keyword APIs that often return little or "
+    "nothing on target. You have web search and web fetch: USE THEM. Search the way a "
+    "researcher would before proposing anything: what is the standard method in this area, "
+    "what has already been tried, where are the open problems, what would actually be new. "
+    "Ideas grounded only in whatever the pre-fetch happened to return will be shallow.\n\n"
+    "AIM FOR RANGE, NOT SAFETY. These hypotheses are screened later, so a bold idea that "
+    "turns out to be wrong costs little, while a pool of obvious ones costs the whole run. "
+    "Vary the angle: different subfields, different mechanisms, different scales, "
+    "cross-domain transfers. Do not propose N restatements of the same safe idea.\n\n"
+    f"Propose exactly {LITERATURE_HYPOTHESIS_COUNT} hypotheses, each concrete enough to be "
+    "tested by a simulation, and each citing what grounds it — a provided ref id, or a "
+    "source you located, cited so a human can find it (a URL, DOI, or arXiv id). "
     + NO_INVENTED_NUMBERS_INSTRUCTION +
     "Reply ONLY with JSON of the form "
     '{"ack_run_id": "<the run_id you were given>", "hypotheses": '
@@ -382,26 +392,40 @@ def gather_literature_evidence(run_id: str, domain: str, run_dir: Path) -> list[
     sources, save them verbatim as evidence, and return the combined
     ref-tagged list the grounding strategies will see.
 
-    Corpus RAG and OpenAlex are REQUIRED — a failure there propagates (an
-    honest stage failure that aborts the run, never papered over; the
-    kill-rate battery classifies it ABORTED and relaunches). OpenAlex is
-    the PREFERRED novelty-grounding source (17-fix-B: it superseded arXiv,
-    whose full-sentence all:-queries returned off-topic noise;
-    hard-required by human ruling — grounding must fail loud, never
-    silently thin out). A zero-hit OpenAlex [] is a valid outcome (no
-    relevant citations found), not a failure. arXiv, Semantic Scholar and
-    web search are best-effort: a RuntimeError from any is recorded in the
-    evidence file and retrieval proceeds without that source (chunk-1
-    proved S2's keyless pool 429s are a live failure mode). Every record
-    is already bounded by its wrapper (snippet caps); nothing raw exists
-    at this layer. web_search is the one tool that needs run_id — its own
-    transcript is written before its call fires.
+    RULING 2026-07-25 (supersedes 17-fix-B's hard-required OpenAlex). EVERY
+    network source is now BEST-EFFORT, including OpenAlex, and the
+    web_search sub-agent is retired from this path. 17-fix-B made OpenAlex
+    fail-loud because it was the ONLY novelty grounding the pipeline had —
+    the generating and reviewing agents were forbidden to search, so if the
+    pre-fetch thinned out, grounding vanished silently. That premise is
+    gone: those agents now search the literature themselves with WebSearch
+    and WebFetch (see LITERATURE_SYSTEM_PROMPT), which is strictly better
+    grounding than a keyword API — it can refine a query, follow a
+    citation, and read the paper. Aborting a run because a rate-limited
+    third-party API returned nothing now costs breadth and buys nothing.
+
+    These sources are also the run's wall-clock bottleneck, not a dollar
+    cost: arXiv self-throttles at 1 request per 3 s and Semantic Scholar's
+    keyless pool 429s through bounded retries, which is most of why
+    stage1_generation_literature took 250 s in study-20260725T073215Z. The
+    LOCAL corpus index stays required — it is instant, free, offline, and
+    project-specific.
+
+    Every record is already bounded by its wrapper (snippet caps); nothing
+    raw exists at this layer.
     """
     corpus_records = [
         {"source": r["source"], "title": r["title"], "snippet": r["snippet"]}
         for r in search_index("literature", domain, top_k=TOP_K_PER_SOURCE)
     ]
-    openalex_records = search_openalex(domain, top_k=TOP_K_PER_SOURCE)
+    try:
+        openalex_records = search_openalex(domain, top_k=TOP_K_PER_SOURCE)
+        openalex_evidence: list | dict = openalex_records
+    except Exception as e:  # noqa: BLE001 — best-effort since 2026-07-25 (see docstring)
+        openalex_records = []
+        openalex_evidence = {"error": str(e)}
+        _log(run_id, f"STAGE1_RETRIEVAL openalex failed (recorded, proceeding): "
+                     f"{str(e).splitlines()[0]}")
 
     try:
         arxiv_records = search_arxiv(domain, top_k=TOP_K_PER_SOURCE)
@@ -419,13 +443,16 @@ def gather_literature_evidence(run_id: str, domain: str, run_dir: Path) -> list[
         s2_evidence = {"error": str(e)}
         _log(run_id, f"STAGE1_RETRIEVAL semantic_scholar failed (recorded, proceeding): {str(e).splitlines()[0]}")
 
-    try:
-        web_records = web_search(domain, run_id=run_id, top_k=TOP_K_PER_SOURCE)
-        web_evidence: list | dict = web_records
-    except RuntimeError as e:
-        web_records = []
-        web_evidence = {"error": str(e)}
-        _log(run_id, f"STAGE1_RETRIEVAL web_search failed (recorded, proceeding): {str(e).splitlines()[0]}")
+    # The web_search SUB-AGENT is RETIRED here too (2026-07-25). It spawned a
+    # whole extra model call just to run WebSearch and marshal JSON — scaffolding
+    # from the era when these stages held no tools. The generation strategies run
+    # FULL and search natively, so the wrapper added a call, a failure mode (it
+    # returned prose and deleted a source in study-20260725T073215Z), and nothing
+    # the agent cannot do better itself.
+    web_records: list = []
+    web_evidence: list | dict = {
+        "note": "retired: the generation agent searches the web itself (FULL tools)"
+    }
 
     combined_refs = [
         {"ref": f"R{n}", **record}
@@ -438,7 +465,7 @@ def gather_literature_evidence(run_id: str, domain: str, run_dir: Path) -> list[
     evidence = {
         "query": domain,
         "corpus": corpus_records,
-        "openalex": openalex_records,
+        "openalex": openalex_evidence,
         "arxiv": arxiv_evidence,
         "semantic_scholar": s2_evidence,
         "web": web_evidence,
@@ -501,15 +528,25 @@ def strategy_literature_exploration(
             grounded = h.get("grounded_in")
             if not isinstance(grounded, list) or not grounded:
                 errors.append(
-                    f"entry {n} grounded_in must be a non-empty list of ref ids "
-                    "from the provided literature_snippets."
+                    f"entry {n} grounded_in must be a non-empty list citing what "
+                    "grounds the hypothesis — a provided ref id, or a source you "
+                    "located (URL, DOI, or arXiv id)."
                 )
             else:
-                unknown = [r for r in grounded if r not in valid_refs]
-                if unknown:
+                # Uncaged 2026-07-25, same rule as the novelty review: a citation
+                # must be CHECKABLE, not DRAWN FROM A FIXED LIST. Requiring every
+                # citation to come from the pre-fetch meant the generator could
+                # only build on whatever a throttled keyword API happened to
+                # return, which is how a 58-hypothesis pool ends up shallow.
+                from stages.reflection_reviews import _is_checkable_citation
+                unusable = [r for r in grounded
+                            if not _is_checkable_citation(r, valid_refs)]
+                if unusable:
                     errors.append(
-                        f"entry {n} grounded_in cites unknown refs {unknown}; "
-                        f"the provided refs are {sorted(valid_refs)}."
+                        f"entry {n} grounded_in entries {unusable} are not "
+                        f"checkable; each must be a provided ref id "
+                        f"{sorted(valid_refs)} or a source you located, cited so a "
+                        "human can find it (a URL, DOI, or arXiv id)."
                     )
                 elif isinstance(h.get("statement"), str):
                     # WARN-ONLY (Step 17-fix-A): count numbers the cited

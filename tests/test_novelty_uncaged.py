@@ -91,5 +91,42 @@ class TestPoolVolumeIsAKnob(unittest.TestCase):
                 self.assertEqual(g._count("RESEARCH_IDEATION_LITERATURE", 30), 30)
 
 
+# --------------------------------------------------------------------------
+# Generation, uncaged the same way (2026-07-25).
+# --------------------------------------------------------------------------
+
+class TestGenerationUncaged(unittest.TestCase):
+    def test_generator_is_told_to_read_the_literature_itself(self):
+        import stages.generation_strategies as g
+        p = g.LITERATURE_SYSTEM_PROMPT
+        self.assertIn("READ THE LITERATURE YOURSELF", p)
+        self.assertIn("STARTING POINT, not the", p)
+
+    def test_generator_is_pushed_toward_range_not_safety(self):
+        """The filters only reject defects, so nothing downstream rewards a bold
+        idea; the generator is the only place range can be asked for."""
+        import stages.generation_strategies as g
+        p = g.LITERATURE_SYSTEM_PROMPT
+        self.assertIn("AIM FOR RANGE, NOT SAFETY", p)
+        self.assertIn("restatements of the same safe idea", p)
+
+    def test_generation_citations_may_be_located_sources(self):
+        """Same rule as the review: checkable, not drawn from a fixed list."""
+        from stages.reflection_reviews import _is_checkable_citation
+        self.assertTrue(_is_checkable_citation("https://doi.org/10.1234/x", {"R1"}))
+        self.assertTrue(_is_checkable_citation("R1", {"R1"}))
+        self.assertFalse(_is_checkable_citation("trust me", {"R1"}))
+
+    def test_the_web_search_subagent_is_gone_from_both_paths(self):
+        """It was scaffolding for stages that held no tools; both paths now search
+        natively, and the wrapper could only lose information."""
+        import inspect
+        import stages.generation_strategies as g
+        import stages.reflection_reviews as r
+        for mod in (g, r):
+            src = inspect.getsource(mod)
+            self.assertNotIn("= web_search(", src)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
