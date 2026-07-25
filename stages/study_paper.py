@@ -155,14 +155,138 @@ def write_study_paper(study: Any, *, call=None) -> dict:
 
     dest = study.dir / "paper.md"
     try:
-        shutil.copyfile(src, dest)
+        text = src.read_text()
+        # CITATION CHECK: the prompt forbids presenting an unverified finding as
+        # established, but a prompt is not a guarantee. Any line that asserts
+        # reproduction while citing a value the wall rejected gets a deterministic,
+        # Python-written correction appended — the paper is never silently wrong.
+        flagged = unsupported_reproduction_claims(
+            text,
+            [f.get("value") for f in evidence["verified_findings"]],
+            [f.get("value") for f in evidence["unverified_findings"]],
+        )
+        if flagged:
+            text = text + _correction_block(flagged)
+        dest.write_text(text)
         figures = _copy_figures(data.get("figures") or [], scratch, study.dir)
     except Exception as e:  # noqa: BLE001
         return {"error": f"could not save the paper: {type(e).__name__}: {e}"}
 
     return {"paper_path": str(dest),
             "human_must_validate": data.get("human_must_validate") or [],
-            "figures": figures}
+            "figures": figures,
+            "unsupported_claims": flagged}
+
+
+# --------------------------------------------------------------------------
+# Citation check (found live, study-20260725T073215Z). The verified/unverified
+# split is made in Python and the prompt forbids presenting an unverified finding
+# as established — but nothing ENFORCED it, and a real run wrote an unverified
+# ratio into Results labelled "independently reproduced" (the wall had rejected
+# it: original 128.0, reproduced 127.49004). Prompts are not guarantees. This is
+# the deterministic, no-model check that makes the guarantee real.
+# --------------------------------------------------------------------------
+
+# A claim of reproduction, as the paper is instructed to write it. Deliberately
+# narrow: we only police sentences that ASSERT reproduction, because those are the
+# ones a reader trusts. Prose that merely mentions a number is not a claim.
+_REPRODUCED_MARKERS = ("independently reproduced", "reproduced by", "was reproduced")
+
+# Phrases that DISCLAIM reproduction. A Limitations line honestly saying a number
+# did not reproduce contains a marker substring ("reproduced by") but is the
+# opposite of an over-claim — flagging it would punish exactly the honesty the
+# paper is asked for. Checked before the markers.
+_DISCLAIMERS = ("unverified", "not reproduce", "did not", "could not", "failed to",
+                "does not reproduce", "no artifact")
+
+
+def _numbers_in(text: str) -> list:
+    """Every numeric literal in a line, as floats. Tolerant: bolding, units, and
+    thousands separators are stripped. Never raises."""
+    import re
+    out = []
+    for tok in re.findall(r"-?\d[\d,]*\.?\d*(?:[eE][-+]?\d+)?", text or ""):
+        try:
+            out.append(float(tok.replace(",", "")))
+        except ValueError:
+            continue
+    return out
+
+
+def _matches_a_verified_value(value: float, verified: list, rel_tol: float = 1e-3) -> bool:
+    """True when `value` is one of the wall's verified numbers. The tolerance is
+    loose on purpose — a paper legitimately rounds (16.87314 -> 16.8731), and this
+    check exists to catch a number the wall REJECTED being passed off as
+    reproduced, not to police significant figures."""
+    for v in verified:
+        try:
+            v = float(v)
+        except (TypeError, ValueError):
+            continue
+        if v == value:
+            return True
+        denom = max(abs(v), abs(value), 1e-12)
+        if abs(v - value) / denom <= rel_tol:
+            return True
+    return False
+
+
+def unsupported_reproduction_claims(paper_text: str, verified_values: list,
+                                    unverified_values: list) -> list:
+    """Lines that assert reproduction while citing a number the wall did NOT
+    verify. Pure, deterministic, never raises.
+
+    A line is flagged when it (a) asserts reproduction and (b) carries a number
+    matching something the wall explicitly REJECTED. Requiring (b) keeps the check
+    specific — an unmatched number might be a count, a dimension, or a year, and
+    flagging those would drown the real finding in noise.
+
+    DELIBERATELY NOT a third condition of "and carries no verified number". That
+    exemption was tried and is unsound: the live failure line was "...at D=64 ...
+    128x — independently reproduced", where 64 is a DIMENSION LABEL that happens to
+    equal a verified ratio, so the exemption would have excused the exact defect
+    this check exists to catch. Erring toward flagging is the right bias — a false
+    positive appends a visible note whose literal claim (this value was not
+    verified) is still true, while a false negative leaves a fabricated
+    reproduction claim standing."""
+    flagged = []
+    for line in (paper_text or "").splitlines():
+        low = line.lower()
+        if any(d in low for d in _DISCLAIMERS):
+            continue
+        if not any(m in low for m in _REPRODUCED_MARKERS):
+            continue
+        rejected = [
+            n for n in _numbers_in(line)
+            # rejected somewhere AND verified nowhere. A study can measure the same
+            # quantity in two phases and have it reproduce in one but not the
+            # other (seen live: a converged mass verified at phase 4, unverified at
+            # phase 3). Citing the value that DID reproduce is legitimate, so a
+            # number vouched for anywhere in the arc is not an over-claim.
+            if _matches_a_verified_value(n, unverified_values)
+            and not _matches_a_verified_value(n, verified_values)
+        ]
+        if rejected:
+            flagged.append({"line": line.strip()[:300], "values": rejected})
+    return flagged
+
+
+_CORRECTION_HEADER = "\n\n## Correction — claims the verification wall did not support\n\n"
+
+
+def _correction_block(flagged: list) -> str:
+    """The machine-written notice appended to a paper that over-claimed. Written by
+    Python, not a model: a correction about a model's over-claim must not itself be
+    model-authored."""
+    lines = [_CORRECTION_HEADER,
+             "The following line(s) assert independent reproduction while citing a "
+             "value the verification wall REJECTED. This block was appended "
+             "automatically by a deterministic check; the claims above it are NOT "
+             "supported and must not be relied on.\n\n"]
+    for f in flagged:
+        vals = ", ".join(str(v) for v in f["values"])
+        lines.append(f"- Unsupported value(s) {vals} in: \"{f['line']}\"\n")
+    return "".join(lines)
 
 
 def _copy_figures(names: list, scratch: Path, dest_dir: Path) -> list:
