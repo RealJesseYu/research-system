@@ -35,13 +35,14 @@ from __future__ import annotations
 import json
 from typing import Any, Callable
 
-from model_call import FULL, call_stage_model
+from model_call import FULL, agent_workspace, call_stage_model
 from models import model_for  # model-tier resolver
 
 # Reuse the enum decider's instrument helpers verbatim — the menu a director may
 # force a run to is the same whichever director chose it (keeps the two in lockstep
 # rather than drifting two copies).
 from pi_agent.decider import choosable_instruments, instrument_menu
+from pi_agent.study import study_scratch_dir
 
 # Opus: directing an investigation is the hard judgment (CLAUDE.md model roles).
 FREE_DIRECTOR_MODEL = model_for("heavy")
@@ -223,15 +224,18 @@ def decide_action(
     validator = make_action_validator(
         study.study_id, len(arc), choosable_instruments(study)
     )
-    data, timing = call(
-        FREE_DIRECTOR_STAGE,
-        SYSTEM_PROMPT,
-        stage_input,
-        SCHEMA,
-        model=model,
-        extra_validator=validator,
-        capabilities=FULL,
-    )
+    # Confine this FULL agent's tool cwd to the study's scratch dir so any file it
+    # writes while reasoning stays out of the repo root (see study_scratch_dir).
+    with agent_workspace(study_scratch_dir(study)):
+        data, timing = call(
+            FREE_DIRECTOR_STAGE,
+            SYSTEM_PROMPT,
+            stage_input,
+            SCHEMA,
+            model=model,
+            extra_validator=validator,
+            capabilities=FULL,
+        )
     _record_decision(study, len(arc) + 1, stage_input, data, timing)
     return data
 

@@ -45,7 +45,7 @@ import json
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from model_call import FULL, call_stage_model
+from model_call import FULL, agent_workspace, call_stage_model
 from models import model_for  # model-tier resolver
 
 # Opus: choosing the next move is a hard judgment (CLAUDE.md model roles).
@@ -223,15 +223,20 @@ def decide(
     validator = make_decision_validator(
         study.study_id, len(arc), choosable_instruments(study)
     )
-    data, timing = call(
-        PI_DECIDER_STAGE,
-        SYSTEM_PROMPT,
-        stage_input,
-        SCHEMA,
-        model=model,
-        extra_validator=validator,
-        capabilities=FULL,
-    )
+    # Confine this FULL agent's tool cwd to the study's scratch dir so a file it
+    # writes while reasoning stays out of the repo root (see study_scratch_dir).
+    from pi_agent.study import study_scratch_dir
+
+    with agent_workspace(study_scratch_dir(study)):
+        data, timing = call(
+            PI_DECIDER_STAGE,
+            SYSTEM_PROMPT,
+            stage_input,
+            SCHEMA,
+            model=model,
+            extra_validator=validator,
+            capabilities=FULL,
+        )
     _record_decision(study, len(arc) + 1, stage_input, data, timing)
     return data
 

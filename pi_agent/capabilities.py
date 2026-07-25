@@ -34,9 +34,9 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
-from model_call import FULL, call_stage_model
+from model_call import FULL, agent_workspace, call_stage_model
 from models import model_for
-from pi_agent.study import study_findings
+from pi_agent.study import study_findings, study_scratch_dir
 
 # One move per heavy tool call (see BUDGET above).
 MOVE_COST = 1
@@ -129,15 +129,16 @@ def run_data_analysis(action: dict, study: Any, budget: Any, seq: int, *, call: 
         return _insufficient("call_data_analysis")
     budget.spend(MOVE_COST)
     arc = study_findings(study)
-    data, _timing = call(
-        DATA_ANALYSIS_STAGE,
-        DATA_ANALYSIS_PROMPT,
-        {"goal": study.goal, "request": action.get("detail"), "arc_so_far": arc},
-        {"required": ["analysis", "directions"]},
-        model=model_for("heavy"),
-        extra_validator=_analysis_validator,
-        capabilities=FULL,
-    )
+    with agent_workspace(study_scratch_dir(study)):
+        data, _timing = call(
+            DATA_ANALYSIS_STAGE,
+            DATA_ANALYSIS_PROMPT,
+            {"goal": study.goal, "request": action.get("detail"), "arc_so_far": arc},
+            {"required": ["analysis", "directions"]},
+            model=model_for("heavy"),
+            extra_validator=_analysis_validator,
+            capabilities=FULL,
+        )
     return {
         "succeeded": True,
         "outcome": "data_analysis_done",
@@ -180,15 +181,16 @@ def run_validation(action: dict, study: Any, budget: Any, seq: int, *, call: Cal
         return _insufficient("call_validation")
     budget.spend(MOVE_COST)
     arc = study_findings(study)
-    data, _timing = call(
-        VALIDATION_STAGE,
-        VALIDATION_PROMPT,
-        {"goal": study.goal, "request": action.get("detail"), "arc_so_far": arc},
-        {"required": ["assessment", "concerns", "recheck"]},
-        model=model_for("heavy"),
-        extra_validator=_validation_validator,
-        capabilities=FULL,
-    )
+    with agent_workspace(study_scratch_dir(study)):
+        data, _timing = call(
+            VALIDATION_STAGE,
+            VALIDATION_PROMPT,
+            {"goal": study.goal, "request": action.get("detail"), "arc_so_far": arc},
+            {"required": ["assessment", "concerns", "recheck"]},
+            model=model_for("heavy"),
+            extra_validator=_validation_validator,
+            capabilities=FULL,
+        )
     return {
         "succeeded": True,
         "outcome": "validation_done",

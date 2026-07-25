@@ -232,6 +232,20 @@ def record_move(
     return entry
 
 
+def study_scratch_dir(study: Study) -> Path:
+    """A study-scoped workspace for the DIRECTOR-LAYER agents — the director's own
+    decisions and the analysis/validation tools. These are FULL agents (they may
+    run code to sanity-check before committing) that run in the FOREGROUND process,
+    so without a confined cwd their scratch files land in the repo root (this is how
+    stray files — even an empty harness.py that shadowed the package — appeared).
+    Pointing their cwd here keeps that scratch inside studies/ (gitignored evidence)
+    where it belongs. Created on demand; the experimenter is already confined in its
+    own subprocess workspace and is unaffected."""
+    d = study.dir / "director_workspace"
+    d.mkdir(parents=True, exist_ok=True)
+    return d.resolve()
+
+
 def study_findings(study: Study) -> list:
     """What this study knows so far: the ordered findings across its arc, each
     tagged with the move that produced it. THIS is what the PI reads to judge

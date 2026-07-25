@@ -132,6 +132,36 @@ class TestActionValidator(unittest.TestCase):
 # The loop.
 # --------------------------------------------------------------------------
 
+class TestDirectorWorkspaceConfinement(unittest.TestCase):
+    """The director is a FULL agent in the foreground; its tool cwd must be confined
+    to the study scratch dir so scratch files never land in the repo root (the
+    stray-file / shadowed-package hazard, 2026-07-25)."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_decide_action_confines_tool_cwd_to_the_study_scratch_dir(self):
+        import model_call
+        from pi_agent.free_decider import decide_action
+        study = S.create_study("g", study_id="s", studies_root=self.root)
+        seen = {}
+
+        def probing_call(*a, **k):
+            # what the SDK would receive as the tooled agent's cwd, mid-call
+            seen["cwd"] = model_call._workspace_option_kwargs(True).get("cwd")
+            return ({"ack": "s", "reasoning": "r", "action": "stop",
+                     "stop_reason": "x"}, {})
+
+        decide_action(study, [], {"remaining": 3}, call=probing_call)
+        self.assertIsNotNone(seen["cwd"])                      # a workspace was active
+        self.assertIn("director_workspace", str(seen["cwd"]))  # ...the study's, not root
+        self.assertTrue((self.root / "s" / "director_workspace").is_dir())
+
+
 class TestFreeInvestigate(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
