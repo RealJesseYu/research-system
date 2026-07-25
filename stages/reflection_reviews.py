@@ -163,16 +163,46 @@ INITIAL_REVIEW_SYSTEM_PROMPT = (
     "... exactly one such object per candidate]}."
 )
 
+def _is_checkable_citation(entry, valid_refs) -> bool:
+    """True when a novelty citation is something a human can go look at: one of
+    the pre-fetched ref ids, or a source the reviewer located and cited by a
+    locator (URL, DOI, or arXiv id).
+
+    This is the anti-hallucination discipline, re-sited. The old rule — 'must be
+    one of the refs we handed you' — enforced honesty by making the reviewer
+    blind, which is worse than the disease. The rule now is 'must be findable',
+    which keeps a reviewer from inventing a paper while letting it read the
+    actual literature. It cannot prove the source exists; the reviewer has
+    WebFetch and is told never to cite what it has not seen."""
+    if not isinstance(entry, str) or not entry.strip():
+        return False
+    if entry in valid_refs:
+        return True
+    low = entry.lower()
+    return ("http://" in low or "https://" in low or "doi.org" in low
+            or low.startswith("doi:") or "10." in low and "/" in low
+            or "arxiv" in low)
+
+
 FULL_REVIEW_SYSTEM_PROMPT = (
     "You are the full-review unit of the Reflection stage in an autonomous research "
-    "pipeline, reviewing ONE candidate hypothesis. You are given the hypothesis plus "
-    "literature snippets retrieved live for it, each tagged with a ref id. Judge NOVELTY "
-    "strictly against those snippets: if any retrieved work already establishes the "
-    "hypothesis's claim, the verdict is 'known' and novelty_grounded_in MUST cite the ref "
-    "id(s) showing so; if the retrieved literature approaches but does not establish the "
-    "claim, the verdict is 'novel' and novelty_grounded_in cites the closest refs (an "
-    "empty list only if nothing retrieved relates at all). Also judge correctness and "
-    "quality for simulation-based study, informed by the snippets. Reply ONLY with JSON "
+    "pipeline, reviewing ONE candidate hypothesis. You are given the hypothesis plus some "
+    "literature snippets that were pre-fetched for it, each tagged with a ref id.\n\n"
+    "ESTABLISH THE PRIOR ART YOURSELF. The pre-fetched snippets are a STARTING POINT, not "
+    "the boundary of what exists — they come from keyword APIs that frequently return "
+    "little or nothing on target. You have web search and web fetch: USE THEM. Search for "
+    "the actual prior work on this claim the way a researcher would — the standard method "
+    "in that field, the canonical papers, the review articles, whoever did it first. If a "
+    "technique is textbook or decades old in the hypothesis's domain, you are expected to "
+    "find that and say so. Do NOT conclude 'novel' merely because the pre-fetched snippets "
+    "failed to mention it; that is a statement about the search, not about the literature.\n\n"
+    "Then judge NOVELTY: if prior work already establishes the hypothesis's claim, the "
+    "verdict is 'known' and novelty_grounded_in MUST cite it; if the literature approaches "
+    "but does not establish the claim, the verdict is 'novel' and novelty_grounded_in cites "
+    "the closest work you found. EVERY citation must be checkable by a human — either a "
+    "provided ref id, or a real source you located, given as a URL, DOI, or arXiv id. Never "
+    "cite a paper you have not actually seen. Also judge correctness and "
+    "quality for simulation-based study, informed by what you found. Reply ONLY with JSON "
     'of the form {"ack_run_id": "<the run_id you were given>", '
     '"hypothesis_id": "<the hypothesis id you were given>", '
     '"novelty": "novel" or "known", '
@@ -416,17 +446,19 @@ def gather_review_refs(run_id: str, hypothesis: dict) -> tuple[list[dict], dict]
             f"(recorded, proceeding): {str(e).splitlines()[0]}",
         )
 
-    try:
-        web_records = web_search(query, run_id=run_id, top_k=TOP_K_PER_SOURCE)
-        web_evidence: list | dict = web_records
-    except RuntimeError as e:
-        web_records = []
-        web_evidence = {"error": str(e)}
-        _log(
-            run_id,
-            f"STAGE1_REFLECTION_RETRIEVAL {hypothesis['id']} web_search failed "
-            f"(recorded, proceeding): {str(e).splitlines()[0]}",
-        )
+    # The web_search SUB-AGENT wrapper is RETIRED from this path (2026-07-25).
+    # It existed because sealed stages held no tools, so a separate tool-holding
+    # agent had to fetch results and hand back JSON snippets. The review units run
+    # with FULL capabilities — they have WebSearch and WebFetch natively — so the
+    # wrapper was an extra model call that could only lose information: in
+    # study-20260725T073215Z it returned prose instead of JSON and silently
+    # deleted an entire literature source. The reviewer now searches directly,
+    # which is strictly better (it can follow up, refine the query, and read the
+    # paper). The deterministic API sources above stay as a cheap starting point.
+    web_records: list = []
+    web_evidence: list | dict = {
+        "note": "retired: the review agent searches the web itself (FULL tools)"
+    }
 
     combined_refs = [
         {"ref": f"R{n}", **record}
@@ -571,11 +603,19 @@ def full_review(
         if not isinstance(grounded, list):
             errors.append("novelty_grounded_in must be a list of ref ids (possibly empty).")
         else:
-            unknown = [r for r in grounded if r not in valid_refs]
-            if unknown:
+            # A citation is EITHER a provided ref id OR a source the reviewer
+            # located itself, given as something a human can check (URL, DOI,
+            # arXiv id). Rejecting anything outside the pre-fetched refs — as this
+            # did until 2026-07-25 — WAS the cage: it forced 'novel' whenever the
+            # keyword APIs missed, which is how a claim whose prior art dates to
+            # the 1970s passed review with cited_refs None.
+            unusable = [r for r in grounded if not _is_checkable_citation(r, valid_refs)]
+            if unusable:
                 errors.append(
-                    f"novelty_grounded_in cites unknown refs {unknown}; "
-                    f"the provided refs are {sorted(valid_refs)}."
+                    f"novelty_grounded_in entries {unusable} are not checkable; each "
+                    f"must be one of the provided ref ids {sorted(valid_refs)} OR a "
+                    "source you actually located, cited so a human can find it "
+                    "(a URL, a DOI, or an arXiv id)."
                 )
             if data.get("novelty") == "known" and not grounded:
                 errors.append(

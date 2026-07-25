@@ -170,9 +170,30 @@ def build_feasibility_nudge(run_id: str) -> str:
 # the pool, and Reflection reviews EACH candidate, so per-run generation+review
 # cost grows accordingly; the pre-existing kill-rate baselines were taken at
 # pool=10 and would need re-baselining if compared numerically.
-LITERATURE_HYPOTHESIS_COUNT = 15
-ASSUMPTION_HYPOTHESIS_COUNT = 5
-EXPANSION_HYPOTHESIS_COUNT = 4
+# POOL SIZE — the power of numbers (owner ruling 2026-07-25).
+#
+# Volume is what a chat structurally will not give you: asked for ideas it offers
+# half a dozen, because that is what fits one answer. Generating scores of them
+# and letting screening whittle is cheap relative to running the wrong experiment,
+# and only one has to be good. These are the per-strategy counts (plus one
+# converged hypothesis from the debate strategy).
+#
+# Each is env-overridable so a run can be dialled up toward ~100 for a goal where
+# the ideas ARE the deliverable, or down for a cheap pass:
+#   RESEARCH_IDEATION_LITERATURE / _ASSUMPTIONS / _EXPANSION
+def _count(env_name: str, default: int) -> int:
+    """Read a pool-size knob; a malformed or non-positive value falls back to the
+    default rather than producing a degenerate pool."""
+    import os
+    raw = os.environ.get(env_name, "").strip()
+    if raw.isdigit() and int(raw) > 0:
+        return int(raw)
+    return default
+
+
+LITERATURE_HYPOTHESIS_COUNT = _count("RESEARCH_IDEATION_LITERATURE", 30)
+ASSUMPTION_HYPOTHESIS_COUNT = _count("RESEARCH_IDEATION_ASSUMPTIONS", 15)
+EXPANSION_HYPOTHESIS_COUNT = _count("RESEARCH_IDEATION_EXPANSION", 12)
 
 # Simulated debate: HARD CAP of one turn per persona, in this order; the
 # final persona's hypothesis is the debate's converged result.
