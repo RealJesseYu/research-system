@@ -105,6 +105,7 @@ def investigate(
     allowed_substrates: Optional[list] = None,
     mode: str = "auto",
     max_moves: int = DEFAULT_MAX_MOVES,
+    ceiling: Optional[dict] = None,
     study_id: Optional[str] = None,
     studies_root: Path = STUDIES_ROOT,
     runs_root: Path = Path("runs"),
@@ -203,7 +204,7 @@ def investigate(
         run_move(study, move, finding=decision.get("rationale"), runs_root=runs_root)
 
     spend_end = _cost_snapshot()
-    report = _build_report(study, termination, spend_start, spend_end)
+    report = _build_report(study, termination, spend_start, spend_end, ceiling)
     try:
         (study.dir / "report.json").write_text(json.dumps(report, indent=2))
     except Exception:  # noqa: BLE001 — the report value is returned regardless
@@ -211,26 +212,66 @@ def investigate(
     return report
 
 
-def _build_report(study: Any, termination: dict, spend_start: dict, spend_end: dict) -> dict:
-    """Assemble the investigation's report. Pure over its inputs."""
+def _build_report(
+    study: Any,
+    termination: dict,
+    spend_start: dict,
+    spend_end: dict,
+    ceiling: Optional[dict] = None,
+) -> dict:
+    """Assemble the investigation's report. Pure over its inputs. `ceiling` is the
+    provenance of the human-set bound (R-FD-2: max_moves vs a cost-cap-derived
+    ceiling); recorded verbatim so a reader sees exactly what was set."""
     arc = study_findings(study)
+    runs_spend = _sum_runs_spend(arc)
+    decider_spend = {
+        "calls": spend_end["calls"] - spend_start["calls"],
+        "tokens": spend_end["tokens"] - spend_start["tokens"],
+    }
     return {
         "study_id": study.study_id,
         "goal": study.goal,
         "allowed_substrates": study.allowed_substrates,
         "mode": study.mode,
         "moves_run": len(arc),
+        "ceiling": ceiling,
         "termination": termination,
         "arc": arc,
-        "decider_spend": {
-            "calls": spend_end["calls"] - spend_start["calls"],
-            "tokens": spend_end["tokens"] - spend_start["tokens"],
+        "decider_spend": decider_spend,
+        "runs_spend": runs_spend,
+        "total_spend": {
+            "calls": decider_spend["calls"] + runs_spend["calls"],
+            "tokens": decider_spend["tokens"] + runs_spend["tokens"],
         },
         "spend_note": (
-            "decider_spend is THIS process's model spend only (the PI's own "
-            "decisions). Each move is a subprocess run whose spend this process "
-            "cannot see — the supervisor writes no per-run cost to disk — so the "
-            "runs' spend is NOT included. The hard budget is max_moves; a true "
-            "token ceiling needs per-run cost reporting, which is future work."
+            "decider_spend is THIS process's own (the PI's decisions). runs_spend "
+            "is summed from each move's persisted per-run cost (free-director "
+            "Phase 1: each run records its spend into its run_record, read back "
+            "here). moves_with_cost/moves_run shows coverage — a move whose run "
+            "left no record contributes no cost and is not counted. The hard "
+            "budget is still max_moves; real cost-cap enforcement can now read "
+            "runs_spend against the ceiling."
         ),
+    }
+
+
+def _sum_runs_spend(arc: list) -> dict:
+    """Total model spend across the arc's moves, from each move's persisted
+    per-run cost. Pure and defensive: a move with no cost (a run that left no
+    record) simply contributes nothing and is not counted toward coverage."""
+    calls = tokens = covered = 0
+    for entry in arc:
+        cost = entry.get("cost") if isinstance(entry, dict) else None
+        if isinstance(cost, dict):
+            c = cost.get("calls")
+            t = cost.get("tokens")
+            if isinstance(c, int) or isinstance(t, int):
+                covered += 1
+            calls += c if isinstance(c, int) else 0
+            tokens += t if isinstance(t, int) else 0
+    return {
+        "calls": calls,
+        "tokens": tokens,
+        "moves_with_cost": covered,
+        "moves_run": len(arc),
     }

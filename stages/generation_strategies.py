@@ -164,10 +164,15 @@ def build_feasibility_nudge(run_id: str) -> str:
     parts.append(FEASIBILITY_NUDGE_INSTRUCTION)
     return "\n\n".join(parts)
 
-# Per-strategy candidate counts. Pool = 4 + 1 + 3 + 2 = 10 candidates.
-LITERATURE_HYPOTHESIS_COUNT = 4
-ASSUMPTION_HYPOTHESIS_COUNT = 3
-EXPANSION_HYPOTHESIS_COUNT = 2
+# Per-strategy candidate counts. Pool = 15 + 1 + 5 + 4 = 25 candidates
+# (owner ruling 2026-07-25: raised from 10 to 25 raw hypotheses; debate stays 1 —
+# it is a single converged result of its 3-persona exchange). NOTE: this ~2.5x's
+# the pool, and Reflection reviews EACH candidate, so per-run generation+review
+# cost grows accordingly; the pre-existing kill-rate baselines were taken at
+# pool=10 and would need re-baselining if compared numerically.
+LITERATURE_HYPOTHESIS_COUNT = 15
+ASSUMPTION_HYPOTHESIS_COUNT = 5
+EXPANSION_HYPOTHESIS_COUNT = 4
 
 # Simulated debate: HARD CAP of one turn per persona, in this order; the
 # final persona's hypothesis is the debate's converged result.

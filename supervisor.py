@@ -115,6 +115,33 @@ def record_run_outcome(baton: Baton, how_far: str, retry_on_total_defer: int = 0
             f", verification={verification.get('verified')}/{verification.get('total')}"
             f" publishable={verification.get('publishable')}"
         )
+    # PER-RUN COST (free-director Phase 1). This run is a fresh subprocess, so its
+    # cost meter started at zero and now holds the WHOLE run's model spend (both
+    # doors report into it). A dispatching parent cannot see a subprocess's
+    # in-process meter, so the spend must be persisted here — it rides the
+    # run_record extras exactly like verification, and read_run_result surfaces it
+    # back to the PI. This is what turns a cost-cap from a launch-time estimate
+    # into a ceiling the director can enforce against real spend (R-FD-2). A run
+    # that dies without journaling leaves no record and no cost — correctly the
+    # same has_run_record=False signal already used for outcome. Never raises: a
+    # record must not fail to be written.
+    try:
+        import cost_meter
+
+        snap = cost_meter.read()
+        calls = snap.get("model_calls", {}).get("total", 0)
+        tokens = sum(
+            v for v in snap.get("tokens", {}).get("total", {}).values()
+            if isinstance(v, int)
+        )
+        extras["cost"] = {"calls": calls, "tokens": tokens}
+        # Text stays byte-identical when nothing was spent (the codebase's
+        # minimal-text-unless-active convention, guarded by existing record-shape
+        # tests); a real run always spends, so its text carries the cost.
+        if calls or tokens:
+            text += f", cost={calls} calls/{tokens} tokens"
+    except Exception:  # noqa: BLE001
+        pass
     journal_append({"run_id": baton.run_id, "kind": "run_record", "text": text, "extras": extras})
 
 

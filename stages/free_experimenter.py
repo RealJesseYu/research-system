@@ -45,7 +45,9 @@ INDEPENDENT RE-VERIFICATION. After you finish, a deterministic pass with NO mode
 - produced by a specialized tool from the catalogue: "artifact": {"substrate_id": "<id>", "typed_input": {<the exact typed inputs>}, "quantity": "<metric name>"}.
 A finding you cannot back with a re-runnable artifact must be reported with "verified": false — an honest caveat is fine, it just is not counted as reproduced.
 
-Return ONLY JSON of the form: {"summary": "<what you found and what it means for the question>", "findings": [{"label": "<what this measures>", "value": <number or short string>, "verified": <true ONLY if you supply a re-runnable artifact>, "reproduce": "<how / which saved file to re-run>", "artifact": {"file": "<name>.py", "quantity": "<name>"} }], "publishable": <true only if the question is answered and every kept finding reproduced>} — omit "artifact" only on findings you mark "verified": false; no other fields anywhere."""
+REUSABLE FILE ARTIFACTS (optional). If your investigation produces a FILE that a LATER, separate investigation could reuse — a sequence, an alignment, a dataset, a structure, a trained model — declare it under "reusable_artifacts" so it can cross into a downstream study. Each is {"name": "<a bare filename>", "producer": <a recipe step that RE-EMITS the file>}. The producer is self-contained and deterministic (no network): either {"kind": "code", "code": "<python that WRITES the file and also sets metrics['<quantity>'] = <number>>", "quantity": "<a scalar name>", "emits": ["<the filename>"]} or {"kind": "substrate", "substrate_id": "<id>", "typed_input": {...}, "emits": ["<the filename>"]}. The file travels as this RE-RUNNABLE producer, NEVER as stored bytes: a downstream study regenerates it by re-running the producer, and an independent pass will reject any producer that does not actually re-write its file. Only declare a file whose producer re-creates it from scratch. Omit "reusable_artifacts" entirely if your work produces no such reusable file.
+
+Return ONLY JSON of the form: {"summary": "<what you found and what it means for the question>", "findings": [{"label": "<what this measures>", "value": <number or short string>, "verified": <true ONLY if you supply a re-runnable artifact>, "reproduce": "<how / which saved file to re-run>", "artifact": {"file": "<name>.py", "quantity": "<name>"} }], "reusable_artifacts": [{"name": "<file>", "producer": {"kind": "code", "code": "...", "quantity": "...", "emits": ["<file>"]}}], "publishable": <true only if the question is answered and every kept finding reproduced>} — omit "artifact" only on findings you mark "verified": false, and omit "reusable_artifacts" entirely if you produce no reusable file; no other fields anywhere."""
 
 SCHEMA = {"required": ["summary", "findings", "publishable"]}
 
@@ -77,6 +79,18 @@ def _validate_free_result(data: dict) -> list[str]:
                 "'artifact' ({file, quantity} for a saved code file, or "
                 "{substrate_id, typed_input, quantity} for a tool) — an "
                 "independent re-run must be able to regenerate the value.")
+    # Reusable file artifacts (optional, increment 2). STRUCTURAL only in the loop
+    # — the executing reproducibility gate runs post-call (like the wall does for
+    # scalars), so a producer is not run on every re-ask attempt.
+    reusables = data.get("reusable_artifacts")
+    if reusables is not None:
+        if not isinstance(reusables, list):
+            errors.append("'reusable_artifacts' must be a list if present.")
+        else:
+            from stages.reusable_artifacts import structural_errors
+            for i, ra in enumerate(reusables):
+                for e in structural_errors(ra):
+                    errors.append(f"reusable_artifacts[{i}]: {e}")
     if not isinstance(data.get("publishable"), bool):
         errors.append("'publishable' must be a boolean.")
     return errors
@@ -129,7 +143,27 @@ def _claims_from_findings(findings: list, workspace) -> list:
     ]
 
 
-def run_free_investigation(goal, *, run_id=None, call=None, verify=None) -> dict:
+def _gate_reusable_artifacts(reusables: list, gate) -> list:
+    """Run each declared reusable file-artifact through the reproduction gate
+    (increment 2). A producer that actually re-emits its file is kept verified; one
+    that does not is kept but marked verified:false with the reason — honest, never
+    dropped, and only verified ones are safe to hand to a downstream study. Runs
+    post-call (like the wall), so producers are not executed on every re-ask."""
+    out = []
+    for ra in reusables or []:
+        if not isinstance(ra, dict):
+            continue
+        errs = gate(ra)
+        out.append({
+            "name": ra.get("name"),
+            "producer": ra.get("producer"),
+            "verified": not errs,
+            "error": None if not errs else "; ".join(errs),
+        })
+    return out
+
+
+def run_free_investigation(goal, *, run_id=None, call=None, verify=None, gate=None) -> dict:
     """Host a FREE FULL agent on `goal` and return its structured result. `call`
     and `verify` are injected for tests; production uses call_stage_model (FULL
     profile — every tool + connector) and stages.verification.verify_run. Writes
@@ -172,6 +206,13 @@ def run_free_investigation(goal, *, run_id=None, call=None, verify=None) -> dict
         "findings": data.get("findings") or [],
         "publishable": bool(data.get("publishable")),
     }
+    # Reusable file artifacts (increment 2): gate each declared producer by
+    # actually re-emitting its file, so only reproducible files can later cross a
+    # run boundary. Empty/absent -> [] and zero extra cost (the common case).
+    if gate is None:
+        from stages.reusable_artifacts import validate_reusable_artifact as gate
+    result["reusable_artifacts"] = _gate_reusable_artifacts(
+        data.get("reusable_artifacts") or [], gate)
     if run_dir is not None and run_dir.is_dir():
         # CONTROLLER RE-VERIFY (the wall is authoritative). A deterministic,
         # no-model pass re-runs each finding's saved artifact and its verdict —

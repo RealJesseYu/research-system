@@ -175,6 +175,58 @@ class TestInvestigate(unittest.TestCase):
             finding=finding,
         )
 
+    def _run_move_with_cost(self, calls, tokens):
+        def run_move(study, move, finding=None, runs_root=None):
+            return S.record_move(
+                study,
+                MoveResult(
+                    move.type.value,
+                    move.run_id or f"{study.study_id}-mX",
+                    True,
+                    "completed",
+                    {"publishable": True, "cost": {"calls": calls, "tokens": tokens}},
+                ),
+                finding=finding,
+            )
+        return run_move
+
+    def test_runs_spend_is_summed_from_per_move_cost(self):
+        script = [
+            {"decision": "run_single", "next_domain": "d1", "rationale": "r"},
+            {"decision": "run_single", "next_domain": "d2", "rationale": "r"},
+            {"decision": "stop", "stop_reason": "done"},
+        ]
+        report = loop.investigate(
+            "g", studies_root=self.root,
+            decide=self._scripted_decider(script),
+            run_move=self._run_move_with_cost(10, 1000),
+            study_id="study-cost",
+        )
+        self.assertEqual(report["runs_spend"]["calls"], 20)
+        self.assertEqual(report["runs_spend"]["tokens"], 2000)
+        self.assertEqual(report["runs_spend"]["moves_with_cost"], 2)
+        self.assertEqual(report["runs_spend"]["moves_run"], 2)
+        # total_spend folds in the decider's own spend on top of the runs'.
+        self.assertEqual(
+            report["total_spend"]["calls"],
+            report["decider_spend"]["calls"] + 20,
+        )
+
+    def test_a_move_with_no_cost_contributes_nothing_and_is_not_counted(self):
+        # _fake_run_move records no cost — runs_spend stays zero with zero coverage.
+        script = [
+            {"decision": "run_single", "next_domain": "d1", "rationale": "r"},
+            {"decision": "stop", "stop_reason": "done"},
+        ]
+        report = loop.investigate(
+            "g", studies_root=self.root,
+            decide=self._scripted_decider(script),
+            run_move=self._fake_run_move, study_id="study-nocost",
+        )
+        self.assertEqual(report["runs_spend"]["calls"], 0)
+        self.assertEqual(report["runs_spend"]["moves_with_cost"], 0)
+        self.assertEqual(report["runs_spend"]["moves_run"], 1)
+
     def _scripted_decider(self, script):
         """Return a decide() that yields the next scripted decision each call."""
         calls = {"n": 0}

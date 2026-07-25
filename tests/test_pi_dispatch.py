@@ -120,6 +120,37 @@ class TestReadRunResult(unittest.TestCase):
         self.assertIsNone(r.outcome)
         self.assertFalse(r.completed)
         self.assertEqual(r.exit_code, 137)
+        # ...and no record means no cost either — the same signal (free-director
+        # Phase 1: the parent cannot see a subprocess meter that never persisted).
+        self.assertIsNone(r.cost)
+
+    def test_per_run_cost_is_surfaced_from_the_run_record(self):
+        record = _run_record(
+            "completed free investigation (publishable)",
+            cost={"calls": 42, "tokens": 5000},
+        )
+        r = read_run_result(self.run_dir, "r", 0, record)
+        self.assertEqual(r.cost, {"calls": 42, "tokens": 5000})
+        self.assertEqual(r.as_dict()["cost"], {"calls": 42, "tokens": 5000})
+
+    def test_only_reproduced_reusable_artifacts_are_surfaced(self):
+        import json as _json
+        prod = {"kind": "code", "code": "c", "quantity": "n", "emits": ["good.fasta"]}
+        (self.run_dir / "free_investigation.json").write_text(_json.dumps({
+            "reusable_artifacts": [
+                {"name": "good.fasta", "producer": prod, "verified": True},
+                {"name": "bad.fasta", "producer": prod, "verified": False, "error": "no emit"},
+            ]
+        }))
+        r = read_run_result(self.run_dir, "r", 0, _run_record("completed"))
+        names = [ra["name"] for ra in r.reusable_artifacts]
+        self.assertEqual(names, ["good.fasta"])                # only the reproduced one
+        self.assertEqual(r.reusable_artifacts[0]["producer"], prod)
+        self.assertEqual(r.as_dict()["reusable_artifacts"], r.reusable_artifacts)
+
+    def test_no_free_investigation_json_means_no_reusables(self):
+        r = read_run_result(self.run_dir, "r", 0, _run_record("completed"))
+        self.assertEqual(r.reusable_artifacts, [])
 
     def test_verification_json_is_read_when_the_record_lacks_it(self):
         self._write_verification(True, 3, 3)

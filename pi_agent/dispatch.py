@@ -96,6 +96,15 @@ class RunResult:
     allowed_substrates: Optional[list] = None
     paper_path: Optional[str] = None
     findings: list = field(default_factory=list)
+    # The run's own model spend ({calls, tokens}), persisted by the run into its
+    # run_record because a parent cannot see a subprocess's in-process cost meter
+    # (free-director Phase 1). None when the run left no record — the same
+    # has_run_record=False case where every other extras-derived field is None.
+    cost: Optional[dict] = None
+    # Reusable FILE artifacts the run produced and that REPRODUCED — each
+    # {name, producer} (cross-run file hand-off, increment 3). A file crosses as
+    # its re-runnable producer, never as bytes; only reproduced ones appear here.
+    reusable_artifacts: list = field(default_factory=list)
 
     @property
     def completed(self) -> bool:
@@ -118,6 +127,8 @@ class RunResult:
             "allowed_substrates": self.allowed_substrates,
             "paper_path": self.paper_path,
             "findings": self.findings,
+            "cost": self.cost,
+            "reusable_artifacts": self.reusable_artifacts,
             "completed": self.completed,
         }
 
@@ -167,6 +178,8 @@ def read_run_result(
     paper = run_dir / "stage6" / "paper.md"
     paper_path = str(paper) if paper.is_file() else None
 
+    reusables = _read_reusable_artifacts(run_dir)
+
     return RunResult(
         run_id=run_id,
         exit_code=exit_code,
@@ -181,6 +194,8 @@ def read_run_result(
         allowed_substrates=extras.get("allowed_substrates") if isinstance(extras, dict) else None,
         paper_path=paper_path,
         findings=findings,
+        cost=extras.get("cost") if isinstance(extras, dict) else None,
+        reusable_artifacts=reusables,
     )
 
 
@@ -228,6 +243,28 @@ def _read_verification(run_dir: Path) -> tuple:
         "total": vdata.get("total"),
     }
     return findings, summary
+
+
+def _read_reusable_artifacts(run_dir: Path) -> list:
+    """The run's REPRODUCED reusable file artifacts, read from
+    runs/<id>/free_investigation.json (cross-run file hand-off, increment 3). Only
+    verified ones — a file may cross a run boundary only as a producer that
+    re-emitted it. Never raises: a missing/malformed file is simply no artifacts.
+    Each returned entry is {name, producer}, the minimum a downstream step inlines."""
+    import json
+
+    fpath = Path(run_dir) / "free_investigation.json"
+    if not fpath.is_file():
+        return []
+    try:
+        data = json.loads(fpath.read_text())
+    except Exception:  # noqa: BLE001
+        return []
+    out = []
+    for ra in (data.get("reusable_artifacts") or [])[:_MAX_FINDINGS]:
+        if isinstance(ra, dict) and ra.get("verified") and ra.get("name") and ra.get("producer"):
+            out.append({"name": ra["name"], "producer": ra["producer"]})
+    return out
 
 
 # --------------------------------------------------------------------------

@@ -25,7 +25,43 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from pi_agent.budget import EST_COST_PER_MOVE_USD, Budget  # noqa: E402
 from pi_agent.loop import DEFAULT_MAX_MOVES, investigate  # noqa: E402
+
+
+def _resolve_ceiling(max_moves: int | None, cost_cap: float | None) -> tuple[int, dict]:
+    """Turn the human's ceiling input into the enforced move bound + a provenance
+    record (R-FD-2). The human sets EITHER --max-moves OR --cost-cap; moves stay
+    the always-enforced unit, and a cost cap is CONVERTED to a move ceiling here
+    at the boundary via the same estimate the budget object uses, so the loop
+    below stays honestly moves-denominated. The provenance goes into report.json
+    so a reader can see exactly which ceiling was set and how it was derived."""
+    if max_moves is not None and cost_cap is not None:
+        raise SystemExit(
+            "error: set EITHER --max-moves OR --cost-cap, not both (a cost cap "
+            "derives its own move ceiling)."
+        )
+    if cost_cap is not None:
+        derived = Budget.from_cost_cap(cost_cap).remaining()
+        if derived < 1:
+            raise SystemExit(
+                f"error: --cost-cap {cost_cap} is too small for even one move at "
+                f"the current estimate (${EST_COST_PER_MOVE_USD:.2f}/move)."
+            )
+        return derived, {
+            "kind": "cost_cap",
+            "cost_cap_usd": cost_cap,
+            "est_cost_per_move_usd": EST_COST_PER_MOVE_USD,
+            "derived_max_moves": derived,
+            "note": (
+                "derived ceiling: --cost-cap floored by the per-move estimate. "
+                "Moves are enforced; real spend enforcement waits on per-run cost "
+                "reporting."
+            ),
+        }
+    if max_moves is not None:
+        return max_moves, {"kind": "max_moves", "max_moves": max_moves}
+    return DEFAULT_MAX_MOVES, {"kind": "default", "max_moves": DEFAULT_MAX_MOVES}
 
 
 def main(argv: list | None = None) -> None:
@@ -49,15 +85,32 @@ def main(argv: list | None = None) -> None:
     parser.add_argument(
         "--max-moves",
         type=int,
-        default=DEFAULT_MAX_MOVES,
+        default=None,
         help=f"hard ceiling on experiments the director may run (default "
-        f"{DEFAULT_MAX_MOVES}); it holds no matter what the decider wants.",
+        f"{DEFAULT_MAX_MOVES}); it holds no matter what the decider wants. "
+        f"Mutually exclusive with --cost-cap.",
+    )
+    parser.add_argument(
+        "--cost-cap",
+        type=float,
+        default=None,
+        help="a spend ceiling in USD instead of a move count; the director "
+        "derives the move ceiling from it (R-FD-2). Mutually exclusive with "
+        "--max-moves.",
     )
     parser.add_argument(
         "--allowed-substrates",
         default=None,
         help="comma-separated substrate_ids to restrict this study to; omit for "
         "no restriction (the runs pick from the full permitted set).",
+    )
+    parser.add_argument(
+        "--director",
+        choices=["enum", "free"],
+        default="enum",
+        help="'enum' (default): the four-verb decider. 'free': the open-action-"
+        "space director with a divisible budget (docs/free_director_plan.md) — "
+        "built alongside; validate it live before it becomes the default.",
     )
     args = parser.parse_args(argv)
 
@@ -67,12 +120,26 @@ def main(argv: list | None = None) -> None:
         else None
     )
 
-    report = investigate(
-        goal=args.goal,
-        allowed_substrates=allowed,
-        mode=args.mode,
-        max_moves=args.max_moves,
-    )
+    max_moves, ceiling = _resolve_ceiling(args.max_moves, args.cost_cap)
+
+    if args.director == "free":
+        from pi_agent.free_director import free_investigate
+
+        report = free_investigate(
+            goal=args.goal,
+            budget=Budget(max_moves),
+            allowed_substrates=allowed,
+            mode=args.mode,
+            ceiling=ceiling,
+        )
+    else:
+        report = investigate(
+            goal=args.goal,
+            allowed_substrates=allowed,
+            mode=args.mode,
+            max_moves=max_moves,
+            ceiling=ceiling,
+        )
 
     summary = {
         "study_id": report["study_id"],

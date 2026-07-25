@@ -389,5 +389,51 @@ class TestToolCatalogExposedOptionally(unittest.TestCase):
         self.assertIn("confidently WRONG", sp)      # the approximate caveat
 
 
+class TestReusableArtifacts(unittest.TestCase):
+    """Increment 2: the free experimenter may declare reusable file artifacts,
+    structurally checked in the loop and reproduction-gated post-call."""
+
+    def _good(self, name="good.fasta"):
+        return {"name": name, "producer": {
+            "kind": "code", "code": "open('%s','w').write('x'); metrics={'n':1}" % name,
+            "quantity": "n", "emits": [name]}}
+
+    def test_validator_accepts_a_well_shaped_reusable(self):
+        errs = _validate_free_result(
+            {"findings": [], "publishable": True, "reusable_artifacts": [self._good()]})
+        self.assertEqual(errs, [])
+
+    def test_validator_rejects_a_reusable_with_no_producer(self):
+        errs = _validate_free_result(
+            {"findings": [], "publishable": True,
+             "reusable_artifacts": [{"name": "seq.fasta"}]})
+        self.assertTrue(any("reusable_artifacts[0]" in e for e in errs))
+
+    def test_absent_reusables_are_fine(self):
+        errs = _validate_free_result({"findings": [], "publishable": True})
+        self.assertEqual(errs, [])
+
+    def test_run_carries_gated_reusable_artifacts(self):
+        data = {"summary": "s", "findings": [], "publishable": True,
+                "reusable_artifacts": [self._good("good.fasta"), self._good("bad.fasta")]}
+
+        def fake_call(*a, **k):
+            import copy
+            return copy.deepcopy(data), {"model": "f"}
+
+        # the injected gate passes 'good', fails 'bad' — no real sandbox run.
+        def fake_gate(ra):
+            return [] if ra["name"] == "good.fasta" else ["producer did not emit it"]
+
+        out = run_free_investigation("q", call=fake_call, gate=fake_gate)
+        ras = out["reusable_artifacts"]
+        self.assertEqual({r["name"] for r in ras}, {"good.fasta", "bad.fasta"})
+        good = next(r for r in ras if r["name"] == "good.fasta")
+        bad = next(r for r in ras if r["name"] == "bad.fasta")
+        self.assertTrue(good["verified"])
+        self.assertFalse(bad["verified"])           # kept, honestly marked
+        self.assertIn("did not emit", bad["error"])
+
+
 if __name__ == "__main__":
     unittest.main()

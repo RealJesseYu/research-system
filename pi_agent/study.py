@@ -77,6 +77,11 @@ class Study:
     mode: str = "auto"
     created_at: str = field(default_factory=_utc_now)
     studies_root: Path = STUDIES_ROOT
+    # The study this one was spawned from, or None for a root study. This is the
+    # tree link the manager-of-managers recursion needs (a free director may spawn
+    # a sub-investigation as its own study); a reader of studies/ can reconstruct
+    # the decomposition tree from these back-pointers.
+    parent_study_id: Optional[str] = None
 
     @property
     def dir(self) -> Path:
@@ -95,6 +100,7 @@ class Study:
             "allowed_substrates": self.allowed_substrates,
             "mode": self.mode,
             "created_at": self.created_at,
+            "parent_study_id": self.parent_study_id,
         }
 
 
@@ -105,11 +111,14 @@ def create_study(
     mode: str = "auto",
     study_id: Optional[str] = None,
     studies_root: Path = STUDIES_ROOT,
+    parent_study_id: Optional[str] = None,
 ) -> Study:
     """Mint a study, write its identity, return it. The goal must be non-empty
     — a study with no goal is not a study. A caller-supplied study_id that
     already exists RAISES rather than silently reopening: a study identity is
-    written once, and reopening one by accident is how an arc gets two goals."""
+    written once, and reopening one by accident is how an arc gets two goals.
+    `parent_study_id` records the spawning study for a nested sub-investigation
+    (None for a root study)."""
     if not (isinstance(goal, str) and goal.strip()):
         raise ValueError("a study requires a non-empty goal.")
     sid = study_id or f"study-{_stamp()}"
@@ -119,6 +128,7 @@ def create_study(
         allowed_substrates=list(allowed_substrates) if allowed_substrates else None,
         mode=mode,
         studies_root=studies_root,
+        parent_study_id=parent_study_id,
     )
     if study.dir.exists():
         raise FileExistsError(
@@ -146,6 +156,7 @@ def load_study(study_id: str, *, studies_root: Path = STUDIES_ROOT) -> Study:
         mode=data.get("mode", "auto"),
         created_at=data.get("created_at", _utc_now()),
         studies_root=studies_root,
+        parent_study_id=data.get("parent_study_id"),
     )
 
 
@@ -206,6 +217,13 @@ def record_move(
         # results, not just from pass/fail. Empty for a run that measured nothing
         # or halted before verification.
         "results": raw.get("findings") or [],
+        # The move's model spend ({calls, tokens}), so the study's total spend is
+        # a sum over its arc — real per-run cost, not the launch-time estimate.
+        "cost": raw.get("cost"),
+        # Reusable FILE artifacts the run produced that reproduced — each
+        # {name, producer} — so a later integration can compose the actual files,
+        # not just the scalars (cross-run file hand-off).
+        "reusable_artifacts": raw.get("reusable_artifacts") or [],
         "finding": finding,
     }
     study.dir.mkdir(parents=True, exist_ok=True)
@@ -231,6 +249,8 @@ def study_findings(study: Study) -> list:
                 "succeeded": e.get("succeeded"),
                 "outcome": e.get("outcome"),
                 "results": e.get("results") or [],
+                "cost": e.get("cost"),
+                "reusable_artifacts": e.get("reusable_artifacts") or [],
                 "finding": e.get("finding"),
             }
         )
