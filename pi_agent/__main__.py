@@ -112,6 +112,13 @@ def main(argv: list | None = None) -> None:
         "space director with a divisible budget (docs/free_director_plan.md) — "
         "built alongside; validate it live before it becomes the default.",
     )
+    parser.add_argument(
+        "--paper",
+        action="store_true",
+        help="after the investigation, write the WHOLE STUDY up as a paper "
+        "(+figures) from its wall-verified findings into studies/<id>/paper.md. "
+        "Works with either director. Off by default.",
+    )
     args = parser.parse_args(argv)
 
     allowed = (
@@ -149,6 +156,22 @@ def main(argv: list | None = None) -> None:
     }
     print(json.dumps(summary, indent=2))
     print(f"study report: studies/{report['study_id']}/report.json")
+
+    # PAPER ROUTE (opt-in). Written here, at the entry point, rather than inside
+    # either director: it then covers BOTH directors with one wire, and it writes
+    # up only the TOP-LEVEL study (a spawned child's arc is reported inside its
+    # parent's, so a per-child paper would double-report the same work).
+    # Best-effort — a failed write-up never undoes the investigation.
+    if args.paper:
+        from stages.study_paper import write_study_paper_by_id
+
+        outcome = write_study_paper_by_id(report["study_id"])
+        if outcome.get("paper_path"):
+            print(f"paper: {outcome['paper_path']}")
+            for fig in outcome.get("figures") or []:
+                print(f"  figure: {fig}")
+        else:
+            print(f"no paper written: {outcome.get('error')}")
 
 
 if __name__ == "__main__":

@@ -175,7 +175,13 @@ def read_run_result(
         verified = disk_summary.get("verified")
         total = disk_summary.get("total")
 
-    paper = run_dir / "stage6" / "paper.md"
+    # runs/<id>/paper.md — where the FREE paper route (stages/free_paper.py)
+    # copies a run's write-up. This used to read runs/<id>/stage6/paper.md, a path
+    # from the six-stage pipeline deleted 2026-07-23, so it could never exist in a
+    # free run and paper_path was permanently None — a dead signal the enum
+    # decider's prompt was told to reason over. Absent (the default: the paper
+    # route is opt-in) => None, as before, but now truthfully.
+    paper = run_dir / "paper.md"
     paper_path = str(paper) if paper.is_file() else None
 
     reusables = _read_reusable_artifacts(run_dir)

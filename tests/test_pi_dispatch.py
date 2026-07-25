@@ -73,8 +73,10 @@ class TestReadRunResult(unittest.TestCase):
         )
 
     def _write_paper(self):
-        (self.run_dir / "stage6").mkdir()
-        (self.run_dir / "stage6" / "paper.md").write_text("# paper")
+        # runs/<id>/paper.md — where the free paper route copies a run's write-up.
+        # This fixture used to build a stage6/ dir, the layout of the six-stage
+        # pipeline deleted 2026-07-23, which no free run can ever produce.
+        (self.run_dir / "paper.md").write_text("# paper")
 
     def test_clean_completion_with_a_standing_paper(self):
         self._write_paper()
@@ -87,7 +89,7 @@ class TestReadRunResult(unittest.TestCase):
         self.assertTrue(r.completed)
         self.assertTrue(r.publishable)
         self.assertEqual((r.verified, r.total), (2, 2))
-        self.assertTrue(r.paper_path.endswith("stage6/paper.md"))
+        self.assertTrue(r.paper_path.endswith("paper.md"))
         self.assertTrue(r.has_run_record)
 
     def test_completed_but_not_publishable_is_not_a_success(self):
@@ -242,9 +244,9 @@ _STUB = textwrap.dedent(
     a = p.parse_args()
     runs_root = Path(os.environ["STUB_RUNS_ROOT"])
     run_dir = runs_root / a.run_id
-    (run_dir / "stage6").mkdir(parents=True, exist_ok=True)
+    run_dir.mkdir(parents=True, exist_ok=True)
     if os.environ.get("STUB_WRITE_PAPER") == "1":
-        (run_dir / "stage6" / "paper.md").write_text("# stub paper")
+        (run_dir / "paper.md").write_text("# stub paper")
     (run_dir / "verification.json").write_text(json.dumps({
         "publishable": os.environ.get("STUB_PUBLISHABLE") == "1",
         "verified": 1, "total": 1,
