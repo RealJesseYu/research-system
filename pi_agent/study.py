@@ -199,6 +199,13 @@ def next_move_run_id(study: Study) -> str:
     return f"{study.study_id}-m{move_count(study) + 1}"
 
 
+# Keys record_move already maps onto named arc fields. Anything else a move
+# returns is the TOOL's own payload and rides in "tool_output" (see below).
+_ARC_MAPPED_KEYS = frozenset(
+    {"findings", "cost", "reusable_artifacts", "publishable", "succeeded", "outcome"}
+)
+
+
 def record_move(
     study: Study,
     move_result: Any,
@@ -236,6 +243,18 @@ def record_move(
         # {name, producer} — so a later integration can compose the actual files,
         # not just the scalars (cross-run file hand-off).
         "reusable_artifacts": raw.get("reusable_artifacts") or [],
+        # WHAT THE TOOL ACTUALLY RETURNED. The researcher calls tools — ideation,
+        # validation, data analysis — and must READ what they give back, or it is
+        # deciding blind. Everything above is shaped for experiment runs, whose
+        # payload lives under "findings"; a tool answers under its own key
+        # (ideation -> "hypotheses", analysis -> "analysis"/"directions",
+        # validation -> "concerns"). Those were silently dropped: a call_ideation
+        # arc entry carried no ideas at all, so a full-depth run costing millions
+        # of tokens reached the director as an empty receipt and it confabulated a
+        # hypothesis to fill the gap (study-20260725T073215Z). Carrying the
+        # payload verbatim is the fix, and it is generic so a NEW tool needs no
+        # change here. Empty for an experiment move (all its keys are mapped).
+        "tool_output": {k: v for k, v in raw.items() if k not in _ARC_MAPPED_KEYS},
         "finding": finding,
     }
     study.dir.mkdir(parents=True, exist_ok=True)
@@ -277,6 +296,10 @@ def study_findings(study: Study) -> list:
                 "results": e.get("results") or [],
                 "cost": e.get("cost"),
                 "reusable_artifacts": e.get("reusable_artifacts") or [],
+                # What the researcher's TOOLS returned (ideas, analyses, concerns).
+                # Without this the researcher reads only its own past reasoning and
+                # decides blind — see record_move's tool_output note.
+                "tool_output": e.get("tool_output") or {},
                 "finding": e.get("finding"),
             }
         )
