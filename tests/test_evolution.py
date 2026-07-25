@@ -288,7 +288,8 @@ class TestEvolveAndReview(TmpRunDirTest):
             prov = r["provenance"]
             self.assertEqual(set(prov), {"parent_ids", "strategy", "model"})
             self.assertEqual(prov["model"], EVOLUTION_MODEL)
-            self.assertEqual(EVOLUTION_MODEL, "claude-sonnet-4-6")  # workhorse tier, 2026-07-20
+            # OWNER RULING 2026-07-25: the light tier is Opus (see models.py).
+            self.assertEqual(EVOLUTION_MODEL, "claude-opus-4-8")
             self.assertTrue(set(prov["parent_ids"]) <= parent_ids)
             self.assertTrue(r["accepted"])
             self.assertIsNone(r["reject_reason"])

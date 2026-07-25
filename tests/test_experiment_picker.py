@@ -69,7 +69,8 @@ class TestPickerAccept(unittest.TestCase):
         # The pin is used, this tool only.
         _, kwargs = mock.call_args
         self.assertEqual(kwargs.get("model"), ep.PICKER_MODEL)
-        self.assertEqual(ep.PICKER_MODEL, "claude-sonnet-4-6")  # workhorse tier, 2026-07-20
+        # OWNER RULING 2026-07-25: the light tier is Opus (see models.py).
+        self.assertEqual(ep.PICKER_MODEL, "claude-opus-4-8")
 
 
 class TestPickerReask(unittest.TestCase):

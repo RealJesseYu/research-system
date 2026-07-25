@@ -38,7 +38,20 @@ _TIER_ENV = {
     "light": "RESEARCH_MODEL_LIGHT",
     "triage": "RESEARCH_MODEL_TRIAGE",
 }
-_TIER_DEFAULT = {"heavy": OPUS, "light": SONNET, "triage": HAIKU}
+# OWNER RULING 2026-07-25: every tier defaults to OPUS.
+#
+# The prior defaults (light=Sonnet, triage=Haiku) meant hypothesis GENERATION and
+# the whole review chain — the creative and screening work — ran on Sonnet, while
+# only ranking and meta-review got Opus. Measured on study-20260725T073215Z: 119
+# of 140 ideation calls were Sonnet. A plain Opus/Fable chat given the same prompt
+# produced markedly better ideas, better selection reasoning, and an honest mixed
+# result; the PRIME DIRECTIVE says the system must never be weaker than a chat, so
+# the tier split was violating it at the exact stage where quality matters most.
+#
+# Cost is the deliberate trade. Both knobs remain, so a cheap run is one env var
+# away (RESEARCH_MODEL_LIGHT=sonnet RESEARCH_MODEL_TRIAGE=haiku restores the old
+# mix exactly).
+_TIER_DEFAULT = {"heavy": OPUS, "light": OPUS, "triage": OPUS}
 
 
 def model_for(tier: str) -> str:
