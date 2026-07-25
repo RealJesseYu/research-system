@@ -275,21 +275,45 @@ def _log(run_id: str, line: str) -> None:
 
 
 def filter_survivors(reflections: list[dict]) -> list[dict]:
-    """Pure-Python, no model call: discard 'known' reflections, keep at most
-    MAX_SURVIVORS by quality (highest first), ties broken by original
-    (generation) order. Raises RuntimeError if nothing survives — an honest
-    failure, not padded with anything to keep the run alive.
+    """Pure-Python, no model call: discard hypotheses whose ANSWER is already on
+    record, keep at most MAX_SURVIVORS by quality (highest first), ties broken by
+    original (generation) order.
+
+    THE PREDICATE CHANGED 2026-07-25, on live evidence. This used to discard every
+    reflection with novelty == "known", which was survivable only while the
+    reviewer was blind: it could not search, so it returned "novel" by default and
+    the filter almost never fired. The moment the reviewer could actually read the
+    literature, all 16 of 16 hypotheses came back "known" and the run halted with
+    zero survivors — the gate went from never firing to always firing, and neither
+    is a judgment.
+
+    The category error is that novelty of METHOD is not novelty of ANSWER, and only
+    the second decides whether running an experiment teaches anything. Almost every
+    good applied hypothesis uses an established method — that is why it is likely
+    to work. A textbook technique carried into a domain that has never applied it,
+    where the effect size is genuinely unknown, is a GOOD hypothesis that this
+    filter used to delete. So the kill is now `answer_established`: prior work has
+    already measured this specific claim in this specific setting, so there is
+    nothing to learn. Novelty survives as a ranking signal, not a veto.
+
+    Raises RuntimeError only when EVERY hypothesis is already answered — still an
+    honest failure, but now one that means what it says.
     """
-    novel = [(i, r) for i, r in enumerate(reflections) if r["novelty"] == "novel"]
-    if not novel:
+    live = [(i, r) for i, r in enumerate(reflections)
+            if not r.get("answer_established")]
+    if not live:
         raise RuntimeError(
-            f"stage1_ideation: all {len(reflections)} hypotheses were judged 'known' "
-            "against the literature. Zero survivors — there is no validated hypothesis "
-            "to hand to experiment design, so this run halts here rather than continuing "
-            "on a hypothesis nobody vetted as novel."
+            f"stage1_ideation: all {len(reflections)} hypotheses were judged to have "
+            "their ANSWER already established in the literature — running any of them "
+            "would measure something already on record. Zero survivors, so this run "
+            "halts here rather than spending a move to re-derive a known result."
         )
-    novel.sort(key=lambda pair: (-pair[1]["quality"], pair[0]))
-    return [r for _, r in novel[:MAX_SURVIVORS]]
+    # Rank: unanswered-and-novel first, then unanswered-but-known-method, each by
+    # quality. A known method whose answer is open still competes; it just does not
+    # outrank an equally good hypothesis that is also methodologically new.
+    live.sort(key=lambda pair: (pair[1].get("novelty") != "novel",
+                                -pair[1]["quality"], pair[0]))
+    return [r for _, r in live[:MAX_SURVIVORS]]
 
 
 def _judge_view(s: dict) -> dict:

@@ -161,7 +161,14 @@ def make_action_validator(
 
         if action in ("call_ideation", "call_validation", "call_data_analysis", "write_memory"):
             detail = parsed.get("detail")
-            if not isinstance(detail, str) or not detail.strip():
+            # call_ideation's request may be carried by `domain` instead — the
+            # executor already reads `domain or detail`, and rejecting a reply that
+            # said what to ask, in the other field, cost two re-asks live for
+            # nothing. Either field satisfies it; both empty is still an error.
+            alt = parsed.get("domain") if action == "call_ideation" else None
+            has_request = (isinstance(detail, str) and detail.strip()) or (
+                isinstance(alt, str) and alt.strip())
+            if not has_request:
                 errors.append(
                     f"detail must be a non-empty string when the action is {action} "
                     "(what to ask the tool, or the lesson to record)."

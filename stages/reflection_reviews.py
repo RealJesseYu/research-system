@@ -208,10 +208,23 @@ FULL_REVIEW_SYSTEM_PROMPT = (
     "the closest work you found. EVERY citation must be checkable by a human — either a "
     "provided ref id, or a real source you located, given as a URL, DOI, or arXiv id. Never "
     "cite a paper you have not actually seen. Also judge correctness and "
-    "quality for simulation-based study, informed by what you found. Reply ONLY with JSON "
+    "quality for simulation-based study, informed by what you found.\n\n"
+    "NOVELTY OF METHOD IS NOT THE SAME AS NOVELTY OF ANSWER, and only the second one "
+    "decides whether an experiment is worth running. Almost every good applied hypothesis "
+    "uses a well-established method — that is WHY it is likely to work. What matters is "
+    "whether anyone has actually MEASURED THE ANSWER for this specific question in this "
+    "specific setting. A textbook technique carried into a domain that has never applied "
+    "it, where the size of the effect is genuinely unknown, is a GOOD hypothesis even "
+    "though its novelty is 'known'. Set answer_established true ONLY when running the "
+    "experiment would teach nothing because the result is already on record. Reply ONLY "
+    "with JSON "
     'of the form {"ack_run_id": "<the run_id you were given>", '
     '"hypothesis_id": "<the hypothesis id you were given>", '
     '"novelty": "novel" or "known", '
+    '"answer_established": <true ONLY if prior work has already MEASURED THE ANSWER for '
+    "this specific claim, in this specific setting, so running the experiment would "
+    "teach nothing new; false if the method is well known but this particular question "
+    'has not actually been answered>, '
     '"novelty_rationale": "<one to three sentences naming what the cited refs do and do '
     'not establish about this claim>", '
     '"novelty_grounded_in": ["<ref id>", ...], '
@@ -651,6 +664,10 @@ def full_review(
     log_stage_call(run_id, f"stage1_reflection_full_{hypothesis['id']}", timing)
     return {
         "novelty": data["novelty"],
+        # Absent => False: a review that does not assert the answer is on record
+        # has not established that it is. Defaulting the other way would let a
+        # missing field silently kill a hypothesis.
+        "answer_established": bool(data.get("answer_established")),
         "novelty_rationale": data["novelty_rationale"],
         "novelty_grounded_in": data["novelty_grounded_in"],
         "critique": data["critique"],
@@ -1010,6 +1027,7 @@ def reflect_on_pool(
         _log(
             run_id,
             f"STAGE1_REFLECTION {h['id']}: novelty={full['novelty']} "
+            f"answer_established={full.get('answer_established')} "
             f"quality={full['quality']} fundamental_flaw={deep['fundamental_flaw']} "
             f"accounts_for={observation['accounts_for']} "
             f"failure_scenarios={len(simulation['failure_scenarios'])}",
@@ -1022,6 +1040,10 @@ def reflect_on_pool(
             {
                 "hypothesis_id": h["id"],
                 "novelty": full["novelty"],
+                # The filter kills on THIS, not on novelty: a known method
+                # applied where nobody has measured the answer is a good
+                # hypothesis (see FULL_REVIEW_SYSTEM_PROMPT).
+                "answer_established": full.get("answer_established", False),
                 "critique": full["critique"],
                 "quality": int(full["quality"]),
                 # Step 17-fix-A: deep verification's non-fatal concerns

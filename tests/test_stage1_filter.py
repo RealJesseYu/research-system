@@ -18,17 +18,54 @@ from stages.stage1_ideation import filter_survivors
 
 
 class TestFilterHalt(unittest.TestCase):
-    def test_all_known_halts_loudly(self):
+    def test_a_known_method_with_an_open_answer_survives(self):
+        """CHANGED 2026-07-25 on live evidence. This used to halt: every 'known'
+        reflection was discarded. That was survivable only while the reviewer was
+        blind and returned 'novel' by default — the moment it could actually
+        search, 16 of 16 came back 'known' and the run died with zero survivors.
+        Novelty of METHOD is not novelty of ANSWER, and a textbook technique
+        carried where nobody has measured the effect is a good hypothesis."""
         reflections = [
-            {"hypothesis_id": "h1", "novelty": "known", "critique": "seen before", "quality": 4},
-            {"hypothesis_id": "h2", "novelty": "known", "critique": "not new", "quality": 2},
-            {"hypothesis_id": "h3", "novelty": "known", "critique": "textbook", "quality": 5},
+            {"hypothesis_id": "h1", "novelty": "known", "critique": "well-known method",
+             "quality": 4},
+            {"hypothesis_id": "h2", "novelty": "known", "critique": "standard tool",
+             "quality": 2},
+        ]
+        survivors = filter_survivors(reflections)
+        self.assertEqual([r["hypothesis_id"] for r in survivors], ["h1", "h2"])
+
+    def test_all_answers_already_established_halts_loudly(self):
+        """The honest halt is still there — it just means what it says now:
+        every hypothesis would re-measure something already on record."""
+        reflections = [
+            {"hypothesis_id": "h1", "novelty": "known", "critique": "seen before",
+             "quality": 4, "answer_established": True},
+            {"hypothesis_id": "h2", "novelty": "novel", "critique": "but answered",
+             "quality": 5, "answer_established": True},
         ]
         with self.assertRaises(RuntimeError) as ctx:
             filter_survivors(reflections)
         message = str(ctx.exception)
-        self.assertIn("all 3 hypotheses were judged 'known'", message)
+        self.assertIn("ANSWER already established", message)
         self.assertIn("Zero survivors", message)
+
+    def test_novel_outranks_known_at_equal_quality(self):
+        """Novelty survives as a ranking signal rather than a veto."""
+        reflections = [
+            {"hypothesis_id": "hk", "novelty": "known", "critique": "c", "quality": 5},
+            {"hypothesis_id": "hn", "novelty": "novel", "critique": "c", "quality": 5},
+        ]
+        self.assertEqual([r["hypothesis_id"] for r in filter_survivors(reflections)],
+                         ["hn", "hk"])
+
+    def test_an_answered_hypothesis_is_dropped_even_if_novel(self):
+        reflections = [
+            {"hypothesis_id": "h1", "novelty": "novel", "critique": "c", "quality": 5,
+             "answer_established": True},
+            {"hypothesis_id": "h2", "novelty": "known", "critique": "c", "quality": 1},
+        ]
+        self.assertEqual([r["hypothesis_id"] for r in filter_survivors(reflections)],
+                         ["h2"])
 
 
 class TestFilterHappyPath(unittest.TestCase):
