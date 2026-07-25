@@ -128,5 +128,41 @@ class TestGenerationUncaged(unittest.TestCase):
             self.assertNotIn("= web_search(", src)
 
 
+class TestKeywordAPIsAreGone(unittest.TestCase):
+    """They cost ~100 s of throttled retries per run and contributed nothing —
+    live: arXiv 503/429/429/timeout, S2 429 x4, OpenAlex 0 — while the agent made
+    six WebSearch calls and cited a real paper. In the review path they ran PER
+    HYPOTHESIS, so a 16-hypothesis pool paid that sixteen times."""
+
+    def test_no_network_prefetch_in_either_path(self):
+        import inspect
+        import stages.generation_strategies as g
+        import stages.reflection_reviews as r
+        for mod in (g, r):
+            src = inspect.getsource(mod)
+            for call in ("= search_arxiv(", "= search_semantic_scholar(",
+                         "= search_openalex(", "= web_search("):
+                self.assertNotIn(call, src, f"{mod.__name__} still calls {call}")
+
+    def test_the_local_corpus_is_kept(self):
+        """Instant, free, offline, project-specific — the one worth keeping."""
+        import inspect
+        import stages.generation_strategies as g
+        self.assertIn("search_index(", inspect.getsource(g))
+
+
+class TestLocatedCitationDoesNotCrashTheNumberSignal(unittest.TestCase):
+    def test_a_located_citation_has_no_snippet_and_must_not_raise(self):
+        """LIVE CRASH: the warn-only unsupported-number check did refs_by_id[r],
+        which KeyError'd the moment the agent cited a source it had located
+        instead of a pre-fetched ref id — i.e. the behaviour we asked for."""
+        from stages.generation_strategies import _unsupported_numbers
+        refs_by_id = {"R1": {"snippet": "a value of 5 appears here"}}
+        grounded = ["R1", "arXiv:2010.08895 (Fourier Neural Operator)"]
+        texts = [" ".join(str(v) for v in (refs_by_id.get(r) or {}).values())
+                 for r in grounded]
+        self.assertEqual(_unsupported_numbers("the value is 5", texts), [])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

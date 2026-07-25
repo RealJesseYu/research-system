@@ -163,6 +163,12 @@ INITIAL_REVIEW_SYSTEM_PROMPT = (
     "... exactly one such object per candidate]}."
 )
 
+_RETIRED_SOURCE = {
+    "note": "retired: the review agent searches the web itself (FULL tools) "
+            "— the keyword APIs cost latency, not signal"
+}
+
+
 def _is_checkable_citation(entry, valid_refs) -> bool:
     """True when a novelty citation is something a human can go look at: one of
     the pre-fetched ref ids, or a source the reviewer located and cited by a
@@ -420,31 +426,16 @@ def gather_review_refs(run_id: str, hypothesis: dict) -> tuple[list[dict], dict]
         {"source": r["source"], "title": r["title"], "snippet": r["snippet"]}
         for r in search_index("literature", query, top_k=TOP_K_PER_SOURCE)
     ]
-    openalex_records = search_openalex(query, top_k=TOP_K_PER_SOURCE)
-
-    try:
-        arxiv_records = search_arxiv(query, top_k=TOP_K_PER_SOURCE)
-        arxiv_evidence: list | dict = arxiv_records
-    except RuntimeError as e:
-        arxiv_records = []
-        arxiv_evidence = {"error": str(e)}
-        _log(
-            run_id,
-            f"STAGE1_REFLECTION_RETRIEVAL {hypothesis['id']} arxiv failed "
-            f"(recorded, proceeding): {str(e).splitlines()[0]}",
-        )
-
-    try:
-        s2_records = search_semantic_scholar(query, top_k=TOP_K_PER_SOURCE)
-        s2_evidence: list | dict = s2_records
-    except RuntimeError as e:
-        s2_records = []
-        s2_evidence = {"error": str(e)}
-        _log(
-            run_id,
-            f"STAGE1_REFLECTION_RETRIEVAL {hypothesis['id']} semantic_scholar failed "
-            f"(recorded, proceeding): {str(e).splitlines()[0]}",
-        )
+    # THE KEYWORD-API PRE-FETCH IS RETIRED HERE TOO (2026-07-25), and this path
+    # was the worse offender: it ran PER HYPOTHESIS, so a 16-hypothesis pool paid
+    # the throttled retries sixteen times over. The reviewer searches the
+    # literature itself now (see FULL_REVIEW_SYSTEM_PROMPT) — better grounding,
+    # and none of the latency. Evidence keys kept so the file's shape is stable.
+    openalex_records: list = []
+    arxiv_records: list = []
+    s2_records: list = []
+    arxiv_evidence: list | dict = _RETIRED_SOURCE
+    s2_evidence: list | dict = _RETIRED_SOURCE
 
     # The web_search SUB-AGENT wrapper is RETIRED from this path (2026-07-25).
     # It existed because sealed stages held no tools, so a separate tool-holding
@@ -471,7 +462,7 @@ def gather_review_refs(run_id: str, hypothesis: dict) -> tuple[list[dict], dict]
     evidence = {
         "query": query,
         "corpus": corpus_records,
-        "openalex": openalex_records,
+        "openalex": _RETIRED_SOURCE,
         "arxiv": arxiv_evidence,
         "semantic_scholar": s2_evidence,
         "web": web_evidence,

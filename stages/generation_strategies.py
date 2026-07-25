@@ -418,30 +418,25 @@ def gather_literature_evidence(run_id: str, domain: str, run_dir: Path) -> list[
         {"source": r["source"], "title": r["title"], "snippet": r["snippet"]}
         for r in search_index("literature", domain, top_k=TOP_K_PER_SOURCE)
     ]
-    try:
-        openalex_records = search_openalex(domain, top_k=TOP_K_PER_SOURCE)
-        openalex_evidence: list | dict = openalex_records
-    except Exception as e:  # noqa: BLE001 — best-effort since 2026-07-25 (see docstring)
-        openalex_records = []
-        openalex_evidence = {"error": str(e)}
-        _log(run_id, f"STAGE1_RETRIEVAL openalex failed (recorded, proceeding): "
-                     f"{str(e).splitlines()[0]}")
-
-    try:
-        arxiv_records = search_arxiv(domain, top_k=TOP_K_PER_SOURCE)
-        arxiv_evidence: list | dict = arxiv_records
-    except RuntimeError as e:
-        arxiv_records = []
-        arxiv_evidence = {"error": str(e)}
-        _log(run_id, f"STAGE1_RETRIEVAL arxiv failed (recorded, proceeding): {str(e).splitlines()[0]}")
-
-    try:
-        s2_records = search_semantic_scholar(domain, top_k=TOP_K_PER_SOURCE)
-        s2_evidence: list | dict = s2_records
-    except RuntimeError as e:
-        s2_records = []
-        s2_evidence = {"error": str(e)}
-        _log(run_id, f"STAGE1_RETRIEVAL semantic_scholar failed (recorded, proceeding): {str(e).splitlines()[0]}")
+    # THE KEYWORD-API PRE-FETCH IS RETIRED (2026-07-25). Making it best-effort was
+    # not enough: the calls still ran, and still cost ~100 s of throttled retries
+    # per run to contribute nothing. Live evidence from the very next run — arXiv
+    # 503 then 429 then 429 then a read timeout, Semantic Scholar 429 four times,
+    # OpenAlex 0 records, three corpus refs total — while the generation agent
+    # itself made six WebSearch calls and cited a real located paper. The agent's
+    # own search is strictly better (it refines the query, follows citations, and
+    # reads the source) and these APIs were pure latency in front of it.
+    #
+    # The evidence keys are kept so the file's shape is stable for readers and
+    # tests; each records why it is absent rather than silently vanishing.
+    _RETIRED = {"note": "retired: the generation agent searches the web itself "
+                        "(FULL tools) — the keyword APIs cost latency, not signal"}
+    openalex_records: list = []
+    arxiv_records: list = []
+    s2_records: list = []
+    openalex_evidence: list | dict = _RETIRED
+    arxiv_evidence: list | dict = _RETIRED
+    s2_evidence: list | dict = _RETIRED
 
     # The web_search SUB-AGENT is RETIRED here too (2026-07-25). It spawned a
     # whole extra model call just to run WebSearch and marshal JSON — scaffolding
@@ -551,9 +546,16 @@ def strategy_literature_exploration(
                 elif isinstance(h.get("statement"), str):
                     # WARN-ONLY (Step 17-fix-A): count numbers the cited
                     # snippets do not contain. Never touches `errors`.
+                    # .get, not [r]: since the uncaging a citation may be a
+                    # source the agent LOCATED (an arXiv id, DOI or URL) rather
+                    # than a pre-fetched ref id, so it has no entry here. This
+                    # warn-only signal simply has no snippet text to compare
+                    # against for those — it must never crash the run, and a
+                    # located citation is the behaviour we asked for.
                     unsupported = _unsupported_numbers(h["statement"], [
                         " ".join(
-                            str(v) for v in refs_by_id[r].values() if isinstance(v, str)
+                            str(v) for v in (refs_by_id.get(r) or {}).values()
+                            if isinstance(v, str)
                         )
                         for r in grounded
                     ])
