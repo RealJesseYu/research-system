@@ -288,17 +288,27 @@ def _bubble_findings(report: dict) -> tuple:
 def _default_spawn_investigate(domain: str, child_budget: Any, child_id: str, parent_study: Any) -> dict:
     """Live child investigation: a full free_investigate on the sub-question, under
     the child budget, parent-linked, inheriting the parent's mode + substrate
-    constraint (a child stays within its parent's outer bound) and studies_root."""
-    from pi_agent.free_director import free_investigate
+    constraint (a child stays within its parent's outer bound) and studies_root.
 
+    ARTIFACT HAND-DOWN (the carry bus). The child also inherits the parent's
+    verified file PRODUCERS, both ways they are needed: inlined into its goal (so
+    its first move can regenerate and build on them) and seeded onto its study (so
+    its OWN later moves and its integration carry them onward). This is what makes
+    a phase able to build on the phase before it — the parent hands down the work,
+    not just the number that scored it. Producers only, never bytes."""
+    from pi_agent.free_director import (_carry_domain, _integration_context,
+                                        free_investigate)
+
+    carried = _integration_context(parent_study)["files"]
     return free_investigate(
-        domain,
+        _carry_domain(domain, parent_study),
         budget=child_budget,
         mode=parent_study.mode,
         allowed_substrates=parent_study.allowed_substrates,
         study_id=child_id,
         parent_study_id=parent_study.study_id,
         studies_root=parent_study.studies_root,
+        inherited_artifacts=carried,
     )
 
 

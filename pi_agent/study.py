@@ -82,6 +82,12 @@ class Study:
     # a sub-investigation as its own study); a reader of studies/ can reconstruct
     # the decomposition tree from these back-pointers.
     parent_study_id: Optional[str] = None
+    # Reusable FILE artifacts handed DOWN from the spawning study, each
+    # {name, producer} — the work a parent phase already built and verified, so a
+    # child's very first move can build ON it instead of from scratch. Empty/None
+    # for a root study. Producers only, never bytes: a child regenerates the file
+    # by re-running the producer, exactly as an integration does.
+    inherited_artifacts: Optional[list] = None
 
     @property
     def dir(self) -> Path:
@@ -101,6 +107,7 @@ class Study:
             "mode": self.mode,
             "created_at": self.created_at,
             "parent_study_id": self.parent_study_id,
+            "inherited_artifacts": self.inherited_artifacts,
         }
 
 
@@ -112,13 +119,16 @@ def create_study(
     study_id: Optional[str] = None,
     studies_root: Path = STUDIES_ROOT,
     parent_study_id: Optional[str] = None,
+    inherited_artifacts: Optional[list] = None,
 ) -> Study:
     """Mint a study, write its identity, return it. The goal must be non-empty
     — a study with no goal is not a study. A caller-supplied study_id that
     already exists RAISES rather than silently reopening: a study identity is
     written once, and reopening one by accident is how an arc gets two goals.
     `parent_study_id` records the spawning study for a nested sub-investigation
-    (None for a root study)."""
+    (None for a root study). `inherited_artifacts` are the parent's reproduced
+    file PRODUCERS handed down, so the child's first move can build on the work
+    the parent phase already did (None for a root study)."""
     if not (isinstance(goal, str) and goal.strip()):
         raise ValueError("a study requires a non-empty goal.")
     sid = study_id or f"study-{_stamp()}"
@@ -129,6 +139,7 @@ def create_study(
         mode=mode,
         studies_root=studies_root,
         parent_study_id=parent_study_id,
+        inherited_artifacts=list(inherited_artifacts) if inherited_artifacts else None,
     )
     if study.dir.exists():
         raise FileExistsError(
@@ -157,6 +168,7 @@ def load_study(study_id: str, *, studies_root: Path = STUDIES_ROOT) -> Study:
         created_at=data.get("created_at", _utc_now()),
         studies_root=studies_root,
         parent_study_id=data.get("parent_study_id"),
+        inherited_artifacts=data.get("inherited_artifacts"),
     )
 
 

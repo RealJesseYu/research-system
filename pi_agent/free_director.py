@@ -53,12 +53,17 @@ from pi_agent.study import STUDIES_ROOT, create_study, record_move, study_findin
 def _move_from_action(action: dict, study: Any) -> Move:
     """Build the dispatchable Move from a run_experiment action. A campaign flag
     selects the iterated sweep; a named instrument narrows the run to it (else the
-    run chooses from the study's permitted set)."""
+    run chooses from the study's permitted set).
+
+    The question carries the study's verified file producers (_carry_domain), so a
+    move BUILDS ON what earlier moves built instead of reconstructing it from the
+    director's prose. Nothing to carry => the question is the director's, verbatim.
+    """
     instrument = action.get("instrument")
     mtype = MoveType.CAMPAIGN if action.get("campaign") else MoveType.SINGLE
     return Move(
         type=mtype,
-        domain=action["domain"],
+        domain=_carry_domain(action["domain"], study),
         mode=study.mode,
         allowed_substrates=[instrument] if instrument else None,
     )
@@ -85,10 +90,15 @@ def _record_capability(study: Any, action_name: str, seq: int, result: dict, fin
 def _integration_context(study: Any) -> dict:
     """What an integration check has to compose: the VERIFIED scalar findings across
     the arc (parts) AND the reproduced reusable FILE artifacts (files), including
-    those bubbled up from sub-investigations. A part that did not reproduce is not
-    something to build an assembly on, so only verified ones count (the measurement
-    boundary: an integration composes re-run numbers and re-runnable file
-    producers, never narration or stored bytes)."""
+    those bubbled up from sub-investigations and those INHERITED from the spawning
+    study. A part that did not reproduce is not something to build an assembly on,
+    so only verified ones count (the measurement boundary: an integration composes
+    re-run numbers and re-runnable file producers, never narration or stored bytes).
+
+    Arc artifacts are collected BEFORE inherited ones and dedup is first-wins, so a
+    file this study regenerated supersedes the version it inherited — which is what
+    iterative work needs: the newest version of a design is the one that carries.
+    """
     parts, files, seen = [], [], set()
     for entry in study_findings(study):
         for f in entry.get("results", []) or []:
@@ -99,7 +109,49 @@ def _integration_context(study: Any) -> dict:
             if isinstance(ra, dict) and ra.get("name") and ra["name"] not in seen:
                 seen.add(ra["name"])
                 files.append({"name": ra["name"], "producer": ra.get("producer")})
+    for ra in getattr(study, "inherited_artifacts", None) or []:
+        if isinstance(ra, dict) and ra.get("name") and ra["name"] not in seen:
+            seen.add(ra["name"])
+            files.append({"name": ra["name"], "producer": ra.get("producer")})
     return {"parts": parts, "files": files}
+
+
+# The carry bus (artifact hand-off). A phase that built something must be able to
+# hand the THING to the next phase, not just the number it scored — otherwise every
+# move rebuilds the world from a sentence and nothing compounds. The mechanism
+# already existed for call_integration; this extends the same producers-not-bytes
+# hand-off to run_experiment and spawn_sub_investigation.
+#
+# Bounded so a long arc cannot grow the question without limit; the newest
+# artifacts (arc before inherited, see _integration_context) survive the cap.
+MAX_CARRIED_FILES = 8
+
+
+def _carry_block(files: list) -> str:
+    """The prose that hands re-runnable file producers to a dispatched move. Same
+    contract as _integration_domain's file clause: the file travels as a PRODUCER
+    the receiver re-runs, never as a stored copy, so a carried artifact is
+    reproducible at every hop. Empty string when there is nothing to carry (the
+    caller then leaves the question byte-identical)."""
+    carried = (files or [])[:MAX_CARRIED_FILES]
+    if not carried:
+        return ""
+    producers = json.dumps(
+        [{"name": f.get("name"), "producer": f.get("producer")} for f in carried]
+    )
+    return (
+        "\n\nWORK ALREADY BUILT AND VERIFIED, handed to you to BUILD ON. Each is a "
+        "re-runnable producer: INLINE it as a step to regenerate the file in your "
+        "workspace (never assume a stored copy is present), then build on the "
+        f"result instead of starting from scratch: {producers}"
+    )
+
+
+def _carry_domain(domain: str, study: Any) -> str:
+    """The question a dispatched move actually receives: the director's question
+    plus the study's carried file producers. Byte-identical to `domain` when the
+    study has carried nothing — a first move in a fresh study is unchanged."""
+    return domain + _carry_block(_integration_context(study)["files"])
 
 
 def _integration_domain(goal: str, detail: Optional[str], context: dict) -> str:
@@ -153,12 +205,17 @@ def free_investigate(
     parent_study_id: Optional[str] = None,
     studies_root: Path = STUDIES_ROOT,
     runs_root: Path = Path("runs"),
+    inherited_artifacts: Optional[list] = None,
     max_decisions: Optional[int] = None,
     decide_action: Callable = None,
     run_move: Callable = None,
     execute_capability: Callable = None,
 ) -> dict:
     """Run one free-director investigation to completion and return its report.
+
+    `inherited_artifacts` are the spawning study's verified file producers, handed
+    down so this study's moves build on work an earlier phase already did rather
+    than reconstructing it from prose (the carry bus; None for a root study).
 
     `budget` is the Budget (Phase 1) — the hard, divisible ceiling. `decide_action`
     (default pi_agent.free_decider.decide_action) is the open-action-space model
@@ -183,6 +240,7 @@ def free_investigate(
         study_id=study_id,
         studies_root=studies_root,
         parent_study_id=parent_study_id,
+        inherited_artifacts=inherited_artifacts,
     )
     spend_start = _cost_snapshot()
     cap = _decision_cap(budget, max_decisions)
