@@ -31,11 +31,13 @@ machinery, so every path is exercisable offline with fakes (the repo pattern).
 
 from __future__ import annotations
 
+import inspect
 from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
 from model_call import FULL, agent_workspace, call_stage_model
 from models import model_for
+from pi_agent.free_decider import DEFAULT_IDEATION_DEPTH
 from pi_agent.study import study_findings, study_scratch_dir
 
 # One move per heavy tool call (see BUDGET above).
@@ -60,16 +62,22 @@ def _insufficient(name: str) -> dict:
 
 def run_ideation(action: dict, study: Any, budget: Any, seq: int, *, run: Callable = None) -> dict:
     """Invoke ideation for a question and return its ranked hypotheses for the
-    director to pick from. Reuses stage1_ideation at depth='quick' (the cheap
-    default per the collapse manifest) — which already grounds in BOTH search
-    styles (deterministic arXiv/OpenAlex/S2 + native web search). Spends one move.
-    `run` is injected for offline tests."""
+    director to pick from. Spends one move. `run` is injected for offline tests.
+
+    DEPTH IS THE DIRECTOR'S DIAL (R-FD-6). 'quick' (the default) is one generation
+    strategy — cheap, enough when you just need a direction to go test. 'full' is
+    the whole Co-Scientist apparatus (four generation strategies, six review types,
+    an Elo tournament, evolution, meta-review), for when the IDEAS are the
+    deliverable. Both ground in deterministic literature search + native web
+    search. An absent/None depth means quick, so a director that never names one
+    behaves exactly as before this dial existed."""
     run = run or _default_ideation
     if not budget.can_spend(MOVE_COST):
         return _insufficient("call_ideation")
     budget.spend(MOVE_COST)
     domain = action.get("domain") or action.get("detail") or study.goal
-    hyps = run(domain, study, seq) or []
+    depth = action.get("depth") or DEFAULT_IDEATION_DEPTH
+    hyps = _run_ideation_at_depth(run, domain, study, seq, depth) or []
     digest = [
         {"id": h.get("id"), "statement": h.get("statement")}
         for h in hyps[:_MAX_ITEMS]
@@ -79,13 +87,44 @@ def run_ideation(action: dict, study: Any, budget: Any, seq: int, *, run: Callab
         "succeeded": bool(digest),
         "outcome": "ideation_done" if digest else "ideation_empty",
         "hypotheses": digest,
-        "detail": f"{len(digest)} candidate direction(s) for: {domain}",
+        # The depth used rides the arc entry: a reader comparing two studies has to
+        # be able to tell "thin ideas from a quick pass" from "thin ideas the full
+        # apparatus could not improve on" — those mean different things.
+        "depth": depth,
+        "detail": f"{len(digest)} candidate direction(s) at depth={depth} for: {domain}",
     }
 
 
-def _default_ideation(domain: str, study: Any, seq: int) -> list:
-    """Live ideation: a quick-depth stage1 pass over the domain. Writes its
-    evidence under runs/<study_id>-cap<seq>/stage1/ like any run."""
+def _ideation_run_accepts_depth(run: Callable) -> bool:
+    """True when the ideation runner can take a depth argument. The runner is
+    INJECTED (tests pass their own), and the pre-R-FD-6 signature was
+    (domain, study, seq) — calling a 3-arg fake with a 4th positional would break
+    it silently. Same introspection idiom as model_call._seam_accepts_capabilities,
+    recomputed per call because the injected callable varies."""
+    try:
+        params = inspect.signature(run).parameters
+    except (TypeError, ValueError):
+        return False
+    if any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()):
+        return True
+    return "depth" in params
+
+
+def _run_ideation_at_depth(run: Callable, domain: str, study: Any, seq: int,
+                           depth: str) -> list:
+    """Call the ideation runner, passing depth only when it can take it. A runner
+    that cannot keeps its old behavior (quick) rather than crashing — the dial is
+    additive, never a break."""
+    if _ideation_run_accepts_depth(run):
+        return run(domain, study, seq, depth=depth)
+    return run(domain, study, seq)
+
+
+def _default_ideation(domain: str, study: Any, seq: int,
+                      depth: str = DEFAULT_IDEATION_DEPTH) -> list:
+    """Live ideation: a stage1 pass over the domain at the director's chosen depth
+    ('quick' = one generation strategy; 'full' = the whole Co-Scientist apparatus).
+    Writes its evidence under runs/<study_id>-cap<seq>/stage1/ like any run."""
     from baton import Baton
     from stages import stage1_ideation
 
@@ -95,7 +134,7 @@ def _default_ideation(domain: str, study: Any, seq: int) -> list:
         mode=study.mode,
         payload={"domain": domain},
     )
-    result = stage1_ideation.run(baton, depth="quick")
+    result = stage1_ideation.run(baton, depth=depth)
     return result.payload.get("hypotheses") or []
 
 

@@ -68,8 +68,17 @@ ACTION_VALUES = (
 
 _ENVELOPE_FIELDS = (
     "ack", "reading", "reasoning", "action",
-    "domain", "instrument", "campaign", "budget_moves", "detail", "stop_reason",
+    "domain", "instrument", "campaign", "budget_moves", "detail", "depth",
+    "stop_reason",
 )
+
+# Ideation depth (R-FD-6). The hypothesis apparatus has two settings and the
+# director picks: "quick" is one generation strategy, "full" is the whole
+# Co-Scientist apparatus (four generation strategies, six review types, an Elo
+# tournament, evolution, meta-review). Default quick — cheap by default, escalated
+# by judgment when the IDEAS are the deliverable rather than a means to one.
+DEPTH_VALUES = ("quick", "full")
+DEFAULT_IDEATION_DEPTH = "quick"
 
 SYSTEM_PROMPT = """You are the principal investigator of an autonomous research system, running unattended. You hold ONE goal for the whole investigation and drive it by choosing a sequence of actions, each following from what the last ones showed.
 
@@ -79,7 +88,7 @@ YOUR ACTION SPACE (choose exactly one per turn):
 - "run_experiment": point one experiment run at a QUESTION ("domain"). Optionally force an "instrument" from the menu, or leave it null for the run to choose. Set "campaign": true for an iterated sweep instead of a single run. Spends one move of your budget.
 - "spawn_sub_investigation": delegate a sub-question ("domain") to a child director with "budget_moves" of your budget carved off for it. Use this to DECOMPOSE — break a big goal into subsystems, each investigated on its own slice. The child cannot exceed the budget you hand it.
 - "call_integration": run an experiment that checks whether the parts you have verified so far actually COMPOSE into a working whole, and measures the joint behavior. Spends one move. Use it after you decompose: subsystems that each pass on their own can still fail together (each locally optimal, the assembly incompatible), and re-running each part's number will never catch that — only assembling and measuring them jointly will. Put the joint criterion in "detail". Do NOT declare a decomposed goal answered until an integration check has stood.
-- "call_ideation": invoke the hypothesis apparatus for a question when you want many candidate directions, not one. OPTIONAL — reach for it only when the task warrants; it is not a mandatory step.
+- "call_ideation": invoke the hypothesis apparatus for a question when you want many candidate directions, not one. It returns ranked candidate hypotheses to YOU — you then decide what to do with them, so you may call it at any point in the investigation, not only at the start, and more than once. OPTIONAL — reach for it only when the task warrants; it is not a mandatory step. Set "depth": "quick" (the default) for one fast generation pass, or "depth": "full" for the whole apparatus — four competing generation strategies, six review types, an Elo tournament between hypotheses, evolution of the survivors, and a meta-review. "full" costs many model calls and takes far longer, so choose it when the IDEAS THEMSELVES are the deliverable, or when a quick pass came back thin or obvious; choose "quick" when you mainly need a direction to go test.
 - "call_validation": invoke heavy independent validation of results gathered so far, when the stakes warrant more than each experiment's own verification. OPTIONAL.
 - "call_data_analysis": analyze the results the arc has accumulated. OPTIONAL.
 - "read_memory" / "write_memory": read prior studies' findings, or record a lesson ("detail") for future ones.
@@ -87,7 +96,7 @@ YOUR ACTION SPACE (choose exactly one per turn):
 
 DISCIPLINE. Work small-before-big: run a cheap experiment, read the VERIFIED result, then scale up, change tack, decompose, or stop — read that judgment off what you actually observed. Respect your budget: it is a hard ceiling on how much you may spend, and a sub-investigation's slice comes out of it. Decompose only when the goal genuinely has separable parts; a simple goal may need just one experiment and a stop.
 
-Reply ONLY with JSON of the form {"ack": "<the study_id you were given>", "reading": "<one or two sentences: what the most recent action's result showed, and what it means for the goal; null only on the first turn when nothing has run>", "reasoning": "<1-3 sentences: why this action next>", "action": "run_experiment" | "spawn_sub_investigation" | "call_ideation" | "call_validation" | "call_data_analysis" | "read_memory" | "write_memory" | "stop", "domain": "<the exact question for run_experiment or spawn_sub_investigation, else null>", "instrument": "<a substrate_id from the menu to force, or null; for run_experiment or call_integration>", "campaign": <true|false, only meaningful for run_experiment; default false>, "budget_moves": <int moves to allocate to the child, required for spawn_sub_investigation, else null>, "detail": "<the request for call_* / write_memory, else null>", "stop_reason": "<why the investigation is complete, required for stop, else null>"} — no other fields anywhere."""
+Reply ONLY with JSON of the form {"ack": "<the study_id you were given>", "reading": "<one or two sentences: what the most recent action's result showed, and what it means for the goal; null only on the first turn when nothing has run>", "reasoning": "<1-3 sentences: why this action next>", "action": "run_experiment" | "spawn_sub_investigation" | "call_ideation" | "call_validation" | "call_data_analysis" | "read_memory" | "write_memory" | "stop", "domain": "<the exact question for run_experiment or spawn_sub_investigation, else null>", "instrument": "<a substrate_id from the menu to force, or null; for run_experiment or call_integration>", "campaign": <true|false, only meaningful for run_experiment; default false>, "budget_moves": <int moves to allocate to the child, required for spawn_sub_investigation, else null>, "detail": "<the request for call_* / write_memory, else null>", "depth": "<'quick' or 'full' for call_ideation, else null>", "stop_reason": "<why the investigation is complete, required for stop, else null>"} — no other fields anywhere."""
 
 SCHEMA = {"required": ["ack", "reasoning", "action"]}
 
@@ -135,6 +144,20 @@ def make_action_validator(
                     "budget_moves must be an integer >= 1 when the action is "
                     "spawn_sub_investigation (the moves carved off for the child)."
                 )
+
+        # depth: null is always valid (the tool's own default). A named depth must
+        # be in the vocabulary AND only on call_ideation — it is that tool's dial,
+        # and naming it elsewhere means the director has confused two actions.
+        depth = parsed.get("depth")
+        if depth is not None:
+            if action != "call_ideation":
+                errors.append(
+                    f"depth must be null when the action is {action} (only "
+                    "call_ideation takes a depth).")
+            elif depth not in DEPTH_VALUES:
+                errors.append(
+                    f"depth must be one of {', '.join(DEPTH_VALUES)} (or null for "
+                    f"{DEFAULT_IDEATION_DEPTH}); got {depth!r}.")
 
         if action in ("call_ideation", "call_validation", "call_data_analysis", "write_memory"):
             detail = parsed.get("detail")
@@ -185,7 +208,7 @@ def _action_space_menu() -> list:
         {"action": "run_experiment", "does": "point one experiment run at a question; spends one move"},
         {"action": "spawn_sub_investigation", "does": "delegate a sub-question to a child director with a slice of the budget"},
         {"action": "call_integration", "does": "run a joint check that the verified parts COMPOSE into a working whole; spends one move"},
-        {"action": "call_ideation", "does": "OPTIONAL: invoke the hypothesis apparatus for many candidate directions"},
+        {"action": "call_ideation", "does": "OPTIONAL: invoke the hypothesis apparatus for many candidate directions; depth 'quick' (default) = one generation pass, 'full' = four strategies + six reviews + Elo tournament + evolution + meta-review"},
         {"action": "call_validation", "does": "OPTIONAL: heavy independent validation beyond each experiment's own"},
         {"action": "call_data_analysis", "does": "OPTIONAL: analyze the results accumulated in the arc"},
         {"action": "read_memory", "does": "read prior studies' accumulated findings"},

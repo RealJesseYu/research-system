@@ -76,6 +76,21 @@ whole task spectrum collapses into depth-of-recursion the agent *chooses*:
   ideation reads and the kill-rate battery pins by md5 ("learned-summary poison risk"), and
   a distinct kind keeps director notes inert to it. `read_memory` reads both kinds; nothing
   else reads `director_note`. This resolves the Phase-4 hold and wires the last action.
+- **R-FD-6 — Ideation depth is the director's dial (2026-07-25, owner-ruled).** `call_ideation`
+  was always correctly a TOOL in the open action space — callable at any turn, returning ranked
+  hypotheses into the arc for the director to act on, never a mandatory opening phase. But it
+  hardcoded `depth='quick'` (one generation strategy), so the full Co-Scientist apparatus
+  (four generation strategies, six review types, Elo tournament, evolution, meta-review) was
+  unreachable from the director path — you could have strong ideation OR a directed arc, not
+  both. RULING: add an optional `depth` field ("quick" | "full") to the `call_ideation` action,
+  **defaulting to quick**. Rejected alternatives: always-full (makes every study expensive
+  whether or not the ideas are the deliverable) and budget-derived (hides a research judgment
+  inside an accounting rule). The director already reasons about budget and about whether it
+  needs one direction or many, so this is exactly the call it is positioned to make. `depth` is
+  valid ONLY on `call_ideation` — naming it elsewhere is a re-ask, not a silent ignore. The
+  depth used rides the arc entry, because "thin ideas from a quick pass" and "thin ideas the
+  full apparatus could not improve on" are different facts. Absent depth ⇒ quick ⇒ behavior
+  byte-identical to before the dial.
 
 ## 3. Task plan (ordered; connectors are explicitly AFTER all of this)
 
