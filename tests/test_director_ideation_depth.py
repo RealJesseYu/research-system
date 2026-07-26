@@ -178,5 +178,34 @@ class TestDefaults(unittest.TestCase):
         self.assertIn("not only at the start", p)
 
 
+class TestIdeationRequestIsNotPreConstrained(unittest.TestCase):
+    """THE ANCHOR, ONE LEVEL UP. Contracts were stripped from generation
+    (3798326), but the director writes its own ideation request and had been
+    narrowing it itself — live, in study-20260725T233436Z: "testable on one of
+    the available instruments (CFD, FEA, symbolic math, SPICE, RDKit, FBA)". An
+    unanchored generator handed a constrained question is still constrained."""
+
+    def test_the_director_is_told_to_ask_the_open_question(self):
+        p = free_decider.SYSTEM_PROMPT
+        self.assertIn("ASK IT THE OPEN QUESTION", p)
+        self.assertIn("do not list the instruments in it", p)
+
+    def test_it_explains_why_pre_constraining_is_harmful(self):
+        """Not just a rule — the reason, so it holds under pressure."""
+        p = free_decider.SYSTEM_PROMPT
+        self.assertIn("already answered", p)
+
+    def test_the_menu_is_still_the_directors_tool_for_dispatching(self):
+        """The instrument menu is not removed — it is what the director uses when
+        it runs an experiment. Only the ideation REQUEST is unconstrained."""
+        p = free_decider.SYSTEM_PROMPT
+        self.assertIn("what YOU use when dispatching an experiment", p)
+
+    def test_the_action_menu_line_says_it_too(self):
+        entry = [a for a in free_decider._action_space_menu()
+                 if a["action"] == "call_ideation"][0]
+        self.assertIn("never narrowed to the instrument menu", entry["does"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
