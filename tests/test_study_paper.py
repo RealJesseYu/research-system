@@ -93,11 +93,15 @@ class TestEvidenceCollection(StudyPaperTestCase):
         self.assertEqual(ev["arc"][1]["why_this_phase"], "do they compose?")
         self.assertEqual(ev["verified_findings"][1]["from_phase"], 2)
 
-    def test_reusable_artifacts_are_named(self):
+    def test_reusable_artifact_PRODUCERS_travel_not_just_names(self):
+        """The writer used to get a bare filename list, so it could mention that a
+        design existed but never open it, describe it, or draw it — a large part
+        of why a design study came out reading as an analysis."""
         _record(self.study, results=[{"label": "a", "value": 1, "verified": True}],
                 artifacts=[{"name": "arm.json", "producer": {"kind": "code"}}])
         ev = collect_study_evidence(self.study)
-        self.assertEqual(ev["reusable_artifacts"], [{"name": "arm.json"}])
+        self.assertEqual(ev["reusable_artifacts"],
+                         [{"name": "arm.json", "producer": {"kind": "code"}}])
 
 
 class TestWriteStudyPaper(StudyPaperTestCase):

@@ -141,5 +141,78 @@ class TestOnlyTheDirectorEndsTheArc(ArcSurvivalTestCase):
         self.assertEqual(report["termination"]["detail"], "done")
 
 
+class TestATransportHiccupDoesNotEndTheStudy(ArcSurvivalTestCase):
+    """THE LAST HOLE. In study-20260726T063702Z an SDK error — "Claude Code
+    returned an error result: success", the CLI subprocess exiting non-zero —
+    ended an investigation that had already decomposed, carried artifacts across
+    phases, and found a real composition failure, with six moves of budget left.
+
+    model_call's transport retry did not help because it is disabled for TOOLED
+    calls (replaying an agentic loop can re-commit side effects). Sound for the
+    experimenter; wrong for the director, whose call returns a JSON decision and
+    nothing else."""
+
+    def test_a_decision_that_fails_once_is_retried_and_the_arc_continues(self):
+        calls = {"n": 0}
+
+        def flaky(study, arc, budget):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise RuntimeError("Claude Code returned an error result: success")
+            return _act("stop", stop_reason="recovered")
+
+        import pi_agent.free_director as fd
+        original = fd.DECIDE_RETRY_BACKOFFS
+        fd.DECIDE_RETRY_BACKOFFS = (0,)          # no sleeping in tests
+        try:
+            report = free_investigate(
+                "g", budget=Budget(6), studies_root=self.root, study_id="s",
+                decide_action=flaky, run_move=lambda *a, **k: None)
+        finally:
+            fd.DECIDE_RETRY_BACKOFFS = original
+        self.assertEqual(report["termination"]["reason"], "director_judged_complete")
+        self.assertEqual(calls["n"], 2)
+
+    def test_exhausted_retries_are_recorded_and_the_next_turn_tries_again(self):
+        """One bad turn is not a dead director."""
+        calls = {"n": 0}
+
+        def flaky(study, arc, budget):
+            calls["n"] += 1
+            if calls["n"] <= 2:                   # first turn: 1 try + 1 retry
+                raise RuntimeError("transport died")
+            return _act("stop", stop_reason="second turn worked")
+
+        import pi_agent.free_director as fd
+        original = fd.DECIDE_RETRY_BACKOFFS
+        fd.DECIDE_RETRY_BACKOFFS = (0,)
+        try:
+            report = free_investigate(
+                "g", budget=Budget(6), studies_root=self.root, study_id="s",
+                decide_action=flaky, run_move=lambda *a, **k: None)
+        finally:
+            fd.DECIDE_RETRY_BACKOFFS = original
+        self.assertEqual(report["termination"]["reason"], "director_judged_complete")
+        failed = [e for e in report["arc"] if e["outcome"] == "decision_failed"]
+        self.assertEqual(len(failed), 1)
+        self.assertIn("transport died", failed[0]["tool_output"]["error"])
+
+    def test_a_director_that_never_decides_still_ends_honestly(self):
+        """The bound has to exist: a director that cannot think at all has
+        nothing left to steer with."""
+        import pi_agent.free_director as fd
+        original = fd.DECIDE_RETRY_BACKOFFS
+        fd.DECIDE_RETRY_BACKOFFS = (0,)
+        try:
+            report = free_investigate(
+                "g", budget=Budget(6), studies_root=self.root, study_id="s",
+                decide_action=lambda *a: (_ for _ in ()).throw(RuntimeError("dead")),
+                run_move=lambda *a, **k: None)
+        finally:
+            fd.DECIDE_RETRY_BACKOFFS = original
+        self.assertEqual(report["termination"]["reason"], "director_failed")
+        self.assertIn("turns in a row", report["termination"]["detail"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

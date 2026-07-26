@@ -236,6 +236,35 @@ def _integration_domain(goal: str, detail: Optional[str], context: dict) -> str:
     return " ".join(line for line in lines if line)
 
 
+# The director's decision call is provably side-effect-free — it returns a JSON
+# action and writes a decision record — so replaying it after a transport failure
+# is safe, unlike the experimenter's tooled calls. Short backoffs: an SDK/CLI
+# hiccup usually clears immediately.
+DECIDE_RETRY_BACKOFFS = (2, 5, 10)
+# How many CONSECUTIVE turns may fail to produce a decision before the arc ends.
+# A director that cannot think at all has nothing left to steer with, but one bad
+# turn is not that.
+MAX_CONSECUTIVE_DECIDER_FAILURES = 3
+
+
+def _decide_with_retry(decide_action, study, arc, budget_report):
+    """Ask the director for one decision, retrying a transport failure. Raises the
+    last exception if every attempt fails; the caller records it and lets the next
+    turn try again."""
+    import time
+    last = None
+    for attempt in range(1 + len(DECIDE_RETRY_BACKOFFS)):
+        try:
+            return decide_action(study, arc, budget_report)
+        except Exception as e:  # noqa: BLE001
+            last = e
+            if attempt == len(DECIDE_RETRY_BACKOFFS):
+                break
+            print(f"DECIDE-RETRY attempt={attempt + 1} {type(e).__name__}: {e}")
+            time.sleep(DECIDE_RETRY_BACKOFFS[attempt])
+    raise last
+
+
 def _survive(study: Any, action_name: str, seq: int, finding: Optional[str], fn):
     """Run one dispatched action so that NOTHING BELOW IT CAN END THE ARC.
 
@@ -256,6 +285,12 @@ def _survive(study: Any, action_name: str, seq: int, finding: Optional[str], fn)
         return True
     except Exception as e:  # noqa: BLE001 — the whole point is that nothing escapes
         detail = f"{type(e).__name__}: {e}"
+        # Say so loudly. A dying child subprocess prints its own traceback to the
+        # shared terminal, which is indistinguishable from a fatal error — it
+        # convinced the owner a healthy run had died. This line is what tells a
+        # watcher the difference.
+        print(f"MOVE FAILED ({action_name}): {detail} — recorded to the arc; "
+              f"the director continues. This is NOT a fatal error.")
         _record_capability(
             study, action_name, seq,
             {"succeeded": False, "outcome": f"{action_name}_failed", "error": detail,
@@ -329,6 +364,7 @@ def free_investigate(
 
     termination = None
     decisions = 0
+    decider_failures = 0
     while True:
         arc = study_findings(study)
 
@@ -349,13 +385,44 @@ def free_investigate(
 
         decisions += 1
         try:
-            action = decide_action(study, arc, budget.report())
-        except Exception as e:  # noqa: BLE001 — a decider failure ends honestly
-            termination = {
-                "reason": "director_failed",
-                "detail": f"the free director could not produce a decision: {type(e).__name__}: {e}",
-            }
-            break
+            action = _decide_with_retry(decide_action, study, arc, budget.report())
+            decider_failures = 0
+        except Exception as e:  # noqa: BLE001
+            # A TRANSPORT HICCUP MUST NOT END A STUDY. This used to break out of
+            # the loop on the first failure, and live (study-20260726T063702Z) an
+            # SDK error — "Claude Code returned an error result: success", the
+            # CLI subprocess exiting non-zero — ended an investigation that had
+            # already decomposed, carried artifacts across phases, and found a
+            # real composition failure. Six moves of budget were left.
+            #
+            # It is also why model_call's transport retry did not help: that
+            # retry is disabled for TOOLED calls because replaying an agentic
+            # loop can re-commit side effects. Sound for the experimenter, which
+            # writes files and runs solvers — wrong for the director, whose call
+            # produces a JSON decision and nothing else, so replay is safe. Hence
+            # the retry here, at the one call site where idempotence is provable.
+            #
+            # After retries are exhausted the failure is RECORDED and the loop
+            # continues, so the next turn tries again. Only repeated consecutive
+            # failures end the arc, because a director that cannot think at all
+            # has nothing left to steer with.
+            decider_failures += 1
+            _record_capability(
+                study, "decide", decisions,
+                {"succeeded": False, "outcome": "decision_failed",
+                 "error": f"{type(e).__name__}: {e}",
+                 "detail": "the director could not produce a decision this turn "
+                           f"({type(e).__name__}); retrying on the next turn."},
+                None,
+            )
+            if decider_failures >= MAX_CONSECUTIVE_DECIDER_FAILURES:
+                termination = {
+                    "reason": "director_failed",
+                    "detail": f"the free director failed to produce a decision "
+                              f"{decider_failures} turns in a row: {type(e).__name__}: {e}",
+                }
+                break
+            continue
 
         name = action.get("action")
         finding = action.get("reasoning")

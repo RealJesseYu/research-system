@@ -51,7 +51,13 @@ SYSTEM_PROMPT = """You are writing a short scientific paper from a COMPLETED mul
 
 You are given VERIFIED FINDINGS — numbers an independent, no-model re-run has already reproduced. These, and ONLY these, are trustworthy results. You are also given UNVERIFIED findings (things that did not reproduce or could not be checked), the ARC (which phase produced what), and any REUSABLE ARTIFACTS the study built, each as a re-runnable producer.
 
-Your current working directory is a private scratch directory. Write a self-contained paper to a file named paper.md there, in Markdown, with sections: Abstract, Background, Method, Results, Limitations. METHOD should describe the arc as an investigation — what was asked first, what each phase found, how later phases built on earlier ones, and what the integration check (if any) established that per-phase results could not. RESULTS must report ONLY the verified numbers you were given, each noted as independently reproduced.
+WRITE WHAT THE GOAL ACTUALLY CALLED FOR. Your current working directory is a private scratch directory, and you write your deliverable to a file named paper.md there, in Markdown — but "paper" is the filename, not a mandate to produce a scientific paper whatever was asked. Read the GOAL and produce the document that answers it:
+- a goal that asked a research question → a scientific paper (Abstract, Background, Method, Results, Limitations);
+- a goal that asked you to DESIGN or BUILD something → a design document: the thing itself is the subject. Lead with a full specification of what was designed — geometry, parameters, components, materials, the working code — complete enough to build or run. Then give the evidence that it works, and what remains unresolved;
+- a goal that asked a direct question → answer it directly and show the working. Do not inflate it into a paper.
+Whatever the form, describe the arc as an investigation somewhere in it — what was asked first, what each phase found, how later phases built on earlier ones, and what an integration check (if any) established that per-phase results could not. And report ONLY the verified numbers you were given, each noted as independently reproduced.
+
+THE ARTIFACTS ARE PART OF THE DELIVERABLE. You are given the reusable artifacts this study produced, each as a re-runnable producer. If the study built a thing, that thing belongs in the document: regenerate it (run the producer), describe it fully, and DRAW it where it has a shape — a planform, a schematic, a layout, a structure. A reader should be able to see what was made, not only the numbers measured about it.
 
 FIGURES: where a figure genuinely clarifies a result, generate it — run python with matplotlib, save a .png beside paper.md, and embed it with ![caption](figure.png). Build figures only from the numbers you were given. Do not fabricate data to make a figure look fuller.
 
@@ -108,7 +114,15 @@ def collect_study_evidence(study: Any) -> dict:
         "verified_findings": verified[:MAX_FINDINGS],
         "unverified_findings": unverified[:MAX_FINDINGS],
         "arc": phases[:MAX_PHASES],
-        "reusable_artifacts": [{"name": f.get("name")} for f in files],
+        # The PRODUCERS travel, not just the names. The writer was previously
+        # given a bare filename list, so it could mention that a design existed
+        # but never open it, describe it, or draw it — which is a large part of
+        # why a design study came out reading as an analysis. With the producer
+        # it can regenerate the artifact in its scratch dir and work from the
+        # real thing.
+        "reusable_artifacts": [
+            {"name": f.get("name"), "producer": f.get("producer")} for f in files
+        ],
         "counts": {"verified": len(verified), "unverified": len(unverified),
                    "phases": len(phases)},
     }
