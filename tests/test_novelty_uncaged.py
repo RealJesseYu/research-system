@@ -164,5 +164,35 @@ class TestLocatedCitationDoesNotCrashTheNumberSignal(unittest.TestCase):
         self.assertEqual(_unsupported_numbers("the value is 5", texts), [])
 
 
+class TestInstrumentMenuIsNotTheBoundary(unittest.TestCase):
+    """The nudge told the generator that a hypothesis outside a named solver's
+    parameter list was "worth nothing here, however novel or well-motivated". The
+    questions expressible in a solver's OWN knobs are largely the ones its field
+    already answered — that is what the knobs are for — so the constraint
+    selected for already-answered ideas. Live: 16 of 16 answer_established."""
+
+    def test_the_worth_nothing_veto_is_gone(self):
+        from stages.generation_strategies import FEASIBILITY_NUDGE_INSTRUCTION as n
+        self.assertNotIn("worth nothing", n)
+        self.assertNotIn("HARD CONSTRAINT", n)
+
+    def test_the_code_sandbox_is_named_as_the_escape_hatch(self):
+        from stages.generation_strategies import FEASIBILITY_NUDGE_INSTRUCTION as n
+        self.assertIn("python_experiment", n)
+        self.assertIn("you write the model", n)
+
+    def test_it_still_teaches_real_feasibility(self):
+        """Knowing what the instruments accept was a genuine fix; only the veto
+        was wrong."""
+        from stages.generation_strategies import FEASIBILITY_NUDGE_INSTRUCTION as n
+        self.assertIn("can vary", n)
+        self.assertIn("can measure", n)
+
+    def test_it_pushes_toward_domains_with_no_solver(self):
+        from stages.generation_strategies import FEASIBILITY_NUDGE_INSTRUCTION as n
+        self.assertIn("no dedicated solver exists", n)
+        self.assertIn("fixed rulebook", n)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
