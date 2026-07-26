@@ -236,6 +236,36 @@ def _integration_domain(goal: str, detail: Optional[str], context: dict) -> str:
     return " ".join(line for line in lines if line)
 
 
+def _survive(study: Any, action_name: str, seq: int, finding: Optional[str], fn):
+    """Run one dispatched action so that NOTHING BELOW IT CAN END THE ARC.
+
+    OWNER RULING 2026-07-25: nothing may kill an arc except the director. Before
+    this, neither run_move nor execute_capability was guarded, so any exception
+    anywhere beneath them — a screening stage raising on zero survivors, a
+    validator KeyError, a model door giving up after its re-asks, a substrate
+    blowing up — propagated out of the loop and killed the whole study, losing
+    every verified result already in the arc. Both live crashes took that path.
+
+    A tool that fails is a RESULT, not a fatality: the failure is recorded to the
+    arc with its error text, and the director reads it on its next turn and
+    decides — retry differently, route around it, or stop. That is the same
+    judgment a researcher makes when an instrument breaks, and it belongs to the
+    director alone. Returns True when the action ran, False when it failed."""
+    try:
+        fn()
+        return True
+    except Exception as e:  # noqa: BLE001 — the whole point is that nothing escapes
+        detail = f"{type(e).__name__}: {e}"
+        _record_capability(
+            study, action_name, seq,
+            {"succeeded": False, "outcome": f"{action_name}_failed", "error": detail,
+             "detail": f"this action raised and was recorded instead of ending the "
+                       f"investigation — {detail}"},
+            finding,
+        )
+        return False
+
+
 def _decision_cap(budget: Budget, override: Optional[int]) -> int:
     """The backstop on total loop turns. Generous vs the budget so real work is
     never starved, but finite so a director looping on unwired capabilities cannot
@@ -351,7 +381,9 @@ def free_investigate(
                 )
                 continue
             budget.spend(1)
-            run_move(study, _move_from_action(action, study), finding=finding, runs_root=runs_root)
+            _survive(study, "run_experiment", decisions, finding,
+                     lambda: run_move(study, _move_from_action(action, study),
+                                      finding=finding, runs_root=runs_root))
             continue
 
         if name == "call_integration":
@@ -382,20 +414,29 @@ def free_investigate(
             budget.spend(1)
             domain = _integration_domain(study.goal, action.get("detail"), context)
             instrument = action.get("instrument")
-            run_move(
-                study,
-                Move(type=MoveType.SINGLE, domain=domain, mode=study.mode,
-                     allowed_substrates=[instrument] if instrument else study.allowed_substrates),
-                finding=finding or "integration check", runs_root=runs_root,
-            )
+            _survive(
+                study, "call_integration", decisions, finding,
+                lambda: run_move(
+                    study,
+                    Move(type=MoveType.SINGLE, domain=domain, mode=study.mode,
+                         allowed_substrates=[instrument] if instrument
+                         else study.allowed_substrates),
+                    finding=finding or "integration check", runs_root=runs_root,
+                ))
             continue
 
         # call_ideation / call_validation / call_data_analysis (Phase 3, live) and
         # spawn_sub_investigation + memory (Phase 4, not-yet-wired): routed to the
         # capability executor, which spends its own budget and returns a recorded
         # result. seq (the decision count) gives each capability run a unique id.
-        result = execute_capability(name, action, study, budget, decisions)
-        _record_capability(study, name, decisions, result, finding)
+        # A capability that RAISES must not end the arc either — the executor
+        # returns honest failure dicts, but the machinery beneath it (ideation,
+        # validation, a spawned child) can still throw.
+        _survive(study, name, decisions, finding,
+                 lambda: _record_capability(
+                     study, name, decisions,
+                     execute_capability(name, action, study, budget, decisions),
+                     finding))
 
     spend_end = _cost_snapshot()
     report = _build_report(study, budget, termination, decisions, ceiling, spend_start, spend_end)
