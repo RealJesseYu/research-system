@@ -34,20 +34,24 @@ class TestFilterHalt(unittest.TestCase):
         survivors = filter_survivors(reflections)
         self.assertEqual([r["hypothesis_id"] for r in survivors], ["h1", "h2"])
 
-    def test_all_answers_already_established_halts_loudly(self):
-        """The honest halt is still there — it just means what it says now:
-        every hypothesis would re-measure something already on record."""
+    def test_all_answers_established_reports_instead_of_halting(self):
+        """FILTER NEVER HALTS THE RUN (2026-07-25). It raised twice live, on two
+        successive predicates, and killing a run is the pipeline overriding the
+        researcher — the caged behaviour the PRIME DIRECTIVE forbids. A chat
+        handed sixteen already-answered ideas says so and decides; it does not
+        refuse to continue. The candidates come back carrying the flag so the
+        DIRECTOR can re-ideate, reframe, or proceed knowingly."""
         reflections = [
             {"hypothesis_id": "h1", "novelty": "known", "critique": "seen before",
              "quality": 4, "answer_established": True},
             {"hypothesis_id": "h2", "novelty": "novel", "critique": "but answered",
              "quality": 5, "answer_established": True},
         ]
-        with self.assertRaises(RuntimeError) as ctx:
-            filter_survivors(reflections)
-        message = str(ctx.exception)
-        self.assertIn("ANSWER already established", message)
-        self.assertIn("Zero survivors", message)
+        survivors = filter_survivors(reflections)
+        self.assertTrue(survivors)
+        self.assertTrue(all(r["answer_established"] for r in survivors))
+        # ranked: novel-and-higher-quality first
+        self.assertEqual(survivors[0]["hypothesis_id"], "h2")
 
     def test_novel_outranks_known_at_equal_quality(self):
         """Novelty survives as a ranking signal rather than a veto."""

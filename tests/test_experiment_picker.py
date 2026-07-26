@@ -70,7 +70,7 @@ class TestPickerAccept(unittest.TestCase):
         _, kwargs = mock.call_args
         self.assertEqual(kwargs.get("model"), ep.PICKER_MODEL)
         # OWNER RULING 2026-07-25: the light tier is Opus (see models.py).
-        self.assertEqual(ep.PICKER_MODEL, "claude-opus-4-8")
+        self.assertEqual(ep.PICKER_MODEL, "claude-opus-5")
 
 
 class TestPickerReask(unittest.TestCase):

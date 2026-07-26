@@ -302,12 +302,16 @@ def filter_survivors(reflections: list[dict]) -> list[dict]:
     live = [(i, r) for i, r in enumerate(reflections)
             if not r.get("answer_established")]
     if not live:
-        raise RuntimeError(
-            f"stage1_ideation: all {len(reflections)} hypotheses were judged to have "
-            "their ANSWER already established in the literature — running any of them "
-            "would measure something already on record. Zero survivors, so this run "
-            "halts here rather than spending a move to re-derive a known result."
-        )
+        # NEVER HALT THE RUN (2026-07-25). This raised twice live, on the two
+        # successive predicates, and killing a run is the pipeline overriding the
+        # researcher — precisely the caged behaviour the PRIME DIRECTIVE forbids.
+        # A chat handed sixteen already-answered ideas does not refuse to
+        # continue; it says so and decides what to do. So do that: pass the
+        # best-ranked candidates up, each still carrying answer_established=True,
+        # and let the DIRECTOR — which can see the flag in its arc and can
+        # re-ideate with a different framing, reframe the goal, or proceed
+        # knowingly — make the call. A screening stage reports; it does not veto.
+        live = list(enumerate(reflections))
     # Rank: unanswered-and-novel first, then unanswered-but-known-method, each by
     # quality. A known method whose answer is open still competes; it just does not
     # outrank an equally good hypothesis that is also methodologically new.

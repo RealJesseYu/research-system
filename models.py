@@ -27,9 +27,13 @@ from __future__ import annotations
 
 import os
 
-OPUS = "claude-opus-4-8"
-SONNET = "claude-sonnet-4-6"
-HAIKU = "claude-haiku-4-5-20251001"
+# Claude 5 family (2026-07-25). These pins were claude-opus-4-8 / claude-sonnet-4-6
+# — the PREVIOUS generation — so every agent in the system was running a model
+# older than the plain chat it was being compared against, which is a direct
+# PRIME-DIRECTIVE problem: the comparison chat was Claude 5, the system was not.
+OPUS = "claude-opus-5"
+SONNET = "claude-sonnet-5"
+HAIKU = "claude-haiku-4-5-20251001"  # current; Haiku has no 5 release
 
 _ALIASES = {"opus": OPUS, "sonnet": SONNET, "haiku": HAIKU}
 
