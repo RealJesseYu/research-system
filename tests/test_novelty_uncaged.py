@@ -176,10 +176,25 @@ class TestInstrumentMenuIsNotTheBoundary(unittest.TestCase):
         self.assertNotIn("worth nothing", n)
         self.assertNotIn("HARD CONSTRAINT", n)
 
-    def test_the_code_sandbox_is_named_as_the_escape_hatch(self):
+    def test_the_code_sandbox_is_named_as_the_escape_hatch_for_METHOD_claims(self):
         from stages.generation_strategies import FEASIBILITY_NUDGE_INSTRUCTION as n
         self.assertIn("python_experiment", n)
-        self.assertIn("you write the model", n)
+        self.assertIn("about a METHOD", n)
+
+    def test_it_does_not_pretend_code_can_settle_facts_about_the_world(self):
+        """Code simulates a MODEL YOU SPECIFY, not reality. A hand-written
+        simulation of whether a molecule binds returns whatever its assumptions
+        imply, which is not evidence — an earlier draft of this block implied
+        otherwise and would have produced hypotheses that die at execution."""
+        from stages.generation_strategies import FEASIBILITY_NUDGE_INSTRUCTION as n
+        self.assertIn("WHAT CODE CANNOT DO", n)
+        self.assertIn("did not already encode", n)
+        for real_instrument in ("rdkit", "cobrapy", "mafft", "homology_search"):
+            self.assertIn(real_instrument, n)
+
+    def test_simulated_results_must_state_their_assumptions(self):
+        from stages.generation_strategies import FEASIBILITY_NUDGE_INSTRUCTION as n
+        self.assertIn("say what the simulation assumes", n)
 
     def test_it_still_teaches_real_feasibility(self):
         """Knowing what the instruments accept was a genuine fix; only the veto
