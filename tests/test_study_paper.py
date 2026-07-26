@@ -300,5 +300,44 @@ class TestCorrectionIsAppendedToTheSavedPaper(StudyPaperTestCase):
         self.assertNotIn("Correction", (self.study.dir / "paper.md").read_text())
 
 
+class TestDesignDeliverableDoctrine(unittest.TestCase):
+    """Asked to DESIGN a glider, the system returned 20 scalars, no airfoil, no
+    dihedral, no CG and no drawing — a study ABOUT a glider. The prompts now say
+    the thing is the deliverable, that a design is CHECKED with computed checks
+    rather than asserted, and that every specified value carries its provenance."""
+
+    def test_the_writeup_form_follows_the_goal(self):
+        from stages.study_paper import SYSTEM_PROMPT as p
+        self.assertIn("WRITE WHAT THE GOAL ACTUALLY CALLED FOR", p)
+        self.assertIn("design document", p)
+        self.assertIn("answer it directly", p)
+
+    def test_every_specified_value_carries_provenance(self):
+        from stages.study_paper import SYSTEM_PROMPT as p
+        for tag in ("VERIFIED", "COMPUTED", "JUDGEMENT"):
+            self.assertIn(tag, p)
+        self.assertIn("Never present a JUDGEMENT element as though it were established", p)
+
+    def test_the_writer_gets_producers_so_it_can_draw_the_thing(self):
+        from stages.study_paper import SYSTEM_PROMPT as p
+        self.assertIn("regenerate it (run the producer)", p)
+        self.assertIn("DRAW it", p)
+
+    def test_the_experimenter_checks_and_renders_its_design(self):
+        """The wall is model-free by design, so it cannot judge a rendering — but
+        a design check that COMPUTES a number (mass closure error, worst
+        constraint violation) is an ordinary verifiable finding."""
+        from stages.free_experimenter import SYSTEM_PROMPT as p
+        self.assertIn("CHECKS THAT PRODUCE NUMBERS", p)
+        self.assertIn("worst constraint violation", p)
+        self.assertIn("RENDER IT TOO", p)
+        self.assertIn("A design nobody drew and nobody checked is a claim", p)
+
+    def test_the_work_itself_travels(self):
+        from stages.free_experimenter import SYSTEM_PROMPT as p
+        self.assertIn("THE WORK ITSELF TRAVELS, NOT ONLY THE NUMBERS", p)
+        self.assertIn("THE THING IS THE DELIVERABLE", p)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

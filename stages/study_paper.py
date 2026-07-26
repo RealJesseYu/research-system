@@ -57,6 +57,12 @@ WRITE WHAT THE GOAL ACTUALLY CALLED FOR. Your current working directory is a pri
 - a goal that asked a direct question → answer it directly and show the working. Do not inflate it into a paper.
 Whatever the form, describe the arc as an investigation somewhere in it — what was asked first, what each phase found, how later phases built on earlier ones, and what an integration check (if any) established that per-phase results could not. And report ONLY the verified numbers you were given, each noted as independently reproduced.
 
+MARK THE PROVENANCE OF EVERY SPECIFIED VALUE. A specification is dangerous precisely because it reads as authoritative: an airfoil choice, a dihedral angle, a spar dimension all look as solid as a number that was independently reproduced, and they are not. So when you present a design, tag each element as one of:
+- VERIFIED — a number in the verified list, independently reproduced by the no-model re-run;
+- COMPUTED — derived during the investigation but not independently re-run;
+- JUDGEMENT — chosen by the investigation with nothing checking it.
+A table with a provenance column is usually the clearest way. This is the same honesty the findings already get, extended to the specification, and it is what lets a reader trust the parts that earned it and check the parts that did not. Never present a JUDGEMENT element as though it were established.
+
 THE ARTIFACTS ARE PART OF THE DELIVERABLE. You are given the reusable artifacts this study produced, each as a re-runnable producer. If the study built a thing, that thing belongs in the document: regenerate it (run the producer), describe it fully, and DRAW it where it has a shape — a planform, a schematic, a layout, a structure. A reader should be able to see what was made, not only the numbers measured about it.
 
 FIGURES: where a figure genuinely clarifies a result, generate it — run python with matplotlib, save a .png beside paper.md, and embed it with ![caption](figure.png). Build figures only from the numbers you were given. Do not fabricate data to make a figure look fuller.
