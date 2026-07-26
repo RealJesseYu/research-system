@@ -89,12 +89,13 @@ FEASIBILITY_NUDGE_ENV = "FEASIBILITY_NUDGE"
 FEASIBILITY_NUDGE_HEADER = "FEASIBILITY NUDGE"
 FEASIBILITY_NUDGE_INSTRUCTION = (
     "TESTABILITY. Every hypothesis must be testable by something available to "
-    "this run, and the instruments above are one way — if one of them fits, the "
-    "experiment varies only parameter names on its 'can vary' line and measures "
-    "one of its 'can measure' entries, so check both lines rather than assuming "
-    "a knob exists because it would be physically sensible.\n\n"
-    "BUT THE SPECIALIZED SOLVERS ARE NOT THE BOUNDARY OF WHAT YOU MAY PROPOSE — "
-    "with one honest limit. `python_experiment` runs arbitrary code, and code "
+    "this run. Do not aim at a particular tool while inventing — think of the "
+    "question first and the instrument second; a downstream stage checks the "
+    "details and the experimenter chooses how to run it.\n\n"
+    "WHAT IS AVAILABLE — with one honest limit. There are validated tools for "
+    "fluid dynamics, structural mechanics, circuits, symbolic mathematics, "
+    "cheminformatics, metabolic models and sequence analysis, and there is a "
+    "general code sandbox. `python_experiment` runs arbitrary code, and code "
     "can rigorously settle a claim about a METHOD: does this algorithm need "
     "fewer samples, converge faster, find better designs, degrade more "
     "gracefully than the standard practice it would replace? Simulate the "
@@ -115,16 +116,18 @@ FEASIBILITY_NUDGE_INSTRUCTION = (
     "— not merely if no named solver exposes it. When the test is simulated, "
     "say what the simulation assumes, because a method that wins only under "
     "assumptions chosen to favour it has not been shown to win.\n\n"
-    "RANGE OVER THE DOMAIN, NOT JUST THE MECHANISM. The named solvers cover "
-    "CFD, FEA, circuits, symbolic math, cheminformatics and metabolic models — "
-    "the questions expressible in THEIR OWN parameters are largely the "
-    "questions those fields have already answered, because that is what those "
-    "knobs were built for. So hypotheses that only vary a listed solver knob "
-    "tend to land on results already in the literature. The strongest "
-    "cross-domain ideas usually live where no dedicated solver exists and the "
-    "standard practice is a fixed rulebook rather than a computation. Reach "
-    "there deliberately, and say which instrument OR what code you would write "
-    "to test it."
+    "RANGE OVER THE DOMAIN, NOT JUST THE MECHANISM. The questions expressible "
+    "in a standard solver's own parameters are largely the questions its field "
+    "has already answered — that is what those knobs were built for — so "
+    "hypotheses shaped around an existing tool tend to land on results already "
+    "in the literature. The strongest cross-domain ideas usually live where no "
+    "dedicated solver exists and current practice is a fixed rulebook rather "
+    "than a computation: where practitioners follow a standard procedure, a "
+    "code of practice, or a lookup table because nobody has computed the "
+    "better answer. Reach there deliberately. Vary the DOMAIN across your "
+    "hypotheses, not only the mechanism — several proposals landing on the "
+    "same field is a wasted pool. For each, say what would test it: a kind of "
+    "instrument, or the model you would write in code."
 )
 FEASIBILITY_MEMO_CAP = 2000
 
@@ -179,11 +182,22 @@ def build_feasibility_nudge(run_id: str) -> str:
     # R5 (owner, 2026-07-17): Stage-1 surfaces carry ALL routable contracts —
     # the D.1.1 cavity pin is retired here; selection stays a Stage-2/Step-35
     # design (P8 pin unmoved).
-    parts = [
-        FEASIBILITY_NUDGE_HEADER + ":",
-        routable_contracts_block(),
-        capability_table(),
-    ]
+    # CONTRACTS AND THE CAPABILITY TABLE ARE NO LONGER SENT TO GENERATION
+    # (owner ruling 2026-07-26). They were the anchor. Removing the veto from
+    # FEASIBILITY_NUDGE_INSTRUCTION was not enough: all 25 hypotheses of the very
+    # next run still landed on SymPy / RDKit / FEniCSx / MAFFT / homology_search,
+    # because the context still opened with every routable contract verbatim plus
+    # a table of accepted parameter names. That is PRIMING, and permission changes
+    # do not undo priming — a model shown a menu proposes from the menu.
+    #
+    # Feasibility is not abandoned, it is MOVED DOWNSTREAM, where it belongs: the
+    # instruction below still teaches the principle (testable by something
+    # available; code settles method claims; physical facts need a real
+    # instrument), the review chain judges each candidate, the director picks, and
+    # the experimenter — which DOES see the full catalogue — decides how to run it.
+    # Generation's job is to imagine; checking the parameter lists is someone
+    # else's.
+    parts = [FEASIBILITY_NUDGE_HEADER + ":"]
     memo = read_recent_failure_memo(run_id)
     if memo:
         parts.append("MOST RECENT FAILURE MEMO FOR THIS RUN:\n" + memo)

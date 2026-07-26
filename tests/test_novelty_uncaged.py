@@ -196,12 +196,30 @@ class TestInstrumentMenuIsNotTheBoundary(unittest.TestCase):
         from stages.generation_strategies import FEASIBILITY_NUDGE_INSTRUCTION as n
         self.assertIn("say what the simulation assumes", n)
 
-    def test_it_still_teaches_real_feasibility(self):
-        """Knowing what the instruments accept was a genuine fix; only the veto
-        was wrong."""
+    def test_feasibility_is_taught_as_a_PRINCIPLE_not_a_parameter_list(self):
+        """CHANGED 2026-07-26. Sending the parameter lists was the anchor, so they
+        are gone from generation entirely (see build_feasibility_nudge). What
+        remains is the principle — testable by something available, code settles
+        method claims, physical facts need a real instrument — with the details
+        checked downstream."""
         from stages.generation_strategies import FEASIBILITY_NUDGE_INSTRUCTION as n
-        self.assertIn("can vary", n)
-        self.assertIn("can measure", n)
+        self.assertIn("testable by something available", n)
+        self.assertIn("a downstream stage checks the details", n)
+        self.assertNotIn("'can vary' line", n)
+
+    def test_generation_no_longer_receives_the_contract_menu(self):
+        """THE ANCHOR. Removing the veto was not enough: the very next run still
+        put all 25 hypotheses on the five instruments whose contracts opened the
+        context. Priming survives permission changes."""
+        from stages.generation_strategies import build_feasibility_nudge
+        block = build_feasibility_nudge("no-such-run")
+        for leak in ("can vary", "can measure", "substrate_id", "typed_input"):
+            self.assertNotIn(leak, block)
+
+    def test_it_asks_for_domain_spread_across_the_pool(self):
+        from stages.generation_strategies import FEASIBILITY_NUDGE_INSTRUCTION as n
+        self.assertIn("Vary the DOMAIN across your hypotheses", n)
+        self.assertIn("wasted pool", n)
 
     def test_it_pushes_toward_domains_with_no_solver(self):
         from stages.generation_strategies import FEASIBILITY_NUDGE_INSTRUCTION as n

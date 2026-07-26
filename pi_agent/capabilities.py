@@ -75,7 +75,8 @@ def run_ideation(action: dict, study: Any, budget: Any, seq: int, *, run: Callab
     if not budget.can_spend(MOVE_COST):
         return _insufficient("call_ideation")
     budget.spend(MOVE_COST)
-    domain = action.get("domain") or action.get("detail") or study.goal
+    domain = _ideation_brief(
+        action.get("domain") or action.get("detail") or study.goal, study)
     depth = action.get("depth") or DEFAULT_IDEATION_DEPTH
     hyps = _run_ideation_at_depth(run, domain, study, seq, depth) or []
     digest = [
@@ -93,6 +94,56 @@ def run_ideation(action: dict, study: Any, budget: Any, seq: int, *, run: Callab
         "depth": depth,
         "detail": f"{len(digest)} candidate direction(s) at depth={depth} for: {domain}",
     }
+
+
+# How much of the arc travels into an ideation request. Bounded so a long study
+# does not bury the question being asked.
+MAX_BRIEFED_FINDINGS = 12
+
+
+def _ideation_brief(question: str, study: Any) -> str:
+    """The full briefing an ideation call receives.
+
+    Ideation used to get ONLY the string the director typed — no goal, no results,
+    no artifacts. The experimenter was given a proper brief on 2026-07-25 and this
+    was never done to match, which makes the apparatus useless for exactly the case
+    it should be strongest at: "half the system is already built and verified, now
+    find me a hypothesis for the next function." The director would have had to
+    retype the entire state of the work into one prompt string, and could not hand
+    over an artifact at all.
+
+    So ideation now sees what the experimenter sees: the goal, what is already
+    ESTABLISHED (verified findings only — an unreproduced number is not a
+    foundation to build a hypothesis on), and the reusable file artifacts the study
+    has produced, as re-runnable producers. Pure over its inputs; never raises. A
+    fresh study with an empty arc gets the question back unchanged."""
+    try:
+        from pi_agent.free_director import _carry_block, _integration_context
+        context = _integration_context(study)
+    except Exception:  # noqa: BLE001 — a brief must never sink the call
+        return question
+
+    parts = [question]
+    established = context["parts"][:MAX_BRIEFED_FINDINGS]
+    files = context["files"]
+    if not established and not files:
+        return question  # nothing built yet: unchanged, as before this existed
+
+    parts.append("\n\n---\nCONTEXT: this is not a blank slate. You are proposing "
+                 "hypotheses for an investigation already underway.")
+    parts.append(f"\n\nTHE OVERALL GOAL: {study.goal}")
+    if established:
+        lines = "".join(f"\n  - {p.get('label')} = {p.get('value')}"
+                        for p in established)
+        parts.append(
+            "\n\nALREADY ESTABLISHED (each independently re-run and reproduced — "
+            f"treat as settled fact, and do not propose re-measuring it):{lines}")
+    if files:
+        parts.append(
+            "\n\nWORK ALREADY BUILT that a hypothesis may build ON — prefer "
+            "hypotheses that take this further over ones that start from nothing:")
+        parts.append(_carry_block(files))
+    return "".join(parts)
 
 
 def _ideation_run_accepts_depth(run: Callable) -> bool:
