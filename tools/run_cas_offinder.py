@@ -48,6 +48,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from tools.docker_exec import CLIENT_GRACE_S
+
 DOCKER_CONTEXT = "colima"
 CONTAINER = "cas-offinder-prod"
 # Derived from this file's location, not hardcoded: the literal
@@ -168,8 +170,9 @@ def preflight() -> str | None:
 def _run_runner(job: str) -> tuple[int, str, str]:
     job_dir = f"{SHARED_CONTAINER}/{job}"
     cmd = ["docker", "--context", DOCKER_CONTEXT, "exec", CONTAINER,
+           "timeout", str(TIMEOUT_SECONDS),
            "bash", f"{job_dir}/run.sh", job_dir]
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS)
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS + CLIENT_GRACE_S)
     return proc.returncode, proc.stdout.strip(), proc.stderr.strip()
 
 

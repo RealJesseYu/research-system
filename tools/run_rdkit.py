@@ -58,6 +58,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from tools.docker_exec import exec_bounded
+
 # ----------------------------------------------------------------------------
 # Configuration — the only knobs, in one place (mirrors run_ngspice.py).
 # ----------------------------------------------------------------------------
@@ -242,12 +244,32 @@ def preflight() -> str | None:
 def _run_driver(job: str) -> tuple[int, str]:
     """Run the driver on the job dir inside the container. Returns
     (returncode, infra_stderr). Raises subprocess.TimeoutExpired on the hard
-    timeout so the caller can classify it as transient and retry once."""
+    timeout so the caller can classify it as transient and retry once.
+
+    BOUNDED INSIDE THE CONTAINER (tools/docker_exec.py). A plain subprocess
+    timeout on `docker exec` kills only the local client — the driver keeps
+    running in the shared prod container. That matters here specifically because
+    the retry below DELETES result.json and re-runs into the SAME job dir, so a
+    timed-out driver could still be writing there while the retry reads: the
+    retry would then report the ghost's output as a clean success. The container
+    now kills its own work first, and TimeoutExpired is still raised on the
+    client-timeout path so the caller's transient classification is unchanged.
+    """
     job_dir = f"{SHARED_CONTAINER}/{job}"
-    cmd = ["docker", "--context", DOCKER_CONTEXT, "exec", CONTAINER,
-           "python", f"{job_dir}/driver.py", job_dir]
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS)
-    return proc.returncode, proc.stderr.strip()
+    result = exec_bounded(
+        DOCKER_CONTEXT, CONTAINER,
+        ["python", f"{job_dir}/driver.py", job_dir],
+        timeout_s=TIMEOUT_SECONDS,
+        # Unique to this job (jobs are named tool_<ms>), so a reap can only ever
+        # match this driver — never another job's, never container services.
+        kill_marker=job_dir,
+    )
+    if result.timed_out:
+        raise subprocess.TimeoutExpired(
+            cmd=f"docker exec {CONTAINER} python {job_dir}/driver.py",
+            timeout=TIMEOUT_SECONDS,
+            output=result.stdout, stderr=result.stderr)
+    return result.returncode, (result.stderr or "").strip()
 
 
 def _is_transient(returncode: int, infra_stderr: str, result_exists: bool) -> bool:

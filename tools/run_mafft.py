@@ -49,6 +49,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from tools.docker_exec import CLIENT_GRACE_S
+
 DOCKER_CONTEXT = "colima"
 CONTAINER = "mafft-prod"
 # Derived from this file's location, not hardcoded: the literal
@@ -186,8 +188,9 @@ def _run_mafft(job: str) -> tuple[int, str, str]:
     remote = (f"export PATH=/opt/conda/bin:$PATH; "
               f"mafft --auto --anysymbol {job_dir}/in.fa 2>{job_dir}/mafft.log; "
               f"cat {job_dir}/mafft.log >&2")
-    cmd = ["docker", "--context", DOCKER_CONTEXT, "exec", CONTAINER, "bash", "-c", remote]
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS)
+    cmd = ["docker", "--context", DOCKER_CONTEXT, "exec", CONTAINER,
+           "timeout", str(TIMEOUT_SECONDS), "bash", "-c", remote]
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS + CLIENT_GRACE_S)
     return proc.returncode, proc.stdout, proc.stderr
 
 

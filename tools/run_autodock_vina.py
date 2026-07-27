@@ -48,6 +48,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from tools.docker_exec import CLIENT_GRACE_S
+
 DOCKER_CONTEXT = "colima"
 CONTAINER = "vina-prod"                # created at provisioning on an x86 host
 # Derived from this file's location, not hardcoded: the literal
@@ -178,8 +180,9 @@ def _run_vina(job: str, clean: dict) -> tuple[int, str, str]:
         f"--size_x {b['size_x']} --size_y {b['size_y']} --size_z {b['size_z']} "
         f"--seed {VINA_SEED} --exhaustiveness {EXHAUSTIVENESS} "
         f"--out {job_dir}/out.pdbqt")
-    cmd = ["docker", "--context", DOCKER_CONTEXT, "exec", CONTAINER, "bash", "-c", remote]
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS)
+    cmd = ["docker", "--context", DOCKER_CONTEXT, "exec", CONTAINER,
+           "timeout", str(TIMEOUT_SECONDS), "bash", "-c", remote]
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS + CLIENT_GRACE_S)
     return proc.returncode, proc.stdout, proc.stderr
 
 

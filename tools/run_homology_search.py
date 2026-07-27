@@ -51,6 +51,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from tools.docker_exec import CLIENT_GRACE_S
+
 DOCKER_CONTEXT = "colima"
 CONTAINER = "homology-search-prod"
 # Derived from this file's location, not hardcoded: the literal
@@ -204,8 +206,9 @@ def _run_blast(job: str, db_path: str) -> tuple[int, str, str]:
     job_dir = f"{SHARED_CONTAINER}/{job}"
     remote = (f"export PATH=/opt/conda/bin:$PATH; "
               f"blastp -query {job_dir}/query.fa -db {db_path} -outfmt '6 evalue'")
-    cmd = ["docker", "--context", DOCKER_CONTEXT, "exec", CONTAINER, "bash", "-c", remote]
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS)
+    cmd = ["docker", "--context", DOCKER_CONTEXT, "exec", CONTAINER,
+           "timeout", str(TIMEOUT_SECONDS), "bash", "-c", remote]
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS + CLIENT_GRACE_S)
     return proc.returncode, proc.stdout, proc.stderr
 
 
@@ -222,8 +225,9 @@ def _run_hmmer(job: str, profile_path: str, target_path: str) -> tuple[int, str,
         f"> {job_dir}/hmmer.log 2>&1; "
         f"grep -v '^#' {job_dir}/tbl.txt 2>/dev/null | awk 'NF>=5{{print $5}}'; "
         f"cat {job_dir}/hmmer.log >&2")
-    cmd = ["docker", "--context", DOCKER_CONTEXT, "exec", CONTAINER, "bash", "-c", remote]
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS)
+    cmd = ["docker", "--context", DOCKER_CONTEXT, "exec", CONTAINER,
+           "timeout", str(TIMEOUT_SECONDS), "bash", "-c", remote]
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS + CLIENT_GRACE_S)
     return proc.returncode, proc.stdout, proc.stderr
 
 

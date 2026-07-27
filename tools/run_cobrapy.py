@@ -51,6 +51,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from tools.docker_exec import CLIENT_GRACE_S
+
 # ----------------------------------------------------------------------------
 # Configuration (mirrors run_rdkit.py).
 # ----------------------------------------------------------------------------
@@ -221,8 +223,9 @@ def preflight() -> str | None:
 def _run_driver(job: str) -> tuple[int, str]:
     job_dir = f"{SHARED_CONTAINER}/{job}"
     cmd = ["docker", "--context", DOCKER_CONTEXT, "exec", CONTAINER,
+           "timeout", str(TIMEOUT_SECONDS),
            "python", f"{job_dir}/driver.py", job_dir]
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS)
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS + CLIENT_GRACE_S)
     return proc.returncode, proc.stderr.strip()
 
 
