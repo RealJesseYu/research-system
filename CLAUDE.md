@@ -1,5 +1,29 @@
 # research-system — Autonomous Research System
 
+## ⚠️ PRIME DIRECTIVE — read before anything below (owner, 2026-07-23, said MANY times across chats)
+**The system must be a FREE agent, and must NEVER be weaker or less autonomous
+than a plain Claude chat.** If it is, that is the cardinal failure — fix that
+before any other work.
+
+- **Substrates are TOOLS. Garnish.** Used when useful; nothing more. They must
+  **NEVER limit** what the system can do. A registry/contract/routing layer that
+  *gates* the agent to "only registered substrates" is a CAGE — purge it.
+- **Nothing may subtract the agent's freedom.** The experimenter/director are
+  full agents with every tool and connector on the table (CAD, code, web,
+  anything). If a mechanism reduces them below a bare Fable agent with tools,
+  **delete it.**
+- **Verify claims, not tools.** Reproducibility applies to a KEPT result (record
+  it so it re-runs / re-builds), and only where it earns its keep (a narrated
+  number). It is NEVER a reason to restrict which tools the agent may reach for.
+- **The whole value is "a chat, AND MORE":** at least as capable as a bare chat,
+  PLUS memory across runs, a director steering many runs, and reproducible
+  records. Expectation: 10,000× compute → explore 10,000 designs, find the best,
+  produce a full study + paper. Not a caged pipeline weaker than two prompts.
+- The six-stage / substrate-centered framing described below is the OLD
+  architecture being collapsed (see `docs/plan_collapse_and_simplify.md` and the
+  free-the-experimenter work). When old framing conflicts with this directive,
+  **this directive wins.**
+
 ## What this is
 This is the real build of an autonomous research system: a relay of six AI stages
 (Ideation → Experiment-Design → Fidelity-Gate → Simulation → Thought-Layer → Paper)
@@ -994,9 +1018,45 @@ preserved append-only (*_pre235*). The era-of-record moves from e9084af
 to this build's final commit (declared there). Rulings R-23.5-1..4
 recorded in docs/memo_d1_1_substrate_selection.md.
 
-Bio-substrate promotion status (BIO Wave D.4 + #2, 2026-07-19): the two full
-status blocks were moved to **docs/status_archive_bio.md** to keep this
+Substrate promotion status (Wave D.4 + #2, 2026-07-19): the two full status
+blocks were moved to **docs/status_archive_substrates.md** to keep this
 always-loaded file lighter (nothing deleted; the wrappers/contracts/onboarding/
-tests are untouched and fully wired). Net final bio state: 4 live-and-mature
+tests are untouched and fully wired). Net final state: 4 live-and-mature
 (rdkit, cobrapy, mafft, homology_search), 8 deferred/parked; routable 9, mature
 4; era-of-record at 3ee3873. See the archive for the full record.
+
+CONNECTOR BRIDGE COMPLETE (2026-07-26, rulings R-MCP-1..6 in
+**docs/memo_connector_bridge.md**): MCP connectors now give the free agent
+REACH *and* RECORD. The plumbing that had never carried traffic (model_call's
+load_mcp_servers/_mcp_option_kwargs) is live, and — the load-bearing half — a
+connector's answer can now be a KEPT number instead of an unverified caveat.
+Mechanism: `tools/run_mcp_tool.py` calls the SAME server named in the SAME
+mcp_servers.json from deterministic Python with NO model in the path, so
+`{kind: substrate, substrate_id: "mcp_connector", typed_input: {server, tool,
+arguments, select}}` is a re-runnable artifact — **stages/verification.py is
+untouched**; wrapping the connector as a substrate made it re-runnable through
+the door that already existed. The artifact records the CALL, never the answer,
+so a re-run re-asks the service. `tools/mcp_config.py` is the ONE reader of the
+config for both doors (the agent's and the verifier's), because two readers
+could regenerate a claim from something other than what produced it.
+PURITY GATE (R-MCP-2): an MCP server is an arbitrary process and some MCP
+servers ARE models, so a connector may back a claim ONLY when its config block
+declares `"_verifiable": true` — the operator's assertion that it is a
+deterministic data source; the wrapper refuses any other BEFORE calling.
+Exploration is unaffected (undeclared connectors work; their results are honest
+caveats). Enrolled DELIBERATELY unroutable (R-MCP-1): registry row + run-entry
+constructor only (R-MCP-3, the one scoped deviation from wire-only-with-
+routability — it is what lets verification READ a re-run summary), NO adapter
+and NO qoi-translation, so stage-4 dispatch still refuses it loudly.
+LOOKUP-class, PERMANENT (R-MCP-5): re-running attests PROVENANCE, not
+correctness — never trusted alone, like bio_db_lookup and web_search.
+Numeric-only (R-MCP-4); a volatile value failing its own re-run is correct
+behavior, not a defect (R-MCP-6). Reference connector:
+`connectors/pubchem_mcp_server.py` (PubChem PUG-REST, no API key).
+Live-proven 2026-07-26: caffeine MolecularWeight 194.19 through real stdio MCP,
+verify_claim `reproduced` rel_error 0.0, the same claim at 250.0 rejected as
+`mismatch`, all six failure jails triggered; plus a supervised agent run
+(see docs/journal_2026-07-26_connector_bridge.md). Offline:
+tests/test_mcp_connector_bridge.py (41). Card:
+docs/envelope_card_mcp_connector.md. With no mcp_servers.json present every
+prompt and code path is byte-identical to before.

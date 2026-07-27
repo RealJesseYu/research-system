@@ -124,10 +124,12 @@ agents" than to six stages.
 - Measurements of record come from a tool/wrapper (deterministic) or the sealed
   sandbox — never narrated by an agent.
 
-## 8. Note on bio-file isolation (2026-07-21)
-The bio status narrative was moved out of the always-loaded `CLAUDE.md` into
-`docs/status_archive_bio.md` (nothing deleted) because bio content in context was
-causing the builder model to route Fable→Opus. The bio wrappers/contracts/
-onboarding/tests are untouched and fully wired. The deeper bio content still lives
-in `substrates.py` (contracts) + the four wrappers and loads only when opened.
+## 8. Note on domain-substrate isolation (2026-07-21)
+The domain-substrate promotion narrative was moved out of the always-loaded
+`CLAUDE.md` into `docs/status_archive_substrates.md` (nothing deleted) because that
+dense domain content in always-loaded context was causing the builder model to route
+Fable→Opus. The wrappers/contracts/onboarding/tests are untouched and fully wired.
+The deeper domain content still lives in `substrates.py` (contracts) + the mature
+wrappers and loads only when opened. Keep the always-loaded set (`CLAUDE.md`,
+`MEMORY.md`, recalled memories) free of that narrative; on-demand source is fine.
 Harness model-routing itself is not controllable from here.
