@@ -72,25 +72,54 @@ class TestFilterHalt(unittest.TestCase):
                          ["h2"])
 
 
+#: Generation order 0..6. Novel: h1(3), h3(5), h4(5), h6(2), h7(4).
+#: Known:              h2(5), h5(1).
+_MIXED = [
+    {"hypothesis_id": "h1", "novelty": "novel", "critique": "ok", "quality": 3},
+    {"hypothesis_id": "h2", "novelty": "known", "critique": "seen", "quality": 5},
+    {"hypothesis_id": "h3", "novelty": "novel", "critique": "strong", "quality": 5},
+    {"hypothesis_id": "h4", "novelty": "novel", "critique": "strong", "quality": 5},
+    {"hypothesis_id": "h5", "novelty": "known", "critique": "seen", "quality": 1},
+    {"hypothesis_id": "h6", "novelty": "novel", "critique": "weak", "quality": 2},
+    {"hypothesis_id": "h7", "novelty": "novel", "critique": "good", "quality": 4},
+]
+
+
 class TestFilterHappyPath(unittest.TestCase):
-    def test_mixed_novel_known_ranked_with_tiebreak_and_cap(self):
-        # Generation order 0..6. Novel: h1(3), h3(5), h4(5), h6(2), h7(4).
-        # Known (excluded): h2(5), h5(1).
-        # Expected: sort by quality desc, ties by generation order, capped at 4:
-        #   h3(5, idx2), h4(5, idx3), h7(4, idx6), h1(3, idx0)  -- h6(2) dropped.
-        reflections = [
-            {"hypothesis_id": "h1", "novelty": "novel", "critique": "ok", "quality": 3},
-            {"hypothesis_id": "h2", "novelty": "known", "critique": "seen", "quality": 5},
-            {"hypothesis_id": "h3", "novelty": "novel", "critique": "strong", "quality": 5},
-            {"hypothesis_id": "h4", "novelty": "novel", "critique": "strong", "quality": 5},
-            {"hypothesis_id": "h5", "novelty": "known", "critique": "seen", "quality": 1},
-            {"hypothesis_id": "h6", "novelty": "novel", "critique": "weak", "quality": 2},
-            {"hypothesis_id": "h7", "novelty": "novel", "critique": "good", "quality": 4},
-        ]
-        survivors = filter_survivors(reflections)
-        self.assertLessEqual(len(survivors), 4)
-        survivor_ids = [s["hypothesis_id"] for s in survivors]
-        self.assertEqual(survivor_ids, ["h3", "h4", "h7", "h1"])
+    """The old version of this test asserted ["h3","h4","h7","h1"] and its comment
+    read "Known (excluded): h2(5), h5(1)" — the pre-2026-07-25 novelty VETO, still
+    encoded here long after filter_survivors stopped killing on novelty. It made a
+    quality-5 known-method hypothesis vanish and called that correct."""
+
+    def _ids(self, priority=None):
+        kw = {} if priority is None else {"novelty_priority": priority}
+        return [s["hypothesis_id"] for s in filter_survivors(_MIXED, **kw)]
+
+    def test_default_is_balanced_quality_leads_novelty_breaks_ties(self):
+        """h2 (known, 5) COMPETES: it ties h3/h4 on quality and loses the tie to
+        them for being known — it is not deleted for it."""
+        self.assertEqual(self._ids(), ["h3", "h4", "h2", "h7"])
+        self.assertEqual(self._ids("balanced"), self._ids())
+
+    def test_required_puts_every_novel_hypothesis_first(self):
+        """The SCIENCE setting: an established answer by an established method is
+        not a result, so novelty leads and h2 falls outside the cap."""
+        self.assertEqual(self._ids("required"), ["h3", "h4", "h7", "h1"])
+
+    def test_irrelevant_ranks_on_quality_alone(self):
+        """The ENGINEERING setting: a well-established method is a virtue, so h2
+        places on merit and generation order breaks the h3/h4/h2 tie."""
+        self.assertEqual(self._ids("irrelevant"), ["h2", "h3", "h4", "h7"])
+
+    def test_the_cap_is_respected_under_every_priority(self):
+        for p in ("required", "balanced", "irrelevant"):
+            self.assertLessEqual(len(self._ids(p)), 4, p)
+
+    def test_an_unknown_priority_is_refused_rather_than_defaulted(self):
+        """Silently falling back would make a typo in a director's action change
+        which hypotheses survive, with nothing in the record saying so."""
+        with self.assertRaises(ValueError):
+            filter_survivors(_MIXED, novelty_priority="high")
 
 
 if __name__ == "__main__":

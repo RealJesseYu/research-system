@@ -38,8 +38,11 @@ stages/reflection_reviews.py, zero edits there): initial review over the
 variant mini-pool, then per initial survivor the full chain —
 gather_review_refs, full_review, deep_verification_review,
 observation_review, simulation_review — on their existing model pins, then
-the same deterministic consequences (fundamental_flaw discards; the
-filter's novelty rule: 'known' discards).
+the same deterministic consequences (fundamental_flaw discards;
+answer_established discards). Novelty is a RANKING SIGNAL here, never a veto,
+matching filter_survivors since 2026-07-25 — this file enforced the retired
+'known' discards rule long after the main filter dropped it, which held
+evolved variants to a standard their own parents did not have to meet.
 
 EVOLUTION MUST NEVER CRASH A RUN: an emission failure or a review failure
 (including reflection retrieval's hard-required sources failing) degrades
@@ -523,14 +526,29 @@ def evolve_and_review(
                     f"accounts_for={observation['accounts_for']} "
                     f"failure_scenarios={len(simulation['failure_scenarios'])}",
                 )
-                # Deterministic consequences — the same rules Generation
-                # candidates face: a fundamental flaw discards; then the
-                # filter's novelty rule ('known' discards).
+                # Deterministic consequences — THE SAME RULES GENERATION
+                # CANDIDATES FACE, which is the point of this block and was not
+                # true of it until now. filter_survivors stopped killing on
+                # novelty on 2026-07-25: novelty of METHOD is not novelty of
+                # ANSWER, and almost every good applied hypothesis uses an
+                # established method — that is why it is likely to work. The kill
+                # moved to answer_established (prior work already MEASURED this
+                # claim in this setting, so running it teaches nothing).
+                #
+                # This site kept the old veto, so a variant using a known method
+                # on an unmeasured question — precisely the class the ruling
+                # protects, and precisely what a simplification variant tends to
+                # BE — was rejected here while its own parent survived the main
+                # filter. Evolution was therefore held to a standard the thing it
+                # evolves from is not.
                 if deep["fundamental_flaw"]:
                     record["reject_reason"] = f"fundamental_flaw: {deep['summary']}"
-                elif full["novelty"] != "novel":
-                    record["reject_reason"] = "judged_known"
+                elif full.get("answer_established"):
+                    record["reject_reason"] = "answer_already_established"
                 else:
+                    # novelty is already on the record (set from full_review
+                    # above) and stays there as a RANKING SIGNAL the tournament
+                    # weighs — it just no longer decides acceptance here.
                     record["accepted"] = True
 
     for r in records:

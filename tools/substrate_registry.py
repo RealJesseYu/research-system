@@ -13,16 +13,23 @@ THE MATURITY LADDER (low -> high), for routable substrates:
                     calibrating substrate whose battery has run MAY be ruled
                     routable — every trust decision touching it stays
                     human-required via the supervisor's maturity hook
-                    ⚠️ AUDITED 2026-07-27: THIS SAFEGUARD NO LONGER EXISTS.
-                    apply_substrate_maturity_hook is gone from the repo (the
-                    purge took it); supervisor.py reads baton._maturity_signoff,
-                    which NOTHING sets, so needs_human_signoff is permanently
-                    False. Five substrates are routable and NOT mature
-                    (cavity_2d_cfd, ngspice_linear_passive, sympy_symbolic_exact,
-                    both cantilevers) — a run can draw trust on any of them and
-                    keep the number unattended. Either restore an enforcement
-                    point or strike the trust claims below; do not read the rows
-                    as guaranteeing a signoff. Original text follows.
+                    ⚠️ STRUCK 2026-07-27 (owner ruling). The safeguard described
+                    in the next sentence DOES NOT EXIST and is not coming back:
+                    apply_substrate_maturity_hook went with the purge, and
+                    supervisor.py's read of baton._maturity_signoff has no writer,
+                    so needs_human_signoff is permanently False.
+                    MATURITY IS DOCUMENTATION, NOT A GATE. A rung records how much
+                    calibration a substrate has behind it, for a human deciding
+                    whether to believe a number. It does not stop a run: five
+                    substrates are routable and NOT mature (cavity_2d_cfd,
+                    ngspice_linear_passive, sympy_symbolic_exact, both
+                    cantilevers), and a run may draw trust on any of them and keep
+                    the number unattended. That is now accepted policy, not a gap
+                    — the wall (an independent re-run) is what makes a kept number
+                    honest, and maturity is context for reading it. Ruled this way
+                    deliberately: a signoff gate on the free path is friction the
+                    PRIME DIRECTIVE has been removing all week.
+                    Retained below for the record only:
                     (NEEDS_HUMAN_SIGNOFF; auto-mode trust/refine downgrades
                     to defer), so it is never silently trusted.
     provisional  -- real runs are accruing and the wrapper behaves, but the

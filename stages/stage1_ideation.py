@@ -28,8 +28,13 @@ round's tournament results resolved to plain statements — advisory only,
 inert on round 1 or after a trivially-ranked prior round. The result
 per surviving candidate is the same reflection object as always:
 {hypothesis_id, novelty, critique, quality}. A pure-Python filter (no model
-call) then discards anything judged "known" and keeps at most four survivors
-by quality, ties broken by generation order. Ranking (rebuilt in Step 17-C
+call) then discards anything whose ANSWER is already established (never
+anything merely judged "known" — that veto was retired 2026-07-25) and keeps
+at most four survivors, ranked under the DIRECTOR'S novelty_priority: an
+engineering goal does not need a novel method and ranks on quality alone
+("irrelevant"), a science goal needs novelty or it is not research
+("required"), and "balanced" — the default — ranks on quality with novelty as
+the tie-break. Ties beyond that break by generation order. Ranking (rebuilt in Step 17-C
 as an Elo tournament — pure math in stages/tournament.py, Opus judgments
 here) plays every unordered pair of survivors once, most-similar pairs first
 (TF-IDF proximity), with A/B presentation randomized per match from a
@@ -290,7 +295,39 @@ def _log(run_id: str, line: str) -> None:
         f.write(line + "\n")
 
 
-def filter_survivors(reflections: list[dict]) -> list[dict]:
+#: How much a novel METHOD is worth when ranking survivors. The director sets it
+#: from the kind of goal it holds; "balanced" is the default because it is the
+#: only one of the three that cannot silently discard a whole class of work.
+NOVELTY_PRIORITIES = ("required", "balanced", "irrelevant")
+DEFAULT_NOVELTY_PRIORITY = "balanced"
+
+
+def _novelty_sort_key(novelty_priority: str):
+    """(reflection, original_index) -> sort key, ascending.
+
+    required   — novelty leads. Every novel hypothesis outranks every known-method
+                 one; quality orders within each group. For a SCIENCE goal, where
+                 an established answer by an established method is not a result.
+    balanced   — quality leads, novelty breaks ties. A known method whose ANSWER is
+                 open competes on merit and only loses to an equally good
+                 hypothesis that is also methodologically new. (Exactly what the
+                 pre-2026-07-27 docstring claimed, and did not do.)
+    irrelevant — quality alone. For an ENGINEERING goal, where a well-established
+                 method is a virtue and novelty is noise in the ranking.
+    """
+    if novelty_priority not in NOVELTY_PRIORITIES:
+        raise ValueError(
+            f"novelty_priority must be one of {list(NOVELTY_PRIORITIES)}, got "
+            f"{novelty_priority!r}")
+    if novelty_priority == "required":
+        return lambda r, i: (r.get("novelty") != "novel", -r["quality"], i)
+    if novelty_priority == "irrelevant":
+        return lambda r, i: (-r["quality"], i)
+    return lambda r, i: (-r["quality"], r.get("novelty") != "novel", i)
+
+
+def filter_survivors(reflections: list[dict],
+                     novelty_priority: str = DEFAULT_NOVELTY_PRIORITY) -> list[dict]:
     """Pure-Python, no model call: discard hypotheses whose ANSWER is already on
     record, keep at most MAX_SURVIVORS by quality (highest first), ties broken by
     original (generation) order.
@@ -328,24 +365,68 @@ def filter_survivors(reflections: list[dict]) -> list[dict]:
         # re-ideate with a different framing, reframe the goal, or proceed
         # knowingly — make the call. A screening stage reports; it does not veto.
         live = list(enumerate(reflections))
-    # Rank: unanswered-and-novel first, then unanswered-but-known-method, each by
-    # quality. A known method whose answer is open still competes; it just does not
-    # outrank an equally good hypothesis that is also methodologically new.
-    live.sort(key=lambda pair: (pair[1].get("novelty") != "novel",
-                                -pair[1]["quality"], pair[0]))
-    return [r for _, r in live[:MAX_SURVIVORS]]
+    # NOVELTY'S WEIGHT IS THE DIRECTOR'S CALL, because it depends on the task.
+    # An engineering goal ("make this gripper hold 5 kg") does not need a novel
+    # method and is often best served by a well-established one; a science goal
+    # needs novelty or it is not research. One hardcoded weight cannot serve both,
+    # so the director — which is the thing that knows what kind of goal it holds —
+    # picks, and this stays pure Python that just applies the choice.
+    #
+    # WHY THIS MATTERED. The sort used novelty as the PRIMARY key, so every
+    # novel-verdict hypothesis outranked every known-method one and a novel
+    # quality-1 beat a known quality-5. MAX_SURVIVORS then truncates — so once
+    # four candidates came back novel, every known-method hypothesis was dropped
+    # regardless of quality, with no line anywhere saying why. That silently
+    # reinstated the veto removed on 2026-07-25, by sort-plus-cap instead of by
+    # predicate, and the docstring above described the weaker behavior it did not
+    # implement.
+    key = _novelty_sort_key(novelty_priority)
+    live.sort(key=lambda pair: key(pair[1], pair[0]))
+    kept = [r for _, r in live[:MAX_SURVIVORS]]
+    # A known-method hypothesis dropped by the CAP is a real loss of breadth, and
+    # it used to happen invisibly. Named so a reader of the log can see what the
+    # weighting cost, and so a run whose survivors are all novel is a fact rather
+    # than an assumption.
+    dropped_known = [r for _, r in live[MAX_SURVIVORS:]
+                     if r.get("novelty") != "novel"]
+    if dropped_known:
+        print(f"NOTE: {len(dropped_known)} known-method hypothesis(es) fell outside "
+              f"the top {MAX_SURVIVORS} under novelty_priority="
+              f"{novelty_priority!r}: "
+              + ", ".join(str(r.get("hypothesis_id")) for r in dropped_known))
+    return kept
 
 
 def _judge_view(s: dict) -> dict:
     """J6: what a tournament judge/advocate sees of one hypothesis — id,
-    statement, rationale, and addressable_notes (carried concerns to weigh) —
-    NOT critique, NOT quality."""
-    return {
+    statement, rationale, addressable_notes (carried concerns to weigh), and the
+    grounded novelty verdict — NOT critique, NOT quality.
+
+    NOVELTY IS SHOWN BECAUSE THE JUDGE IS ASKED ABOUT IT. The ranking prompt
+    names novelty as one of its three axes ("does it go beyond what is already
+    established"), but this view withheld the verdict — so the judge had to
+    re-derive novelty from the statement alone, guessing at exactly the question
+    a full review had just spent real retrieval answering, with citations. The
+    verdict and its rationale travel now; quality and critique still do not,
+    because those are the screening stage's own scores and the tournament exists
+    to form an independent judgment of merit, not to re-read one.
+    """
+    view = {
         "id": s["id"],
         "statement": s["statement"],
         "rationale": s["rationale"],
         "addressable_notes": s.get("addressable_notes", []),
     }
+    if s.get("novelty") is not None:
+        view["novelty_verdict"] = s["novelty"]
+        # The rationale is what makes the verdict weighable rather than a label:
+        # "novel" with no reason is an assertion, and a judge cannot discount an
+        # assertion it cannot inspect.
+        if s.get("novelty_rationale"):
+            view["novelty_rationale"] = s["novelty_rationale"]
+        if s.get("novelty_grounded_in"):
+            view["novelty_grounded_in"] = s["novelty_grounded_in"]
+    return view
 
 
 def _live_top2(ratings: dict[str, float], survivors_full: list[dict]) -> set[str]:
@@ -548,6 +629,7 @@ def _run_round(
     refl_block: str,
     rank_block: str,
     prior_tournament_resolved: dict | None,
+    novelty_priority: str = DEFAULT_NOVELTY_PRIORITY,
 ) -> dict:
     """One full Generation → Reflection → filter → Evolution → Ranking pass,
     writing every per-round artifact into round_dir (stage1/round<N>/); the
@@ -587,7 +669,7 @@ def _run_round(
     (round_dir / "reflections.json").write_text(json.dumps(reflections, indent=2))
 
     # --- Deterministic filter (no model) ---
-    survivor_reflections = filter_survivors(reflections)
+    survivor_reflections = filter_survivors(reflections, novelty_priority)
 
     hyp_by_id = {h["id"]: h for h in hypotheses}
     survivors_full = [
@@ -806,7 +888,8 @@ def _run_quick(baton: Baton) -> Baton:
     return baton
 
 
-def run(baton: Baton, rounds: int | None = None, depth: str = "full") -> Baton:
+def run(baton: Baton, rounds: int | None = None, depth: str = "full",
+        novelty_priority: str = DEFAULT_NOVELTY_PRIORITY) -> Baton:
     """depth='full' (default) runs the whole Co-Scientist apparatus; depth='quick'
     runs one literature-grounded generation and delivers it directly (the PI or
     the human chooses per docs/architecture_collapse_manifest.md). The default

@@ -144,19 +144,49 @@ convenient it seems in the moment:
   (both arm-2 runs defer on spatial-masking/derived-field QoIs).
 - **Baton schemas are locked (Step 15).** schemas.py is the lock artifact; changes to
   it require a recorded ruling, same discipline as frozen prompts.
-  ⚠️ **AUDITED 2026-07-27: THE LOCK IS NOT ENGAGED.** `validate_payload_post_gate1/2/3/4/5`
-  are referenced only by `schemas.py` itself and by tests — `supervisor.py` does not
-  import `schemas` at all. The purge removed the boundaries these guarded. Two live
-  consequences: the "small typed baton" invariant above is envelope-only, and
-  `supervisor.py` attaches `_maturity_signoff` / `_verification` as NON-payload
-  attributes to route around a lock that no longer runs. **OPEN RULING NEEDED:** rewire
-  it at the free-path boundary, or delete it and strike this line. Do not leave it
-  described as an enforcement point.
+  ⚠️ **AUDITED 2026-07-27, RULED: NOT A RUNTIME BOUNDARY — IT IS THE PROMOTION SPEC.**
+  `validate_payload_post_gate1/2/3/4/5` are called by NO production code;
+  `supervisor.py` does not import `schemas` at all, because the purge removed the
+  boundaries they guarded. So the file does not enforce anything at runtime, and the
+  "small typed baton" invariant above is envelope-only in practice.
+  It is NOT dead code, and the first audit pass got this wrong: those validators are
+  what the substrate-promotion suite checks a new substrate against —
+  `validate_payload_post_stage4` alone has 32 references across
+  `test_d4/d5_entry_construction`, `test_b1/b2_flip_promotion` and `test_d0_stage5_input`,
+  which is how a newly wired substrate's run-entry shape is proven correct. Deleting it
+  (the initial ruling, made on the incomplete description above) would gut that suite.
+  **Its real job: the specification promotion is tested against.** Read it that way,
+  keep changing it only by recorded ruling, and do not describe it as a boundary the
+  supervisor enforces. If runtime enforcement is ever wanted on the free path, that is
+  a NEW wiring task, not a restoration.
 - **Schema violations halt loudly, never re-ask.** A malformed baton after a stage
   returned is a broken invariant, not a model error — the supervisor logs SCHEMA
   VIOLATION, journals a halted-schema run_record, and stops; no correction loop.
   ⚠️ **AUDITED 2026-07-27: unreachable** — nothing calls the validators that would
   raise. Reinstated only if the line above is resolved by rewiring.
+- **Maturity is documentation, not a gate (owner ruling 2026-07-27).** A substrate's
+  rung records how much calibration stands behind it, for a human judging whether to
+  believe a number — it does NOT stop a run. `apply_substrate_maturity_hook` is gone,
+  `needs_human_signoff` is permanently False, and five substrates are routable while
+  not mature (cavity_2d_cfd, ngspice_linear_passive, sympy_symbolic_exact, both
+  cantilevers). A run may draw trust on any of them and keep the number unattended.
+  Accepted deliberately: the wall — an independent no-model re-run — is what makes a
+  kept number honest, and a signoff gate on the free path is exactly the friction the
+  PRIME DIRECTIVE removes. The registry text is struck, not restored.
+- **Novelty's weight is the DIRECTOR'S dial (owner ruling 2026-07-27).**
+  `novelty_priority` ∈ {`required`, `balanced`, `irrelevant`}, chosen per goal because
+  the right answer depends on the task: an engineering goal ("hold 5 kg") is often best
+  served by a well-established method and ranks on quality alone; a science goal needs
+  novelty or it is not research. `balanced` is the default — quality leads, novelty
+  breaks ties — because it is the only setting that cannot silently discard a whole
+  class of work. Set it on a `call_ideation` action beside `depth` and `pool_size`.
+  What this replaced: novelty was the PRIMARY sort key, so a novel quality-1 beat a
+  known quality-5, and `MAX_SURVIVORS=4` then truncated — once four novel candidates
+  existed, every known-method hypothesis was dropped regardless of quality, silently
+  reinstating the veto retired on 2026-07-25 by sort-plus-cap instead of by predicate.
+  A drop by the cap is now printed. The tournament also SEES the novelty verdict now
+  (`_judge_view`), since its own prompt asks it to judge novelty and it was previously
+  made to guess at what a grounded review had just established.
 - **A crash leaves a run_record (2026-07-27).** `run_exact_route` wraps the free
   experimenter: an escaping exception journals `crashed during free investigation
   (<Type>: <msg>)` and re-raises. Before this, a crash and an EXTERNAL KILL were

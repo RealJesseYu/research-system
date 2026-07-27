@@ -78,6 +78,16 @@ def run_ideation(action: dict, study: Any, budget: Any, seq: int, *, run: Callab
     domain = _ideation_brief(
         action.get("domain") or action.get("detail") or study.goal, study)
     depth = action.get("depth") or DEFAULT_IDEATION_DEPTH
+    # NOVELTY WEIGHT IS THE DIRECTOR'S DIAL TOO (owner ruling 2026-07-27), for the
+    # same reason depth is: it depends on the KIND of goal, and the director is the
+    # only thing that knows. An engineering goal ("hold 5 kg") is often best served
+    # by a well-established method and should rank on quality alone; a science goal
+    # needs novelty or it is not research. One hardcoded weight served neither —
+    # and the weight it had (novelty as the primary sort key, then a 4-survivor cap)
+    # silently discarded every known-method hypothesis whenever four novel ones
+    # existed. Absent => 'balanced', the only setting that cannot drop a whole
+    # class of work, so a director that never names one is safe.
+    novelty_priority = action.get("novelty_priority")
     # Breadth is the director's to buy (owner ruling 2026-07-27). None keeps
     # the module defaults, so a director that never asks behaves as before.
     try:
@@ -85,7 +95,8 @@ def run_ideation(action: dict, study: Any, budget: Any, seq: int, *, run: Callab
         set_pool_size(action.get("pool_size"))
     except Exception:  # noqa: BLE001 — a sizing hint must not sink the call
         pass
-    hyps = _run_ideation_at_depth(run, domain, study, seq, depth) or []
+    hyps = _run_ideation_at_depth(run, domain, study, seq, depth,
+                                  novelty_priority) or []
     digest = [
         {"id": h.get("id"), "statement": h.get("statement")}
         for h in hyps[:_MAX_ITEMS]
@@ -154,33 +165,46 @@ def _ideation_brief(question: str, study: Any) -> str:
     return "".join(parts)
 
 
-def _ideation_run_accepts_depth(run: Callable) -> bool:
-    """True when the ideation runner can take a depth argument. The runner is
-    INJECTED (tests pass their own), and the pre-R-FD-6 signature was
-    (domain, study, seq) — calling a 3-arg fake with a 4th positional would break
-    it silently. Same introspection idiom as model_call._seam_accepts_capabilities,
-    recomputed per call because the injected callable varies."""
+def _run_accepts(run: Callable, name: str) -> bool:
+    """True when the injected ideation runner can take `name` as a keyword.
+
+    Every dial added to this capability (depth, now novelty_priority) is a new
+    argument to a callable TESTS INJECT, so the older signatures still in the
+    suite must keep working rather than break on an unexpected keyword. Same
+    introspection idiom as model_call._seam_accepts_capabilities, recomputed per
+    call because the injected callable varies."""
     try:
         params = inspect.signature(run).parameters
     except (TypeError, ValueError):
         return False
     if any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()):
         return True
-    return "depth" in params
+    return name in params
+
+
+def _ideation_run_accepts_depth(run: Callable) -> bool:
+    """True when the ideation runner can take a depth argument. Kept as its own
+    name because tests reference it; _run_accepts is the general form."""
+    return _run_accepts(run, "depth")
 
 
 def _run_ideation_at_depth(run: Callable, domain: str, study: Any, seq: int,
-                           depth: str) -> list:
-    """Call the ideation runner, passing depth only when it can take it. A runner
-    that cannot keeps its old behavior (quick) rather than crashing — the dial is
-    additive, never a break."""
+                           depth: str, novelty_priority: str = None) -> list:
+    """Call the ideation runner, passing each dial only when it can take it. A
+    runner that cannot keeps its old behavior rather than crashing — the dials are
+    additive, never a break. The runner is INJECTED (tests pass their own), so
+    this is checked per call."""
+    kwargs = {}
     if _ideation_run_accepts_depth(run):
-        return run(domain, study, seq, depth=depth)
-    return run(domain, study, seq)
+        kwargs["depth"] = depth
+    if novelty_priority is not None and _run_accepts(run, "novelty_priority"):
+        kwargs["novelty_priority"] = novelty_priority
+    return run(domain, study, seq, **kwargs)
 
 
 def _default_ideation(domain: str, study: Any, seq: int,
-                      depth: str = DEFAULT_IDEATION_DEPTH) -> list:
+                      depth: str = DEFAULT_IDEATION_DEPTH,
+                      novelty_priority: str = None) -> list:
     """Live ideation: a stage1 pass over the domain at the director's chosen depth
     ('quick' = one generation strategy; 'full' = the whole Co-Scientist apparatus).
     Writes its evidence under runs/<study_id>-cap<seq>/stage1/ like any run."""
@@ -193,7 +217,10 @@ def _default_ideation(domain: str, study: Any, seq: int,
         mode=study.mode,
         payload={"domain": domain},
     )
-    result = stage1_ideation.run(baton, depth=depth)
+    kwargs = {"depth": depth}
+    if novelty_priority is not None:
+        kwargs["novelty_priority"] = novelty_priority
+    result = stage1_ideation.run(baton, **kwargs)
     return result.payload.get("hypotheses") or []
 
 

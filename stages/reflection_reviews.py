@@ -76,6 +76,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -176,6 +177,16 @@ _RETIRED_SOURCE = {
 }
 
 
+# A DOI is 10.<registrant>/<suffix> — the registrant is >= 4 digits, and the
+# suffix must be non-empty. Anchored on a word boundary so it cannot start
+# mid-number.
+_DOI_RE = re.compile(r"\b10\.\d{4,}(?:\.\d+)*/\S+")
+# arXiv, modern (2401.01234, optional vN) or legacy (cond-mat/0123456).
+_ARXIV_RE = re.compile(
+    r"(?:arxiv[:/\s]*)?\b\d{4}\.\d{4,5}(?:v\d+)?\b"
+    r"|\b[a-z-]+(?:\.[a-z]{2})?/\d{7}(?:v\d+)?\b")
+
+
 def _is_checkable_citation(entry, valid_refs) -> bool:
     """True when a novelty citation is something a human can go look at: one of
     the pre-fetched ref ids, or a source the reviewer located and cited by a
@@ -192,9 +203,21 @@ def _is_checkable_citation(entry, valid_refs) -> bool:
     if entry in valid_refs:
         return True
     low = entry.lower()
-    return ("http://" in low or "https://" in low or "doi.org" in low
-            or low.startswith("doi:") or "10." in low and "/" in low
-            or "arxiv" in low)
+    if ("http://" in low or "https://" in low or "doi.org" in low
+            or low.startswith("doi:")):
+        return True
+    # A BARE DOI NEEDS THE SHAPE OF A DOI, not two characters that happen to
+    # appear in one. The old test was `"10." in low and "/" in low`, which passes
+    # for "see section 10.2 / appendix", "v10.1/beta", and most prose containing a
+    # decimal and a slash — so the gate that both the novelty verdict and
+    # Generation's grounded_in validator depend on could be satisfied by text
+    # citing nothing. A real DOI is 10.<registrant>/<suffix>: the prefix is
+    # "10." plus at least four digits, then a slash, then a non-empty suffix.
+    if _DOI_RE.search(low):
+        return True
+    # Likewise arXiv: an ID, not the mere word. Either the modern 2401.01234
+    # form or the old cond-mat/0123456 form, with or without an "arxiv:" prefix.
+    return bool(_ARXIV_RE.search(low))
 
 
 FULL_REVIEW_SYSTEM_PROMPT = (
@@ -684,6 +707,24 @@ def full_review(
         quality = data.get("quality")
         if isinstance(quality, bool) or not isinstance(quality, int) or not (1 <= quality <= 5):
             errors.append("quality must be an integer from 1 to 5.")
+        # THE ONE FIELD THE FILTER KILLS ON WAS THE ONE FIELD NOTHING CHECKED.
+        # novelty is enum-pinned, quality is range-checked, critique and
+        # novelty_rationale are non-empty-checked — and answer_established, which
+        # is the kill predicate since 2026-07-25, was neither in `required` nor
+        # type-checked, only bool()-coerced below. So the STRING "false" (or "no",
+        # or any non-empty string a model might reach for) is truthy and silently
+        # killed the hypothesis — through the exact field whose comment promises
+        # that "a missing field must not silently kill". A missing field does not;
+        # a wrong-typed one did. Absent is still fine and still means False.
+        established = data.get("answer_established")
+        if established is not None and not isinstance(established, bool):
+            errors.append(
+                "answer_established must be true or false (a JSON boolean), not "
+                f"{established!r}. It decides whether this hypothesis is dropped "
+                "as already-answered, so a string is not accepted: \"false\" is a "
+                "non-empty string and would read as true. Omit it entirely if "
+                "prior work has not measured this answer."
+            )
         return errors
 
     stage_input = {

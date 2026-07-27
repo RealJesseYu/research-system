@@ -122,6 +122,11 @@ def make_fake_transport(config: dict | None = None):
                     "novelty": novelty,
                     "novelty_rationale": "test rationale",
                     "novelty_grounded_in": ["R1"] if novelty == "known" else [],
+                    # The predicate that REPLACED the novelty veto. A real JSON
+                    # boolean, which the validator now requires: the string
+                    # "false" is truthy and used to kill silently.
+                    "answer_established": bool(
+                        config.get("answer_established", {}).get(hid, False)),
                     "critique": "test critique",
                     "quality": 3,
                 }
@@ -345,12 +350,35 @@ class TestEvolveAndReview(TmpRunDirTest):
             self.assertEqual(r["quality"], 3)
         self.assertIn("zero variants accepted", self._log_text())
 
-    def test_judged_known_rejected_by_novelty_rule(self):
+    def test_a_known_method_variant_is_accepted_not_vetoed(self):
+        """SUPERSEDES test_judged_known_rejected_by_novelty_rule.
+
+        filter_survivors stopped killing on novelty on 2026-07-25 — novelty of
+        METHOD is not novelty of ANSWER, and almost every good applied hypothesis
+        uses an established method, which is why it is likely to work. This site
+        kept the retired veto, so a variant using a known method on an unmeasured
+        question was rejected here while its own PARENT survived the main filter:
+        evolution was held to a standard the thing it evolves from is not. And a
+        simplification variant — which this strategy always emits — is exactly
+        the shape that trips a 'known method' verdict.
+
+        novelty survives on the record as a ranking signal for the tournament.
+        """
         accepted, records = self._evolve(config={"novelty": {"ev1": "known"}})
         by_id = {r["id"]: r for r in records}
+        self.assertTrue(by_id["ev1"]["accepted"])
+        self.assertIsNone(by_id["ev1"]["reject_reason"])
+        self.assertEqual(by_id["ev1"]["novelty"], "known")   # recorded, not fatal
+        self.assertEqual([a["id"] for a in accepted], ["ev1", "ev2"])
+
+    def test_an_already_answered_variant_is_rejected(self):
+        """The kill that REPLACED the novelty veto: prior work has already
+        measured this claim in this setting, so running it teaches nothing."""
+        accepted, records = self._evolve(
+            config={"answer_established": {"ev1": True}})
+        by_id = {r["id"]: r for r in records}
         self.assertFalse(by_id["ev1"]["accepted"])
-        self.assertEqual(by_id["ev1"]["reject_reason"], "judged_known")
-        self.assertTrue(by_id["ev2"]["accepted"])
+        self.assertEqual(by_id["ev1"]["reject_reason"], "answer_already_established")
         self.assertEqual([a["id"] for a in accepted], ["ev2"])
 
     def test_initial_review_discard_recorded(self):
