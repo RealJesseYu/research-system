@@ -55,6 +55,7 @@ visible at the type level.
 
 from __future__ import annotations
 
+import sys
 import time
 
 # The remote job writes its metrics here, exactly as the local sandbox does, so
@@ -204,7 +205,14 @@ def _dispatch_modal(clean: dict) -> dict:
         raise RemoteJobUnavailable(
             "the modal client is not installed (venv/bin/pip install modal)") from e
 
-    image = modal.Image.debian_slim(python_version="3.12")
+    # The remote interpreter MUST match this process's, because the entry point
+    # is shipped as a serialized closure and Modal refuses a version mismatch
+    # ("a serialized Function must be de-serialized by the same Python"). Read
+    # from sys rather than pinned: a pin here silently rots the day the venv's
+    # Python moves, and the failure surfaces as a confusing remote error rather
+    # than as the local fact it is.
+    image = modal.Image.debian_slim(
+        python_version=f"{sys.version_info.major}.{sys.version_info.minor}")
     if clean["apt"]:
         image = image.apt_install(*clean["apt"])
     if clean["pip"]:

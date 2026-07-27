@@ -1,7 +1,6 @@
 # Memo — the remote lane: rented hardware, and why its results are inputs
 
-**Written:** 2026-07-27. **Status:** built and offline-tested; **live proof owed**
-(needs the owner's Modal account — see §5). **Rulings:** R-REMOTE-1, R-REMOTE-2.
+**Written:** 2026-07-27. **Status:** built, offline-tested, and **LIVE-WITNESSED** (§5). **Rulings:** R-REMOTE-1, R-REMOTE-2.
 `stages/verification.py` untouched, and deliberately so.
 
 ---
@@ -78,7 +77,7 @@ fails is reported with its stderr tail and **its metrics are not passed off as
 usable** — distinct from a backend that could not be reached, which is an honest
 `setup_error`.
 
-## 5. Status: live proof owed
+## 5. Live proof (2026-07-27)
 
 The unauthenticated path **is** proven live: with no token present, a real
 dispatch attempt returns
@@ -89,18 +88,31 @@ dispatch attempt returns
 which is the honest could-not-run behaviour, naming the fix. Everything else is
 offline-tested through the `dispatch` seam (15 tests).
 
-**What is not yet proven is a job actually running**, because that needs an
-account this machine does not have. The owner must, once:
+The owner authenticated (`modal token new`) and the lane was witnessed end to
+end:
 
-1. register at modal.com;
-2. run `modal token new` (browser auth — an interactive login, so it has to be
-   the owner, not the agent);
+| Witness | Result |
+|---|---|
+| Remote CPU job | metrics `{answer: 42.0}` + a returned file, **3.9 s**. Host: `Linux-4.19.0-gvisor-x86_64` |
+| Remote GPU job (T4) | `cuda_available=1.0`, **trace(I₁₀₀₀) = 1000.0** (known answer), `Tesla T4 | torch 2.13.0+cu130`, 165 s incl. first image build |
+| Real model on GPU | ESM-2 (35M) top-1 prediction for ubiquitin, 102 s |
+| **THE PATTERN, end to end** | the ESM prediction came back as a FILE (an input, caveated); a local self-contained artifact computed top-1 agreement with the native sequence = **1.0** and **reproduced at `rel_error 0.0`**; the same claim asserted at 0.5 was rejected as `mismatch` |
 
-after which a first live job (a CPU no-op, then a small GPU job) becomes the
-witness this memo owes. Cost is per-second with free monthly credits; nothing
-here spends anything until that token exists.
+That last row is the whole ruling made concrete: the expensive, non-reproducible
+step ran once on rented hardware and was never claimed; the finding derived from
+it re-runs locally in milliseconds, on any machine, with no GPU and no bill.
 
-## 6. What this unlocks, once witnessed
+**One fact worth its own line: the remote host is `x86_64`.** `autodock_vina`
+was deferred because it has no aarch64 build — that blocker is now gone.
+
+**One bug the first live run caught**, which no amount of offline testing would
+have: Modal ships the entry point as a serialized closure and refuses a
+Python-version mismatch between client and image. The image had been pinned to
+3.12 against a 3.14 venv. The fix reads the version from `sys` rather than
+pinning it, because a pin rots silently the day the venv moves and surfaces as a
+confusing remote error instead of the local fact it is.
+
+## 6. What this unlocks
 
 `boltz2`, ESMFold, OpenFold3, Chai-1, AutoDock Vina, Evo2, Borzoi, scGPT, and
 plane-wave DFT (GPAW / Quantum ESPRESSO) — the whole GPU-blocked shelf, through
