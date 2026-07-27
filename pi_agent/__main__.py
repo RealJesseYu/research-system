@@ -113,6 +113,18 @@ def main(argv: list | None = None) -> None:
         "built alongside; validate it live before it becomes the default.",
     )
     parser.add_argument(
+        "--token-budget",
+        type=int,
+        default=None,
+        help="TOKEN ceiling for the whole investigation (free director only). "
+        "This is the real constraint: measured live, a 2-move study cost 55M "
+        "tokens and a 4-move one cost 15.9M, because one experimenter call runs "
+        "an agentic loop of up to 200 turns. The director sees tokens_remaining "
+        "every turn and scales depth, decomposition and ideation depth to it. "
+        "--max-moves still applies as a structural backstop. Rough guide: a "
+        "substantive multi-phase study has cost 20-55M tokens.",
+    )
+    parser.add_argument(
         "--paper",
         action="store_true",
         help="after the investigation, write the WHOLE STUDY up as a paper "
@@ -138,6 +150,7 @@ def main(argv: list | None = None) -> None:
             allowed_substrates=allowed,
             mode=args.mode,
             ceiling=ceiling,
+            token_budget=args.token_budget,
         )
     else:
         report = investigate(

@@ -301,6 +301,40 @@ def _survive(study: Any, action_name: str, seq: int, finding: Optional[str], fn)
         return False
 
 
+def _tokens_spent(arc: list, spend_start: dict) -> int:
+    """Real tokens spent by this investigation so far: this process's own model
+    calls (director decisions plus in-process capabilities like ideation) plus
+    every dispatched run's persisted cost, read back off the arc. Same accounting
+    _build_report does at the end — computed per turn so the director can see it
+    while it still has decisions left to make. Never raises."""
+    try:
+        now = _cost_snapshot()
+        mine = max(0, now.get("tokens", 0) - spend_start.get("tokens", 0))
+        return mine + (_sum_runs_spend(arc) or {}).get("tokens", 0)
+    except Exception:  # noqa: BLE001 — accounting must not sink a decision
+        return 0
+
+
+def _budget_view(budget: Budget, tokens_spent: int, token_budget: Optional[int]) -> dict:
+    """What the director is shown about its own ceiling. The move pool is the
+    structural bound — it guarantees termination and divides for spawns — but
+    MOVES ARE A POOR PROXY FOR COST: measured live, a 2-move study cost 55M tokens
+    while a 4-move one cost 15.9M, because a single experimenter call runs an
+    agentic loop of up to 200 turns. So when a token budget is set it is shown as
+    the real constraint, and the director scales depth to it."""
+    view = dict(budget.report())
+    view["tokens_spent"] = tokens_spent
+    if token_budget:
+        view["token_budget"] = token_budget
+        view["tokens_remaining"] = max(0, token_budget - tokens_spent)
+        view["fraction_of_token_budget_used"] = round(tokens_spent / token_budget, 3)
+        view["note"] = (
+            "tokens are the REAL ceiling for this investigation; the move pool is a "
+            "structural backstop. Scale your ambition to tokens_remaining."
+        )
+    return view
+
+
 def _decision_cap(budget: Budget, override: Optional[int]) -> int:
     """The backstop on total loop turns. Generous vs the budget so real work is
     never starved, but finite so a director looping on unwired capabilities cannot
@@ -323,6 +357,7 @@ def free_investigate(
     studies_root: Path = STUDIES_ROOT,
     runs_root: Path = Path("runs"),
     inherited_artifacts: Optional[list] = None,
+    token_budget: Optional[int] = None,
     max_decisions: Optional[int] = None,
     decide_action: Callable = None,
     run_move: Callable = None,
@@ -368,6 +403,16 @@ def free_investigate(
     while True:
         arc = study_findings(study)
 
+        spent = _tokens_spent(arc, spend_start)
+        if token_budget and spent >= token_budget:
+            termination = {
+                "reason": "token_budget_spent",
+                "detail": f"the token budget is spent ({spent:,} of {token_budget:,} "
+                          "tokens). This is the real ceiling; the move pool was a "
+                          "structural backstop.",
+            }
+            break
+
         if budget.remaining() <= 0:
             termination = {
                 "reason": "budget_spent",
@@ -385,7 +430,9 @@ def free_investigate(
 
         decisions += 1
         try:
-            action = _decide_with_retry(decide_action, study, arc, budget.report())
+            action = _decide_with_retry(
+                decide_action, study, arc,
+                _budget_view(budget, spent, token_budget))
             decider_failures = 0
         except Exception as e:  # noqa: BLE001
             # A TRANSPORT HICCUP MUST NOT END A STUDY. This used to break out of
