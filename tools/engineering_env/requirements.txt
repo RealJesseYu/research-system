@@ -1,0 +1,39 @@
+# Pinned manifest for the ENGINEERING sandbox image (engineering-img).
+#
+# The mechanical and electrical shelf. Before this, those two domains had one
+# narrow tool each — CFD fenced to 2D laminar cavity flow, FEA to linear-elastic
+# cantilevers, SPICE to passive networks — and nothing at all for geometry,
+# thermodynamics, multibody dynamics, RF, or digital logic.
+#
+# Every version pinned; all ship prebuilt linux-aarch64 wheels or are pure
+# Python, so the build needs network but no compiler. Jobs get NO network at
+# runtime, exactly as every other shelf.
+numpy==2.2.6
+scipy==1.15.3
+
+# GEOMETRY — the kernel that makes a "design" a thing rather than a table of
+# scalars. CadQuery scripts a real B-rep solid (OCC under the hood) and can
+# export STEP/STL, so a design travels as a file a person could actually build.
+# Crucially for this system it also yields CHECKABLE numbers: volume, mass,
+# centre of mass, bounding box, interference between parts. That turns a design
+# claim into a measurement the verification wall can re-run.
+cadquery==2.8.0
+cadquery-ocp==7.9.3.1.1
+build123d==0.11.1
+
+# THERMOFLUIDS — equations of state and transport properties for ~120 fluids
+# (CoolProp is the reference open implementation). Any heat-exchanger, cycle,
+# HVAC or propulsion sizing needs real property data, not correlations typed
+# from memory — and a property lookup here is computed, deterministic, and
+# reproduces exactly.
+CoolProp==8.0.0
+
+# MULTIBODY DYNAMICS — rigid-body simulation with contact and friction, the
+# thing neither the CFD nor the FEA tool can do. Deterministic under a fixed
+# seed and timestep, so a trajectory result verifies by re-running. Covers
+# mechanisms, linkages, robotics and control experiments.
+mujoco==3.10.0
+
+# RF / MICROWAVE NETWORKS — S-parameters, cascading, matching, Touchstone I/O.
+# Exact linear network algebra: re-running IS the check.
+scikit-rf==2.0.1

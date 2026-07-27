@@ -72,6 +72,11 @@ ATOMISTIC_IMAGE = "atomistic-img:latest"
 # The bio-design shelf: ProteinMPNN on CPU torch, weights baked in (the sandbox
 # has no network). Built from tools/biodesign_env/.
 BIODESIGN_IMAGE = "biodesign-img:latest"
+# The engineering shelf: CadQuery/build123d (geometry), CoolProp (thermofluid
+# properties), MuJoCo (multibody dynamics), scikit-rf (RF networks), plus
+# iverilog/verilator (digital logic) as system tools. Built from
+# tools/engineering_env/.
+ENGINEERING_IMAGE = "engineering-img:latest"
 # Scratch lives under the project root, NOT the system temp dir: colima shares
 # the home tree over virtiofs and cannot see /var/folders, so a tempfile-backed
 # bind mount arrives in the container empty. Same reason every other wrapper
@@ -159,6 +164,27 @@ PROFILES = {
     },
     "biodesign-heavy": {
         "image": BIODESIGN_IMAGE,
+        "default_timeout_s": 1800,
+        "max_timeout_s": 3600,
+        "memory_mb": 6144,
+        "cpus": 4,
+    },
+    # The engineering shelf (2026-07-27, docs/memo_engineering_lane.md):
+    # geometry, thermofluid properties, multibody dynamics, RF networks and
+    # digital logic. Mechanical and electrical were the two domains with almost
+    # nothing — one narrow tool each and no geometry kernel at all, so the
+    # instruction "if the goal asked you to design something, the thing is the
+    # deliverable" had nothing behind it. Every tool here is deterministic, so
+    # re-running IS the check (R-LANE-1) and none takes substrate ceremony.
+    "engineering": {
+        "image": ENGINEERING_IMAGE,
+        "default_timeout_s": DEFAULT_TIMEOUT_SECONDS,
+        "max_timeout_s": MAX_TIMEOUT_SECONDS,
+        "memory_mb": 4096,
+        "cpus": 2,
+    },
+    "engineering-heavy": {
+        "image": ENGINEERING_IMAGE,
         "default_timeout_s": 1800,
         "max_timeout_s": 3600,
         "memory_mb": 6144,
