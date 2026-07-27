@@ -209,3 +209,66 @@ def test_tree_makes_finitely_many_moves():
 
     drain(Budget(ROOT))
     assert made == ROOT  # every move accounted for, none conjured
+
+
+# --- the TOKEN ceiling ------------------------------------------------------
+# Tokens are documented as "the REAL constraint" (moves are a poor proxy: a
+# 2-move study measured 55M tokens, a 4-move one 15.9M). But the ceiling used to
+# live only as a free_investigate argument at the ROOT, and the spawn path never
+# forwarded it — so a CHILD director ran with no token ceiling at all, and the
+# thing called the real constraint could not fire on the majority of a recursive
+# study's spend. It rides the Budget now, so it divides through the same transfer
+# that already conserves moves.
+
+def test_token_ceiling_divides_in_proportion_to_moves():
+    root = Budget(10, tokens=30_000_000)
+    child = root.allocate(4)
+    assert child.tokens_remaining() == 12_000_000     # 4/10 of the pool
+    assert root.tokens_remaining() == 18_000_000      # and it LEFT the parent
+
+
+def test_token_ceilings_can_never_sum_above_the_root():
+    root = Budget(10, tokens=30_000_000)
+    kids = [root.allocate(4), root.allocate(3)]
+    total = sum(k.tokens_remaining() for k in kids) + root.tokens_remaining()
+    assert total <= 30_000_000
+
+
+def test_a_grandchild_inherits_a_real_ceiling():
+    """The unbounded case: depth 2+ is where a spawn tree actually spends."""
+    g = Budget(10, tokens=30_000_000).allocate(4).allocate(2)
+    assert g.depth == 2
+    assert g.tokens_remaining() == 6_000_000
+
+
+def test_untracked_tokens_stay_untracked_all_the_way_down():
+    """A run without --token-budget must be byte-identical to before."""
+    root = Budget(6)
+    assert root.tokens_remaining() is None
+    assert root.allocate(2).tokens_remaining() is None
+    assert "token_ceiling" not in root.report()
+
+
+def test_report_exposes_the_ceiling_only_when_set():
+    assert Budget(4, tokens=100).report()["token_ceiling"] == 100
+
+
+def test_allocating_the_whole_pool_hands_over_the_whole_ceiling():
+    root = Budget(4, tokens=1000)
+    assert root.allocate(4).tokens_remaining() == 1000
+    assert root.tokens_remaining() == 0
+
+
+def test_zero_move_allocation_takes_no_tokens():
+    root = Budget(4, tokens=1000)
+    assert root.allocate(0).tokens_remaining() == 0
+    assert root.tokens_remaining() == 1000
+
+
+def test_bad_token_values_are_refused_loudly():
+    for bad in ("30m", -5, True, 1.5):
+        try:
+            Budget(4, tokens=bad)
+        except BudgetError:
+            continue
+        raise AssertionError(f"tokens={bad!r} should have been refused")

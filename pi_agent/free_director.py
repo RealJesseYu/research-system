@@ -311,8 +311,18 @@ def _tokens_spent(arc: list, spend_start: dict) -> int:
         now = _cost_snapshot()
         mine = max(0, now.get("tokens", 0) - spend_start.get("tokens", 0))
         return mine + (_sum_runs_spend(arc) or {}).get("tokens", 0)
-    except Exception:  # noqa: BLE001 — accounting must not sink a decision
-        return 0
+    except Exception as e:  # noqa: BLE001 — accounting must not sink a decision
+        # RETURNING 0 HERE IS ACTIVELY DANGEROUS, so say so rather than lie
+        # quietly. A 0 both disables the ceiling below (`spent >= token_budget`
+        # can never fire) and tells the director `tokens_spent: 0` every turn —
+        # encouraging maximum depth at the exact moment metering has broken. The
+        # accounting still must not sink a decision, so this stays non-fatal;
+        # None is the honest value, and the two readers treat it as "unknown"
+        # rather than "nothing spent".
+        print(f"NOTE: token accounting failed ({type(e).__name__}: {e}) — spend "
+              "is UNKNOWN this turn, not zero; the token ceiling cannot be "
+              "enforced until it recovers")
+        return None
 
 
 def _budget_view(budget: Budget, tokens_spent: int, token_budget: Optional[int]) -> dict:
@@ -326,6 +336,19 @@ def _budget_view(budget: Budget, tokens_spent: int, token_budget: Optional[int])
     view["tokens_spent"] = tokens_spent
     if token_budget:
         view["token_budget"] = token_budget
+        if tokens_spent is None:
+            # UNKNOWN IS NOT ZERO. Showing a spend of 0 with a full remaining
+            # budget would invite the director to scale UP precisely when the
+            # meter has failed. Told plainly instead, so it can be conservative.
+            view["tokens_spent"] = "unknown — token accounting failed this turn"
+            view["note"] = (
+                "tokens are the REAL ceiling for this investigation, but the "
+                "meter FAILED this turn: spend is unknown, not zero, and the "
+                "ceiling cannot be enforced right now. Treat remaining budget as "
+                "unknown and prefer finishing what is started over decomposing "
+                "further."
+            )
+            return view
         view["tokens_remaining"] = max(0, token_budget - tokens_spent)
         view["fraction_of_token_budget_used"] = round(tokens_spent / token_budget, 3)
         view["note"] = (
@@ -404,7 +427,11 @@ def free_investigate(
         arc = study_findings(study)
 
         spent = _tokens_spent(arc, spend_start)
-        if token_budget and spent >= token_budget:
+        # `spent is None` means the meter failed, not that nothing was spent — so
+        # the ceiling does not fire on it (a broken meter must not end a healthy
+        # investigation either). The failure is printed and shown in the budget
+        # view; the move pool is the backstop while it lasts.
+        if token_budget and spent is not None and spent >= token_budget:
             termination = {
                 "reason": "token_budget_spent",
                 "detail": f"the token budget is spent ({spent:,} of {token_budget:,} "

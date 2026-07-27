@@ -215,7 +215,17 @@ class TestSpawnHandsDown(CarryTestCase):
 
 
 class _FakeBudget:
-    """Minimal stand-in — the spawn handler only passes it through to the child."""
+    """Minimal stand-in for Budget in the spawn path.
+
+    It is NOT purely pass-through any more: the spawn handler now reads
+    tokens_remaining() off the budget to give the child its share of the token
+    ceiling (children used to inherit no ceiling at all). A fake that omits it
+    fails loudly here rather than letting production quietly default the ceiling
+    to None — silently losing a child's token ceiling is precisely the bug that
+    change fixed, so this must not be papered over with a getattr default."""
+
+    def tokens_remaining(self):
+        return None      # untracked, matching Budget(moves) with no tokens=
 
 
 # --------------------------------------------------------------------------

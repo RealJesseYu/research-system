@@ -79,15 +79,22 @@ class Budget:
     or act and let an over-request raise BudgetError.
     """
 
-    __slots__ = ("_pool", "depth", "max_depth", "_spent", "_allocated")
+    __slots__ = ("_pool", "depth", "max_depth", "_spent", "_allocated", "_tokens")
 
-    def __init__(self, moves: int, *, depth: int = 0, max_depth: int = MAX_DEPTH):
+    def __init__(self, moves: int, *, tokens: "int | None" = None,
+                 depth: int = 0, max_depth: int = MAX_DEPTH):
         if not isinstance(moves, int):
             raise BudgetError(f"moves must be an int, got {type(moves).__name__}")
         if moves < 0:
             raise BudgetError(f"moves must be >= 0, got {moves}")
         if depth < 0:
             raise BudgetError(f"depth must be >= 0, got {depth}")
+        if tokens is not None:
+            if not isinstance(tokens, int) or isinstance(tokens, bool):
+                raise BudgetError(
+                    f"tokens must be an int or None, got {type(tokens).__name__}")
+            if tokens < 0:
+                raise BudgetError(f"tokens must be >= 0, got {tokens}")
         # _pool is the moves still available at THIS node (not yet spent here nor
         # transferred to a child). _spent and _allocated are cumulative tallies
         # kept only for honest reporting; the pool is the source of truth.
@@ -96,6 +103,22 @@ class Budget:
         self.max_depth = max_depth
         self._spent = 0
         self._allocated = 0
+        # TOKENS TRAVEL WITH THE BUDGET, for the same reason moves do.
+        #
+        # The token ceiling is documented as "the REAL constraint" — moves are a
+        # poor proxy for cost (measured: a 2-move study cost 55M tokens, a 4-move
+        # one 15.9M). But it lived only as a free_investigate argument at the
+        # ROOT, and _default_spawn_investigate never forwarded it, so a spawned
+        # child ran with NO token ceiling at all. A parent given --token-budget
+        # 30M could spawn three children that each dispatched unbounded runs
+        # while the "real" ceiling never fired. Only the move pool held, which is
+        # exactly the proxy the token budget exists because of.
+        #
+        # Carrying it here rather than adding another argument to thread means it
+        # divides through the SAME transfer that already conserves moves, so the
+        # tree-total guarantee in this module's header now covers tokens too.
+        # None = untracked, and every path is byte-identical to before.
+        self._tokens = tokens
 
     # ---- construction ----------------------------------------------------
 
@@ -121,6 +144,13 @@ class Budget:
         """Moves still available at this node (spendable here or allocatable to a
         child)."""
         return self._pool
+
+    def tokens_remaining(self) -> "int | None":
+        """This node's token ceiling, or None when tokens are untracked. Not
+        decremented by spend(): tokens are METERED externally (cost_meter) and
+        this is the ceiling that meter is compared against, whereas moves are
+        counted here. What divides is the ceiling, not a running total."""
+        return self._tokens
 
     def can_spend(self, n: int = 1) -> bool:
         return isinstance(n, int) and n >= 0 and n <= self._pool
@@ -164,9 +194,19 @@ class Budget:
                 f"cannot allocate at depth {self.depth}: child would be depth "
                 f"{self.depth + 1} > max_depth {self.max_depth}"
             )
+        # The child's token ceiling is its PROPORTIONAL share of this node's,
+        # by the same fraction of the pool it is taking in moves. Carved before
+        # the pool is decremented, since the fraction is k-of-what-was-here.
+        # Floored, so the children's ceilings can never sum above the parent's —
+        # the same direction from_cost_cap floors in, and for the same reason.
+        child_tokens = None
+        if self._tokens is not None:
+            child_tokens = (int(self._tokens * k / self._pool) if self._pool else 0)
+            self._tokens -= child_tokens
         self._pool -= k
         self._allocated += k
-        return Budget(k, depth=self.depth + 1, max_depth=self.max_depth)
+        return Budget(k, tokens=child_tokens,
+                      depth=self.depth + 1, max_depth=self.max_depth)
 
     # ---- reporting -------------------------------------------------------
 
@@ -174,7 +214,7 @@ class Budget:
         """A structured snapshot for the arc/record — never narration, just the
         accounting. spent + allocated + remaining sums to the moves this node was
         constructed with."""
-        return {
+        out = {
             "depth": self.depth,
             "max_depth": self.max_depth,
             "remaining": self._pool,
@@ -182,6 +222,11 @@ class Budget:
             "allocated_to_children": self._allocated,
             "total_at_node": self._pool + self._spent + self._allocated,
         }
+        # Absent when untracked, so a record from a no-token-budget run is
+        # byte-identical to a pre-change one.
+        if self._tokens is not None:
+            out["token_ceiling"] = self._tokens
+        return out
 
     def __repr__(self) -> str:
         return (

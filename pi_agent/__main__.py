@@ -146,7 +146,12 @@ def main(argv: list | None = None) -> None:
 
         report = free_investigate(
             goal=args.goal,
-            budget=Budget(max_moves),
+            # The token ceiling goes ON the Budget as well as being passed
+            # alongside it: the Budget is what DIVIDES for a spawn, so this is
+            # what gives a child director a token ceiling at all. Passed twice
+            # deliberately — token_budget= is this root level's own ceiling,
+            # Budget(tokens=) is the pool the tree partitions.
+            budget=Budget(max_moves, tokens=args.token_budget),
             allowed_substrates=allowed,
             mode=args.mode,
             ceiling=ceiling,

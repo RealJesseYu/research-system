@@ -407,6 +407,12 @@ def _default_spawn_investigate(domain: str, child_budget: Any, child_id: str, pa
         parent_study_id=parent_study.study_id,
         studies_root=parent_study.studies_root,
         inherited_artifacts=carried,
+        # The child's share of the token ceiling, carved by Budget.allocate in the
+        # same transfer that gave it its moves. Omitting this is what let a child
+        # run with no token ceiling while the parent believed "the REAL
+        # constraint" was holding; None here still means untracked, exactly as
+        # before, so a run without --token-budget is unchanged.
+        token_budget=child_budget.tokens_remaining(),
     )
 
 
