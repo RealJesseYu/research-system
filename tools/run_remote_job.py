@@ -58,6 +58,8 @@ from __future__ import annotations
 import sys
 import time
 
+from tools import gpu_budget
+
 # The remote job writes its metrics here, exactly as the local sandbox does, so
 # a script moves between the two with no change to how it reports.
 REMOTE_WORKDIR = "/work"
@@ -261,6 +263,15 @@ def run_remote_job(spec: dict, *, dispatch=None) -> dict:
     except RemoteJobInputError as e:
         return done(False, {}, {}, f"input rejected: {e}")
 
+    # THE SPEND GATE (2026-07-27). Judged on the WORST CASE — the full timeout
+    # at this GPU's rate — because the check has to happen before the money is
+    # spent. A job that might fit is refused rather than gambled on. This is the
+    # first place in the project where a dollar ceiling means anything: every
+    # other budget counts model calls on a subscription.
+    affordable, why = gpu_budget.check_affordable(clean["gpu"], clean["timeout_s"])
+    if not affordable:
+        return done(False, {}, {}, f"refused: GPU budget — {why}")
+
     runner = dispatch or _dispatch_modal
     try:
         result = runner(clean)
@@ -269,6 +280,11 @@ def run_remote_job(spec: dict, *, dispatch=None) -> dict:
             f"setup_error: the remote backend could not be reached ({e}) — this "
             "job could not run. Authenticate once with `modal token new`; no "
             "result was fabricated"))
+
+    # Record ACTUAL seconds now the job has returned. The gate reserved the
+    # worst case; the ledger tells the truth. Recorded on FAILURE too — a job
+    # that crashed still consumed the machine it crashed on.
+    spend = gpu_budget.record(clean["gpu"], time.time() - wall_start)
 
     if not isinstance(result, dict):
         return done(False, {}, {}, (
@@ -299,4 +315,6 @@ def run_remote_job(spec: dict, *, dispatch=None) -> dict:
     gpu = clean["gpu"] or "cpu"
     return done(True, metrics, artifacts, (
         f"remote job completed on {gpu}; {len(metrics)} metric(s), "
-        f"{len(artifacts)} file(s) returned. {_NOT_A_CLAIM_NOTE}"))
+        f"{len(artifacts)} file(s) returned; ~${spend['usd']:.4f} spent, "
+        f"${gpu_budget.remaining_usd():.2f} of the GPU allowance left. "
+        f"{_NOT_A_CLAIM_NOTE}"))

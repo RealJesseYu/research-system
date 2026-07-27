@@ -123,11 +123,45 @@ unrouted. The capability arrives as a *shelf-style* route (agent-driven, R-LANE-
 whose results are inputs, not as nine promotions. Un-deferring a row would mean
 claiming its results are verifiable, and under R-REMOTE-1 they are not.
 
-## 7. Open watches
+## 7. The spend gate (added 2026-07-27, owner-set $100)
 
-- **Cost has no ceiling in code.** The timeout bounds one job; nothing bounds
-  spend across a run. If the agent starts reaching for GPUs freely, a budget cap
-  belongs here.
+`tools/gpu_budget.py`. This is the **first place in the project where a dollar
+ceiling means anything** — `cost_meter.py` states outright that there is no
+dollar cost per run because auth is a subscription, and `pi_agent/budget.py`
+counts moves, converting a `--cost-cap` through an estimate while noting that
+real spend enforcement "waits on per-run cost reporting (a later Phase-1 task)".
+Rented GPU time is billed to a card by the second, so it gets a real gate rather
+than an estimate.
+
+How it accounts, and why it is pessimistic in exactly one direction:
+
+- **Before dispatch**, a job is checked against its **worst case** — the full
+  timeout at that GPU's rate — because the check must happen before the money is
+  spent. A job that *might* fit is refused rather than gambled on.
+- **After it returns**, the **actual** seconds are recorded — including for a job
+  that failed, which still consumed the machine it crashed on. The gate refuses
+  on what could happen; the ledger tells the truth about what did.
+
+The ledger is a FILE (`memory/gpu_spend.jsonl`, append-only, the
+`override_ledger.jsonl` idiom) and that is load-bearing: a campaign dispatches
+runs as subprocesses, so an in-process total would reset every run and the cap
+would bound nothing.
+
+Rates are rounded UP from published per-second pricing, and an unrecognised GPU
+name bills at the most expensive rate — an over-estimate refuses earlier and can
+never overshoot, while a cap that silently under-counts is the failure worth
+avoiding. They are not a billing record; the provider's invoice is.
+
+**Delegation.** The ceiling reads from `RESEARCH_GPU_BUDGET_USD`, the same
+environment channel as `ALLOWED_SUBSTRATES` and `CAMPAIGN_MAX_ITERS`. A director
+hands a child run a slice by setting it on the subprocess — `pi_agent/budget.py`'s
+allocate() idea, in dollars, across a process boundary. Unset, malformed, or
+non-positive falls back to $100 rather than reading as unlimited, the same
+refusal `ALLOWED_SUBSTRATES` already makes.
+
+Live: a real remote job passed the gate, billed $0.0002, and left $99.9998.
+
+## 8. Open watches
 - **The template ships the caller's code to third-party hardware.** That is
   inherent to renting compute and worth stating plainly rather than burying:
   anything in a remote job's code or input files leaves this machine.
