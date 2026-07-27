@@ -388,6 +388,18 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
             "determinism + the convergence jail triggered — distinct from "
             "cas_offinder's validated-environment requirement. Runtime maps "
             "STAGED in onboarding/autodock_vina/, UNWIRED; contract_for raises."
+            " --- RE-EXAMINED 2026-07-27 (docs/memo_defer_reexamination.md): "
+            "THE ARCHITECTURE BLOCKER IS DEAD. The remote lane "
+            "(tools/run_remote_job.py) rents x86_64 Linux, where `pip install "
+            "vina` succeeds and Vina genuinely DOCKS — proven on the 1iep "
+            "imatinib/ABL system: score -12.513, best pose -13.286 kcal/mol, "
+            "realistic for that complex. The capability is reachable TODAY "
+            "through the remote lane, agent-driven. This row stays "
+            "routable=False and unwired DELIBERATELY: under R-REMOTE-1 a remote "
+            "result is an INPUT, not a claim, so promoting the row would assert "
+            "a verifiability the remote path does not provide. The C1-hole "
+            "(docking_score is a relative screen inside a human-validated "
+            "receptor+box) is untouched — it was never the architecture question."
         ),
     ),
     SubstrateRecord(
@@ -412,6 +424,7 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
             "is FORBIDDEN (silent-wrong) — the prohibition is part of the spec. "
             "Runtime maps STAGED in onboarding/crispr_guide_scoring/, UNWIRED; "
             "contract_for raises."
+            " --- RE-EXAMINED 2026-07-27: THE BLOCKER STILL HOLDS, tested not assumed. Azimuth 2.0 installs and IMPORTS under Python 3, then fails on first use with SyntaxError: Missing parentheses in call to 'print' (model_comparison.py line 269) — the scoring module is still Python-2 source. Importable is not runnable. The defer stands exactly as written; hand-transcribing coefficients remains FORBIDDEN."
         ),
     ),
     SubstrateRecord(
@@ -513,6 +526,7 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
             "dispatch extended. STILL calibrating/routable=False — PROMOTION "
             "(routable+mature, six-surface wiring) is a SEPARATE later flip on "
             "clean gate-track calibration; contract_for raises until then."
+            " --- 2026-07-27 (docs/memo_defer_reexamination.md): a run-entry constructor is now WIRED — mean_pLDDT 85.25 for P0DP23 reproduced live at rel_error 0.0, a wrong claim rejected as mismatch, a 404 still qoi_error. A looked-up value can now be verified instead of caveated. Same reasoning as mcp_connector (R-MCP-3/5): reproduction attests PROVENANCE, never correctness. NO routing authority granted; contract_for still raises."
         ),
     ),
     SubstrateRecord(
@@ -541,6 +555,7 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
             "extended. STILL calibrating/routable=False — PROMOTION is a SEPARATE "
             "later flip on clean gate-track calibration; contract_for raises "
             "until then."
+            " --- 2026-07-27 (docs/memo_defer_reexamination.md): a run-entry constructor is now WIRED, so the verification wall can READ a re-run and a round-trip resolution is a KEPT number instead of a permanent caveat (4HHB reproduced live; a non-resolving id stays qoi_error, never a fabricated 1.0). Same class and same reasoning as mcp_connector (R-MCP-3/5). NO routing authority granted: routable stays False, adapter and QoI translation stay unwired, contract_for still raises. Never-trust-alone is unchanged and permanent."
         ),
     ),
     SubstrateRecord(

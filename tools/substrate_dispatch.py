@@ -1153,6 +1153,27 @@ _RUN_ENTRY_CONSTRUCTORS: dict = {
     # The summary shape is run_ngspice's exactly (scalar qoi), so the same
     # constructor reads it — valid=False -> qoi_error, never a fabrication.
     "mcp_connector": _fixed_summary_scalar_run_entry,
+    # The two NETWORK LOOKUPS that already worked and whose numbers could not be
+    # kept (2026-07-27, docs/memo_defer_reexamination.md). Both were un-deferred
+    # on network grounds in 2026-07-19 and have been returning real values ever
+    # since — AFDB a mean pLDDT, bio_db a round-trip resolution — but with no
+    # run-entry constructor the wall could not READ a re-run, so every such
+    # value was stuck as an unverified caveat.
+    #
+    # Same reasoning as mcp_connector (R-MCP-3), and the same class of tool: all
+    # three are LOOKUP-class, so reproduction attests PROVENANCE — the service
+    # still answers this way — and never correctness (R-MCP-5). Their summaries
+    # are byte-identical in shape to run_ngspice's, so the scalar constructor is
+    # reused rather than copied: valid=False -> qoi_error from diagnostics,
+    # never a fabricated number, which is what keeps a not-found (AFDB 404, a
+    # PDB id that does not resolve) from becoming a value.
+    #
+    # This grants NO routing authority: both rows stay routable=False with no
+    # adapter and no QoI translation, so stage-4 dispatch still refuses them by
+    # name. It grants exactly one thing — a number they already produce can now
+    # be verified instead of caveated.
+    "alphafold_db": _fixed_summary_scalar_run_entry,
+    "bio_db_lookup": _fixed_summary_scalar_run_entry,
 }
 
 
