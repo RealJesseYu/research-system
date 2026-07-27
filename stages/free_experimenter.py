@@ -221,6 +221,15 @@ def run_free_investigation(goal, *, run_id=None, call=None, verify=None, gate=No
     connectors = connector_catalog()
     if connectors:
         system_prompt += "\n\n" + connectors
+    # Runbooks: operating notes for specific tools, written from runs that
+    # actually happened. Only the INDEX rides the prompt — names and one-liners;
+    # the agent reads a body from disk when it reaches for that tool. Without
+    # this the agent re-discovers, on its own budget, failures someone already
+    # paid for. Empty string when none exist, so the prompt stays identical.
+    from tools.runbooks import runbook_catalog
+    books = runbook_catalog()
+    if books:
+        system_prompt += "\n\n" + books
     stage_input = {"question": goal}
     # Per-run workspace: give the agent an isolated cwd (runs/<id>/workspace/) so
     # its artifacts land there, reproducible-in-place with the run evidence,

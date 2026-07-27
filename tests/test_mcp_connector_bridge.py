@@ -433,8 +433,11 @@ class TestFreeExperimenterSeesConnectors(unittest.TestCase):
         with mock.patch.object(mcp_config, "connector_catalog", return_value=""):
             fe.run_free_investigation("q", call=fake_call)
         self.assertNotIn("CONNECTORS", prompts[0])
-        self.assertTrue(prompts[0].endswith(
-            registry.substrate_tools_catalog()))
+        # The substrate catalogue is still composed in. It is no longer the LAST
+        # block — the runbook index follows it (2026-07-27) — so this asserts
+        # presence rather than position; pinning position would make every
+        # future prompt block a test edit.
+        self.assertIn(registry.substrate_tools_catalog(), prompts[0])
 
 
 if __name__ == "__main__":
