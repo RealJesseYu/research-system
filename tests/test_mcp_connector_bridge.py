@@ -442,3 +442,67 @@ class TestFreeExperimenterSeesConnectors(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestAnAmbiguousIdentifierYieldsNoNumber(unittest.TestCase):
+    """The one failure class an independent re-run is BLIND to.
+
+    _first_record returns rows[0] for any query, and the ambiguity was recorded
+    in a sibling field `matches` that the substrate wrapper never reads
+    (run_mcp_tool keeps payload[select], and select is "value"). So a name
+    resolving to several CIDs returned the FIRST one's number as a measurement of
+    record — and the wall, re-running the same call, got the same first row and
+    stamped it reproduced. Perfectly, forever.
+
+    That is why this must be refused at the connector and not caught downstream:
+    re-verification attests PROVENANCE, not identity, so nothing later in the
+    chain can notice that the number belongs to an arbitrary one of several
+    compounds.
+    """
+
+    MULTI = {"PropertyTable": {"Properties": [
+        {"CID": 335, "XLogP": 1.9},
+        {"CID": 342, "XLogP": 2.0},
+        {"CID": 2879, "XLogP": 1.9},
+    ]}}
+
+    def test_first_record_reports_the_match_count(self):
+        import connectors.pubchem_mcp_server as pubchem
+        row, matches = pubchem._first_record(self.MULTI)
+        self.assertEqual(matches, 3)
+        self.assertEqual(row["CID"], 335)
+
+    def test_a_multi_match_query_refuses_instead_of_returning_row_zero(self):
+        import connectors.pubchem_mcp_server as pubchem
+        original = pubchem._resolve
+        pubchem._resolve = lambda i, n, p: ({"CID": 335, "XLogP": 1.9}, 3, "u")
+        try:
+            with self.assertRaises(pubchem.PubChemError) as cm:
+                pubchem.compound_property("cresol", "XLogP")
+        finally:
+            pubchem._resolve = original
+        self.assertIn("ambiguous", str(cm.exception))
+        self.assertIn("3 compounds", str(cm.exception))
+
+    def test_the_refusal_says_how_to_disambiguate(self):
+        """A caller that cannot act on the refusal will work around it."""
+        import connectors.pubchem_mcp_server as pubchem
+        original = pubchem._resolve
+        pubchem._resolve = lambda i, n, p: ({"CID": 335, "XLogP": 1.9}, 2, "u")
+        try:
+            with self.assertRaises(pubchem.PubChemError) as cm:
+                pubchem.compound_property("cresol", "XLogP")
+        finally:
+            pubchem._resolve = original
+        self.assertIn("CID", str(cm.exception))
+
+    def test_a_single_match_still_returns_its_number(self):
+        import connectors.pubchem_mcp_server as pubchem
+        original = pubchem._resolve
+        pubchem._resolve = lambda i, n, p: ({"CID": 2519, "XLogP": -0.07}, 1, "u")
+        try:
+            result = pubchem.compound_property("caffeine", "XLogP")
+        finally:
+            pubchem._resolve = original
+        self.assertEqual(result["value"], -0.07)
+        self.assertEqual(result["matches"], 1)

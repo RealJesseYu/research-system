@@ -165,8 +165,29 @@ def compound_property(identifier: str, property: str,
         raise PubChemError(
             f"PubChem returned no {property} for that compound (it carries "
             f"{', '.join(sorted(row))}) — no value was fabricated")
+    # AN AMBIGUOUS IDENTIFIER MAY NOT YIELD A KEPT NUMBER. _resolve returns
+    # rows[0] for any query, and `matches` recorded the ambiguity — but in a
+    # SIBLING field that the substrate wrapper never reads (run_mcp_tool keeps
+    # payload[select], and select is "value"). So a name resolving to several
+    # CIDs returned the first one's number as a measurement of record.
+    #
+    # Re-verification structurally cannot catch this: the wall re-runs the same
+    # call, PubChem returns the same first row, and the claim reproduces
+    # perfectly. That is the one failure class an independent re-run is blind to,
+    # which is exactly why it has to be refused HERE and not downstream.
+    #
+    # The refusal is scoped to the number. `text`, `cid` and `matches` still come
+    # back, so an exploratory lookup is unaffected — only the selectable
+    # measurement is withheld, and the caller is told to disambiguate by CID.
     raw = row[property]
     value = None
+    if matches > 1:
+        raise PubChemError(
+            f"ambiguous: {identifier!r} in namespace {namespace!r} matched "
+            f"{matches} compounds. Returning the first would be a measurement of "
+            "an arbitrary one of them, and re-running would reproduce it exactly "
+            "— so it cannot be caught later. Query by CID to name the compound "
+            "you mean.")
     if PROPERTIES[property]:
         try:
             value = float(raw)

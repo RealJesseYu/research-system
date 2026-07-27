@@ -266,7 +266,12 @@ def validate_against_diag4a() -> bool:
             all_ok = all_ok and match
             print(
                 f"{d.name:<38} "
-                f"{mine['deep_verify_discards']}/{mine['initial_survivor_count']}={mine['deep_verify_kill_rate'] * 100:>3.0f}% "
+                # `* 100` on a None rate raised TypeError and took this whole
+                # validation table down. The rate is legitimately None when
+                # initial_survivor_count is missing or 0 — no denominator, which
+                # is not the same as 0%.
+                f"{mine['deep_verify_discards']}/{mine['initial_survivor_count']}="
+                f"{'n/a' if mine['deep_verify_kill_rate'] is None else format(mine['deep_verify_kill_rate'] * 100, '>3.0f') + '%'} "
                 f"{mine['k']:>6} "
                 f"{len(entry['deepverify_discards'])}/{entry['initial_survivors']}={diag_kill * 100:>3.0f}% "
                 f"{diag_k:>6}  {'MATCH' if match else '*** MISMATCH ***'}"

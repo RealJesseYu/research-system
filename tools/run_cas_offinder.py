@@ -127,17 +127,33 @@ JOB="$1"
 cd "$JOB"
 PAT="$(printf 'N%.0s' $(seq 1 20))NGG"
 PG="$(cat /opt/probe/guide.txt)"
+# COUNT RESULT ROWS BY THEIR GRAMMAR, NOT NON-BLANK LINES.
+#
+# Both counters below were `grep -c .`, which counts ANY non-empty line. That is
+# only correct because the pinned cas-offinder build happens to emit bare result
+# rows: a version or build that printed a header, a banner, or a '#' comment
+# would give PC>=1 on a DEAD KERNEL — the guard would pass while finding nothing
+# — and RC would be off by the number of non-row lines. For an OFF-TARGET COUNT
+# that is a failure in the unsafe direction, which is the exact thing this
+# module's known-answer probe exists to prevent ("a fabricated 0 reads as safe").
+#
+# A cas-offinder data row begins with the matched pattern — a run of ACGT/N —
+# followed by a tab. Requiring that shape cannot fail unsafely: if a future
+# build's rows do NOT match it, the count goes to 0, the guard FAILS, and the
+# wrapper refuses to report anything. The worst case of being wrong here is a
+# refusal to run, never an under-count of off-targets.
+ROWS='^[ACGTNacgtn]+[[:space:]]'
 # --- known-answer probe: a known-present site MUST be found ---
 printf '%s\n%s\n%sNNN 0\n' "PROBE_GENOME_DIR" "$PAT" "$PG" > probe.txt
 rm -f probe_out.txt
 cas-offinder probe.txt C probe_out.txt >/dev/null 2>&1
-PC=$(grep -c . probe_out.txt 2>/dev/null); PC=${PC:-0}
+PC=$(grep -cE "$ROWS" probe_out.txt 2>/dev/null); PC=${PC:-0}
 if [ "$PC" -lt 1 ]; then echo "GUARD_FAIL probe_matches=$PC"; exit 0; fi
 # --- real query (input.txt written by the wrapper) ---
 rm -f real_out.txt
 cas-offinder input.txt C real_out.txt >/dev/null 2>&1
 if [ ! -f real_out.txt ]; then echo "REAL_ERROR no_output"; exit 0; fi
-RC=$(grep -c . real_out.txt 2>/dev/null); RC=${RC:-0}
+RC=$(grep -cE "$ROWS" real_out.txt 2>/dev/null); RC=${RC:-0}
 echo "COUNT=$RC"
 '''.replace("PROBE_GENOME_DIR", PROBE_GENOME_DIR)
 

@@ -458,11 +458,24 @@ def run_battery(repeats: int, rounds: int = 1,
         },
     }
 
+    # THE MACHINE REPORT IS WRITTEN FIRST, BEFORE ANY PRINTING. It used to be
+    # written at the very END of this function, after every print above — so a
+    # formatting error in the banner destroyed a multi-hour battery's only
+    # durable record. That was not hypothetical: the kill-rate line below does
+    # f"{r:.2f}" over kill_rate_distribution, and survival_counter leaves a rate
+    # None whenever initial_survivor_count is missing or 0. A single None raised
+    # TypeError here and the run ended with nothing on disk.
+    #
+    # Nothing between here and the end may be load-bearing for the record.
+    with open(resolved, "w") as f:
+        json.dump(report, f, indent=2)
+        f.write("\n")
+
     print()
     print("=" * 22 + " KILL-RATE BATTERY REPORT " + "=" * 22)
     for domain_key, dist in per_domain.items():
         print(f'domain "{domain_key}": k distribution {dist["k_distribution"]}   '
-              f'kill rates {[f"{r:.2f}" for r in dist["kill_rate_distribution"]]}')
+              f'kill rates {_fmt_rates(dist["kill_rate_distribution"])}')
         for run_id, reason in dist["k_reasons"].items():
             print(f"    {run_id}: k=0 reason {reason}")
         if dist["unresolved_slots"]:
@@ -482,9 +495,64 @@ def run_battery(repeats: int, rounds: int = 1,
           + ("" if activity["fidelity_entries"] == 0 and activity["override_entries"] == 0
              else "   *** CRITICAL: the battery wrote a production ledger ***"))
     print("=" * 70)
-
-    with open(resolved, "w") as f:
-        json.dump(report, f, indent=2)
-        f.write("\n")
     print(f"report written to {resolved}")
+
+    # AN EXIT CODE THAT IS ALWAYS 0 IS NOT AN EXIT CODE. This returned 0 no
+    # matter what — including when slots aborted through the relaunch cap (no
+    # data point at all) and including when the CRITICAL invariant above fired
+    # and the battery wrote a PRODUCTION ledger. Anything gating on the exit
+    # status read a failed, invariant-violating battery as a pass.
+    #
+    # Non-zero on the two conditions the report already prints in alarm:
+    failures = battery_failures(report)
+    if failures:
+        print("BATTERY FAILED:")
+        for f_ in failures:
+            print(f"  - {f_}")
+        return 1
     return 0
+
+
+def battery_failures(report: dict) -> list:
+    """The reasons this battery must NOT report success, from its own report.
+
+    A pure function over the report dict so the exit-code decision is testable
+    without running a battery — the reason run_battery returned 0
+    unconditionally for so long is that nothing could reach the decision to
+    check it.
+
+    Two conditions, both of which the banner already prints in alarm:
+      - the battery wrote a PRODUCTION ledger. The banner calls this
+        "*** CRITICAL ***" and then exited 0 anyway.
+      - a slot produced no data point (aborted through the relaunch cap). A
+        battery whose slots did not resolve has not measured what it was asked
+        to measure, however clean the rest of the output looks.
+    """
+    failures = []
+    activity = report.get("ledger_activity") or {}
+    if activity.get("fidelity_entries") or activity.get("override_entries"):
+        failures.append(
+            f"the battery wrote a production ledger "
+            f"(fidelity={activity.get('fidelity_entries')}, "
+            f"override={activity.get('override_entries')})")
+    unresolved = sorted(
+        str(slot)
+        for dist in (report.get("per_domain") or {}).values()
+        for slot in (dist.get("unresolved_slots") or []))
+    if unresolved:
+        failures.append(
+            f"{len(unresolved)} slot(s) produced no data point: "
+            + ", ".join(unresolved))
+    return failures
+
+
+def _fmt_rates(rates) -> str:
+    """Format kill rates for the banner, tolerating a None.
+
+    survival_counter leaves deep_verify_kill_rate None whenever
+    initial_survivor_count is missing or 0 — a legitimate "no denominator", not a
+    zero. A bare f"{r:.2f}" raised TypeError on it and took the whole banner (and,
+    before the report moved above, the whole battery record) with it. "n/a" is the
+    honest rendering: a rate that could not be computed is not 0.00.
+    """
+    return "[" + ", ".join("n/a" if r is None else f"{r:.2f}" for r in rates) + "]"

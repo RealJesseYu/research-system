@@ -241,10 +241,34 @@ def compose_round_record(
         elif h["id"] in deep_kill_by_id:
             entry["outcome"] = "discarded_by_deep_verification"
             entry["kill_reason"] = deep_kill_by_id[h["id"]]
-        elif rv is not None and rv.get("full_review", {}).get("novelty") == "known":
-            entry["outcome"] = "judged_known_at_filter"
+        elif rv is not None and rv.get("full_review", {}).get("answer_established"):
+            # THE LABEL HAS TO NAME THE ACTUAL CAUSE. This read
+            # novelty == "known" and reported "judged_known_at_filter" — but the
+            # filter stopped killing on novelty on 2026-07-25 (novelty of METHOD
+            # is not novelty of ANSWER). So a known-method candidate that was
+            # actually dropped by the MAX_SURVIVORS cap, or that survived and
+            # simply lost the tournament, was reported to Opus as having been
+            # killed for being unoriginal.
+            #
+            # This is the one place in the run where a wrong label compounds:
+            # meta-review's critique becomes the next round's feedback to
+            # Generation, Reflection and the judges. Feeding it a fabricated cause
+            # teaches the whole apparatus to avoid a problem it does not have,
+            # every round, cumulatively. The real kill is answer_established.
+            entry["outcome"] = "dropped_answer_already_established"
+        elif rv is not None:
+            # Reviewed, not killed, not ranked — so it lost on RANK or fell
+            # outside the survivor cap. Distinguished from never-reviewed below,
+            # because "the tournament preferred others" and "we never looked at
+            # it" call for opposite responses from a meta-reviewer.
+            entry["outcome"] = "reviewed_not_selected"
+            if rv.get("full_review", {}).get("novelty") == "known":
+                # Kept as CONTEXT, never as the cause: it is a ranking signal now
+                # (the director's novelty_priority decides its weight), so a
+                # meta-reviewer may weigh it without being told it was fatal.
+                entry["novelty"] = "known"
         else:
-            entry["outcome"] = "not_ranked"
+            entry["outcome"] = "not_reviewed"
         reflection_outcomes.append(entry)
 
     evolution_outcomes = [

@@ -873,3 +873,67 @@ class TestBatteryRounds(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestKillLabelsNameTheActualCause(unittest.TestCase):
+    """Meta-review is the ONE place in a run where a wrong label compounds.
+
+    Its critique becomes the next round's feedback to Generation, Reflection and
+    the tournament judges. compose_round_record labelled any reviewed
+    non-survivor with novelty == "known" as "judged_known_at_filter" — but the
+    filter stopped killing on novelty on 2026-07-25 (novelty of METHOD is not
+    novelty of ANSWER). So a known-method candidate dropped by the MAX_SURVIVORS
+    cap, or one that simply lost the tournament, was reported to Opus as having
+    been killed for being unoriginal — teaching the whole apparatus, every round,
+    cumulatively, to avoid a problem it does not have.
+    """
+
+    POOL = [{"id": f"h{i}", "statement": f"s{i}", "rationale": "r"}
+            for i in range(1, 5)]
+
+    def _record(self):
+        evidence = {
+            "initial_verdicts": [
+                {"hypothesis_id": f"h{i}", "verdict": "pass", "reason": ""}
+                for i in range(1, 5)],
+            "reviews": [
+                {"hypothesis_id": "h1",
+                 "full_review": {"novelty": "novel", "answer_established": False}},
+                # known METHOD, open ANSWER — the class the 07-25 ruling protects
+                {"hypothesis_id": "h2",
+                 "full_review": {"novelty": "known", "answer_established": False}},
+                # the kill that actually exists
+                {"hypothesis_id": "h3",
+                 "full_review": {"novelty": "novel", "answer_established": True}},
+                # h4: never reviewed
+            ],
+            "discarded_by_deep_verification": [],
+        }
+        rec = meta_review.compose_round_record(
+            1, "d", self.POOL, evidence, ["h1"], [], None)
+        return {e["statement"]: e for e in rec["reflection_outcomes"]}
+
+    def test_a_known_method_survivor_is_not_reported_as_killed_for_novelty(self):
+        entry = self._record()["s2"]
+        self.assertEqual(entry["outcome"], "reviewed_not_selected")
+        self.assertNotIn("known", entry["outcome"])
+
+    def test_novelty_survives_as_context_not_as_the_cause(self):
+        """A meta-reviewer may WEIGH novelty — the director's novelty_priority
+        decides its weight — but must not be told it was fatal."""
+        self.assertEqual(self._record()["s2"]["novelty"], "known")
+
+    def test_the_real_kill_is_named(self):
+        self.assertEqual(self._record()["s3"]["outcome"],
+                         "dropped_answer_already_established")
+
+    def test_never_reviewed_is_distinguished_from_lost_on_rank(self):
+        """"the tournament preferred others" and "we never looked at it" call for
+        opposite responses from a meta-reviewer, so they cannot share a label."""
+        outcomes = self._record()
+        self.assertEqual(outcomes["s4"]["outcome"], "not_reviewed")
+        self.assertNotEqual(outcomes["s4"]["outcome"], outcomes["s2"]["outcome"])
+
+    def test_the_retired_label_is_gone_entirely(self):
+        for entry in self._record().values():
+            self.assertNotEqual(entry["outcome"], "judged_known_at_filter")
