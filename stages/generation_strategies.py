@@ -235,6 +235,56 @@ LITERATURE_HYPOTHESIS_COUNT = _count("RESEARCH_IDEATION_LITERATURE", 30)
 ASSUMPTION_HYPOTHESIS_COUNT = _count("RESEARCH_IDEATION_ASSUMPTIONS", 15)
 EXPANSION_HYPOTHESIS_COUNT = _count("RESEARCH_IDEATION_EXPANSION", 12)
 
+# PER-CALL POOL OVERRIDE (owner ruling 2026-07-27). The counts below are
+# DEFAULTS. Now that the director spends a token budget it can see, breadth is
+# something it should BUY, exactly like ideation depth: a hundred-hypothesis pool
+# when the ideas are the deliverable and the budget allows, a small one when it
+# just needs a direction to test. set_pool_size() lets one ideation call request
+# a size; the counts stay module constants so every existing reference and the
+# env knobs keep working, and the REQUESTED number travels in the call input
+# rather than the prompt text (the prompts are module-level f-strings and cannot
+# be rebuilt per call).
+_POOL_OVERRIDE: dict = {}
+
+# A pool must be big enough to be a pool and small enough to review. The upper
+# bound is a guard against a director asking for a thousand and stalling the run.
+MIN_POOL, MAX_POOL = 3, 120
+
+
+def set_pool_size(total: int | None) -> None:
+    """Request a TOTAL pool size for the next ideation call, split across the
+    three counted strategies in the default proportions (the debate contributes
+    its one converged result on top). None clears the override. Out-of-range or
+    malformed values are clamped rather than raising — a bad number must not sink
+    an investigation."""
+    if total is None:
+        _POOL_OVERRIDE.clear()
+        return
+    try:
+        total = int(total)
+    except (TypeError, ValueError):
+        return
+    total = max(MIN_POOL, min(MAX_POOL, total))
+    base = LITERATURE_HYPOTHESIS_COUNT + ASSUMPTION_HYPOTHESIS_COUNT + EXPANSION_HYPOTHESIS_COUNT
+    scale = total / base
+    _POOL_OVERRIDE.update({
+        "literature": max(1, round(LITERATURE_HYPOTHESIS_COUNT * scale)),
+        "assumptions": max(1, round(ASSUMPTION_HYPOTHESIS_COUNT * scale)),
+        "expansion": max(1, round(EXPANSION_HYPOTHESIS_COUNT * scale)),
+    })
+
+
+def pool_size(which: str) -> int:
+    """The effective count for one strategy: the per-call override if set, else
+    the module default (which itself honours the env knob)."""
+    return _POOL_OVERRIDE.get(which, {
+        "literature": LITERATURE_HYPOTHESIS_COUNT,
+        "assumptions": ASSUMPTION_HYPOTHESIS_COUNT,
+        "expansion": EXPANSION_HYPOTHESIS_COUNT,
+    }[which])
+
+
+
 # Simulated debate: HARD CAP of one turn per persona, in this order; the
 # final persona's hypothesis is the debate's converged result.
 DEBATE_PERSONAS = (
@@ -320,7 +370,8 @@ LITERATURE_SYSTEM_PROMPT = (
     "turns out to be wrong costs little, while a pool of obvious ones costs the whole run. "
     "Vary the angle: different subfields, different mechanisms, different scales, "
     "cross-domain transfers. Do not propose N restatements of the same safe idea.\n\n"
-    f"Propose exactly {LITERATURE_HYPOTHESIS_COUNT} hypotheses, each concrete enough to be "
+    "Propose EXACTLY the number of hypotheses given as 'requested_count' in your input — "
+    "not more, not fewer — each concrete enough to be "
     "tested by a simulation, and each citing what grounds it — a provided ref id, or a "
     "source you located, cited so a human can find it (a URL, DOI, or arXiv id). "
     + NO_INVENTED_NUMBERS_INSTRUCTION +
@@ -328,7 +379,7 @@ LITERATURE_SYSTEM_PROMPT = (
     '{"ack_run_id": "<the run_id you were given>", "hypotheses": '
     '[{"statement": "<one sentence>", "rationale": "<one sentence>", '
     '"grounded_in": ["<ref id>", ...]}, '
-    f"... exactly {LITERATURE_HYPOTHESIS_COUNT} such objects total]}}."
+    "... exactly requested_count such objects total]}."
 )
 
 DEBATE_SYSTEM_PROMPT = (
@@ -367,7 +418,7 @@ ASSUMPTIONS_AGGREGATE_SYSTEM_PROMPT = (
     "You are the assumptions-identification generation strategy inside the Ideation stage of "
     "an autonomous research pipeline. You are given a research domain and a numbered list of "
     "testable intermediate assumptions identified for it. Aggregate those assumptions into "
-    f"exactly {ASSUMPTION_HYPOTHESIS_COUNT} complete hypotheses, each one concrete enough to "
+    "EXACTLY the number of complete hypotheses given as 'requested_count' in your input, each one concrete enough to "
     "be tested by a simulation, each building on one or more of the numbered assumptions and "
     "citing their numbers. "
     + NO_INVENTED_NUMBERS_INSTRUCTION +
@@ -375,7 +426,7 @@ ASSUMPTIONS_AGGREGATE_SYSTEM_PROMPT = (
     '{"ack_run_id": "<the run_id you were given>", "hypotheses": '
     '[{"statement": "<one sentence>", "rationale": "<one sentence>", '
     '"built_on": [<assumption number>, ...]}, '
-    f"... exactly {ASSUMPTION_HYPOTHESIS_COUNT} such objects total]}}."
+    "... exactly requested_count such objects total]}."
 )
 
 EXPANSION_SYSTEM_PROMPT = (
@@ -383,7 +434,7 @@ EXPANSION_SYSTEM_PROMPT = (
     "autonomous research pipeline. You are given a research domain and the candidate "
     "hypotheses already generated this run by other strategies. Identify what directions "
     "within the domain those candidates have NOT explored, and propose exactly "
-    f"{EXPANSION_HYPOTHESIS_COUNT} new hypotheses in unexplored directions, each one "
+    "EXACTLY the number of new hypotheses given as 'requested_count' in your input, in unexplored directions, each one "
     "concrete enough to be tested by a simulation and clearly distinct from every existing "
     "candidate. "
     + NO_INVENTED_NUMBERS_INSTRUCTION +
@@ -391,7 +442,7 @@ EXPANSION_SYSTEM_PROMPT = (
     '{"ack_run_id": "<the run_id you were given>", "hypotheses": '
     '[{"statement": "<one sentence>", "rationale": "<one sentence>", '
     '"unexplored_because": "<one sentence naming the gap this fills>"}, '
-    f"... exactly {EXPANSION_HYPOTHESIS_COUNT} such objects total]}}."
+    "... exactly requested_count such objects total]}."
 )
 
 
@@ -557,9 +608,10 @@ def strategy_literature_exploration(
         errors: list[str] = []
         invocation_warnings: list[dict] = []
         hyps = data.get("hypotheses")
-        if not isinstance(hyps, list) or len(hyps) != LITERATURE_HYPOTHESIS_COUNT:
+        want = pool_size("literature")
+        if not isinstance(hyps, list) or len(hyps) != want:
             return [
-                f"hypotheses must be a list of exactly {LITERATURE_HYPOTHESIS_COUNT} objects."
+                f"hypotheses must be a list of exactly {want} objects."
             ]
         for n, h in enumerate(hyps, start=1):
             if not _entry_field_errors(h, n, ("statement", "rationale"), errors):
@@ -620,6 +672,7 @@ def strategy_literature_exploration(
         "run_id": run_id,
         "domain": domain,
         "literature_snippets": literature_refs,
+        "requested_count": pool_size("literature"),
     }
     if memory_block is not None:
         stage_input["prior_observations"] = memory_block
@@ -778,9 +831,10 @@ def strategy_assumptions_identification(
     def aggregate_validator(data: dict) -> list[str]:
         errors: list[str] = []
         hyps = data.get("hypotheses")
-        if not isinstance(hyps, list) or len(hyps) != ASSUMPTION_HYPOTHESIS_COUNT:
+        want = pool_size("assumptions")
+        if not isinstance(hyps, list) or len(hyps) != want:
             return [
-                f"hypotheses must be a list of exactly {ASSUMPTION_HYPOTHESIS_COUNT} objects."
+                f"hypotheses must be a list of exactly {want} objects."
             ]
         for n, h in enumerate(hyps, start=1):
             if not _entry_field_errors(h, n, ("statement", "rationale"), errors):
@@ -799,7 +853,8 @@ def strategy_assumptions_identification(
                     )
         return errors
 
-    aggregate_input = {"run_id": run_id, "domain": domain, "assumptions": numbered}
+    aggregate_input = {"run_id": run_id, "domain": domain, "assumptions": numbered,
+                       "requested_count": pool_size("assumptions")}
     if meta_review_feedback is not None:
         aggregate_input["meta_review_feedback"] = meta_review_feedback
     if _feasibility_nudge_on():
@@ -859,9 +914,10 @@ def strategy_research_expansion(
     def validator(data: dict) -> list[str]:
         errors: list[str] = []
         hyps = data.get("hypotheses")
-        if not isinstance(hyps, list) or len(hyps) != EXPANSION_HYPOTHESIS_COUNT:
+        want = pool_size("expansion")
+        if not isinstance(hyps, list) or len(hyps) != want:
             return [
-                f"hypotheses must be a list of exactly {EXPANSION_HYPOTHESIS_COUNT} objects."
+                f"hypotheses must be a list of exactly {want} objects."
             ]
         for n, h in enumerate(hyps, start=1):
             _entry_field_errors(
@@ -872,6 +928,7 @@ def strategy_research_expansion(
     stage_input = {
         "run_id": run_id,
         "domain": domain,
+        "requested_count": pool_size("expansion"),
         "existing_hypotheses": [
             {"statement": c["statement"], "rationale": c["rationale"]}
             for c in existing_candidates

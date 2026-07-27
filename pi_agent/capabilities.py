@@ -78,6 +78,13 @@ def run_ideation(action: dict, study: Any, budget: Any, seq: int, *, run: Callab
     domain = _ideation_brief(
         action.get("domain") or action.get("detail") or study.goal, study)
     depth = action.get("depth") or DEFAULT_IDEATION_DEPTH
+    # Breadth is the director's to buy (owner ruling 2026-07-27). None keeps
+    # the module defaults, so a director that never asks behaves as before.
+    try:
+        from stages.generation_strategies import set_pool_size
+        set_pool_size(action.get("pool_size"))
+    except Exception:  # noqa: BLE001 — a sizing hint must not sink the call
+        pass
     hyps = _run_ideation_at_depth(run, domain, study, seq, depth) or []
     digest = [
         {"id": h.get("id"), "statement": h.get("statement")}
@@ -92,6 +99,7 @@ def run_ideation(action: dict, study: Any, budget: Any, seq: int, *, run: Callab
         # be able to tell "thin ideas from a quick pass" from "thin ideas the full
         # apparatus could not improve on" — those mean different things.
         "depth": depth,
+        "pool_size": action.get("pool_size"),
         "detail": f"{len(digest)} candidate direction(s) at depth={depth} for: {domain}",
     }
 

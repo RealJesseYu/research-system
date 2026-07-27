@@ -122,5 +122,73 @@ class TestThePromptTeachesSpending(unittest.TestCase):
         self.assertIn("Depth and thoroughness are things you buy", p)
 
 
+class TestBreadthIsBought(unittest.TestCase):
+    """Revised #15. Scaling the pool with a fixed env knob was the wrong shape
+    once the director spends a token budget it can see: breadth should be
+    something it BUYS, like ideation depth — a large pool when the ideas are the
+    deliverable and it can afford the reviews, a small one when it just needs a
+    direction to test."""
+
+    def setUp(self):
+        import stages.generation_strategies as g
+        g.set_pool_size(None)
+
+    def tearDown(self):
+        import stages.generation_strategies as g
+        g.set_pool_size(None)
+
+    def test_no_request_leaves_the_module_defaults(self):
+        import stages.generation_strategies as g
+        self.assertEqual(g.pool_size("literature"), g.LITERATURE_HYPOTHESIS_COUNT)
+
+    def test_a_requested_total_scales_the_three_strategies(self):
+        import stages.generation_strategies as g
+        g.set_pool_size(90)
+        total = (g.pool_size("literature") + g.pool_size("assumptions")
+                 + g.pool_size("expansion"))
+        self.assertAlmostEqual(total, 90, delta=2)   # rounding across three splits
+
+    def test_a_small_request_still_leaves_every_strategy_alive(self):
+        """A strategy rounded to zero would silently drop a whole generation
+        angle from the pool."""
+        import stages.generation_strategies as g
+        g.set_pool_size(3)
+        for k in ("literature", "assumptions", "expansion"):
+            self.assertGreaterEqual(g.pool_size(k), 1)
+
+    def test_an_absurd_request_is_clamped_not_obeyed(self):
+        """A director asking for a thousand would stall the run in review."""
+        import stages.generation_strategies as g
+        g.set_pool_size(100000)
+        total = (g.pool_size("literature") + g.pool_size("assumptions")
+                 + g.pool_size("expansion"))
+        self.assertLessEqual(total, g.MAX_POOL + 2)
+
+    def test_junk_is_ignored_rather_than_raising(self):
+        import stages.generation_strategies as g
+        for junk in ("many", None, 3.7, [10]):
+            g.set_pool_size(junk)          # must not raise
+        g.set_pool_size(None)
+        self.assertEqual(g.pool_size("literature"), g.LITERATURE_HYPOTHESIS_COUNT)
+
+    def test_the_validator_accepts_pool_size_only_on_ideation(self):
+        from pi_agent import free_decider
+        base = {"ack": "s", "reading": "r", "reasoning": "why",
+                "action": "call_ideation", "domain": None, "instrument": None,
+                "campaign": False, "budget_moves": None, "detail": "ideas",
+                "depth": None, "pool_size": 60, "stop_reason": None}
+        v = free_decider.make_action_validator("s", 1, ("rdkit",))
+        self.assertEqual(v(base), [])
+        wrong = dict(base, action="run_experiment", domain="q", detail=None)
+        self.assertTrue(any("pool_size must be null" in e for e in v(wrong)))
+        bad = dict(base, pool_size=0)
+        self.assertTrue(any("positive integer" in e for e in v(bad)))
+
+    def test_the_prompt_frames_breadth_as_a_purchase(self):
+        from pi_agent.free_decider import SYSTEM_PROMPT as p
+        self.assertIn("breadth is something you buy out of your token budget", p)
+        self.assertIn("cost scales with the pool", p)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
