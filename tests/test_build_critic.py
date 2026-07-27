@@ -202,5 +202,48 @@ class TestTheDoctrineFixThatPromptedThis(unittest.TestCase):
         self.assertIn("start cutting material", p)
 
 
+class TestProportionality(unittest.TestCase):
+    """MEASURED FAILURE. The glider design study spent 55M tokens on a problem
+    its owner could do in five minutes, and came out 10% design / 90% validation:
+    three independent routes to one glide ratio, Lyapunov cross-checked against
+    Monte Carlo, gain margin by two methods, a 32-corner robustness sweep, and
+    route-agreement findings comparing all of it to itself.
+
+    The cause was the incentive, not the model. Verified findings are the only
+    thing the system scores, so three routes to one easy number yield three
+    verified findings while attempting something harder yields numbers that are
+    harder to verify. The gradient pointed at over-validating something simple."""
+
+    def test_the_experimenter_is_told_one_check_is_enough(self):
+        from stages.free_experimenter import SYSTEM_PROMPT as p
+        self.assertIn("ONE GOOD CHECK PER CLAIM", p)
+        self.assertIn("BREADTH BEATS DEPTH", p)
+
+    def test_it_names_when_a_second_route_actually_earns_its_keep(self):
+        """Not a ban — a surprising result or a load-bearing number deserves one."""
+        from stages.free_experimenter import SYSTEM_PROMPT as p
+        self.assertIn("a result that is surprising", p)
+        self.assertIn("the whole conclusion rests on", p)
+
+    def test_an_easy_question_should_be_escalated_not_padded(self):
+        from stages.free_experimenter import SYSTEM_PROMPT as p
+        self.assertIn("has not done more work, it has done less", p)
+
+    def test_the_director_must_match_scale_to_difficulty(self):
+        from pi_agent.free_decider import SYSTEM_PROMPT as p
+        self.assertIn("MATCH THE SCALE OF THE WORK TO THE DIFFICULTY", p)
+        self.assertIn("Budget is not a target to hit", p)
+
+    def test_the_director_is_shown_the_actual_failure(self):
+        """Naming the specific way it went wrong beats a general exhortation."""
+        from pi_agent.free_decider import SYSTEM_PROMPT as p
+        self.assertIn("three independent routes", p)
+        self.assertIn("That is effort, not progress", p)
+
+    def test_the_director_must_report_an_over_budgeted_goal(self):
+        from pi_agent.free_decider import SYSTEM_PROMPT as p
+        self.assertIn("easier than its budget assumed", p)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
