@@ -261,11 +261,26 @@ def _extract_qoi(case: str, qoi_request: dict) -> dict:
                              f"likely the case has no field {field!r} at its latest time"}
 
     dat_path = SHARED_HOST / case / "postProcessing" / func_name
-    dat_files = sorted(dat_path.glob("*/volFieldValue.dat"))
-    if not dat_files:
+    # SORT NUMERICALLY, NOT LEXICOGRAPHICALLY. postProcessing/ is never cleaned
+    # between runs, and the directories under it are named by simulation TIME. A
+    # plain sorted() compares them as strings, so a case post-processed at t=5 and
+    # later re-run to t=20 gives ["20", "5"] and [-1] picks "5" — the wrapper
+    # returned the OLD value as this run's measurement, silently, on the success
+    # path. _latest_time_dir fifty lines below already sorts by float; this is the
+    # same job and now does the same thing.
+    timed = []
+    for f in dat_path.glob("*/volFieldValue.dat"):
+        try:
+            timed.append((float(f.parent.name), f))
+        except ValueError:
+            # Not a time directory. Skipped rather than sorted as a string,
+            # because a non-numeric name cannot be the latest time.
+            continue
+    if not timed:
         return {"qoi_error": f"postProcess ran but wrote no volFieldValue output for {func_name}"}
+    dat_time, dat_file = max(timed, key=lambda pair: pair[0])
     try:
-        row_time, value = parse_volfieldvalue_dat(dat_files[-1].read_text(errors="replace"))
+        row_time, value = parse_volfieldvalue_dat(dat_file.read_text(errors="replace"))
     except ValueError as e:
         return {"qoi_error": f"could not parse volFieldValue output: {e}"}
 

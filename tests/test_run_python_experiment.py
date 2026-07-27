@@ -13,12 +13,17 @@ written to a result file, and are withheld on any non-clean exit) is what makes
 that impossible, so it gets the most coverage.
 """
 
+import os
 import shutil
 import subprocess
+import tempfile
 import unittest
+from pathlib import Path
 
 from tools.run_python_experiment import (
+    MAX_ARTIFACT_BYTES,
     PythonExperimentInputError,
+    _capture_output_files,
     run_python_experiment,
 )
 
@@ -164,6 +169,67 @@ class TestRealExperiment(unittest.TestCase):
         )
         self.assertEqual(r["metrics"], {"a": 1.0, "b": 2.0})
         self.assertEqual(r["qoi"], 1.0)
+
+
+class TestOutputCaptureCannotEscapeTheSandbox(unittest.TestCase):
+    """The jail (--network=none, --read-only) was never the weak point — the
+    READBACK was.
+
+    /work is bind-mounted read-write, and _safe_artifact_name validates only the
+    NAME, saying nothing about what the name points at. is_file() and
+    read_bytes() both FOLLOW symlinks, so sandboxed code doing
+    os.symlink('<any host path>', '/work/out.txt') and declaring out.txt made the
+    HOST read the host's own file and hand the bytes to the orchestrator.
+    Verified exploitable against the pre-fix logic with a decoy file before the
+    guard was added; these run offline, no container needed.
+    """
+
+    def setUp(self):
+        self.run_dir = Path(tempfile.mkdtemp())
+        self.outside = Path(tempfile.mkdtemp()) / "host_secret.txt"
+        self.outside.write_text("SENTINEL-outside-the-sandbox")
+
+    def test_a_symlinked_output_is_refused_not_followed(self):
+        os.symlink(self.outside, self.run_dir / "out.txt")
+        captured, error = _capture_output_files(self.run_dir, ["out.txt"])
+        self.assertEqual(captured, {})
+        self.assertIn("symbolic link", error)
+
+    def test_the_refusal_leaks_nothing(self):
+        os.symlink(self.outside, self.run_dir / "out.txt")
+        captured, error = _capture_output_files(self.run_dir, ["out.txt"])
+        self.assertNotIn("SENTINEL", repr(captured))
+        self.assertNotIn("SENTINEL", error)
+
+    def test_a_symlink_to_a_directory_is_also_refused(self):
+        os.symlink(self.outside.parent, self.run_dir / "out.txt")
+        captured, error = _capture_output_files(self.run_dir, ["out.txt"])
+        self.assertEqual(captured, {})
+        self.assertIn("symbolic link", error)
+
+    def test_an_ordinary_output_file_still_captures(self):
+        (self.run_dir / "out.txt").write_bytes(b"42")
+        captured, error = _capture_output_files(self.run_dir, ["out.txt"])
+        self.assertIsNone(error)
+        self.assertEqual(captured, {"out.txt": b"42"})
+
+    def test_an_absent_declared_file_is_left_out_not_an_error(self):
+        """Completeness is the caller's check; absence is not a capture failure."""
+        captured, error = _capture_output_files(self.run_dir, ["never_written.txt"])
+        self.assertIsNone(error)
+        self.assertEqual(captured, {})
+
+    def test_the_size_cap_is_checked_before_the_read(self):
+        """It used to run AFTER read_bytes(), so an oversized declared output
+        exhausted host memory before the cap that exists to stop that could
+        fire. stat() first means the bytes are never loaded."""
+        big = self.run_dir / "out.txt"
+        with open(big, "wb") as f:
+            f.seek(MAX_ARTIFACT_BYTES + 1)
+            f.write(b"\0")
+        captured, error = _capture_output_files(self.run_dir, ["out.txt"])
+        self.assertEqual(captured, {})
+        self.assertIn("artifact cap", error)
 
 
 if __name__ == "__main__":

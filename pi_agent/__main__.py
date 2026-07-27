@@ -214,8 +214,6 @@ def main(argv: list | None = None) -> None:
                       f"{ref.get('appended', 0)} appended to paper)")
             else:
                 print(f"no referee review: {ref.get('error')}")
-        else:
-            print(f"no paper written: {outcome.get('error')}")
 
             # BUILD CRITIC (best-effort, advisory). A DIFFERENT lens from the
             # referee: not "do the words match the code" but "could a competent
@@ -226,6 +224,13 @@ def main(argv: list | None = None) -> None:
             # BACK TO THE DIRECTOR for one recorded response, so the challenge and
             # the answer both reach the reader. Point it at an outside model with
             # RESEARCH_MODEL_CRITIC=fable. BUILD_CRITIC=0 disables.
+            #
+            # INDENTATION IS LOAD-BEARING HERE: this block sat one level deeper,
+            # inside the `else` below, so the critic ran ONLY when no paper was
+            # written — critiquing a deliverable that did not exist, and never
+            # once running on a successful study. It belongs beside the referee,
+            # on the paper-exists branch, because "could someone use this
+            # tomorrow" is a question about a paper that is there.
             from stages.build_critic import critique_and_respond
 
             crit = critique_and_respond(report["study_id"])
@@ -236,6 +241,8 @@ def main(argv: list | None = None) -> None:
                 print(f"build critique: {crit['findings']} finding(s), "
                       f"usable_today={c.get('usable_today')} "
                       f"({c.get('model')})")
+        else:
+            print(f"no paper written: {outcome.get('error')}")
 
 
 if __name__ == "__main__":

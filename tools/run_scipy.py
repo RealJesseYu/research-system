@@ -479,13 +479,24 @@ def numeric_residual(diff_expr, var):
     on evalf (the lambdify+numpy move covers diff/limit/series/solve). Card 5
     records that.
     """
-    worst = 0.0
+    # `worst is None` UNTIL A POINT ACTUALLY EVALUATES. Starting at 0.0 and
+    # `continue`-ing past every failure meant a run where ZERO points evaluated
+    # returned residual 0.0 — indistinguishable from a perfect check, and the
+    # caller reports it as solved_verified. complex() raises whenever the
+    # residual still carries a free symbol, which is every legal multi-symbol
+    # job whose residual simplify would not close, so this was reachable by
+    # ordinary input rather than by anything exotic.
+    #
+    # The module's own words: "a check that cannot fail is not a proof". The two
+    # sibling arms (diff_residual_numpy's `seen`, limit_residual_evalf's
+    # `worst is None`) already guard this; the two integrate arms did not.
+    worst = None
     for pt in SPEC["_sample_points"]:
         try:
             v = complex(diff_expr.subs(var, Float(pt)).evalf(SPEC["_dps"]))
         except (TypeError, ValueError, AttributeError):
             continue
-        worst = max(worst, abs(v))
+        worst = abs(v) if worst is None else max(worst, abs(v))
     return worst
 
 
@@ -560,7 +571,10 @@ def diff_residual_evalf(base, closed_form, var):
     SymPy cannot lambdify the expression, and LABELLED so the card's
     independence claim is never overstated for a job that silently fell back."""
     h = Rational(1, 10 ** 6)
-    worst = 0.0
+    # None until a point evaluates — same reasoning as numeric_residual above.
+    # Zero points evaluating used to return 0.0, which the gate reads as a clean
+    # pass; a check that ran on nothing must decline, not pass.
+    worst = None
     for pt in SPEC["_sample_points"]:
         p = Float(pt)
         try:
@@ -569,7 +583,8 @@ def diff_residual_evalf(base, closed_form, var):
             exact = complex(closed_form.subs(var, p).evalf(SPEC["_dps"]))
         except (TypeError, ValueError, AttributeError):
             continue
-        worst = max(worst, abs(approx - exact) / max(1.0, abs(exact)))
+        rel = abs(approx - exact) / max(1.0, abs(exact))
+        worst = rel if worst is None else max(worst, rel)
     return worst, "numeric_central_difference_evalf_fallback"
 
 

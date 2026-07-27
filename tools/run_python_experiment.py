@@ -404,15 +404,42 @@ def _capture_output_files(host_dir: Path, names) -> tuple[dict, str | None]:
     whole run (an honest error, never a truncated artifact); a declared file
     that is simply absent is left out — the caller checks completeness."""
     captured: dict = {}
+    host_dir = host_dir.resolve()
     for name in names:
         p = host_dir / name
+
+        # SYMLINKS ARE REFUSED, NOT FOLLOWED. _safe_artifact_name validates the
+        # NAME; it says nothing about what the name points at. The container has
+        # this directory bind-mounted read-write, so sandboxed code could do
+        #     os.symlink("/Users/<me>/.ssh/id_rsa", "/work/out.txt")
+        # and declare out.txt as an output file. is_file() and read_bytes() both
+        # FOLLOW symlinks, so the HOST then read the host's own file and handed
+        # the bytes back to the orchestrator — straight out through the one
+        # writable bind, with --network=none and --read-only still fully intact.
+        # The jail was never the weak point; the readback was.
+        if p.is_symlink():
+            return {}, (f"output file {name!r} is a symbolic link; declared "
+                        "outputs must be regular files written by the experiment")
         if not p.is_file():
             continue
-        data = p.read_bytes()
-        if len(data) > MAX_ARTIFACT_BYTES:
-            return {}, (f"output file {name!r} is {len(data)} bytes, over the "
+        # Belt and braces for the exotic cases a symlink check alone misses
+        # (a hardlink is indistinguishable, but cannot escape the mount; a
+        # path that resolves outside the run dir cannot be legitimate).
+        if p.resolve().parent != host_dir:
+            return {}, (f"output file {name!r} resolves outside the run "
+                        "directory and was not read")
+
+        # SIZE BEFORE READ. The cap used to be checked AFTER read_bytes(), so a
+        # multi-gigabyte declared output exhausted host memory before the check
+        # that exists to prevent exactly that could fire.
+        try:
+            size = p.stat().st_size
+        except OSError as e:
+            return {}, f"output file {name!r} could not be examined: {e}"
+        if size > MAX_ARTIFACT_BYTES:
+            return {}, (f"output file {name!r} is {size} bytes, over the "
                         f"{MAX_ARTIFACT_BYTES}-byte artifact cap")
-        captured[name] = data
+        captured[name] = p.read_bytes()
     return captured, None
 
 
