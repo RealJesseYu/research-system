@@ -198,6 +198,15 @@ def run_free_investigation(goal, *, run_id=None, call=None, verify=None, gate=No
     # time so a newly-enrolled wrapper appears without editing this stage.
     from tools.substrate_registry import substrate_tools_catalog
     system_prompt = SYSTEM_PROMPT + "\n\n" + substrate_tools_catalog()
+    # Connectors (MCP), when any are configured. The agent already SEES each
+    # server's tools natively; what it cannot work out for itself is how a
+    # connector answer becomes a KEPT number instead of a caveat — that artifact
+    # shape is what this block carries. Empty string when no connector is
+    # configured, so the no-connector prompt stays byte-identical.
+    from tools.mcp_config import connector_catalog
+    connectors = connector_catalog()
+    if connectors:
+        system_prompt += "\n\n" + connectors
     stage_input = {"question": goal}
     # Per-run workspace: give the agent an isolated cwd (runs/<id>/workspace/) so
     # its artifacts land there, reproducible-in-place with the run evidence,
@@ -268,6 +277,22 @@ def run_free_investigation(goal, *, run_id=None, call=None, verify=None, gate=No
         # the agent's own judgment intact.
         if claimed:
             result["publishable"] = bool(result["publishable"]) and any_reproduced
+        # MECHANISM REVIEW (advisory, BESIDE the wall — never inside it). The
+        # wall proved each kept number re-executes; this one sealed pass asks
+        # the question the wall cannot: does the code DO what the label SAYS?
+        # (The proven blind spot: a hardcoded "swept" parameter or a mislabeled
+        # baseline reproduces perfectly.) Its verdict travels only as a
+        # `mechanism_review` caveat on the finding — it never touches
+        # `verified` or `publishable`, and any failure inside it is swallowed:
+        # an advisory pass may not take down a run.
+        try:
+            from stages.claim_review import (attach_mechanism_reviews,
+                                             review_claim_mechanisms)
+            reviews = review_claim_mechanisms(claims)
+            if reviews:
+                attach_mechanism_reviews(result["findings"], claimed, reviews)
+        except Exception:  # noqa: BLE001
+            pass
         (run_dir / "free_investigation.json").write_text(
             json.dumps(result, indent=2))
     return result

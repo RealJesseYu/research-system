@@ -170,6 +170,21 @@ def main(argv: list | None = None) -> None:
             print(f"paper: {outcome['paper_path']}")
             for fig in outcome.get("figures") or []:
                 print(f"  figure: {fig}")
+            # REFEREE (best-effort, advisory). A fresh artifact-review pass
+            # checks the paper's WORDS against the code and records behind it —
+            # the layer the wall (numbers) and desk screen (text-only) cannot
+            # see. Findings are appended to the paper's must-validate
+            # territory; they never gate, and a failed review never undoes the
+            # paper. REFEREE=0 disables.
+            from stages.referee import referee_study_paper_by_id
+
+            ref = referee_study_paper_by_id(report["study_id"])
+            if ref.get("report_path"):
+                n = len(ref.get("findings") or [])
+                print(f"referee: {ref['report_path']} ({n} finding(s), "
+                      f"{ref.get('appended', 0)} appended to paper)")
+            else:
+                print(f"no referee review: {ref.get('error')}")
         else:
             print(f"no paper written: {outcome.get('error')}")
 
