@@ -241,11 +241,33 @@ FULL_REVIEW_SYSTEM_PROMPT = (
 # R5, owner 2026-07-17). No new kill path: the lens and the
 # contracts steer the quality/critique judgment, they add no discard branch.
 INSTRUMENT_CONTRACT_HEADER = (
-    "INSTRUMENT CONTRACTS (what the available instruments can actually measure)"
+    "INSTRUMENT CONTRACTS (what the VALIDATED instruments measure — one part of "
+    "what this run can reach, not the whole of it)"
 )
+# R-CAGE-1 (owner, 2026-07-26; docs/memo_reflection_cage_fix.md). The previous
+# sentence read "Candidates whose test requires measurements outside every
+# listed contract must be treated as weaker bets, stated in the reasoning."
+# That penalized every hypothesis testable by anything the registry does not
+# enroll — a public dataset (AlphaFold DB, PubChem, Materials Project), a
+# connector, or plain code — and it did so in the merit review that feeds the
+# deterministic quality filter, so such candidates could be scored down and
+# dropped BEFORE the free experimenter ever saw them. That is the PRIME
+# DIRECTIVE's cage in miniature: the registry bounding what may be thought,
+# rather than offering tools that may be used.
+#
+# Generation already had this right (FEASIBILITY_NUDGE_INSTRUCTION: "a
+# hypothesis is untestable only if NOTHING available could evaluate it — not
+# merely if no named solver exposes it", and it names connectors explicitly).
+# The two halves of ideation disagreed, and reflection was the wrong one. This
+# makes them agree, in generation's direction.
 INSTRUMENT_CONTRACT_INSTRUCTION = (
-    "Candidates whose test requires measurements outside every listed contract "
-    "must be treated as weaker bets, stated in the reasoning."
+    "These contracts describe what the VALIDATED instruments measure. They are "
+    "NOT the limit of what this run can reach: the experimenter also has code, "
+    "a shell, the web, any configured connector, and any public dataset or API "
+    "it can call (AlphaFold DB, PubChem, Materials Project and the like). "
+    "Treat a candidate as a weaker bet only if NOTHING available could evaluate "
+    "it — not merely because no listed contract covers it — and say which of "
+    "those routes you considered when you do."
 )
 
 
