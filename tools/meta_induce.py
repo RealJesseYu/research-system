@@ -42,12 +42,18 @@ if str(_TOOLS) not in sys.path:
     sys.path.insert(0, str(_TOOLS))
 
 import model_call  # noqa: E402  (repo-root gateway)
+from models import model_for  # noqa: E402  (repo-root tier resolver)
 import lesson_provenance  # noqa: E402  (tools/ leaf — join helpers)
 import pi_gate  # noqa: E402  (tools/ leaf — offline sweep)
 
 # --- pins & paths -----------------------------------------------------------
 
-META_INDUCE_MODEL = "claude-opus-4-8"  # R-MI-1
+# R-MI-1 pins this pass to the heavy tier. The literal that used to live here
+# ("claude-opus-4-8") was the PREVIOUS generation and outlived its retirement on
+# 2026-07-25, so a live CLI was silently running an old model and then writing
+# that model's name into the doc it generated. Resolved through the tier so the
+# ruling survives a model change and the generated header cannot lie.
+META_INDUCE_MODEL = model_for("heavy")
 
 JOURNAL_PATH = _ROOT / "memory" / "journal.jsonl"
 PROVENANCE_PATH = _ROOT / "memory" / "lesson_provenance.jsonl"
@@ -379,7 +385,8 @@ def render_doc(
     lines = [
         "# Induced rules v1 — meta-induction over cross-run artifacts",
         "",
-        "One Opus pass (`META_INDUCE_MODEL = claude-opus-4-8`, R-MI-1) over a "
+        f"One heavy-tier pass (`META_INDUCE_MODEL = {META_INDUCE_MODEL}`, "
+        "R-MI-1) over a "
         "deterministically-composed digest of on-disk artifacts. These rules are "
         "**advisory sidecar output only** — nothing any pipeline model sees was "
         "changed by this pass (no retrieval wiring, no injected blocks, no prompt "

@@ -124,7 +124,7 @@ from stages.meta_review import (
 from stages.reflection_reviews import reflect_on_pool
 from models import model_for  # model-tier resolver
 
-OPUS_MODEL = model_for("heavy")
+HEAVY_MODEL = model_for("heavy")
 
 RANKING_SYSTEM_PROMPT_V2 = (
     "You are a comparative-judge stage in an autonomous research pipeline, evaluating two "
@@ -404,7 +404,7 @@ def _single_turn_judge(
         compose_judge_prompt(RANKING_SYSTEM_PROMPT_V2),
         rank_input,
         rank_schema,
-        model=OPUS_MODEL,
+        model=HEAVY_MODEL,
         capabilities=FULL,
     )
     _check_verdict(rank_data, run_id, h_a, h_b, f"tournament judge {pair_name}")
@@ -454,7 +454,7 @@ def _debate_once(
             DEBATE_ADVOCATE_SYSTEM_PROMPT,
             stage_input,
             {"required": ["ack_run_id", "argument"]},
-            model=OPUS_MODEL,
+            model=HEAVY_MODEL,
             extra_validator=argument_validator,
             capabilities=FULL,
         )
@@ -489,7 +489,7 @@ def _debate_once(
         compose_judge_prompt(DEBATE_JUDGE_SYSTEM_PROMPT),
         judge_input,
         judge_schema,
-        model=OPUS_MODEL,
+        model=HEAVY_MODEL,
         capabilities=FULL,
     )
     _check_verdict(judge_data, run_id, h_a, h_b, f"debate judge {pair_name}")

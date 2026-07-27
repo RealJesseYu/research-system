@@ -23,6 +23,7 @@ import inspect
 import json
 import os
 import re
+import threading
 import time
 from pathlib import Path
 from typing import Any, Callable, Optional
@@ -42,7 +43,7 @@ import capability_guard
 import cost_meter
 from models import model_for  # model-tier resolver
 
-HAIKU_MODEL = model_for("triage")
+TRIAGE_MODEL = model_for("triage")
 
 MAX_ATTEMPTS = 3
 
@@ -552,6 +553,19 @@ def _log_fence_note(stage_name: str, stage_input: dict) -> None:
 
 _TRANSCRIPT_SEQ = 0
 
+# Reflection runs its review chain through a ThreadPoolExecutor, so the
+# sequence counter is touched concurrently. Without the lock two threads take
+# the same number and one write-before-call transcript overwrites another.
+_TRANSCRIPT_SEQ_LOCK = threading.Lock()
+
+
+def _next_transcript_seq() -> int:
+    """Claim the next per-process transcript sequence number, atomically."""
+    global _TRANSCRIPT_SEQ
+    with _TRANSCRIPT_SEQ_LOCK:
+        _TRANSCRIPT_SEQ += 1
+        return _TRANSCRIPT_SEQ
+
 
 def _write_transcript(
     stage_name: str,
@@ -560,7 +574,7 @@ def _write_transcript(
     stage_input_serialized: str,
     model: str,
     capabilities: "Capabilities" = SEALED,
-) -> None:
+) -> Optional[int]:
     """Write the fully assembled model input to runs/<run_id>/transcripts/.
 
     Called immediately after the model input is assembled and BEFORE the
@@ -579,12 +593,16 @@ def _write_transcript(
     derivation is the same single source of truth as _log_reask /
     _log_fence_note: run_id from stage_input; a bare call without run_id
     writes no transcript.
+
+    Returns the sequence number it claimed (None when no transcript was
+    written). The caller MUST thread that number into _append_action_trail —
+    re-reading the global there would name a different call's file whenever
+    reviews run concurrently.
     """
     run_id = stage_input.get("run_id") if isinstance(stage_input, dict) else None
     if not run_id:
-        return
-    global _TRANSCRIPT_SEQ
-    _TRANSCRIPT_SEQ += 1
+        return None
+    seq = _next_transcript_seq()
     transcripts_dir = Path("runs") / str(run_id) / "transcripts"
     transcripts_dir.mkdir(parents=True, exist_ok=True)
     record = {
@@ -600,12 +618,14 @@ def _write_transcript(
         "allowed_tools": list(capabilities.allowed_tools),
         "max_turns": capabilities.max_turns,
     }
-    with open(transcripts_dir / f"{_TRANSCRIPT_SEQ:04d}_{stage_name}.json", "w") as f:
+    with open(transcripts_dir / f"{seq:04d}_{stage_name}.json", "w") as f:
         json.dump(record, f, indent=2)
+    return seq
 
 
 def _append_action_trail(
-    stage_name: str, stage_input: dict, attempt: int, trail: list
+    stage_name: str, stage_input: dict, attempt: int, trail: list,
+    seq: Optional[int] = None,
 ) -> None:
     """Append one attempt's tool-use trail beside its transcript.
 
@@ -616,13 +636,18 @@ def _append_action_trail(
 
     Still write-only evidence: nothing in the project may read these back into
     a model input or stage logic.
+
+    `seq` is the number _write_transcript claimed for THIS call. It is passed
+    in rather than re-read from the global because the global has moved on by
+    the time an agentic loop returns whenever other reviews are running in
+    parallel — the trail would then be filed against someone else's call.
     """
     run_id = stage_input.get("run_id") if isinstance(stage_input, dict) else None
-    if not run_id:
+    if not run_id or seq is None:
         return
     transcripts_dir = Path("runs") / str(run_id) / "transcripts"
     transcripts_dir.mkdir(parents=True, exist_ok=True)
-    path = transcripts_dir / f"{_TRANSCRIPT_SEQ:04d}_{stage_name}.actions.json"
+    path = transcripts_dir / f"{seq:04d}_{stage_name}.actions.json"
     existing = []
     if path.is_file():
         try:
@@ -666,7 +691,7 @@ def call_stage_model(
     system_prompt: str,
     stage_input: dict,
     schema: dict,
-    model: str = HAIKU_MODEL,
+    model: str = TRIAGE_MODEL,
     extra_validator: Optional[Callable[[dict], list[str]]] = None,
     capabilities: "Capabilities" = SEALED,
 ) -> tuple[dict, dict]:
@@ -688,8 +713,8 @@ def call_stage_model(
     start = time.monotonic()
     user_turn = json.dumps(stage_input)
     # The input is now fully assembled; record it verbatim before the call.
-    _write_transcript(stage_name, system_prompt, stage_input, user_turn, model,
-                      capabilities)
+    transcript_seq = _write_transcript(stage_name, system_prompt, stage_input,
+                                       user_turn, model, capabilities)
     last_error = ""
     # Filled by the transport under a tool profile; appended to the transcript
     # after the call so the evidence covers what the stage DID, not only what
@@ -707,7 +732,8 @@ def call_stage_model(
             capabilities, action_trail,
         )
         if action_trail:
-            _append_action_trail(stage_name, stage_input, attempt, action_trail)
+            _append_action_trail(stage_name, stage_input, attempt, action_trail,
+                                 seq=transcript_seq)
             action_trail = []
         # Step 18.7: attribute this COMPLETED call to its stage (the door-level
         # record_call cannot see stage_name). Observation only.

@@ -320,18 +320,19 @@ def main() -> None:
     parser.add_argument(
         "--model-heavy", default=None,
         help="model for the HEAVY tier — the experimenter, director, paper, and "
-        "hard judgments. Alias (opus/sonnet/haiku) or a full id. For an all-Opus "
-        "run: --model-heavy opus --model-light opus.",
+        "hard judgments. Alias (opus/sonnet/haiku/fable) or a full id. "
+        "Default opus.",
     )
     parser.add_argument(
         "--model-light", default=None,
         help="model for the LIGHT workhorse tier — hypothesis generation, the "
-        "review chain, evolution (default sonnet).",
+        "review chain, evolution. Default opus (owner ruling 2026-07-25: the "
+        "tiers name roles, not costs). Pass 'sonnet' for a cheaper run.",
     )
     parser.add_argument(
         "--model-triage", default=None,
         help="model for the TRIAGE tier — web search and sealed low-stakes "
-        "passes (default haiku).",
+        "passes. Default opus, as above; pass 'haiku' for a cheaper run.",
     )
     args = parser.parse_args()
 

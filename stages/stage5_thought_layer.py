@@ -49,7 +49,7 @@ from model_call import call_stage_model, log_stage_call
 from tools import substrate_registry as registry
 from models import model_for  # model-tier resolver
 
-OPUS_MODEL = model_for("heavy")
+HEAVY_MODEL = model_for("heavy")
 
 # The six CORE keys, always present, in assembly order. This stays exactly six
 # so the frozen anchor's (cavity's) turn keeps its byte-identical shape and
@@ -195,7 +195,7 @@ def run_thought_model(prompt_inputs: dict) -> tuple[dict, dict]:
         SYSTEM_PROMPT,
         prompt_inputs,
         SCHEMA,
-        model=OPUS_MODEL,
+        model=HEAVY_MODEL,
         extra_validator=_validate_thought,
     )
 

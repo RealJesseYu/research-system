@@ -29,7 +29,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from stages.verification import (DEFAULT_REL_TOL,  # noqa: E402
                                  MAX_DECLARED_REL_TOL, _declared_tolerance,
-                                 verify_claim, verify_run)
+                                 planted_constant_reason, verify_claim,
+                                 verify_run)
 
 
 class TestDeclaredTolerance(unittest.TestCase):
@@ -175,6 +176,94 @@ class TestAStringResultReproducesByBeingIdentical(unittest.TestCase):
         v = verify_claim(self._claim(2.0, 'metrics = {"h": 1.0 + 1.0}'))
         self.assertTrue(v["verified"])
         self.assertNotIn("comparison", v)
+
+
+class TestMalformedArtifactIsAVerdictNotACrash(unittest.TestCase):
+    """Every field of an artifact is MODEL-AUTHORED, so a malformed one is
+    ordinary input to this pass, not a broken invariant.
+
+    verify_claim used to catch only ArtifactError, and none of the exceptions a
+    bad artifact actually raises is a subclass of it. Each of these three killed
+    run_free_investigation outright — after all the work, leaving no
+    verification.json at all. The bar is that an unverifiable claim is a RESULT.
+    """
+
+    def _verdict(self, artifact):
+        return verify_claim({"value": 1.0, "label": "l", "artifact": artifact})
+
+    def test_hallucinated_substrate_id(self):
+        v = self._verdict({"kind": "substrate", "substrate_id": "not_a_real_tool",
+                           "typed_input": {}})
+        self.assertFalse(v["verified"])
+        self.assertEqual(v["reason"], "unrunnable_artifact")
+
+    def test_substrate_input_missing_a_required_field(self):
+        v = self._verdict({"kind": "substrate", "substrate_id": "python_experiment",
+                           "typed_input": {"code": "metrics['x']=1"}})  # no quantity
+        self.assertFalse(v["verified"])
+        self.assertEqual(v["reason"], "unrunnable_artifact")
+
+    def test_case_build_artifact_without_adapter_input(self):
+        v = self._verdict({"kind": "substrate", "substrate_id": "cavity_2d_cfd",
+                           "call_style": "case_build"})
+        self.assertFalse(v["verified"])
+        self.assertEqual(v["reason"], "unrunnable_artifact")
+
+    def test_the_exception_type_survives_into_the_detail(self):
+        """A real defect in this pass must stay legible in the evidence rather
+        than be smoothed into a generic refusal."""
+        v = self._verdict({"kind": "substrate", "substrate_id": "not_a_real_tool",
+                           "typed_input": {}})
+        self.assertIn("Error", v["detail"])
+
+
+class TestPlantedConstantReachesModelAuthoredCode(unittest.TestCase):
+    """The tripwire keys on 'did a model write the code that produced this
+    number', not on artifact kind — python_experiment's instrument IS the
+    model's code, so exempting it with the other substrates was a hole.
+
+    The two DELIBERATE non-coverages are pinned here too, because they were
+    tried and reverted on evidence: see planted_constant_reason's comments.
+    """
+
+    PLANT = "metrics['x'] = 0.99"
+
+    def test_python_experiment_substrate_is_checked(self):
+        self.assertIsNotNone(planted_constant_reason(
+            {"kind": "substrate", "substrate_id": "python_experiment",
+             "typed_input": {"code": self.PLANT, "quantity": "x"}}))
+
+    def test_inline_code_and_workspace_file_still_checked(self):
+        self.assertIsNotNone(planted_constant_reason(
+            {"kind": "code", "code": self.PLANT, "quantity": "x"}))
+
+    def test_computed_code_is_left_alone(self):
+        self.assertIsNone(planted_constant_reason(
+            {"kind": "code", "code": "import math\nmetrics['x']=math.sqrt(2)",
+             "quantity": "x"}))
+
+    def test_a_real_instrument_substrate_is_not_checked(self):
+        """cavity's typed input drives a solver, not model-authored code."""
+        self.assertIsNone(planted_constant_reason(
+            {"kind": "substrate", "substrate_id": "cavity_2d_cfd",
+             "typed_input": {"case_name": "c"}}))
+
+    def test_composition_steps_are_deliberately_not_checked(self):
+        """A step's constant scalar is often TRUE — a count of what it emitted —
+        while its real contribution is the file downstream steps consume.
+        Checking it failed a legitimate handoff recipe; the gap is accepted."""
+        self.assertIsNone(planted_constant_reason(
+            {"kind": "composition",
+             "steps": [{"step_id": "produce", "kind": "code",
+                        "code": "open('v','w').write('1,2,3')\nmetrics['n']=3.0",
+                        "quantity": "n"}],
+             "combine": {"code": "metrics['o']=inputs['produce']*2",
+                         "quantity": "o"}}))
+
+    def test_the_combine_is_still_checked(self):
+        self.assertIsNotNone(planted_constant_reason(
+            {"kind": "composition", "steps": [],
+             "combine": {"code": "metrics['o'] = 0.97", "quantity": "o"}}))
 
 
 if __name__ == "__main__":

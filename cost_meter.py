@@ -22,7 +22,14 @@ If the SDK provided no usage, only the call is counted.
 
 from __future__ import annotations
 
+import threading
 from typing import Any, Optional
+
+# Every counter below is a read-modify-write on a shared dict, and reflection
+# now runs its review chain through a ThreadPoolExecutor — so concurrent
+# recorders silently lose increments without this. The lock is held only for
+# the arithmetic; no I/O and no model call happens inside it.
+_LOCK = threading.Lock()
 
 # The two doors, named so read() always reports both (a zero is information:
 # it says that door genuinely did not fire this run).
@@ -68,7 +75,8 @@ def record_attempt(source: str) -> None:
     still leaves a trace; attempts >= calls, and the gap is exactly the
     calls that fired but never completed.
     """
-    _attempts[source] = _attempts.get(source, 0) + 1
+    with _LOCK:
+        _attempts[source] = _attempts.get(source, 0) + 1
 
 
 def record_call(source: str, usage: Optional[Any] = None) -> None:
@@ -78,14 +86,15 @@ def record_call(source: str, usage: Optional[Any] = None) -> None:
     response stream has been consumed. Never raises usefully upward — but it
     is also so simple it has no failure mode beyond a programming error.
     """
-    _calls[source] = _calls.get(source, 0) + 1
-    if isinstance(usage, dict):
-        bucket = _tokens.setdefault(source, {})
-        for key, value in usage.items():
-            # bool is an int subclass; exclude it so a stray flag never
-            # masquerades as a token count.
-            if isinstance(value, int) and not isinstance(value, bool):
-                bucket[key] = bucket.get(key, 0) + value
+    with _LOCK:
+        _calls[source] = _calls.get(source, 0) + 1
+        if isinstance(usage, dict):
+            bucket = _tokens.setdefault(source, {})
+            for key, value in usage.items():
+                # bool is an int subclass; exclude it so a stray flag never
+                # masquerades as a token count.
+                if isinstance(value, int) and not isinstance(value, bool):
+                    bucket[key] = bucket.get(key, 0) + value
 
 
 def record_stage_call(stage_name: str) -> None:
@@ -96,7 +105,8 @@ def record_stage_call(stage_name: str) -> None:
     completion and the stage are known. Gives reject-RATE a denominator
     (rejects/calls per stage), not just a raw reject count.
     """
-    _stage_calls[stage_name] = _stage_calls.get(stage_name, 0) + 1
+    with _LOCK:
+        _stage_calls[stage_name] = _stage_calls.get(stage_name, 0) + 1
 
 
 def record_reject(stage_name: str) -> None:
@@ -109,7 +119,8 @@ def record_reject(stage_name: str) -> None:
     visible as the attempts-minus-calls gap); a reject is a new completed
     call, invisible in that gap — which is exactly why this counter exists.
     """
-    _stage_rejects[stage_name] = _stage_rejects.get(stage_name, 0) + 1
+    with _LOCK:
+        _stage_rejects[stage_name] = _stage_rejects.get(stage_name, 0) + 1
 
 
 def record_signal(tag: str) -> None:
@@ -120,7 +131,8 @@ def record_signal(tag: str) -> None:
     accepted as-is and no re-ask fires. Deliberately a separate bucket from
     record_reject so signals can never inflate rejects or reject_rate.
     """
-    _signals[tag] = _signals.get(tag, 0) + 1
+    with _LOCK:
+        _signals[tag] = _signals.get(tag, 0) + 1
 
 
 def _stage_stats(calls: int, rejects: int) -> dict:

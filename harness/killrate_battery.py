@@ -138,15 +138,15 @@ def current_model_pins() -> dict:
     )
 
     return {
-        "stage1_ideation.OPUS_MODEL": stage1_ideation.OPUS_MODEL,
-        "generation_strategies.HAIKU_MODEL": generation_strategies.HAIKU_MODEL,
-        "reflection_reviews.HAIKU_MODEL": reflection_reviews.HAIKU_MODEL,
+        "stage1_ideation.HEAVY_MODEL": stage1_ideation.HEAVY_MODEL,
+        "generation_strategies.LIGHT_MODEL": generation_strategies.LIGHT_MODEL,
+        "reflection_reviews.LIGHT_MODEL": reflection_reviews.LIGHT_MODEL,
         "reflection_reviews.DEEP_VERIFY_MODEL": reflection_reviews.DEEP_VERIFY_MODEL,
         "reflection_reviews.REVIEW6_MODEL": reflection_reviews.REVIEW6_MODEL,
         "evolution_strategies.EVOLUTION_MODEL": evolution_strategies.EVOLUTION_MODEL,
         "meta_review.META_REVIEW_MODEL": meta_review.META_REVIEW_MODEL,
-        "web_search.HAIKU_MODEL": web_search.HAIKU_MODEL,
-        "model_call.HAIKU_MODEL_default": model_call.HAIKU_MODEL,
+        "web_search.TRIAGE_MODEL": web_search.TRIAGE_MODEL,
+        "model_call.TRIAGE_MODEL_default": model_call.TRIAGE_MODEL,
     }
 
 

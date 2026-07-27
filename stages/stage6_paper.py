@@ -62,8 +62,15 @@ from harness.paper_lint import (
 )
 from stages.desk_review import MAX_DESK_REWRITES, desk_review
 from model_call import call_stage_model, log_stage_call
+from models import model_for
 
-STAGE6_MODEL = "claude-sonnet-4-6"  # explicit ruled pin (Step 22)
+# The Step-22 ruling pinned this stage explicitly, and the pin was then left
+# behind when the Claude 5 family landed (2026-07-25) — it still named
+# claude-sonnet-4-6, a RETIRED model, so this was the one stage-model constant
+# quietly running a generation older than everything around it. Resolved through
+# the tier now: an explicit pin that outlives its model is not a pin, it is a
+# stale literal, and the tier knob is what a ruling should move.
+STAGE6_MODEL = model_for("heavy")
 
 # The reference seam's mode: "live" (best-effort scholarly retrieval) or
 # "offline" (the canned fixture). Tests and the smoke driver set this to

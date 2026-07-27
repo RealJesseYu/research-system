@@ -66,7 +66,7 @@ from models import model_for  # model-tier resolver
 # Step 18.7 downgrade: all four Generation strategies run on Haiku (the
 # Sonnet proving batch locked the baseline; the kill-rate/k battery is the
 # quality signal for this move).
-SONNET_MODEL = model_for("light")
+LIGHT_MODEL = model_for("light")
 
 TOP_K_PER_SOURCE = 3
 
@@ -694,7 +694,7 @@ def strategy_literature_exploration(
         LITERATURE_SYSTEM_PROMPT,
         stage_input,
         {"required": ["ack_run_id", "hypotheses"]},
-        model=SONNET_MODEL,
+        model=LIGHT_MODEL,
         extra_validator=validator,
         capabilities=FULL,
     )
@@ -764,7 +764,7 @@ def strategy_simulated_debate(
             DEBATE_SYSTEM_PROMPT,
             stage_input,
             {"required": ["ack_run_id", "argument", "hypothesis"]},
-            model=SONNET_MODEL,
+            model=LIGHT_MODEL,
             extra_validator=validator,
             capabilities=FULL,
         )
@@ -824,7 +824,7 @@ def strategy_assumptions_identification(
         ASSUMPTIONS_IDENTIFY_SYSTEM_PROMPT,
         identify_input,
         {"required": ["ack_run_id", "assumptions"]},
-        model=SONNET_MODEL,
+        model=LIGHT_MODEL,
         extra_validator=identify_validator,
         capabilities=FULL,
     )
@@ -873,7 +873,7 @@ def strategy_assumptions_identification(
         ASSUMPTIONS_AGGREGATE_SYSTEM_PROMPT,
         aggregate_input,
         {"required": ["ack_run_id", "hypotheses"]},
-        model=SONNET_MODEL,
+        model=LIGHT_MODEL,
         extra_validator=aggregate_validator,
         capabilities=FULL,
     )
@@ -954,7 +954,7 @@ def strategy_research_expansion(
         EXPANSION_SYSTEM_PROMPT,
         stage_input,
         {"required": ["ack_run_id", "hypotheses"]},
-        model=SONNET_MODEL,
+        model=LIGHT_MODEL,
         extra_validator=validator,
         capabilities=FULL,
     )

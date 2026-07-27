@@ -47,7 +47,7 @@ if str(_PROJECT_ROOT) not in sys.path:
 import cost_meter  # noqa: E402
 from models import model_for  # model-tier resolver
 
-HAIKU_MODEL = model_for("triage")
+TRIAGE_MODEL = model_for("triage")
 MAX_TURNS = 6  # enough turns to search and read before answering
 SNIPPET_CAP = 1400
 
@@ -84,7 +84,7 @@ def _write_transcript(run_id: str, system_prompt: str, user_turn: str) -> None:
     transcripts_dir.mkdir(parents=True, exist_ok=True)
     record = {
         "stage_name": "web_search",
-        "model": HAIKU_MODEL,
+        "model": TRIAGE_MODEL,
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "system_prompt": system_prompt,
         "stage_input_serialized": user_turn,
@@ -110,7 +110,7 @@ async def _search_once(system_prompt: str, user_turn: str) -> str:
     # transport failure mid-stream still leaves a trace in the meter.
     cost_meter.record_attempt("web_search")
     options = ClaudeAgentOptions(
-        model=HAIKU_MODEL,
+        model=TRIAGE_MODEL,
         system_prompt=system_prompt,
         allowed_tools=["WebSearch"],
         disallowed_tools=_DISALLOWED_TOOLS,

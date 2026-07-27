@@ -42,6 +42,7 @@ from __future__ import annotations
 import ast
 import json
 import math
+import uuid
 from pathlib import Path
 
 # Relative tolerance for "the same number". Floating-point re-execution of
@@ -226,10 +227,21 @@ def rerun_artifact(artifact: dict) -> dict:
                     f"substrate artifact for {sid!r} is case-build style but "
                     "carries no adapter_input, so the case it measured cannot "
                     "be rebuilt")
+            # The verify-case name must be UNIQUE PER RE-RUN, not a fixed
+            # suffix. build_case refuses a directory that already exists (so a
+            # stale case can never be silently re-read), which with a constant
+            # "_verify" name meant the FIRST verification consumed the only name
+            # available: verifying the same claim twice — a second pass, two
+            # claims citing one cavity point, any re-check at all — raised
+            # CaseSynthesisError and, before the handler above existed, killed
+            # the run. A short uuid makes re-verification repeatable; the
+            # original run's evidence is still never touched.
+            verify_case = (f"{adapter_input.get('case_name')}_verify_"
+                           f"{uuid.uuid4().hex[:8]}")
             summary = adapter_for(sid)(
                 sid,
                 adapter_input.get("params"),
-                f"{adapter_input.get('case_name')}_verify",
+                verify_case,
                 adapter_input.get("roles"),
                 adapter_input.get("qoi_request"),
             )
@@ -592,6 +604,76 @@ def run_composition(recipe: dict) -> dict:
             "error": final["error"]}
 
 
+def planted_constant_reason(artifact: dict):
+    """Return a reason string when this artifact's claimed metric is only ever
+    written as a compile-time constant, or None.
+
+    ONE PLACE, EVERY PATH THAT RUNS MODEL-AUTHORED CODE. This used to be two
+    inline blocks inside verify_claim, and being inline is what gave it three
+    holes: the check keyed on artifact KIND rather than on "did a model write
+    the code that produced this number", and it sat after two early returns.
+
+      - `python_experiment` was exempted along with every other substrate, on
+        the reasoning that a substrate's typed input runs a real instrument.
+        That is true of every substrate except this one, whose instrument IS
+        the model's code — same sandbox, same authorship, no tripwire.
+      - A COMPOSITION's combine was checked; its STEPS were not. A step
+        hardcoding its scalar reproduces perfectly, and a combine that
+        genuinely computes over that planted scalar passes its own check, so
+        the composed number was fabricated end to end and read as reproduced.
+      - String claims returned before ever reaching it (see verify_claim).
+
+    Still a tripwire, not a proof — hardcoded_metric_reason's limits apply
+    unchanged. This only makes sure the tripwire is actually on the wire.
+    """
+    kind = artifact.get("kind")
+
+    if kind == "code":
+        return hardcoded_metric_reason(artifact.get("code") or "",
+                                       artifact.get("quantity") or "")
+
+    if kind == "workspace_file":
+        # The code lives in the file, not the artifact; read it back so a
+        # planted constant is caught the same as for inline code.
+        try:
+            code_src = Path(artifact.get("path") or "").read_text()
+        except OSError:
+            code_src = ""
+        return hardcoded_metric_reason(code_src, artifact.get("quantity") or "")
+
+    if kind == "substrate" and artifact.get("substrate_id") == "python_experiment":
+        typed = artifact.get("typed_input") or {}
+        return hardcoded_metric_reason(typed.get("code") or "",
+                                       typed.get("quantity") or "")
+
+    if kind == "composition":
+        # STEPS ARE DELIBERATELY NOT TRIPWIRED, and this is a reversal: the
+        # check was added here and immediately failed a legitimate recipe, which
+        # is the honest answer to whether it belongs.
+        #
+        # A step's scalar is frequently a constant that is nevertheless TRUE —
+        # the file-handoff recipe's `produce` step writes a three-element vector
+        # and reports metrics['n'] = 3.0, a real count of what it just emitted,
+        # while the work it contributes is the FILE the next step consumes and
+        # genuinely sums. Structurally that is indistinguishable from a step
+        # that plants 0.97 for a combine to multiply: same shape, opposite
+        # honesty. Telling them apart needs semantic judgment about whether the
+        # constant denotes something real, which is exactly the judgment this
+        # model-free pass does not make.
+        #
+        # So the gap is REAL AND ACCEPTED: a composition step can plant a
+        # constant and the wall will not catch it. That is the same class as
+        # hardcoded_metric_reason's documented blind spot for obfuscated
+        # constants — a limit of the tripwire, not a hole to be closed by
+        # rejecting honest work. The combine, whose quantity IS the claimed
+        # number, is still checked.
+        combine = artifact.get("combine") or {}
+        return hardcoded_metric_reason(combine.get("code") or "",
+                                       combine.get("quantity") or "")
+
+    return None
+
+
 def verify_claim(claim: dict, rel_tol: float = DEFAULT_REL_TOL) -> dict:
     """Verify one {value, artifact} claim by re-running its artifact.
 
@@ -622,6 +704,22 @@ def verify_claim(claim: dict, rel_tol: float = DEFAULT_REL_TOL) -> dict:
     except ArtifactError as e:
         return {"verified": False, "reason": "unrunnable_artifact",
                 "detail": str(e), "original": original}
+    except Exception as e:
+        # EVERY FIELD OF `artifact` IS MODEL-AUTHORED, so a malformed one is
+        # ordinary input to this function, not a broken invariant. Catching only
+        # ArtifactError meant a hallucinated substrate_id raised KeyError, a
+        # python_experiment input missing a field raised PythonExperimentInputError,
+        # and a cavity artifact raised CaseSynthesisError — none of them subclasses
+        # of ArtifactError, all of them escaping through run_free_investigation,
+        # which has no handler either. The whole run then died with a traceback
+        # AFTER all the work, leaving no verification.json at all.
+        #
+        # The bar this pass has to clear is that an unverifiable claim is a
+        # RESULT, not a crash — so an unexpected exception becomes the same
+        # honest verdict, carrying its type so a real defect here is still
+        # legible in the evidence rather than silently smoothed over.
+        return {"verified": False, "reason": "unrunnable_artifact",
+                "detail": f"{type(e).__name__}: {e}", "original": original}
 
     if result["error"] is not None:
         return {"verified": False, "reason": "rerun_failed",
@@ -641,6 +739,21 @@ def verify_claim(claim: dict, rel_tol: float = DEFAULT_REL_TOL) -> dict:
     # beyond surrounding whitespace, since a string has no near-miss.
     if isinstance(original, str) and isinstance(reproduced, str):
         if original.strip() == reproduced.strip():
+            # NO PLANTED-CONSTANT TRIPWIRE HERE, deliberately, and this too is a
+            # reversal after trying it. A string claim whose artifact only ever
+            # writes a literal IS unfalsifiable by re-running — but the claims
+            # the 2026-07-27 ruling exists to make verifiable are exactly that
+            # shape: a categorical outcome or chosen-option finding
+            # (metrics['choice'] = 'design_B') is a literal in the source
+            # BECAUSE the conclusion is what the run produced. Rejecting it
+            # would re-close the door the ruling opened, this time under a
+            # different name.
+            #
+            # The honest statement is that "reproduced" means less for a literal
+            # string than for a computed one, and the wall cannot currently say
+            # so in its verdict vocabulary. Recorded as a known limit rather
+            # than papered over — widening the vocabulary is a design decision,
+            # not a bug fix.
             return {"verified": True, "reason": "reproduced",
                     "original": original, "reproduced": reproduced,
                     "comparison": "exact string"}
@@ -684,40 +797,11 @@ def verify_claim(claim: dict, rel_tol: float = DEFAULT_REL_TOL) -> dict:
             "tolerance": tol,
         }
 
-    # THE NUMBER REPRODUCES — but a hardcoded constant reproduces perfectly too.
-    # For a code artifact, reject a claim whose metric is only ever written as a
-    # compile-time constant: re-running proves recording, not computation, and a
-    # number planted in the source is the one fabrication re-execution cannot
-    # catch. Tripwire only (see hardcoded_metric_reason); substrate artifacts,
-    # whose typed inputs run a real instrument, are unaffected.
-    if artifact.get("kind") in ("code", "workspace_file"):
-        # For a workspace_file the code lives in the file, not the artifact; read
-        # it back so a planted constant is caught the same as for inline code.
-        if artifact.get("kind") == "code":
-            code_src = artifact.get("code") or ""
-        else:
-            try:
-                code_src = Path(artifact.get("path") or "").read_text()
-            except OSError:
-                code_src = ""
-        planted = hardcoded_metric_reason(code_src, artifact.get("quantity") or "")
-        if planted:
-            return {"verified": False, "reason": "hardcoded_constant",
-                    "detail": planted, "original": original,
-                    "reproduced": reproduced, "rel_error": rel_error}
-
-    # A composition's combine is model-authored code too — the same tripwire
-    # applies to it. A combine that only ever writes its final metric as a
-    # compile-time constant reproduces perfectly while measuring nothing about
-    # the steps it claims to compose.
-    if artifact.get("kind") == "composition":
-        combine = artifact.get("combine") or {}
-        planted = hardcoded_metric_reason(
-            combine.get("code") or "", combine.get("quantity") or "")
-        if planted:
-            return {"verified": False, "reason": "hardcoded_constant",
-                    "detail": planted, "original": original,
-                    "reproduced": reproduced, "rel_error": rel_error}
+    planted = planted_constant_reason(artifact)
+    if planted:
+        return {"verified": False, "reason": "hardcoded_constant",
+                "detail": planted, "original": original,
+                "reproduced": reproduced, "rel_error": rel_error}
 
     return {"verified": True, "reason": "reproduced", "original": original,
             "reproduced": reproduced, "rel_error": rel_error}

@@ -1,26 +1,35 @@
 """models.py — one place to choose which model plays which role.
 
-Every stage/agent in the system draws its model from one of THREE tiers, and
+Every stage/agent in the system draws its model from one of FOUR tiers, and
 each tier is a single knob you set once:
 
     heavy   — the smart / hard-judgment model: the free experimenter, the PI
               director, the paper writer, hypothesis ranking, meta-review.
-              Default: Opus.
     light   — the workhorse: hypothesis generation, the review chain, evolution.
-              Default: Sonnet.
     triage  — cheap, low-stakes passes: the sealed-stage default, web search.
-              Default: Haiku.
+    critic  — the build critic, deliberately its own knob so it can be pointed
+              at an OUTSIDE model (see the note above _TIER_ENV).
 
-Set a tier with an env var (an alias — opus/sonnet/haiku — or a full model id):
+EVERY TIER DEFAULTS TO OPUS (owner ruling 2026-07-25). The tier names describe
+what each role IS, not what it costs — they are the seams you turn a cheap run
+on at, not a standing cost split. The reasoning and the measurement behind the
+ruling are recorded above _TIER_DEFAULT below; the short version is that
+running generation and review on a cheaper tier made the system weaker than the
+plain chat it is compared against, which the PRIME DIRECTIVE forbids.
 
-    RESEARCH_MODEL_HEAVY=opus  RESEARCH_MODEL_LIGHT=opus   # an all-Opus run
-    RESEARCH_MODEL_HEAVY=sonnet                            # a cheaper heavy tier
+Set a tier with an env var (an alias — opus/sonnet/haiku/fable — or a full
+model id):
+
+    RESEARCH_MODEL_LIGHT=sonnet RESEARCH_MODEL_TRIAGE=haiku  # the pre-ruling mix
+    RESEARCH_MODEL_HEAVY=sonnet                              # a cheaper heavy tier
+    RESEARCH_MODEL_CRITIC=fable                              # an outside critic
 
 or, on the supervisor, the friendlier flags --model-heavy / --model-light /
 --model-triage (which set these env vars for you before the run starts).
 
-Unset => the historical mix, byte-identical to the pinned constants. Resolved
-at call time, so a knob set before the run takes effect everywhere.
+Resolved at CALL time, so a knob set before the run takes effect everywhere.
+The one thing that is not: model_call.TRIAGE_MODEL binds at import — see the
+note there.
 """
 
 from __future__ import annotations

@@ -126,5 +126,80 @@ class TestStageProfilePairing(unittest.TestCase):
             assert_profile_allowed(stage, "builder")
 
 
+class TestAgentOwnWorkspace(unittest.TestCase):
+    """The guard must not cage the agent out of its own scratch directory.
+
+    A tooled agent's cwd is runs/<id>/workspace, so every absolute path it
+    writes there contains "runs/" and was denied by the append-only rule. An
+    agent that resolved `pwd` before writing — the natural thing to do — was
+    told its own workspace was protected run evidence. These cases pin the
+    exemption AND its boundaries; the deny half matters as much as the allow
+    half, because a sloppy exemption would open the whole run directory.
+    """
+
+    WS = "runs/20260727T010203Z/workspace"
+
+    def test_writes_into_own_workspace_allowed(self):
+        for path in (
+            f"{self.WS}/solve.py",
+            f"/Users/jesseyu/research-system/{self.WS}/solve.py",
+            f"./{self.WS}/sub/dir/out.json",
+        ):
+            self.assertTrue(check("Write", {"file_path": path})[0], path)
+            self.assertTrue(check("Read", {"file_path": path})[0], path)
+
+    def test_shell_in_own_workspace_allowed(self):
+        for cmd in (
+            f"python3 /Users/jesseyu/research-system/{self.WS}/solve.py",
+            f"cd {self.WS} && python solve.py",
+            f"ls {self.WS}",
+            f"rm {self.WS}/scratch.tmp",
+        ):
+            self.assertTrue(check("Bash", {"command": cmd})[0], cmd)
+
+    def test_exemption_does_not_leak_to_siblings(self):
+        """Prefix matching would have swallowed these; the trailing boundary
+        in _AGENT_WORKSPACE is what keeps them denied."""
+        for cmd in (
+            "rm -rf runs/A/workspaces_backup/x",
+            "rm -rf runs/A/workspace2/x",
+        ):
+            self.assertFalse(check("Bash", {"command": cmd})[0], cmd)
+
+    def test_other_run_evidence_still_denied(self):
+        self.assertFalse(check("Write", {"file_path": "runs/OTHER/verification.json"})[0])
+        self.assertFalse(check("Write", {"file_path": "runs/OTHER/log.txt"})[0])
+
+    def test_mixed_command_denied_on_the_unexempt_half(self):
+        """Masking the workspace span (not returning early) is what makes this
+        work: the second path is still seen."""
+        ok, _ = check("Bash", {"command": f"cp {self.WS}/out.csv runs/OTHER/results.json"})
+        self.assertFalse(ok)
+
+
+class TestTranscriptWriteSide(unittest.TestCase):
+    """Hole 1 had a write half nobody closed: _READ_DENY is consulted only for
+    read tools and Bash, while Write/Edit check _WRITE_DENY — which carried no
+    transcripts entry. A stage sitting in runs/<id>/workspace could rewrite the
+    write-only evidence one directory up."""
+
+    def test_edit_and_write_denied_relative_and_absolute(self):
+        for path in (
+            "../transcripts/0001_a.json",
+            "runs/x/transcripts/0001_a.json",
+            "/Users/jesseyu/research-system/runs/x/transcripts/0001_a.json",
+        ):
+            self.assertFalse(check("Write", {"file_path": path})[0], path)
+            self.assertFalse(
+                check("Edit", {"file_path": path, "old_string": "a",
+                               "new_string": "b"})[0], path)
+
+    def test_transcripts_inside_a_workspace_path_still_denied(self):
+        """The workspace exemption must not reopen this: the transcripts dir is
+        a sibling of workspace/, not a child."""
+        self.assertFalse(
+            check("Write", {"file_path": "runs/X/workspace/../transcripts/0001_a.json"})[0])
+
+
 if __name__ == "__main__":
     unittest.main()

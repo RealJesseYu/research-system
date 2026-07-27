@@ -78,9 +78,31 @@ _WRITE_DENY = tuple(_seg(f) for f in (
     "memory/",                 # hole 3: journal + ledgers the supervisor reads
     "runs/",                   # append-only evidence
     "cases_",                  # substrate case evidence
+    "transcripts/",            # hole 1, write side: see _AGENT_WORKSPACE below
     ".env",                    # credentials
     ".git/",
 ))
+
+# THE AGENT'S OWN WORKSPACE IS NOT EVIDENCE IT MAY NOT TOUCH.
+#
+# A tooled agent's cwd is runs/<id>/workspace (model_call._workspace_option_kwargs),
+# so every absolute path it writes there — and every Bash command naming one —
+# contains "runs/" and was denied outright. An agent that resolves `pwd` before
+# writing, which is the natural thing to do, was told its own scratch directory
+# was append-only run evidence and had to route around its own task. That is the
+# cage the PRIME DIRECTIVE forbids, built by a path pattern rather than a policy.
+#
+# The exemption is narrow and positional: occurrences of runs/<id>/workspace are
+# masked out of the text BEFORE the deny patterns run, so a path inside the
+# workspace no longer presents a bare "runs/" to match. Any OTHER runs/ reference
+# in the same command still trips the deny — including runs/<id>/transcripts,
+# which is why transcripts/ also joins the write list above: the read side was
+# always guarded, but Write/Edit consult only _WRITE_DENY, so a stage sitting in
+# the workspace could rewrite the write-only evidence one directory up.
+# The trailing boundary is load-bearing: without it "runs/A/workspaces_backup"
+# matched on its prefix and the exemption swallowed a sibling directory that is
+# ordinary run evidence.
+_AGENT_WORKSPACE = re.compile(r"runs/[^/\s\"'`]+/workspace(?![^/\s\"'`])")
 
 _READ_TOOLS = ("Read", "Glob", "Grep", "NotebookRead")
 _WRITE_TOOLS = ("Write", "Edit", "NotebookEdit")
@@ -120,10 +142,21 @@ def _normalized(text: str) -> str:
     return text.replace("\\", "/").lower()
 
 
+def _mask_own_workspace(text: str) -> str:
+    """Blank out runs/<id>/workspace occurrences so the agent's own scratch
+    directory does not read as protected run evidence.
+
+    Masking the matched span (rather than returning early on a match) is what
+    keeps the guard honest on a mixed command: `cp runs/A/workspace/out.csv
+    runs/B/results.json` loses only the first path and is still denied for the
+    second. The replacement carries no slash, so it cannot form a new match."""
+    return _AGENT_WORKSPACE.sub("agent-workspace", text)
+
+
 def check(tool_name: str, tool_input: dict) -> tuple[bool, str]:
     """(allowed, reason). Pure — no I/O, so it is unit-testable without the SDK
     and cannot itself touch the filesystem it is protecting."""
-    text = _normalized(_text_of(tool_input))
+    text = _mask_own_workspace(_normalized(_text_of(tool_input)))
     if not text:
         return True, ""
 
