@@ -465,8 +465,15 @@ def free_investigate(
             if decider_failures >= MAX_CONSECUTIVE_DECIDER_FAILURES:
                 termination = {
                     "reason": "director_failed",
-                    "detail": f"the free director failed to produce a decision "
-                              f"{decider_failures} turns in a row: {type(e).__name__}: {e}",
+                    "detail": (
+                        f"the free director failed to produce a decision "
+                        f"{decider_failures} turns in a row: {type(e).__name__}: {e}. "
+                        "REPEATED transport failures this early usually mean a "
+                        "USAGE LIMIT rather than a bug — check your plan's limits "
+                        "(/usage in a Claude Code session) before re-running. The "
+                        "retry backoffs here are seconds, which cannot outwait a "
+                        "multi-hour window; re-launch once the window resets."
+                    ),
                 }
                 break
             continue

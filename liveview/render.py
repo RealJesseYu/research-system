@@ -264,6 +264,17 @@ def _arc_lines(node: dict, c: _Painter, W: int, indent: str = "  ") -> list:
         if a.get("finding"):
             pad = indent + "     "
             out.append(c(pad + _clip(a["finding"], max(20, W - len(pad) - 2)), GREY))
+        # WHAT an ideation call actually proposed. Without this a watcher sees
+        # "call_ideation ✓ done" and nothing about the ideas — the most
+        # interesting thing that happens in an ideation turn.
+        pad = indent + "       "
+        for stmt in (a.get("hypotheses") or [])[:6]:
+            out.append(c(pad + "· ", GREY) + _clip(stmt, max(20, W - len(pad) - 4)))
+        # Anything a human could unblock, surfaced where they will see it.
+        for b in (a.get("blocked_on") or []):
+            out.append(c(pad + "BLOCKED: ", YELLOW)
+                       + _clip(f"{b.get('need')} — you can: {b.get('human_action')}",
+                               max(20, W - len(pad) - 12)))
         child = children.get(a.get("child_study_id"))
         if child:
             out.extend(_arc_lines(child, c, W, indent + "     "))

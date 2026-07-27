@@ -510,6 +510,15 @@ def _arc_entry_view(entry: dict, *, runs_root: Path, with_run: bool, log_lines: 
         # A recorded failure carries its own words: `error` is the exception text a
         # guarded action raised, `detail` the honest sentence a refused action wrote
         # ("no moves remain to run an experiment"). Both belong in the ledger.
+        # The hypotheses an ideation call produced. Without these a watcher sees
+        # "call_ideation: done" and nothing about WHAT was proposed — which is the
+        # most interesting thing that happens in an ideation turn.
+        "hypotheses": [
+            h.get("statement") for h in (tool_output.get("hypotheses") or [])
+            if isinstance(h, dict) and h.get("statement")
+        ],
+        "ideation_depth": tool_output.get("depth"),
+        "blocked_on": tool_output.get("blocked_on") or [],
         "error": tool_output.get("error"),
         "detail": tool_output.get("detail"),
     }

@@ -54,6 +54,7 @@ def watch(
         color = out.isatty() and os.environ.get("NO_COLOR") is None
     iterations = 0
     code = 0
+    last_painted = None
     if not once and color:
         out.write(HIDE_CURSOR)
     try:
@@ -69,9 +70,20 @@ def watch(
             except Exception as e:  # noqa: BLE001 — a watcher must never die loudly
                 lines = [f"the view could not read the study this tick "
                          f"({type(e).__name__}: {e}) — retrying"]
+            # ONLY REPAINT WHEN SOMETHING CHANGED. The loop used to redraw the
+            # identical picture every tick, which on a terminal that does not
+            # honour the ANSI clear (or any scrollback, pipe or tmux pane) reads
+            # as the view spamming the same output forever. A study is mostly
+            # quiet — an experiment runs for minutes — so the honest behaviour is
+            # to paint on change and otherwise say nothing. --once is unaffected.
+            painted = "\n".join(lines)
+            if not once and painted == last_painted:
+                time.sleep(interval)
+                continue
+            last_painted = painted
             if not once:
                 out.write(CLEAR)
-            out.write("\n".join(lines) + "\n")
+            out.write(painted + "\n")
             if not once:
                 hint = (f"{GREY}   watching every {interval:g}s · Ctrl-C to stop · "
                         f"read-only, this view never touches the run{RESET}"
