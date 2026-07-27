@@ -981,6 +981,42 @@ def recurrent_tournament_review(
 # --- Orchestrator ---------------------------------------------------------------
 
 
+# How many hypotheses are reviewed at once. Bounded: each worker holds a model
+# call that may itself run an agentic tool loop, so an unbounded pool would
+# hammer the transport and blow a rate-limit window in seconds. Override with
+# RESEARCH_REVIEW_CONCURRENCY when a bigger pool warrants it.
+def _review_concurrency() -> int:
+    raw = os.environ.get("RESEARCH_REVIEW_CONCURRENCY", "").strip()
+    if raw.isdigit() and int(raw) > 0:
+        return min(int(raw), 16)
+    return 6
+
+
+def _review_pool_concurrently(run_id: str, survivors: list, review_one) -> list:
+    """Review every survivor concurrently, returning results IN POOL ORDER so
+    evidence files and logs stay deterministic regardless of completion order.
+
+    A hypothesis whose review chain raises does not take the pool down with it:
+    the exception is re-raised here, once, after the pool drains — the same
+    honest-failure discipline the rest of the system uses, but without leaving
+    other workers running into a half-torn state."""
+    if len(survivors) <= 1:
+        return [review_one(h) for h in survivors]
+
+    from concurrent.futures import ThreadPoolExecutor
+
+    workers = min(_review_concurrency(), len(survivors))
+    try:
+        _log(run_id,
+             f"STAGE1_REFLECTION reviewing {len(survivors)} hypotheses "
+             f"{workers} at a time")
+    except OSError:
+        pass          # a progress line must never sink the pool it describes
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = [pool.submit(review_one, h) for h in survivors]
+        return [f.result() for f in futures]
+
+
 def reflect_on_pool(
     run_id: str,
     domain: str,
@@ -1032,30 +1068,43 @@ def reflect_on_pool(
         "candidates passed the no-tools gate",
     )
 
-    reviews_evidence: list[dict] = []
+    def _review_one(h: dict) -> dict:
+        """Every review of ONE hypothesis. Nothing here reads another
+        hypothesis's result, which is what makes the pool parallelisable."""
+        refs, retrieval_evidence = gather_review_refs(run_id, h)
+        return {
+            "hypothesis_id": h["id"],
+            "retrieval": retrieval_evidence,
+            "full_review": full_review(run_id, domain, h, refs, feedback_block),
+            "deep_verification": deep_verification_review(
+                run_id, domain, h, feedback_block),
+            "observation": observation_review(
+                run_id, domain, h, refs, memory_block, feedback_block),
+            "simulation": simulation_review(run_id, domain, h, feedback_block),
+            "tournament": recurrent_tournament_review(run_id, h, tournament_state),
+        }
+
+    # REVIEW THE POOL CONCURRENTLY (2026-07-27). Measured on a live run: 157
+    # ideation calls at a mean of 127 SECONDS each, entirely serial — a pool of
+    # 25 over 2 rounds is ~200 review calls, so ideation alone was heading for
+    # eight hours before a single experiment ran. Each hypothesis's reviews are
+    # independent of every other hypothesis's, so the whole pool is
+    # embarrassingly parallel and nothing was exploiting it. This is what made
+    # "buy a bigger pool" cost wall-clock linearly.
+    #
+    # Threads, not processes: these calls are I/O-bound on the model transport,
+    # and the same pattern is already used by run_study_fan. Order is restored
+    # afterwards so evidence and logs stay deterministic in pool order.
+    ordered = _review_pool_concurrently(run_id, survivors, _review_one)
+
     reflections: list[dict] = []
     discarded_fundamental: list[dict] = []
-    for h in survivors:
-        refs, retrieval_evidence = gather_review_refs(run_id, h)
-        full = full_review(run_id, domain, h, refs, feedback_block)
-        deep = deep_verification_review(run_id, domain, h, feedback_block)
-        observation = observation_review(
-            run_id, domain, h, refs, memory_block, feedback_block
-        )
-        simulation = simulation_review(run_id, domain, h, feedback_block)
-        tournament = recurrent_tournament_review(run_id, h, tournament_state)
-
-        reviews_evidence.append(
-            {
-                "hypothesis_id": h["id"],
-                "retrieval": retrieval_evidence,
-                "full_review": full,
-                "deep_verification": deep,
-                "observation": observation,
-                "simulation": simulation,
-                "tournament": tournament,
-            }
-        )
+    reviews_evidence: list[dict] = list(ordered)
+    for h, ev in zip(survivors, ordered):
+        full = ev["full_review"]
+        deep = ev["deep_verification"]
+        observation = ev["observation"]
+        simulation = ev["simulation"]
         _log(
             run_id,
             f"STAGE1_REFLECTION {h['id']}: novelty={full['novelty']} "

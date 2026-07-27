@@ -230,7 +230,23 @@ MAX_SURVIVORS = 4
 # the kill-rate battery overrides to 1 so scored runs stay single-pass and
 # baseline-comparable. Termination is round budget + the MAX_SURVIVORS count
 # cap only (see the module docstring for the deferred stability criterion).
-ROUNDS = 2
+# ROUNDS defaults to 1 (was 2, 2026-07-27). A second round re-runs the WHOLE
+# reflection chain over the whole pool, so it doubles the most expensive thing in
+# the system for a refinement pass. Measured live: pool 25 x 4 reviews x 2 rounds
+# at ~127 s per call was heading for eight hours of ideation before a single
+# experiment ran, and it burned 15% of a weekly usage limit producing nothing.
+# The second round is worth having when the ideas are the deliverable and there
+# is budget to spare — set RESEARCH_IDEATION_ROUNDS=2 — but it must be chosen,
+# not inherited.
+def _rounds_default() -> int:
+    import os
+    raw = os.environ.get("RESEARCH_IDEATION_ROUNDS", "").strip()
+    if raw.isdigit() and int(raw) > 0:
+        return min(int(raw), 4)
+    return 1
+
+
+ROUNDS = _rounds_default()
 
 # The two zero-survivor raises (reflect_on_pool's and filter_survivors')
 # are identified by these message markers — their raise sites are frozen

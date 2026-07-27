@@ -255,5 +255,66 @@ class TestTheLastCagedPrompts(unittest.TestCase):
         self.assertNotIn("Mentally simulate", p)
 
 
+class TestTheReviewPoolRunsConcurrently(unittest.TestCase):
+    """MEASURED WASTE. A live run logged 157 ideation calls at a mean of 127
+    SECONDS each, entirely serial. Pool 25 x 4 reviews x 2 rounds is ~200 calls,
+    so ideation alone was heading for eight hours before one experiment ran — and
+    it consumed 15% of a weekly usage limit producing nothing.
+
+    Each hypothesis's reviews are independent of every other hypothesis's, so the
+    pool is embarrassingly parallel and nothing exploited it. That is what made
+    'buy a bigger pool' cost wall-clock linearly."""
+
+    def test_the_pool_is_reviewed_concurrently_and_in_order(self):
+        import threading
+        import stages.reflection_reviews as r
+        live, peak, lock = [0], [0], threading.Lock()
+
+        def one(h):
+            with lock:
+                live[0] += 1
+                peak[0] = max(peak[0], live[0])
+            import time
+            time.sleep(0.05)
+            with lock:
+                live[0] -= 1
+            return {"hypothesis_id": h["id"]}
+
+        pool = [{"id": f"h{i}"} for i in range(8)]
+        out = r._review_pool_concurrently("rid", pool, one)
+        self.assertGreater(peak[0], 1, "reviews ran one at a time")
+        # order must survive concurrency: evidence and logs are read positionally
+        self.assertEqual([o["hypothesis_id"] for o in out],
+                         [h["id"] for h in pool])
+
+    def test_concurrency_is_bounded(self):
+        """Each worker holds a model call that may run its own tool loop; an
+        unbounded pool would blow a rate-limit window in seconds."""
+        import stages.reflection_reviews as r
+        self.assertLessEqual(r._review_concurrency(), 16)
+        self.assertGreaterEqual(r._review_concurrency(), 1)
+
+    def test_a_single_survivor_does_not_spin_up_a_pool(self):
+        import stages.reflection_reviews as r
+        self.assertEqual(
+            r._review_pool_concurrently("rid", [{"id": "h1"}], lambda h: {"id": h["id"]}),
+            [{"id": "h1"}])
+
+    def test_rounds_defaults_to_one(self):
+        """A second round re-runs the whole reflection chain over the whole pool
+        — it doubles the most expensive thing in the system and must be chosen."""
+        import stages.stage1_ideation as s1
+        self.assertEqual(s1._rounds_default(), 1)
+
+    def test_rounds_is_overridable_and_capped(self):
+        import os
+        from unittest.mock import patch
+        import stages.stage1_ideation as s1
+        with patch.dict(os.environ, {"RESEARCH_IDEATION_ROUNDS": "2"}):
+            self.assertEqual(s1._rounds_default(), 2)
+        with patch.dict(os.environ, {"RESEARCH_IDEATION_ROUNDS": "99"}):
+            self.assertLessEqual(s1._rounds_default(), 4)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -601,7 +601,7 @@ class ControllerTest(TmpRunDirTest):
 
     def test_two_rounds_canonical_files_rounds_json_and_feedback(self):
         baton, captured = self._run(
-            [pool_of(["round one claim"]), pool_of(["round two claim"])]
+            [pool_of(["round one claim"]), pool_of(["round two claim"])], rounds=2
         )
 
         # canonical stage1 files == the LAST successful round's
@@ -658,7 +658,8 @@ class ControllerTest(TmpRunDirTest):
     def test_round2_receives_resolved_state_and_trivial_marker_replaces_stale(self):
         # round 1: k=2 -> a real tournament (fake judges); round 2: k=1
         baton, captured = self._run(
-            [
+            rounds=2,
+            round_pools=[
                 pool_of(["alpha claim about vortex scaling", "beta claim about corner eddies"]),
                 pool_of(["round two claim"]),
             ]
@@ -694,7 +695,7 @@ class ControllerTest(TmpRunDirTest):
         )
         baton, captured = self._run(
             [pool_of(["round one claim"]), pool_of(["round two claim"])],
-            reflect_raises={2: boom},
+            reflect_raises={2: boom}, rounds=2,
         )
         # stands on round 1
         self.assertEqual(baton.payload["hypotheses"][0]["statement"], "round one claim")
@@ -724,7 +725,7 @@ class ControllerTest(TmpRunDirTest):
         with self.assertRaises(RuntimeError):
             self._run(
                 [pool_of(["round one claim"]), pool_of(["round two claim"])],
-                reflect_raises={2: boom},
+                reflect_raises={2: boom}, rounds=2,
             )
 
     def test_survivor_count_cap_terminates_early(self):
@@ -749,7 +750,11 @@ class ControllerTest(TmpRunDirTest):
         self.assertEqual(len(baton.history), 1)
 
     def test_rounds_default_constant(self):
-        self.assertEqual(stage1_ideation.ROUNDS, 2)
+        # CHANGED 2026-07-27: the default is 1. A second round re-runs the WHOLE
+        # reflection chain over the whole pool, doubling the most expensive thing
+        # in the system — live, it was heading for eight hours of ideation before
+        # a single experiment ran. Two rounds must be CHOSEN.
+        self.assertEqual(stage1_ideation.ROUNDS, 1)
         self.assertIsNone(
             inspect.signature(stage1_ideation.run).parameters["rounds"].default
         )
