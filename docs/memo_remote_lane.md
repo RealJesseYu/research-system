@@ -204,7 +204,32 @@ Python and still deserializes. Two interpreters, one container, each doing the
 job it can do. Proven: a job asking for 3.12 reported `sys.version_info.minor ==
 12` from a 3.14 client.
 
-## 10. Open watches
+## 10. Structure prediction: which models actually run (2026-07-27)
+
+Three tried, on the same lane, same GPU, same day. All spend under $2 total.
+
+| Model | Status | Evidence |
+|---|---|---|
+| **ESMFold** | **WORKS** | ubiquitin, mean pLDDT 0.905, 109 s, $0.042 — **CA-RMSD 0.834 Å** vs the 1UBQ crystal structure |
+| **Chai-1** | **WORKS** | 5 structures, 154 s — **CA-RMSD 1.665 Å** vs the same crystal structure |
+| **Boltz-2** | does not run | reaches a `boltz` / `cuequivariance-ops` version skew (§8) |
+
+Both working models were validated the same honest way: the fold is a remote
+INPUT, and the number of record is a **local** Kabsch superposition against an
+experimental structure, computed in the atomistic shelf and **reproduced through
+the wall**. Sub-Ångström for ESMFold and 1.7 Å for Chai-1 are both good folds of
+a small, well-determined protein — and the comparison is only meaningful because
+the *check* is verifiable even though the *fold* is not.
+
+Chai-1 needed one adjustment worth recording: its 5.7 GB ESM-embedding download
+broke mid-transfer (`IncompleteRead`, 1.6 GB of 5.7 GB). Running with
+`use_esm_embeddings=False` avoids that download entirely, at some cost in
+accuracy — which may be part of why its RMSD is twice ESMFold's here. A retry
+with embeddings enabled is the obvious follow-up, not a blocker.
+
+**OpenFold3 is on PyPI and untried.**
+
+## 11. Open watches
 - **The template ships the caller's code to third-party hardware.** That is
   inherent to renting compute and worth stating plainly rather than burying:
   anything in a remote job's code or input files leaves this machine.
