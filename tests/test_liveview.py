@@ -553,3 +553,103 @@ def test_web_snapshot_matches_the_reader(server, tree):
     assert served["root"]["phase"] == direct["root"]["phase"]
     assert served["totals"] == direct["totals"]
     assert len(served["events"]) == len(direct["events"])
+
+
+# ---------------------------------------------------------------------------
+# follow: print each thing ONCE.
+#
+# THE COMPLAINT: "i keep getting the same damn message over and over again, i
+# want it ONCE and i want to see what its actually doing."
+#
+# Two bugs behind it. The dashboard repainted every tick; a first fix compared
+# the RENDERED STRING, which carries a live clock in its header, so it differed
+# every tick and repainted anyway. And the shape was wrong regardless — a study
+# is quiet for minutes at a time, so what a watcher wants is a log of what
+# happened, not a picture that redraws. Change is now detected from the study's
+# own state (decision seq, arc seq, health), never from rendered text.
+# ---------------------------------------------------------------------------
+
+def _follow_snap(decisions=(), arc=(), state="running"):
+    return {"active": {"exists": True, "study_id": "s1", "mode": "auto",
+                       "goal": "g", "decisions": list(decisions), "arc": list(arc)},
+            "health": {"state": state, "headline": "done", "detail": "d"}}
+
+
+def _follower():
+    from liveview.follow import Follower
+    return Follower(color=False)
+
+
+def test_the_same_snapshot_twice_prints_nothing_the_second_time():
+    f = _follower()
+    snap = _follow_snap(decisions=[{"seq": 1, "action": "call_ideation", "reasoning": "why"}])
+    assert f.events(snap)
+    assert f.events(snap) == []
+    assert f.events(snap) == []
+
+
+def test_a_clock_in_the_data_cannot_cause_a_reprint():
+    """The exact defect: comparing rendered text let a header timestamp defeat
+    change detection."""
+    f = _follower()
+    snap = _follow_snap(decisions=[{"seq": 1, "action": "stop", "reasoning": "done"}])
+    f.events(snap)
+    snap2 = dict(snap, at="a-different-timestamp")
+    assert f.events(snap2) == []
+
+
+def test_a_new_decision_prints_the_action_and_the_reasoning():
+    """'i want to see what its actually doing' — the director's own words."""
+    f = _follower()
+    f.events(_follow_snap())
+    out = "\n".join(f.events(_follow_snap(decisions=[
+        {"seq": 1, "action": "run_experiment", "reasoning": "probe cheaply",
+         "reading": "the last move showed X", "domain": "measure Y"}])))
+    assert "run_experiment" in out
+    assert "probe cheaply" in out
+    assert "the last move showed X" in out
+    assert "measure Y" in out
+
+
+def test_ideation_hypotheses_are_shown():
+    f = _follower()
+    out = "\n".join(f.events(_follow_snap(arc=[
+        {"seq": 1, "move_type": "call_ideation", "succeeded": True,
+         "hypotheses": ["replace the pile-capacity chart"]}])))
+    assert "replace the pile-capacity chart" in out
+
+
+def test_verified_counts_ride_a_finished_move():
+    f = _follower()
+    out = "\n".join(f.events(_follow_snap(arc=[
+        {"seq": 1, "move_type": "single", "succeeded": True,
+         "results_verified": 8, "results_total": 9}])))
+    assert "8/9 verified" in out
+
+
+def test_a_blocker_is_announced_once_with_the_human_action():
+    f = _follower()
+    snap = _follow_snap(arc=[{"seq": 1, "move_type": "single", "succeeded": True,
+                       "blocked_on": [{"need": "the licensed dataset",
+                                       "human_action": "download it to data/"}]}])
+    out = "\n".join(f.events(snap))
+    assert "BLOCKED" in out and "download it to data/" in out
+    assert f.events(snap) == []
+
+
+def test_an_incomplete_decision_waits_until_it_is_whole():
+    """Decision files can be caught mid-write; printing a torn one and then
+    reprinting it whole would be exactly the duplication complained about."""
+    f = _follower()
+    torn = _follow_snap(decisions=[{"seq": 1, "action": "stop", "incomplete": True}])
+    assert [l for l in f.events(torn) if "decision 1" in l] == []
+    whole = _follow_snap(decisions=[{"seq": 1, "action": "stop", "reasoning": "done"}])
+    assert [l for l in f.events(whole) if "decision 1" in l]
+
+
+def test_the_end_is_announced_once():
+    f = _follower()
+    f.events(_follow_snap())
+    done = _follow_snap(state="ended-well")
+    assert f.events(done)
+    assert f.events(done) == []

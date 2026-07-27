@@ -74,6 +74,20 @@ def main(argv: list | None = None) -> int:
               open_browser=not args.no_browser)
         return 0
 
+    # THE EVENT LOG IS THE DEFAULT. A study is quiet for minutes at a time, so a
+    # repainting dashboard tells a watcher nothing and reads as the same message
+    # over and over. --dashboard and --once keep the old picture.
+    if not args.dashboard and not args.once:
+        from liveview.follow import follow
+
+        return follow(
+            args.study,
+            interval=args.interval,
+            color=not args.no_color,
+            studies_root=studies_root,
+            runs_root=runs_root,
+        )
+
     return watch(
         args.study,
         interval=args.interval,
