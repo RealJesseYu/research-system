@@ -161,7 +161,50 @@ refusal `ALLOWED_SUBSTRATES` already makes.
 
 Live: a real remote job passed the gate, billed $0.0002, and left $99.9998.
 
-## 8. Open watches
+## 8. First real model folded (2026-07-27), and what it cost to learn
+
+**ESMFold folded ubiquitin remotely**: mean pLDDT **0.905**, 109 s on an A10G,
+**$0.042**. The 48 KB structure came back as a file — an input, caveated, never
+claimed. Then the pattern closed: a self-contained local artifact carrying the
+CA coordinates inline computed **CA-RMSD 0.834 Å against the experimental 1UBQ
+crystal structure** and **radius of gyration 11.41 Å**, and BOTH reproduced
+through the wall. Sub-Ångström backbone accuracy, verified, on a laptop with no
+GPU.
+
+**Boltz-2 was tried first and does not yet run.** Recorded because the failures
+were each different and only two of them were ours:
+
+| Attempt | Failure | Whose |
+|---|---|---|
+| 1 | `FileNotFoundError: 'boltz'` | **ours** — a pip console script lives in the job venv's `bin`, which was not on PATH. Fixed in the runner for every job. |
+| 2–3 | job exited 0 having written nothing | external — `api.colabfold.com` (the MSA server) timed out. Answered by single-sequence mode, which removes the dependency. |
+| 4 | `ModuleNotFoundError: cuequivariance_torch` | upstream — Boltz needs NVIDIA's kernels, i.e. the `[cuda]` extra. |
+| 5 | `triangle_attention() got an unexpected keyword argument 'kv_lengths'` | upstream — a version skew between `boltz` and `cuequivariance-ops`. Unresolved. |
+
+Boltz-2 is therefore **not available**, pending a compatible kernel pin. Nothing
+about that is a lane defect: weights downloaded, the GPU computed, the model
+loaded and its layers executed. Total spend across every attempt including the
+successful fold: **under $1**.
+
+Two wrapper bugs were found only by running for real, and both are now fixed and
+tested — the PATH one above, and the Python-version decoupling below.
+
+## 9. The job's interpreter is not the entry point's
+
+Modal ships the entry point as a serialized closure and refuses a Python version
+mismatch, which pins the IMAGE to the client's version — 3.14 here. A great deal
+of scientific software has not caught up: Boltz caps at `<3.13`, aizynthfinder
+has no 3.14 distribution. A lane whose whole purpose is reaching tools this
+machine cannot run must not inherit this machine's Python as a second,
+accidental limit.
+
+So a job may now declare `python_version`, and `uv` builds a separate venv at
+that version for the job's packages while the entry point stays on the image's
+Python and still deserializes. Two interpreters, one container, each doing the
+job it can do. Proven: a job asking for 3.12 reported `sys.version_info.minor ==
+12` from a 3.14 client.
+
+## 10. Open watches
 - **The template ships the caller's code to third-party hardware.** That is
   inherent to renting compute and worth stating plainly rather than burying:
   anything in a remote job's code or input files leaves this machine.

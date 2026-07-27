@@ -67,7 +67,7 @@ RESULT_NAME = "result.json"
 
 _REQUIRED_FIELDS = ("code",)
 _OPTIONAL_FIELDS = ("gpu", "pip", "apt", "input_files", "output_files",
-                    "timeout_s", "app_name")
+                    "timeout_s", "app_name", "python_version")
 
 # Modal's GPU names. An allowlist, so a typo is refused before it becomes a
 # billing surprise on hardware nobody meant to rent.
@@ -138,6 +138,13 @@ def _validate_input(spec: dict) -> dict:
             raise RemoteJobInputError(
                 f"output file {name!r} must be a bare filename (no path parts)")
 
+    pyver = spec.get("python_version")
+    if pyver is not None:
+        if not (isinstance(pyver, str) and pyver.count(".") == 1
+                and all(part.isdigit() for part in pyver.split("."))):
+            raise RemoteJobInputError(
+                f"'python_version' must look like '3.12', got {pyver!r}")
+
     timeout = spec.get("timeout_s", DEFAULT_TIMEOUT_S)
     try:
         timeout = int(timeout)
@@ -156,6 +163,7 @@ def _validate_input(spec: dict) -> dict:
         "output_files": list(spec.get("output_files") or []),
         "timeout_s": timeout,
         "app_name": spec.get("app_name") or "research-system-remote",
+        "python_version": pyver,
     }
 
 
@@ -171,12 +179,20 @@ def _is_bare_name(name) -> bool:
 _REMOTE_RUNNER = r'''
 import json, os, pathlib, subprocess, sys, traceback
 
-def main(code, input_files, output_files):
+def main(code, input_files, output_files, job_python=None):
     work = pathlib.Path("/work"); work.mkdir(exist_ok=True); os.chdir(work)
     for name, data in (input_files or {}).items():
         (work / name).write_bytes(data)
     (work / "job.py").write_text(code)
-    proc = subprocess.run([sys.executable, "job.py"], capture_output=True, text=True)
+    interp = job_python if (job_python and pathlib.Path(job_python).exists()) else sys.executable
+    # A pip-installed CONSOLE SCRIPT must be callable by name. When the job runs
+    # on its own interpreter, that interpreter's bin/ holds the entry points its
+    # packages installed (boltz, vina, ...) and is NOT on PATH, so a job calling
+    # its own tool by name would fail with FileNotFoundError even though the
+    # package installed perfectly.
+    env = dict(os.environ)
+    env["PATH"] = str(pathlib.Path(interp).parent) + os.pathsep + env.get("PATH", "")
+    proc = subprocess.run([interp, "job.py"], capture_output=True, text=True, env=env)
     metrics = {}
     result_path = work / "result.json"
     if result_path.is_file():
@@ -217,7 +233,28 @@ def _dispatch_modal(clean: dict) -> dict:
         python_version=f"{sys.version_info.major}.{sys.version_info.minor}")
     if clean["apt"]:
         image = image.apt_install(*clean["apt"])
-    if clean["pip"]:
+    # THE JOB'S INTERPRETER IS NOT THE ENTRY POINT'S (2026-07-27). Modal ships
+    # the entry point as a serialized closure and refuses a Python-version
+    # mismatch, which pins the IMAGE to this process's version — 3.14 today. A
+    # great deal of scientific software does not support 3.14 yet (boltz caps at
+    # <3.13; aizynthfinder has no 3.14 distribution), and a lane whose whole
+    # purpose is reaching tools this machine cannot run must not inherit this
+    # machine's Python as a second, accidental limit.
+    #
+    # So when a job asks for a version, uv builds a SEPARATE venv at that
+    # version and the job's packages go there; the entry point still runs on the
+    # image's Python and still deserializes cleanly. Two interpreters, one
+    # container, each doing the job it can do.
+    job_python = None
+    if clean["python_version"]:
+        job_python = "/jobenv/bin/python"
+        image = image.pip_install("uv").run_commands(
+            f"uv venv --python {clean['python_version']} /jobenv")
+        if clean["pip"]:
+            image = image.run_commands(
+                "uv pip install --python /jobenv/bin/python "
+                + " ".join(f"'{pkg}'" for pkg in clean["pip"]))
+    elif clean["pip"]:
         image = image.pip_install(*clean["pip"])
 
     app = modal.App(clean["app_name"])
@@ -226,7 +263,7 @@ def _dispatch_modal(clean: dict) -> dict:
     try:
         with app.run():
             return fn.remote(clean["code"], clean["input_files"],
-                             clean["output_files"])
+                             clean["output_files"], job_python)
     except Exception as e:  # noqa: BLE001 — auth/transport/quota all land here
         raise RemoteJobUnavailable(f"{type(e).__name__}: {e}") from e
 

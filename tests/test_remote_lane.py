@@ -116,6 +116,35 @@ class TestInputJail(unittest.TestCase):
             self.assertIn(expect, out["diagnostics"])
 
 
+class TestTheJobInterpreterIsNotTheEntryPoints(unittest.TestCase):
+    """Modal ships the entry point as a serialized closure and refuses a Python
+    version mismatch, which pins the IMAGE to the client's version. A lane whose
+    purpose is reaching tools this machine cannot run must not inherit this
+    machine's Python as a second, accidental limit — Boltz caps at <3.13 and
+    aizynthfinder has no 3.14 distribution, and the venv is on 3.14."""
+
+    def test_a_version_is_accepted_and_carried(self):
+        clean = remote._validate_input({"code": "x", "python_version": "3.12"})
+        self.assertEqual(clean["python_version"], "3.12")
+
+    def test_absent_means_the_image_python(self):
+        self.assertIsNone(remote._validate_input({"code": "x"})["python_version"])
+
+    def test_a_malformed_version_is_refused(self):
+        for bad in ("3", "three.twelve", "3.12.1", 312):
+            out = remote.run_remote_job({"code": "x", "python_version": bad},
+                                        dispatch=_ok())
+            self.assertFalse(out["valid"], bad)
+            self.assertIn("python_version", out["diagnostics"])
+
+    def test_the_runner_puts_the_job_interpreter_on_PATH(self):
+        # A pip-installed CONSOLE SCRIPT must be callable by name. Without this
+        # a job whose package installed perfectly dies with FileNotFoundError —
+        # which is exactly how the first live Boltz run failed.
+        self.assertIn("env[\"PATH\"]", remote._REMOTE_RUNNER)
+        self.assertIn("pathlib.Path(interp).parent", remote._REMOTE_RUNNER)
+
+
 class TestRemoteResultsCannotBecomeClaims(unittest.TestCase):
     """R-REMOTE-1, enforced by absence. These are the tests that matter."""
 
