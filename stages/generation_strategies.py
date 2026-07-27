@@ -564,12 +564,15 @@ def gather_literature_evidence(run_id: str, domain: str, run_dir: Path) -> list[
     (run_dir / "retrieved_literature.json").write_text(json.dumps(evidence, indent=2))
     _log(
         run_id,
+        # The keyword APIs were RETIRED (2977ce0) — they are not called at all,
+        # and this line used to render their retired-marker as "error", which
+        # read as four failed lookups when nothing had run. Report what is
+        # actually true: a local pre-fetch, and agents that search for
+        # themselves.
         f"STAGE1_RETRIEVAL corpus={len(corpus_records)} "
-        f"openalex={len(openalex_records)} "
-        f"arxiv={len(arxiv_records) if isinstance(arxiv_evidence, list) else 'error'} "
-        f"s2={len(s2_records) if isinstance(s2_evidence, list) else 'error'} "
-        f"web={len(web_records) if isinstance(web_evidence, list) else 'error'} "
-        f"-> {len(combined_refs)} combined refs",
+        f"-> {len(combined_refs)} pre-fetched refs "
+        f"(keyword APIs retired; the generation and review agents search the "
+        f"web themselves)",
     )
     return combined_refs
 

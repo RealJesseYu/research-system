@@ -517,11 +517,10 @@ def gather_review_refs(run_id: str, hypothesis: dict) -> tuple[list[dict], dict]
     _log(
         run_id,
         f"STAGE1_REFLECTION_RETRIEVAL {hypothesis['id']} corpus={len(corpus_records)} "
-        f"openalex={len(openalex_records)} "
-        f"arxiv={len(arxiv_records) if isinstance(arxiv_evidence, list) else 'error'} "
-        f"s2={len(s2_records) if isinstance(s2_evidence, list) else 'error'} "
-        f"web={len(web_records) if isinstance(web_evidence, list) else 'error'} "
-        f"-> {len(combined_refs)} combined refs",
+        # Retired sources rendered as "error" here too — nothing ran, nothing
+        # failed. See the note in generation_strategies' equivalent line.
+        f"(keyword APIs retired; the reviewer searches the web itself) "
+        f"-> {len(combined_refs)} pre-fetched refs",
     )
     return combined_refs, evidence
 
