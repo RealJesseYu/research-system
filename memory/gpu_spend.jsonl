@@ -156,3 +156,10 @@
 {"ts": 1785167704.6603131, "gpu": "cpu", "seconds": 0.0, "usd": 0.0, "rate_usd_per_hour": 0.2, "run_id": null, "note": "estimated from a rounded-up published rate, not a bill"}
 {"ts": 1785167704.6615748, "gpu": "cpu", "seconds": 0.0, "usd": 0.0, "rate_usd_per_hour": 0.2, "run_id": null, "note": "estimated from a rounded-up published rate, not a bill"}
 {"ts": 1785167704.664811, "gpu": "cpu", "seconds": 0.0, "usd": 0.0, "rate_usd_per_hour": 0.2, "run_id": null, "note": "estimated from a rounded-up published rate, not a bill"}
+{"ts": 1785167841.441053, "gpu": "A10G", "seconds": 0.0, "usd": 0.0, "rate_usd_per_hour": 1.4, "run_id": null, "note": "estimated from a rounded-up published rate, not a bill"}
+{"ts": 1785167841.4419389, "gpu": "cpu", "seconds": 0.0, "usd": 0.0, "rate_usd_per_hour": 0.2, "run_id": null, "note": "estimated from a rounded-up published rate, not a bill"}
+{"ts": 1785167841.4424052, "gpu": "cpu", "seconds": 0.0, "usd": 0.0, "rate_usd_per_hour": 0.2, "run_id": null, "note": "estimated from a rounded-up published rate, not a bill"}
+{"ts": 1785167841.44288, "gpu": "cpu", "seconds": 0.0, "usd": 0.0, "rate_usd_per_hour": 0.2, "run_id": null, "note": "estimated from a rounded-up published rate, not a bill"}
+{"ts": 1785167841.4458501, "gpu": "cpu", "seconds": 0.0, "usd": 0.0, "rate_usd_per_hour": 0.2, "run_id": null, "note": "estimated from a rounded-up published rate, not a bill"}
+{"ts": 1785167841.447231, "gpu": "cpu", "seconds": 0.0, "usd": 0.0, "rate_usd_per_hour": 0.2, "run_id": null, "note": "estimated from a rounded-up published rate, not a bill"}
+{"ts": 1785167841.450422, "gpu": "cpu", "seconds": 0.0, "usd": 0.0, "rate_usd_per_hour": 0.2, "run_id": null, "note": "estimated from a rounded-up published rate, not a bill"}

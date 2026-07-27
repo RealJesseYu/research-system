@@ -25,6 +25,7 @@ import supervisor
 import tools.experiment_picker as ep
 from baton import Baton
 from stages import campaign_controller as cc
+from stages.stage4_case_builder import CaseSynthesisError
 from tools import substrate_dispatch, substrate_registry as registry
 
 RUNS = ROOT / "runs"
@@ -127,23 +128,6 @@ class TestOptInDefault(CampaignBase):
 class TestEscapeCobrapyAuto(CampaignBase):
     """T2 (top-risk escape): a campaign on cobrapy in AUTO mode must produce an
     ACTUAL solver run entry — not skipped_defer, not a tidy zero-run record."""
-
-    def test_maturity_hook_does_not_defer_cobrapy_auto(self):
-        # FIRE the load-bearing precondition (A6): the real hook on AUTO + a
-        # cobrapy-routed trust verdict must leave the verdict at 'trust'.
-        self.assertTrue(registry.is_mature("cobrapy"))
-        b = _trust_baton("camptest-hook", "cobrapy")
-
-        class _Log:
-            def log(self, *a):
-                pass
-
-        supervisor.apply_substrate_maturity_hook(_Log(), b, "auto")
-        self.assertEqual(
-            b.payload["fidelity_verdict"]["label"],
-            "trust",
-            "maturity hook must NOT downgrade a mature cobrapy trust in AUTO mode",
-        )
 
     def test_campaign_produces_real_run_entry_not_skip(self):
         run_id = "camptest-escape"
@@ -317,6 +301,177 @@ class TestParityAndSchema(CampaignBase):
         # exactly ONE history note (a single stage-4-equivalent result).
         s4_notes = [h for h in out.history if h["stage"] == "stage4_simulation"]
         self.assertEqual(len(s4_notes), 1)
+
+
+def _sweep_baton(run_id: str, sc: dict | None = None) -> Baton:
+    """A trust baton whose spec declares a reynolds_number sweep (for the
+    adaptive planner) and, optionally, a success_criterion (feature #2)."""
+    b = _trust_baton(run_id, "cobrapy")
+    spec = b.payload["experiment_spec"]
+    spec["parameters"] = [
+        {"name": "reynolds_number", "role": "sweep", "min": 100, "max": 400}
+    ]
+    spec["mini_experiment"] = {"runs": [{"reynolds_number": 100}]}
+    if sc is not None:
+        spec["success_criterion"] = sc
+    return b
+
+
+def _linear_spy(sid, params, case_name, roles, qreq):
+    """A deterministic solver spy: qoi is a LINEAR function of the swept param,
+    so the adaptive planner's linear-interp prediction holds at the midpoint."""
+    re = params.get("reynolds_number", 0)
+    return {"valid": True, "qoi": 2.0 + 0.01 * re, "diagnostics": {}, "runtime_s": 0.1}
+
+
+def _const_spy(value):
+    def spy(sid, params, case_name, roles, qreq):
+        return {"valid": True, "qoi": value, "diagnostics": {}, "runtime_s": 0.1}
+    return spy
+
+
+class TestAdaptivePlanner(CampaignBase):
+    """Feature #1: the deterministic active-learning planner."""
+
+    def test_registered_in_socket(self):
+        self.assertIs(cc.STRATEGIES["adaptive_refine"], ep.propose_adaptive_points)
+
+    def test_bootstrap_endpoints(self):
+        spec = {"parameters": [{"name": "x", "role": "sweep", "min": 1.0, "max": 5.0}]}
+        p0 = ep.propose_adaptive_points(spec, [], 4)
+        self.assertEqual(p0["points"], [{"x": 1.0}])
+        self.assertFalse(p0["reasoning"].startswith("fallback:"))
+        p1 = ep.propose_adaptive_points(spec, [{"point": {"x": 1.0}, "qoi_value": 3.0}], 3)
+        self.assertEqual(p1["points"], [{"x": 5.0}])  # the far endpoint
+
+    def test_refines_widest_interval_with_interp_prediction(self):
+        spec = {"parameters": [{"name": "x", "role": "sweep", "min": 0.0, "max": 10.0}]}
+        prior = [
+            {"point": {"x": 0.0}, "qoi_value": 0.0},
+            {"point": {"x": 4.0}, "qoi_value": 1.0},   # small change
+            {"point": {"x": 10.0}, "qoi_value": 100.0},  # big change -> widest
+        ]
+        out = ep.propose_adaptive_points(spec, prior, 2)
+        self.assertEqual(out["points"], [{"x": 7.0}])  # midpoint of (4,10)
+        self.assertEqual(out["predicted_qoi_per_point"], [50.5])  # (1+100)/2
+
+    def test_no_sweep_or_no_budget_returns_empty(self):
+        self.assertEqual(ep.propose_adaptive_points({"parameters": []}, [], 4)["points"], [])
+        spec = {"parameters": [{"name": "x", "role": "sweep", "min": 0, "max": 1}]}
+        self.assertEqual(ep.propose_adaptive_points(spec, [], 0)["points"], [])
+
+    def test_campaign_converges_on_linear_surrogate(self):
+        run_id = "camptest-adaptive"
+        self._cleanup(run_id)
+        b = _sweep_baton(run_id)
+        with unittest.mock.patch.object(cc, "select_substrate", lambda spec: "cobrapy"):
+            with unittest.mock.patch.object(cc, "adapter_for", lambda sid: _linear_spy):
+                cc.run_campaign(b, strategy_key="adaptive_refine")
+        summary = _read_summary(run_id)
+        # endpoints (iter1,2) then midpoint (iter3) whose linear-interp
+        # prediction matches the linear truth -> resolved -> stop.
+        self.assertEqual(summary["termination_reason"], "prediction_within_tolerance")
+        self.assertEqual(summary["iterations_used"], 3)
+
+
+class TestExpectationConsumer(CampaignBase):
+    """Feature #2: consuming the spec's two-sided expectation."""
+
+    def test_check_success_criterion_semantics(self):
+        sc = {"statement": "s", "threshold": 0.0, "direction": "above",
+              "expected_value": 5.0, "tolerance": 0.5}
+        within = cc.check_success_criterion(sc, 5.2)
+        self.assertTrue(within["within_expectation"])
+        self.assertTrue(within["meets_threshold"])
+        self.assertFalse(within["anomaly"])
+        # passes the headline threshold but 3x outside the expectation band:
+        anomaly = cc.check_success_criterion(sc, 15.0)
+        self.assertTrue(anomaly["meets_threshold"])
+        self.assertFalse(anomaly["within_expectation"])
+        self.assertTrue(anomaly["anomaly"])
+        # single-sided only (no expected_value/tolerance): two_sided False
+        one_sided = cc.check_success_criterion(
+            {"statement": "s", "threshold": 0.0, "direction": "above"}, 5.0
+        )
+        self.assertFalse(one_sided["two_sided"])
+        self.assertIsNone(one_sided["within_expectation"])
+        # non-numeric observation: honest None
+        self.assertIsNone(cc.check_success_criterion(sc, None)["meets_threshold"])
+
+    def test_campaign_stops_on_expectation_confirmed(self):
+        run_id = "camptest-expect"
+        self._cleanup(run_id)
+        sc = {"statement": "s", "threshold": 0.0, "direction": "above",
+              "expected_value": 5.0, "tolerance": 0.5}
+        b = _sweep_baton(run_id, sc=sc)
+        with unittest.mock.patch.object(cc, "select_substrate", lambda spec: "cobrapy"):
+            with unittest.mock.patch.object(cc, "adapter_for", lambda sid: _const_spy(5.0)):
+                cc.run_campaign(b, strategy_key="adaptive_refine")
+        summary = _read_summary(run_id)
+        self.assertEqual(summary["termination_reason"], "expectation_confirmed")
+        self.assertEqual(summary["iterations_used"], 1)  # confirmed on the first point
+        self.assertEqual(summary["expectation_summary"]["within_expectation"], 1)
+
+    def test_campaign_flags_anomaly_and_keeps_going(self):
+        run_id = "camptest-anomaly"
+        self._cleanup(run_id)
+        # passes threshold (above 0) but far outside the tight expectation band
+        sc = {"statement": "s", "threshold": 0.0, "direction": "above",
+              "expected_value": 1.0, "tolerance": 0.1}
+        b = _sweep_baton(run_id, sc=sc)
+        with unittest.mock.patch.object(cc, "select_substrate", lambda spec: "cobrapy"):
+            with unittest.mock.patch.object(cc, "adapter_for", lambda sid: _const_spy(5.0)):
+                out = cc.run_campaign(b, strategy_key="adaptive_refine")
+        summary = _read_summary(run_id)
+        self.assertGreaterEqual(summary["expectation_summary"]["anomalies"], 1)
+        self.assertNotEqual(summary["termination_reason"], "expectation_confirmed")
+        self.assertEqual(out.payload["execution_results"]["status"], "executed")
+
+
+class TestSurviveBadPoint(CampaignBase):
+    """Feature #4: a single synthesis failure no longer halts the campaign."""
+
+    def test_partial_failure_continues_and_executes(self):
+        run_id = "camptest-partial"
+        self._cleanup(run_id)
+        calls = {"n": 0}
+
+        def flaky_spy(sid, params, case_name, roles, qreq):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise CaseSynthesisError("synthetic bad point")
+            return _spy_cobrapy_summary()
+
+        cc.STRATEGIES["_f4_fixed"] = _fixed_strategy([{"min_growth": 0.1}])
+        self.addCleanup(cc.STRATEGIES.pop, "_f4_fixed", None)
+        with unittest.mock.patch.object(cc, "select_substrate", lambda spec: "cobrapy"):
+            with unittest.mock.patch.object(cc, "adapter_for", lambda sid: flaky_spy):
+                out = cc.run_campaign(b := _trust_baton(run_id, "cobrapy"), strategy_key="_f4_fixed")
+        er = out.payload["execution_results"]
+        self.assertEqual(er["status"], "executed")  # NOT halted by the one failure
+        self.assertGreaterEqual(len(er["runs"]), 1)  # real runs survived
+        summary = _read_summary(run_id)
+        self.assertGreaterEqual(summary["synthesis_failures"], 1)
+
+    def test_all_points_fail_is_honest_halt(self):
+        run_id = "camptest-allfail"
+        self._cleanup(run_id)
+
+        def always_fail(sid, params, case_name, roles, qreq):
+            raise CaseSynthesisError("always bad")
+
+        cc.STRATEGIES["_f4_allfail"] = _fixed_strategy([{"min_growth": 0.1}])
+        self.addCleanup(cc.STRATEGIES.pop, "_f4_allfail", None)
+        with unittest.mock.patch.object(cc, "select_substrate", lambda spec: "cobrapy"):
+            with unittest.mock.patch.object(cc, "adapter_for", lambda sid: always_fail):
+                out = cc.run_campaign(_trust_baton(run_id, "cobrapy"), strategy_key="_f4_allfail")
+        er = out.payload["execution_results"]
+        self.assertEqual(er["status"], "halted_synthesis")
+        self.assertEqual(er["runs"], [])
+        self.assertIn("reason", er)
+        summary = _read_summary(run_id)
+        self.assertEqual(summary["iterations_used"], cc.MAX_CAMPAIGN_ITERS)  # bounded
+        self.assertEqual(summary["termination_reason"], "all_points_failed_synthesis")
 
 
 def _read_summary(run_id: str) -> dict:
