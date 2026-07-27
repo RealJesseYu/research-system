@@ -227,5 +227,33 @@ class TestInstrumentMenuIsNotTheBoundary(unittest.TestCase):
         self.assertIn("fixed rulebook", n)
 
 
+class TestTheLastCagedPrompts(unittest.TestCase):
+    """#16. Only the literature generator and the novelty review were freed
+    initially; these are the rest. assumptions_identification and
+    research_expansion were never snippet-framed (the first reasons
+    conditionally, the second reviews the pool), so there was nothing to uncage
+    there — the real list was shorter than the task described."""
+
+    def test_the_debate_personas_may_search(self):
+        from stages.generation_strategies import DEBATE_SYSTEM_PROMPT as p
+        self.assertIn("SEARCH THE WEB YOURSELF", p)
+        self.assertIn("not the boundary of the", p)
+
+    def test_the_observation_review_finds_its_own_observations(self):
+        """A hypothesis is interesting when it explains something real the
+        accepted account handles badly — undecidable from a keyword pre-fetch."""
+        from stages.reflection_reviews import OBSERVATION_REVIEW_SYSTEM_PROMPT as p
+        self.assertIn("FIND THE OBSERVATIONS YOURSELF", p)
+        self.assertIn("Cite each observation so a human can find it", p)
+
+    def test_the_simulation_review_may_actually_compute(self):
+        """It was told to simulate 'mentally' while holding Bash. It had already
+        started running code on its own initiative in live runs."""
+        from stages.reflection_reviews import SIMULATION_REVIEW_SYSTEM_PROMPT as p
+        self.assertIn("YOU DO NOT HAVE TO DO THIS IN YOUR HEAD", p)
+        self.assertIn("worth more than one you imagined", p)
+        self.assertNotIn("Mentally simulate", p)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
