@@ -50,6 +50,11 @@ class TestRegistryTable(unittest.TestCase):
                 # just before web_search (web_search stays last, outside the
                 # routable ladder).
                 "python_experiment",
+                # Connector bridge (R-MCP-1, 2026-07-26): the deterministic
+                # door onto a configured MCP connector, enrolled so
+                # verification can re-run a connector call. Unroutable by
+                # ruling; also just before web_search.
+                "mcp_connector",
                 "web_search",
             ],
         )

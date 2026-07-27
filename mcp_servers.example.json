@@ -1,11 +1,22 @@
 {
-  "_comment": "Copy this to mcp_servers.json (gitignored) to give the FREE experimenter one or more MCP connectors. The map is exactly the SDK's mcp_servers argument: {\"<name>\": <McpServerConfig>}. Each configured server's tools are permitted to the free agent as mcp__<name>; the capability guard still vets every call, so a connector can never reach memory/, runs/, or credentials. Remove this file (or leave only mcp_servers.example.json) to run with no connectors — the default, byte-identical path.",
+  "_comment": "Copy this to mcp_servers.json (gitignored) to give the FREE experimenter one or more MCP connectors. Each entry is the SDK's McpServerConfig — stdio {type,command,args,env} or http/sse {type,url,headers} — plus this project's two optional `_`-prefixed keys, which are stripped before the map reaches the SDK. Entries whose NAME starts with '_' are comments and are ignored. Each configured server's tools are permitted to the free agent as mcp__<name>; the capability guard still vets every call, so a connector can never reach memory/, runs/, or credentials. Remove this file (or leave only mcp_servers.example.json) to run with no connectors — the default, byte-identical path. PATHS MUST BE ABSOLUTE: a connector is launched both by the agent, whose cwd is its per-run workspace, and by the deterministic verifier, which may run from anywhere.",
 
-  "_example_stdio_local_tool": {
+  "_comment_verifiable": "`_verifiable: true` is the ONE thing that lets a connector's answer become a KEPT number rather than an unverified caveat (docs/memo_connector_bridge.md, R-MCP-2). It is your assertion, as the operator, that this server is a DETERMINISTIC DATA SOURCE with no language model inside it — because a kept number is re-run through tools/run_mcp_tool.py at verification time, and verification purity forbids a model in that path. Leave it off for anything model-backed or agentic: the agent can still call the connector freely while it explores, and whatever it learns is reported as an honest unverified caveat.",
+
+  "pubchem": {
     "type": "stdio",
-    "command": "python",
-    "args": ["-m", "my_cad_mcp_server"],
-    "env": { "CAD_LICENSE": "..." }
+    "command": "/ABSOLUTE/PATH/TO/research-system/venv/bin/python3",
+    "args": ["/ABSOLUTE/PATH/TO/research-system/connectors/pubchem_mcp_server.py"],
+    "_verifiable": true,
+    "_description": "PubChem compound lookup — resolve a name/CID/SMILES to a structure (compound_identity) or read one curated/computed property (compound_property: MolecularWeight, TPSA, XLogP, HBondDonorCount, ...)"
+  },
+
+  "_example_third_party_stdio": {
+    "type": "stdio",
+    "command": "npx",
+    "args": ["-y", "@some-scope/some-mcp-server"],
+    "env": { "SOME_LICENSE": "${SOME_LICENSE}" },
+    "_description": "a third-party server works exactly the same way; ${VAR} is resolved from the environment (keep keys in .env, never here). No _verifiable key: reachable for exploration, cannot back a kept number."
   },
 
   "_example_http_remote_api": {

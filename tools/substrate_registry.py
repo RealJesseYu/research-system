@@ -554,6 +554,40 @@ _REGISTRY: tuple[SubstrateRecord, ...] = (
         ),
     ),
     SubstrateRecord(
+        substrate_id="mcp_connector",
+        wrapper="tools/run_mcp_tool.py",
+        card_path="docs/envelope_card_mcp_connector.md",
+        maturity=CALIBRATING,
+        routable=False,
+        cost_tier="minimal",
+        notes=(
+            "CONNECTOR BRIDGE enrollment (2026-07-26, R-MCP-1; "
+            "docs/memo_connector_bridge.md): the one substrate whose wrapper "
+            "calls an MCP connector from deterministic Python, so a connector "
+            "answer the free agent obtained can be RE-RUN by "
+            "stages/verification.py and therefore KEPT. Enrolled DELIBERATELY "
+            "unroutable: it has no calibration battery and no envelope card "
+            "beyond its skeleton, and it is not an instrument the static router "
+            "should ever pick — nothing is routed to it, and no adapter or "
+            "qoi-translation is wired, so stage-4 dispatch still refuses it "
+            "loudly. What IS wired is the run-entry constructor, because that "
+            "is what lets verification read a re-run summary mechanically "
+            "(R-MCP-3). LOOKUP-class: never-trusted-alone is PERMANENT — "
+            "re-running attests provenance, not correctness. Purity: a "
+            "connector may back a claim only when its mcp_servers.json block "
+            "declares \"_verifiable\": true, the operator's assertion that the "
+            "server is a deterministic data source rather than a model "
+            "(R-MCP-2); the wrapper refuses any other. Proven live 2026-07-26 "
+            "against a PubChem MCP server (connectors/pubchem_mcp_server.py): "
+            "caffeine MolecularWeight 194.19 re-runs exactly; the unconfigured/"
+            "undeclared/unreachable/tool-error/missing-path/non-numeric jails "
+            "all proven by triggering."
+        ),
+        # APPROXIMATE by the record's fail-safe default, and correctly so: an
+        # external record can be stale or simply wrong while looking perfect,
+        # which is exactly the confidently-wrong failure the exact class denies.
+    ),
+    SubstrateRecord(
         substrate_id="web_search",
         wrapper="tools/web_search_stub.py",
         card_path="docs/substrate_registry.md",

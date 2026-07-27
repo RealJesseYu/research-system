@@ -55,6 +55,25 @@ API key needed.
 Tests also require the venv's interpreter — run them as
 `venv/bin/python3 tests/<test_file>.py` (the system python lacks the SDK).
 
+## Connectors (MCP)
+
+Optional. Copy `mcp_servers.example.json` to `mcp_servers.json` (gitignored)
+and point it at any MCP server — stdio or http/sse. The free experimenter can
+then call that server's tools directly as `mcp__<server>__<tool>`. With no
+such file, every path is byte-identical to running without connectors.
+
+A bundled reference connector, `connectors/pubchem_mcp_server.py`, serves
+PubChem compound lookups (name/CID/SMILES → structure, or one curated
+property) and needs no API key.
+
+**To let a connector's answer become a KEPT number**, add `"_verifiable": true`
+to that server's block. That is your assertion, as the operator, that the server
+is a deterministic data source with no model inside it — because a kept number is
+re-run at verification time through `tools/run_mcp_tool.py`, and no model may
+enter that path. Without the declaration the connector still works for
+exploration; its results are reported as honest unverified caveats.
+Full setup and the reasoning: `docs/memo_connector_bridge.md`.
+
 ## Run it
 
 From this directory (`~/research-system`):
@@ -162,6 +181,29 @@ row halt the run (same bound as gate 1). Loop-backs re-run stages with
 gates live on every pass; re-entered stages write pass-suffixed snapshots
 (`baton_after_stage_N_pass2.json`, …) so every pass's evidence survives.
 
+## Watching a run while it happens
+
+A study runs unattended for hours and the terminal is a wall of lines from
+the director and every child subprocess at once. `liveview` is a separate
+READ-ONLY reader of the files a run already writes — start it, stop it, or
+restart it at any time; it cannot affect the run.
+
+```
+venv/bin/python -m liveview            # terminal view of the newest live study
+venv/bin/python -m liveview --web      # the same picture in a browser (localhost)
+venv/bin/python -m liveview --once     # one snapshot, scriptable (exit 1 if it died)
+venv/bin/python -m liveview --list     # what studies are on disk
+```
+
+It shows the current phase (which move is running, or that the director is
+thinking, descending into whichever sub-investigation is actually moving),
+the arc so far with sub-studies nested, the director's latest reading and
+reasoning in its own words, verified-vs-total claims, spend, and a failure
+ledger that separates **recorded** failures (written to the arc, read by the
+director on its next turn, study continues — a child's traceback is one of
+these) from the one **fatal** case: a director-level termination that
+actually ended the investigation. See `docs/liveview.md`.
+
 ## Where the output goes
 
 Each run creates `runs/<run_id>/`, named by a UTC timestamp — run-ids are
@@ -230,7 +272,9 @@ yet. `supervisor.py` never touches `retrieval/`.
 
 ## What is NOT built yet
 
-No MCP tools. Gate 2 still takes only y/n (gate 1 is pick-one-of-k;
+MCP connectors ARE wired (see "Connectors" above) — what is not built is
+MCP as the transport for the *internal* substrate wrappers, which are
+still direct Python calls. Gate 2 still takes only y/n (gate 1 is pick-one-of-k;
 gate 5 is the Step-16 accept/override/stop decision). Stages 1–5 are
 real — ideation on Sonnet with Opus ranking, experiment design on Sonnet
 (the spec validator also enforces that machine-readable qoi keys, when

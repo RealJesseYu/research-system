@@ -1141,6 +1141,18 @@ _RUN_ENTRY_CONSTRUCTORS: dict = {
     # scalar {valid, qoi, diagnostics, runtime_s} shape — the same scalar
     # run-entry as the bio trio (valid=False -> qoi_error, never a fabrication).
     "python_experiment": _fixed_summary_scalar_run_entry,
+    # mcp_connector (CONNECTOR BRIDGE, 2026-07-26, R-MCP-3;
+    # docs/memo_connector_bridge.md). THE ONE DEVIATION from "wired only
+    # alongside a routability ruling", and a deliberate one: this map is what
+    # lets stages/verification.py READ a re-run summary through the substrate's
+    # own reader instead of reaching for summary["qoi"] itself, so an unwired
+    # constructor would not keep the connector unrouted — it would make a
+    # connector-derived claim unverifiable. Routing authority is unaffected and
+    # unchanged: mcp_connector is routable=False with NO adapter and NO
+    # qoi-translation, so stage-4 dispatch still refuses it loudly by name.
+    # The summary shape is run_ngspice's exactly (scalar qoi), so the same
+    # constructor reads it — valid=False -> qoi_error, never a fabrication.
+    "mcp_connector": _fixed_summary_scalar_run_entry,
 }
 
 
