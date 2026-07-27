@@ -1003,11 +1003,148 @@ def recurrent_tournament_review(
 # separate agentic model calls, so this is the single biggest lever on ideation
 # cost — bigger than pool size, which is cheap to generate and expensive only
 # because everything generated was being deep-reviewed.
+# ---------------------------------------------------------------------------
+# SCRUTINY — deep verification + observation + simulation in ONE call.
+#
+# OWNER RULING 2026-07-27: "having 4 agentic calls for each hypothesis is a bit
+# weird. the whole point is to have more hypotheses, i'd rather reduce the
+# filtration part and get more hypotheses."
+#
+# Right, and the old shape was backwards. Generating hypotheses is CHEAP — seven
+# calls produce the whole pool, and the bulk triage reads all of them in ONE
+# call, so a pool of 100 costs barely more to screen than a pool of 25. What was
+# expensive was FOUR separate agentic sessions per surviving candidate, which
+# made breadth cost linearly and capped the pool at a size that defeated the
+# purpose.
+#
+# These three reviews all reason about the SAME hypothesis and, unlike the full
+# review, none of them needs literature retrieval — deep verification runs
+# without it by design (so an objection resting on a remembered value is
+# addressable, never a kill), and the other two reason from the hypothesis
+# itself. Three separate contexts bought separation that a single call with
+# three labelled sections gives just as well, at a third of the cost.
+#
+# The sub-shapes are UNCHANGED, so everything downstream — the deterministic
+# fundamental_flaw kill, addressable_notes, the evidence file — reads exactly
+# what it always did.
+# ---------------------------------------------------------------------------
+
+SCRUTINY_SYSTEM_PROMPT = (
+    "You are the scrutiny unit of the Reflection stage in an autonomous research "
+    "pipeline, examining ONE candidate hypothesis from three angles in a single "
+    "pass. Do all three; they are separate judgments and must not blur into each "
+    "other.\n\n"
+    "1. DEEP VERIFICATION. Decompose the hypothesis into its constituent "
+    "assumptions, break each into sub-assumptions, and evaluate each for "
+    "correctness. Identify anything that would invalidate it. Classify every "
+    "objection as FUNDAMENTAL (the core claim cannot survive it — this discards "
+    "the hypothesis) or ADDRESSABLE (a detail, or something the experiment "
+    "itself would resolve). You have no retrieved literature here, so an "
+    "objection resting on a remembered numeric value is by definition "
+    "ADDRESSABLE, never a kill.\n\n"
+    "2. OBSERVATIONS. Can this hypothesis account for observations that already "
+    "exist, and is it a SUPERIOR explanation for any of them than the accepted "
+    "account? You may search the web to find what has actually been measured in "
+    "this area — a hypothesis is interesting precisely when it explains "
+    "something real the accepted account handles badly, and you cannot tell that "
+    "without looking. Cite each observation so a human can find it.\n\n"
+    "3. SIMULATION. Walk the proposed mechanism step by step as it would unfold "
+    "in the experiment that would test it, and surface the concrete scenarios "
+    "where it fails. You can run code: where a quick calculation would settle "
+    "whether the mechanism behaves as claimed, write it and run it. A failure "
+    "scenario you demonstrated is worth more than one you imagined.\n\n"
+    "Reply ONLY with JSON of the form "
+    '{"ack_run_id": "<the run_id you were given>", '
+    '"hypothesis_id": "<the hypothesis id you were given>", '
+    '"deep_verification": {"assumptions": [{"assumption": "<one sentence>", '
+    '"sub_assumptions": ["<one sentence>", ...], "evaluation": "<correct, '
+    'uncertain, or wrong, and why>"}, ...], "invalidating_elements": '
+    '["<one sentence each>", ...], "addressable_notes": ["<one sentence each>", '
+    '...], "fundamental_flaw": <true|false>, "summary": "<one to three '
+    'sentences>"}, '
+    '"observation": {"relevant_observations": ["<one sentence each, naming where '
+    'it came from>", ...], "accounts_for": "yes" or "partially" or "no", '
+    '"assessment": "<one to three sentences>"}, '
+    '"simulation": {"mental_simulation": ["<one step each>", ...], '
+    '"failure_scenarios": ["<one sentence each>", ...], "assessment": "<one to '
+    'three sentences>"}}.'
+)
+
+
+def _validate_scrutiny(data: dict) -> list:
+    """Structural only: each section must carry the fields its consumers read.
+    The fundamental_flaw boolean is load-bearing — it drives a deterministic
+    discard — so it is required rather than defaulted."""
+    errors: list[str] = []
+    deep = data.get("deep_verification")
+    if not isinstance(deep, dict):
+        errors.append("'deep_verification' must be an object.")
+    else:
+        if not isinstance(deep.get("fundamental_flaw"), bool):
+            errors.append("deep_verification.fundamental_flaw must be true or false.")
+        if not str(deep.get("summary") or "").strip():
+            errors.append("deep_verification.summary must be a non-empty string.")
+        for key in ("assumptions", "invalidating_elements", "addressable_notes"):
+            if not isinstance(deep.get(key), list):
+                errors.append(f"deep_verification.{key} must be a list.")
+    obs = data.get("observation")
+    if not isinstance(obs, dict):
+        errors.append("'observation' must be an object.")
+    elif obs.get("accounts_for") not in ("yes", "partially", "no"):
+        errors.append("observation.accounts_for must be yes, partially or no.")
+    sim = data.get("simulation")
+    if not isinstance(sim, dict):
+        errors.append("'simulation' must be an object.")
+    else:
+        for key in ("mental_simulation", "failure_scenarios"):
+            if not isinstance(sim.get(key), list):
+                errors.append(f"simulation.{key} must be a list.")
+    return errors
+
+
+def scrutiny_review(run_id: str, domain: str, hypothesis: dict,
+                    memory_block: str | None = None,
+                    feedback_block: str | None = None) -> dict:
+    """One call replacing deep_verification + observation + simulation. Returns
+    the three sub-objects under their original keys, so every downstream reader
+    is untouched."""
+    stage_input = {
+        "run_id": run_id,
+        "domain": domain,
+        "hypothesis_id": hypothesis["id"],
+        "hypothesis_statement": hypothesis["statement"],
+        "hypothesis_rationale": hypothesis["rationale"],
+    }
+    if memory_block is not None:
+        stage_input["prior_observations"] = memory_block
+    if feedback_block is not None:
+        stage_input["meta_review_feedback"] = feedback_block
+
+    data, timing = call_stage_model(
+        f"stage1_reflection_scrutiny_{hypothesis['id']}",
+        SCRUTINY_SYSTEM_PROMPT,
+        stage_input,
+        {"required": ["ack_run_id", "hypothesis_id", "deep_verification",
+                      "observation", "simulation"]},
+        model=DEEP_VERIFY_MODEL,
+        extra_validator=_validate_scrutiny,
+        capabilities=FULL,
+    )
+    _check_ack(data, run_id, f"scrutiny {hypothesis['id']}")
+    _check_hypothesis_id(data, run_id, hypothesis["id"], f"scrutiny {hypothesis['id']}")
+    log_stage_call(run_id, f"stage1_reflection_scrutiny_{hypothesis['id']}", timing)
+    deep = dict(data["deep_verification"])
+    deep.setdefault("addressable_notes", [])
+    return {"deep_verification": deep,
+            "observation": data["observation"],
+            "simulation": data["simulation"]}
+
+
 def _max_deep_review() -> int:
     raw = os.environ.get("RESEARCH_DEEP_REVIEW_MAX", "").strip()
     if raw.isdigit() and int(raw) > 0:
         return int(raw)
-    return 8
+    return 6
 
 
 def _review_concurrency() -> int:
@@ -1115,15 +1252,14 @@ def reflect_on_pool(
         """Every review of ONE hypothesis. Nothing here reads another
         hypothesis's result, which is what makes the pool parallelisable."""
         refs, retrieval_evidence = gather_review_refs(run_id, h)
+        scrutiny = scrutiny_review(run_id, domain, h, memory_block, feedback_block)
         return {
             "hypothesis_id": h["id"],
             "retrieval": retrieval_evidence,
             "full_review": full_review(run_id, domain, h, refs, feedback_block),
-            "deep_verification": deep_verification_review(
-                run_id, domain, h, feedback_block),
-            "observation": observation_review(
-                run_id, domain, h, refs, memory_block, feedback_block),
-            "simulation": simulation_review(run_id, domain, h, feedback_block),
+            "deep_verification": scrutiny["deep_verification"],
+            "observation": scrutiny["observation"],
+            "simulation": scrutiny["simulation"],
             "tournament": recurrent_tournament_review(run_id, h, tournament_state),
         }
 

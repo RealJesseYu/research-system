@@ -328,7 +328,7 @@ class TestTheGateActuallyGates(unittest.TestCase):
 
     def test_only_the_most_promising_get_the_expensive_chain(self):
         import stages.reflection_reviews as r
-        self.assertEqual(r._max_deep_review(), 8)
+        self.assertEqual(r._max_deep_review(), 6)
 
     def test_the_cap_is_overridable(self):
         import os

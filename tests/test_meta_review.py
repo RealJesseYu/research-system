@@ -164,6 +164,22 @@ def make_fake_transport(config: dict | None = None):
                     "quality": 3,
                 }
             )
+        if "scrutiny unit" in system_prompt:
+            hid = inp["hypothesis_id"]
+            flaw = config.get("fundamental", {}).get(hid, False)
+            return json.dumps({
+                "ack_run_id": run_id, "hypothesis_id": hid,
+                "deep_verification": {
+                    "assumptions": [{"assumption": "a1", "sub_assumptions": [],
+                                     "evaluation": "correct"}],
+                    "invalidating_elements": [],
+                    "addressable_notes": ["carried concern"],
+                    "fundamental_flaw": flaw, "summary": "test summary"},
+                "observation": {"relevant_observations": [], "accounts_for": "yes",
+                                "assessment": "test assessment"},
+                "simulation": {"mental_simulation": ["step one"],
+                               "failure_scenarios": [], "assessment": "test assessment"},
+            })
         if "deep-verification unit" in system_prompt:
             hid = inp["hypothesis_id"]
             flaw = config.get("fundamental", {}).get(hid, False)

@@ -231,9 +231,9 @@ def _count(env_name: str, default: int) -> int:
     return default
 
 
-LITERATURE_HYPOTHESIS_COUNT = _count("RESEARCH_IDEATION_LITERATURE", 30)
-ASSUMPTION_HYPOTHESIS_COUNT = _count("RESEARCH_IDEATION_ASSUMPTIONS", 15)
-EXPANSION_HYPOTHESIS_COUNT = _count("RESEARCH_IDEATION_EXPANSION", 12)
+LITERATURE_HYPOTHESIS_COUNT = _count("RESEARCH_IDEATION_LITERATURE", 40)
+ASSUMPTION_HYPOTHESIS_COUNT = _count("RESEARCH_IDEATION_ASSUMPTIONS", 20)
+EXPANSION_HYPOTHESIS_COUNT = _count("RESEARCH_IDEATION_EXPANSION", 15)
 
 # PER-CALL POOL OVERRIDE (owner ruling 2026-07-27). The counts below are
 # DEFAULTS. Now that the director spends a token budget it can see, breadth is
@@ -248,7 +248,13 @@ _POOL_OVERRIDE: dict = {}
 
 # A pool must be big enough to be a pool and small enough to review. The upper
 # bound is a guard against a director asking for a thousand and stalling the run.
-MIN_POOL, MAX_POOL = 3, 120
+# Breadth is cheap and depth is scarce (owner ruling 2026-07-27). Generating a
+# hypothesis costs a fraction of a call — the pool comes out of ~7 batch calls
+# however big it is — and the bulk triage reads the WHOLE pool in ONE call. Only
+# the handful that survive triage cost real money, and that number is capped
+# separately (RESEARCH_DEEP_REVIEW_MAX). So the pool ceiling can be generous:
+# more candidates is more chances that one is good, at almost no extra cost.
+MIN_POOL, MAX_POOL = 3, 300
 
 
 def set_pool_size(total: int | None) -> None:
