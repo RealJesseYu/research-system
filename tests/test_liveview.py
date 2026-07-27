@@ -653,3 +653,33 @@ def test_the_end_is_announced_once():
     done = _follow_snap(state="ended-well")
     assert f.events(done)
     assert f.events(done) == []
+
+
+def test_every_option_main_reads_actually_exists():
+    """REGRESSION. --dashboard was added to the dispatch logic by an unchecked
+    string replace that never matched, so main() read args.dashboard on a
+    namespace that had no such attribute and `python -m liveview` died with an
+    AttributeError on its default path. The --once smoke test passed because
+    --once bypasses that exact branch.
+
+    Parse the real parser with no arguments and assert every option the entry
+    point reads is present."""
+    import re
+
+    from liveview.__main__ import _build_parser, main  # noqa: F401
+    import inspect
+
+    ns = _build_parser().parse_args([])
+    src = inspect.getsource(main)
+    for attr in sorted(set(re.findall(r"\bargs\.([a-z_]+)", src))):
+        assert hasattr(ns, attr), f"main() reads args.{attr}, which the parser never defines"
+
+
+def test_the_default_view_is_the_event_log_not_the_dashboard():
+    ns = _build_parser_ns()
+    assert ns.dashboard is False
+
+
+def _build_parser_ns():
+    from liveview.__main__ import _build_parser
+    return _build_parser().parse_args([])

@@ -30,7 +30,12 @@ from liveview.reader import (  # noqa: E402
 from liveview.tui import watch  # noqa: E402
 
 
-def main(argv: list | None = None) -> int:
+def _build_parser() -> argparse.ArgumentParser:
+    """The parser, extracted so a test can assert that every option main() reads
+    actually exists. It did not once: --dashboard was added to the dispatch
+    branch by an edit that silently failed to insert the flag, and the default
+    invocation died with AttributeError while --once (which skips that branch)
+    kept passing."""
     p = argparse.ArgumentParser(
         prog="python -m liveview",
         description="A read-only live view of a study that is running: current phase, "
@@ -43,12 +48,22 @@ def main(argv: list | None = None) -> int:
     p.add_argument("--no-browser", action="store_true", help="do not open a browser")
     p.add_argument("--interval", type=float, default=4.0, help="refresh seconds (default 4)")
     p.add_argument("--once", action="store_true", help="print one snapshot and exit")
+    p.add_argument(
+        "--dashboard", action="store_true",
+        help="the repainting dashboard. THE DEFAULT IS THE EVENT LOG: a study is "
+             "quiet for minutes at a time, so a view that redraws tells you "
+             "nothing and reads as the same message over and over. The log prints "
+             "each decision, each move and each blocker ONCE, when it happens.")
     p.add_argument("--json", action="store_true", help="print one snapshot as JSON and exit")
     p.add_argument("--list", action="store_true", help="list studies on disk and exit")
     p.add_argument("--no-color", action="store_true", help="plain text, no ANSI colour")
     p.add_argument("--studies-root", default=str(STUDIES_ROOT))
     p.add_argument("--runs-root", default=str(RUNS_ROOT))
-    args = p.parse_args(argv)
+    return p
+
+
+def main(argv: list | None = None) -> int:
+    args = _build_parser().parse_args(argv)
 
     studies_root, runs_root = Path(args.studies_root), Path(args.runs_root)
 
