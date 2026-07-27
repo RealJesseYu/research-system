@@ -69,6 +69,9 @@ IMAGE = "code-img:latest"          # numpy / scipy / sklearn / pandas
 # The atomistic shelf: ASE / PySCF / OpenMM / pymatgen / RDKit + numpy / scipy.
 # Built from tools/atomistic_env/ (see the PROFILES table below).
 ATOMISTIC_IMAGE = "atomistic-img:latest"
+# The bio-design shelf: ProteinMPNN on CPU torch, weights baked in (the sandbox
+# has no network). Built from tools/biodesign_env/.
+BIODESIGN_IMAGE = "biodesign-img:latest"
 # Scratch lives under the project root, NOT the system temp dir: colima shares
 # the home tree over virtiofs and cannot see /var/folders, so a tempfile-backed
 # bind mount arrives in the container empty. Same reason every other wrapper
@@ -135,6 +138,27 @@ PROFILES = {
     },
     "atomistic-heavy": {
         "image": ATOMISTIC_IMAGE,
+        "default_timeout_s": 1800,
+        "max_timeout_s": 3600,
+        "memory_mb": 6144,
+        "cpus": 4,
+    },
+    # The bio-design shelf (2026-07-27, docs/memo_biodesign_lane.md):
+    # ProteinMPNN on CPU torch with the weights BAKED IN, because the sandbox
+    # has no network and a tool whose weights download at runtime cannot run
+    # there. Corrects a defer whose stated reason ("needs a GPU") was wrong —
+    # ProteinMPNN is ~1.7M parameters and designs a small protein in about a
+    # second on CPU. Same jail, same runner, same verification as every other
+    # shelf; a design run reproduces under a fixed seed.
+    "biodesign": {
+        "image": BIODESIGN_IMAGE,
+        "default_timeout_s": DEFAULT_TIMEOUT_SECONDS,
+        "max_timeout_s": MAX_TIMEOUT_SECONDS,
+        "memory_mb": 4096,
+        "cpus": 2,
+    },
+    "biodesign-heavy": {
+        "image": BIODESIGN_IMAGE,
         "default_timeout_s": 1800,
         "max_timeout_s": 3600,
         "memory_mb": 6144,
