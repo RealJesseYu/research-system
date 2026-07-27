@@ -316,5 +316,50 @@ class TestTheReviewPoolRunsConcurrently(unittest.TestCase):
             self.assertLessEqual(s1._rounds_default(), 4)
 
 
+class TestTheGateActuallyGates(unittest.TestCase):
+    """MEASURED: the initial review passed 21 of 25 candidates, and 11 of 16
+    before that — 84% and 69%. A gate admitting five in six is a formality, not
+    triage. Every survivor then costs FOUR separate agentic model calls (full,
+    deep-verify, observation, simulation), so a pool of 25 queued ~84 review
+    calls per round; at ~127 s each that is four hours of reflection.
+
+    Generating hypotheses is cheap. DEEP-REVIEWING all of them is what costs, so
+    the cap on the expensive chain is a bigger lever than pool size."""
+
+    def test_only_the_most_promising_get_the_expensive_chain(self):
+        import stages.reflection_reviews as r
+        self.assertEqual(r._max_deep_review(), 8)
+
+    def test_the_cap_is_overridable(self):
+        import os
+        from unittest.mock import patch
+        import stages.reflection_reviews as r
+        with patch.dict(os.environ, {"RESEARCH_DEEP_REVIEW_MAX": "3"}):
+            self.assertEqual(r._max_deep_review(), 3)
+
+    def test_the_initial_review_asks_how_worth_reviewing_each_candidate_is(self):
+        from stages.reflection_reviews import INITIAL_REVIEW_SYSTEM_PROMPT as p
+        self.assertIn('"promise"', p)
+        self.assertIn("clearly the strongest in the pool", p)
+
+    def test_promise_is_optional_but_validated_when_present(self):
+        """A soft ranking signal must not burn the re-ask budget: the funnel caps
+        correctly without it, falling back to pool order."""
+        import stages.reflection_reviews as r
+        import inspect
+        src = inspect.getsource(r)
+        self.assertIn("promise is a SOFT ranking signal", src)
+        self.assertIn("or omitted.", src)
+
+    def test_held_back_candidates_are_recorded_not_discarded(self):
+        """A candidate the funnel skipped is not a candidate that failed — the
+        evidence must let a reader tell those apart."""
+        import inspect
+        import stages.reflection_reviews as r
+        src = inspect.getsource(r)
+        self.assertIn("triaged_lower_promise", src)
+        self.assertIn("recorded, not discarded", src)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -159,6 +159,7 @@ INITIAL_REVIEW_SYSTEM_PROMPT = (
     "candidate through. Reply ONLY with JSON of the form "
     '{"ack_run_id": "<the run_id you were given>", "reviews": '
     '[{"id": "<candidate id>", "verdict": "pass" or "discard", '
+    '"promise": <integer 1-5, how worth the expensive review this candidate is: 5 = clearly the strongest in the pool, 1 = passes but is the weakest>, '
     '"reason": "<one sentence naming the dimension that decided it>"}, '
     "... exactly one such object per candidate]}."
 )
@@ -563,6 +564,18 @@ def initial_review(
                 )
             else:
                 seen.append(cid)
+            # promise is a SOFT ranking signal, so it is validated when present
+            # and defaulted when absent. Hard-requiring it would burn the whole
+            # 3-attempt re-ask budget over a field that only orders a queue —
+            # the funnel still caps correctly without it, it just falls back to
+            # pool order.
+            promise = r.get("promise")
+            if promise is not None and (
+                    isinstance(promise, bool) or not isinstance(promise, int)
+                    or not 1 <= promise <= 5):
+                errors.append(
+                    f"review for {r.get('id')!r} has promise={promise!r}; it must "
+                    "be an integer from 1 to 5, or omitted.")
             if r.get("verdict") not in ("pass", "discard"):
                 errors.append(f"entry {n} verdict must be 'pass' or 'discard'.")
             reason = r.get("reason")
@@ -608,7 +621,8 @@ def initial_review(
     _check_ack(data, run_id, "initial_review")
     log_stage_call(run_id, "stage1_reflection_initial", timing)
     return [
-        {"id": r["id"], "verdict": r["verdict"], "reason": r["reason"]}
+        {"id": r["id"], "verdict": r["verdict"], "reason": r["reason"],
+         "promise": r.get("promise", 3)}
         for r in data["reviews"]
     ]
 
@@ -985,6 +999,17 @@ def recurrent_tournament_review(
 # call that may itself run an agentic tool loop, so an unbounded pool would
 # hammer the transport and blow a rate-limit window in seconds. Override with
 # RESEARCH_REVIEW_CONCURRENCY when a bigger pool warrants it.
+# How many candidates get the EXPENSIVE review chain. Each survivor costs four
+# separate agentic model calls, so this is the single biggest lever on ideation
+# cost — bigger than pool size, which is cheap to generate and expensive only
+# because everything generated was being deep-reviewed.
+def _max_deep_review() -> int:
+    raw = os.environ.get("RESEARCH_DEEP_REVIEW_MAX", "").strip()
+    if raw.isdigit() and int(raw) > 0:
+        return int(raw)
+    return 8
+
+
 def _review_concurrency() -> int:
     raw = os.environ.get("RESEARCH_REVIEW_CONCURRENCY", "").strip()
     if raw.isdigit() and int(raw) > 0:
@@ -1057,7 +1082,25 @@ def reflect_on_pool(
         )
     initial = initial_review(run_id, domain, hypotheses, feedback_block)
     verdict_by_id = {r["id"]: r for r in initial}
-    survivors = [h for h in hypotheses if verdict_by_id[h["id"]]["verdict"] == "pass"]
+    passed = [h for h in hypotheses if verdict_by_id[h["id"]]["verdict"] == "pass"]
+    # THE GATE MUST ACTUALLY GATE (2026-07-27). Measured: it passed 21 of 25 and
+    # 11 of 16 — 84% and 69%, which is a formality, not triage. Every survivor
+    # then costs FOUR separate agentic model calls (full, deep-verify,
+    # observation, simulation), so a pool of 25 queued ~84 review calls per
+    # round; at ~127 s each that was four hours of reflection. The expensive
+    # chain is for CANDIDATES WORTH IT, so the initial review now also scores
+    # promise and only the top MAX_DEEP_REVIEW proceed. The rest are recorded as
+    # triaged — kept in the evidence, never silently dropped.
+    survivors = sorted(
+        passed, key=lambda h: (-verdict_by_id[h["id"]].get("promise", 3),
+                               [c["id"] for c in hypotheses].index(h["id"])),
+    )[:_max_deep_review()]
+    triaged = [verdict_by_id[h["id"]] for h in passed if h not in survivors]
+    if triaged:
+        _log(run_id,
+             f"STAGE1_REFLECTION triage: {len(survivors)} of {len(passed)} passing "
+             f"candidates get the full review chain; {len(triaged)} held back as "
+             "lower promise (recorded, not discarded)")
     discarded_initial = [
         verdict_by_id[h["id"]] for h in hypotheses
         if verdict_by_id[h["id"]]["verdict"] == "discard"
@@ -1139,6 +1182,7 @@ def reflect_on_pool(
         "pool_size": len(hypotheses),
         "initial_review": initial,
         "initial_survivor_count": len(survivors),
+        "triaged_lower_promise": triaged,
         "discarded_by_initial_review": discarded_initial,
         "reviews": reviews_evidence,
         "discarded_by_deep_verification": discarded_fundamental,
