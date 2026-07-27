@@ -325,3 +325,38 @@ class TestSpecReading(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestFaultInjectionValuesAreNotOffered:
+    """capability_table() is composed into stage-1 generation prompts, and it
+    published run_homology_search.DATABASE_PATHS raw — including
+    `_broken_selftest`, which points deliberately at /opt/blastdb/_no_such_db so
+    the DB-integrity gate can be exercised. So the system told its own authoring
+    model "database MUST be one of: demo_prot, _broken_selftest". A spec written
+    with it validates, routes, passes the fidelity gate, and then fails every
+    single mini-run: a whole run burned on a value the system recommended.
+    """
+
+    def test_the_capability_table_does_not_advertise_it(self):
+        from tools.substrate_selection import capability_table
+        assert "_broken_selftest" not in capability_table()
+
+    def test_no_underscore_prefixed_value_is_advertised(self):
+        """The `_` prefix is the existing convention for internal-not-offered
+        (tools/mcp_config.py uses it the same way), so this covers self-test
+        entries added later without anyone remembering to filter them."""
+        from tools.substrate_selection import _CATEGORICAL_VALUES
+        for substrate, params in _CATEGORICAL_VALUES.items():
+            for param, values in params.items():
+                for v in values:
+                    assert not str(v).startswith("_"), f"{substrate}.{param}={v}"
+
+    def test_the_wrapper_still_accepts_it(self):
+        """Only the ADVERTISED surface narrowed. A test that exercises the
+        integrity gate deliberately must still be able to ask for it."""
+        from tools.run_homology_search import DATABASE_PATHS
+        assert "_broken_selftest" in DATABASE_PATHS
+
+    def test_the_real_database_is_still_offered(self):
+        from tools.substrate_selection import _CATEGORICAL_VALUES
+        assert "demo_prot" in _CATEGORICAL_VALUES["homology_search"]["database"]

@@ -105,6 +105,29 @@ def translate_qoi(spec_qoi, vocab) -> tuple[dict | None, str | None]:
         )
     if component is not None and component not in vocab.components:
         return None, f"component {component!r} is not 'mag' or 0|1|2"
+    # A DECLARED MASK MUST REFUSE, NOT BE DROPPED. validate_spec ACCEPTS
+    # qoi.mask (stage2_spec._validate_mask) and run_cfd really does implement
+    # masked reductions (mask_keep) — but they live on different request shapes.
+    # This function emits the SINGLE-QoI shape {field, operation}, whose
+    # extraction path (postProcess -> volFieldValue) has no mask support at all;
+    # masks belong to the multi-QoI shape {field, reduction, mask?}. So a mask
+    # silently vanished here: a spec asking for a corner-excluded maximum got a
+    # whole-domain reduction, RECORDED UNDER THE MASKED QoI'S NAME. A number
+    # answering a different question than the one asked, on the success path.
+    #
+    # Routing a masked QoI to the multi-QoI path is a real change, not a
+    # translation, so this refuses instead — which is the doctrine everywhere
+    # else here: an honest qoi_error, never a number that measured something
+    # else. The refusal names the mask so the gap is legible rather than silent.
+    mask = spec_qoi.get("mask")
+    if mask is not None:
+        kind = mask.get("type") if isinstance(mask, dict) else mask
+        return None, (
+            f"qoi declares a spatial mask ({kind!r}) which this single-QoI "
+            "extraction path cannot apply — masked reductions exist in the "
+            "wrapper but on its multi-QoI request shape. Refusing rather than "
+            "silently measuring the whole domain and recording it under this "
+            "QoI's name.")
     request = {"field": field, "operation": operation}
     if component is not None:
         request["component"] = component

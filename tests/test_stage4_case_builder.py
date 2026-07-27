@@ -21,7 +21,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from stages.stage4_case_builder import TEMPLATE, CaseSynthesisError, build_case
+from stages.stage4_case_builder import (BUILDABLE_PARAMS, TEMPLATE,  # noqa: E402
+                                        CaseSynthesisError, build_case,
+                                        partition_params)
 from stages.stage4_simulation import translate_qoi
 from tools.qoi_vocab import vocab_for
 
@@ -240,6 +242,81 @@ class TestTranslateQoi(unittest.TestCase):
         )
         self.assertIsNone(request)
         self.assertIn("timeSeries", reason)
+
+
+class TestADerivedBuildableParameterIsRefused(unittest.TestCase):
+    """partition_params checked derived_names BEFORE BUILDABLE_PARAMS, so a
+    parameter declared role="derived" that is ALSO buildable was excluded from
+    the build entirely: the solver ran the TEMPLATE's baseline value while
+    results.json recorded the spec's. The case and the record disagreed, on the
+    success path, with nothing measuring the number that was reported.
+
+    "Derived" means "computed from the others, do not treat it as an independent
+    knob" — it cannot also mean "write this into the case". A spec asserting both
+    is malformed, so it stops instead of resolving the contradiction silently.
+    """
+
+    def test_a_derived_buildable_name_stops_loudly(self):
+        for name in ("kinematic_viscosity", "mesh_resolution", "end_time"):
+            with self.assertRaises(CaseSynthesisError, msg=name) as cm:
+                partition_params({name: 1.0, "lid_velocity": 2.0},
+                                 derived_names={name})
+            self.assertIn(name, str(cm.exception))
+            self.assertIn("derived", str(cm.exception))
+
+    def test_the_refusal_names_the_buildable_set(self):
+        """A model reading the error has to be able to act on it."""
+        with self.assertRaises(CaseSynthesisError) as cm:
+            partition_params({"lid_velocity": 2.0}, derived_names={"lid_velocity"})
+        for name in BUILDABLE_PARAMS:
+            self.assertIn(name, str(cm.exception))
+
+    def test_a_derived_non_buildable_name_is_still_excluded_quietly(self):
+        """The legitimate case: something genuinely computed from the others,
+        which check_derived verifies rather than the builder writing it."""
+        buildable, ignored, unsupported = partition_params(
+            {"lid_velocity": 2.0, "peclet": 100.0}, derived_names={"peclet"})
+        self.assertEqual(buildable, {"lid_velocity": 2.0})
+        self.assertEqual(unsupported, [])
+
+
+class TestAMaskedQoiRefusesRatherThanMeasuringEverything(unittest.TestCase):
+    """validate_spec ACCEPTS qoi.mask and run_cfd really implements masked
+    reductions — but on a different request shape. translate_qoi emits the
+    SINGLE-QoI shape, whose extraction path (postProcess -> volFieldValue) has no
+    mask support; masks live on the multi-QoI shape. So the mask silently
+    vanished and a corner-excluded maximum became a whole-domain reduction
+    RECORDED UNDER THE MASKED QoI'S NAME — a number answering a different
+    question than the one asked.
+    """
+
+    def _vocab(self):
+        from tools.qoi_vocab import vocab_for
+        return vocab_for("cavity_2d_cfd")
+
+    def test_a_masked_qoi_is_refused_with_the_mask_named(self):
+        request, error = translate_qoi(
+            {"field": "U", "operation": "max", "component": "mag",
+             "mask": {"type": "corner_exclusion", "params": {"radius_frac": 0.1}}},
+            self._vocab())
+        self.assertIsNone(request)
+        self.assertIn("corner_exclusion", error)
+        self.assertIn("mask", error)
+
+    def test_every_mask_type_refuses(self):
+        for kind in ("corner_exclusion", "boundary_exclusion", "box"):
+            request, error = translate_qoi(
+                {"field": "U", "operation": "max", "mask": {"type": kind}},
+                self._vocab())
+            self.assertIsNone(request, kind)
+            self.assertIn(kind, error)
+
+    def test_an_unmasked_qoi_still_translates(self):
+        request, error = translate_qoi(
+            {"field": "U", "operation": "max", "component": "mag"}, self._vocab())
+        self.assertIsNone(error)
+        self.assertEqual(request,
+                         {"field": "U", "operation": "max", "component": "mag"})
 
 
 if __name__ == "__main__":

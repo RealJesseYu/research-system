@@ -112,6 +112,26 @@ def partition_params(
         if name == REYNOLDS_KEY:
             continue
         elif name in derived_names:
+            # A DERIVED NAME THAT IS ALSO BUILDABLE IS A CONTRADICTION, and it
+            # used to resolve the dangerous way. `derived` was checked BEFORE
+            # BUILDABLE_PARAMS, so declaring e.g. kinematic_viscosity (or
+            # mesh_resolution, or end_time) as role="derived" excluded it from the
+            # build entirely: the solver ran the TEMPLATE's baseline value while
+            # results.json recorded the spec's. A number that nothing measured,
+            # on the success path, with the case and the record disagreeing.
+            #
+            # "Derived" means "computed from the others, so do not treat it as an
+            # independent knob" — it cannot also mean "write this into the case".
+            # A spec asserting both is malformed, and the honest response is to
+            # stop rather than to silently pick one meaning.
+            if name in BUILDABLE_PARAMS:
+                raise CaseSynthesisError(
+                    f"parameter {name!r} is declared derived AND is buildable. A "
+                    "derived parameter is excluded from the build (check_derived "
+                    "verifies it instead), so honoring this would run the "
+                    "template's value while recording yours. Declare it as an "
+                    "ordinary parameter, or derive something that is not "
+                    f"buildable. Buildable names: {sorted(BUILDABLE_PARAMS)}")
             continue
         elif name in BUILDABLE_PARAMS:
             buildable[name] = value

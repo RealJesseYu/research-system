@@ -242,11 +242,35 @@ def signature_for(substrate_id: str) -> frozenset[str]:
 # models" and never named them, so the value was unguessable from what stage 2
 # was shown. A closed set the caller cannot see is a trap; these belong in the
 # machine table beside the parameter names.
+def _offerable(names) -> list:
+    """The subset of a categorical allowlist that may be OFFERED to a model.
+
+    `_`-prefixed entries are internal — fault injections and self-test fixtures —
+    and must never reach a prompt as a legal value. Filtering here rather than at
+    each source keeps the wrappers' own tables complete (the wrapper still
+    ACCEPTS a self-test name when a test asks for it deliberately); only the
+    advertised surface is narrowed.
+    """
+    return [n for n in names if not str(n).startswith("_")]
+
+
 _CATEGORICAL_VALUES: dict[str, dict[str, tuple]] = {
     "cobrapy": {"model": tuple(_COBRAPY_MODEL_ALLOWLIST)},
     "homology_search": {
         "tool": tuple(_HS_TOOLS),
-        "database": tuple(_HS_DATABASE_PATHS),
+        # FAULT-INJECTION ENTRIES ARE NOT OFFERS. DATABASE_PATHS carries
+        # `_broken_selftest`, which points deliberately at /opt/blastdb/_no_such_db
+        # so the wrapper's DB-integrity gate can be exercised. Publishing the raw
+        # table put it in capability_table(), which is composed into stage-1
+        # generation prompts — so the system told its own authoring model
+        # "database MUST be one of: demo_prot, _broken_selftest". A spec written
+        # with it validates, routes, passes the gate, and then fails every
+        # mini-run: a whole run burned on a value the system recommended.
+        #
+        # The `_` prefix is the existing convention for "internal, not offered"
+        # (tools/mcp_config.py uses it the same way), so filtering on it needs no
+        # new bookkeeping and automatically covers future self-test entries.
+        "database": tuple(_offerable(_HS_DATABASE_PATHS)),
     },
 }
 
