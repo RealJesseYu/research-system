@@ -199,6 +199,14 @@ def run_exact_route(logger: Logger, baton: Baton, run_dir: Path, mode: str,
         f"FREE EXPERIMENTER: {len(findings)} finding(s), {verified} verified, "
         f"publishable={publishable}"
     )
+    # A declared blocker is surfaced loudly and durably: it is the one outcome a
+    # human can act on directly, and the alternative to declaring it is an agent
+    # quietly substituting a weaker problem.
+    for b in result.get("blocked_on") or []:
+        logger.log(
+            f"BLOCKED ON: {b.get('need')} — {b.get('why')} | HUMAN ACTION: "
+            f"{b.get('human_action')} | workaround: {b.get('workaround_used')}"
+        )
     baton._verification = {"publishable": publishable, "verified": verified,
                            "total": len(findings)}
     how_far = ("completed free investigation (publishable)" if publishable

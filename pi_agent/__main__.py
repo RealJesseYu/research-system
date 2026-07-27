@@ -170,6 +170,22 @@ def main(argv: list | None = None) -> None:
     print(json.dumps(summary, indent=2))
     print(f"study report: studies/{report['study_id']}/report.json")
 
+    # BLOCKERS a human can act on. Printed last and loudest: this is the one
+    # outcome where ten minutes of a person's time unlocks the work, and the
+    # alternative to surfacing it is an agent quietly solving a smaller problem.
+    blocked = []
+    for entry in report.get("arc") or []:
+        for b in ((entry.get("tool_output") or {}).get("blocked_on") or []):
+            blocked.append(b)
+    if blocked:
+        print("\n=== BLOCKED — HUMAN ACTION WOULD UNLOCK THIS ===")
+        for b in blocked:
+            print(f"  NEED: {b.get('need')}")
+            print(f"    why: {b.get('why')}")
+            print(f"    you can: {b.get('human_action')}")
+            if b.get("workaround_used"):
+                print(f"    proceeded with instead: {b['workaround_used']}")
+
     # PAPER ROUTE (opt-in). Written here, at the entry point, rather than inside
     # either director: it then covers BOTH directors with one wire, and it writes
     # up only the TOP-LEVEL study (a spawned child's arc is reported inside its

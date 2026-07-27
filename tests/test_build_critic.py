@@ -245,5 +245,66 @@ class TestProportionality(unittest.TestCase):
         self.assertIn("easier than its budget assumed", p)
 
 
+class TestBlockedIsAResultNotASilentDowngrade(unittest.TestCase):
+    """THE FEAR, NAMED BY THE OWNER: a run hits a wall it cannot pass — a dataset
+    behind a login, a paid API — and either dies, or quietly solves a weaker
+    problem that sounds like the one that was asked. The third option did not
+    exist: say what you need from a human."""
+
+    def test_the_experimenter_is_given_three_honest_moves_and_one_forbidden_one(self):
+        from stages.free_experimenter import SYSTEM_PROMPT as p
+        self.assertIn("IF YOU ARE BLOCKED, SAY SO", p)
+        self.assertIn("do not quietly solve an easier problem", p.lower())
+        self.assertIn("silently substituting a weaker problem", p)
+
+    def test_synthetic_data_standins_must_be_declared_first_not_footnoted(self):
+        from stages.free_experimenter import SYSTEM_PROMPT as p
+        self.assertIn("must be the first thing you say about the result", p)
+
+    def test_the_blocker_shape_names_what_a_human_would_actually_do(self):
+        from stages.free_experimenter import SYSTEM_PROMPT as p
+        for field in ("need", "why", "human_action", "workaround_used"):
+            self.assertIn(f'"{field}"', p)
+        self.assertIn("a URL, a file to place, an account to create", p)
+
+    def test_being_blocked_is_framed_as_a_result_not_a_failure(self):
+        from stages.free_experimenter import SYSTEM_PROMPT as p
+        self.assertIn("Being blocked is not a failure", p)
+
+    def test_the_director_must_not_paper_over_a_blocked_run(self):
+        from pi_agent.free_decider import SYSTEM_PROMPT as p
+        self.assertIn("WHEN A RUN REPORTS ITSELF BLOCKED", p)
+        self.assertIn("say so if you retarget and what you gave up", p)
+
+    def test_the_result_carries_blocked_on(self):
+        import inspect
+        from stages import free_experimenter as fe
+        self.assertIn('"blocked_on": data.get("blocked_on") or []',
+                      inspect.getsource(fe))
+
+
+class TestIdeationIsForAnyQuestion(unittest.TestCase):
+    """OBSERVED: across every run, ideation was called once, at the start, on the
+    top-level goal, and never again — so the apparatus never saw a question the
+    investigation had actually learned something about."""
+
+    def test_the_director_is_told_the_late_calls_are_worth_most(self):
+        from pi_agent.free_decider import SYSTEM_PROMPT as p
+        self.assertIn("IDEATION IS FOR ANY QUESTION, AT ANY POINT", p)
+        self.assertIn("gets called once, at the start", p)
+
+    def test_it_names_the_moments_worth_calling_it(self):
+        from pi_agent.free_decider import SYSTEM_PROMPT as p
+        for moment in ("a subsystem needs an approach",
+                       "came out differently than expected",
+                       "losing you performance",
+                       "about to commit significant budget"):
+            self.assertIn(moment, p)
+
+    def test_it_says_a_complex_build_wants_several(self):
+        from pi_agent.free_decider import SYSTEM_PROMPT as p
+        self.assertIn("several such calls across its arc", p)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
