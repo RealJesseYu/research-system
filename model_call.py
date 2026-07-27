@@ -224,6 +224,49 @@ BUILDER = FULL
 PROFILES = {p.name: p for p in (SEALED, FULL)}
 
 
+class TransportFailure(RuntimeError):
+    """The SDK reported the call itself failed, or it produced no text at all.
+
+    A distinct type so it reads correctly in a log and cannot be mistaken for a
+    content problem. It is raised from inside _invoke_transport's callee, which
+    puts it in _transport_with_retry's path — the code that knows a sealed call
+    may be replayed and a TOOLED one may not.
+    """
+
+
+def _raise_if_transport_failed(result_message, caps) -> None:
+    """Raise TransportFailure when the SDK says this call did not succeed.
+
+    Deliberately narrow, because the alternative errs the expensive way. Two
+    conditions only:
+      - is_error on the ResultMessage: unambiguous, the CLI is telling us the
+        call failed (a 429/5xx surfaces here);
+      - no text at all: an empty reply is a delivery failure, not a model that
+        chose to say nothing. It used to reach json.loads and be retried three
+        times by the VALIDATION loop as though the model had answered badly.
+
+    A turn ceiling is reported in the message but does NOT by itself raise: an
+    agent can legitimately use every turn and still emit a valid final answer,
+    and raising on that would fail runs that currently work. `stop_reason` and
+    `num_turns` are read with getattr because they vary across SDK versions —
+    a missing attribute must not turn a real failure into an AttributeError.
+    """
+    if result_message is None:
+        return
+    is_error = bool(getattr(result_message, "is_error", False))
+    if not is_error:
+        return
+    stop = getattr(result_message, "stop_reason", None)
+    turns = getattr(result_message, "num_turns", None)
+    detail = f"is_error=True stop_reason={stop!r} num_turns={turns!r}"
+    if caps is not None and getattr(caps, "max_turns", None):
+        detail += f" max_turns={caps.max_turns}"
+    raise TransportFailure(
+        f"the SDK reported this call FAILED ({detail}). This is a transport or "
+        "turn-budget failure, not a malformed model reply — it is raised rather "
+        "than parsed so it is not retried as a schema error.")
+
+
 class SchemaValidationError(Exception):
     """Raised internally when a reply fails schema validation; carries the message re-sent to the model."""
 
@@ -315,6 +358,7 @@ async def _ask_once(
 
     parts: list[str] = []
     result_usage = None
+    result_message = None
     async for message in query(prompt=prompt_arg, options=options):
         if isinstance(message, AssistantMessage):
             for block in message.content:
@@ -341,10 +385,31 @@ async def _ask_once(
                         })
         elif isinstance(message, ResultMessage):
             result_usage = message.usage
+            result_message = message
     # Step 16.6: the ONE observing touch at this door — count the completed
     # call (+ SDK-reported usage) into the shared cost meter. Observation
     # only; the return value is untouched.
     cost_meter.record_call("model_call", result_usage)
+    # A TRANSPORT FAILURE IS NOT A BAD MODEL REPLY. Only `usage` was read off the
+    # ResultMessage, so is_error and a max-turns stop were invisible: a 429/5xx
+    # surfaced by the CLI, or an agentic loop that hit its turn ceiling, returned
+    # whatever text had accumulated — often "" or mid-loop narration. That fell
+    # through to json.loads, so the VALIDATION loop retried it (three more
+    # attempts, each a full 200-turn agentic run under a FULL profile), the meter
+    # counted every one as completed, and the final error read "model reply failed
+    # schema validation after 3 attempts" — a sentence about the model, for a
+    # failure of the transport or the turn budget.
+    #
+    # Raising here routes it to _transport_with_retry instead, which is the code
+    # that knows the difference (and knows a TOOLED call is not idempotent, so it
+    # does not blindly replay one).
+    _raise_if_transport_failed(result_message, caps)
+    if not any(p.strip() for p in parts):
+        raise TransportFailure(
+            "the call returned NO TEXT at all. An empty reply is a delivery "
+            "failure, not an answer — parsing it produced a JSONDecodeError that "
+            "the validation loop then retried as though the model had replied "
+            "badly, three times, each a full agentic run under a tool profile.")
     # Under a tool profile the model's LAST text block is its answer; earlier
     # blocks are narration between tool calls and would corrupt the JSON parse
     # if concatenated. A sealed call has exactly one block, so joining and
@@ -518,8 +583,29 @@ def extract_json_object(reply: str) -> str | None:
     inside strings are handled correctly; 'last wins' picks the final result
     object when prose earlier in the reply also contains a JSON-looking span.
     """
+    candidates = extract_json_objects(reply)
+    return candidates[-1] if candidates else None
+
+
+def extract_json_objects(reply: str) -> list:
+    """EVERY top-level {...} in the reply that parses as JSON, in order.
+
+    POSITION IS THE WRONG TIE-BREAK, IN BOTH DIRECTIONS. "Last wins" exists
+    because prose BEFORE the answer can contain a JSON-looking span. But it
+    fails the mirror case: an agent that finishes by restating its schema, or
+    quoting an example, hands back that trailing object instead of its result.
+    Verified: a reply ending "For reference the schema is {"summary": "string"}"
+    returned the schema — so the real answer was discarded and the stage re-asked
+    with a bogus "missing required field", which for a FULL profile costs another
+    200-turn agentic run.
+    Neither first nor last is right. The caller knows the SCHEMA, so it can pick
+    the candidate that actually satisfies the requirement instead of guessing by
+    position — see _select_json_candidate. This function just enumerates them.
+
+    Uses json.JSONDecoder.raw_decode, so braces inside strings are handled.
+    """
     decoder = json.JSONDecoder()
-    found = None
+    found = []
     idx = 0
     while True:
         start = reply.find("{", idx)
@@ -527,11 +613,79 @@ def extract_json_object(reply: str) -> str | None:
             break
         try:
             _obj, end = decoder.raw_decode(reply, start)
-            found = reply[start:end]
+            found.append(reply[start:end])
             idx = end
         except json.JSONDecodeError:
             idx = start + 1
     return found
+
+
+#: Words a model uses when it is DESCRIBING a field rather than filling it in.
+#: A schema restatement carries these as its values; an answer carries data.
+_TYPE_WORDS = frozenset({
+    "string", "str", "text", "int", "integer", "number", "float", "bool",
+    "boolean", "list", "array", "object", "dict", "null", "none", "any",
+    "list of strings", "list[str]", "number or short string",
+})
+
+
+def _looks_like_schema_echo(obj) -> bool:
+    """True when every value in `obj` names a TYPE or is an angle-bracket
+    placeholder, i.e. this is the model repeating the schema back rather than
+    answering.
+
+    Needed because a restatement satisfies required-key presence — it has all
+    the right KEYS, which is what makes it indistinguishable to validate_schema
+    (that checks required fields and enums, neither of which discriminates
+    `{"summary": "string"}` from a real summary). The tell is the VALUES.
+
+    Deliberately conservative: EVERY value must look like a description, so a
+    real answer that happens to contain the word "string" in one field is never
+    mistaken for an echo. An empty object is not an echo — it is just empty, and
+    the schema check should be the thing that rejects it.
+    """
+    if not isinstance(obj, dict) or not obj:
+        return False
+    for value in obj.values():
+        if isinstance(value, str):
+            v = value.strip().lower()
+            if v in _TYPE_WORDS or (v.startswith("<") and v.endswith(">")):
+                continue
+        return False
+    return True
+
+
+def _select_json_candidate(reply: str, schema: dict):
+    """The parsed object among the reply's JSON spans that best satisfies
+    `schema`, or None when the reply carries no JSON at all.
+
+    Preference order, last-first so a trailing answer still wins over leading
+    narration (the case "last wins" was written for):
+      1. carries every required key AND is not a schema echo — the answer;
+      2. carries every required key — better than nothing when every candidate
+         reads like an echo;
+      3. the last that parses at all, so a genuinely malformed reply gets exactly
+         the behaviour and the error message it got before.
+    """
+    candidates = extract_json_objects(reply)
+    if not candidates:
+        return None
+    required = (schema or {}).get("required") or []
+    if required:
+        parsed = []
+        for text in candidates:
+            try:
+                parsed.append((text, json.loads(text)))
+            except ValueError:
+                continue
+        complete = [(t, o) for t, o in parsed
+                    if isinstance(o, dict) and all(k in o for k in required)]
+        for text, obj in reversed(complete):
+            if not _looks_like_schema_echo(obj):
+                return text
+        if complete:
+            return complete[-1][0]
+    return candidates[-1]
 
 
 def _log_fence_note(stage_name: str, stage_input: dict) -> None:
@@ -760,7 +914,14 @@ def call_stage_model(
                     # JSON. Extract the embedded object (prime-directive reality:
                     # a free agent that does real work explains itself). None =>
                     # no rescue, re-raise (existing behavior).
-                    block = extract_json_object(reply)
+                    #
+                    # SCHEMA-AWARE, not position-aware: when a reply holds more
+                    # than one JSON span — narration before the answer, or a
+                    # schema restatement after it — the one carrying the required
+                    # keys is the answer. Guessing by position discarded a real
+                    # result and burned another agentic attempt on a bogus
+                    # "missing required field".
+                    block = _select_json_candidate(reply, schema)
                 if block is None:
                     raise
                 data = json.loads(block)

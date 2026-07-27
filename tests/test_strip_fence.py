@@ -168,5 +168,119 @@ class TestProseWrappedObjectTolerance(unittest.TestCase):
         self.assertEqual(data["findings"][0]["value"], 350)
 
 
+class TestTheAnswerIsPickedBySchemaNotByPosition(unittest.TestCase):
+    """`extract_json_object` took the LAST candidate — a choice made for a real
+    case (narration BEFORE the answer containing JSON) that fails the mirror
+    case: an agent finishing with a schema restatement handed back the
+    restatement, so its real answer was discarded and the stage re-asked with a
+    bogus "missing required field". Under a FULL profile each such re-ask is
+    another 200-turn agentic run.
+
+    Neither first nor last is right, so selection uses the SCHEMA the caller
+    already has. A restatement satisfies required-KEY presence — which is why
+    validate_schema cannot discriminate it (required fields and enums only) —
+    so the tell is the VALUES: type names and <placeholders> where data belongs.
+    """
+
+    SCHEMA = {"required": ["summary", "findings"]}
+
+    def _pick(self, reply):
+        return model_call._select_json_candidate(reply, self.SCHEMA)
+
+    def test_a_trailing_schema_restatement_does_not_win(self):
+        reply = ('Both methods agree.\n{"summary":"s","findings":[]}\n'
+                 'For reference the schema is {"summary": "string", '
+                 '"findings": "list"}.')
+        self.assertEqual(json.loads(self._pick(reply))["summary"], "s")
+        # and the old behaviour is what this is protecting against
+        self.assertEqual(
+            json.loads(extract_json_object(reply))["summary"], "string")
+
+    def test_leading_narration_json_still_loses_to_the_answer(self):
+        """The case 'last wins' was written for — it must keep working."""
+        reply = 'I tried {"attempt": 1} first.\n{"summary":"s","findings":[1]}'
+        self.assertEqual(json.loads(self._pick(reply))["findings"], [1])
+
+    def test_an_example_before_and_a_restatement_after(self):
+        reply = ('e.g. {"summary":"x"}\n{"summary":"real","findings":[2]}\n'
+                 'schema: {"summary":"str"}')
+        self.assertEqual(json.loads(self._pick(reply))["summary"], "real")
+
+    def test_angle_bracket_placeholders_are_recognised_as_an_echo(self):
+        reply = ('{"summary":"done","findings":[3]}\n'
+                 'format: {"summary":"<text>","findings":"<list>"}')
+        self.assertEqual(json.loads(self._pick(reply))["summary"], "done")
+
+    def test_a_real_answer_whose_value_is_the_word_string_is_not_an_echo(self):
+        """The echo test requires EVERY value to look like a description, so a
+        genuine answer mentioning a type name survives."""
+        reply = '{"summary":"the type is string","findings":["string"]}'
+        self.assertEqual(json.loads(self._pick(reply))["findings"], ["string"])
+
+    def test_a_reply_with_no_json_still_returns_none(self):
+        self.assertIsNone(self._pick("just prose, no object at all"))
+
+    def test_a_malformed_reply_keeps_its_old_fallback(self):
+        """No candidate carries the required keys: return the last that parses,
+        so the error the caller raises is the one it always raised."""
+        self.assertEqual(json.loads(self._pick('{"a":1}')), {"a": 1})
+
+
+class TestATransportFailureIsNotAModelError(unittest.TestCase):
+    """Only `usage` was read off the ResultMessage, so is_error was invisible: a
+    429/5xx returned whatever text had accumulated (often nothing), that reached
+    json.loads, and the VALIDATION loop retried it three times as though the
+    model had answered badly — each retry a full agentic run under a tool
+    profile. The final error then read "model reply failed schema validation
+    after 3 attempts", a sentence about the model for a failure of the transport.
+    """
+
+    class _RM:
+        def __init__(self, **kw):
+            self.__dict__.update(kw)
+
+    class _Caps:
+        max_turns = 200
+
+    def test_is_error_raises(self):
+        with self.assertRaises(model_call.TransportFailure):
+            model_call._raise_if_transport_failed(
+                self._RM(is_error=True, stop_reason="error", num_turns=3),
+                self._Caps())
+
+    def test_the_message_names_what_actually_failed(self):
+        try:
+            model_call._raise_if_transport_failed(
+                self._RM(is_error=True, stop_reason="error", num_turns=3),
+                self._Caps())
+        except model_call.TransportFailure as e:
+            self.assertIn("transport", str(e))
+            self.assertIn("not a malformed model reply", str(e))
+
+    def test_a_healthy_result_does_not_raise(self):
+        model_call._raise_if_transport_failed(
+            self._RM(is_error=False, num_turns=5), self._Caps())
+
+    def test_a_turn_ceiling_alone_does_not_raise(self):
+        """An agent can legitimately use every turn and still emit a valid final
+        answer. Raising on that would fail runs that currently work."""
+        model_call._raise_if_transport_failed(
+            self._RM(is_error=False, num_turns=200), self._Caps())
+
+    def test_missing_sdk_attributes_do_not_become_an_attributeerror(self):
+        """stop_reason/num_turns vary across SDK versions; a missing attribute
+        must not turn a real failure into a different exception."""
+        with self.assertRaises(model_call.TransportFailure):
+            model_call._raise_if_transport_failed(self._RM(is_error=True), None)
+        model_call._raise_if_transport_failed(self._RM(), None)   # no is_error
+        model_call._raise_if_transport_failed(None, None)         # older SDK
+
+    def test_it_is_not_a_schema_error(self):
+        """It must land in _transport_with_retry — which knows a TOOLED call is
+        not idempotent — and never in the validation re-ask loop."""
+        self.assertFalse(
+            issubclass(model_call.TransportFailure, model_call.SchemaValidationError))
+
+
 if __name__ == "__main__":
     unittest.main()
