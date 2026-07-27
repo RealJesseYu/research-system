@@ -201,6 +201,26 @@ def main(argv: list | None = None) -> None:
         else:
             print(f"no paper written: {outcome.get('error')}")
 
+            # BUILD CRITIC (best-effort, advisory). A DIFFERENT lens from the
+            # referee: not "do the words match the code" but "could a competent
+            # person actually use this tomorrow". Found the way most good checks
+            # are — a human pasted a finished study into a fresh chat and asked
+            # exactly that, and got six true findings the whole apparatus had
+            # missed, none of them correctness failures. Its findings are routed
+            # BACK TO THE DIRECTOR for one recorded response, so the challenge and
+            # the answer both reach the reader. Point it at an outside model with
+            # RESEARCH_MODEL_CRITIC=fable. BUILD_CRITIC=0 disables.
+            from stages.build_critic import critique_and_respond
+
+            crit = critique_and_respond(report["study_id"])
+            if crit.get("error"):
+                print(f"build critique skipped: {crit['error']}")
+            else:
+                c = crit["critique"]
+                print(f"build critique: {crit['findings']} finding(s), "
+                      f"usable_today={c.get('usable_today')} "
+                      f"({c.get('model')})")
+
 
 if __name__ == "__main__":
     main()

@@ -31,16 +31,24 @@ import os
 # — the PREVIOUS generation — so every agent in the system was running a model
 # older than the plain chat it was being compared against, which is a direct
 # PRIME-DIRECTIVE problem: the comparison chat was Claude 5, the system was not.
+FABLE = "claude-fable-5"
 OPUS = "claude-opus-5"
 SONNET = "claude-sonnet-5"
 HAIKU = "claude-haiku-4-5-20251001"  # current; Haiku has no 5 release
 
-_ALIASES = {"opus": OPUS, "sonnet": SONNET, "haiku": HAIKU}
+_ALIASES = {"opus": OPUS, "sonnet": SONNET, "haiku": HAIKU, "fable": FABLE}
 
+# The CRITIC tier is deliberately its own knob. The build critic reads a finished
+# deliverable and asks "could this be used today" — a question the authoring model
+# is the worst reader of, because the gaps are things it did not think to include.
+# An OUTSIDE model is worth more than the author's second opinion, so this tier can
+# be pointed elsewhere (RESEARCH_MODEL_CRITIC=fable) without touching the others.
+# Defaults to the heavy model, so unset behaviour is unchanged.
 _TIER_ENV = {
     "heavy": "RESEARCH_MODEL_HEAVY",
     "light": "RESEARCH_MODEL_LIGHT",
     "triage": "RESEARCH_MODEL_TRIAGE",
+    "critic": "RESEARCH_MODEL_CRITIC",
 }
 # OWNER RULING 2026-07-25: every tier defaults to OPUS.
 #
@@ -55,7 +63,7 @@ _TIER_ENV = {
 # Cost is the deliberate trade. Both knobs remain, so a cheap run is one env var
 # away (RESEARCH_MODEL_LIGHT=sonnet RESEARCH_MODEL_TRIAGE=haiku restores the old
 # mix exactly).
-_TIER_DEFAULT = {"heavy": OPUS, "light": OPUS, "triage": OPUS}
+_TIER_DEFAULT = {"heavy": OPUS, "light": OPUS, "triage": OPUS, "critic": OPUS}
 
 
 def model_for(tier: str) -> str:
