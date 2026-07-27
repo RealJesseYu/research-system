@@ -76,6 +76,26 @@ class ArtifactError(ValueError):
     """The artifact is not re-runnable as recorded."""
 
 
+def _run_sandboxed_code(spec: dict, artifact: dict) -> dict:
+    """Run a code spec through the sandbox, carrying the artifact's declared
+    sandbox `profile` (docs/memo_heavy_verification_lane.md) so the re-run
+    executes under the same recorded resource geometry as the claim. The
+    profile raises ceilings only (time / memory / cpus / image, from a fixed
+    code-owned table); the jail — --network=none, --read-only — is invariant
+    across profiles by construction. A spec the sandbox refuses (e.g. an
+    unknown profile) is an unrunnable artifact, never a crash of the pass."""
+    from tools.run_python_experiment import (
+        PythonExperimentInputError,
+        run_python_experiment,
+    )
+    if artifact.get("profile") is not None:
+        spec["profile"] = artifact["profile"]
+    try:
+        return run_python_experiment(spec)
+    except PythonExperimentInputError as e:
+        raise ArtifactError(f"the sandbox refused the artifact: {e}")
+
+
 def _isnum(v) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool)
 
@@ -169,14 +189,13 @@ def rerun_artifact(artifact: dict) -> dict:
     kind = artifact.get("kind")
 
     if kind == "code":
-        from tools.run_python_experiment import run_python_experiment
         for field in ("code", "quantity"):
             if not artifact.get(field):
                 raise ArtifactError(f"code artifact is missing {field!r}")
-        summary = run_python_experiment({
+        summary = _run_sandboxed_code({
             "code": artifact["code"],
             "quantity": artifact["quantity"],
-        })
+        }, artifact)
         return {"value": summary.get("qoi"), "error": None if summary.get("valid")
                 else summary.get("diagnostics")}
 
@@ -242,7 +261,6 @@ def rerun_artifact(artifact: dict) -> dict:
         # sandbox as an inline `code` artifact — the file IS the artifact of
         # record. `path` is resolved to absolute by the claim builder (where the
         # run's workspace is known), so this stays a pure re-execution.
-        from tools.run_python_experiment import run_python_experiment
         path = artifact.get("path")
         quantity = artifact.get("quantity")
         if not path or not quantity:
@@ -252,7 +270,8 @@ def rerun_artifact(artifact: dict) -> dict:
         if not p.is_file():
             return {"value": None,
                     "error": f"workspace file {path!r} not found — nothing to re-run"}
-        summary = run_python_experiment({"code": p.read_text(), "quantity": quantity})
+        summary = _run_sandboxed_code(
+            {"code": p.read_text(), "quantity": quantity}, artifact)
         return {"value": summary.get("qoi"), "error": None if summary.get("valid")
                 else summary.get("diagnostics")}
 
@@ -428,7 +447,6 @@ def _run_one_step(step: dict, consumed: list) -> tuple:
     model."""
     kind = step.get("kind")
     if kind == "code" and (consumed or step.get("emits")):
-        from tools.run_python_experiment import run_python_experiment
         for field in ("code", "quantity"):
             if not step.get(field):
                 raise ArtifactError(f"code artifact is missing {field!r}")
@@ -438,7 +456,7 @@ def _run_one_step(step: dict, consumed: list) -> tuple:
         emits = step.get("emits") or []
         if emits:
             spec["output_files"] = list(emits)
-        summary = run_python_experiment(spec)
+        summary = _run_sandboxed_code(spec, step)
         result = {"value": summary.get("qoi"),
                   "error": None if summary.get("valid") else summary.get("diagnostics")}
         return result, (summary.get("artifacts") or {})

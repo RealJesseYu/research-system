@@ -42,8 +42,10 @@ Typed input:
     run_python_experiment({
       "code": "import numpy as np ...",   # the experiment, authored upstream
       "quantity": "final_loss",           # which metric in the result file
-      "timeout_s": 300,                   # OPTIONAL, bounded by MAX_TIMEOUT
-    })
+      "timeout_s": 300,                   # OPTIONAL, bounded by the profile's max
+      "profile": "heavy",                 # OPTIONAL sandbox profile (PROFILES);
+    })                                    #   resource geometry only — the jail
+                                          #   flags are invariant across profiles
 
 Return (and ONLY this leaves the wrapper):
     {"valid": bool, "qoi": float | None, "diagnostics": str, "runtime_s": float,
@@ -77,6 +79,38 @@ RESULT_PATH = f"{WORKDIR_CONTAINER}/{RESULT_NAME}"
 DEFAULT_TIMEOUT_SECONDS = 300
 MAX_TIMEOUT_SECONDS = 1800
 MAX_DIAG_CHARS = 800
+
+# --- Sandbox profiles (docs/memo_heavy_verification_lane.md) -----------------
+# A profile is the RESOURCE GEOMETRY of one run: image, timeout bounds, memory,
+# cpus. It travels with the artifact that declares it, so a verification re-run
+# executes under the same recorded conditions every time. Profiles deliberately
+# CANNOT touch the jail: --network=none, --read-only, --pids-limit and the
+# tmpfs live in _INVARIANT_RUN_FLAGS below, outside this table — no profile
+# can express a weakening. "default" is byte-identical to the pre-profile
+# behavior; "heavy" is the lane for ONE genuinely expensive evaluation (the
+# search-outside/verify-winner design means the sandbox never re-runs a
+# search). Heavy's numbers are sized to the colima VM (8 GiB / 4 cpus): 6 GB
+# leaves daemon headroom, 3600 s is the honest ceiling for verify-every-claim
+# on this machine. Same image on purpose — a bigger image is built as a pinned
+# SIBLING (the scipy-img precedent) when a run actually needs it, and only this
+# table's image field changes.
+DEFAULT_PROFILE = "default"
+PROFILES = {
+    "default": {
+        "image": IMAGE,
+        "default_timeout_s": DEFAULT_TIMEOUT_SECONDS,
+        "max_timeout_s": MAX_TIMEOUT_SECONDS,
+        "memory_mb": 4096,
+        "cpus": 2,
+    },
+    "heavy": {
+        "image": IMAGE,
+        "default_timeout_s": 1800,
+        "max_timeout_s": 3600,
+        "memory_mb": 6144,
+        "cpus": 4,
+    },
+}
 MAX_CODE_BYTES = 100_000
 # Cap on a single captured/injected file artifact (Phase 4, R-ART-5). File
 # hand-off between composition steps moves bytes host-side through the existing
@@ -97,20 +131,32 @@ MAX_ARTIFACT_BYTES = 8 * 1024 * 1024
 # least the jails the template-only path already carries.
 #
 # --read-only + a writable bind for the run dir only: the script may write its
-# result and nothing else. --pids-limit bounds a fork bomb. --memory-swap equal
-# to --memory disables swap, so the memory cap is real rather than advisory.
-MEMORY_MB = 4096
+# result and nothing else. --pids-limit bounds a fork bomb.
+#
+# These flags are INVARIANT across profiles by construction: a profile's dict
+# holds only resource geometry (image / timeout bounds / memory / cpus), so no
+# table entry can ever express "more network" or "writable rootfs".
 PIDS_LIMIT = 256
 TMPFS_MB = 512
-DOCKER_RUN_FLAGS = [
+_INVARIANT_RUN_FLAGS = [
     "--rm",
     "--network=none",
-    f"--memory={MEMORY_MB}m", f"--memory-swap={MEMORY_MB}m",
     f"--pids-limit={PIDS_LIMIT}",
     "--read-only",
     f"--tmpfs=/tmp:size={TMPFS_MB}m",
-    "--cpus", "2",
 ]
+
+
+def _docker_run_flags(profile: dict) -> list:
+    """The full flag set for one run: the invariant jail plus this profile's
+    resource geometry. --memory-swap equal to --memory disables swap, so the
+    memory cap is real rather than advisory."""
+    mem = profile["memory_mb"]
+    return [
+        *_INVARIANT_RUN_FLAGS,
+        f"--memory={mem}m", f"--memory-swap={mem}m",
+        "--cpus", str(profile["cpus"]),
+    ]
 
 
 class PythonExperimentInputError(ValueError):
@@ -125,7 +171,12 @@ _REQUIRED_FIELDS = ("code", "quantity")
 # host-side through the EXISTING writable bind — the sandbox stays
 # --network=none --read-only, reaching nothing new. Optional and default-absent:
 # a call without them is byte-identical to before.
-_OPTIONAL_FIELDS = ("timeout_s", "input_files", "output_files")
+# profile (docs/memo_heavy_verification_lane.md): which sandbox profile runs
+# this experiment. Optional and default-absent — a call without it is
+# byte-identical to before. It is validated against PROFILES and RECORDED in
+# the artifact that declares it, so a verification re-run executes under the
+# same resource geometry every time.
+_OPTIONAL_FIELDS = ("timeout_s", "input_files", "output_files", "profile")
 
 # The harness preamble. Prepended to caller code so the script always has a
 # sanctioned way to report metrics, and so `metrics` exists even if the code
@@ -185,15 +236,22 @@ def _validate_input(spec: dict) -> dict:
     if not isinstance(quantity, str) or not quantity.strip():
         raise PythonExperimentInputError("'quantity' must be a non-empty string")
 
-    timeout = spec.get("timeout_s", DEFAULT_TIMEOUT_SECONDS)
+    profile_name = spec.get("profile", DEFAULT_PROFILE)
+    if profile_name not in PROFILES:
+        raise PythonExperimentInputError(
+            f"'profile' must be one of {sorted(PROFILES)}, got {profile_name!r}")
+    profile = PROFILES[profile_name]
+
+    timeout = spec.get("timeout_s", profile["default_timeout_s"])
     try:
         timeout = int(timeout)
     except (TypeError, ValueError):
         raise PythonExperimentInputError(
             f"'timeout_s' must be an integer, got {timeout!r}")
-    if not 1 <= timeout <= MAX_TIMEOUT_SECONDS:
+    if not 1 <= timeout <= profile["max_timeout_s"]:
         raise PythonExperimentInputError(
-            f"'timeout_s' must be between 1 and {MAX_TIMEOUT_SECONDS}, got {timeout}")
+            f"'timeout_s' must be between 1 and {profile['max_timeout_s']} "
+            f"for profile {profile_name!r}, got {timeout}")
 
     # Phase 4 (R-ART-5): optional file-artifact I/O. Names are validated to be
     # bare filenames here, before anything is written into the run dir.
@@ -219,6 +277,7 @@ def _validate_input(spec: dict) -> dict:
     output_files = [_safe_artifact_name(n) for n in output_files_raw]
 
     return {"code": code, "quantity": quantity.strip(), "timeout_s": timeout,
+            "profile": profile_name,
             "input_files": input_files, "output_files": output_files}
 
 
@@ -291,11 +350,13 @@ def run_python_experiment(spec: dict) -> dict:
         # validated to be bare filenames in _validate_input.
         for name, data in clean["input_files"].items():
             (host_dir / name).write_bytes(data)
+        profile = PROFILES[clean["profile"]]
         cmd = [
-            "docker", "--context", DOCKER_CONTEXT, "run", *DOCKER_RUN_FLAGS,
+            "docker", "--context", DOCKER_CONTEXT, "run",
+            *_docker_run_flags(profile),
             "-v", f"{host_dir}:{WORKDIR_CONTAINER}",
             "-w", WORKDIR_CONTAINER,
-            IMAGE, "python", f"{WORKDIR_CONTAINER}/{SCRIPT_NAME}",
+            profile["image"], "python", f"{WORKDIR_CONTAINER}/{SCRIPT_NAME}",
         ]
         try:
             proc = subprocess.run(

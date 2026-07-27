@@ -47,6 +47,7 @@ INDEPENDENT RE-VERIFICATION. After you finish, a deterministic pass with NO mode
 - computed in code: save a self-contained Python file in your workspace that assigns your value to a metrics dict — `metrics["<quantity>"] = <value>` (define `metrics = {}` yourself so the file also runs standalone; it must be deterministic and need no network) — and reference it as "artifact": {"file": "<name>.py", "quantity": "<quantity>"}. The file's computed value must equal the "value" you report.
 - produced by a specialized tool from the catalogue: "artifact": {"substrate_id": "<id>", "typed_input": {<the exact typed inputs>}, "quantity": "<metric name>"}.
 A finding you cannot back with a re-runnable artifact must be reported with "verified": false — an honest caveat is fine, it just is not counted as reproduced.
+The re-run sandbox has no network and a 300-second / 4 GB budget — plenty for a winner-recheck file, which is what your artifacts should normally be. If ONE evaluation is genuinely heavy (a real solver pass, a long rollout) and its recheck cannot fit that budget, add "profile": "heavy" to that finding's artifact and it will be re-run with a 1800-second / 6 GB ceiling instead. Use it only where the recheck truly needs it — never as a default.
 
 TOLERANCE. The re-run must match your value almost exactly by default, which is right for arithmetic. Some legitimate quantities do not survive that: iteration counts to convergence, solver-evaluation counts, ratios built from them, and anything else whose value depends on where a loop happens to stop can shift slightly between machines. If your quantity is one of those, add "tolerance": <relative, e.g. 0.01> to that finding and it will be judged within that band instead. Use it only where the quantity genuinely warrants it — a value that needs a loose band to reproduce is a weaker result, and a value that still misses is reported as an honest caveat rather than forced through.
 
@@ -128,8 +129,15 @@ def _finding_artifact(art, workspace) -> Optional[dict]:
         path = art["file"]
         if workspace is not None:
             path = str((Path(workspace) / art["file"]).resolve())
-        return {"kind": "workspace_file", "path": path,
-                "quantity": art.get("quantity")}
+        out = {"kind": "workspace_file", "path": path,
+               "quantity": art.get("quantity")}
+        # Declared sandbox profile (docs/memo_heavy_verification_lane.md):
+        # travels with the artifact so the wall re-runs one genuinely heavy
+        # evaluation under the recorded heavier ceilings. Validated by the
+        # sandbox itself; an unknown profile fails as an unrunnable artifact.
+        if art.get("profile") is not None:
+            out["profile"] = art["profile"]
+        return out
     if art.get("substrate_id"):
         out = {"kind": "substrate"}
         out.update({k: v for k, v in art.items()})
