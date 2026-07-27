@@ -52,21 +52,38 @@ convenient it seems in the moment:
 - **The supervisor is deterministic Python with no AI inside it.** It schedules stages,
   saves batons, enforces gates, and prints/logs. It never calls a model.
 - **Stages exchange only small typed batons — never transcripts.** A baton is a small
-  structured object (see `baton.py`). Raw tool output (e.g. a full solver log) must be
-  summarized at the tool wrapper *before* any agent sees it — never handed to a stage
-  wholesale.
+  structured object (see `baton.py`). ⚠️ **AUDITED 2026-07-27: PARTIALLY ENFORCED.**
+  `baton.validate()` checks the ENVELOPE only (five required fields, mode enum, payload
+  is a dict). "Small" and "typed" were `schemas.py`'s `validate_payload_post_*`, which
+  now has **no runtime caller** — see the schemas line below. A payload of arbitrary
+  size and shape passes today.
+- **Raw tool output is summarized at the wrapper before any agent sees it.**
+  ⚠️ **AUDITED 2026-07-27: SUPERSEDED BY THE PRIME DIRECTIVE, not a live invariant.**
+  It still holds for the substrate wrappers themselves (`MAX_DIAG_CHARS`, and
+  `run_cfd`'s "full log NEVER returned"). But the production experimenter runs the
+  `FULL` profile with `Bash`/`Read`/`WebFetch`, and is told to write and run code — so
+  raw stdout reaches its context uncapped, by design. A free agent that cannot see what
+  its own command printed is weaker than a chat. Do not "restore" this by capping the
+  agent's tools; the wrapper-side caps are the part that matters.
 - **Memory lives in an external store, never in context.** Long-term memory is on disk,
   outside any AI's conversation. Built in Step 7 chunk 3 as plain files (an append-only
   JSONL journal) plus the spike's proven TF-IDF search — a deliberate deviation from the
   build book's "vector DB" option, per tested-first: no vector database, no embeddings,
   no new services until a real run shows the simple version failing.
-- **Three human gates, two modes.** Gates occur after stage 1, after stage 2, and at
-  stage 5's iterate decision. A mode switch (`human` / `auto`) changes gate *behavior*
-  only — `human` mode stops and asks; `auto` mode logs the gate and proceeds. The mode
-  never changes what the stages themselves do.
-- **Model roles.** Sonnet = workhorse (does the bulk of each stage's work). Opus = hard
-  judgments only (ranking in ideation, the fidelity call, the iterate decision). Haiku =
-  triage and stubs (cheap, fast, low-stakes passes).
+- **Three human gates, two modes.** ⚠️ **AUDITED 2026-07-27: NO LONGER EXISTS.** The
+  gate functions (`run_gate`, `parse_gate1_selection`) and the stages they sat between
+  went with the purge; `supervisor.py` has none of them. `--mode human|auto` still
+  reaches the dispatched run. Kept as history, not as a description of the code.
+- **Model roles.** ⚠️ **AUDITED 2026-07-27: SUPERSEDED.** Every tier defaults to OPUS
+  (owner ruling 2026-07-25, recorded in `models.py` above `_TIER_DEFAULT` with the
+  measurement behind it: running generation and review on a cheaper tier made the system
+  weaker than the plain chat it is compared against). The tier names — `heavy` / `light`
+  / `triage` / `critic` — describe what each role IS, not what it costs; they are the
+  seams a cheap run is turned on at (`RESEARCH_MODEL_LIGHT=sonnet`), not a standing
+  split. Module constants are named for their TIER (`HEAVY_MODEL`, `LIGHT_MODEL`,
+  `TRIAGE_MODEL`) precisely so evidence files cannot record a model name the run did not
+  use. **Never write a model id as a literal "explicit pin"** — two did, outlived their
+  models' retirement, and silently opted out of the knob; a pin belongs in the tier.
 - **Substrate-agnostic upper layers.** Nothing above a tool wrapper may ever mention
   OpenFOAM or any specific solver by name. Upper layers only see abstract properties:
   validated envelope, cost, confidence. This keeps the system able to swap solvers later
@@ -127,9 +144,32 @@ convenient it seems in the moment:
   (both arm-2 runs defer on spatial-masking/derived-field QoIs).
 - **Baton schemas are locked (Step 15).** schemas.py is the lock artifact; changes to
   it require a recorded ruling, same discipline as frozen prompts.
+  ⚠️ **AUDITED 2026-07-27: THE LOCK IS NOT ENGAGED.** `validate_payload_post_gate1/2/3/4/5`
+  are referenced only by `schemas.py` itself and by tests — `supervisor.py` does not
+  import `schemas` at all. The purge removed the boundaries these guarded. Two live
+  consequences: the "small typed baton" invariant above is envelope-only, and
+  `supervisor.py` attaches `_maturity_signoff` / `_verification` as NON-payload
+  attributes to route around a lock that no longer runs. **OPEN RULING NEEDED:** rewire
+  it at the free-path boundary, or delete it and strike this line. Do not leave it
+  described as an enforcement point.
 - **Schema violations halt loudly, never re-ask.** A malformed baton after a stage
   returned is a broken invariant, not a model error — the supervisor logs SCHEMA
   VIOLATION, journals a halted-schema run_record, and stops; no correction loop.
+  ⚠️ **AUDITED 2026-07-27: unreachable** — nothing calls the validators that would
+  raise. Reinstated only if the line above is resolved by rewiring.
+- **A crash leaves a run_record (2026-07-27).** `run_exact_route` wraps the free
+  experimenter: an escaping exception journals `crashed during free investigation
+  (<Type>: <msg>)` and re-raises. Before this, a crash and an EXTERNAL KILL were
+  indistinguishable — both left no record, and the director reads `has_run_record`.
+  The external-kill sentinel is still unbuilt; this is what now separates the two.
+- **The journal read side tolerates a bad line; the write side is measured, not
+  assumed (2026-07-27).** Both readers go through one `_read_entries()` that skips and
+  COUNTS unreadable lines (a torn line used to raise out of `journal_recent_by_kind`,
+  the single retrieval source every memory block reads through, breaking memory for
+  every later run). `journal_append`'s buffered write was tested for tearing under 8
+  concurrent processes at 20 KB and 400 KB per entry — 320/320 intact both times — so
+  it was left alone per "expand only on evidence". Do not re-open that from first
+  principles; the measurement is in the code comment.
 - **Deferred schema candidates and their wake conditions (Step-15 docket).**
   Candidate 1 (categorical parameter role): wake on a second live categorical
   occurrence or a downstream mis-read. Candidate 4 (coupled/redundant sweep

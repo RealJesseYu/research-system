@@ -62,7 +62,13 @@ from pathlib import Path
 # ----------------------------------------------------------------------------
 DOCKER_CONTEXT = "colima"                 # same colima VM as the other substrates
 IMAGE = "code-img:latest"                 # the pinned Python-ML image (see code_env/)
-RUNS_HOST = Path("/Users/jesseyu/research-system/cases_code")  # job scratch on the Mac
+# Derived from this file's location, not hardcoded: the literal
+# /Users/jesseyu/research-system prefix bound every containerized substrate
+# to one developer's home directory, so a fresh checkout by anyone else
+# failed here rather than at a missing container. This is the Mac side of
+# the docker bind mount; the container side is unchanged.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+RUNS_HOST = _PROJECT_ROOT / "cases_code"  # job scratch on the Mac
 
 DEFAULT_TIMEOUT_S = 60                     # used when a spec omits budget.timeout_s
 DEFAULT_MEM_MB = 512

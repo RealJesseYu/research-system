@@ -16,7 +16,11 @@ import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 
-PROJECT = Path("/Users/jesseyu/research-system")
+# Derived, not hardcoded — this file sits at harness/diag4a_reference/, so the
+# project root is two levels up. The literal it replaced bound this driver to one
+# developer's home directory, and it chdir()s to this value, so on any other
+# machine it did not fail cleanly: it changed into a nonexistent directory.
+PROJECT = Path(__file__).resolve().parent.parent.parent
 os.chdir(PROJECT)
 sys.path.insert(0, str(PROJECT))
 

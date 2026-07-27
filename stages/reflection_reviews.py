@@ -85,7 +85,13 @@ from tools.substrate_registry import routable_contracts_block
 
 _RETRIEVAL_DIR = Path(__file__).resolve().parent.parent / "retrieval"
 if str(_RETRIEVAL_DIR) not in sys.path:
-    sys.path.insert(0, str(_RETRIEVAL_DIR))
+    # APPEND, not insert(0). At position 0 this directory shadowed the whole
+    # standard library for the entire process: any future retrieval/<stdlib
+    # name>.py would silently win every `import` anywhere in the run. Appending
+    # keeps the sibling-module imports below working while leaving stdlib
+    # resolution untouched. (retrieval/search.py also supports the package
+    # spelling now, so this path entry is a convenience, not a requirement.)
+    sys.path.append(str(_RETRIEVAL_DIR))
 
 from scholar_search import search_arxiv, search_openalex, search_semantic_scholar  # noqa: E402
 from search import search_index  # noqa: E402

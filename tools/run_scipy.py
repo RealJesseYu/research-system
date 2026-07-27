@@ -103,7 +103,13 @@ DOCKER_CONTEXT = "colima"
 IMAGE = "scipy-img:latest"
 # Job scratch. MUST live under $HOME: the colima VM only mounts the user's home,
 # so a /tmp path silently fails to mount (measured this session).
-RUNS_HOST = Path("/Users/jesseyu/research-system/cases_scipy")
+# Derived from this file's location, not hardcoded: the literal
+# /Users/jesseyu/research-system prefix bound every containerized substrate
+# to one developer's home directory, so a fresh checkout by anyone else
+# failed here rather than at a missing container. This is the Mac side of
+# the docker bind mount; the container side is unchanged.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+RUNS_HOST = _PROJECT_ROOT / "cases_scipy"
 
 DEFAULT_TIMEOUT_S = 600          # the FEA shape's hard wall; INJECTABLE per call
 DEFAULT_MEM_MB = 256             # mirrors the code jail's cap

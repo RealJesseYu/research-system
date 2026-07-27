@@ -51,7 +51,13 @@ from pathlib import Path
 
 DOCKER_CONTEXT = "colima"
 CONTAINER = "mafft-prod"
-SHARED_HOST = Path("/Users/jesseyu/research-system/cases_mafft")
+# Derived from this file's location, not hardcoded: the literal
+# /Users/jesseyu/research-system prefix bound every containerized substrate
+# to one developer's home directory, so a fresh checkout by anyone else
+# failed here rather than at a missing container. This is the Mac side of
+# the docker bind mount; the container side is unchanged.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SHARED_HOST = _PROJECT_ROOT / "cases_mafft"
 SHARED_CONTAINER = "/work/cases"
 
 TIMEOUT_SECONDS = 600

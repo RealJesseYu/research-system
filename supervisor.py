@@ -191,7 +191,32 @@ def run_exact_route(logger: Logger, baton: Baton, run_dir: Path, mode: str,
         "FREE EXPERIMENTER: investigating the goal directly — no substrate cage, "
         "every tool and connector on the table (PRIME DIRECTIVE)"
     )
-    result = free_investigate(goal, run_id=baton.run_id)
+    # A CRASH MUST STILL LEAVE A RUN_RECORD. This call was unguarded, and
+    # record_run_outcome sits only on the success path below — so any exception
+    # escaping the free experimenter (call_stage_model raises after 3 failed
+    # attempts, and for a TOOLED call _transport_with_retry has budget 0, so the
+    # first SDK exception propagates) killed the sole production path with a
+    # traceback and journaled nothing.
+    #
+    # That is worse than losing the run: the director reads has_run_record, so a
+    # crash was INDISTINGUISHABLE from the externally-killed scenario on the
+    # watch list — the same absent record, two very different causes, and no way
+    # to tell which one a human was looking at. CLAUDE.md records stage-crash
+    # catching as closed in Step 16; the purge took it with the relay.
+    #
+    # The record is honest about what it does not know: how far the run got is
+    # unknown, so it says so and names the exception rather than implying a
+    # clean stop. Re-raised after journaling — this is a real failure and the
+    # caller must see it; the point is only that it is no longer SILENT.
+    try:
+        result = free_investigate(goal, run_id=baton.run_id)
+    except Exception as e:
+        how_far = (f"crashed during free investigation "
+                   f"({type(e).__name__}: {e})")
+        logger.log(f"CRASH: {how_far}")
+        record_run_outcome(baton, how_far)
+        logger.log(f"=== supervisor run {baton.run_id} {how_far} ===")
+        raise
     findings = result.get("findings") or []
     verified = sum(1 for f in findings if f.get("verified"))
     publishable = bool(result.get("publishable"))

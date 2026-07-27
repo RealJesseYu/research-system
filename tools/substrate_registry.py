@@ -13,6 +13,16 @@ THE MATURITY LADDER (low -> high), for routable substrates:
                     calibrating substrate whose battery has run MAY be ruled
                     routable — every trust decision touching it stays
                     human-required via the supervisor's maturity hook
+                    ⚠️ AUDITED 2026-07-27: THIS SAFEGUARD NO LONGER EXISTS.
+                    apply_substrate_maturity_hook is gone from the repo (the
+                    purge took it); supervisor.py reads baton._maturity_signoff,
+                    which NOTHING sets, so needs_human_signoff is permanently
+                    False. Five substrates are routable and NOT mature
+                    (cavity_2d_cfd, ngspice_linear_passive, sympy_symbolic_exact,
+                    both cantilevers) — a run can draw trust on any of them and
+                    keep the number unattended. Either restore an enforcement
+                    point or strike the trust claims below; do not read the rows
+                    as guaranteeing a signoff. Original text follows.
                     (NEEDS_HUMAN_SIGNOFF; auto-mode trust/refine downgrades
                     to defer), so it is never silently trusted.
     provisional  -- real runs are accruing and the wrapper behaves, but the

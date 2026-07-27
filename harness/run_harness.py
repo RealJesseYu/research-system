@@ -112,6 +112,36 @@ def main() -> int:
             )
         if args.run_id is None:
             parser.error("--mode paperlint requires --run-id")
+
+        # THIS MODE LINTS THE RETIRED STAGE-6 LAYOUT. lint_paper reads
+        # runs/<id>/stage6/paper.md plus stage6/paper_validation.json and
+        # stage3/verdict.json — the six-stage relay's artifacts. The live route
+        # (stages/free_paper.py, stages/study_paper.py) writes runs/<id>/paper.md
+        # and produces none of that stage evidence, and pi_agent/dispatch.py
+        # already migrated its own read to the new path; this mode did not.
+        #
+        # Pointed at a current run it would therefore report a pile of
+        # missing-artifact failures that say "your paper is broken" when the truth
+        # is "this lint does not cover this route". Say which it is, loudly,
+        # instead of emitting misleading failures.
+        _run_dir = Path("runs") / str(args.run_id)
+        if not (_run_dir / "stage6").is_dir():
+            print(
+                f"PAPERLINT: NOT APPLICABLE — run {args.run_id} has no stage6/ "
+                "directory, so it was not produced by the six-stage relay this "
+                "lint checks."
+            )
+            if (_run_dir / "paper.md").is_file():
+                print(
+                    f"  This run's paper is at {_run_dir / 'paper.md'} (the free "
+                    "route). It is NOT covered by any lint: the free writers use "
+                    'the heading "What a human must still validate" and emit no '
+                    "validation sidecar, both of which this module predates."
+                )
+            elif not _run_dir.is_dir():
+                print(f"  No run directory at {_run_dir} either.")
+            return 0
+
         failures = paper_lint.lint_paper(args.run_id)
         for failure in failures:
             print(

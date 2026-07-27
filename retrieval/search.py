@@ -11,7 +11,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tfidf_core import search
+# WORKS BOTH WAYS ON PURPOSE. The bare `from tfidf_core import ...` form only
+# resolves when retrieval/ is itself on sys.path — which is how the stage call
+# sites reach this module (they insert the directory, then `from search import
+# search_index`). But it made `import retrieval.search` raise
+# ModuleNotFoundError, so this module was unimportable by its own package name:
+# any tool, test or REPL that reached for it the ordinary way simply could not.
+# retrieval/ has no __init__.py, so both spellings are legitimate; support both
+# rather than force every caller onto the sys.path dance.
+try:
+    from tfidf_core import search
+except ModuleNotFoundError:  # imported as retrieval.search
+    from retrieval.tfidf_core import search
 
 _INDEX_PATHS = {
     "solver_docs": Path(__file__).parent / "solver_docs_index.pkl",

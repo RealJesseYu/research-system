@@ -48,7 +48,13 @@ from pathlib import Path
 # ----------------------------------------------------------------------------
 DOCKER_CONTEXT = "colima"          # the production engine (same colima VM)
 CONTAINER = "of12-prod"            # the production container; never of12
-SHARED_HOST = Path("/Users/jesseyu/research-system/cases")  # Mac side of the bind mount
+# Derived from this file's location, not hardcoded: the literal
+# /Users/jesseyu/research-system prefix bound every containerized substrate
+# to one developer's home directory, so a fresh checkout by anyone else
+# failed here rather than at a missing container. This is the Mac side of
+# the docker bind mount; the container side is unchanged.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SHARED_HOST = _PROJECT_ROOT / "cases"  # Mac side of the bind mount
 SHARED_CONTAINER = "/work/cases"   # same folder seen from inside the container
 OF_BASHRC = "/opt/openfoam12/etc/bashrc"  # sourcing this puts solvers on PATH
 

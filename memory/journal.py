@@ -50,9 +50,72 @@ def journal_append(entry: dict[str, Any]) -> dict[str, Any]:
         if field not in entry:
             raise ValueError(f"journal entry missing required field: {field}")
 
+    # MEASURED, NOT ASSUMED (2026-07-27). An audit flagged this buffered write
+    # as able to tear a line: several processes append here at once (the director
+    # dispatches runs as subprocesses and sub-studies recurse), and a buffered
+    # writer flushing in chunks could let another process's line land between two
+    # write(2) calls of one entry.
+    #
+    # It does not. Tested against 8 concurrent processes x 40 entries, at 20 KB
+    # and again at 400 KB per entry — above this platform's 131072-byte text
+    # buffer, which is where a split would have to happen: 320 of 320 lines
+    # intact, zero torn, both runs. CPython hands an oversized write straight to
+    # the raw layer in a single call, and "a" mode opens with O_APPEND, so that
+    # call is atomic with respect to the file offset.
+    #
+    # Left as-is on the strength of that measurement, per "expand only on
+    # evidence" — an os.write/O_APPEND rewrite was tried and reverted because it
+    # fixed nothing observable. Recorded here so the question is not re-opened
+    # from first principles a third time. The real defect the audit found was on
+    # the READ side below, and that one was genuine.
     with open(JOURNAL_PATH, "a") as f:
         f.write(json.dumps(entry) + "\n")
     return entry
+
+
+def _read_entries() -> tuple[list[dict[str, Any]], int]:
+    """Every well-formed entry, oldest-first, plus a count of unreadable lines.
+
+    ONE BAD LINE MUST NOT COST THE WHOLE JOURNAL. Both readers below used to do
+    an unguarded json.loads per line, so a single torn or truncated line raised
+    out of journal_recent_by_kind — which is the SINGLE retrieval source every
+    stage's memory block reads through. One damaged line therefore broke memory
+    retrieval for every subsequent run, permanently, until someone repaired the
+    file by hand. (That this file already has a
+    journal.jsonl.pre-correction-20260720 sibling says the damage is not
+    hypothetical.)
+
+    Skip-and-count rather than skip-and-hide: the caller reports the count, so a
+    corrupt line stays visible instead of quietly shrinking what memory knows.
+    """
+    entries: list[dict[str, Any]] = []
+    unreadable = 0
+    with open(JOURNAL_PATH, encoding="utf-8", errors="replace") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+            except ValueError:
+                unreadable += 1
+                continue
+            # A line that parses but is not an object cannot answer .get(),
+            # and would raise at the filter sites instead of here.
+            if isinstance(obj, dict):
+                entries.append(obj)
+            else:
+                unreadable += 1
+    return entries, unreadable
+
+
+def _note_unreadable(unreadable: int) -> None:
+    """Surface skipped lines once per read. Deliberately a print, matching how
+    this project already reports fence-strips and re-asks: silent tolerance of a
+    corrupt journal would be its own defect."""
+    if unreadable:
+        print(f"NOTE: journal has {unreadable} unreadable line(s), skipped — "
+              f"{JOURNAL_PATH} may need repair")
 
 
 def journal_recent_by_kind(kind: str, limit: int = 3) -> list[dict[str, Any]]:
@@ -72,12 +135,8 @@ def journal_recent_by_kind(kind: str, limit: int = 3) -> list[dict[str, Any]]:
     if not JOURNAL_PATH.exists():
         return []
 
-    entries = []
-    with open(JOURNAL_PATH) as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                entries.append(json.loads(line))
+    entries, unreadable = _read_entries()
+    _note_unreadable(unreadable)
 
     entries.reverse()  # most-recent-first (file is append-only, oldest-first on disk)
     return [e for e in entries if e.get("kind") == kind][:limit]
@@ -98,12 +157,8 @@ def journal_search(
     if not JOURNAL_PATH.exists():
         return []
 
-    entries = []
-    with open(JOURNAL_PATH) as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                entries.append(json.loads(line))
+    entries, unreadable = _read_entries()
+    _note_unreadable(unreadable)
 
     entries.reverse()  # most-recent-first (file is append-only, oldest-first on disk)
 

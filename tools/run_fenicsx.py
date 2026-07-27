@@ -64,7 +64,13 @@ from pathlib import Path
 # ----------------------------------------------------------------------------
 DOCKER_CONTEXT = "colima"           # same colima VM as the CFD/FEA substrates
 CONTAINER = "dolfinx-prod"          # the FEniCSx production container
-SHARED_HOST = Path("/Users/jesseyu/research-system/cases_fenicsx")  # Mac side
+# Derived from this file's location, not hardcoded: the literal
+# /Users/jesseyu/research-system prefix bound every containerized substrate
+# to one developer's home directory, so a fresh checkout by anyone else
+# failed here rather than at a missing container. This is the Mac side of
+# the docker bind mount; the container side is unchanged.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SHARED_HOST = _PROJECT_ROOT / "cases_fenicsx"  # Mac side
 SHARED_CONTAINER = "/work/cases"    # same folder seen inside the container
 
 TIMEOUT_SECONDS = 600               # hard cap so a stuck solver can't hang us
