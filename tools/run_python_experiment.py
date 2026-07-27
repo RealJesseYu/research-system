@@ -66,6 +66,9 @@ from pathlib import Path
 # ----------------------------------------------------------------------------
 DOCKER_CONTEXT = "colima"
 IMAGE = "code-img:latest"          # numpy / scipy / sklearn / pandas
+# The atomistic shelf: ASE / PySCF / OpenMM / pymatgen / RDKit + numpy / scipy.
+# Built from tools/atomistic_env/ (see the PROFILES table below).
+ATOMISTIC_IMAGE = "atomistic-img:latest"
 # Scratch lives under the project root, NOT the system temp dir: colima shares
 # the home tree over virtiofs and cannot see /var/folders, so a tempfile-backed
 # bind mount arrives in the container empty. Same reason every other wrapper
@@ -105,6 +108,33 @@ PROFILES = {
     },
     "heavy": {
         "image": IMAGE,
+        "default_timeout_s": 1800,
+        "max_timeout_s": 3600,
+        "memory_mb": 6144,
+        "cpus": 4,
+    },
+    # THE SIBLING IMAGE THIS TABLE'S COMMENT ANTICIPATED (2026-07-27,
+    # docs/memo_atomistic_lane.md). Same jail, same runner, same result
+    # contract — a different shelf of libraries: ASE, PySCF, OpenMM, pymatgen,
+    # RDKit (tools/atomistic_env/). It closes the project's largest scientific
+    # gap: the system could look up what is known about a molecule or a
+    # material and could not COMPUTE anything about one.
+    #
+    # A profile is now (shelf x geometry), so both geometries are offered
+    # against the new shelf: an ordinary check, and one genuinely expensive
+    # evaluation. Nothing about the jail moves — --network=none, --read-only,
+    # --pids-limit and the tmpfs are invariant flags outside this table, so no
+    # entry here can express a weakening, and an atomistic result verifies by
+    # the same re-run as any other code artifact.
+    "atomistic": {
+        "image": ATOMISTIC_IMAGE,
+        "default_timeout_s": DEFAULT_TIMEOUT_SECONDS,
+        "max_timeout_s": MAX_TIMEOUT_SECONDS,
+        "memory_mb": 4096,
+        "cpus": 2,
+    },
+    "atomistic-heavy": {
+        "image": ATOMISTIC_IMAGE,
         "default_timeout_s": 1800,
         "max_timeout_s": 3600,
         "memory_mb": 6144,

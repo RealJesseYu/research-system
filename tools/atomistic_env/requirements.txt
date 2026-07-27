@@ -1,0 +1,46 @@
+# Pinned manifest for the ATOMISTIC sandbox image (atomistic-img).
+#
+# The sibling image the profile table's comment anticipated: same jail, same
+# runner, a different set of libraries on the shelf. This one closes the
+# project's largest scientific gap — it could look up what is known about a
+# molecule or a material, and could not compute anything about one from first
+# principles.
+#
+# Every version is pinned so the image is reproducible and a job's result is a
+# function of the spec alone, never of a drifting dependency. All of these ship
+# prebuilt linux-aarch64 manylinux wheels (or are pure Python), so the build
+# needs network but no compiler; jobs at runtime get NO network, exactly as in
+# code_env (docker run --network=none).
+#
+# WHY THESE FIVE, and not a longer list: ASE is the hub every atomistic code in
+# Python plugs into, so it is what makes the others compose rather than sit
+# side by side. Then one tool per layer of theory — electronic structure
+# (PySCF), classical dynamics (OpenMM), crystal/materials structure (pymatgen),
+# molecular structure and cheminformatics (RDKit). A sixth package earns its
+# place when a run actually needs it; a bloated image is slower to build, slower
+# to pull, and no more capable.
+numpy==2.5.1
+scipy==1.18.0
+
+# The orchestration layer: structures, calculators, optimizers, MD drivers, and
+# the file formats (CIF, POSCAR, XYZ, PDB) every other tool here speaks.
+ase==3.29.0
+
+# Crystal and materials structure manipulation — symmetry, composition, phase
+# analysis. Pairs with the Materials Project data the agent can look up.
+pymatgen==2026.5.4
+
+# Quantum chemistry: HF, DFT, MP2, coupled cluster. Deterministic given a
+# geometry, basis and functional — re-running IS the check. NOT free of physical
+# approximation: the functional and basis are choices that can be confidently
+# wrong, which is what the fidelity gate is for.
+pyscf==2.14.0
+
+# Molecular dynamics. Deterministic under a fixed seed and platform; the force
+# field is the approximation, same caveat as above.
+openmm==8.5.2
+
+# Cheminformatics: molecule parsing, conformer generation, descriptors. Already
+# a substrate in its own container; present here so agent-authored code can
+# build a molecule and hand it to the tools above without a round trip.
+rdkit==2026.3.4
