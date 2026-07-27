@@ -29,7 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from stages.verification import (DEFAULT_REL_TOL,  # noqa: E402
                                  MAX_DECLARED_REL_TOL, _declared_tolerance,
-                                 verify_run)
+                                 verify_claim, verify_run)
 
 
 class TestDeclaredTolerance(unittest.TestCase):
@@ -107,6 +107,74 @@ class TestTheGuaranteeIsUnchanged(unittest.TestCase):
         self.assertIn("TOLERANCE", SYSTEM_PROMPT)
         self.assertIn("iteration counts", SYSTEM_PROMPT)
         self.assertIn("only where the quantity genuinely warrants it", SYSTEM_PROMPT)
+
+
+
+
+class TestAStringResultReproducesByBeingIdentical(unittest.TestCase):
+    """FOUND LIVE (study-20260727T091129Z). A run downloaded NASA GISTEMP from the
+    open web, reported the mean anomaly AND the file's SHA-256, and the hash came
+    back unverified as "non_numeric" — even though re-running the artifact
+    produced the same hash character for character. The director recorded it as "a
+    known harness limitation".
+
+    It was a category error, not a safeguard. Exact string equality is
+    reproduction in the strictest sense available, and refusing it made every
+    hash, identifier, categorical outcome and chosen-option finding permanently
+    unverifiable — while the experimenter's own prompt invites "a number or short
+    string" as a value."""
+
+    def _claim(self, value, code, quantity="h"):
+        return {"value": value, "label": "l",
+                "artifact": {"kind": "code", "code": code, "quantity": quantity}}
+
+    def test_an_identical_string_verifies(self):
+        v = verify_claim(self._claim("d41d8cd98f00", 'metrics = {"h": "d41d8cd98f00"}'))
+        self.assertTrue(v["verified"])
+        self.assertEqual(v["reason"], "reproduced")
+        self.assertEqual(v["comparison"], "exact string")
+
+    def test_a_different_string_is_a_mismatch_not_a_pass(self):
+        v = verify_claim(self._claim("aaa", 'metrics = {"h": "bbb"}'))
+        self.assertFalse(v["verified"])
+        self.assertEqual(v["reason"], "mismatch")
+        self.assertIn("must match exactly", v["detail"])
+
+    def test_there_is_no_tolerance_for_strings(self):
+        """A string has no near-miss; a declared tolerance must not soften it."""
+        c = self._claim("abc", 'metrics = {"h": "abd"}')
+        c["tolerance"] = 0.02
+        self.assertFalse(verify_claim(c)["verified"])
+
+    def test_surrounding_whitespace_does_not_break_a_match(self):
+        v = verify_claim(self._claim("abc", 'metrics = {"h": " abc "}'))
+        self.assertTrue(v["verified"])
+
+    def test_a_string_metric_survives_the_sandbox_gate(self):
+        """The sandbox coerced qoi with float(), so a string never even reached
+        verification — fixing only the comparison would have been dead code."""
+        from tools.run_python_experiment import run_python_experiment
+        out = run_python_experiment({"code": 'metrics = {"h": "sha-abc"}',
+                                     "quantity": "h"})
+        self.assertTrue(out["valid"])
+        self.assertEqual(out["qoi"], "sha-abc")
+
+    def test_an_empty_or_oversized_string_is_still_refused(self):
+        """A result is a value, not a document: the metric channel must not become
+        a way to return a transcript from the sandbox."""
+        from tools.run_python_experiment import MAX_STRING_QOI, run_python_experiment
+        self.assertFalse(run_python_experiment(
+            {"code": 'metrics = {"h": "  "}', "quantity": "h"})["valid"])
+        big = "x" * (MAX_STRING_QOI + 1)
+        out = run_python_experiment({"code": f'metrics = {{"h": "{big}"}}',
+                                     "quantity": "h"})
+        self.assertFalse(out["valid"])
+        self.assertIn("over the", out["diagnostics"])
+
+    def test_numbers_are_untouched(self):
+        v = verify_claim(self._claim(2.0, 'metrics = {"h": 1.0 + 1.0}'))
+        self.assertTrue(v["verified"])
+        self.assertNotIn("comparison", v)
 
 
 if __name__ == "__main__":

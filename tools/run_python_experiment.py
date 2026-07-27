@@ -87,6 +87,11 @@ SCRIPT_NAME = "experiment.py"
 RESULT_NAME = "result.json"
 RESULT_PATH = f"{WORKDIR_CONTAINER}/{RESULT_NAME}"
 
+# A string result is a hash, an identifier or a short categorical
+# outcome — never a document. Bounded so a metric cannot become a
+# channel for returning a transcript from the sandbox.
+MAX_STRING_QOI = 256
+
 DEFAULT_TIMEOUT_SECONDS = 300
 MAX_TIMEOUT_SECONDS = 1800
 MAX_DIAG_CHARS = 800
@@ -519,12 +524,45 @@ def run_python_experiment(spec: dict) -> dict:
         }
 
     value = metrics[quantity]
+    # A STRING METRIC IS ALLOWED and is compared exactly downstream (2026-07-27).
+    # Found live: a run downloaded a real dataset and reported its SHA-256
+    # beside the numeric statistic; the hash re-ran to the identical string and
+    # was still refused here for not being a number, which made every hash,
+    # identifier and categorical outcome permanently unverifiable. Bounded so a
+    # "metric" cannot become a channel for smuggling a transcript out of the
+    # sandbox — the summary is small by contract.
+    if isinstance(value, str):
+        if not value.strip():
+            return {
+                "valid": False, "qoi": None, "metrics": metrics,
+                "diagnostics": f"metric {quantity!r} is an empty string; "
+                               "no QoI is reported",
+                "runtime_s": runtime,
+            }
+        if len(value) > MAX_STRING_QOI:
+            return {
+                "valid": False, "qoi": None, "metrics": metrics,
+                "diagnostics": (
+                    f"metric {quantity!r} is a string of {len(value)} chars, over "
+                    f"the {MAX_STRING_QOI}-char limit; a result is a value, not a "
+                    "document"
+                ),
+                "runtime_s": runtime,
+            }
+        return {
+            "valid": True, "qoi": value, "metrics": metrics,
+            "diagnostics": (
+                f"experiment completed in {runtime} s; reported "
+                f"{len(metrics)} metric(s); qoi {quantity}={value!r} (string)"
+            ),
+            "runtime_s": runtime,
+        }
     if not _isnum(value) or not math.isfinite(value):
         return {
             "valid": False, "qoi": None, "metrics": metrics,
             "diagnostics": (
-                f"metric {quantity!r} is not a finite number (got {value!r}); "
-                "no QoI is reported"
+                f"metric {quantity!r} is not a finite number or a string "
+                f"(got {value!r}); no QoI is reported"
             ),
             "runtime_s": runtime,
         }

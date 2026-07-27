@@ -628,9 +628,33 @@ def verify_claim(claim: dict, rel_tol: float = DEFAULT_REL_TOL) -> dict:
                 "detail": result["error"], "original": original}
 
     reproduced = result["value"]
+
+    # A STRING RESULT REPRODUCES BY BEING IDENTICAL (2026-07-27). Found live: a
+    # run downloaded a real dataset, reported its SHA-256 alongside the numeric
+    # statistic, and the hash was marked unverified as "non_numeric" — even
+    # though re-running the artifact produced the same hash, character for
+    # character. That is reproduction in the strictest sense available, and
+    # rejecting it was a category error, not a safeguard: it made every hash,
+    # identifier, categorical outcome and chosen-option finding permanently
+    # unverifiable, and the experimenter's own prompt invites "a number or short
+    # string" as a value. Exact equality only — no tolerance, no normalisation
+    # beyond surrounding whitespace, since a string has no near-miss.
+    if isinstance(original, str) and isinstance(reproduced, str):
+        if original.strip() == reproduced.strip():
+            return {"verified": True, "reason": "reproduced",
+                    "original": original, "reproduced": reproduced,
+                    "comparison": "exact string"}
+        return {"verified": False, "reason": "mismatch",
+                "detail": (f"re-running the artifact produced {reproduced!r}, not "
+                           f"{original!r}. A string result must match exactly."),
+                "original": original, "reproduced": reproduced,
+                "comparison": "exact string"}
+
     if not _isnum(original) or not _isnum(reproduced):
         return {"verified": False, "reason": "non_numeric",
-                "detail": f"original={original!r} reproduced={reproduced!r}",
+                "detail": f"original={original!r} reproduced={reproduced!r} — a "
+                          "claim must be a number the re-run can compare, or a "
+                          "string it can match exactly",
                 "original": original, "reproduced": reproduced}
 
     # A claim may DECLARE a tolerance appropriate to its quantity (2026-07-25).
