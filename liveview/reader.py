@@ -353,6 +353,17 @@ def read_run(run_id: str, *, runs_root: Path = RUNS_ROOT, log_lines: int = 25) -
 # itself, so only a termination says "over".
 FATAL_TERMINATIONS = {"director_failed"}
 
+#: Every state health() can return, and which of them mean the study is OVER.
+#: Defined beside the producer because a consumer that guesses gets it wrong:
+#: follow.py waited for "ended-well", which health() has never emitted — so a
+#: study that finished normally and wrote its report never printed the FINISHED
+#: headline and `python -m liveview` (follow is the default mode) polled forever.
+#: A watcher silently reporting a finished study as still running is the exact
+#: misreport liveview exists to prevent, so the vocabulary lives in one place and
+#: consumers import it.
+HEALTH_STATES = ("finished", "ended-badly", "vanished", "running", "unknown")
+TERMINAL_HEALTH_STATES = frozenset({"finished", "ended-badly", "vanished"})
+
 _OUTCOME_PLAIN = {
     "sub_investigation_barren": "a sub-investigation finished with nothing verified",
     "sub_investigation_done": "a sub-investigation returned verified results",
@@ -759,14 +770,27 @@ def director_processes(goal: Optional[str] = None) -> list:
         ).stdout
     except Exception:  # noqa: BLE001
         return []
-    procs = []
+    # A MISSING GOAL MUST NOT MEAN "MATCH EVERY DIRECTOR". With goal None or ""
+    # the needle was "", `needle and ...` was False, and the filter fell through
+    # — so ANY pi_agent process in the process table counted as this study's.
+    # health() then reported a long-dead study as "RUNNING — director process
+    # alive (pid ...)" for as long as any other director happened to be up. And
+    # goal IS None on the path that matters: study.json missing, or caught
+    # half-written by a study that is starting or has been damaged, which is
+    # exactly when a watcher most needs the truth. Returning nothing is the
+    # honest answer — health() then falls through to its disk-quiet reasoning,
+    # which reports "still writing" or "vanished" on evidence rather than on a
+    # coincidence.
     needle = (goal or "")[:60]
+    if not needle:
+        return []
+    procs = []
     for line in out.splitlines():
         line = line.strip()
         if "pi_agent" not in line or "grep" in line:
             continue
         pid, _, args = line.partition(" ")
-        if needle and needle not in args:
+        if needle not in args:
             continue
         if not pid.isdigit():
             continue

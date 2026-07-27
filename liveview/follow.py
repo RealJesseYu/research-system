@@ -30,7 +30,8 @@ import sys
 import time
 from typing import Optional
 
-from liveview.reader import RUNS_ROOT, STUDIES_ROOT, full_snapshot
+from liveview.reader import (RUNS_ROOT, STUDIES_ROOT, TERMINAL_HEALTH_STATES,
+                             full_snapshot)
 
 BOLD, DIM, GREEN, YELLOW, BLUE, RESET = (
     "\033[1m", "\033[2m", "\033[32m", "\033[33m", "\033[34m", "\033[0m")
@@ -60,11 +61,20 @@ class Follower:
     def __init__(self, *, color: bool = True, width: int = 100):
         self.color = color
         self.width = width
+        # KEYED BY (study_id, seq), NOT BARE seq. active_node() switches the
+        # active study to the deepest RUNNING child, and every study numbers its
+        # own decisions and moves from 1 — so a bare-seq set made a
+        # sub-investigation's first N events look "already seen" and dropped
+        # them silently. Recursion is a live, load-bearing feature, so that threw
+        # away the start of every sub-study (all of it, for a short one).
         self._decisions_seen: set = set()
         self._arc_seen: set = set()
         self._blockers_seen: set = set()
         self._health = None
-        self._opened = False
+        # Which study the printed events currently belong to. The header used to
+        # print once for the whole session, so after a switch every line was
+        # attributed to the wrong study.
+        self._open_study = None
 
     def _c(self, t, code):
         return _c(t, code, self.color)
@@ -77,8 +87,14 @@ class Follower:
         if not active.get("exists"):
             return out
 
-        if not self._opened:
-            self._opened = True
+        study_id = active.get("study_id")
+        if study_id != self._open_study:
+            # A switch is worth announcing: "the parent is waiting on a child"
+            # reads very differently from "the parent stopped".
+            if self._open_study is not None:
+                out.append(self._c(f"--- now following sub-study {study_id} "
+                                   f"(parent {self._open_study} is waiting) ---", DIM))
+            self._open_study = study_id
             out.append("")
             out.append(self._c(f"STUDY {active.get('study_id')}", BOLD)
                        + self._c(f"  ({active.get('mode')} mode)", DIM))
@@ -90,9 +106,10 @@ class Follower:
             if d.get("incomplete"):
                 continue                      # caught mid-write; it will reappear
             seq = d.get("seq")
-            if seq in self._decisions_seen:
+            key = (study_id, seq)
+            if key in self._decisions_seen:
                 continue
-            self._decisions_seen.add(seq)
+            self._decisions_seen.add(key)
             head = f"[decision {seq}] {d.get('action')}"
             if d.get("instrument"):
                 head += f" · {d['instrument']}"
@@ -110,9 +127,10 @@ class Follower:
         # --- what each move actually produced --------------------------------
         for a in active.get("arc") or []:
             seq = a.get("seq")
-            if seq in self._arc_seen:
+            key = (study_id, seq)
+            if key in self._arc_seen:
                 continue
-            self._arc_seen.add(seq)
+            self._arc_seen.add(key)
             mark = "ok " if a.get("succeeded") else "FAILED"
             line = f"[move {seq}] {a.get('move_type')} — {mark}"
             if a.get("results_total"):
@@ -142,7 +160,7 @@ class Follower:
         health = (snap.get("health") or {}).get("state")
         if health != self._health:
             self._health = health
-            if health in ("ended-well", "ended-badly", "vanished"):
+            if health in TERMINAL_HEALTH_STATES:
                 out.append(self._c(str((snap.get("health") or {}).get("headline")),
                                    BOLD))
                 detail = (snap.get("health") or {}).get("detail")
@@ -169,7 +187,7 @@ def follow(study_id: Optional[str] = None, *, interval: float = 4.0,
                     out.write(line + "\n")
                 out.flush()
                 state = (snap.get("health") or {}).get("state")
-                seen_end = state in ("ended-well", "ended-badly", "vanished")
+                seen_end = state in TERMINAL_HEALTH_STATES
             except Exception as e:  # noqa: BLE001 — a watcher never dies loudly
                 out.write(f"(could not read this tick: {type(e).__name__}: {e})\n")
                 out.flush()

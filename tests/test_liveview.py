@@ -33,6 +33,8 @@ from pathlib import Path
 import pytest
 
 from liveview import reader, render, tui
+from liveview.reader import (HEALTH_STATES, TERMINAL_HEALTH_STATES,
+                             director_processes)
 
 
 # --------------------------------------------------------------------------- #
@@ -569,8 +571,8 @@ def test_web_snapshot_matches_the_reader(server, tree):
 # own state (decision seq, arc seq, health), never from rendered text.
 # ---------------------------------------------------------------------------
 
-def _follow_snap(decisions=(), arc=(), state="running"):
-    return {"active": {"exists": True, "study_id": "s1", "mode": "auto",
+def _follow_snap(decisions=(), arc=(), state="running", study_id="s1"):
+    return {"active": {"exists": True, "study_id": study_id, "mode": "auto",
                        "goal": "g", "decisions": list(decisions), "arc": list(arc)},
             "health": {"state": state, "headline": "done", "detail": "d"}}
 
@@ -648,11 +650,71 @@ def test_an_incomplete_decision_waits_until_it_is_whole():
 
 
 def test_the_end_is_announced_once():
+    """Uses a state health() ACTUALLY EMITS.
+
+    This asserted on state="ended-well" — a string health() has never returned
+    (it emits finished / ended-badly / vanished / running / unknown). So it
+    "proved" the end-announcement worked using an input the producer cannot
+    produce, while the real terminal state, "finished", fell straight through
+    follow.py's check: a study that completed normally never printed its
+    headline and `python -m liveview` polled forever on the default path. The
+    vocabulary now lives in reader.TERMINAL_HEALTH_STATES and both sides use it.
+    """
     f = _follower()
     f.events(_follow_snap())
-    done = _follow_snap(state="ended-well")
+    done = _follow_snap(state="finished")
     assert f.events(done)
     assert f.events(done) == []
+
+
+@pytest.mark.parametrize("state", sorted(TERMINAL_HEALTH_STATES))
+def test_every_terminal_state_ends_the_follower(state):
+    """Parametrised over the real set, so a state added to health() without
+    teaching follow.py about it fails here instead of in production."""
+    f = _follower()
+    f.events(_follow_snap())
+    assert f.events(_follow_snap(state=state)), state
+
+
+def test_a_running_state_does_not_end_the_follower():
+    f = _follower()
+    f.events(_follow_snap())
+    assert f.events(_follow_snap(state="running")) == []
+
+
+def test_no_terminal_state_is_missing_from_healths_vocabulary():
+    """TERMINAL_HEALTH_STATES must be a subset of what health() can emit —
+    otherwise it names a state nobody produces, which is how this broke."""
+    assert TERMINAL_HEALTH_STATES <= set(HEALTH_STATES)
+
+
+def test_a_sub_studys_first_events_are_not_swallowed():
+    """active_node() switches to the deepest RUNNING child, and every study
+    numbers its decisions and moves from 1 — so a bare-seq dedup set marked a
+    child's seq-1 events "already seen" and dropped them. Recursion is live, so
+    this silently threw away the start of every sub-study."""
+    f = _follower()
+    parent = _follow_snap(study_id="root", state="running")
+    parent["active"]["decisions"] = [
+        {"seq": 1, "action": "run", "reasoning": "PARENT turn"}]
+    child = _follow_snap(study_id="root-sub1", state="running")
+    child["active"]["decisions"] = [
+        {"seq": 1, "action": "run", "reasoning": "CHILD turn"}]
+
+    assert "PARENT turn" in "\n".join(f.events(parent))
+    printed = "\n".join(f.events(child))
+    assert "CHILD turn" in printed
+    assert "root-sub1" in printed          # and the switch is announced
+
+
+def test_a_null_goal_does_not_match_every_director():
+    """With goal None the needle was "" and the filter fell through, so ANY
+    pi_agent process counted as this study's — health() then called a long-dead
+    study RUNNING for as long as any other director was up. goal is None exactly
+    when study.json is missing or caught half-written, i.e. when a watcher most
+    needs the truth."""
+    assert director_processes(None) == []
+    assert director_processes("") == []
 
 
 def test_every_option_main_reads_actually_exists():
