@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -121,6 +122,92 @@ class AttachTests(unittest.TestCase):
         self.assertEqual(n, 0)
         self.assertNotIn("mechanism_review", findings[0])
         self.assertNotIn("mechanism_review", findings[1])
+
+
+class TestItReachesTheShapesProductionActuallyEmits(unittest.TestCase):
+    """This pass was INERT in production for its whole life.
+
+    It filtered for artifact kind "code", which the only production claim builder
+    (free_experimenter._finding_artifact) never emits: a saved code file becomes
+    "workspace_file" and everything else becomes "substrate". So
+    review_claim_mechanisms returned {} on every real run and the documented
+    88%-catch safeguard could not attach a caveat to anything — while the tests
+    stayed green because they only ever built kind "code".
+
+    These pin the shapes that must be reviewable and, just as importantly, the
+    ones that must NOT be: a claim whose number came from a real instrument is
+    already a contract, and reviewing it would be words about code no model
+    wrote.
+    """
+
+    def setUp(self):
+        self.ws = Path(tempfile.mkdtemp())
+        self.f = self.ws / "solve.py"
+        self.f.write_text("import math\nmetrics['x'] = math.sqrt(2)\n")
+
+    def _claim(self, artifact, label="l", value=1.0):
+        return {"label": label, "value": value, "artifact": artifact}
+
+    def test_workspace_file_is_reviewed_with_code_read_off_disk(self):
+        """The common production shape: the code lives in the file, not the dict."""
+        p = _payload_from_claims([self._claim(
+            {"kind": "workspace_file", "path": str(self.f), "quantity": "x"})])
+        self.assertEqual(len(p), 1)
+        self.assertIn("math.sqrt", p[0]["code"])
+
+    def test_python_experiment_substrate_is_reviewed(self):
+        """Its typed_input.code IS model-authored — the instrument is the model."""
+        p = _payload_from_claims([self._claim(
+            {"kind": "substrate", "substrate_id": "python_experiment",
+             "typed_input": {"code": "metrics['y']=0.5", "quantity": "y"}})])
+        self.assertEqual(len(p), 1)
+        self.assertIn("metrics['y']", p[0]["code"])
+
+    def test_a_real_instrument_substrate_is_not_reviewed(self):
+        """Same boundary the planted-constant tripwire draws: a solver's typed
+        input is a contract, not code a model wrote."""
+        p = _payload_from_claims([self._claim(
+            {"kind": "substrate", "substrate_id": "cavity_2d_cfd",
+             "typed_input": {"case_name": "c"}})])
+        self.assertEqual(p, [])
+
+    def test_an_unreadable_workspace_file_is_skipped_not_raised(self):
+        """The wall already reports an artifact it cannot re-run; an advisory
+        pass must not crash on a vanished file."""
+        p = _payload_from_claims([self._claim(
+            {"kind": "workspace_file", "path": str(self.ws / "gone.py")})])
+        self.assertEqual(p, [])
+
+    def test_a_claim_with_no_artifact_is_skipped(self):
+        self.assertEqual(_payload_from_claims([self._claim(None)]), [])
+
+    def test_claim_indices_survive_the_filtering(self):
+        """The reviewer's verdicts are keyed by index into the ORIGINAL list, so
+        a shifted index would attach a caveat to the wrong claim."""
+        claims = [
+            self._claim(None, "skipped"),
+            self._claim({"kind": "substrate", "substrate_id": "cavity_2d_cfd",
+                         "typed_input": {}}, "also skipped"),
+            self._claim({"kind": "workspace_file", "path": str(self.f)}, "reviewed"),
+        ]
+        p = _payload_from_claims(claims)
+        self.assertEqual([q["claim_index"] for q in p], [2])
+        self.assertEqual(p[0]["label"], "reviewed")
+
+    def test_the_pass_end_to_end_reaches_the_model_on_production_shapes(self):
+        seen = {}
+
+        def fake_call(stage, sysp, inp, schema, **kw):
+            seen["n"] = len(inp["claims"])
+            return {"reviews": [{"claim_index": q["claim_index"],
+                                 "mechanism_ok": True, "note": "ok"}
+                                for q in inp["claims"]]}, {}
+
+        out = review_claim_mechanisms(
+            [self._claim({"kind": "workspace_file", "path": str(self.f)})],
+            call=fake_call)
+        self.assertEqual(seen.get("n"), 1)
+        self.assertIn(0, out)
 
 
 if __name__ == "__main__":

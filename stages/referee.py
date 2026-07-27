@@ -109,6 +109,28 @@ def _collect_claim_artifacts(study: Any) -> list:
     a run without one contributes nothing (honest absence, not a guess)."""
     from pi_agent.study import study_findings
     rows = []
+    def _artifact_code(art) -> str:
+        """The model-authored code behind one wall verdict's artifact, whatever
+        shape carries it. Mirrors claim_review._claim_code deliberately: the
+        referee's check-1 ("does the code implement what the paper says") is only
+        answerable where a MODEL wrote the code, and this used to accept kind
+        "code" alone — a shape the production claim builder never emits, so the
+        code column was empty on every real study."""
+        if not isinstance(art, dict):
+            return ""
+        kind = art.get("kind")
+        if kind == "code":
+            return str(art.get("code") or "")
+        if kind == "workspace_file":
+            try:
+                return Path(art.get("path") or "").read_text(errors="replace")
+            except OSError:
+                return ""
+        if kind == "substrate" and art.get("substrate_id") == "python_experiment":
+            return str((art.get("typed_input") or {}).get("code") or "")
+        # A real instrument: its typed input is a contract, not code to review.
+        return ""
+
     for entry in study_findings(study):
         run_id = entry.get("run_id")
         if not run_id:
@@ -120,14 +142,17 @@ def _collect_claim_artifacts(study: Any) -> list:
             continue
         for v in summary.get("verdicts", []) or []:
             art = v.get("artifact") if isinstance(v, dict) else None
-            code = ""
-            if isinstance(art, dict) and art.get("kind") == "code":
-                code = str(art.get("code") or "")[:MAX_CODE_CHARS]
+            code = _artifact_code(art)[:MAX_CODE_CHARS]
             rows.append({
                 "phase_seq": entry.get("seq"),
                 "run_id": run_id,
                 "label": v.get("label"),
-                "value": v.get("value"),
+                # "original" is the key a wall verdict actually uses for the
+                # claimed number; "value" was never one of its keys, so every row
+                # carried value=None and the referee was reasoning about nulls.
+                # Both are read so a verdict written before the artifact/original
+                # shape settled still resolves.
+                "value": v.get("original", v.get("value")),
                 "wall_verdict": ("verified" if v.get("verified")
                                  else v.get("reason") or "not_reproduced"),
                 "code": code,

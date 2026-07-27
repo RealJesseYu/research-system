@@ -25,6 +25,7 @@ tooled profile would buy nothing and cost reproducibility of the review itself.
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any, Optional
 
 from model_call import call_stage_model
@@ -60,17 +61,59 @@ def _enabled() -> bool:
     return os.environ.get("CLAIM_REVIEW", "1") != "0"
 
 
+def _claim_code(art: dict) -> str:
+    """The model-authored code behind one artifact, whatever shape carries it.
+
+    THIS PASS WAS INERT IN PRODUCTION. It filtered for artifact kind "code", but
+    the only production claim builder (free_experimenter._finding_artifact) never
+    emits that kind: a saved code file becomes "workspace_file" (the code is in
+    the file on disk) and everything else becomes "substrate". So
+    review_claim_mechanisms returned {} on every real run, and the documented
+    88%-catch / 0%-false-alarm safeguard could never attach a caveat to anything.
+    Its tests only ever built kind "code" artifacts, which is why the suite was
+    green over a pass that never fired.
+
+    The question this reviewer asks — does the code actually implement what the
+    label claims — applies wherever a MODEL wrote the code, so that is what the
+    lookup keys on now:
+
+      code           inline source on the artifact (the original shape; tests)
+      workspace_file the file the agent saved; read back off disk
+      substrate      only python_experiment, whose typed_input.code IS
+                     model-authored. Every other substrate's typed input drives
+                     a real instrument and is already a contract, so those stay
+                     out — same boundary verification.py's planted-constant
+                     tripwire draws.
+
+    Returns "" when there is nothing model-authored to review.
+    """
+    kind = art.get("kind")
+    if kind == "code":
+        return str(art.get("code") or "")
+    if kind == "workspace_file":
+        try:
+            return Path(art.get("path") or "").read_text(errors="replace")
+        except OSError:
+            # The file is gone or unreadable. Not reviewable, and not an error
+            # worth surfacing: the WALL already reports an artifact it cannot
+            # re-run, and this pass is advisory.
+            return ""
+    if kind == "substrate" and art.get("substrate_id") == "python_experiment":
+        return str((art.get("typed_input") or {}).get("code") or "")
+    return ""
+
+
 def _payload_from_claims(claims: list) -> list:
-    """The bounded, code-carrying subset a reviewer can act on. Claims with no
-    code artifact (substrate runs, no_artifact) are skipped: a substrate's typed
-    input is already a contract, and a claim with nothing re-runnable is the
-    wall's 'no_artifact' case — words about absent code are not reviewable."""
+    """The bounded, model-authored-code subset a reviewer can act on. A claim
+    whose number came from a real instrument, or that has nothing re-runnable at
+    all (the wall's 'no_artifact' case), is skipped — words about absent code are
+    not reviewable."""
     payload = []
     for i, c in enumerate(claims[:MAX_CLAIMS]):
         art = c.get("artifact") if isinstance(c, dict) else None
-        if not isinstance(art, dict) or art.get("kind") != "code":
+        if not isinstance(art, dict):
             continue
-        code = str(art.get("code") or "")
+        code = _claim_code(art)
         if not code.strip():
             continue
         payload.append({

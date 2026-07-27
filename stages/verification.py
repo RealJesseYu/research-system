@@ -897,6 +897,20 @@ def verify_run(claims: list, run_id: str = None, rel_tol: float = DEFAULT_REL_TO
         verdict = verify_claim(claim, rel_tol=rel_tol)
         verdict["claim_index"] = i
         verdict["label"] = claim.get("label") or f"claim {i + 1}"
+        # THE ARTIFACT TRAVELS WITH ITS VERDICT (additive; nothing is removed).
+        #
+        # Without it verification.json recorded that a number reproduced but not
+        # WHAT reproduced it, so the record could not answer "does this code do
+        # what the paper says it does" — and stages/referee.py, whose primary
+        # check is exactly that, read v["artifact"] and v["value"] off these
+        # verdicts. Both were absent (the value is under "original"), so every
+        # claim reached the referee as value=None, code="" and its main check was
+        # structurally unreachable while the bundle still looked populated.
+        #
+        # This is also the honest shape for an evidence file: a verdict that says
+        # "reproduced" without naming the producer is a claim about a claim.
+        if claim.get("artifact") is not None:
+            verdict["artifact"] = claim["artifact"]
         verdicts.append(verdict)
 
     verified = [v for v in verdicts if v["verified"]]
