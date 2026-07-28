@@ -142,7 +142,25 @@ def _finding_artifact(art, workspace) -> Optional[dict]:
     if art.get("file"):
         path = art["file"]
         if workspace is not None:
-            path = str((Path(workspace) / art["file"]).resolve())
+            # CONTAINED IN THE WORKSPACE, or it is not this run's evidence.
+            # `art["file"]` is MODEL-AUTHORED, and pathlib lets an absolute right
+            # operand win outright — so "/etc/hosts" or "../../repo/tools/x.py"
+            # resolved OUTSIDE runs/<id>/workspace/ and the wall then re-executed
+            # a file the run does not own. Not an escalation (the agent already
+            # holds full Bash), but it breaks the record: a claim stamped
+            # "reproduced" could point at a mutable repo file that another commit
+            # changes underneath it, so the artifact is neither contained nor
+            # stable — which is the entire promise of a re-runnable record.
+            workspace_root = Path(workspace).resolve()
+            resolved = (workspace_root / art["file"]).resolve()
+            if not resolved.is_relative_to(workspace_root):
+                # No artifact rather than a bad one: the wall reports this as
+                # no_artifact, which is the honest "this number has nothing
+                # regenerating it" verdict it already has a name for.
+                print(f"NOTE: artifact file {art['file']!r} resolves outside the "
+                      f"run workspace and was NOT recorded as an artifact")
+                return None
+            path = str(resolved)
         out = {"kind": "workspace_file", "path": path,
                "quantity": art.get("quantity")}
         # Declared sandbox profile (docs/memo_heavy_verification_lane.md):
@@ -155,6 +173,12 @@ def _finding_artifact(art, workspace) -> Optional[dict]:
     if art.get("substrate_id"):
         out = {"kind": "substrate"}
         out.update({k: v for k, v in art.items()})
+        # `kind` IS SET BY US, NOT BY THE MODEL. The update above copies every
+        # model-authored key, so an artifact carrying its own "kind" overwrote
+        # ours — sending a substrate claim down the wall's `code` branch, where
+        # it comes back as unrunnable_artifact. The value of a real measurement
+        # lost to a key the model should not have been able to set.
+        out["kind"] = "substrate"
         return out
     return None
 

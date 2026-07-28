@@ -30,6 +30,7 @@ from model_call import FULL  # noqa: E402
 from pi_agent.dispatch import read_run_result  # noqa: E402
 from stages.free_experimenter import (  # noqa: E402
     FREE_STAGE_NAME,
+    _finding_artifact,
     _validate_free_result,
     run_free_investigation,
 )
@@ -437,3 +438,58 @@ class TestReusableArtifacts(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestAnArtifactCannotPointOutsideItsRun(unittest.TestCase):
+    """`art["file"]` is MODEL-AUTHORED and pathlib lets an absolute right operand
+    win outright, so "/etc/hosts" or "../../repo/tools/x.py" resolved OUTSIDE
+    runs/<id>/workspace/ and the wall then re-executed a file the run does not
+    own.
+
+    Not an escalation — the agent already holds full Bash — but it breaks the
+    RECORD: a claim stamped "reproduced" could point at a mutable repo file that
+    a later commit changes underneath it, so the artifact is neither contained nor
+    stable, which is the entire promise of a re-runnable record.
+    """
+
+    def setUp(self):
+        self.ws = Path(tempfile.mkdtemp())
+        (self.ws / "ok.py").write_text("metrics = {'x': 1}")
+        self.outside = Path(tempfile.mkdtemp()) / "elsewhere.py"
+        self.outside.write_text("x = 1")
+
+    def test_a_file_inside_the_workspace_is_recorded(self):
+        art = _finding_artifact({"file": "ok.py", "quantity": "x"}, self.ws)
+        self.assertEqual(art["kind"], "workspace_file")
+        self.assertTrue(art["path"].endswith("ok.py"))
+
+    def test_a_nested_path_inside_the_workspace_still_works(self):
+        (self.ws / "d").mkdir()
+        (self.ws / "d" / "in.py").write_text("y = 1")
+        art = _finding_artifact({"file": "d/in.py", "quantity": "y"}, self.ws)
+        self.assertIsNotNone(art)
+
+    def test_an_absolute_path_escape_is_refused(self):
+        self.assertIsNone(
+            _finding_artifact({"file": str(self.outside), "quantity": "x"}, self.ws))
+
+    def test_dot_dot_escapes_are_refused(self):
+        for f in ("../../../etc/hosts", "../sibling.py", "sub/../../out.py"):
+            self.assertIsNone(
+                _finding_artifact({"file": f, "quantity": "x"}, self.ws), f)
+
+    def test_the_refusal_is_no_artifact_not_a_bad_one(self):
+        """None means the wall reports its honest no_artifact verdict — "this
+        number has nothing regenerating it" — rather than re-running something
+        outside the run."""
+        self.assertIsNone(
+            _finding_artifact({"file": "/etc/hosts", "quantity": "x"}, self.ws))
+
+    def test_a_model_supplied_kind_cannot_hijack_a_substrate_claim(self):
+        """out.update(art.items()) copied every model key, so an artifact
+        carrying its own "kind" overwrote ours — sending a real substrate
+        measurement down the wall's `code` branch to come back
+        unrunnable_artifact."""
+        art = _finding_artifact(
+            {"substrate_id": "rdkit", "typed_input": {}, "kind": "code"}, self.ws)
+        self.assertEqual(art["kind"], "substrate")

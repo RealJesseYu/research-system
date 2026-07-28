@@ -49,6 +49,18 @@ from models import model_for  # model-tier resolver
 
 TRIAGE_MODEL = model_for("triage")
 MAX_TURNS = 6  # enough turns to search and read before answering
+
+# WALL-CLOCK CEILING. MAX_TURNS bounds how many times the model may act; it does
+# NOT bound TIME. A hung stream, a wedged WebSearch, or a transport that never
+# closes had nothing to stop it — the `async for` simply waited, so a single
+# search could stall an entire study indefinitely. That is the worst failure
+# shape for a walk-away run: not a crash, which is recorded and routed around,
+# but a stall that looks exactly like normal quiet work. model_call's tooled
+# calls at least end at their turn ceiling; this door had no ceiling at all.
+#
+# Generous, because a legitimate multi-turn search that reads a few pages is
+# genuinely slow. The point is that it TERMINATES, not that it is tight.
+SEARCH_TIMEOUT_S = 300
 SNIPPET_CAP = 1400
 
 # Everything except WebSearch stays blocked, mirroring model_call.py's list.
@@ -162,7 +174,19 @@ def web_search(query_text: str, run_id: str, top_k: int = 3) -> list[dict]:
     # The input is now fully assembled; record it verbatim BEFORE the call.
     _write_transcript(str(run_id), system_prompt, user_turn)
 
-    reply = asyncio.run(_search_once(system_prompt, user_turn))
+    # Best-effort by contract (every caller treats a web-search failure as a
+    # recorded, non-fatal gap), so a timeout raises like any other failure here
+    # and the run proceeds without this source rather than waiting on it forever.
+    try:
+        reply = asyncio.run(
+            asyncio.wait_for(_search_once(system_prompt, user_turn),
+                             timeout=SEARCH_TIMEOUT_S))
+    except asyncio.TimeoutError:
+        raise RuntimeError(
+            f"web search exceeded {SEARCH_TIMEOUT_S}s and was abandoned. "
+            "MAX_TURNS bounds actions, not time — without this ceiling a hung "
+            "stream stalls the whole study, which is indistinguishable from "
+            "normal quiet work.") from None
 
     try:
         parsed = json.loads(reply)

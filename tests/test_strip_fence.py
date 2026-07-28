@@ -18,7 +18,9 @@ Run directly: venv/bin/python3 tests/test_strip_fence.py
 from __future__ import annotations
 
 import json
+import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -284,3 +286,52 @@ class TestATransportFailureIsNotAModelError(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestLoggingCannotKillARun(unittest.TestCase):
+    """_log_fence_note / _log_reask / _log_transport_retry each did
+    `open(Path("runs")/run_id/"log.txt", "a")` with no mkdir and no guard, and all
+    three are called from INSIDE the attempt loop. A run_id whose directory does
+    not exist raised FileNotFoundError and took the run down.
+
+    _log_fence_note made that acute: it fires on the FIRST FENCED REPLY, and
+    CLAUDE.md's own fence watch records Sonnet and Haiku fencing at ~100%. So the
+    failure mode was "the run dies on its first model reply, from the logging" —
+    on a run that may already have cost tens of millions of tokens. All three
+    docstrings described this as best-effort; now it is.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.cwd = os.getcwd()
+        os.chdir(self.tmp.name)
+
+    def tearDown(self):
+        os.chdir(self.cwd)
+        self.tmp.cleanup()
+
+    def _all_three(self, stage_input):
+        model_call._log_fence_note("s", stage_input)
+        model_call._log_reask("s", stage_input, 1, "bad json")
+        model_call._log_transport_retry("s", stage_input, 1, RuntimeError("x"))
+
+    def test_a_missing_run_directory_is_created_not_fatal(self):
+        self._all_three({"run_id": "no-such-run"})
+        log = Path("runs/no-such-run/log.txt")
+        self.assertTrue(log.is_file())
+        self.assertEqual(len(log.read_text().splitlines()), 3)
+
+    def test_an_unwritable_path_is_survived(self):
+        """runs/<id> existing as a FILE: the durable write cannot succeed, and
+        losing the line is strictly better than losing the run."""
+        Path("runs").mkdir()
+        Path("runs/blocked").write_text("a file, not a directory")
+        self._all_three({"run_id": "blocked"})       # must not raise
+
+    def test_no_run_id_writes_nothing_and_does_not_raise(self):
+        self._all_three({})
+        self.assertFalse(Path("runs").exists())
+
+    def test_a_non_dict_stage_input_is_survived(self):
+        model_call._log_fence_note("s", None)
+        model_call._log_fence_note("s", "not a dict")

@@ -470,6 +470,40 @@ def _seam_accepts_capabilities() -> bool:
     return "capabilities" in params
 
 
+def _append_run_log(stage_input, line: str) -> None:
+    """Append one durable line to runs/<run_id>/log.txt. BEST EFFORT — never
+    raises, because every caller is on a path where a failure to LOG must not
+    become a failure to RUN.
+
+    This was three copies of `open(Path("runs")/run_id/"log.txt", "a")` with no
+    mkdir and no guard, inside _log_fence_note, _log_reask and
+    _log_transport_retry. All three are called from INSIDE the attempt loop, so a
+    run_id whose directory does not exist — a side door, a harness id, a process
+    started from another cwd — raised FileNotFoundError and took the run down.
+    _log_fence_note made that acute: it fires on the FIRST FENCED REPLY, and
+    CLAUDE.md's own fence watch records Sonnet and Haiku fencing at ~100%. So the
+    failure mode was "the run dies on its first model reply", from the logging.
+
+    Their docstrings all describe this as best-effort ("printed but cannot be
+    durably logged"), which is the behaviour they now actually have. The line is
+    always printed by the caller first, so nothing is lost from the terminal even
+    when the durable write fails.
+    """
+    run_id = stage_input.get("run_id") if isinstance(stage_input, dict) else None
+    if not run_id:
+        return
+    try:
+        run_dir = Path("runs") / str(run_id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+        with open(run_dir / "log.txt", "a") as f:
+            f.write(line + "\n")
+    except OSError:
+        # Disk full, permissions, a path that is not a directory. The terminal
+        # already has the line; losing the durable copy is strictly better than
+        # losing the run.
+        pass
+
+
 def _log_transport_retry(stage_name: str, stage_input: dict, retry_number: int, exc: Exception) -> None:
     """Durably record one transport retry the moment it is decided.
 
@@ -482,10 +516,7 @@ def _log_transport_retry(stage_name: str, stage_input: dict, retry_number: int, 
         f"exception={type(exc).__name__}: {first_line}"
     )
     print(line)
-    run_id = stage_input.get("run_id") if isinstance(stage_input, dict) else None
-    if run_id:
-        with open(Path("runs") / str(run_id) / "log.txt", "a") as f:
-            f.write(line + "\n")
+    _append_run_log(stage_input, line)
 
 
 def _transport_with_retry(
@@ -699,10 +730,7 @@ def _log_fence_note(stage_name: str, stage_input: dict) -> None:
     only the ones that went on to parse."""
     line = f"NOTE stage={stage_name} fence_stripped — reply arrived wrapped in a ``` code fence"
     print(line)
-    run_id = stage_input.get("run_id") if isinstance(stage_input, dict) else None
-    if run_id:
-        with open(Path("runs") / str(run_id) / "log.txt", "a") as f:
-            f.write(line + "\n")
+    _append_run_log(stage_input, line)
 
 
 _TRANSCRIPT_SEQ = 0
@@ -834,10 +862,7 @@ def _log_reask(stage_name: str, stage_input: dict, attempt: int, error: str) -> 
     """
     line = f"RE-ASK stage={stage_name} attempt={attempt} error={json.dumps(error)}"
     print(line)
-    run_id = stage_input.get("run_id") if isinstance(stage_input, dict) else None
-    if run_id:
-        with open(Path("runs") / str(run_id) / "log.txt", "a") as f:
-            f.write(line + "\n")
+    _append_run_log(stage_input, line)
 
 
 def call_stage_model(

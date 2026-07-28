@@ -169,7 +169,16 @@ def write_study_paper(study: Any, *, call=None) -> dict:
             return {"error": f"paper write-up failed: {type(e).__name__}: {e}"}
 
     paper_file = data.get("paper_file") or "paper.md"
-    src = Path(scratch) / paper_file
+    # CONTAINED, because paper_file is MODEL-AUTHORED and pathlib lets an
+    # absolute right operand win: "/etc/passwd" or "../../.env" escaped the
+    # scratch/workspace root and was COPIED INTO THE DELIVERABLE. Figures already
+    # get a filename guard; this did not. A bare filename is all a paper needs.
+    _root = Path(scratch).resolve()
+    src = (_root / paper_file).resolve()
+    if not src.is_relative_to(_root):
+        return {"error": f"agent reported paper_file {paper_file!r}, which "
+                          "resolves outside its own working directory; refusing "
+                          "to copy it into the deliverable"}
     if not src.is_file():
         return {"error": f"agent reported {paper_file!r} but no such file was written"}
 
