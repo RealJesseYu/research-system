@@ -244,6 +244,55 @@ input it would be $270 — so **the token sums overstate cost by ~5.1x**.
 
 ---
 
+## THE VALUE FAILURE IS MOSTLY GOAL SHAPE (2026-07-28, n=3 — read the goals)
+
+Comparing the three live studies' goal text against their output explains the
+value difference almost entirely, and it is not flattering to the goals.
+
+**Glider v2 ($53, ~90% verification, 20% check-like findings).** Goal text:
+*"Design a small autonomous glider… size the wing for a target glide ratio…
+**Each part must be verified before it is built on.**"*
+- ZERO comparison: one artifact, one target. Nothing to search over.
+- ONE explicit standing verification command, unbounded in scope.
+→ The system did exactly what it was told. The 90% verification was **commanded
+by the goal**, not a malfunction of the machinery.
+
+**Normal-CDF ($8, 16 proportionate findings, six families compared, shippable C).**
+Goal text: *"Find the **cheapest**… where cheap is counted in floating-point
+operations… **Consider genuinely different functional families before committing
+to one**, and report the winner's worst-case error **verified by a route
+independent of the one used to fit it**."*
+- An OBJECTIVE WITH A TRADEOFF (minimise cost subject to an accuracy bound).
+- An explicit instruction to SEARCH ALTERNATIVES.
+- Verification scoped to ONE clause on ONE number.
+→ Proportionate verification and real comparative engineering.
+
+**The pattern:** the system's differentiator is *search over alternatives under a
+measurable objective*. Given one, it does work a chat cannot (six families
+actually measured, not asserted). Given none, it has budget and no remaining
+question — and it fills the space with verification, especially if the goal
+asked for verification.
+
+### What this means for fixing it
+
+1. **Immediate and free — goal shape.** Every goal should carry: an objective
+   with a tradeoff, an explicit instruction to consider genuinely different
+   approaches, and verification scoped to the one or two numbers the conclusion
+   rests on. Never a standing "verify each part" command.
+2. **The real build item — make the DIRECTOR do this.** Turning *"design a
+   glider"* into *"compare N planforms on glide ratio vs build difficulty"* is
+   what a good PI does with a vague ask. **This is what item 6 should be**, not
+   phase plumbing: the director constructing a comparative frontier when the
+   goal lacks one. It is the only identified lever that creates value rather
+   than moving cost around.
+3. **Measurement — the chat comparison.** Until the same goal is run both ways,
+   every value judgement is an after-the-fact impression. n=3 is a hypothesis,
+   not a finding.
+
+**Falsifier to watch:** if a well-shaped goal still produces output no better
+than a chat's, the premise fails and no machinery fixes it. That is what the
+paired long run tests.
+
 ## NEXT ACTION (2026-07-28, after C/A/B landed): do the long run
 
 Both blockers are closed and the cost worry is 5x smaller than it looked, so
