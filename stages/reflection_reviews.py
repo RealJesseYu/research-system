@@ -434,8 +434,19 @@ def _log(run_id: str, line: str) -> None:
     alone, same as model_call.py and generation_strategies.py do.
     """
     print(line)
-    with open(Path("runs") / run_id / "log.txt", "a") as f:
-        f.write(line + "\n")
+    # BEST EFFORT (2026-07-27). This was a bare open() with no mkdir and no
+    # guard, so a run_id whose directory does not exist raised FileNotFoundError
+    # from deep inside a stage — a failure to LOG becoming a failure to RUN, on a
+    # run that may have cost millions of tokens already. Found when a test drove
+    # this module with a tmp run dir and the LOGGING crashed, not the logic.
+    # Same fix as model_call._append_run_log; the line is printed first either way.
+    try:
+        run_dir = Path("runs") / str(run_id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+        with open(run_dir / "log.txt", "a") as f:
+            f.write(line + "\n")
+    except OSError:
+        pass
 
 
 def _check_ack(data: dict, run_id: str, what: str) -> None:
@@ -1321,51 +1332,91 @@ def reflect_on_pool(
     # Threads, not processes: these calls are I/O-bound on the model transport,
     # and the same pattern is already used by run_study_fan. Order is restored
     # afterwards so evidence and logs stay deterministic in pool order.
-    ordered = _review_pool_concurrently(run_id, survivors, _review_one)
-
     reflections: list[dict] = []
     discarded_fundamental: list[dict] = []
-    reviews_evidence: list[dict] = list(ordered)
-    for h, ev in zip(survivors, ordered):
-        full = ev["full_review"]
-        deep = ev["deep_verification"]
-        observation = ev["observation"]
-        simulation = ev["simulation"]
-        _log(
-            run_id,
-            f"STAGE1_REFLECTION {h['id']}: novelty={full['novelty']} "
-            f"answer_established={full.get('answer_established')} "
-            f"quality={full['quality']} fundamental_flaw={deep['fundamental_flaw']} "
-            f"accounts_for={observation['accounts_for']} "
-            f"failure_scenarios={len(simulation['failure_scenarios'])}",
-        )
+    reviews_evidence: list[dict] = []
 
-        if deep["fundamental_flaw"]:
-            discarded_fundamental.append({"id": h["id"], "reason": deep["summary"]})
-            continue
-        reflections.append(
-            {
-                "hypothesis_id": h["id"],
-                "novelty": full["novelty"],
-                # The filter kills on THIS, not on novelty: a known method
-                # applied where nobody has measured the answer is a good
-                # hypothesis (see FULL_REVIEW_SYSTEM_PROMPT).
-                "answer_established": full.get("answer_established", False),
-                "critique": full["critique"],
-                "quality": int(full["quality"]),
-                # Step 17-fix-A: deep verification's non-fatal concerns
-                # travel with the survivor (Stage-1 evidence only — the
-                # payload hypotheses are rebuilt {id, statement, rationale}
-                # downstream, so this never crosses gate 1).
-                "addressable_notes": deep["addressable_notes"],
-            }
-        )
+    def _review_batch(batch: list[dict]) -> None:
+        """Review one batch and apply the deterministic consequences, appending
+        to reflections / discarded_fundamental / reviews_evidence."""
+        ordered = _review_pool_concurrently(run_id, batch, _review_one)
+        reviews_evidence.extend(ordered)
+        for h, ev in zip(batch, ordered):
+            full = ev["full_review"]
+            deep = ev["deep_verification"]
+            observation = ev["observation"]
+            simulation = ev["simulation"]
+            _log(
+                run_id,
+                f"STAGE1_REFLECTION {h['id']}: novelty={full['novelty']} "
+                f"answer_established={full.get('answer_established')} "
+                f"quality={full['quality']} fundamental_flaw={deep['fundamental_flaw']} "
+                f"accounts_for={observation['accounts_for']} "
+                f"failure_scenarios={len(simulation['failure_scenarios'])}",
+            )
+
+            if deep["fundamental_flaw"]:
+                discarded_fundamental.append({"id": h["id"], "reason": deep["summary"]})
+                continue
+            reflections.append(
+                {
+                    "hypothesis_id": h["id"],
+                    "novelty": full["novelty"],
+                    # The filter kills on THIS, not on novelty: a known method
+                    # applied where nobody has measured the answer is a good
+                    # hypothesis (see FULL_REVIEW_SYSTEM_PROMPT).
+                    "answer_established": full.get("answer_established", False),
+                    "critique": full["critique"],
+                    "quality": int(full["quality"]),
+                    # Step 17-fix-A: deep verification's non-fatal concerns
+                    # travel with the survivor (Stage-1 evidence only — the
+                    # payload hypotheses are rebuilt {id, statement, rationale}
+                    # downstream, so this never crosses gate 1).
+                    "addressable_notes": deep["addressable_notes"],
+                }
+            )
+
+    _review_batch(survivors)
+
+    # THE HELD-BACK CANDIDATES ARE A RESERVE, NOT A BIN (2026-07-27).
+    #
+    # The promise triage deep-reviews only the top MAX_DEEP_REVIEW and logs the
+    # rest as "held back as lower promise (recorded, not discarded)". But if
+    # every reviewed candidate then died on a fundamental flaw, this raised
+    # "all N candidates were discarded" and — in round 1 — crashed the run,
+    # while PASSING, NEVER-REVIEWED candidates sat untouched in `triaged`. So the
+    # message was false (they were not discarded, they were never looked at) and
+    # the behaviour threw away usable work: deep verification killed 7 of 8 in a
+    # witnessed run, so "all of a batch dies" is a live shape, not a corner case.
+    #
+    # A chat handed eight bad ideas and eight unexamined ones does not stop; it
+    # looks at the unexamined ones. Same rule as filter_survivors' 2026-07-25
+    # change: a screening stage REPORTS, it does not veto. So the reserve is
+    # reviewed, once, only when the first batch left nothing — never as extra
+    # spend on the normal path.
+    rescued_from_triage: list[dict] = []
+    if not reflections and triaged:
+        reserve_ids = {r["id"] for r in triaged}
+        reserve = [h for h in hypotheses if h["id"] in reserve_ids]
+        _log(run_id,
+             f"STAGE1_REFLECTION rescue: all {len(survivors)} deep-reviewed "
+             f"candidate(s) were discarded, so the {len(reserve)} held-back "
+             "candidate(s) are reviewed rather than halting the run")
+        _review_batch(reserve)
+        rescued_from_triage = [r["hypothesis_id"] for r in reflections]
+        _log(run_id,
+             f"STAGE1_REFLECTION rescue: {len(reflections)} of {len(reserve)} "
+             "held-back candidate(s) survived review")
 
     evidence = {
         "pool_size": len(hypotheses),
         "initial_review": initial,
         "initial_survivor_count": len(survivors),
         "triaged_lower_promise": triaged,
+        # Which candidates only got reviewed because the first batch
+        # left nothing — a reader has to be able to tell a rescued
+        # survivor from a first-choice one.
+        "rescued_from_triage": rescued_from_triage,
         "discarded_by_initial_review": discarded_initial,
         "reviews": reviews_evidence,
         "discarded_by_deep_verification": discarded_fundamental,
@@ -1383,9 +1434,11 @@ def reflect_on_pool(
         raise RuntimeError(
             f"stage1 reflection: all {len(hypotheses)} candidates were discarded "
             f"({len(discarded_initial)} at the initial review, "
-            f"{len(discarded_fundamental)} on fundamental flaws at deep verification). "
-            "Zero reviewed hypotheses remain — this run halts here rather than "
-            "continuing on a hypothesis nobody vetted."
+            f"{len(discarded_fundamental)} on fundamental flaws at deep "
+            "verification), INCLUDING every candidate held back by the promise "
+            "triage — the reserve was reviewed too, so nothing was left "
+            "unexamined. Zero reviewed hypotheses remain: this run halts here "
+            "rather than continuing on a hypothesis nobody vetted."
         )
 
     summary = {

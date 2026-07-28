@@ -845,8 +845,11 @@ def _append_action_trail(
         f"tool_calls={len(tools_used)} tools={sorted(set(tools_used))}"
     )
     print(line)
-    with open(Path("runs") / str(run_id) / "log.txt", "a") as f:
-        f.write(line + "\n")
+    # Same best-effort path as the other durable lines: this one is reached after
+    # a tooled call has already done real work, so failing to log its trail must
+    # never discard that work. (_append_action_trail's own mkdir above covers the
+    # transcript dir; this covers the run log beside it.)
+    _append_run_log(stage_input, line)
 
 
 def _log_reask(stage_name: str, stage_input: dict, attempt: int, error: str) -> None:

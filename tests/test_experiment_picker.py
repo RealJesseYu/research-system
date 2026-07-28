@@ -21,6 +21,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from tools import experiment_picker as ep
+from tools.experiment_picker import _validate_proposal
 
 
 def _cavity_spec(sweep: bool = False) -> dict:
@@ -206,3 +207,64 @@ class TestLadderAttachment(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestProposedPointsMustStayInsideTheDeclaredSpec:
+    """PICKER_SYSTEM_PROMPT tells the model to use only declared parameters and
+    to keep swept ones inside [min, max] — and NOTHING verified it.
+    campaign_controller then merges the point over the spec's base parameters and
+    RUNS it, so a point outside the declared sweep produced a real measurement of
+    a question the study never posed, potentially outside the envelope the
+    fidelity gate reasoned about. An undeclared parameter name fared worse: it
+    surfaced only downstream as a case-synthesis failure, after the iteration was
+    already spent.
+
+    The project's own rule: anything it cannot afford to have broken goes in
+    code, not in a prompt.
+    """
+
+    SPEC = {"parameters": [
+        {"name": "lid_velocity", "role": "sweep", "min": 1.0, "max": 3.0},
+        {"name": "kinematic_viscosity", "role": "fixed", "value": 1e-3},
+    ]}
+
+    def _prop(self, points):
+        return {"points": points, "reasoning": "because",
+                "predicted_qoi_per_point": [None] * len(points)}
+
+    def test_a_point_inside_the_range_is_accepted(self):
+        assert _validate_proposal(self._prop([{"lid_velocity": 2.0}]), self.SPEC) == []
+
+    def test_a_point_below_the_range_is_refused(self):
+        errors = _validate_proposal(self._prop([{"lid_velocity": 0.5}]), self.SPEC)
+        assert errors and "outside the declared sweep range" in errors[0]
+
+    def test_a_point_above_the_range_is_refused(self):
+        assert _validate_proposal(self._prop([{"lid_velocity": 99.0}]), self.SPEC)
+
+    def test_the_refusal_names_the_range_so_the_model_can_correct(self):
+        errors = _validate_proposal(self._prop([{"lid_velocity": 99.0}]), self.SPEC)
+        assert "[1.0, 3.0]" in errors[0]
+
+    def test_range_boundaries_are_inclusive(self):
+        for v in (1.0, 3.0):
+            assert _validate_proposal(self._prop([{"lid_velocity": v}]), self.SPEC) == []
+
+    def test_an_undeclared_parameter_is_refused(self):
+        errors = _validate_proposal(self._prop([{"made_up_knob": 1.0}]), self.SPEC)
+        assert errors and "does not declare" in errors[0]
+
+    def test_a_fixed_parameter_may_be_overridden(self):
+        """Fixed values are a base the point merges over — only SWEPT names
+        carry a range to violate."""
+        assert _validate_proposal(
+            self._prop([{"kinematic_viscosity": 2e-3}]), self.SPEC) == []
+
+    def test_every_bad_point_is_reported_not_just_the_first(self):
+        errors = _validate_proposal(
+            self._prop([{"lid_velocity": 0.5}, {"lid_velocity": 99.0}]), self.SPEC)
+        assert len(errors) == 2
+
+    def test_without_a_spec_the_check_is_shape_only(self):
+        """Unchanged behaviour for any caller that does not pass a spec."""
+        assert _validate_proposal(self._prop([{"anything": 999.0}])) == []

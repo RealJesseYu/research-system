@@ -31,6 +31,10 @@ import substrates  # noqa: E402
 from tools import substrate_registry as registry  # noqa: E402
 from tools.substrate_selection import select_substrate, signature_for  # noqa: E402
 from tools.qoi_vocab import OPEN_SCALAR, vocab_for  # noqa: E402
+from tools.run_python_experiment import (  # noqa: E402
+    _OPTIONAL_FIELDS as _PYEXP_OPTIONAL_FIELDS,
+    _REQUIRED_FIELDS as _PYEXP_REQUIRED_FIELDS,
+)
 from tools.substrate_dispatch import (  # noqa: E402
     adapter_for,
     content_keys_for,
@@ -79,7 +83,20 @@ class TestEnrollment(unittest.TestCase):
 
     def test_all_six_surfaces_wired(self):
         self.assertTrue(registry.contract_for(SID).startswith("INSTRUMENT: python_experiment"))
-        self.assertEqual(sorted(signature_for(SID)), ["code", "quantity"])
+        # DERIVED FROM THE WRAPPER, not a hardcoded pair. This asserted
+        # ["code", "quantity"] — required fields only — which is exactly the bug
+        # the cobrapy note in substrate_selection.py warns about: "a serve-ability
+        # signature is EVERY parameter name the wrapper honors, required AND
+        # optional". Omitting the optional four meant a spec declaring `profile`
+        # (the HEAVY sandbox lane, and the atomistic/biodesign shelves) or
+        # `timeout_s` failed serve-ability and select_substrate raised — so those
+        # lanes were unreachable through routing at all. Deriving it here means
+        # the test tracks the wrapper instead of pinning a snapshot of it.
+        self.assertEqual(
+            sorted(signature_for(SID)),
+            sorted(set(_PYEXP_REQUIRED_FIELDS) | set(_PYEXP_OPTIONAL_FIELDS)))
+        for optional in ("profile", "timeout_s", "input_files", "output_files"):
+            self.assertIn(optional, signature_for(SID))
         self.assertEqual(vocab_for(SID).shape, OPEN_SCALAR)
         self.assertEqual(content_keys_for(SID), ("code",))
         self.assertTrue(adapter_for(SID))

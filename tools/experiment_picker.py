@@ -226,9 +226,26 @@ def attach_analytic_estimates(spec: Any, proposal: dict) -> list[dict]:
 # ---------------------------------------------------------------------------
 
 
-def _validate_proposal(data: Any) -> list[str]:
-    """Strict shape check for a model proposal. Returns plain-language errors
-    (empty list = valid) — the picker owns this, not the model-call door."""
+def _validate_proposal(data: Any, spec: Any = None) -> list[str]:
+    """Strict shape check for a model proposal, AND — when `spec` is given —
+    a check that every proposed point stays inside the ranges the spec declared.
+    Returns plain-language errors (empty list = valid); the picker owns this,
+    not the model-call door.
+
+    THE BOUNDS CHECK WAS PROMPT-ONLY. PICKER_SYSTEM_PROMPT tells the model to use
+    only declared parameters and to stay within each swept [min, max], and
+    nothing verified it. campaign_controller then merges the point over the
+    spec's base parameters and RUNS it — so a point outside the declared sweep
+    produced a real measurement of a question the study did not declare, and
+    potentially outside the envelope the fidelity gate reasoned about. An
+    unknown parameter name fared worse: it was caught only downstream as a case
+    -synthesis failure, after the iteration was already spent.
+
+    This is the project's own rule that anything it cannot afford to have broken
+    goes in code, not in a prompt. The errors are re-asked through the same
+    bounded loop as every other validation failure, so the model gets a chance to
+    correct rather than the run being killed.
+    """
     errors: list[str] = []
     if not isinstance(data, dict):
         return ["proposal must be a JSON object."]
@@ -254,6 +271,29 @@ def _validate_proposal(data: Any) -> list[str]:
         )
     elif any(v is not None and not _is_number(v) for v in pq):
         errors.append("predicted_qoi_per_point entries must each be a number or null.")
+
+    if spec is not None and isinstance(points, list):
+        fixed, sweep = _spec_fixed_and_sweep(spec)
+        known = set(fixed) | set(sweep)
+        for i, pt in enumerate(points):
+            if not isinstance(pt, dict):
+                continue
+            for name, value in pt.items():
+                if known and name not in known:
+                    errors.append(
+                        f"points[{i}] names parameter {name!r}, which the spec does "
+                        f"not declare (declared: {sorted(known)}).")
+                    continue
+                bounds = sweep.get(name)
+                if bounds is None or not _is_number(value):
+                    continue
+                lo, hi = bounds
+                if not (lo <= float(value) <= hi):
+                    errors.append(
+                        f"points[{i}] sets {name}={value}, outside the declared "
+                        f"sweep range [{lo}, {hi}]. Propose a point inside the "
+                        "range the experiment declared — measuring outside it "
+                        "answers a question this study did not pose.")
     return errors
 
 
@@ -329,7 +369,7 @@ def propose_next_points(spec: Any, prior_results: Any, budget_remaining: Any) ->
         except Exception as exc:  # transport/parse exhaustion — degrade, never crash
             last_error = f"model call failed: {exc}"
             continue
-        errors = _validate_proposal(data)
+        errors = _validate_proposal(data, spec)
         if not errors:
             return {
                 "points": data["points"],

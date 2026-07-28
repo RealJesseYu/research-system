@@ -118,7 +118,10 @@ from tools.run_homology_search import DATABASE_PATHS as _HS_DATABASE_PATHS
 from tools.run_homology_search import TOOLS as _HS_TOOLS
 from tools.run_mafft import _REQUIRED_FIELDS as _MAFFT_REQUIRED_FIELDS
 from tools.run_ngspice import _REQUIRED_FIELDS as _NGSPICE_REQUIRED_FIELDS
-from tools.run_python_experiment import _REQUIRED_FIELDS as _PYEXP_REQUIRED_FIELDS
+from tools.run_python_experiment import (
+    _OPTIONAL_FIELDS as _PYEXP_OPTIONAL_FIELDS,
+    _REQUIRED_FIELDS as _PYEXP_REQUIRED_FIELDS,
+)
 from tools.run_rdkit import _REQUIRED_FIELDS as _RDKIT_REQUIRED_FIELDS
 from tools.run_scipy import (
     OP_FIELDS as _SCIPY_OP_FIELDS,
@@ -187,11 +190,23 @@ _SIGNATURES: dict[str, frozenset[str]] = {
     # 'quantity' superset key with the other three mature bio substrates
     # (never a declared param) — no R-B-1 tie. Proven by routing at FOUR mature.
     "homology_search": frozenset(_HS_REQUIRED_FIELDS),
-    # python_experiment (owner-ruled 2026-07-21): {code, quantity}. `code` is
-    # the experiment (rides the regime block, threaded like cobrapy's model);
-    # `quantity` is the metric to read. Unique content key `code` -> unique
-    # routing; a bare quantity-only spec falls through to R-B-1's loud stop.
-    "python_experiment": frozenset(_PYEXP_REQUIRED_FIELDS),
+    # python_experiment (owner-ruled 2026-07-21): `code` is the experiment
+    # (rides the regime block, threaded like cobrapy's model); `quantity` is the
+    # metric to read. Unique content key `code` -> unique routing; a bare
+    # quantity-only spec falls through to R-B-1's loud stop.
+    #
+    # THE SAME CORRECTION COBRAPY NEEDED ABOVE, and for the same reason: this was
+    # wired from _REQUIRED_FIELDS alone, so a spec declaring any of the wrapper's
+    # OPTIONAL parameters — timeout_s, input_files, output_files, profile —
+    # failed serve-ability and select_substrate raised. `profile` is what selects
+    # the HEAVY sandbox lane (docs/memo_heavy_verification_lane.md) and the
+    # atomistic/biodesign shelves, so the whole point of those lanes was
+    # unreachable through routing: the substrate could only ever be handed a
+    # default-geometry job. The rule the cobrapy note states — "a serve-ability
+    # signature is EVERY parameter name the wrapper honors, required AND
+    # optional" — was simply not applied here. No new R-B-1 tie: these four names
+    # appear on no other substrate.
+    "python_experiment": frozenset(_PYEXP_REQUIRED_FIELDS) | frozenset(_PYEXP_OPTIONAL_FIELDS),
 }
 
 

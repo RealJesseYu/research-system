@@ -155,8 +155,19 @@ def extract_parameter_roles(parameters) -> dict:
 def _log_line(run_id: str, line: str) -> None:
     """Append one line to runs/<run_id>/log.txt (same path rule as stage 3)."""
     print(line)
-    with open(Path("runs") / run_id / "log.txt", "a") as f:
-        f.write(line + "\n")
+    # BEST EFFORT (2026-07-27). This was a bare open() with no mkdir and no
+    # guard, so a run_id whose directory does not exist raised FileNotFoundError
+    # from deep inside a stage — a failure to LOG becoming a failure to RUN, on a
+    # run that may have cost millions of tokens already. Found when a test drove
+    # this module with a tmp run dir and the LOGGING crashed, not the logic.
+    # Same fix as model_call._append_run_log; the line is printed first either way.
+    try:
+        run_dir = Path("runs") / str(run_id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+        with open(run_dir / "log.txt", "a") as f:
+            f.write(line + "\n")
+    except OSError:
+        pass
 
 
 def run_one_point(
