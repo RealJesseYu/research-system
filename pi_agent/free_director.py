@@ -40,12 +40,14 @@ outcomes; the sealed execution path and sealed judges are unreachable from it.
 
 from __future__ import annotations
 
+import contextlib
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from model_call import MOVE_ALLOWANCE_ENV
+from model_call import MOVE_ALLOWANCE_ENV, in_process_allowance_ceiling
 from pi_agent.budget import Budget
 from pi_agent.dispatch import Move, MoveResult, MoveType
 from pi_agent.loop import _cost_snapshot, _sum_runs_spend  # identical cost accounting
@@ -69,6 +71,63 @@ def _move_allowance(token_budget: Optional[int], spent: Optional[int]) -> Option
 def _allowance_env(allowance: Optional[int]) -> Optional[dict]:
     """The env dict carrying the allowance into the run subprocess, or None."""
     return {MOVE_ALLOWANCE_ENV: str(allowance)} if allowance else None
+
+
+# IN-PROCESS CAPABILITIES GET THE SAME CEILING (2026-07-28, system-map defect
+# 4.3). run_experiment and call_integration hand their subprocess an allowance;
+# the generic capability branch handed nothing, and capabilities.py never
+# mentioned one. So call_ideation at depth "full" — measured at 176 model calls
+# and 17.5M tokens in one study — cost ONE move and was bounded by nothing.
+#
+# spawn_sub_investigation is DELIBERATELY ABSENT. A child director carries a
+# TRANSFERRED move budget and runs the same three termination checks itself, so
+# it is already bounded; and an environment ceiling held across it would also
+# gate the child's own decider call, which is the one call that must never be
+# refused — a director that cannot decide cannot stop honestly either.
+# read_memory / write_memory make no model calls, so an allowance there would
+# be dead weight.
+_ALLOWANCE_CAPABILITIES = frozenset({
+    "call_ideation", "call_validation", "call_data_analysis",
+})
+
+
+@contextlib.contextmanager
+def _capability_allowance(name: str, token_budget: Optional[int],
+                          spent: Optional[int]):
+    """Bind the study's remaining token room to an in-process capability call.
+
+    The subprocess route (`extra_env` on a Move) cannot reach here: a
+    capability runs in THIS process, so the allowance has to sit on this
+    process's own environment while the call is in flight and come off again
+    afterwards — the director's next decider call must not inherit it, and
+    neither must anything else in the loop.
+
+    The VALUE is not the remaining budget: MOVE_ALLOWANCE_ENV is an absolute
+    ceiling on the reading process's face-value spend, and this process's meter
+    already carries the whole study (see model_call.in_process_allowance_ceiling).
+
+    NEVER RAISES, in either direction. Accounting may not sink a capability, so
+    a failure to set the ceiling simply leaves the call uncapped — the same way
+    a broken meter disables the allowance rather than fabricating exhaustion —
+    and the restore runs in a finally."""
+    ceiling = None
+    if name in _ALLOWANCE_CAPABILITIES and token_budget and spent is not None:
+        try:
+            ceiling = in_process_allowance_ceiling(token_budget - spent)
+        except Exception:  # noqa: BLE001 — a broken knob must widen, never cage
+            ceiling = None
+    if ceiling is None:
+        yield None
+        return
+    previous = os.environ.get(MOVE_ALLOWANCE_ENV)
+    try:
+        os.environ[MOVE_ALLOWANCE_ENV] = str(ceiling)
+        yield ceiling
+    finally:
+        if previous is None:
+            os.environ.pop(MOVE_ALLOWANCE_ENV, None)
+        else:
+            os.environ[MOVE_ALLOWANCE_ENV] = previous
 
 
 def _allowance_sentence(allowance: Optional[int]) -> str:
@@ -816,11 +875,19 @@ def free_investigate(
         # A capability that RAISES must not end the arc either — the executor
         # returns honest failure dicts, but the machinery beneath it (ideation,
         # validation, a spawned child) can still throw.
-        _survive(study, name, decisions, finding,
-                 lambda: _record_capability(
-                     study, name, decisions,
-                     execute_capability(name, action, study, budget, decisions),
-                     finding))
+        #
+        # The allowance context is around the whole _survive, not just the
+        # executor: it costs nothing (the recording below makes no model call)
+        # and it means the ceiling is off again by the time the loop turns,
+        # whether the capability returned or threw. A capability that spends its
+        # room raises TokenAllowanceExhausted, which _survive records as an arc
+        # row — an honest ceiling reached, read by the director next turn.
+        with _capability_allowance(name, token_budget, spent):
+            _survive(study, name, decisions, finding,
+                     lambda: _record_capability(
+                         study, name, decisions,
+                         execute_capability(name, action, study, budget, decisions),
+                         finding))
 
     spend_end = _cost_snapshot()
     report = _build_report(study, budget, termination, decisions, ceiling,

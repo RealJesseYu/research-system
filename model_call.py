@@ -304,6 +304,30 @@ def _move_token_allowance() -> Optional[int]:
     return value if value > 0 else None
 
 
+def in_process_allowance_ceiling(room_tokens: Optional[int]) -> Optional[int]:
+    """The value to put in MOVE_ALLOWANCE_ENV so a call made IN THIS PROCESS
+    gets `room_tokens` of room.
+
+    The env var is an absolute ceiling on the READING PROCESS's face-value
+    spend, not a per-call delta: every layer compares it against
+    `_face_value_spent()`, which is this process's whole meter. A dispatched
+    move runs in a fresh subprocess whose meter starts at zero, so there
+    "remaining budget" and "ceiling" are the same number and the distinction
+    never showed. An in-process capability runs inside a director that has
+    already spent, so handing it the bare remaining budget would read as
+    already-exhausted. Its ceiling is what is on the meter NOW plus its room.
+
+    None (no room, or a broken meter) means no allowance — unknown must widen,
+    never cage. Never raises."""
+    try:
+        room = int(room_tokens or 0)
+    except (TypeError, ValueError):
+        return None
+    if room <= 0:
+        return None
+    return _face_value_spent() + room
+
+
 def _face_value_spent() -> int:
     """This process's face-value token spend so far (the same
     sum-of-every-usage-field unit the director's budget check uses). Never

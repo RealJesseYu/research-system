@@ -25,6 +25,15 @@ budget looks intact. Token cost is tracked separately (decider/runs spend). An
 executor guards its own spend and returns an honest insufficient-budget result
 rather than running when it cannot afford to.
 
+TOKENS, TOO (2026-07-28). One move used to be the ONLY bound here: call_ideation
+at depth "full" was measured at 176 model calls / 17.5M tokens for that single
+move. These calls run IN-PROCESS, so a dispatched move's subprocess env cannot
+carry a ceiling to them; the director binds one on its own environment around
+the call instead (free_director._capability_allowance), and model_call enforces
+it exactly as it does inside a move. Nothing in this file reads it — an executor
+that spends its room sees TokenAllowanceExhausted from the model door, which the
+director's _survive records as an arc row.
+
 INJECTION. Each real executor takes a seam (`run` / `call`) defaulting to the live
 machinery, so every path is exercisable offline with fakes (the repo pattern).
 """
