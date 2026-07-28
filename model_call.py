@@ -31,6 +31,7 @@ from typing import Any, Callable, Optional
 from claude_agent_sdk import (
     AssistantMessage,
     ClaudeAgentOptions,
+    HookMatcher,
     ResultMessage,
     TextBlock,
     ToolResultBlock,
@@ -408,6 +409,44 @@ def _wrap_can_use_tool_with_allowance(inner, tracker: "_MoveBudgetTracker",
     return can_use_tool
 
 
+def _wrap_hook_with_allowance(inner, tracker: "_MoveBudgetTracker",
+                              stage_name: str):
+    """Layer 1, delivered where the SDK actually calls it.
+
+    Same policy as _wrap_can_use_tool_with_allowance and the same order (the
+    wind-up decides first, the capability guard otherwise), but returning the
+    PreToolUse hook's decision object rather than a PermissionResult. The
+    callback version above is kept for tools that are NOT on allowed_tools;
+    this is the one that fires for the experimenter's Bash/Write/Edit, because
+    those ARE on the allowlist and so never reach a permission prompt.
+
+    Never raises: an accounting wrapper may not end a run, so a tracker that
+    somehow throws falls through to the inner guard.
+    """
+
+    async def pre_tool_use(hook_input, tool_use_id, context):
+        try:
+            reason = tracker.wind_up_reason()
+        except Exception:  # noqa: BLE001
+            reason = None
+        if reason is None:
+            return await inner(hook_input, tool_use_id, context)
+        if not tracker.announced:
+            tracker.announced = True
+            print(f"TOKEN_ALLOWANCE stage={stage_name} winding_up — {reason}; "
+                  "further tool calls denied, agent told to finish honestly")
+        return {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason":
+                    _WIND_UP_MESSAGE.format(reason=reason),
+            }
+        }
+
+    return pre_tool_use
+
+
 class TransportFailure(RuntimeError):
     """The SDK reported the call itself failed, or it produced no text at all.
 
@@ -517,10 +556,23 @@ async def _ask_once(
     if caps.uses_tools:
         # The guard consults every tool call before it runs. Sealed calls make
         # no tool calls, so attaching it there would be dead weight.
+        #
+        # TWO DELIVERIES, ONE POLICY. can_use_tool is the SDK's replacement for
+        # the permission PROMPT and is documented as NOT invoked for anything
+        # already on allowed_tools — which is every tool in the profile, i.e.
+        # exactly the Bash/Write/Edit the guard exists for. The PreToolUse hook
+        # is the one the SDK says gates *every* tool call, so it is the gate;
+        # the callback stays for anything that somehow reaches an "ask".
         can_use = capability_guard.make_can_use_tool(stage_name)
+        hook = capability_guard.make_pre_tool_use_hook(stage_name)
         if tracker is not None:
             can_use = _wrap_can_use_tool_with_allowance(can_use, tracker, stage_name)
+            hook = _wrap_hook_with_allowance(hook, tracker, stage_name)
         guard_kwargs["can_use_tool"] = can_use
+        # matcher=None matches every tool name; hooks require streaming mode,
+        # which a tool-bearing call already uses (see the prompt_arg block).
+        guard_kwargs["hooks"] = {"PreToolUse": [HookMatcher(matcher=None,
+                                                            hooks=[hook])]}
     # Optional MCP connectors: extra allowed tools (mcp__<name>) plus the
     # mcp_servers/strict_mcp_config kwargs, empty unless mcp_servers.json exists.
     mcp_kwargs, mcp_allowed = _mcp_option_kwargs(caps.uses_tools)

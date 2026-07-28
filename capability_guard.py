@@ -218,6 +218,68 @@ def make_can_use_tool(stage_name: str, log=None):
 
 
 # ---------------------------------------------------------------------------
+# DELIVERY: WHY THE HOOK, NOT THE PERMISSION CALLBACK.
+#
+# can_use_tool above is the SDK's replacement for the interactive permission
+# PROMPT. The SDK is explicit (claude_agent_sdk/types.py, ClaudeAgentOptions):
+# it "is *not* invoked for tool calls already permitted by ``allowed_tools``…
+# To observe or gate *every* tool call regardless of permission rules, use a
+# ``PreToolUse`` hook via ``hooks`` instead."
+#
+# Every tool a profile grants is on allowed_tools. So for the experimenter's
+# Bash/Write/Edit — the exact tools the three holes above are about — the
+# callback was never consulted. The policy in check() was correct and the
+# delivery was inert. This function is the same policy delivered where the SDK
+# actually calls it.
+#
+# can_use_tool stays attached as well: it is the only thing that speaks for a
+# tool NOT on the allowlist (an "ask" outcome), and belt-and-braces costs
+# nothing when both consult the same pure check().
+# ---------------------------------------------------------------------------
+
+
+def make_pre_tool_use_hook(stage_name: str, log=None):
+    """Build the SDK PreToolUse hook callback for one stage.
+
+    Signature and return shape follow claude_agent_sdk.types.HookCallback:
+    `(input, tool_use_id, context) -> HookJSONOutput`. An ALLOW returns the
+    empty object — silence, so the CLI's own permission rules still decide;
+    returning permissionDecision "allow" would instead OVERRIDE them, which is
+    a wider grant than this guard is entitled to make. A DENY returns the
+    PreToolUse-specific decision object, whose reason the model reads and
+    routes around, exactly as the callback's deny message did.
+
+    Never raises. A guard that crashes the run it protects has failed worse
+    than one that misses — same doctrine as the cost meter reading 0 on a
+    broken read. An unreadable hook input widens (allows) and says so.
+    """
+
+    async def pre_tool_use(hook_input, tool_use_id, context):
+        try:
+            tool_name = (hook_input or {}).get("tool_name") or ""
+            tool_input = (hook_input or {}).get("tool_input") or {}
+            allowed, reason = check(tool_name, tool_input)
+        except Exception as exc:  # noqa: BLE001
+            line = (f"TOOL_GUARD_ERROR stage={stage_name} — hook could not read "
+                    f"its input ({type(exc).__name__}: {exc}); allowing")
+            (log or print)(line)
+            return {}
+        if allowed:
+            return {}
+        line = f"TOOL_DENIED stage={stage_name} tool={tool_name} reason={reason}"
+        (log or print)(line)
+        return {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": reason,
+            }
+        }
+
+    return pre_tool_use
+
+
+# ---------------------------------------------------------------------------
 # STAGE -> PROFILE PAIRING.
 #
 # capabilities= is an ordinary keyword argument, so without this table nothing
