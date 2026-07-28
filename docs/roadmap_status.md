@@ -244,7 +244,40 @@ input it would be $270 — so **the token sums overstate cost by ~5.1x**.
 
 ---
 
-## THE VALUE FAILURE IS MOSTLY GOAL SHAPE (2026-07-28, n=3 — read the goals)
+## CORRECTION (2026-07-28, owner was right): the glider is PRE-FIX evidence
+
+The owner's read — *"the director saw it had extra limits and decided to BS"* —
+is correct, and the disk is more specific than the hypothesis.
+
+**The glider director was never shown a cost signal at all.** `token_budget`
+appears ZERO times across all six of its decision files; the only budget it saw
+was `{"remaining": 8, ...}` — a MOVE pool. It spent 2 and handed 5 to children:
+**7 of 8**. Given a pool and asked "what next" each turn, it consumed the pool.
+
+**And the fix already landed, one day after that run.** `5d1c0fb` (2026-07-27)
+added to the decider prompt: *"Budget is not a target to hit… an investigation
+spent an enormous budget on a simple design by deriving one number through three
+independent routes… That is effort, not progress."* — a description of the
+glider study, written after it.
+
+**Both runs since have not padded**, and the trivial one stopped citing the new
+instruction almost verbatim: *"the goal was … far easier than its 3M-token
+budget assumed; further moves would be redundant confirmation, not progress."*
+
+**So the whole 'comparative frontier' theory below was built on a pre-fix
+study, and is withdrawn as a build item.** "Design a glider" should produce a
+glider, build instructions and code — not a comparison of six planforms. The
+system turning a clear engineering ask into a research study is a defect, not a
+feature. What remains true from the goal-shape section: a standing *"each part
+must be verified before it is built on"* clause is expensive and should not be
+written. That is guidance for writing goals, not a thing to build.
+
+**Still open, and the owner's own framing is the better one:** should the
+director allocate compute smarter — i.e. is spending-to-the-budget still a
+tendency the prompt only papers over? n=2 post-fix, both cheap goals. A long run
+is where it would show.
+
+## (WITHDRAWN — see correction above) The goal-shape analysis, n=3
 
 Comparing the three live studies' goal text against their output explains the
 value difference almost entirely, and it is not flattering to the goals.
@@ -393,8 +426,8 @@ three checks *of* it are `verified: true`.
 | # | Task | Status | Note |
 |---|---|---|---|
 | 5 | Finish unblocking | ongoing | The recurring pattern: a prompt forbids what the agent can already do. Item 2's first candidate above is one. |
-| 6 | **Director constructs a comparative frontier** | **THE VALUE LEVER — build before the long run** | REFRAMED 2026-07-28 (was 'smarter phase system'). Turning *"design a glider"* into *"compare N planforms on glide ratio vs build difficulty"* is what a good PI does with a vague ask, and goal shape is the one thing shown to move value (see the goal-shape section). Phase plumbing — dependency edges, feedback edges, reservable budget — is DEFERRED: both live runs used a single move, so there is no evidence the director uses the phase structure it already has. Do not build machinery production never calls. |
-| 7 | Make cross-study memory actually work | not started | `read_memory`/`write_memory` exist; no evidence a later study is better for an earlier one. That is the accumulation premise, unvalidated. |
+| 6 | ~~Director constructs a comparative frontier~~ **WITHDRAWN** — replaced by *smarter compute allocation*, owner's framing | reassess after a long run | REFRAMED 2026-07-28 (was 'smarter phase system'). Turning *"design a glider"* into *"compare N planforms on glide ratio vs build difficulty"* is what a good PI does with a vague ask, and goal shape is the one thing shown to move value (see the goal-shape section). Phase plumbing — dependency edges, feedback edges, reservable budget — is DEFERRED: both live runs used a single move, so there is no evidence the director uses the phase structure it already has. Do not build machinery production never calls. |
+| 7 | ~~Cross-study memory~~ **DROPPED (owner, 2026-07-28)** — not wanted | `read_memory`/`write_memory` exist; no evidence a later study is better for an earlier one. That is the accumulation premise, unvalidated. |
 
 ## Phase 3 — prove it
 

@@ -272,6 +272,37 @@ def main(argv: list | None = None) -> None:
                 print(f"build critique: {crit['findings']} finding(s), "
                       f"usable_today={c.get('usable_today')} "
                       f"({c.get('model')})")
+
+            # TYPESET (best-effort, LAST). tools/typeset_paper.py has existed
+            # since d82e1bb with no production caller, so --paper stopped at
+            # markdown and the PDF was a manual step nobody remembered after a
+            # long run. It runs AFTER the referee and the critic deliberately:
+            # both APPEND to paper.md, so typesetting earlier would ship a PDF
+            # missing exactly the caveats a reader most needs.
+            #
+            # Never fatal. A missing TeX engine is the common case (the repo
+            # went months without one) and must degrade to "markdown is still
+            # there", not take down the run's last step. The .tex is emitted
+            # either way, so a machine with no engine still gets something it
+            # can compile elsewhere.
+            try:
+                from tools.typeset_paper import typeset_paper
+
+                typeset = typeset_paper(Path(outcome["paper_path"]).parent)
+                if typeset.get("pdf_path"):
+                    print(f"pdf: {typeset['pdf_path']} "
+                          f"(engine {typeset.get('engine')})")
+                    missing = typeset.get("missing_figures") or []
+                    if missing:
+                        print(f"  NOTE: {len(missing)} figure(s) referenced but "
+                              f"not found: {', '.join(missing)}")
+                elif typeset.get("tex_path"):
+                    print(f"tex: {typeset['tex_path']} — no PDF "
+                          f"({typeset.get('error') or 'no TeX engine found'}; "
+                          f"macOS: brew install tectonic)")
+            except Exception as e:  # noqa: BLE001 — typesetting may not sink a run
+                print(f"no PDF written ({type(e).__name__}: {e}); "
+                      f"paper.md is unaffected")
         else:
             print(f"no paper written: {outcome.get('error')}")
 
