@@ -213,13 +213,34 @@ correctly-priced figure — and `num_turns`. Neither is recorded:
 only on the error path (`model_call.py:260`). `model_call.py:392` passes only
 `message.usage` to the meter.
 
-| # | Task | Status | Why |
-|---|---|---|---|
-| C | **Record `total_cost_usd` and `num_turns` per call** | **DO IT — ~3 lines, offline, free** | Turns every past and future study from an uninterpretable token sum into actual dollars, and `num_turns` is the intra-run signal I previously said would need a whole new instrument. Do this BEFORE deciding anything about cost. |
+### ANSWERED 2026-07-28 — and the cost problem is 5x smaller than it looked
 
-**Do not optimise anything until C lands.** The glider study may be far cheaper
-than 55M implies, or the cost may be concentrated in turn count rather than
-context — those call for opposite fixes, and today we cannot tell them apart.
+Item C landed (`a1b7dae`). The question was then settled for the PAST studies too,
+by recovering per-message usage from the Claude CLI's own session transcripts
+(`~/.claude/projects/*<run_id>-workspace/*.jsonl`, deduped by message id). The
+recovered sum reproduces the recorded arc tree **exactly — 54,013,618** — so the
+breakdown is trustworthy:
+
+| field | tokens | share | rate (opus-5) | cost |
+|---|---|---|---|---|
+| `cache_read_input_tokens` | 52,032,882 | **96.3%** | $0.50/M | $26.02 |
+| `cache_creation_input_tokens` | 1,134,946 | 2.1% | $6.25/M | $7.09 |
+| `output_tokens` | 801,965 | 1.5% | $25.00/M | $20.05 |
+| `input_tokens` | 43,825 | 0.1% | $5.00/M | $0.22 |
+| **true cost** | 54,013,618 | | | **$53.38** |
+
+Claude Opus 5 is **$5 input / $25 output** per MTok; cache reads are 0.1x input
+and 5-minute cache writes 1.25x. Priced as if the summed figure were all real
+input it would be $270 — so **the token sums overstate cost by ~5.1x**.
+
+**What this means for the roadmap:**
+- The glider study cost about **$53**, not the ~$270 the raw number implies.
+  Compute is roughly 5x less of a constraint than assumed.
+- **The levers are output tokens and cache reads, not context size.** Output is
+  1.5% of tokens but 38% of cost; cache reads are 96.3% of tokens but 49% of
+  cost. Optimising "context size" would chase the 0.1% that is real input.
+- Whether $53/study is even worth optimising is now an owner judgement, not a
+  blocked question.
 
 ---
 
