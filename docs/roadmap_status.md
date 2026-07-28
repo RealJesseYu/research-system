@@ -23,11 +23,23 @@ run must carry every job it can.
 
 ### Next — offline, costs no compute
 
-- [ ] **1. System map.** One document: the real control flow from `--goal` to
-      `paper.pdf`, every decision point, every constant or prompt line that
-      shapes behaviour, and the seams where a human could intervene. **The owner
-      cannot find places to make it smarter while the architecture exists only
-      across a dozen docs.** Serves every other item below.
+- [x] **1. System map — DONE 2026-07-28** (`1e6c16d`), `docs/system_map.md`.
+      Control flow, where the money goes, a CODE-vs-PROMPT lever table, the
+      knobs, what is built but never runs, and the interjection seams.
+      **It surfaced 11 verified defects — see below; three are worth doing
+      before the long run.**
+- [ ] **1b. Fix the tool guard (`PreToolUse`).** Small, and the highest-value
+      thing the map found: `capability_guard` AND layer 1 of the token ceiling
+      are both delivered via `can_use_tool`, which the SDK never invokes for
+      tools already on `allowed_tools`. Both are inert today. Fixing it restores
+      two protections that are currently believed to exist — and it makes the
+      token ceiling actually bind, which matters for a $150 run.
+- [ ] **1c. Give in-process capabilities a token allowance.** `call_ideation` at
+      `depth:"full"` costs one move and is uncapped; one was measured at 17.5M
+      tokens. A long run can lose its budget to a single capability call.
+- [ ] **1d. Either wire `novelty_priority` into the director's envelope or
+      delete it.** It is read by `capabilities.py` but the validator rejects it,
+      so the 2026-07-27 ruling is unimplemented either way.
 - [ ] **2. Auto-commit run code to git.** Small.
 - [ ] **3. Design the comparison protocol.** Not a run — the written-in-advance
       criteria for what a good answer must contain, fixed *before* either side
