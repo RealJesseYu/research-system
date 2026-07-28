@@ -293,31 +293,43 @@ asked for verification.
 than a chat's, the premise fails and no machinery fixes it. That is what the
 paired long run tests.
 
-## NEXT ACTION (2026-07-28, after C/A/B landed): do the long run
+## THE TASK LIST (ordered 2026-07-28 by the owner's compute constraint)
 
-Both blockers are closed and the cost worry is 5x smaller than it looked, so
-the honest next step is the thing the whole roadmap was clearing the way for.
+**Constraint that sets the order: a long run consumes the rest of the week's
+limit.** So everything free or cheap happens FIRST, and the long run is the last
+act of the week. Corollary: you get ONE long run — make the director as good as
+it can be before spending it, or you spend the week testing the current one.
 
-**Nothing that landed makes a run cheaper, and that is fine.** C is measurement
-only; A caps overshoot so the budget means something (it does NOT reduce normal
-spend); B stops a death from costing you the work. Cost per unit of work is
-unchanged — and at ~$1 per million reported tokens it does not need to change.
+### Before the long run — offline, zero compute
+1. **Item 6 (reframed): director constructs a comparative frontier.** The value
+   lever. Build it, and the long run tests an improved director instead of the
+   one that produced a $53 verification exercise.
+2. **Wire `typeset_paper` into the `--paper` path.** Small. Nothing in
+   production calls it today, so `--paper` stops at markdown — and a long run
+   is exactly when you want the PDF to appear without a manual step.
 
-**Rule of thumb for sizing a run:** $53.38 / 54.01M = **~$1 per million tokens
-as the reports count them**. So `--token-budget 200000000` ≈ $200. A 20-move
-study lands around $250. That is the real budget conversation, not 55M-token
-sticker shock.
+### Before the long run — ~$8, about 5 minutes
+3. **One cheap run to confirm the director actually builds a frontier.** ~3-5%
+   of the long run's cost, spent to avoid betting the week on an unexercised
+   change. This is not the validation-run habit — it is insurance on a
+   week-ending spend.
 
-**Do NOT build the smarter phase system first.** Both live runs used a SINGLE
-move — there is still no evidence the director uses the phase structure it
-already has. Building more phase machinery now repeats the ideation mistake:
-elaborate apparatus production never calls.
+### The week-ending spend
+4. **Long engineering run (item 10) + paired chat on the same goal (item 8).**
+   One goal, both ways. Write the goal with an objective-and-tradeoff and an
+   alternatives clause, and NO standing "verify each part" instruction.
+   `--token-budget 150000000` ≈ $150.
 
-**Pair the long run with a chat on the same goal.** That gets Phase 3 item 8
-(comparison protocol) for free, and it is the only thing that answers the
-question the cost work turned out not to be about: is the output worth more
-than a chat's? The glider cost $53 and was ~90% verification of a five-minute
-problem — that was never a cost failure, it was a value failure.
+### After, or needing runs that do not exist yet
+5. Item 7 (cross-study memory) — needs several studies to compare; post-long-run.
+6. Item 9 (scaling experiments) — owner.
+7. Item 11 (science long run) — a different week.
+8. Item 12 (security/multi-tenancy) — offline thinking, not gating anything now.
+9. Item 13 (cleanup and ship).
+
+**Dropped and not coming back without new evidence:** streamline compute
+(orchestration is 1.3%; a study costs ~$53), proportional verification (goal
+shape explains it), further validation runs, the ideation apparatus (never fires).
 
 ## Phase 1 — CLOSED (both landed 2026-07-28)
 
@@ -326,8 +338,8 @@ they live in the same loop.
 
 | # | Task | Status | Why it is non-negotiable |
 |---|---|---|---|
-| A | **Make the token ceiling bind INSIDE a move** | **BLOCKING** | `study-20260728T152819Z` was given `--token-budget 5000000` and spent **7,900,340** — 58% over. `free_director.py:434` checks only BETWEEN moves, and one free-experimenter move is an agentic loop of up to 200 turns. A long run cannot be budgeted until this holds, and two windows have already died to runs that ate their budget. |
-| B | **Resumability** | **BLOCKING** | A long run's likeliest death is a usage window five hours in — that has already happened once and lost everything. The arc is fully on disk, so this is reconstruction, not new state. Without it a long run is a coin flip you pay a window for. |
+| A | **Token ceiling binds INSIDE a move** | ✅ **DONE 2026-07-28** (`27da720`) | `study-20260728T152819Z` was given `--token-budget 5000000` and spent **7,900,340** — 58% over. `free_director.py:434` checks only BETWEEN moves, and one free-experimenter move is an agentic loop of up to 200 turns. A long run cannot be budgeted until this holds, and two windows have already died to runs that ate their budget. |
+| B | **Resumability** (`--resume-study`) | ✅ **DONE 2026-07-28** (`1913b6f`) | A long run's likeliest death is a usage window five hours in — that has already happened once and lost everything. The arc is fully on disk, so this is reconstruction, not new state. Without it a long run is a coin flip you pay a window for. |
 | — | Per-phase cost reporting | ✅ DONE | `pi_agent/cost_report.py`. Gave the 1.3% number that deleted "streamline compute". Keep it — it is how a long run gets read afterwards. |
 | — | Machinery runs at all | ✅ DONE | Two live runs 2026-07-28, both publishable, clean logs, cost report correct on both. Enough. |
 
@@ -381,7 +393,7 @@ three checks *of* it are `verified: true`.
 | # | Task | Status | Note |
 |---|---|---|---|
 | 5 | Finish unblocking | ongoing | The recurring pattern: a prompt forbids what the agent can already do. Item 2's first candidate above is one. |
-| 6 | **Smarter phase system + more powerful director** | **THE MAIN EVENT — next after A and B** | The core differentiator and least-built item. Needs MACHINERY, not prompts: dependencies between phases, feedback edges so an integration failure reopens a subsystem, budget reservable for that. Note both live runs used ONE move — the director is not yet using the phase structure it has, so measure that before adding more. |
+| 6 | **Director constructs a comparative frontier** | **THE VALUE LEVER — build before the long run** | REFRAMED 2026-07-28 (was 'smarter phase system'). Turning *"design a glider"* into *"compare N planforms on glide ratio vs build difficulty"* is what a good PI does with a vague ask, and goal shape is the one thing shown to move value (see the goal-shape section). Phase plumbing — dependency edges, feedback edges, reservable budget — is DEFERRED: both live runs used a single move, so there is no evidence the director uses the phase structure it already has. Do not build machinery production never calls. |
 | 7 | Make cross-study memory actually work | not started | `read_memory`/`write_memory` exist; no evidence a later study is better for an earlier one. That is the accumulation premise, unvalidated. |
 
 ## Phase 3 — prove it
