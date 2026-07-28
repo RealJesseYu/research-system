@@ -454,8 +454,13 @@ def run_python_experiment(spec: dict) -> dict:
     SCRATCH_ROOT.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=SCRATCH_ROOT) as tmp:
         host_dir = Path(tmp)
+        # EXPLICIT UTF-8, not the locale default. Model-authored code routinely
+        # carries non-ASCII (a µ, a Greek letter, an em dash in a comment), and
+        # under a non-UTF-8 locale write_text raised UnicodeEncodeError — from a
+        # function whose docstring promises it "never raises for a failing
+        # experiment". The failure would be the harness's, reported as nothing.
         (host_dir / SCRIPT_NAME).write_text(
-            _preamble(clean["timeout_s"]) + clean["code"]
+            _preamble(clean["timeout_s"]) + clean["code"], encoding="utf-8"
         )
         # R-ART-5: place any consumed artifacts in the run dir BEFORE the run,
         # so the script reads them from its working directory. Names were
@@ -495,7 +500,14 @@ def run_python_experiment(spec: dict) -> dict:
             }
 
         result_file = host_dir / RESULT_NAME
-        raw = result_file.read_text() if result_file.is_file() else None
+        # errors="replace" for the same reason, in the more dangerous direction:
+        # this read is OUTSIDE the try above, so a result.json carrying invalid
+        # bytes raised UnicodeDecodeError straight out of a function documented
+        # to return an honest valid=False summary instead. A mangled character is
+        # a parse failure this code already reports honestly; a raise is not.
+        # Every sibling wrapper (run_code, run_cfd, run_ngspice) already does this.
+        raw = (result_file.read_text(encoding="utf-8", errors="replace")
+               if result_file.is_file() else None)
         # R-ART-5: capture declared output artifacts BEFORE the tempdir is
         # cleaned. Bytes are held in-memory for the composition orchestrator;
         # they never enter a baton or a model prompt (files off the baton).

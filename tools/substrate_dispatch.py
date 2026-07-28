@@ -122,6 +122,30 @@ def wrapper_callable(substrate_id: str):
     the stem-names-the-entry-point convention raises LookupError rather than
     guess a callable."""
     record = registry.get(substrate_id)  # KeyError on an unknown id — never silent
+    # AUTHORIZATION IS CHECKED BEFORE THE WRAPPER RUNS, not after. This function
+    # checked registry MEMBERSHIP only, unlike its three siblings (adapter_for,
+    # qoi_translation_for, run_entry_constructor_for) which all refuse an unwired
+    # id. verification.py calls it for any non-case-build artifact and only THEN
+    # hits run_entry_constructor_for's LookupError — so a model-authored artifact
+    # naming e.g. code_sklearn_eval launched a docker job and ran it TO
+    # COMPLETION, and was refused afterwards as an unreadable summary. The side
+    # effect happened before the refusal.
+    #
+    # THE PREDICATE IS NOT PLAIN ROUTABILITY, and a first version that used it
+    # broke ten tests — correctly. R-MCP-1/R-MCP-3: mcp_connector, bio_db_lookup
+    # and alphafold_db are enrolled DELIBERATELY unroutable (stage-4 dispatch must
+    # refuse them loudly) while verification IS authorized to re-call them, and
+    # the run-entry constructor is exactly the marker that says so — it is what
+    # lets the wall read a re-run summary. So the two authorizations are distinct:
+    # "stage 4 may route here" and "the wall may re-call this". A row with
+    # NEITHER is the one nothing may invoke.
+    if not record.routable and substrate_id not in _RUN_ENTRY_CONSTRUCTORS:
+        raise LookupError(
+            f"substrate {substrate_id!r} is enrolled but neither routable nor "
+            "verification-readable, so its wrapper may not be invoked — refusing "
+            "BEFORE the call rather than running it to completion and rejecting "
+            "the result afterwards. Routable ids: "
+            f"{sorted(registry.routable_ids())}")
     path = PurePosixPath(record.wrapper)
     module = importlib.import_module(".".join(path.with_suffix("").parts))
     fn = getattr(module, path.stem, None)

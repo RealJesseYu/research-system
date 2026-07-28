@@ -41,6 +41,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import pytest
 import shutil
 import sys
 import tempfile
@@ -458,3 +459,60 @@ class TestRealNgspiceSmoke(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestWrapperInvocationIsAuthorizedBeforeItRuns:
+    """wrapper_callable checked registry MEMBERSHIP only, unlike its three
+    siblings (adapter_for, qoi_translation_for, run_entry_constructor_for) which
+    all refuse an unwired id. verification.py calls it for any non-case-build
+    artifact and only THEN hits run_entry_constructor_for's LookupError — so a
+    model-authored artifact naming code_sklearn_eval launched a docker job, ran it
+    TO COMPLETION, and was refused afterwards as an unreadable summary.
+
+    THE PREDICATE IS NOT PLAIN ROUTABILITY, and these tests exist because a first
+    fix used it and broke ten tests — correctly. R-MCP-1/R-MCP-3: mcp_connector,
+    bio_db_lookup and alphafold_db are enrolled DELIBERATELY unroutable (stage-4
+    dispatch must refuse them loudly) while verification IS authorized to re-call
+    them, and the run-entry constructor is the marker that says so. Two distinct
+    authorizations: "stage 4 may route here" and "the wall may re-call this".
+    """
+
+    def test_a_routable_substrate_resolves(self):
+        from tools.substrate_dispatch import wrapper_callable
+        assert wrapper_callable("rdkit").__name__ == "run_rdkit"
+
+    def test_unroutable_but_verification_readable_still_resolves(self):
+        """The wall MUST be able to re-call these — that is what makes a lookup
+        claim reproducible at all (R-MCP-3)."""
+        from tools.substrate_dispatch import wrapper_callable
+        for sid in ("mcp_connector", "bio_db_lookup", "alphafold_db"):
+            assert wrapper_callable(sid) is not None, sid
+
+    def test_neither_routable_nor_readable_refuses_before_running(self):
+        from tools.substrate_dispatch import wrapper_callable
+        for sid in ("code_sklearn_eval", "cas_offinder", "autodock_vina",
+                    "web_search", "boltz2", "proteinmpnn"):
+            with pytest.raises(LookupError):
+                wrapper_callable(sid)
+
+    def test_the_refusal_names_the_routable_ids(self):
+        """A caller that cannot act on the refusal will work around it."""
+        from tools.substrate_dispatch import wrapper_callable
+        with pytest.raises(LookupError) as excinfo:
+            wrapper_callable("code_sklearn_eval")
+        assert "rdkit" in str(excinfo.value)
+
+    def test_an_unknown_id_still_raises_keyerror_first(self):
+        """Unchanged: an id that is not enrolled at all is a different error from
+        one that is enrolled but unauthorized."""
+        from tools.substrate_dispatch import wrapper_callable
+        with pytest.raises(KeyError):
+            wrapper_callable("not_a_substrate_at_all")
+
+    def test_every_verification_readable_id_is_actually_invocable(self):
+        """The authorization and the wiring must agree: if a row has a run-entry
+        constructor, its wrapper has to resolve, or the wall refuses a claim it
+        was told it could check."""
+        from tools.substrate_dispatch import _RUN_ENTRY_CONSTRUCTORS, wrapper_callable
+        for sid in _RUN_ENTRY_CONSTRUCTORS:
+            assert wrapper_callable(sid) is not None, sid

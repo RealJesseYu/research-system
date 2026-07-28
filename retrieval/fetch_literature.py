@@ -33,6 +33,32 @@ try:
 except ImportError:
     _SSL_CONTEXT = ssl.create_default_context()
 
+#: Ceiling on an honoured Retry-After. The header is SERVER-CONTROLLED, and it was
+#: taken at face value: `int(e.headers.get("Retry-After", 20))`. Two failures came
+#: with that. A server sending the HTTP-DATE form ("Wed, 21 Oct 2026 07:28:00 GMT")
+#: raised an uncaught ValueError, so a plain 429 surfaced as a crash instead of a
+#: retry. And a large numeric value was slept in full — multiplied by the retry
+#: count, a misconfigured or hostile server could park a study in time.sleep for
+#: hours, with the run looking exactly like normal quiet work.
+MAX_RETRY_AFTER_S = 120
+
+
+def _retry_after_seconds(headers, default: int = 20) -> int:
+    """Seconds to wait from a Retry-After header: numeric only, clamped, never
+    raising. A date-form value falls back to `default` — waiting the default is
+    always better than crashing on a retryable status."""
+    raw = None
+    try:
+        raw = headers.get("Retry-After")
+    except Exception:  # noqa: BLE001 — a header map that misbehaves is not fatal
+        raw = None
+    try:
+        wait = int(str(raw).strip())
+    except (TypeError, ValueError):
+        wait = default
+    return max(0, min(wait, MAX_RETRY_AFTER_S))
+
+
 API_URL = "https://export.arxiv.org/api/query"
 CORPUS_DIR = Path(__file__).parent / "literature_corpus"
 MAX_RESULTS = 50
@@ -68,7 +94,7 @@ def _fetch_topic(search_query: str, retries: int = 5) -> bytes:
                 return resp.read()
         except urllib.error.HTTPError as e:
             if e.code in (429, 503) and attempt < retries - 1:
-                wait = int(e.headers.get("Retry-After", 20))
+                wait = _retry_after_seconds(e.headers)
                 print(f"  HTTP {e.code}, waiting {wait}s before retry...")
                 time.sleep(wait)
                 continue

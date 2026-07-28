@@ -47,6 +47,7 @@ import math
 import re
 import subprocess
 import time
+import uuid
 from pathlib import Path
 
 from tools.docker_exec import CLIENT_GRACE_S
@@ -258,7 +259,14 @@ def run_mafft(spec: dict) -> dict:
     if reason:
         return fail(f"substrate not ready: {reason}")
 
-    job = f"mafft_{int(wall_start * 1000)}"
+    # UNIQUE PER CALL, not per millisecond. The job name was
+    # f"...{int(wall_start*1000)}", so two calls landing in the same
+    # millisecond shared a job directory — and each of these wrappers
+    # CLEARS and rewrites that directory, so they would clobber each
+    # other's inputs and read each other's result file. Sequential use was
+    # assumed but never enforced, and the free agent can launch wrappers
+    # concurrently from Bash. run_code and run_scipy already suffix a uuid.
+    job = f"mafft_{int(wall_start * 1000)}_{uuid.uuid4().hex[:8]}"
     case_dir = SHARED_HOST / job
     case_dir.mkdir(parents=True, exist_ok=True)
     fasta = "".join(f">s{i}\n{s}\n" for i, s in enumerate(clean["sequences"]))
