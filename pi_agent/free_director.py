@@ -624,7 +624,14 @@ def _build_report(
     # already inside the process-delta term below; summing it here too would
     # double-count it in total_spend.
     runs_spend = _sum_runs_spend(experiment_moves)
-    decider_spend = {
+    # RENAMED from decider_spend (2026-07-28, roadmap item 1): the meter is
+    # process-global, so this delta is everything that ran IN this process
+    # during the investigation — the director's decisions, capability calls
+    # (ideation/validation/analysis), and any spawned child directors, which
+    # run in-process too. One study had 68 calls / 15.17M tokens of ideation
+    # sitting in a field named for the PI's own decisions. Per-phase
+    # attribution lives in the arc's cost column (pi_agent/cost_report.py).
+    process_spend = {
         "calls": spend_end["calls"] - spend_start["calls"],
         "tokens": spend_end["tokens"] - spend_start["tokens"],
     }
@@ -640,16 +647,42 @@ def _build_report(
         "budget_final": budget.report(),
         "termination": termination,
         "arc": arc,
-        "decider_spend": decider_spend,
+        "process_spend": process_spend,
         "runs_spend": runs_spend,
         "total_spend": {
-            "calls": decider_spend["calls"] + runs_spend["calls"],
-            "tokens": decider_spend["tokens"] + runs_spend["tokens"],
+            "calls": process_spend["calls"] + runs_spend["calls"],
+            "tokens": process_spend["tokens"] + runs_spend["tokens"],
         },
+        # The number to quote for a study that spawned children. total_spend
+        # covers THIS study only (its process delta + its own experiment runs);
+        # a root's total_spend under-counted the glider tree by ~3x because the
+        # children's runs live only in the children's arcs. tree_spend is the
+        # recursive arc roll-up over this study and every descendant on disk —
+        # a NEW field, deliberately not a redefinition of total_spend, which
+        # other readers (liveview spend_reported) rely on as-is.
+        "tree_spend": _tree_spend(study),
         "spend_note": (
             "moves_run counts only experiment moves; the arc also holds capability "
-            "actions. decider_spend is this process's own; runs_spend sums each "
-            "experiment's persisted per-run cost. The hard ceiling is the budget "
+            "actions. process_spend (renamed from decider_spend 2026-07-28) is "
+            "everything this process spent: director decisions + in-process "
+            "capability calls + in-process child directors. runs_spend sums each "
+            "experiment's persisted per-run cost. tree_spend is the recursive "
+            "arc-cost roll-up including every descendant study (capability rows "
+            "in it overlap process_spend — see pi_agent/cost_report.py for the "
+            "deduplicated grand total). The hard ceiling is the budget "
             "(divisible across the tree); decision_cap is the no-op backstop."
         ),
     }
+
+
+def _tree_spend(study: Any) -> Optional[dict]:
+    """The recursive arc-cost roll-up over this study and every descendant on
+    disk ({calls, tokens, studies, moves_with_cost, moves}), read back from the
+    evidence files at report time — children finish before the parent's report
+    is written, so their arcs are complete here. Never raises; None means
+    'could not be computed', which is not the same fact as zero."""
+    try:
+        from pi_agent.cost_report import tree_arc_spend
+        return tree_arc_spend(study.study_id, study.studies_root)
+    except Exception:  # noqa: BLE001 — accounting must never sink a report
+        return None

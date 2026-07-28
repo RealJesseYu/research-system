@@ -206,11 +206,14 @@ class TestInvestigate(unittest.TestCase):
         self.assertEqual(report["runs_spend"]["tokens"], 2000)
         self.assertEqual(report["runs_spend"]["moves_with_cost"], 2)
         self.assertEqual(report["runs_spend"]["moves_run"], 2)
-        # total_spend folds in the decider's own spend on top of the runs'.
+        # total_spend folds in the process's own (decider) spend on top of the
+        # runs'. process_spend is the honest name for what was decider_spend —
+        # the meter is process-global (renamed 2026-07-28).
         self.assertEqual(
             report["total_spend"]["calls"],
-            report["decider_spend"]["calls"] + 20,
+            report["process_spend"]["calls"] + 20,
         )
+        self.assertNotIn("decider_spend", report)  # renamed, not duplicated
 
     def test_a_move_with_no_cost_contributes_nothing_and_is_not_counted(self):
         # _fake_run_move records no cost — runs_spend stays zero with zero coverage.
@@ -318,7 +321,7 @@ class TestInvestigate(unittest.TestCase):
         report = self._run(script, study_id="study-report")
         self.assertTrue((self.root / "study-report" / "report.json").is_file())
         self.assertIn("max_moves", report["spend_note"])
-        self.assertIn("calls", report["decider_spend"])
+        self.assertIn("calls", report["process_spend"])
 
     def test_constraint_is_carried_into_the_study(self):
         script = [{"decision": "stop", "rationale": "x", "stop_reason": "y"}]

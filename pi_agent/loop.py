@@ -123,7 +123,7 @@ def investigate(
 
     Returns a report dict (also written to studies/<id>/report.json):
     {study_id, goal, allowed_substrates, mode, moves_run, termination, arc,
-     decider_spend, spend_note}.
+     process_spend, spend_note}.
     """
     if decide is None:
         from pi_agent.decider import decide as decide
@@ -224,7 +224,12 @@ def _build_report(
     ceiling); recorded verbatim so a reader sees exactly what was set."""
     arc = study_findings(study)
     runs_spend = _sum_runs_spend(arc)
-    decider_spend = {
+    # RENAMED from decider_spend (2026-07-28, roadmap item 1): the meter is
+    # process-global, so this delta is everything THIS process spent during the
+    # investigation, not only the PI's decisions. For this enum loop the two
+    # coincide (moves are subprocesses and nothing else calls a model in
+    # process), but the honest name is the process one.
+    process_spend = {
         "calls": spend_end["calls"] - spend_start["calls"],
         "tokens": spend_end["tokens"] - spend_start["tokens"],
     }
@@ -237,20 +242,20 @@ def _build_report(
         "ceiling": ceiling,
         "termination": termination,
         "arc": arc,
-        "decider_spend": decider_spend,
+        "process_spend": process_spend,
         "runs_spend": runs_spend,
         "total_spend": {
-            "calls": decider_spend["calls"] + runs_spend["calls"],
-            "tokens": decider_spend["tokens"] + runs_spend["tokens"],
+            "calls": process_spend["calls"] + runs_spend["calls"],
+            "tokens": process_spend["tokens"] + runs_spend["tokens"],
         },
         "spend_note": (
-            "decider_spend is THIS process's own (the PI's decisions). runs_spend "
-            "is summed from each move's persisted per-run cost (free-director "
-            "Phase 1: each run records its spend into its run_record, read back "
-            "here). moves_with_cost/moves_run shows coverage — a move whose run "
-            "left no record contributes no cost and is not counted. The hard "
-            "budget is still max_moves; real cost-cap enforcement can now read "
-            "runs_spend against the ceiling."
+            "process_spend is THIS process's model spend over the investigation "
+            "(for this loop, the PI's decisions — renamed from decider_spend "
+            "2026-07-28). runs_spend is summed from each move's persisted "
+            "per-run cost. moves_with_cost/moves_run shows coverage — a move "
+            "whose run left no record contributes no cost and is not counted. "
+            "The hard budget is still max_moves; real cost-cap enforcement can "
+            "now read runs_spend against the ceiling."
         ),
     }
 

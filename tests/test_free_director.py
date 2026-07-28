@@ -366,6 +366,84 @@ class TestFreeInvestigate(unittest.TestCase):
         self.assertEqual(report["runs_spend"]["tokens"], 1400)
         self.assertEqual(report["runs_spend"]["moves_with_cost"], 2)
 
+    def test_runs_spend_counts_experiment_moves_only_not_capability_rows(self):
+        # A capability row's metered cost came out of THIS process's meter — the
+        # same meter the process-delta term reads — so runs_spend summing it too
+        # would double-count it in total_spend.
+        def fake_exec(name, action, study, budget, seq):
+            budget.spend(1)
+            return {"succeeded": True, "outcome": "ideation_done",
+                    "hypotheses": [{"id": "h1", "statement": "try X"}],
+                    "cost": {"calls": 4, "tokens": 400}}
+        script = [
+            self._act("call_ideation", domain="q"),
+            self._act("run_experiment", domain="try X"),
+            self._act("stop", stop_reason="done"),
+        ]
+        report = free_investigate(
+            "g", budget=Budget(6), studies_root=self.root,
+            decide_action=self._scripted(script),
+            run_move=self._run_move(cost={"calls": 1, "tokens": 700}),
+            execute_capability=fake_exec, study_id="s",
+        )
+        idea = [e for e in report["arc"] if e["move_type"] == "call_ideation"]
+        self.assertEqual(idea[0]["cost"], {"calls": 4, "tokens": 400})  # recorded...
+        self.assertEqual(report["runs_spend"]["tokens"], 700)           # ...not resummed
+        self.assertEqual(report["runs_spend"]["moves_run"], 1)
+        self.assertEqual(
+            report["total_spend"]["tokens"],
+            report["process_spend"]["tokens"] + 700,
+        )
+
+    def test_report_carries_tree_spend_and_the_renamed_process_spend(self):
+        # A parent that spawns a real (offline) child: total_spend still covers
+        # only THIS study — the glider root under-counted its tree ~3x that way —
+        # so the report now carries tree_spend, the recursive arc roll-up, as a
+        # NEW field beside the untouched total_spend.
+        import pi_agent.capabilities as C
+
+        child_script = [
+            self._act("run_experiment", domain="child q"),
+            self._act("stop", stop_reason="child done"),
+        ]
+        child_run_move = self._run_move(cost={"calls": 2, "tokens": 2000})
+
+        def child_investigate(domain, child_budget, child_id, parent_study):
+            return free_investigate(
+                domain, budget=child_budget, mode=parent_study.mode,
+                study_id=child_id, parent_study_id=parent_study.study_id,
+                studies_root=parent_study.studies_root,
+                decide_action=self._scripted(child_script), run_move=child_run_move,
+            )
+
+        def parent_exec(name, action, study, budget, seq):
+            return C.run_spawn(action, study, budget, seq, investigate=child_investigate)
+
+        parent_script = [
+            self._act("spawn_sub_investigation", domain="sub q", budget_moves=3),
+            self._act("run_experiment", domain="own q"),
+            self._act("stop", stop_reason="parent done"),
+        ]
+        report = free_investigate(
+            "goal", budget=Budget(6), studies_root=self.root,
+            decide_action=self._scripted(parent_script),
+            run_move=self._run_move(cost={"calls": 1, "tokens": 700}),
+            execute_capability=parent_exec, study_id="parent",
+        )
+        # the rename: process_spend is the honest name for the process delta.
+        self.assertIn("calls", report["process_spend"])
+        self.assertNotIn("decider_spend", report)
+        # total_spend keeps its meaning (this study only) for existing readers.
+        self.assertEqual(
+            report["total_spend"]["tokens"],
+            report["process_spend"]["tokens"] + report["runs_spend"]["tokens"],
+        )
+        self.assertEqual(report["runs_spend"]["tokens"], 700)
+        # tree_spend rolls up the child's arc too — the tree-correct number.
+        self.assertEqual(report["tree_spend"]["tokens"], 2700)
+        self.assertEqual(report["tree_spend"]["calls"], 3)
+        self.assertEqual(report["tree_spend"]["studies"], 2)
+
     def test_integration_dispatches_a_verified_experiment_over_the_verified_parts(self):
         # run an experiment that produces a verified finding, then call_integration:
         # it must dispatch a real run whose domain names the verified part.
