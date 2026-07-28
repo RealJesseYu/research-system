@@ -131,6 +131,7 @@ async def _search_once(system_prompt: str, user_turn: str) -> str:
     )
     parts: list[str] = []
     result_usage = None
+    result_message = None
     async for message in query(prompt=user_turn, options=options):
         if isinstance(message, AssistantMessage):
             for block in message.content:
@@ -138,10 +139,16 @@ async def _search_once(system_prompt: str, user_turn: str) -> str:
                     parts.append(block.text)
         elif isinstance(message, ResultMessage):
             result_usage = message.usage
+            result_message = message
     # Step 16.6: the ONE observing touch at this door — count the completed
     # call (+ SDK-reported usage) into the shared cost meter. Observation
-    # only; the return value is untouched.
-    cost_meter.record_call("web_search", result_usage)
+    # only; the return value is untouched. Item C (2026-07-28): the SDK's
+    # total_cost_usd and num_turns ride along, same as the model_call door.
+    cost_meter.record_call(
+        "web_search", result_usage,
+        cost_usd=getattr(result_message, "total_cost_usd", None),
+        num_turns=getattr(result_message, "num_turns", None),
+    )
     # Interleaved text from pre-search turns would corrupt the JSON parse;
     # the final text block is the answer, so keep only the LAST JSON-looking
     # segment: take the last block that starts like an array once stripped.

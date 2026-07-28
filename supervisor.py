@@ -134,12 +134,37 @@ def record_run_outcome(baton: Baton, how_far: str, retry_on_total_defer: int = 0
             v for v in snap.get("tokens", {}).get("total", {}).values()
             if isinstance(v, int)
         )
-        extras["cost"] = {"calls": calls, "tokens": tokens}
+        cost = {"calls": calls, "tokens": tokens}
+        # Item C (2026-07-28), ADDITIVE beside the legacy fields — a study
+        # written before this simply lacks the keys, and every reader treats an
+        # absent key as UNKNOWN, never 0.
+        # (1) tokens_by_field preserves the per-field usage dict the summed
+        # `tokens` destroys: input_tokens, output_tokens, cache creation and
+        # cache reads are four differently-priced quantities, and only the
+        # breakdown lets a reader separate a cache re-read from real input.
+        by_field = snap.get("tokens", {}).get("total", {})
+        if isinstance(by_field, dict) and by_field:
+            cost["tokens_by_field"] = dict(by_field)
+        # (2) usd/turns: the SDK's own correctly-priced cost and the summed
+        # agentic-loop depth. Written ONLY when at least one call reported a
+        # value (coverage counter > 0) — "no call reported" must stay an
+        # absent key, not a recorded $0.00.
+        usd = snap.get("usd", {})
+        if isinstance(usd, dict) and usd.get("calls_with_usd"):
+            cost["usd"] = usd.get("total")
+            cost["calls_with_usd"] = usd.get("calls_with_usd")
+        turns = snap.get("turns", {})
+        if isinstance(turns, dict) and turns.get("calls_with_turns"):
+            cost["turns"] = turns.get("total")
+            cost["calls_with_turns"] = turns.get("calls_with_turns")
+        extras["cost"] = cost
         # Text stays byte-identical when nothing was spent (the codebase's
         # minimal-text-unless-active convention, guarded by existing record-shape
         # tests); a real run always spends, so its text carries the cost.
         if calls or tokens:
             text += f", cost={calls} calls/{tokens} tokens"
+            if "usd" in cost:
+                text += f"/${cost['usd']:.4f}"
     except Exception:  # noqa: BLE001
         pass
     journal_append({"run_id": baton.run_id, "kind": "run_record", "text": text, "extras": extras})

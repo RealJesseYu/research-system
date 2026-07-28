@@ -124,6 +124,40 @@ def _cost_of(entry: Any) -> tuple[Optional[int], Optional[int]]:
     return calls, tokens
 
 
+def _usd_turns_of(entry: Any) -> tuple[Optional[float], Optional[int]]:
+    """(usd, turns) as recorded on an arc entry's cost dict, or (None, None).
+    Item C (2026-07-28): both fields exist only for studies recorded after
+    per-call cost recording landed; None means UNKNOWN — never coerced to 0,
+    because a run that predates the recording did not cost nothing."""
+    if not isinstance(entry, dict):
+        return None, None
+    cost = entry.get("cost")
+    if not isinstance(cost, dict):
+        return None, None
+    usd = cost.get("usd")
+    turns = cost.get("turns")
+    usd = float(usd) if isinstance(usd, (int, float)) and not isinstance(usd, bool) else None
+    turns = turns if isinstance(turns, int) and not isinstance(turns, bool) else None
+    return usd, turns
+
+
+def _tokens_by_field_of(entry: Any) -> Optional[dict]:
+    """The per-field usage breakdown ({input_tokens, output_tokens,
+    cache_read_input_tokens, ...}) on an arc entry's cost, or None. This is
+    what lets a reader separate cache re-reads (~10% the price of input) from
+    real input — the summed `tokens` figure destroys that distinction."""
+    if not isinstance(entry, dict):
+        return None
+    cost = entry.get("cost")
+    if not isinstance(cost, dict):
+        return None
+    fields = cost.get("tokens_by_field")
+    if isinstance(fields, dict) and fields:
+        return {k: v for k, v in fields.items()
+                if isinstance(v, int) and not isinstance(v, bool)}
+    return None
+
+
 # --------------------------------------------------------------------------- #
 # Loading a study's arc and finding its children.
 # --------------------------------------------------------------------------- #
@@ -169,16 +203,36 @@ def _child_study_ids(study_id: str, entries: list, studies_root: Path) -> tuple[
 
 def _own_arc_spend(entries: list) -> dict:
     """This study's own arc cost sum — same semantics as liveview's _sum_cost,
-    plus coverage so 'how much of the arc is even measured' is visible."""
+    plus coverage so 'how much of the arc is even measured' is visible.
+    usd/turns (item C) carry their own coverage counters: 0 there means no
+    entry recorded them (a pre-item-C study), which readers report as unknown,
+    never as $0."""
     calls = tokens = covered = 0
+    usd = 0.0
+    turns = usd_covered = turns_covered = 0
+    by_field: dict = {}
     for e in entries:
         c, t = _cost_of(e)
         if c is not None or t is not None:
             covered += 1
         calls += c or 0
         tokens += t or 0
+        u, n = _usd_turns_of(e)
+        if u is not None:
+            usd += u
+            usd_covered += 1
+        if n is not None:
+            turns += n
+            turns_covered += 1
+        fields = _tokens_by_field_of(e)
+        if fields:
+            for k, v in fields.items():
+                by_field[k] = by_field.get(k, 0) + v
     return {"calls": calls, "tokens": tokens,
-            "moves_with_cost": covered, "moves": len(entries)}
+            "moves_with_cost": covered, "moves": len(entries),
+            "usd": round(usd, 6), "moves_with_usd": usd_covered,
+            "turns": turns, "moves_with_turns": turns_covered,
+            "tokens_by_field": by_field}
 
 
 def tree_arc_spend(
@@ -194,7 +248,8 @@ def tree_arc_spend(
     Process-side (director) spend is deliberately NOT in this number — see the
     module docstring."""
     seen = _seen if _seen is not None else set()
-    out = {"calls": 0, "tokens": 0, "studies": 0, "moves_with_cost": 0, "moves": 0}
+    out = {"calls": 0, "tokens": 0, "studies": 0, "moves_with_cost": 0, "moves": 0,
+           "usd": 0.0, "moves_with_usd": 0, "turns": 0, "moves_with_turns": 0}
     if study_id in seen or _depth > _MAX_TREE_DEPTH:
         return out
     seen.add(study_id)
@@ -204,16 +259,16 @@ def tree_arc_spend(
             return out
         entries, _torn, _source = _load_arc(study_dir)
         own = _own_arc_spend(entries)
-        out["calls"] += own["calls"]
-        out["tokens"] += own["tokens"]
-        out["moves_with_cost"] += own["moves_with_cost"]
-        out["moves"] += own["moves"]
+        for key in out:
+            if key != "studies":
+                out[key] += own[key]
         out["studies"] = 1
         linked, unlinked = _child_study_ids(study_id, entries, studies_root)
         for cid in linked + unlinked:
             child = tree_arc_spend(cid, studies_root, _seen=seen, _depth=_depth + 1)
             for key in out:
                 out[key] += child[key]
+        out["usd"] = round(out["usd"], 6)
     except Exception:  # noqa: BLE001 — a bad study degrades, never raises
         pass
     return out
@@ -249,6 +304,7 @@ def _row(entry: dict, prev_at: Optional[datetime], studies_root: Path,
 
     calls, tokens = _cost_of(entry)
     cost_source = "measured" if (calls is not None or tokens is not None) else "unknown"
+    usd, turns = _usd_turns_of(entry)
 
     tool_output = entry.get("tool_output")
     child_id = tool_output.get("child_study_id") if isinstance(tool_output, dict) else None
@@ -259,6 +315,12 @@ def _row(entry: dict, prev_at: Optional[datetime], studies_root: Path,
         if child["studies"] > 0:
             calls, tokens = child["calls"], child["tokens"]
             cost_source = "derived_from_child"
+            # usd/turns derive only where the child actually recorded them —
+            # a child predating item C keeps them None (unknown, never 0).
+            if child.get("moves_with_usd"):
+                usd = child.get("usd")
+            if child.get("moves_with_turns"):
+                turns = child.get("turns")
 
     results = entry.get("results") if isinstance(entry.get("results"), list) else []
     verified = sum(1 for r in results if isinstance(r, dict) and r.get("verified"))
@@ -274,6 +336,11 @@ def _row(entry: dict, prev_at: Optional[datetime], studies_root: Path,
         "wall_seconds": wall,
         "calls": calls,
         "tokens": tokens,
+        # Item C: the SDK's own dollar figure and the summed agentic-loop turn
+        # count for this phase. None = unknown (a study recorded before
+        # 2026-07-28, or a row whose run reported neither) — never 0.
+        "usd": usd,
+        "turns": turns,
         "cost_source": cost_source,
         "verified": verified,
         "claims": claims,
@@ -293,9 +360,11 @@ def study_cost_report(study_id: str, studies_root: Path = STUDIES_ROOT) -> dict:
         "arc_source": None,
         "torn_lines": 0,
         "rows": [],
-        "own_spend": {"calls": 0, "tokens": 0, "moves_with_cost": 0, "moves": 0},
+        "own_spend": _own_arc_spend([]),
         "tree_spend": {"calls": 0, "tokens": 0, "studies": 0,
-                       "moves_with_cost": 0, "moves": 0},
+                       "moves_with_cost": 0, "moves": 0,
+                       "usd": 0.0, "moves_with_usd": 0,
+                       "turns": 0, "moves_with_turns": 0},
         "report_present": False,
         "report_total_spend": None,
         "report_process_spend": None,
@@ -406,6 +475,15 @@ def _fmt_n(value: Optional[int], mark: str = "") -> str:
     return f"{value:,}{mark}"
 
 
+def _fmt_usd(value: Optional[float], mark: str = "") -> str:
+    """Dollars, or '?' for unknown — a pre-item-C study must never render $0."""
+    if value is None:
+        return "?"
+    if value >= 0.995:
+        return f"${value:,.2f}{mark}"
+    return f"${value:.3f}{mark}"
+
+
 def render_text(node: dict) -> str:
     lines = []
     title = node["study_id"]
@@ -418,7 +496,7 @@ def render_text(node: dict) -> str:
         return "\n".join(lines)
 
     header = (f"{'seq':>4}  {'move_type':<24} {'wall':>8} {'calls':>6} "
-              f"{'tokens':>13} {'tok/verified':>12}  intent")
+              f"{'tokens':>13} {'usd':>9} {'turns':>6} {'tok/verified':>12}  intent")
     lines.append(header)
     lines.append("-" * len(header))
     derived = False
@@ -434,6 +512,8 @@ def render_text(node: dict) -> str:
             f"{_fmt_wall(row['wall_seconds']):>8} "
             f"{_fmt_n(row['calls'], mark):>6} "
             f"{_fmt_n(row['tokens'], mark):>13} "
+            f"{_fmt_usd(row.get('usd'), mark):>9} "
+            f"{_fmt_n(row.get('turns'), mark):>6} "
             f"{_fmt_n(row['tokens_per_verified']):>12}  "
             f"{intent}"
         )
@@ -448,11 +528,39 @@ def render_text(node: dict) -> str:
     lines.append(
         f"own arc spend:      {own['tokens']:>13,} tokens / {own['calls']} calls "
         f"({own['moves_with_cost']}/{own['moves']} arc entries carry a cost)")
-    if tree.get("studies", 0) > 1:
+    # Item C: real dollars and turns, when any arc entry recorded them.
+    # "unknown" for a study predating per-call cost recording — never $0.
+    if own.get("moves_with_usd"):
+        usd_line = (f"real cost (USD):    {_fmt_usd(own['usd']):>13} "
+                    f"({own['moves_with_usd']}/{own['moves']} arc entries "
+                    "carry a dollar figure")
+        if own.get("moves_with_turns"):
+            usd_line += f"; {own['turns']:,} agentic turns"
+        lines.append(usd_line + ")")
+    elif own["moves"]:
         lines.append(
+            "real cost (USD):    unknown — no arc entry carries a dollar figure "
+            "(recorded before per-call cost recording, 2026-07-28, or no "
+            "experiment move completed); the token sums above mix four "
+            "differently-priced quantities")
+    by_field = own.get("tokens_by_field") or {}
+    if by_field:
+        total_bf = sum(by_field.values())
+        breakdown = ", ".join(f"{k}={v:,}" for k, v in sorted(by_field.items()))
+        lines.append(f"token breakdown:    {breakdown}")
+        cache = by_field.get("cache_read_input_tokens", 0)
+        if total_bf:
+            lines.append(
+                f"                    cache reads are {cache / total_bf:.0%} of "
+                "the summed token figure (priced at ~10% of input tokens)")
+    if tree.get("studies", 0) > 1:
+        tree_line = (
             f"tree total (arc):   {tree['tokens']:>13,} tokens / {tree['calls']} calls "
             f"across {tree['studies']} studies "
             f"({tree['moves_with_cost']}/{tree['moves']} entries measured)")
+        if tree.get("moves_with_usd"):
+            tree_line += f"; {_fmt_usd(tree['usd'])} real cost on the measured entries"
+        lines.append(tree_line)
     proc = node["report_process_spend"]
     if isinstance(proc, dict):
         lines.append(
@@ -507,14 +615,16 @@ def main(argv: Optional[list] = None) -> int:
         except Exception:  # noqa: BLE001
             ids = []
         print(f"{'study':<42} {'moves':>5} {'measured':>8} {'own tokens':>13} "
-              f"{'tree tokens':>13} {'proc tokens':>13}")
+              f"{'tree tokens':>13} {'tree usd':>10} {'proc tokens':>13}")
         for sid in ids:
             n = study_cost_report(sid, root)
             own, tree = n["own_spend"], n["tree_spend"]
             proc = n["report_process_spend"] or {}
+            tree_usd = tree.get("usd") if tree.get("moves_with_usd") else None
             print(f"{sid:<42} {own['moves']:>5} "
                   f"{own['moves_with_cost']:>8} {own['tokens']:>13,} "
                   f"{tree['tokens']:>13,} "
+                  f"{_fmt_usd(tree_usd):>10} "
                   f"{_fmt_n(proc.get('tokens') if isinstance(proc, dict) else None):>13}")
         return 0
 

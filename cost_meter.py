@@ -39,6 +39,20 @@ _calls: dict[str, int] = {}
 _attempts: dict[str, int] = {}
 _tokens: dict[str, dict[str, int]] = {}
 
+# 2026-07-28 (roadmap item C): the SDK's OWN correctly-priced figure. The token
+# sums above add four differently-priced quantities (input, output, cache
+# creation, cache read) at face value — a cache read is ~10% the price of an
+# input token — so "N tokens" was never a cost. ResultMessage.total_cost_usd IS
+# the cost and num_turns is the intra-call depth signal; both were previously
+# dropped on the floor. Accumulated per source, with a calls-with-value counter
+# per bucket so a reader can tell "unmeasured" (count 0) from "measured zero" —
+# they are different facts, and dollars must never read as 0 for a run whose
+# SDK simply did not report them.
+_usd: dict[str, float] = {}
+_usd_calls: dict[str, int] = {}
+_turns: dict[str, int] = {}
+_turns_calls: dict[str, int] = {}
+
 # Step 18.7 chunk 1: per-STAGE attribution, model_call door only. The door
 # counters above are per-door and cannot see stage_name; call_stage_model
 # can, and reports every COMPLETED call and every schema/validator REJECT
@@ -60,6 +74,10 @@ def reset() -> None:
     _calls.clear()
     _attempts.clear()
     _tokens.clear()
+    _usd.clear()
+    _usd_calls.clear()
+    _turns.clear()
+    _turns_calls.clear()
     _stage_calls.clear()
     _stage_rejects.clear()
     _signals.clear()
@@ -79,12 +97,25 @@ def record_attempt(source: str) -> None:
         _attempts[source] = _attempts.get(source, 0) + 1
 
 
-def record_call(source: str, usage: Optional[Any] = None) -> None:
+def record_call(
+    source: str,
+    usage: Optional[Any] = None,
+    cost_usd: Optional[Any] = None,
+    num_turns: Optional[Any] = None,
+) -> None:
     """Record one completed SDK call from `source` (+ its usage dict, if any).
 
     Called by each door exactly once per completed SDK invocation, AFTER the
     response stream has been consumed. Never raises usefully upward — but it
     is also so simple it has no failure mode beyond a programming error.
+
+    `cost_usd` / `num_turns` (roadmap item C, 2026-07-28) are ResultMessage's
+    total_cost_usd and num_turns — the SDK's own correctly-priced cost and the
+    call's agentic-loop depth. Both are optional and type-guarded here rather
+    than at the door, so a missing/odd-shaped value from any SDK version is
+    silently not recorded (observation-only discipline: recording may never
+    sink a call). A value that is absent simply leaves the calls-with-value
+    counter untouched — read() reporting distinguishes that from a real zero.
     """
     with _LOCK:
         _calls[source] = _calls.get(source, 0) + 1
@@ -95,6 +126,12 @@ def record_call(source: str, usage: Optional[Any] = None) -> None:
                 # masquerades as a token count.
                 if isinstance(value, int) and not isinstance(value, bool):
                     bucket[key] = bucket.get(key, 0) + value
+        if isinstance(cost_usd, (int, float)) and not isinstance(cost_usd, bool):
+            _usd[source] = _usd.get(source, 0.0) + float(cost_usd)
+            _usd_calls[source] = _usd_calls.get(source, 0) + 1
+        if isinstance(num_turns, int) and not isinstance(num_turns, bool):
+            _turns[source] = _turns.get(source, 0) + num_turns
+            _turns_calls[source] = _turns_calls.get(source, 0) + 1
 
 
 def record_stage_call(stage_name: str) -> None:
@@ -149,7 +186,9 @@ def read() -> dict:
     per-door token-field sums + a combined per-field total, and per-STAGE
     {calls, rejects, reject_rate} + a "total" row (Step 18.7 chunk 1; a
     stage with zero calls this run simply does not appear), and per-tag
-    warn-only SIGNAL counts (Step 17-fix-A; empty dict when none fired).
+    warn-only SIGNAL counts (Step 17-fix-A; empty dict when none fired),
+    plus per-door USD cost and TURN sums with calls-with-value coverage
+    counters (item C, 2026-07-28 — coverage 0 means unknown, not zero).
 
     Returns a plain dict copy — callers can diff two snapshots for a
     per-case delta without touching the live counters.
@@ -175,6 +214,19 @@ def read() -> dict:
             combined[field] = combined.get(field, 0) + value
     tokens_report["total"] = combined
 
+    # Real dollars and turns (item C). calls_with_usd / calls_with_turns are
+    # the coverage counters: 0 there means NOTHING reported a value this run,
+    # so a reader must treat the totals as unknown, never as a measured zero.
+    usd_report: dict[str, Any] = {source: round(_usd.get(source, 0.0), 6)
+                                  for source in calls}
+    usd_report["total"] = round(sum(_usd.get(source, 0.0) for source in calls), 6)
+    usd_report["calls_with_usd"] = sum(_usd_calls.get(source, 0) for source in calls)
+
+    turns_report: dict[str, Any] = {source: _turns.get(source, 0) for source in calls}
+    turns_report["total"] = sum(_turns.get(source, 0) for source in calls)
+    turns_report["calls_with_turns"] = sum(_turns_calls.get(source, 0)
+                                           for source in calls)
+
     stages_report: dict[str, dict] = {
         stage: _stage_stats(_stage_calls.get(stage, 0), _stage_rejects.get(stage, 0))
         for stage in sorted(set(_stage_calls) | set(_stage_rejects))
@@ -187,6 +239,8 @@ def read() -> dict:
         "model_calls": calls_report,
         "attempts": attempts_report,
         "tokens": tokens_report,
+        "usd": usd_report,
+        "turns": turns_report,
         "stages": stages_report,
         "signals": dict(_signals),
     }

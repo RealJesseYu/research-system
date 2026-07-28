@@ -388,8 +388,15 @@ async def _ask_once(
             result_message = message
     # Step 16.6: the ONE observing touch at this door — count the completed
     # call (+ SDK-reported usage) into the shared cost meter. Observation
-    # only; the return value is untouched.
-    cost_meter.record_call("model_call", result_usage)
+    # only; the return value is untouched. Item C (2026-07-28): the SDK's own
+    # correctly-priced total_cost_usd and the call's num_turns ride along —
+    # read with getattr because they vary across SDK versions, and the meter
+    # type-guards them, so a missing attribute can never sink a call.
+    cost_meter.record_call(
+        "model_call", result_usage,
+        cost_usd=getattr(result_message, "total_cost_usd", None),
+        num_turns=getattr(result_message, "num_turns", None),
+    )
     # A TRANSPORT FAILURE IS NOT A BAD MODEL REPLY. Only `usage` was read off the
     # ResultMessage, so is_error and a max-turns stop were invisible: a 429/5xx
     # surfaced by the CLI, or an agentic loop that hit its turn ceiling, returned

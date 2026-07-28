@@ -76,7 +76,10 @@ class TestPerPhaseRows(_Base):
         self.assertEqual(r1["tokens_per_verified"], 1000)  # 1000 tokens / 1 verified
         self.assertIsNone(r2["tokens_per_verified"])       # nothing verified
         self.assertEqual(node["own_spend"],
-                         {"calls": 3, "tokens": 1500, "moves_with_cost": 2, "moves": 2})
+                         {"calls": 3, "tokens": 1500, "moves_with_cost": 2, "moves": 2,
+                          "usd": 0.0, "moves_with_usd": 0,
+                          "turns": 0, "moves_with_turns": 0,
+                          "tokens_by_field": {}})
 
     def test_unmeasured_cost_reads_as_unknown_never_zero(self):
         arc = [{"seq": 1, "at": "2026-07-28T10:05:00+00:00",
@@ -132,7 +135,9 @@ class TestSpawnDerivation(_Base):
         self.assertEqual(node["own_spend"]["tokens"], 700)
         self.assertEqual(node["tree_spend"],
                          {"calls": 3, "tokens": 2700, "studies": 2,
-                          "moves_with_cost": 2, "moves": 3})
+                          "moves_with_cost": 2, "moves": 3,
+                          "usd": 0.0, "moves_with_usd": 0,
+                          "turns": 0, "moves_with_turns": 0})
 
     def test_child_on_disk_but_not_linked_still_joins_the_tree(self):
         # a spawn still in flight (or a truncated arc) leaves the child unlinked
