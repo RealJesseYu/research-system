@@ -127,7 +127,8 @@ Two things the worker got right that the brief had wrong or omitted:
 |---|---|---|---|
 | 1 | **Per-phase cost reporting** | ✅ **DONE 2026-07-28**, verified by running it | `pi_agent/cost_report.py`. Result above: 98.7% of spend is inside experimenter runs. Its honest limit is that it cannot see *inside* a run. |
 | 2 | **Proportional verification** | **STILL BLOCKED — premise unmeasured** | The wall spends zero tokens, and item 1 confirms the spend is all intra-run but cannot split it. Needs intra-run attribution before anything is built. Candidates named below and deliberately held. |
-| 3 | **Cheap validation run (~10 min, hard `--token-budget`)** | **DO THIS NEXT** | Now the only thing standing between us and knowing whether the system works at all: the run-killer fixes and the ideation restructure are still 100% unexercised live. Cheap enough to lose. |
+| 3 | **Cheap validation run** | ⚠️ **HALF DONE 2026-07-28** — `study-20260728T151306Z` | The system COMPLETES A RUN AGAIN: 1 move, 3m52s, 1,136,628 tokens against a 3M budget, publishable, zero `decision_failed`, zero retries, clean log. First completed run since 07-27. **But ideation never fired**, so the restructure is still 100% unvalidated, and no spawn/integration/multi-move path was touched. See #3a. |
+| 3a | **Second cheap run — one that forces ideation** | **DO THIS NEXT** | The goal in #3 was accidentally the literal placeholder text, so the director (correctly) answered a trivial self-chosen question in one move and stopped. Needs a real goal, ideally one that warrants decomposition, to exercise `call_ideation` and spawn. Same cost class as #3. |
 | 3b | **Intra-run cost attribution** | not started, gated on #3 | What item 2 actually needs, and item 1 revealed rather than delivered. Scope only AFTER #3 — a completed run may make the shape obvious, and the experimenter's turn loop is the thing to instrument. |
 | 4 | **Resumability** | not started | Still the ceiling on multi-day research. Note the six recent deaths were at move 1, not five hours in — resumability would not have saved them; a token ceiling would have saved the 15M-token one. Do not over-rate this on the strength of those six. |
 
@@ -155,6 +156,20 @@ changing the incentive before measuring destroys the baseline.
   `free_experimenter.py:188-190` record an explicit anti-triage ruling ("would
   quietly shrink the denominator"). Skipping claims argues against a recorded
   honesty invariant — that is a STOP-and-rule, not a refactor.
+
+**NEW EVIDENCE 2026-07-28 (`study-20260728T151306Z`, current code):** the
+finding-padding half of item 2 is REAL and CURRENT, not a glider-era artifact.
+The run answered a question whose content is about three numbers (S₁₀, ln 2,
+their difference) and recorded **ten findings, nine verified** — including the
+*numerator* of a fraction and its *denominator* as two separate verified
+findings, ln 2 (a mathematical constant) "verified" by recomputing it, and two
+residuals that are checks of checks. Everything trivially reproducible was kept
+and reproduced; the one finding that failed (`rerun_failed`, n·|error| at n=40)
+was the only one making a non-trivial claim.
+
+This does NOT yet establish the token half — 1,041,139 tokens went into that one
+move and its composition is still invisible (item 3b). But the incentive shape
+is now observed on current code, which it was not before.
 
 Observed shape, for calibration: across all 410 findings on disk only **7%** are
 verification bookkeeping by label (SHA-256, byte size, "INDEPENDENT CHECK 2",
