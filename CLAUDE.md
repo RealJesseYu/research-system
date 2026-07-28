@@ -154,11 +154,14 @@ convenient it seems in the moment:
   `validate_payload_post_stage4` alone has 32 references across
   `test_d4/d5_entry_construction`, `test_b1/b2_flip_promotion` and `test_d0_stage5_input`,
   which is how a newly wired substrate's run-entry shape is proven correct. Deleting it
-  (the initial ruling, made on the incomplete description above) would gut that suite.
-  **Its real job: the specification promotion is tested against.** Read it that way,
-  keep changing it only by recorded ruling, and do not describe it as a boundary the
-  supervisor enforces. If runtime enforcement is ever wanted on the free path, that is
-  a NEW wiring task, not a restoration.
+  would gut that suite.
+  **RULING SETTLED (owner, 2026-07-27): schemas.py STAYS.** It was first ruled for
+  deletion on an incomplete description of it ("no runtime caller" reported as
+  "unused" — those are different things); once the 32 promotion-test references
+  surfaced, the owner agreed it stays. **Its real job: the specification promotion is
+  tested against.** Read it that way, keep changing it only by recorded ruling, and do
+  not describe it as a boundary the supervisor enforces. If runtime enforcement is ever
+  wanted on the free path, that is a NEW wiring task, not a restoration.
 - **Schema violations halt loudly, never re-ask.** A malformed baton after a stage
   returned is a broken invariant, not a model error — the supervisor logs SCHEMA
   VIOLATION, journals a halted-schema run_record, and stops; no correction loop.
