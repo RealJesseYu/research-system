@@ -169,8 +169,11 @@ runs.** The long run IS the validation.
 
 **Cut, with reasons — do not resurrect these without new evidence:**
 
-- ❌ **"Streamline compute" at the phase/director level.** Item 1 measured it:
-  orchestration is **1.3%** of spend. There is nothing there to win. Deleted.
+- ⚠️ **"Streamline compute" — NARROWED, NOT DELETED (corrected 2026-07-28).**
+  Orchestration is 1.3%, so streamlining *the director* is pointless. But the
+  owner's actual question was never about orchestration — it was "why does a
+  glider study cost 55M tokens", and that is about the 98.7%. See "What 55M
+  tokens actually means" below. It is now item C, and it is nearly free.
 - ❌ **Proportional verification (old item 2, the former "BLOCKING" item).** Its
   premise has weakened twice in one day: the wall spends zero tokens, and the
   substantive run did not pad (16 findings = 2 numbers × 6 families). Padding
@@ -184,6 +187,41 @@ runs.** The long run IS the validation.
 - ⏸️ **The ideation apparatus.** Never fired in either live run; may be dead code
   on the free path. That is a SIMPLIFICATION opportunity, not a task — do not
   spend on it, do not make it mandatory. Note it and move on.
+
+## What 55M tokens actually means (2026-07-28) — the number is not a cost
+
+**The reported token totals are not dollars, and are not even comparable
+quantities.** `cost_meter.record_call` sums **every integer field** of the SDK
+usage dict (`cost_meter.py:91-95`, `for key, value in usage.items()`). That
+means `input_tokens`, `output_tokens`, `cache_creation_input_tokens` and
+`cache_read_input_tokens` are all added together at face value — and a cache
+read costs about a tenth of an input token. So "55M tokens" is four differently
+priced things summed as if they were one.
+
+**Proof it is dominated by re-reads, by arithmetic alone:** one move in
+`study-20260728T152819Z` recorded **7,851,857 tokens across 2 calls** — ~3.9M
+per call. A single call cannot have 3.9M *distinct* input tokens; the context
+window is ~200k. So the overwhelming majority of that number is **the same
+context counted again on every turn** of a 200-turn agentic loop
+(`model_call.py:212-217`, `FULL = Capabilities(..., 200)`), not 3.9M tokens of
+distinct work.
+
+**And the real number is already being handed to us and thrown away.**
+`ResultMessage` carries `total_cost_usd` (SDK `types.py:1210`) — the CLI's own
+correctly-priced figure — and `num_turns`. Neither is recorded:
+`total_cost_usd` appears **nowhere** in the codebase, and `num_turns` is read
+only on the error path (`model_call.py:260`). `model_call.py:392` passes only
+`message.usage` to the meter.
+
+| # | Task | Status | Why |
+|---|---|---|---|
+| C | **Record `total_cost_usd` and `num_turns` per call** | **DO IT — ~3 lines, offline, free** | Turns every past and future study from an uninterpretable token sum into actual dollars, and `num_turns` is the intra-run signal I previously said would need a whole new instrument. Do this BEFORE deciding anything about cost. |
+
+**Do not optimise anything until C lands.** The glider study may be far cheaper
+than 55M implies, or the cost may be concentrated in turn count rather than
+context — those call for opposite fixes, and today we cannot tell them apart.
+
+---
 
 ## Phase 1 — the only two things before a long run
 
