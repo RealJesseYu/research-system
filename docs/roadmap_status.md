@@ -102,6 +102,47 @@ Two things the worker got right that the brief had wrong or omitted:
 
 ---
 
+## The ideation question (opened 2026-07-28, two runs)
+
+**`call_ideation` has not fired in either live run**, and in both the director's
+reasoning is defensible rather than broken:
+
+- `study-20260728T151306Z`: the goal was a placeholder, so one cheap exact
+  question was the whole job.
+- `study-20260728T152819Z`: *"one broad but cheap survey run that fits and
+  FLOP-counts several genuinely different functional families at once will tell
+  me which family is even in contention, before I spend the remaining tokens
+  refining"* — and it did exactly that, comparing six families in one move.
+
+So the director explores **inside a single experiment** rather than by reaching
+for the ideation apparatus. That is not obviously wrong; it may be cheaper and
+better. But it means the whole Co-Scientist ideation stack — four generation
+strategies, six review types, Elo tournament, evolution, meta-review, and the
+`c296689` restructure — **may be effectively dead code on the free path**, and
+every kill-rate measurement behind it describes a subsystem that production
+never calls. Do NOT fix this by making ideation mandatory (that is a cage, and
+the PRIME DIRECTIVE forbids it). The open question is whether the director
+should be *told what the tool is for* more clearly, or whether the honest
+finding is that a free agent does not want it. Resolve before item 6.
+
+## Finding quality — the padding claim needs splitting
+
+`study-20260728T152819Z` did NOT pad. Its 16 findings are two numbers
+(worst-case error, operation count) across six functional families, plus a
+tail-bound witness and a discontinuity check. That is proportionate to the
+question. Contrast `study-20260728T151306Z`, which recorded a fraction's
+numerator and denominator as separate verified findings and "verified" ln 2 by
+recomputing a constant.
+
+Provisional read: padding shows up on **trivial** questions, where there is not
+enough real content to fill a findings list, and not on substantive ones. If
+that holds, item 2 matters much less than the glider study suggested — the
+glider's 20% check-like rate may say more about that particular goal than about
+the system. **Two runs is not enough to conclude this.** Watch it on the next
+substantive run before acting.
+
+---
+
 ## Phase 0 — done, and proven live
 
 | | What | Evidence |
@@ -128,7 +169,8 @@ Two things the worker got right that the brief had wrong or omitted:
 | 1 | **Per-phase cost reporting** | ✅ **DONE 2026-07-28**, verified by running it | `pi_agent/cost_report.py`. Result above: 98.7% of spend is inside experimenter runs. Its honest limit is that it cannot see *inside* a run. |
 | 2 | **Proportional verification** | **STILL BLOCKED — premise unmeasured** | The wall spends zero tokens, and item 1 confirms the spend is all intra-run but cannot split it. Needs intra-run attribution before anything is built. Candidates named below and deliberately held. |
 | 3 | **Cheap validation run** | ⚠️ **HALF DONE 2026-07-28** — `study-20260728T151306Z` | The system COMPLETES A RUN AGAIN: 1 move, 3m52s, 1,136,628 tokens against a 3M budget, publishable, zero `decision_failed`, zero retries, clean log. First completed run since 07-27. **But ideation never fired**, so the restructure is still 100% unvalidated, and no spawn/integration/multi-move path was touched. See #3a. |
-| 3a | **Second cheap run — one that forces ideation** | **DO THIS NEXT** | The goal in #3 was accidentally the literal placeholder text, so the director (correctly) answered a trivial self-chosen question in one move and stopped. Needs a real goal, ideally one that warrants decomposition, to exercise `call_ideation` and spawn. Same cost class as #3. |
+| 3a | **Second cheap run** | ⚠️ **DONE 2026-07-28** — `study-20260728T152819Z` | Real goal (cheapest normal-CDF approximation under a FLOP budget). Completed publishable, 16 findings / 15 verified, comparing six genuinely different functional families. **Ideation did not fire again** — see "The ideation question" below. **And the token ceiling overshot by 58%** — see #3c, which is now the most urgent item on this list. |
+| 3c | **The token ceiling does not bind inside a move** | **NEW, URGENT** | `study-20260728T152819Z` was given `--token-budget 5000000` and spent **7,900,340** — 58% over — because `free_director.py:434` checks the ceiling only BETWEEN moves, and a single free-experimenter move is an agentic loop of up to 200 turns. On a 4-move study that is a rounding error; on a long run it means the budget is not a ceiling at all. This is the same class of problem as the 15M-token zero-move study, and it is what will burn a five-hour window. Fix before any long run. |
 | 3b | **Intra-run cost attribution** | not started, gated on #3 | What item 2 actually needs, and item 1 revealed rather than delivered. Scope only AFTER #3 — a completed run may make the shape obvious, and the experimenter's turn loop is the thing to instrument. |
 | 4 | **Resumability** | not started | Still the ceiling on multi-day research. Note the six recent deaths were at move 1, not five hours in — resumability would not have saved them; a token ceiling would have saved the 15M-token one. Do not over-rate this on the strength of those six. |
 
