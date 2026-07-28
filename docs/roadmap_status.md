@@ -61,8 +61,6 @@ post-processing, because `arc.jsonl` already carries `cost {calls, tokens}` and
 
 ---
 
----
-
 ## Item 1 result — the measurement, and what it still cannot see
 
 `pi_agent/cost_report.py` shipped in three commits (`9f19e20` report, `4d16ead`
@@ -162,22 +160,47 @@ substantive run before acting.
 | ✅ | Sandbox profiles (atomistic / biodesign / engineering), remote GPU lane, connector→kept-number bridge | parallel sessions |
 | ✅ | liveview event log; watcher sees decisions, hypotheses, blockers | `dafa57d`, `7d9cc09` |
 
-## Phase 1 — before any long run
+## OWNER RULING 2026-07-28 (evening): stop validating, start running
 
-| # | Task | Status | Why here |
+Compute is the scarce resource and it is being spent on smoke runs and plumbing.
+The list below is cut to the two things that genuinely block a long run. Both
+are OFFLINE build tasks costing zero compute to develop. **No further validation
+runs.** The long run IS the validation.
+
+**Cut, with reasons — do not resurrect these without new evidence:**
+
+- ❌ **"Streamline compute" at the phase/director level.** Item 1 measured it:
+  orchestration is **1.3%** of spend. There is nothing there to win. Deleted.
+- ❌ **Proportional verification (old item 2, the former "BLOCKING" item).** Its
+  premise has weakened twice in one day: the wall spends zero tokens, and the
+  substantive run did not pad (16 findings = 2 numbers × 6 families). Padding
+  appears on TRIVIAL questions, and long runs are not trivial. **Do not build
+  it.** Revisit only if a substantive long run shows a real verification ratio
+  problem — which the cost report can now detect.
+- ❌ **Intra-run cost attribution (old 3b).** Existed only to serve the item
+  above. Dropped with it.
+- ❌ **Further cheap/validation runs.** Two were enough to prove the machinery
+  runs. More would only re-prove it.
+- ⏸️ **The ideation apparatus.** Never fired in either live run; may be dead code
+  on the free path. That is a SIMPLIFICATION opportunity, not a task — do not
+  spend on it, do not make it mandatory. Note it and move on.
+
+## Phase 1 — the only two things before a long run
+
+Both are offline builds. Neither needs a run to develop. Do them in ONE session —
+they live in the same loop.
+
+| # | Task | Status | Why it is non-negotiable |
 |---|---|---|---|
-| 1 | **Per-phase cost reporting** | ✅ **DONE 2026-07-28**, verified by running it | `pi_agent/cost_report.py`. Result above: 98.7% of spend is inside experimenter runs. Its honest limit is that it cannot see *inside* a run. |
-| 2 | **Proportional verification** | **STILL BLOCKED — premise unmeasured** | The wall spends zero tokens, and item 1 confirms the spend is all intra-run but cannot split it. Needs intra-run attribution before anything is built. Candidates named below and deliberately held. |
-| 3 | **Cheap validation run** | ⚠️ **HALF DONE 2026-07-28** — `study-20260728T151306Z` | The system COMPLETES A RUN AGAIN: 1 move, 3m52s, 1,136,628 tokens against a 3M budget, publishable, zero `decision_failed`, zero retries, clean log. First completed run since 07-27. **But ideation never fired**, so the restructure is still 100% unvalidated, and no spawn/integration/multi-move path was touched. See #3a. |
-| 3a | **Second cheap run** | ⚠️ **DONE 2026-07-28** — `study-20260728T152819Z` | Real goal (cheapest normal-CDF approximation under a FLOP budget). Completed publishable, 16 findings / 15 verified, comparing six genuinely different functional families. **Ideation did not fire again** — see "The ideation question" below. **And the token ceiling overshot by 58%** — see #3c, which is now the most urgent item on this list. |
-| 3c | **The token ceiling does not bind inside a move** | **NEW, URGENT** | `study-20260728T152819Z` was given `--token-budget 5000000` and spent **7,900,340** — 58% over — because `free_director.py:434` checks the ceiling only BETWEEN moves, and a single free-experimenter move is an agentic loop of up to 200 turns. On a 4-move study that is a rounding error; on a long run it means the budget is not a ceiling at all. This is the same class of problem as the 15M-token zero-move study, and it is what will burn a five-hour window. Fix before any long run. |
-| 3b | **Intra-run cost attribution** | not started, gated on #3 | What item 2 actually needs, and item 1 revealed rather than delivered. Scope only AFTER #3 — a completed run may make the shape obvious, and the experimenter's turn loop is the thing to instrument. |
-| 4 | **Resumability** | not started | Still the ceiling on multi-day research. Note the six recent deaths were at move 1, not five hours in — resumability would not have saved them; a token ceiling would have saved the 15M-token one. Do not over-rate this on the strength of those six. |
+| A | **Make the token ceiling bind INSIDE a move** | **BLOCKING** | `study-20260728T152819Z` was given `--token-budget 5000000` and spent **7,900,340** — 58% over. `free_director.py:434` checks only BETWEEN moves, and one free-experimenter move is an agentic loop of up to 200 turns. A long run cannot be budgeted until this holds, and two windows have already died to runs that ate their budget. |
+| B | **Resumability** | **BLOCKING** | A long run's likeliest death is a usage window five hours in — that has already happened once and lost everything. The arc is fully on disk, so this is reconstruction, not new state. Without it a long run is a coin flip you pay a window for. |
+| — | Per-phase cost reporting | ✅ DONE | `pi_agent/cost_report.py`. Gave the 1.3% number that deleted "streamline compute". Keep it — it is how a long run gets read afterwards. |
+| — | Machinery runs at all | ✅ DONE | Two live runs 2026-07-28, both publishable, clean logs, cost report correct on both. Enough. |
 
-### Item 2's candidates, held deliberately until there is a baseline
+### If proportional verification ever comes back — what was already found
 
-Named now so they are not re-derived, **not to be applied before the run in #3** —
-changing the incentive before measuring destroys the baseline.
+Verification work is CUT (see the ruling above). These are recorded only so a
+future session does not re-derive them from scratch, and are **not tasks**.
 
 - `stages/free_experimenter.py:74` still tells the agent `"publishable": true
   only if ... every kept finding reproduced`. The code was relaxed to
@@ -224,7 +247,7 @@ three checks *of* it are `verified: true`.
 | # | Task | Status | Note |
 |---|---|---|---|
 | 5 | Finish unblocking | ongoing | The recurring pattern: a prompt forbids what the agent can already do. Item 2's first candidate above is one. |
-| 6 | **Smarter phase system + more powerful director** | not started | The core differentiator and least-built item. Likely needs MACHINERY, not prompts: dependencies between phases, feedback edges so an integration failure reopens a subsystem, budget reservable for that. Scope deliberately. |
+| 6 | **Smarter phase system + more powerful director** | **THE MAIN EVENT — next after A and B** | The core differentiator and least-built item. Needs MACHINERY, not prompts: dependencies between phases, feedback edges so an integration failure reopens a subsystem, budget reservable for that. Note both live runs used ONE move — the director is not yet using the phase structure it has, so measure that before adding more. |
 | 7 | Make cross-study memory actually work | not started | `read_memory`/`write_memory` exist; no evidence a later study is better for an earlier one. That is the accumulation premise, unvalidated. |
 
 ## Phase 3 — prove it
