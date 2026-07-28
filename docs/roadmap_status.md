@@ -3,10 +3,10 @@
 **This file is the shared plan.** The coordinating ("brain") session owns it and
 updates it as work lands. Anyone can read it; do not let it go stale.
 
-Last verified against the repo: **2026-07-28** (afternoon), HEAD `b4bec17`,
-branch `iterate-experiment-loop` (151 commits ahead of `main`, 0 behind; no
-remote). Suite re-run in full: **2084 passed, 1 skipped, 63 subtests**, 164 s,
-exit 0 — no Docker flake this time. Free-director import path smoke-checked.
+Last verified against the repo: **2026-07-28** (evening), HEAD `538ef97`,
+branch `iterate-experiment-loop` (no remote). Suite re-run in full: **2107
+passed, 1 skipped, 63 subtests**, 155 s, exit 0. Item 1 landed and was verified
+by running it, not by reading its tests — see "Item 1 result" below.
 
 > **Do not trust the statuses below without checking.** Several sessions commit
 > to this tree in parallel. Re-derive from `git log`, the test suite, and
@@ -61,6 +61,47 @@ post-processing, because `arc.jsonl` already carries `cost {calls, tokens}` and
 
 ---
 
+---
+
+## Item 1 result — the measurement, and what it still cannot see
+
+`pi_agent/cost_report.py` shipped in three commits (`9f19e20` report, `4d16ead`
+capability instrumentation, `538ef97` the two wrong numbers). Verified by
+RUNNING it, on the glider tree, the 0-move degenerate case, and a study with no
+`arc.jsonl` at all (clean, exit 0). It reproduces the 54,013,618-token tree
+total the root's own `report.json` under-counted as 18,919,715.
+
+**The headline number — where a real study's tokens actually go:**
+
+| phase kind | tokens | share |
+|---|---|---|
+| `spawn_sub_investigation` (children's runs) | 35,800,518 | 65.4% |
+| `single` (this study's own runs) | 18,213,100 | 33.3% |
+| process-side (director decisions + orchestration) | 706,615 | **1.3%** |
+
+**98.7% of spend is inside experimenter runs.** Orchestration is a rounding
+error. Two consequences:
+
+- **"Streamline compute" at the director/phase level is not worth doing.** There
+  is nothing there to win. Any real cost work is inside the experimenter.
+- **The verification question is STILL unanswered, and this instrument cannot
+  answer it.** Every one of those numbers is a single opaque experimenter call —
+  one move recorded 10.46M tokens and logs nothing about its own composition.
+  Whether that went to exploring, to authoring recompute artifacts, or to
+  re-checking, is invisible. Item 2 remains blocked on evidence, and the
+  evidence needs *intra-run* attribution, which is a separate instrument.
+
+Two things the worker got right that the brief had wrong or omitted:
+- `spawn_sub_investigation` is deliberately left UNMETERED: the child director
+  runs in-process, so a meter diff there would double-count against the child's
+  own recursive roll-up. The brief did not anticipate this.
+- `total_spend` was NOT redefined — `liveview/reader.py:613` reads it as
+  `spend_reported`. `tree_spend` was added as a new field instead, and
+  `decider_spend` → `process_spend` keeps a backward-compatible read for old
+  studies on disk.
+
+---
+
 ## Phase 0 — done, and proven live
 
 | | What | Evidence |
@@ -84,9 +125,10 @@ post-processing, because `arc.jsonl` already carries `cost {calls, tokens}` and
 
 | # | Task | Status | Why here |
 |---|---|---|---|
-| 1 | **Per-phase cost reporting** | **DO THIS NEXT — and it is free** | Buildable and testable entirely OFFLINE against the ~20 studies already on disk; costs no compute window. It is the instrument for #2, and #2's premise is currently unmeasured. It also fixes two actively-wrong numbers (root under-count 3x; `decider_spend` hiding ideation). ~85% is post-processing; the remaining gap (`call_ideation` / `call_validation` / `call_data_analysis` tokens) closes with a `_cost_snapshot()` diff per executor — the plumbing already exists, `_ARC_MAPPED_KEYS` already lists `"cost"`. |
-| 2 | **Proportional verification** | **DEMOTED — premise unmeasured, do NOT build yet** | Still the right destination, but the wall spends zero tokens, so "90% verification" is not yet a cost claim. Building against an unmeasured belief is the failure mode this project keeps naming. Blocked on #1 + #3 telling us where the tokens actually went. Candidates already identified, held as a baseline — see below. |
-| 3 | **Cheap validation run (~10 min, hard `--token-budget`)** | **DO THIS SECOND** | The first live exercise of the run-killer fixes AND the ideation restructure, and the run that #1's instrument reads. Cheap enough to lose. |
+| 1 | **Per-phase cost reporting** | ✅ **DONE 2026-07-28**, verified by running it | `pi_agent/cost_report.py`. Result above: 98.7% of spend is inside experimenter runs. Its honest limit is that it cannot see *inside* a run. |
+| 2 | **Proportional verification** | **STILL BLOCKED — premise unmeasured** | The wall spends zero tokens, and item 1 confirms the spend is all intra-run but cannot split it. Needs intra-run attribution before anything is built. Candidates named below and deliberately held. |
+| 3 | **Cheap validation run (~10 min, hard `--token-budget`)** | **DO THIS NEXT** | Now the only thing standing between us and knowing whether the system works at all: the run-killer fixes and the ideation restructure are still 100% unexercised live. Cheap enough to lose. |
+| 3b | **Intra-run cost attribution** | not started, gated on #3 | What item 2 actually needs, and item 1 revealed rather than delivered. Scope only AFTER #3 — a completed run may make the shape obvious, and the experimenter's turn loop is the thing to instrument. |
 | 4 | **Resumability** | not started | Still the ceiling on multi-day research. Note the six recent deaths were at move 1, not five hours in — resumability would not have saved them; a token ceiling would have saved the 15M-token one. Do not over-rate this on the strength of those six. |
 
 ### Item 2's candidates, held deliberately until there is a baseline
