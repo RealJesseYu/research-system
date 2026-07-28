@@ -233,8 +233,21 @@ def run_exact_route(logger: Logger, baton: Baton, run_dir: Path, mode: str,
     # unknown, so it says so and names the exception rather than implying a
     # clean stop. Re-raised after journaling — this is a real failure and the
     # caller must see it; the point is only that it is no longer SILENT.
+    from model_call import TokenAllowanceExhausted
     try:
         result = free_investigate(goal, run_id=baton.run_id)
+    except TokenAllowanceExhausted as e:
+        # Item A (2026-07-28): the director's per-move token allowance bound
+        # inside the move. NOT a crash — an honest, expected stop: the record
+        # names it distinctly so the director (which reads run_records) can
+        # tell "budget died mid-move" from a real failure, and the run exits
+        # cleanly rather than with a traceback. Nothing here ends the ARC —
+        # the dispatching director reads this record and decides what's next.
+        how_far = f"halted_token_allowance ({e})"
+        logger.log(f"TOKEN ALLOWANCE: {how_far}")
+        record_run_outcome(baton, how_far)
+        logger.log(f"=== supervisor run {baton.run_id} {how_far} ===")
+        return
     except Exception as e:
         how_far = (f"crashed during free investigation "
                    f"({type(e).__name__}: {e})")

@@ -44,13 +44,49 @@ import json
 from pathlib import Path
 from typing import Any, Callable, Optional
 
+from model_call import MOVE_ALLOWANCE_ENV
 from pi_agent.budget import Budget
 from pi_agent.dispatch import Move, MoveResult, MoveType
 from pi_agent.loop import _cost_snapshot, _sum_runs_spend  # identical cost accounting
 from pi_agent.study import STUDIES_ROOT, create_study, record_move, study_findings
 
 
-def _move_from_action(action: dict, study: Any) -> Move:
+def _move_allowance(token_budget: Optional[int], spent: Optional[int]) -> Optional[int]:
+    """The token allowance a dispatched move gets (item A, 2026-07-28): the
+    investigation's whole remaining budget. None when no token budget is set,
+    when the meter failed this turn (unknown must not cage the move), or when
+    nothing remains (the loop-top ceiling ends the study before dispatching).
+    The move-side enforcement lives in model_call (wind-up tool denial +
+    derived max_turns + pre-attempt refusal); this is only the hand-off."""
+    if not token_budget or spent is None:
+        return None
+    remaining = token_budget - spent
+    return remaining if remaining > 0 else None
+
+
+def _allowance_env(allowance: Optional[int]) -> Optional[dict]:
+    """The env dict carrying the allowance into the run subprocess, or None."""
+    return {MOVE_ALLOWANCE_ENV: str(allowance)} if allowance else None
+
+
+def _allowance_sentence(allowance: Optional[int]) -> str:
+    """The brief paragraph telling the dispatched agent its room, so the
+    ceiling is something it plans around rather than a wall it hits. Empty
+    when no allowance is set — the brief is then byte-identical."""
+    if not allowance:
+        return ""
+    return (
+        f"\n\nTOKEN ALLOWANCE FOR THIS MOVE: ~{allowance:,} tokens (face-value "
+        "sum over every usage field, cache reads included). Scale the "
+        "investigation to it and wind up deliberately — finish measuring, "
+        "verify, and report before it runs out. If it is exhausted mid-work, "
+        "tool access is withdrawn and you must immediately write your honest "
+        "final answer from what you have; an honest partial answer is expected "
+        "then, not a failure."
+    )
+
+
+def _move_from_action(action: dict, study: Any, allowance: Optional[int] = None) -> Move:
     """Build the dispatchable Move from a run_experiment action. A campaign flag
     selects the iterated sweep; a named instrument narrows the run to it (else the
     run chooses from the study's permitted set).
@@ -59,14 +95,18 @@ def _move_from_action(action: dict, study: Any) -> Move:
     established, why this experiment now, the freedom to deviate, and the verified
     file producers to build on. A run used to receive one line and no idea what
     investigation it belonged to.
+
+    `allowance` (item A) is the move's token allowance: it rides both the env
+    (where model_call enforces it) and the brief (where the agent reads it).
     """
     instrument = action.get("instrument")
     mtype = MoveType.CAMPAIGN if action.get("campaign") else MoveType.SINGLE
     return Move(
         type=mtype,
-        domain=_brief(action["domain"], study, action),
+        domain=_brief(action["domain"], study, action, allowance=allowance),
         mode=study.mode,
         allowed_substrates=[instrument] if instrument else None,
+        extra_env=_allowance_env(allowance),
     )
 
 
@@ -163,7 +203,8 @@ def _carry_domain(domain: str, study: Any) -> str:
 MAX_BRIEFED_FINDINGS = 12
 
 
-def _brief(domain: str, study: Any, action: dict) -> str:
+def _brief(domain: str, study: Any, action: dict,
+           allowance: Optional[int] = None) -> str:
     """The full briefing a dispatched experiment receives.
 
     A run used to get ONE LINE — the director's question, nothing else. It did not
@@ -205,6 +246,7 @@ def _brief(domain: str, study: Any, action: dict) -> str:
         "investigation needs, not a script. If the honest answer requires a "
         "different measurement, a cheaper probe first, or reporting that the "
         "question is malformed, do that and say so.")
+    parts.append(_allowance_sentence(allowance))
     parts.append(_carry_block(context["files"]))
     return "".join(parts)
 
@@ -537,9 +579,16 @@ def free_investigate(
                 )
                 continue
             budget.spend(1)
+            # Item A: the move carries the remaining token budget as its own
+            # allowance, enforced inside the run by model_call (wind-up tool
+            # denial, derived max_turns, pre-attempt refusal) — the ceiling
+            # now binds inside a move, not only between moves.
+            move_allowance = _move_allowance(token_budget, spent)
             _survive(study, "run_experiment", decisions, finding,
-                     lambda: run_move(study, _move_from_action(action, study),
-                                      finding=finding, runs_root=runs_root))
+                     lambda: run_move(
+                         study,
+                         _move_from_action(action, study, allowance=move_allowance),
+                         finding=finding, runs_root=runs_root))
             continue
 
         if name == "call_integration":
@@ -568,7 +617,11 @@ def free_investigate(
                 )
                 continue
             budget.spend(1)
-            domain = _integration_domain(study.goal, action.get("detail"), context)
+            # Item A: an integration run is a dispatched experiment too — it
+            # gets the same allowance hand-off as run_experiment.
+            move_allowance = _move_allowance(token_budget, spent)
+            domain = (_integration_domain(study.goal, action.get("detail"), context)
+                      + _allowance_sentence(move_allowance))
             instrument = action.get("instrument")
             _survive(
                 study, "call_integration", decisions, finding,
@@ -576,7 +629,8 @@ def free_investigate(
                     study,
                     Move(type=MoveType.SINGLE, domain=domain, mode=study.mode,
                          allowed_substrates=[instrument] if instrument
-                         else study.allowed_substrates),
+                         else study.allowed_substrates,
+                         extra_env=_allowance_env(move_allowance)),
                     finding=finding or "integration check", runs_root=runs_root,
                 ))
             continue

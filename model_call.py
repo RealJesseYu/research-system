@@ -224,6 +224,190 @@ BUILDER = FULL
 PROFILES = {p.name: p for p in (SEALED, FULL)}
 
 
+# ---------------------------------------------------------------------------
+# MOVE TOKEN ALLOWANCE (item A, 2026-07-28): make the ceiling bind INSIDE a
+# move. The director's token budget was checked only BETWEEN moves, and one
+# free-experimenter move is an agentic loop of up to 200 turns — so a single
+# move sailed 58% past a 5M budget (study-20260728T152819Z: spent 7,900,340).
+#
+# The director passes each dispatched run its remaining allowance via this env
+# var (pi_agent/free_director.py). Inside the run, THREE layers make it bind,
+# in order of grace:
+#   1. WIND-UP, not guillotine: a per-call tracker watches the SDK stream
+#      (turns, and real per-message usage when present); once the allowance is
+#      reached — or the granted turns enter the wind-up reserve — further TOOL
+#      calls are denied with a message telling the agent to write its honest
+#      final answer now. The agent keeps its context and finishes deliberately;
+#      a denial is feedback, not a model call.
+#   2. STRUCTURAL BOUND: each tooled call's max_turns is derived from the
+#      remaining allowance (remaining // EST_TOKENS_PER_TURN, floored at
+#      MIN_GRANTED_TURNS, capped at the profile's own ceiling), so even with no
+#      usage data in the stream the loop cannot run 200 turns on a 500k
+#      allowance.
+#   3. PRE-ATTEMPT CHECK: a new attempt (including validation re-asks) with the
+#      allowance already spent raises TokenAllowanceExhausted instead of
+#      burning another full agentic run; the supervisor journals it as an
+#      honest halted_token_allowance run_record — a RECORDED result the
+#      director reads, never a silent truncation.
+#
+# OVERSHOOT BOUND, stated: with per-message usage present the trip fires on the
+# turn that crosses the allowance, and everything after is wind-up — at most
+# (WIND_UP_RESERVE_TURNS + denied-tool turns up to the derived max_turns) of
+# context re-reads plus text output, with no new tool results. Without usage
+# data the structural bound holds: total spend <= derived max_turns x the
+# call's actual per-turn cost, i.e. overshoot is bounded by the estimate error
+# (actual/EST - 1) x remaining, plus the MIN_GRANTED_TURNS floor. It is a
+# bounded honest ceiling, not a hard wall — a killed move that reports success
+# would be worse than either.
+#
+# No model call anywhere in this machinery; everything is deterministic Python
+# reading the same face-value token units the director's budget already uses.
+# ---------------------------------------------------------------------------
+
+MOVE_ALLOWANCE_ENV = "RESEARCH_MOVE_TOKEN_ALLOWANCE"
+
+# Face-value tokens per agentic turn, measured: study-20260728T152819Z recorded
+# 7,851,857 face-value tokens across 2 FULL calls of ~200 turns each — ~20k per
+# turn. Used only to DERIVE a turn ceiling from a token allowance; the in-stream
+# tracker uses real usage when the SDK reports it.
+EST_TOKENS_PER_TURN = 20_000
+
+# Even a nearly-spent allowance grants a few turns: an agent that cannot take
+# any turn cannot even report honestly. The pre-attempt check (not this floor)
+# is what refuses a call once the allowance is fully gone.
+MIN_GRANTED_TURNS = 8
+
+# Turns held back from the granted ceiling for winding up: the soft stop fires
+# this many turns BEFORE the hard SDK max_turns, so the agent finishes its
+# answer inside the granted budget instead of being cut off mid-JSON.
+WIND_UP_RESERVE_TURNS = 4
+
+
+class TokenAllowanceExhausted(RuntimeError):
+    """The move's token allowance is spent before another model attempt could
+    start. A distinct type so the supervisor can journal an honest
+    halted_token_allowance run_record instead of a generic crash."""
+
+
+def _move_token_allowance() -> Optional[int]:
+    """The move's token allowance from the environment, or None when the
+    dispatching director set none (the default: nothing changes). Malformed
+    values read as None — a broken knob must widen, never cage."""
+    raw = os.environ.get(MOVE_ALLOWANCE_ENV)
+    if not raw:
+        return None
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return None
+    return value if value > 0 else None
+
+
+def _face_value_spent() -> int:
+    """This process's face-value token spend so far (the same
+    sum-of-every-usage-field unit the director's budget check uses). Never
+    raises; a broken meter reads as 0, which DISABLES the allowance rather
+    than fabricating exhaustion — unknown must not cage the agent."""
+    try:
+        snap = cost_meter.read()
+        return sum(v for v in snap.get("tokens", {}).get("total", {}).values()
+                   if isinstance(v, int) and not isinstance(v, bool))
+    except Exception:  # noqa: BLE001
+        return 0
+
+
+def _raise_if_allowance_exhausted(stage_name: str, attempt: int) -> None:
+    """Layer 3: refuse to START another model attempt once the allowance is
+    spent. No-op without the env var. Raising here — before the SDK call —
+    is what stops a validation re-ask from burning another full agentic run
+    on a budget that is already gone."""
+    allowance = _move_token_allowance()
+    if allowance is None:
+        return
+    spent = _face_value_spent()
+    if spent >= allowance:
+        raise TokenAllowanceExhausted(
+            f"move token allowance spent: {spent:,} of {allowance:,} face-value "
+            f"tokens used before stage {stage_name!r} attempt {attempt} could "
+            "start. This is the director's per-move ceiling binding inside the "
+            "move — an honest stop, not a model or transport failure."
+        )
+
+
+def _derive_granted_turns(remaining_tokens: int, profile_max_turns: int) -> int:
+    """Layer 2: the turn ceiling a tooled call gets for `remaining_tokens` of
+    allowance. Pure."""
+    granted = remaining_tokens // EST_TOKENS_PER_TURN
+    return max(MIN_GRANTED_TURNS, min(profile_max_turns, granted))
+
+
+class _MoveBudgetTracker:
+    """Layer 1's shared state: written by the stream consumer (_ask_once's
+    message loop), read by the can_use_tool wrapper. Per-call, single
+    event-loop — no lock needed."""
+
+    def __init__(self, remaining_tokens: int, granted_turns: int,
+                 wind_up_reserve: int = WIND_UP_RESERVE_TURNS):
+        self.remaining_tokens = remaining_tokens
+        self.granted_turns = granted_turns
+        self.wind_up_reserve = wind_up_reserve
+        self.tokens_seen = 0
+        self.turns_seen = 0
+        self.announced = False
+
+    def note_assistant_message(self, usage) -> None:
+        """One assistant turn observed; accumulate its usage when the SDK
+        reports it (face-value sum, same unit as the allowance)."""
+        self.turns_seen += 1
+        if isinstance(usage, dict):
+            self.tokens_seen += sum(
+                v for v in usage.values()
+                if isinstance(v, int) and not isinstance(v, bool))
+
+    def wind_up_reason(self) -> Optional[str]:
+        """Why tools should now be denied, or None while there is room."""
+        if self.tokens_seen >= self.remaining_tokens:
+            return (f"measured in-call spend ({self.tokens_seen:,} face-value "
+                    f"tokens) has reached this move's remaining allowance "
+                    f"({self.remaining_tokens:,})")
+        soft_stop = max(1, self.granted_turns - self.wind_up_reserve)
+        if self.turns_seen >= soft_stop:
+            return (f"turn {self.turns_seen} of {self.granted_turns} granted for "
+                    "this call — the remaining turns are the wind-up reserve")
+        return None
+
+
+_WIND_UP_MESSAGE = (
+    "TOKEN ALLOWANCE EXHAUSTED for this move ({reason}). No further tool calls "
+    "will be permitted in this call. Stop investigating now and write your "
+    "final answer in the required JSON format: report honestly what you "
+    "established and what you did not get to, mark anything you could not "
+    "verify as verified: false, and do not invent results. An honest partial "
+    "answer is the expected outcome here — the director reads it and decides "
+    "what happens next."
+)
+
+
+def _wrap_can_use_tool_with_allowance(inner, tracker: "_MoveBudgetTracker",
+                                      stage_name: str):
+    """Layer 1: deny tool calls once the tracker says the move must wind up;
+    delegate to the stage's own capability guard otherwise. The denial message
+    is feedback the agent reads in-context — no model call is added."""
+    from claude_agent_sdk import PermissionResultDeny
+
+    async def can_use_tool(tool_name: str, tool_input: dict, context):
+        reason = tracker.wind_up_reason()
+        if reason is None:
+            return await inner(tool_name, tool_input, context)
+        if not tracker.announced:
+            tracker.announced = True
+            print(f"TOKEN_ALLOWANCE stage={stage_name} winding_up — {reason}; "
+                  "further tool calls denied, agent told to finish honestly")
+        return PermissionResultDeny(message=_WIND_UP_MESSAGE.format(reason=reason))
+
+    return can_use_tool
+
+
 class TransportFailure(RuntimeError):
     """The SDK reported the call itself failed, or it produced no text at all.
 
@@ -314,6 +498,29 @@ async def _ask_once(
     # Step 16.6 chunk 2: record the ATTEMPT before the SDK call fires, so a
     # transport failure mid-stream still leaves a trace in the meter.
     cost_meter.record_attempt("model_call")
+    # Item A: when the dispatching director set a move token allowance, derive
+    # this tooled call's turn ceiling from what remains (layer 2) and arm the
+    # in-stream tracker that denies tools once the room is gone (layer 1). No
+    # allowance (the default) leaves every path byte-identical.
+    tracker = None
+    effective_max_turns = caps.max_turns
+    allowance = _move_token_allowance() if caps.uses_tools else None
+    if allowance is not None:
+        remaining = max(1, allowance - _face_value_spent())
+        effective_max_turns = _derive_granted_turns(remaining, caps.max_turns)
+        tracker = _MoveBudgetTracker(remaining, effective_max_turns)
+        if effective_max_turns < caps.max_turns:
+            print(f"TOKEN_ALLOWANCE stage={stage_name} remaining={remaining:,} "
+                  f"tokens -> max_turns {effective_max_turns} "
+                  f"(profile ceiling {caps.max_turns})")
+    guard_kwargs = {}
+    if caps.uses_tools:
+        # The guard consults every tool call before it runs. Sealed calls make
+        # no tool calls, so attaching it there would be dead weight.
+        can_use = capability_guard.make_can_use_tool(stage_name)
+        if tracker is not None:
+            can_use = _wrap_can_use_tool_with_allowance(can_use, tracker, stage_name)
+        guard_kwargs["can_use_tool"] = can_use
     # Optional MCP connectors: extra allowed tools (mcp__<name>) plus the
     # mcp_servers/strict_mcp_config kwargs, empty unless mcp_servers.json exists.
     mcp_kwargs, mcp_allowed = _mcp_option_kwargs(caps.uses_tools)
@@ -325,11 +532,8 @@ async def _ask_once(
         # can never silently inherit a tool nobody listed.
         disallowed_tools=[t for t in _DISALLOWED_TOOLS if t not in caps.allowed_tools],
         setting_sources=[],
-        max_turns=caps.max_turns,
-        # The guard consults every tool call before it runs. Sealed calls make
-        # no tool calls, so attaching it there would be dead weight.
-        **({"can_use_tool": capability_guard.make_can_use_tool(stage_name)}
-           if caps.uses_tools else {}),
+        max_turns=effective_max_turns,
+        **guard_kwargs,
         # Per-run workspace: an isolated cwd (+ PYTHONPATH to the repo root) when
         # the caller wrapped this in agent_workspace(); {} otherwise, so the
         # default-cwd path is unchanged.
@@ -361,6 +565,10 @@ async def _ask_once(
     result_message = None
     async for message in query(prompt=prompt_arg, options=options):
         if isinstance(message, AssistantMessage):
+            if tracker is not None:
+                # Item A layer 1: one turn observed, with real usage when the
+                # SDK reports it. The can_use_tool wrapper reads this state.
+                tracker.note_assistant_message(getattr(message, "usage", None))
             for block in message.content:
                 if isinstance(block, TextBlock):
                     parts.append(block.text)
@@ -911,6 +1119,12 @@ def call_stage_model(
     action_trail: list = []
 
     for attempt in range(1, MAX_ATTEMPTS + 1):
+        # Item A layer 3: never START an attempt (including a validation
+        # re-ask) on an allowance that is already spent — a re-ask under a
+        # FULL profile is another whole agentic run. No-op without the env
+        # var. Raises TokenAllowanceExhausted, which the supervisor journals
+        # as an honest halted_token_allowance run_record.
+        _raise_if_allowance_exhausted(stage_name, attempt)
         if attempt > 1:
             user_turn = json.dumps(
                 {"original_input": stage_input, "validation_error": last_error}
