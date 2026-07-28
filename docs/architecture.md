@@ -351,11 +351,11 @@ edit state, relaunch" already works as a coarse form of intervention.
 
 Worth knowing before you spend effort improving something production never calls:
 
-- **The ideation apparatus — 4,619 lines**, about 12% of production Python: four
-  generation strategies, six review types, an Elo tournament, evolution, a
-  meta-review. **`call_ideation` has never fired in a live run.** Every
-  kill-rate measurement recorded in `CLAUDE.md` describes a subsystem the free
-  path never invokes.
+- ~~The ideation apparatus~~ — **CORRECTED 2026-07-28.** It is NOT dead. It has
+  run three times (twice successfully, once crashing on a bug since fixed), and
+  in both successful cases the director reached for it because the goal made the
+  ideas themselves the deliverable. It correctly stays unused on well-specified
+  engineering goals.
 - **Cross-study memory.** `learned_summary` — the kind ideation reads — has had
   no writer since the July purge; its last entry is 2026-07-20. `write_memory`
   writes a different kind that only `read_memory` reads. So a lesson reaches a

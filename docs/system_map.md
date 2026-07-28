@@ -334,11 +334,17 @@ calculix_cantilever_fea · fenicsx_cantilever_elastic`
 
 ## 6. What is built but never runs
 
-- **The ideation apparatus — 4,619 lines** (`stage1_ideation`,
-  `generation_strategies`, `reflection_reviews`, `evolution_strategies`,
-  `meta_review`), ~12% of production Python. `call_ideation` has **not fired in
-  any live run**. Every kill-rate measurement in `CLAUDE.md` describes a
-  subsystem production never calls.
+- ~~The ideation apparatus~~ **CORRECTION 2026-07-28: this was WRONG.**
+  `call_ideation` HAS fired — three times, verified from every arc on disk:
+  `study-20260725T073215Z` (ideation_done), `study-20260726T010756Z`
+  (ideation_done), and `study-20260727T045848Z` (crashed —
+  `call_ideation_failed`, fixed by `dbb9469`). In both successful cases the goal
+  made the IDEAS the deliverable, and the director said so in its reasoning.
+  It did not fire in the two runs of 2026-07-28 because one goal was a
+  placeholder and the other was a well-specified optimisation — neither warranted
+  it. **The apparatus is live and the director reaches for it correctly.** The
+  earlier "never fires" claim came from looking at two runs instead of all of
+  them.
 - **The referee and build critic** — no `referee.json` or `build_critique.json`
   exists in any study on disk. The critic's own code comment records that it
   "never once ran on a successful study" until a recent indentation fix.
