@@ -244,7 +244,33 @@ input it would be $270 — so **the token sums overstate cost by ~5.1x**.
 
 ---
 
-## Phase 1 — the only two things before a long run
+## NEXT ACTION (2026-07-28, after C/A/B landed): do the long run
+
+Both blockers are closed and the cost worry is 5x smaller than it looked, so
+the honest next step is the thing the whole roadmap was clearing the way for.
+
+**Nothing that landed makes a run cheaper, and that is fine.** C is measurement
+only; A caps overshoot so the budget means something (it does NOT reduce normal
+spend); B stops a death from costing you the work. Cost per unit of work is
+unchanged — and at ~$1 per million reported tokens it does not need to change.
+
+**Rule of thumb for sizing a run:** $53.38 / 54.01M = **~$1 per million tokens
+as the reports count them**. So `--token-budget 200000000` ≈ $200. A 20-move
+study lands around $250. That is the real budget conversation, not 55M-token
+sticker shock.
+
+**Do NOT build the smarter phase system first.** Both live runs used a SINGLE
+move — there is still no evidence the director uses the phase structure it
+already has. Building more phase machinery now repeats the ideation mistake:
+elaborate apparatus production never calls.
+
+**Pair the long run with a chat on the same goal.** That gets Phase 3 item 8
+(comparison protocol) for free, and it is the only thing that answers the
+question the cost work turned out not to be about: is the output worth more
+than a chat's? The glider cost $53 and was ~90% verification of a five-minute
+problem — that was never a cost failure, it was a value failure.
+
+## Phase 1 — CLOSED (both landed 2026-07-28)
 
 Both are offline builds. Neither needs a run to develop. Do them in ONE session —
 they live in the same loop.
