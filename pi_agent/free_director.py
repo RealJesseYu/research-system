@@ -41,6 +41,7 @@ outcomes; the sealed execution path and sealed judges are unreachable from it.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any, Callable, Optional
 
@@ -48,7 +49,8 @@ from model_call import MOVE_ALLOWANCE_ENV
 from pi_agent.budget import Budget
 from pi_agent.dispatch import Move, MoveResult, MoveType
 from pi_agent.loop import _cost_snapshot, _sum_runs_spend  # identical cost accounting
-from pi_agent.study import STUDIES_ROOT, create_study, record_move, study_findings
+from pi_agent.study import (STUDIES_ROOT, create_study, load_study, record_move,
+                            study_findings)
 
 
 def _move_allowance(token_budget: Optional[int], spent: Optional[int]) -> Optional[int]:
@@ -346,12 +348,148 @@ def _survive(study: Any, action_name: str, seq: int, finding: Optional[str], fn)
         return False
 
 
+# --------------------------------------------------------------------------
+# RESUMABILITY (item B, 2026-07-28): a long run's likeliest death is a usage
+# window five hours in — that happened once and lost everything, although the
+# arc was fully on disk. Resume is RECONSTRUCTION from that evidence, not new
+# state to persist: relaunch against the existing study id, rebuild the arc,
+# spend and budget from disk, and continue from the next move. Completed moves
+# are never re-run (the arc IS the director's memory), and a move whose run
+# finished after the director died is recovered from its run evidence rather
+# than re-dispatched. Move granularity only — no resuming inside a move.
+# --------------------------------------------------------------------------
+
+def _recover_orphan_runs(study: Any, runs_root: Path) -> int:
+    """Record runs the dead director dispatched but never read back.
+
+    A move's run is a SUBPROCESS with its own lifetime ("Sessions and Terminal
+    runs have independent lifetimes"): when the director dies mid-move, the run
+    may still have completed and journaled — but record_move never fired, so
+    the arc has no entry and a naive resume would mint the same run id again
+    and RE-RUN a finished move. Every runs/<study>-m<N> dir absent from the arc
+    is read back through the same evidence path a live dispatch uses
+    (read_run_result: journal run_record + verification.json) and recorded as
+    move_type "recovered_run". A run that died without journaling is recorded
+    as an honest orphaned outcome — a readable entry, never a re-run and never
+    an invented result. Returns how many entries were recovered."""
+    from pi_agent.dispatch import _fetch_run_record, read_run_result
+
+    recorded = {e.get("run_id") for e in study_findings(study)}
+    pattern = re.compile(re.escape(study.study_id) + r"-m(\d+)$")
+    orphans = []
+    try:
+        for d in Path(runs_root).iterdir():
+            m = pattern.fullmatch(d.name)
+            if m and d.is_dir() and d.name not in recorded:
+                orphans.append((int(m.group(1)), d))
+    except OSError:
+        return 0
+    for _n, run_dir in sorted(orphans):
+        run_id = run_dir.name
+        run_record = _fetch_run_record(run_id)
+        result = read_run_result(run_dir, run_id, 0 if run_record else 1,
+                                 run_record)
+        outcome = result.outcome or (
+            "orphaned_run (no run_record — the run died with the director; "
+            "recorded on resume, not re-run)")
+        record_move(
+            study,
+            MoveResult("recovered_run", run_id, bool(result.publishable),
+                       outcome, result.as_dict()),
+            finding="recovered from disk evidence on resume — this move ran "
+                    "before the director's process died and is not re-run",
+        )
+    return len(orphans)
+
+
+# Arc rows that consumed one move from the pool. The _survive failure rows keep
+# the ACTION name as move_type, and run_experiment/call_integration spend
+# BEFORE dispatching, so a failed one still consumed its move.
+_MOVE_CONSUMING_TYPES = ("single", "campaign", "recovered_run",
+                        "run_experiment", "call_integration",
+                        "call_ideation", "call_validation", "call_data_analysis")
+# Outcomes recorded before any spend happened — honest refusals, zero cost.
+_UNSPENT_OUTCOMES = ("insufficient_budget", "integration_nothing_to_compose",
+                     "spawn_invalid_budget", "spawn_depth_cap")
+
+
+def _moves_consumed(arc: list, studies_root: Path) -> int:
+    """How many moves the recorded arc consumed from the pool — the resume-side
+    mirror of the loop's spend/allocate calls, reconstructed from evidence.
+    Deliberately CONSERVATIVE where the arc under-determines it (a failure row
+    whose spend cannot be known counts as spent; a spawn whose exact slice is
+    unrecoverable falls back to what the child demonstrably ran): over-counting
+    only shrinks the structural backstop, while under-counting would let a
+    resumed tree exceed the total the human set."""
+    consumed = 0
+    for e in arc:
+        if not isinstance(e, dict):
+            continue
+        mtype = e.get("move_type")
+        outcome = str(e.get("outcome") or "")
+        if any(marker in outcome for marker in _UNSPENT_OUTCOMES):
+            continue
+        if mtype in _MOVE_CONSUMING_TYPES:
+            consumed += 1
+        elif mtype == "spawn_sub_investigation":
+            consumed += _spawn_allocation(e, studies_root)
+    return consumed
+
+
+def _spawn_allocation(entry: dict, studies_root: Path) -> int:
+    """The moves a spawn row transferred to its child: the child's own
+    report.json records the slice it was constructed with
+    (budget_final.total_at_node); fall back to the moves it demonstrably ran,
+    then to 1 — a spawn that got as far as a child study cost something."""
+    tool_output = entry.get("tool_output") or {}
+    child_id = tool_output.get("child_study_id")
+    if isinstance(child_id, str) and child_id:
+        report = None
+        try:
+            report = json.loads(
+                (Path(studies_root) / child_id / "report.json").read_text())
+        except Exception:  # noqa: BLE001 — a child that died wrote no report
+            pass
+        if isinstance(report, dict):
+            total = (report.get("budget_final") or {}).get("total_at_node")
+            if isinstance(total, int) and total > 0:
+                return total
+    ran = tool_output.get("child_moves_run")
+    if isinstance(ran, int) and not isinstance(ran, bool) and ran > 0:
+        return ran
+    return 1
+
+
+def _prior_arc_tokens_outside_runs(arc: list) -> int:
+    """Token spend recorded on arc rows that _tokens_spent will NOT count:
+    capability rows and recovered runs. Live, their spend sits in this
+    process's meter delta; after a resume the meter restarted at zero, so
+    without this constant offset the whole prior in-process spend would vanish
+    from the ceiling. Computed ONCE at resume over the arc as it stands —
+    rows recorded after that go through the live accounting, never both."""
+    total = 0
+    for e in arc:
+        if not isinstance(e, dict) or e.get("move_type") in ("single", "campaign"):
+            continue
+        cost = e.get("cost")
+        if isinstance(cost, dict):
+            t = cost.get("tokens")
+            if isinstance(t, int) and not isinstance(t, bool):
+                total += t
+    return total
+
+
 def _tokens_spent(arc: list, spend_start: dict) -> int:
     """Real tokens spent by this investigation so far: this process's own model
     calls (director decisions plus in-process capabilities like ideation) plus
     every dispatched run's persisted cost, read back off the arc. Same accounting
     _build_report does at the end — computed per turn so the director can see it
-    while it still has decisions left to make. Never raises."""
+    while it still has decisions left to make. Never raises.
+
+    (Item B: a RESUMED study's prior in-process spend is a separate constant
+    the caller adds on top — the signature here stays two-argument because
+    test fakes patch it as such, and adding an offset to an unknown spend must
+    stay unknown, which the call site preserves.)"""
     try:
         now = _cost_snapshot()
         mine = max(0, now.get("tokens", 0) - spend_start.get("tokens", 0))
@@ -432,6 +570,7 @@ def free_investigate(
     inherited_artifacts: Optional[list] = None,
     token_budget: Optional[int] = None,
     max_decisions: Optional[int] = None,
+    resume: bool = False,
     decide_action: Callable = None,
     run_move: Callable = None,
     execute_capability: Callable = None,
@@ -449,6 +588,13 @@ def free_investigate(
     non-experiment actions — all injected so the whole loop is exercisable offline
     with fakes and the real path is proven with only the model transport faked.
 
+    `resume=True` (item B, 2026-07-28) relaunches against an EXISTING study id:
+    the study identity, arc and spend are rebuilt from disk (see the RESUMABILITY
+    block above), orphaned runs are recovered rather than re-run, the caller's
+    fresh `budget` is debited by what the arc shows consumed, and the loop
+    continues from the next move. `goal` may be None then — the study's recorded
+    goal is the authority; `study_id` is required.
+
     Returns a report dict (also written to studies/<id>/report.json).
     """
     if decide_action is None:
@@ -458,15 +604,38 @@ def free_investigate(
     if execute_capability is None:
         from pi_agent.capabilities import execute as execute_capability
 
-    study = create_study(
-        goal,
-        allowed_substrates=allowed_substrates,
-        mode=mode,
-        study_id=study_id,
-        studies_root=studies_root,
-        parent_study_id=parent_study_id,
-        inherited_artifacts=inherited_artifacts,
-    )
+    prior_tokens = 0
+    resumed_state = None
+    if resume:
+        if not study_id:
+            raise ValueError("resume=True requires the study_id to resume.")
+        study = load_study(study_id, studies_root=studies_root)
+        recovered = _recover_orphan_runs(study, runs_root)
+        arc0 = study_findings(study)
+        consumed = _moves_consumed(arc0, studies_root)
+        # Debit the fresh pool by what the arc shows consumed; a study that
+        # already spent its whole budget resumes straight into an honest
+        # budget_spent termination rather than getting a second budget.
+        budget.spend(min(consumed, budget.remaining()))
+        prior_tokens = _prior_arc_tokens_outside_runs(arc0)
+        resumed_state = {"resumed": True, "arc_entries_at_resume": len(arc0),
+                         "orphan_runs_recovered": recovered,
+                         "moves_reconstructed_as_consumed": consumed,
+                         "prior_in_process_tokens_reconstructed": prior_tokens}
+        print(f"RESUME {study.study_id}: {len(arc0)} arc entrie(s) on disk "
+              f"({recovered} orphaned run(s) recovered, not re-run), "
+              f"{consumed} move(s) reconstructed as consumed, "
+              f"budget remaining {budget.remaining()}")
+    else:
+        study = create_study(
+            goal,
+            allowed_substrates=allowed_substrates,
+            mode=mode,
+            study_id=study_id,
+            studies_root=studies_root,
+            parent_study_id=parent_study_id,
+            inherited_artifacts=inherited_artifacts,
+        )
     spend_start = _cost_snapshot()
     cap = _decision_cap(budget, max_decisions)
 
@@ -477,6 +646,11 @@ def free_investigate(
         arc = study_findings(study)
 
         spent = _tokens_spent(arc, spend_start)
+        # Item B: a resumed study's prior in-process spend (reconstructed once
+        # from the arc at resume) rides on top. Unknown stays unknown: a failed
+        # meter's None must not become a number just because an offset exists.
+        if spent is not None:
+            spent += prior_tokens
         # `spent is None` means the meter failed, not that nothing was spent — so
         # the ceiling does not fire on it (a broken meter must not end a healthy
         # investigation either). The failure is printed and shown in the budget
@@ -649,7 +823,8 @@ def free_investigate(
                      finding))
 
     spend_end = _cost_snapshot()
-    report = _build_report(study, budget, termination, decisions, ceiling, spend_start, spend_end)
+    report = _build_report(study, budget, termination, decisions, ceiling,
+                           spend_start, spend_end, resumed_state)
     try:
         (study.dir / "report.json").write_text(json.dumps(report, indent=2))
     except Exception:  # noqa: BLE001 — the report value is returned regardless
@@ -665,6 +840,7 @@ def _build_report(
     ceiling: Optional[dict],
     spend_start: dict,
     spend_end: dict,
+    resumed_state: Optional[dict] = None,
 ) -> dict:
     """Assemble the free investigation's report. Pure over its inputs. Counts
     experiment moves separately from total arc entries (capability actions appear
@@ -693,6 +869,13 @@ def _build_report(
         "study_id": study.study_id,
         "goal": study.goal,
         "director": "free",
+        # Item B: present (with the reconstruction numbers) only for a resumed
+        # study, so a reader knows process_spend covers the CURRENT process
+        # only — the dead director's in-process spend is the reconstructed
+        # prior_in_process_tokens figure inside this block, and the arc's own
+        # cost column remains the per-move truth. Absent for a fresh study:
+        # the report is byte-identical to before.
+        **({"resumed_from": resumed_state} if resumed_state else {}),
         "allowed_substrates": study.allowed_substrates,
         "mode": study.mode,
         "moves_run": len(experiment_moves),

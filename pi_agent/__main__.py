@@ -72,8 +72,20 @@ def main(argv: list | None = None) -> None:
     )
     parser.add_argument(
         "--goal",
-        required=True,
-        help="the research goal the director holds for the whole investigation",
+        default=None,
+        help="the research goal the director holds for the whole investigation "
+        "(required unless --resume-study is given: a resumed study already "
+        "recorded its goal)",
+    )
+    parser.add_argument(
+        "--resume-study",
+        default=None,
+        metavar="STUDY_ID",
+        help="resume an EXISTING study after a death (item B): rebuild the arc, "
+        "spend and budget from studies/<id>/ on disk, recover any orphaned runs "
+        "without re-running them, and continue from the next move. Free director "
+        "only. Pass the same budget flags as the original launch — the arc's "
+        "recorded consumption is debited from them.",
     )
     parser.add_argument(
         "--mode",
@@ -133,6 +145,18 @@ def main(argv: list | None = None) -> None:
     )
     args = parser.parse_args(argv)
 
+    if bool(args.goal) == bool(args.resume_study):
+        raise SystemExit(
+            "error: pass EITHER --goal (a fresh study) OR --resume-study "
+            "(continue an existing one)."
+        )
+    if args.resume_study and args.director != "free":
+        # Resume is reconstruction of the free director's arc; the enum loop
+        # has no resume path. Implied rather than errored: --director defaults
+        # to enum, and demanding the flag would make every resume command fail
+        # once for no reason.
+        args.director = "free"
+
     allowed = (
         [s.strip() for s in args.allowed_substrates.split(",") if s.strip()]
         if args.allowed_substrates
@@ -156,6 +180,8 @@ def main(argv: list | None = None) -> None:
             mode=args.mode,
             ceiling=ceiling,
             token_budget=args.token_budget,
+            study_id=args.resume_study,
+            resume=bool(args.resume_study),
         )
     else:
         report = investigate(
