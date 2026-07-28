@@ -69,7 +69,7 @@ ACTION_VALUES = (
 _ENVELOPE_FIELDS = (
     "ack", "reading", "reasoning", "action",
     "domain", "instrument", "campaign", "budget_moves", "detail", "depth", "pool_size",
-    "stop_reason",
+    "novelty_priority", "stop_reason",
 )
 
 # Ideation depth (R-FD-6). The hypothesis apparatus has two settings and the
@@ -79,6 +79,18 @@ _ENVELOPE_FIELDS = (
 # by judgment when the IDEAS are the deliverable rather than a means to one.
 DEPTH_VALUES = ("quick", "full")
 DEFAULT_IDEATION_DEPTH = "quick"
+
+# Novelty weight (owner ruling 2026-07-27), call_ideation's third dial. It was
+# ruled the DIRECTOR'S dial and the whole chain beneath was built for it —
+# capabilities.py reads action["novelty_priority"], _run_ideation_at_depth
+# forwards it, stage1_ideation.filter_survivors ranks by it — but it was never
+# added to the envelope, and the validator rejects any key not on that list. So
+# a director naming it got a re-ask, and one that did not got "balanced": the
+# ruling was unimplemented until 2026-07-28. Mirrored here rather than imported
+# so the decider does not drag in the ideation stack; tests/test_novelty_
+# priority_dial.py fails if the two lists ever drift apart.
+NOVELTY_PRIORITY_VALUES = ("required", "balanced", "irrelevant")
+DEFAULT_NOVELTY_PRIORITY = "balanced"
 
 SYSTEM_PROMPT = """You are the principal investigator of an autonomous research system, running unattended. You hold ONE goal for the whole investigation and drive it by choosing a sequence of actions, each following from what the last ones showed.
 
@@ -90,7 +102,7 @@ WHEN A RUN REPORTS ITSELF BLOCKED. A dispatched experiment may come back saying 
 - "run_experiment": point one experiment run at a QUESTION ("domain"). Optionally force an "instrument" from the menu, or leave it null for the run to choose. Set "campaign": true for an iterated sweep instead of a single run. Spends one move of your budget.
 - "spawn_sub_investigation": delegate a sub-question ("domain") to a child director with "budget_moves" of your budget carved off for it. Use this to DECOMPOSE — break a big goal into subsystems, each investigated on its own slice. The child cannot exceed the budget you hand it.
 - "call_integration": run an experiment that checks whether the parts you have verified so far actually COMPOSE into a working whole, and measures the joint behavior. Spends one move. Use it after you decompose: subsystems that each pass on their own can still fail together (each locally optimal, the assembly incompatible), and re-running each part's number will never catch that — only assembling and measuring them jointly will. Put the joint criterion in "detail". Do NOT declare a decomposed goal answered until an integration check has stood.
-- "call_ideation": invoke the hypothesis apparatus for a question when you want many candidate directions, not one. It returns ranked candidate hypotheses to YOU — you then decide what to do with them, so you may call it at any point in the investigation, not only at the start, and more than once. OPTIONAL — reach for it only when the task warrants; it is not a mandatory step. ASK IT THE OPEN QUESTION: do NOT narrow the request to your instrument menu, do not list the instruments in it, and do not ask only for hypotheses those tools can run. The menu is what YOU use when dispatching an experiment; pre-constraining ideation to it produces candidates shaped around existing tools, which are overwhelmingly the questions those tools' fields have already answered. Feasibility is judged after the ideas exist, by the reviews and by you. Set "depth": "quick" (the default) for one fast generation pass, or "depth": "full" for the whole apparatus — four competing generation strategies, six review types, an Elo tournament between hypotheses, evolution of the survivors, and a meta-review. "full" costs many model calls and takes far longer, so choose it when the IDEAS THEMSELVES are the deliverable, or when a quick pass came back thin or obvious; choose "quick" when you mainly need a direction to go test. Set "pool_size" to the NUMBER of candidate hypotheses you want — breadth is something you buy out of your token budget, so ask for a large pool when the ideas themselves are the deliverable and you can afford the reviews, and a small one when you just need a direction. Every candidate is reviewed, so cost scales with the pool.
+- "call_ideation": invoke the hypothesis apparatus for a question when you want many candidate directions, not one. It returns ranked candidate hypotheses to YOU — you then decide what to do with them, so you may call it at any point in the investigation, not only at the start, and more than once. OPTIONAL — reach for it only when the task warrants; it is not a mandatory step. ASK IT THE OPEN QUESTION: do NOT narrow the request to your instrument menu, do not list the instruments in it, and do not ask only for hypotheses those tools can run. The menu is what YOU use when dispatching an experiment; pre-constraining ideation to it produces candidates shaped around existing tools, which are overwhelmingly the questions those tools' fields have already answered. Feasibility is judged after the ideas exist, by the reviews and by you. Set "depth": "quick" (the default) for one fast generation pass, or "depth": "full" for the whole apparatus — four competing generation strategies, six review types, an Elo tournament between hypotheses, evolution of the survivors, and a meta-review. "full" costs many model calls and takes far longer, so choose it when the IDEAS THEMSELVES are the deliverable, or when a quick pass came back thin or obvious; choose "quick" when you mainly need a direction to go test. Set "pool_size" to the NUMBER of candidate hypotheses you want — breadth is something you buy out of your token budget, so ask for a large pool when the ideas themselves are the deliverable and you can afford the reviews, and a small one when you just need a direction. Every candidate is reviewed, so cost scales with the pool. Set "novelty_priority" to say how much a NOVEL METHOD is worth when the candidates are ranked, because that depends on the kind of goal you hold and only you know it: "required" puts every methodologically new hypothesis above every known-method one (a SCIENCE goal, where an established answer by an established route is not a result); "irrelevant" ranks on quality alone (an ENGINEERING goal, where a well-proven method is a virtue and novelty is noise); "balanced" (the default, and what you get if you leave it null) lets quality lead and novelty break ties. Only a handful of candidates survive the filter, so this choice decides which whole CLASS of hypothesis you see.
 - "call_validation": invoke heavy independent validation of results gathered so far, when the stakes warrant more than each experiment's own verification. OPTIONAL.
 - "call_data_analysis": analyze the results the arc has accumulated. OPTIONAL.
 - "read_memory" / "write_memory": read prior studies' findings, or record a lesson ("detail") for future ones.
@@ -111,7 +123,7 @@ So read the difficulty honestly. When the arc has answered the question and the 
 
 DISCIPLINE. Work small-before-big: run a cheap experiment, read the VERIFIED result, then scale up, change tack, decompose, or stop — read that judgment off what you actually observed. Respect your budget: it is a hard ceiling on how much you may spend, and a sub-investigation's slice comes out of it. Decompose only when the goal genuinely has separable parts; a simple goal may need just one experiment and a stop.
 
-Reply ONLY with JSON of the form {"ack": "<the study_id you were given>", "reading": "<one or two sentences: what the most recent action's result showed, and what it means for the goal; null only on the first turn when nothing has run>", "reasoning": "<1-3 sentences: why this action next>", "action": "run_experiment" | "spawn_sub_investigation" | "call_ideation" | "call_validation" | "call_data_analysis" | "read_memory" | "write_memory" | "stop", "domain": "<the exact question for run_experiment or spawn_sub_investigation, else null>", "instrument": "<a substrate_id from the menu to force, or null; for run_experiment or call_integration>", "campaign": <true|false, only meaningful for run_experiment; default false>, "budget_moves": <int moves to allocate to the child, required for spawn_sub_investigation, else null>, "detail": "<the request for call_* / write_memory, else null>", "depth": "<'quick' or 'full' for call_ideation, else null>", "pool_size": "<int candidate count for call_ideation, else null>", "stop_reason": "<why the investigation is complete, required for stop, else null>"} — no other fields anywhere."""
+Reply ONLY with JSON of the form {"ack": "<the study_id you were given>", "reading": "<one or two sentences: what the most recent action's result showed, and what it means for the goal; null only on the first turn when nothing has run>", "reasoning": "<1-3 sentences: why this action next>", "action": "run_experiment" | "spawn_sub_investigation" | "call_ideation" | "call_validation" | "call_data_analysis" | "read_memory" | "write_memory" | "stop", "domain": "<the exact question for run_experiment or spawn_sub_investigation, else null>", "instrument": "<a substrate_id from the menu to force, or null; for run_experiment or call_integration>", "campaign": <true|false, only meaningful for run_experiment; default false>, "budget_moves": <int moves to allocate to the child, required for spawn_sub_investigation, else null>, "detail": "<the request for call_* / write_memory, else null>", "depth": "<'quick' or 'full' for call_ideation, else null>", "pool_size": "<int candidate count for call_ideation, else null>", "novelty_priority": "<'required', 'balanced' or 'irrelevant' for call_ideation, else null>", "stop_reason": "<why the investigation is complete, required for stop, else null>"} — no other fields anywhere."""
 
 SCHEMA = {"required": ["ack", "reasoning", "action"]}
 
@@ -188,6 +200,20 @@ def make_action_validator(
                 errors.append(
                     f"depth must be one of {', '.join(DEPTH_VALUES)} (or null for "
                     f"{DEFAULT_IDEATION_DEPTH}); got {depth!r}.")
+
+        # novelty_priority: same shape as depth — call_ideation's dial only, a
+        # named value must be in the vocabulary, null means the balanced default.
+        novelty = parsed.get("novelty_priority")
+        if novelty is not None:
+            if action != "call_ideation":
+                errors.append(
+                    f"novelty_priority must be null when the action is {action} "
+                    "(only call_ideation takes a novelty_priority).")
+            elif novelty not in NOVELTY_PRIORITY_VALUES:
+                errors.append(
+                    f"novelty_priority must be one of "
+                    f"{', '.join(NOVELTY_PRIORITY_VALUES)} (or null for "
+                    f"{DEFAULT_NOVELTY_PRIORITY}); got {novelty!r}.")
 
         if action in ("call_ideation", "call_validation", "call_data_analysis", "write_memory"):
             detail = parsed.get("detail")

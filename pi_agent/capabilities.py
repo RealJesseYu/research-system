@@ -121,6 +121,10 @@ def run_ideation(action: dict, study: Any, budget: Any, seq: int, *, run: Callab
         # apparatus could not improve on" — those mean different things.
         "depth": depth,
         "pool_size": action.get("pool_size"),
+        # Same reason as depth: the ranking that produced these candidates is
+        # part of reading them. "no novel survivors under novelty_priority
+        # 'irrelevant'" and "…under 'required'" mean opposite things.
+        "novelty_priority": novelty_priority,
         "detail": f"{len(digest)} candidate direction(s) at depth={depth} for: {domain}",
     }
 
