@@ -73,8 +73,11 @@ def _move_from_action(action: dict, study: Any) -> Move:
 def _record_capability(study: Any, action_name: str, seq: int, result: dict, finding: str) -> None:
     """Record a non-experiment action to the arc via the same record_move path the
     runs use, so the next decision reads it uniformly. Wrapped as a MoveResult
-    whose move_type is the action and whose raw carries the capability result (no
-    findings, no cost — nothing measured)."""
+    whose move_type is the action and whose raw carries the capability result.
+    A result that came through capabilities.execute carries its own metered
+    {"cost": {calls, tokens}}, which record_move maps onto the arc's cost column;
+    a result recorded directly (a refusal, a guarded failure) carries none, and
+    its cost honestly reads as unknown rather than zero."""
     record_move(
         study,
         MoveResult(
@@ -310,7 +313,12 @@ def _tokens_spent(arc: list, spend_start: dict) -> int:
     try:
         now = _cost_snapshot()
         mine = max(0, now.get("tokens", 0) - spend_start.get("tokens", 0))
-        return mine + (_sum_runs_spend(arc) or {}).get("tokens", 0)
+        # Subprocess (experiment) moves only: a capability row's metered cost
+        # came out of THIS process's meter and is already inside `mine` —
+        # summing the whole arc would count it twice, every turn.
+        runs = [e for e in arc if isinstance(e, dict)
+                and e.get("move_type") in ("single", "campaign")]
+        return mine + (_sum_runs_spend(runs) or {}).get("tokens", 0)
     except Exception as e:  # noqa: BLE001 — accounting must not sink a decision
         # RETURNING 0 HERE IS ACTIVELY DANGEROUS, so say so rather than lie
         # quietly. A 0 both disables the ceiling below (`spent >= token_budget`
@@ -610,7 +618,12 @@ def _build_report(
     what was spent and allocated across the tree."""
     arc = study_findings(study)
     experiment_moves = [e for e in arc if e.get("move_type") in ("single", "campaign")]
-    runs_spend = _sum_runs_spend(arc)
+    # runs_spend sums SUBPROCESS spend only (experiment runs) — exactly what its
+    # note has always said. Capability rows now carry their own metered cost in
+    # the arc, but that spend came out of THIS process's meter, i.e. it is
+    # already inside the process-delta term below; summing it here too would
+    # double-count it in total_spend.
+    runs_spend = _sum_runs_spend(experiment_moves)
     decider_spend = {
         "calls": spend_end["calls"] - spend_start["calls"],
         "tokens": spend_end["tokens"] - spend_start["tokens"],

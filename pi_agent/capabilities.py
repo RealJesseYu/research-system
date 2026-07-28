@@ -38,6 +38,7 @@ from typing import Any, Callable, Optional
 from model_call import FULL, agent_workspace, call_stage_model
 from models import model_for
 from pi_agent.free_decider import DEFAULT_IDEATION_DEPTH
+from pi_agent.loop import _cost_snapshot  # the never-raise meter-diff idiom
 from pi_agent.study import study_findings, study_scratch_dir
 
 # One move per heavy tool call (see BUDGET above).
@@ -548,11 +549,41 @@ _REGISTRY: dict[str, Callable] = {
     "write_memory": run_write_memory,           # R-FD-5 (distinct kind, live)
 }
 
+# Capabilities whose spend is NOT metered here. spawn_sub_investigation runs a
+# whole child director in this process: its spend is recorded in the CHILD's own
+# arc and report, and every tree roll-up (liveview totals, cost_report) reads
+# those recursively — a meter diff on the spawn row would count the child's
+# in-process spend a second time. The spawn row's cost stays null and readers
+# derive it from the child, which is exactly what pi_agent/cost_report.py does.
+_UNMETERED = frozenset({"spawn_sub_investigation"})
+
+
+def _with_cost(name: str, result: Any, before: dict) -> Any:
+    """Attach this capability call's own model spend to its result as
+    {"cost": {calls, tokens}} — record_move maps "cost" onto the arc's cost
+    column, so the spend lands beside the experiment runs' and a capability
+    phase stops reading as cost-unknown. The diff is against the shared
+    process meter (same idiom as loop._cost_snapshot's callers). A result that
+    already carries a cost is left alone. Never raises, and never overwrites —
+    cost accounting must not be able to sink or distort a capability result."""
+    try:
+        if name in _UNMETERED or not isinstance(result, dict) or "cost" in result:
+            return result
+        after = _cost_snapshot()
+        result["cost"] = {
+            "calls": max(0, after.get("calls", 0) - before.get("calls", 0)),
+            "tokens": max(0, after.get("tokens", 0) - before.get("tokens", 0)),
+        }
+    except Exception:  # noqa: BLE001 — metering is observational, never fatal
+        pass
+    return result
+
 
 def execute(name: str, action: dict, study: Any, budget: Any, seq: int) -> dict:
     """Route a non-experiment action to its executor and return the recorded
-    result. An unknown action (should never happen — the validator gates the
-    vocabulary) yields an honest 'unknown' rather than a crash."""
+    result, with the call's own model spend attached (see _with_cost). An
+    unknown action (should never happen — the validator gates the vocabulary)
+    yields an honest 'unknown' rather than a crash."""
     fn = _REGISTRY.get(name)
     if fn is None:
         return {
@@ -560,4 +591,5 @@ def execute(name: str, action: dict, study: Any, budget: Any, seq: int) -> dict:
             "outcome": f"{name}_unknown",
             "detail": f"no executor registered for action {name!r}.",
         }
-    return fn(action, study, budget, seq)
+    before = _cost_snapshot()
+    return _with_cost(name, fn(action, study, budget, seq), before)

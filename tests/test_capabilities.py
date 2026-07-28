@@ -262,5 +262,77 @@ class TestRegistry(_Base):
         self.assertEqual(r["outcome"], "call_ideation_insufficient_budget")
 
 
+class TestCapabilityCostAttribution(_Base):
+    """The capability cost gap (roadmap item 1, deliverable 2): a capability
+    arc entry must LAND with a non-null cost — proven through the real meter,
+    the real execute() dispatcher, and the real recording path, not assumed
+    because the plumbing looks right."""
+
+    def setUp(self):
+        super().setUp()
+        import cost_meter
+        cost_meter.reset()
+        self.addCleanup(cost_meter.reset)
+
+    def _register_fake(self, name, fake):
+        original = C._REGISTRY[name]
+        C._REGISTRY[name] = fake
+        self.addCleanup(lambda: C._REGISTRY.__setitem__(name, original))
+
+    def test_capability_arc_entry_lands_with_non_null_cost(self):
+        import json as _json
+
+        import cost_meter
+        from pi_agent.free_director import _record_capability
+
+        # a fake executor whose "model call" reports into the REAL shared meter,
+        # exactly as the model_call door does
+        def fake_ideation(action, study, budget, seq):
+            cost_meter.record_call(
+                "model_call", {"input_tokens": 1000, "output_tokens": 234})
+            return {"succeeded": True, "outcome": "ideation_done",
+                    "hypotheses": [{"id": "h1", "statement": "A"}]}
+        self._register_fake("call_ideation", fake_ideation)
+
+        result = C.execute("call_ideation", {"action": "call_ideation", "domain": "q"},
+                           self.study, Budget(3), 1)
+        self.assertEqual(result["cost"], {"calls": 1, "tokens": 1234})
+
+        # ...and it LANDS in the arc's cost column, stripped from tool_output
+        _record_capability(self.study, "call_ideation", 1, result, "why")
+        entry = _json.loads(self.study.arc_path.read_text().splitlines()[0])
+        self.assertEqual(entry["move_type"], "call_ideation")
+        self.assertEqual(entry["cost"], {"calls": 1, "tokens": 1234})
+        self.assertNotIn("cost", entry["tool_output"])
+
+    def test_a_no_call_capability_measures_zero_not_unknown(self):
+        # read_memory makes no model call: {0, 0} is a MEASUREMENT ("this cost
+        # nothing"), distinct from the null an unmetered row carries.
+        r = C.execute("read_memory", {"action": "read_memory"},
+                      self.study, Budget(2), 1, )
+        self.assertEqual(r["cost"], {"calls": 0, "tokens": 0})
+
+    def test_spawn_is_deliberately_unmetered(self):
+        # a spawn's spend lives in the CHILD's own arc/report and tree roll-ups
+        # read it there; a meter diff here would count it twice.
+        def fake_spawn(action, study, budget, seq):
+            return {"succeeded": True, "outcome": "sub_investigation_done",
+                    "child_study_id": "s-sub1"}
+        self._register_fake("spawn_sub_investigation", fake_spawn)
+        r = C.execute("spawn_sub_investigation",
+                      {"action": "spawn_sub_investigation", "domain": "q",
+                       "budget_moves": 1}, self.study, Budget(4), 1)
+        self.assertNotIn("cost", r)
+
+    def test_an_executor_supplied_cost_is_not_overwritten(self):
+        def fake_with_cost(action, study, budget, seq):
+            return {"succeeded": True, "outcome": "done",
+                    "cost": {"calls": 9, "tokens": 900}}
+        self._register_fake("call_validation", fake_with_cost)
+        r = C.execute("call_validation", {"action": "call_validation"},
+                      self.study, Budget(2), 1)
+        self.assertEqual(r["cost"], {"calls": 9, "tokens": 900})
+
+
 if __name__ == "__main__":
     unittest.main()
