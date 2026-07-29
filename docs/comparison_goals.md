@@ -29,9 +29,9 @@ got a fair run.
 > rule of thumb — that was fitted decades ago to the data available then, and is
 > applied uniformly to cases it was never fitted to. Find one where the rule's
 > conservatism or error is costing real money, safety margin, or material, and
-> where enough public data exists to do better. Choose the target yourself: use
-> ideation to generate many candidates across different fields and pick on
-> expected impact and evidence available, not on what is convenient. Then build
+> where enough public data exists to do better. Choose the target yourself:
+> generate many candidates across different fields and pick on expected impact
+> and evidence available, not on what is convenient. Then build
 > the replacement end to end — obtain the real data, establish what the incumbent
 > rule actually achieves on it, build a learned or hybrid model that beats it,
 > and quantify the win in the units a practitioner cares about. Go further than a
@@ -40,10 +40,11 @@ got a fair run.
 > whoever owns the rule. If you hit something you genuinely cannot obtain, say
 > precisely what you need from me rather than substituting something weaker.
 
-**One edit to consider:** *"use ideation"* names a tool only arm C has. Arms A
-and B will read it as "think broadly", which is fine — but if you want the
-string strictly neutral, change it to *"generate many candidates across
-different fields"*. Decide before freezing; do not change it after any arm runs.
+**EDIT APPLIED (owner, 2026-07-29):** *"use ideation to generate many
+candidates"* → *"generate many candidates"*. The original named a tool only arm
+C has, which would have told arm C to use its apparatus while telling A and B
+nothing — a hidden instruction advantage. The goal above is now the frozen
+string. **Do not edit it again once an arm has run.**
 
 ---
 
@@ -128,7 +129,7 @@ choice today.
 
 ## Before freezing any of these
 
-1. Decide the *"use ideation"* edit on goal 2.
+1. ~~Decide the *"use ideation"* edit on goal 2.~~ **DONE — applied above.**
 2. ~~Sanity-check goal 1's accuracy target.~~ **DONE, and the first draft was
    impossible — now fixed.** Checked against scipy: `I_0.5(0.01,1000)` and
    `I_0.999(1000,1000)` both saturate to exactly `1.0` in double precision, so
@@ -140,8 +141,31 @@ choice today.
    accuracy stated on the smaller tail** — which is how production
    implementations state it. `mpmath` is present in the sandbox image, so a
    high-precision reference is reachable by every arm.
-3. Confirm goal 3's essentiality dataset is reachable from a plain machine, so
-   arm B is not blocked on data access arm C happens to have.
+3. ~~Confirm goal 3's data is reachable.~~ **DONE 2026-07-29 — confirmed, and
+   the check found something that IMPROVES the comparison.**
+
+   Reachable from a plain machine, all verified live:
+   - `bigg.ucsd.edu/static/models/iML1515.json` — **HTTP 200, 3.06 MB**
+   - Baba 2006 (the Keio essentiality paper, open access) — HTTP 200
+   - EcoCyc — HTTP 200
+   - `cobra` is an ordinary PyPI package (current 0.31.1), so any arm can
+     `pip install` it.
+
+   **The finding: arm C's cobrapy SUBSTRATE cannot do this goal.** Its envelope
+   is `MODEL_ALLOWLIST = ("e_coli_core", "iML1515")`, `QOI_FIELDS =
+   ("growth_rate",)`, optional `min_growth` — and **no knockout field at all**
+   (`run_cobrapy` rejects `knockouts` as an unsupported field). Gene knockouts
+   are the entire goal, so arm C must go around its own substrate via Bash and
+   `pip install cobra`, exactly as arm B would.
+
+   **This is good, not bad.** It makes goal 3 **tooling-neutral between B and
+   C** — both arms reach the same library the same way — so the comparison
+   isolates the orchestration rather than measuring substrate access. It is also
+   the PRIME DIRECTIVE working: the substrate is a tool the agent may bypass,
+   not a cage that defines what it can attempt.
+
+   Do NOT widen the substrate to cover this before running. Doing so would hand
+   arm C an advantage that the comparison is specifically trying not to measure.
 
 **Freeze one goal at a time and run all arms on it before writing the next.**
 Nothing here may be edited after an arm has run on it.
