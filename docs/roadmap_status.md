@@ -79,6 +79,56 @@ run must carry every job it can.
 
 ---
 
+## RESULT 2026-07-29 — the system refuted the memory fix, with verified numbers
+
+`study-20260728T225951Z` ($27.50, 228 agentic turns, 4 moves). The goal was the
+architecture problem itself. **The director called ideation at full depth
+unprompted** — the apparatus is reached for exactly when the ideas are the
+deliverable, confirming the pattern.
+
+Then it did real science on it: simulate → test against reality → refute →
+verify the refutation.
+
+- **Move 2** (simulation, 12 findings): designed a memory policy that beat an
+  unbounded-memory floor **1.55x** on a simulated long arc.
+- **Move 3** (real LLM director, 14 findings, **0 verified**): every claim from
+  move 2 died. Predicted ≥1.0, got **0.336**. Predicted 1.45x, got **0.403**.
+  This is the move that printed FAILED — it is the most valuable move in the
+  study.
+- **Move 4** (22 findings, **22 verified**): made the refutation a measured
+  result. Four bounded-memory policies against a matched per-seed floor:
+
+| arm | ratio to floor |
+|---|---|
+| B — raw append-everything log, 2 kB bounded re-read | **0.970** |
+| E — v2 records, staling trigger disabled | 0.909 |
+| C — catalogue-sized 14,936 B budget | 0.835 |
+| D — v2 record discipline, no re-read bound | 0.697 |
+
+**No policy cleared the floor.** The floor is *re-read the entire arc* — which
+is exactly what the system does today.
+
+**And the mechanism why, which is the deeper finding.** An injected FALSE
+"already answered" record was re-probed **0.0 times** under a summarised ledger,
+versus **1.67 times** under plain full-arc re-read. A summarised memory can
+carry a wrong belief that nothing ever challenges. **The un-summarised arc is
+the self-correction mechanism** — compaction would remove it.
+
+### Consequences
+
+- ❌ **Arc compaction / memory summarisation: DROPPED.** I recommended it on
+  reasoning about context growth; the system measured it and it loses. Do not
+  revive without evidence that beats a matched floor.
+- ✅ **"Never weaker than a plain chat" is now an empirical result, not just a
+  ruling.** Every added mechanism came in below the do-nothing floor. That is
+  the cage pattern, measured, in this system's own numbers.
+- ⚠️ **Caution on simulated evidence:** move 2's 1.55x winner was a simulation
+  artifact that did not survive a real director. Simulation earned its keep only
+  because move 3 tested it.
+- **Director-smarter survives as the direction** — but memory is not the lever.
+  What remains: it cannot see its own trajectory (no dollars, no remaining
+  turns, no decision cap), and `stop` is unconditional.
+
 ## Done
 
 ### Today (2026-07-28)
