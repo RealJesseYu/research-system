@@ -55,7 +55,13 @@ result section below.
       NO standing "verify each part" clause, and pass `--token-budget` and
       `--director free`. Design the judging criteria BEFORE either side runs
       (see B0) or the result is an impression.
-- [ ] **B0. Design the comparison protocol first.** ← **NEXT. Offline, free.** Offline, free, and it must
+- [x] **B0. DONE 2026-07-29** — `docs/comparison_protocol.md`, written before
+      any arm ran and frozen. Three arms (bare chat / **Claude Code one prompt,
+      the real baseline** / this system), seven criteria, and four falsifiers
+      named in advance. **The question is not "better than a chat" — it is
+      whether the orchestration beats ONE strong agent with the same tools.**
+      An independent system (AI Scientist) is cited, not run: standing it up
+      would consume the week B1 needs. Offline, free, and it must
       precede B1: what must a good answer contain, written down in advance.
 
 **One risk to weigh before B1 (owner's call, stated with numbers rather than
