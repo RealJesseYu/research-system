@@ -73,6 +73,19 @@ def _allowance_env(allowance: Optional[int]) -> Optional[dict]:
     return {MOVE_ALLOWANCE_ENV: str(allowance)} if allowance else None
 
 
+def _fan_member_allowance(allowance: Optional[int], width: int) -> Optional[int]:
+    """Each member of an N-wide fan gets an EQUAL SHARE of the move allowance:
+    floor(remaining / N). _move_allowance hands one dispatched move the entire
+    remainder, which is correct when moves are sequential — with N running at
+    once it would over-grant N-fold, and the study could spend N times its
+    ceiling inside one fan. None stays None (no budget set, or meter failed —
+    unknown must not cage the move)."""
+    if not allowance or width < 1:
+        return None
+    share = allowance // width
+    return share if share > 0 else None
+
+
 # IN-PROCESS CAPABILITIES GET THE SAME CEILING (2026-07-28, system-map defect
 # 4.3). run_experiment and call_integration hand their subprocess an allowance;
 # the generic capability branch handed nothing, and capabilities.py never
@@ -371,7 +384,8 @@ def _decide_with_retry(decide_action, study, arc, budget_report):
     raise last
 
 
-def _survive(study: Any, action_name: str, seq: int, finding: Optional[str], fn):
+def _survive(study: Any, action_name: str, seq: int, finding: Optional[str], fn,
+             failure_extra: Optional[dict] = None):
     """Run one dispatched action so that NOTHING BELOW IT CAN END THE ARC.
 
     OWNER RULING 2026-07-25: nothing may kill an arc except the director. Before
@@ -385,7 +399,10 @@ def _survive(study: Any, action_name: str, seq: int, finding: Optional[str], fn)
     arc with its error text, and the director reads it on its next turn and
     decides — retry differently, route around it, or stop. That is the same
     judgment a researcher makes when an instrument breaks, and it belongs to the
-    director alone. Returns True when the action ran, False when it failed."""
+    director alone. Returns True when the action ran, False when it failed.
+
+    `failure_extra` rides into the failure record verbatim (e.g. a fan's spent
+    width, so resume accounting can reconstruct what the failure cost)."""
     try:
         fn()
         return True
@@ -401,7 +418,8 @@ def _survive(study: Any, action_name: str, seq: int, finding: Optional[str], fn)
             study, action_name, seq,
             {"succeeded": False, "outcome": f"{action_name}_failed", "error": detail,
              "detail": f"this action raised and was recorded instead of ending the "
-                       f"investigation — {detail}"},
+                       f"investigation — {detail}",
+             **(failure_extra or {})},
             finding,
         )
         return False
@@ -464,8 +482,17 @@ def _recover_orphan_runs(study: Any, runs_root: Path) -> int:
 # Arc rows that consumed one move from the pool. The _survive failure rows keep
 # the ACTION name as move_type, and run_experiment/call_integration spend
 # BEFORE dispatching, so a failed one still consumed its move.
+#
+# "run_fan" here is the fan's _survive FAILURE row only (a successful fan
+# records one "single" row per member, counted individually above). The fan
+# spent its full width BEFORE dispatching, so the failure row carries
+# fan_width and _moves_consumed counts that — possibly over-counting when some
+# members recorded before the raise (they count again as "single" rows), which
+# is the deliberate conservative direction: over-counting only shrinks the
+# structural backstop, while under-counting would let a resumed tree exceed
+# the total the human set.
 _MOVE_CONSUMING_TYPES = ("single", "campaign", "recovered_run",
-                        "run_experiment", "call_integration",
+                        "run_experiment", "run_fan", "call_integration",
                         "call_ideation", "call_validation", "call_data_analysis")
 # Outcomes recorded before any spend happened — honest refusals, zero cost.
 _UNSPENT_OUTCOMES = ("insufficient_budget", "integration_nothing_to_compose",
@@ -488,7 +515,11 @@ def _moves_consumed(arc: list, studies_root: Path) -> int:
         outcome = str(e.get("outcome") or "")
         if any(marker in outcome for marker in _UNSPENT_OUTCOMES):
             continue
-        if mtype in _MOVE_CONSUMING_TYPES:
+        if mtype == "run_fan":
+            # The fan's failure row: the whole width was spent before dispatch.
+            width = (e.get("tool_output") or {}).get("fan_width")
+            consumed += width if isinstance(width, int) and width > 0 else 1
+        elif mtype in _MOVE_CONSUMING_TYPES:
             consumed += 1
         elif mtype == "spawn_sub_investigation":
             consumed += _spawn_allocation(e, studies_root)
@@ -632,6 +663,7 @@ def free_investigate(
     resume: bool = False,
     decide_action: Callable = None,
     run_move: Callable = None,
+    run_fan: Callable = None,
     execute_capability: Callable = None,
 ) -> dict:
     """Run one free-director investigation to completion and return its report.
@@ -643,7 +675,9 @@ def free_investigate(
     `budget` is the Budget (Phase 1) — the hard, divisible ceiling. `decide_action`
     (default pi_agent.free_decider.decide_action) is the open-action-space model
     brain; `run_move` (default pi_agent.study.run_study_move) dispatches and records
-    an experiment; `execute_capability` (default _unwired_capability) runs the
+    an experiment; `run_fan` (default pi_agent.study.run_study_fan) dispatches a
+    run_fan action's members concurrently and records each in the arc;
+    `execute_capability` (default _unwired_capability) runs the
     non-experiment actions — all injected so the whole loop is exercisable offline
     with fakes and the real path is proven with only the model transport faked.
 
@@ -660,6 +694,8 @@ def free_investigate(
         from pi_agent.free_decider import decide_action as decide_action
     if run_move is None:
         from pi_agent.study import run_study_move as run_move
+    if run_fan is None:
+        from pi_agent.study import run_study_fan as run_fan
     if execute_capability is None:
         from pi_agent.capabilities import execute as execute_capability
 
@@ -822,6 +858,53 @@ def free_investigate(
                          study,
                          _move_from_action(action, study, allowance=move_allowance),
                          finding=finding, runs_root=runs_root))
+            continue
+
+        if name == "run_fan":
+            # A1 (2026-07-29): several experiments dispatched CONCURRENTLY —
+            # the attack on wall-clock serialism, the real ceiling on a long
+            # study (every move is ~1 hour, strictly sequential before this).
+            # run_study_fan is the finished concurrency-safe machinery the enum
+            # loop already used; this wires it to the free director. An N-wide
+            # fan spends N moves (budget conservation — one of the few hard
+            # guarantees), and each member gets an EQUAL SHARE of the token
+            # allowance (_fan_member_allowance), since handing each the whole
+            # remainder would over-grant N-fold. Each member is recorded in the
+            # arc as its own ordinary "single" entry, so nothing downstream
+            # (cost report, liveview, resume) learns a new shape.
+            domains = [d for d in (action.get("fan_domains") or [])
+                       if isinstance(d, str) and d.strip()]
+            width = min(len(domains), budget.remaining())
+            if width <= 0:
+                _record_capability(
+                    study, "run_fan", decisions,
+                    {"succeeded": False, "outcome": "insufficient_budget",
+                     "detail": "no moves remain to run a fan."},
+                    finding,
+                )
+                continue
+            if width < len(domains):
+                # Clamped to the pool, like the enum loop — said out loud so a
+                # watcher (and the arc reader) knows members were dropped.
+                print(f"FAN CLAMPED: {len(domains)} questions asked, "
+                      f"{width} moves remain — dispatching the first {width}.")
+            domains = domains[:width]
+            budget.spend(width)
+            member_allowance = _fan_member_allowance(
+                _move_allowance(token_budget, spent), width)
+            fan_moves = [
+                Move(type=MoveType.SINGLE,
+                     domain=_brief(d, study, action, allowance=member_allowance),
+                     mode=study.mode,
+                     extra_env=_allowance_env(member_allowance))
+                for d in domains
+            ]
+            _survive(study, "run_fan", decisions, finding,
+                     lambda: run_fan(
+                         study, fan_moves,
+                         findings=[finding] * len(fan_moves),
+                         runs_root=runs_root),
+                     failure_extra={"fan_width": width})
             continue
 
         if name == "call_integration":

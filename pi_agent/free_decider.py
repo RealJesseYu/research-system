@@ -56,6 +56,7 @@ FREE_DIRECTOR_STAGE = "free_director"
 # child (docs/free_director_plan.md: freedom in WHAT, the Budget bounds HOW MUCH).
 ACTION_VALUES = (
     "run_experiment",          # dispatch one experiment run (spends one move)
+    "run_fan",                 # dispatch SEVERAL experiment runs concurrently (spends one move EACH)
     "spawn_sub_investigation", # delegate a slice of the budget to a child director
     "call_integration",        # verify the accumulated parts COMPOSE (joint check)
     "call_ideation",           # OPTIONAL tool: the hypothesis apparatus, on demand
@@ -68,9 +69,15 @@ ACTION_VALUES = (
 
 _ENVELOPE_FIELDS = (
     "ack", "reading", "reasoning", "action",
-    "domain", "instrument", "campaign", "budget_moves", "detail", "depth", "pool_size",
-    "novelty_priority", "stop_reason",
+    "domain", "fan_domains", "instrument", "campaign", "budget_moves", "detail",
+    "depth", "pool_size", "novelty_priority", "stop_reason",
 )
+
+# Widest fan a single decision may dispatch. Bounds the prompt-side list (the
+# validator rejects more) so one decision cannot commit an unbounded slab of the
+# move pool; run_study_fan's own max_parallel additionally bounds how many of
+# these run at the same instant. Raise only on evidence a real study wants more.
+MAX_FAN_WIDTH = 8
 
 # Ideation depth (R-FD-6). The hypothesis apparatus has two settings and the
 # director picks: "quick" is one generation strategy, "full" is the whole
@@ -100,6 +107,7 @@ YOUR ACTION SPACE (choose exactly one per turn):
 WHEN A RUN REPORTS ITSELF BLOCKED. A dispatched experiment may come back saying it could not get something — a dataset behind a login, a paid API, a tool it does not have — and naming what a human would need to do. That is a real result, not a failure: it means the work is reachable but not by you alone. Do not paper over it and do not silently retarget the investigation at whatever happens to be accessible. Route around it if a genuinely equivalent route exists, say so if you retarget and what you gave up, and carry the blocker forward so it reaches the human in the write-up. An investigation that ends with "here is what I proved, and here is the one thing I needed you for" is far more valuable than one that quietly answered a smaller question.
 
 - "run_experiment": point one experiment run at a QUESTION ("domain"). Optionally force an "instrument" from the menu, or leave it null for the run to choose. Set "campaign": true for an iterated sweep instead of a single run. Spends one move of your budget.
+- "run_fan": dispatch SEVERAL experiment runs AT ONCE, one per question in "fan_domains" (a list of up to 8 independent questions). They run concurrently, so a fan of N costs roughly the wall-clock of ONE run instead of N in sequence — every run is about an hour, so this is how a wide investigation fits in a day. Spends one move PER question, and your remaining token budget is divided equally among the members, so fan when the questions are genuinely independent (competing designs, parameter corners, rival explanations) and none needs the whole budget's depth. All results are recorded before your next decision, which reads them together.
 - "spawn_sub_investigation": delegate a sub-question ("domain") to a child director with "budget_moves" of your budget carved off for it. Use this to DECOMPOSE — break a big goal into subsystems, each investigated on its own slice. The child cannot exceed the budget you hand it.
 - "call_integration": run an experiment that checks whether the parts you have verified so far actually COMPOSE into a working whole, and measures the joint behavior. Spends one move. Use it after you decompose: subsystems that each pass on their own can still fail together (each locally optimal, the assembly incompatible), and re-running each part's number will never catch that — only assembling and measuring them jointly will. Put the joint criterion in "detail". Do NOT declare a decomposed goal answered until an integration check has stood.
 - "call_ideation": invoke the hypothesis apparatus for a question when you want many candidate directions, not one. It returns ranked candidate hypotheses to YOU — you then decide what to do with them, so you may call it at any point in the investigation, not only at the start, and more than once. OPTIONAL — reach for it only when the task warrants; it is not a mandatory step. ASK IT THE OPEN QUESTION: do NOT narrow the request to your instrument menu, do not list the instruments in it, and do not ask only for hypotheses those tools can run. The menu is what YOU use when dispatching an experiment; pre-constraining ideation to it produces candidates shaped around existing tools, which are overwhelmingly the questions those tools' fields have already answered. Feasibility is judged after the ideas exist, by the reviews and by you. Set "depth": "quick" (the default) for one fast generation pass, or "depth": "full" for the whole apparatus — four competing generation strategies, six review types, an Elo tournament between hypotheses, evolution of the survivors, and a meta-review. "full" costs many model calls and takes far longer, so choose it when the IDEAS THEMSELVES are the deliverable, or when a quick pass came back thin or obvious; choose "quick" when you mainly need a direction to go test. Set "pool_size" to the NUMBER of candidate hypotheses you want — breadth is something you buy out of your token budget, so ask for a large pool when the ideas themselves are the deliverable and you can afford the reviews, and a small one when you just need a direction. Every candidate is reviewed, so cost scales with the pool. Set "novelty_priority" to say how much a NOVEL METHOD is worth when the candidates are ranked, because that depends on the kind of goal you hold and only you know it: "required" puts every methodologically new hypothesis above every known-method one (a SCIENCE goal, where an established answer by an established route is not a result); "irrelevant" ranks on quality alone (an ENGINEERING goal, where a well-proven method is a virtue and novelty is noise); "balanced" (the default, and what you get if you leave it null) lets quality lead and novelty break ties. Only a handful of candidates survive the filter, so this choice decides which whole CLASS of hypothesis you see.
@@ -123,7 +131,7 @@ So read the difficulty honestly. When the arc has answered the question and the 
 
 DISCIPLINE. Work small-before-big: run a cheap experiment, read the VERIFIED result, then scale up, change tack, decompose, or stop — read that judgment off what you actually observed. Respect your budget: it is a hard ceiling on how much you may spend, and a sub-investigation's slice comes out of it. Decompose only when the goal genuinely has separable parts; a simple goal may need just one experiment and a stop.
 
-Reply ONLY with JSON of the form {"ack": "<the study_id you were given>", "reading": "<one or two sentences: what the most recent action's result showed, and what it means for the goal; null only on the first turn when nothing has run>", "reasoning": "<1-3 sentences: why this action next>", "action": "run_experiment" | "spawn_sub_investigation" | "call_ideation" | "call_validation" | "call_data_analysis" | "read_memory" | "write_memory" | "stop", "domain": "<the exact question for run_experiment or spawn_sub_investigation, else null>", "instrument": "<a substrate_id from the menu to force, or null; for run_experiment or call_integration>", "campaign": <true|false, only meaningful for run_experiment; default false>, "budget_moves": <int moves to allocate to the child, required for spawn_sub_investigation, else null>, "detail": "<the request for call_* / write_memory, else null>", "depth": "<'quick' or 'full' for call_ideation, else null>", "pool_size": "<int candidate count for call_ideation, else null>", "novelty_priority": "<'required', 'balanced' or 'irrelevant' for call_ideation, else null>", "stop_reason": "<why the investigation is complete, required for stop, else null>"} — no other fields anywhere."""
+Reply ONLY with JSON of the form {"ack": "<the study_id you were given>", "reading": "<one or two sentences: what the most recent action's result showed, and what it means for the goal; null only on the first turn when nothing has run>", "reasoning": "<1-3 sentences: why this action next>", "action": "run_experiment" | "run_fan" | "spawn_sub_investigation" | "call_ideation" | "call_validation" | "call_data_analysis" | "read_memory" | "write_memory" | "stop", "domain": "<the exact question for run_experiment or spawn_sub_investigation, else null>", "fan_domains": <["<question>", ...] for run_fan — up to 8 independent questions, one concurrent experiment each; else null>, "instrument": "<a substrate_id from the menu to force, or null; for run_experiment or call_integration>", "campaign": <true|false, only meaningful for run_experiment; default false>, "budget_moves": <int moves to allocate to the child, required for spawn_sub_investigation, else null>, "detail": "<the request for call_* / write_memory, else null>", "depth": "<'quick' or 'full' for call_ideation, else null>", "pool_size": "<int candidate count for call_ideation, else null>", "novelty_priority": "<'required', 'balanced' or 'irrelevant' for call_ideation, else null>", "stop_reason": "<why the investigation is complete, required for stop, else null>"} — no other fields anywhere."""
 
 SCHEMA = {"required": ["ack", "reasoning", "action"]}
 
@@ -163,6 +171,28 @@ def make_action_validator(
                 errors.append(
                     f"domain must be a non-empty question when the action is {action}."
                 )
+
+        # fan_domains: run_fan's field and nothing else's. A fan is several
+        # experiments dispatched concurrently, so the list must be non-empty,
+        # every entry a real question, and bounded — each entry spends one move.
+        fan_domains = parsed.get("fan_domains")
+        if action == "run_fan":
+            if not isinstance(fan_domains, list) or not fan_domains:
+                errors.append(
+                    "fan_domains must be a non-empty list of question strings "
+                    "when the action is run_fan (one per concurrent experiment).")
+            elif any(not isinstance(d, str) or not d.strip() for d in fan_domains):
+                errors.append(
+                    "every entry in fan_domains must be a non-empty question "
+                    "string.")
+            elif len(fan_domains) > MAX_FAN_WIDTH:
+                errors.append(
+                    f"fan_domains may hold at most {MAX_FAN_WIDTH} questions "
+                    f"(got {len(fan_domains)}); a fan spends one move per entry.")
+        elif fan_domains is not None:
+            errors.append(
+                f"fan_domains must be null when the action is {action} (only "
+                "run_fan takes fan_domains).")
 
         if action == "spawn_sub_investigation":
             bm = parsed.get("budget_moves")
@@ -269,6 +299,7 @@ def _action_space_menu() -> list:
     each action DOES, not just its name. Pure; mirrors instrument_menu's role."""
     return [
         {"action": "run_experiment", "does": "point one experiment run at a question; spends one move"},
+        {"action": "run_fan", "does": "dispatch up to 8 independent experiment runs CONCURRENTLY (fan_domains), ~the wall-clock of one; spends one move per question, token room divided equally"},
         {"action": "spawn_sub_investigation", "does": "delegate a sub-question to a child director with a slice of the budget"},
         {"action": "call_integration", "does": "run a joint check that the verified parts COMPOSE into a working whole; spends one move"},
         {"action": "call_ideation", "does": "OPTIONAL: invoke the hypothesis apparatus for many candidate directions; ask it the OPEN question, never narrowed to the instrument menu; depth 'quick' (default) = one generation pass, 'full' = four strategies + six reviews + Elo tournament + evolution + meta-review"},
