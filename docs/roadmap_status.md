@@ -28,22 +28,22 @@ The test they all pass: ADDITIVE (adds a capability) survives, SUBSTITUTIVE
 (replaces the agent's access to what happened) does not — measured, see the
 result section below.
 
-- [ ] **A1. Wire parallel fan-out into the free director.** `run_study_fan`
+- [x] **A1. DONE `6eca379`. Wire parallel fan-out into the free director.** `run_study_fan`
       (`pi_agent/study.py:378`) is finished and concurrency-safe; its only caller
       is the dead enum loop. **Wall-clock serialism is the real ceiling** — every
       move is 69–84 turns and ~1 hour, strictly sequential. Needs: new action +
       envelope field + validator, N moves spent for an N-wide fan, and the token
       allowance divided (it currently hands one move the WHOLE remainder).
-- [ ] **A2. Show the director its own trajectory.** Dollars, turns, decisions
+- [x] **A2. DONE `82db60e`. Show the director its own trajectory.** Dollars, turns, decisions
       remaining. Item C already records `usd`/`turns` per arc entry — the data
       exists and is simply not surfaced in `_budget_view`.
-- [ ] **A3. Prediction column.** The director records what it expects a move to
+- [x] **A3. DONE `4b1da90`. Prediction column.** The director records what it expects a move to
       show; sees prediction vs outcome next turn. h13's idea moved to the
       additive side — it must gate nothing.
-- [ ] **A4. ev2** — persist failed/superseded producers tagged with the regime
+- [x] **A4. DONE `7ebb28a`. ev2** — persist failed/superseded producers tagged with the regime
       that broke them, at the artifact level beside the carry bus. A hypothesis
       to measure against a matched floor, not a fix to ship.
-- [ ] **A5. Intermediate signal from a running move.** 69–84 turns with zero
+- [~] **A5. DEFERRED `9863271`, design recorded in docs/design_intermediate_signal.md. Intermediate signal from a running move.** 69–84 turns with zero
       visibility. Hardest; shares a seam with interjection; do last.
 
 ### AFTER THE FIVE — the fork everything has been clearing the way for
@@ -55,8 +55,17 @@ result section below.
       NO standing "verify each part" clause, and pass `--token-budget` and
       `--director free`. Design the judging criteria BEFORE either side runs
       (see B0) or the result is an impression.
-- [ ] **B0. Design the comparison protocol first.** Offline, free, and it must
+- [ ] **B0. Design the comparison protocol first.** ← **NEXT. Offline, free.** Offline, free, and it must
       precede B1: what must a good answer contain, written down in advance.
+
+**One risk to weigh before B1 (owner's call, stated with numbers rather than
+relitigated).** Fan-out is new CONCURRENCY in the critical path of the
+week-ending spend, and concurrency is precisely what offline tests miss. Its
+blast radius is bounded by design — a failing member is recorded, not fatal —
+but a wedged fan spends up to 8 moves for nothing. A 2–3 wide fan on throwaway
+questions costs ~$10–20 and about an hour, roughly 10% of B1. That is insurance
+on the one unexercised path, not a return to the validation-run habit. Declining
+it knowingly is a perfectly reasonable call; declining it by default is not.
 
 **Then the roadmap forks, and this is the honest shape of it:**
 
