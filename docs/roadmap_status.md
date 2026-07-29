@@ -119,9 +119,15 @@ the self-correction mechanism** — compaction would remove it.
 - ❌ **Arc compaction / memory summarisation: DROPPED.** I recommended it on
   reasoning about context growth; the system measured it and it loses. Do not
   revive without evidence that beats a matched floor.
-- ✅ **"Never weaker than a plain chat" is now an empirical result, not just a
-  ruling.** Every added mechanism came in below the do-nothing floor. That is
-  the cage pattern, measured, in this system's own numbers.
+- ⚠️ **CORRECTED: this does NOT show the apparatus beats a chat.** The "floor"
+  in the experiment is *the system's own director re-reading its whole arc* —
+  the do-nothing baseline, which move 3's summary calls "a plain chat that
+  re-reads its arc". So what is measured is **candidate memory policies vs the
+  current design**, and the current design won. Whether the whole apparatus
+  (director + experimenter + wall + tools) beats one prompt to a chat window is
+  **still unmeasured** — it is the checklist's comparison item and nothing here
+  substitutes for it. The cage pattern is real and measured *within* the
+  director; do not stretch it into the product claim.
 - ⚠️ **Caution on simulated evidence:** move 2's 1.55x winner was a simulation
   artifact that did not survive a real director. Simulation earned its keep only
   because move 3 tested it.
