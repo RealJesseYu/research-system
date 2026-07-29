@@ -14,7 +14,7 @@ everywhere.
 |---|---|---|---|
 | 1 | **Defined task** | Execution quality on a fully specified problem | Draft below |
 | 2 | **Open-ended task** | Target selection + end-to-end delivery | **HAVE IT** — the engineering prompt |
-| 3 | **Scientific discovery** | Finding something true that was not already known | Draft below |
+| 3 | **Scientific discovery** | Simulation-driven prediction, checked against literature | **Arm C only** — comparison dropped (owner) |
 
 ---
 
@@ -84,48 +84,80 @@ an operation budget, with the error bound proven on a dense sweep.
 
 ---
 
-## Goal 3 — scientific discovery, bio (draft)
+## Goal 3 — scientific discovery, simulation-driven (REVISED 2026-07-29)
 
-The hard class, because **discovery has a checkability problem**: you cannot
-verify a novel biological claim without an experiment. So the goal must carry
-its own falsification route — a prediction that public data can refute.
+**Owner rulings that shaped this rewrite:**
+1. It must use **simulation** — the structure/affinity stack, not just FBA.
+2. **The comparison is dropped for this goal.** Owner is near-certain Claude
+   Code cannot make scientific discoveries and would rather spend the compute
+   on the attempt than on proving the negative. Run arm C only.
+   *(Recorded counter-argument, made once and overruled: arm B is the cheap arm,
+   so skipping it saves little and costs the ability to answer "how do you
+   know?". Noted, not re-litigated.)*
 
-**Wired capability all arms could use** (arm C has these as substrates; Claude
-Code can `pip install` the same libraries, so the comparison stays fair):
-`cobrapy` (genome-scale metabolic models), `rdkit`, `mafft`, `homology_search`,
-`alphafold_db`, `bio_db_lookup`, plus ESMFold / Chai-1 / Boltz-2 on the GPU lane.
+**Dropping the comparison does NOT drop falsifiability.** A discovery nobody can
+check is a story. With no arm B to compare against, the goal itself has to carry
+the check — which is what the held-out structure below does.
 
-> Using only public data, find a gene whose essentiality a current genome-scale
-> metabolic model of *Escherichia coli* predicts incorrectly, and explain the
-> failure well enough to fix it. Identify the mismatch between model prediction
-> and published experimental essentiality data, determine the biochemical reason
-> — a missing reaction, a wrong cofactor, an incorrect gene-protein-reaction
-> mapping, an unmodelled isozyme — and produce a corrected model file whose
-> prediction for that gene now matches experiment. Then show the correction does
-> not break the model elsewhere: report how many other essentiality calls change,
-> and whether each change moves toward or away from the experimental data. Say
-> which of your conclusions rest on the model being right about things you did
-> not check.
+### The simulation stack this goal is built on
 
-**Why this is falsifiable without a wet lab:** the experimental essentiality
-data already exists (Keio collection and successors); the model's prediction is
-computable; the corrected model's predictions are computable. **Every claim can
-be checked by re-running.** The discovery is real — a specific curation error in
-a published model — but the verification is entirely computational.
+| tool | call | gives |
+|---|---|---|
+| **Boltz-2** | `{protein_sequence, ligand, quantity: "affinity"}` | co-folded complex **and** binding affinity |
+| **AutoDock Vina** | `{receptor, ligand, box, quantity: "docking_score"}` | docking score |
+| ESMFold / Chai-1 | remote GPU lane | structure (ESMFold validated 0.834 Å CA-RMSD vs 1UBQ) |
+| rdkit | local | ligand preparation, descriptors, chemical series |
 
-**Why it suits the architecture without rigging:** it has separable parts
-(find mismatches / diagnose one / correct it / regression-test the correction),
-it produces numbers rather than prose, and it has a natural failure mode the
-comparison should expose — an arm that finds a mismatch and *asserts* a cause
-without testing the corrected model has not done the work.
+**The standing discipline applies and is the reason this is trustworthy:** a
+remote fold is an **INPUT, never a claim**. Do the expensive thing once, bring
+the structure back, and compute the numbers of record **locally**, where they
+are cheap and reproducible. That is how ESMFold and Chai-1 were validated.
 
-**Materials-science alternative** if you prefer: the wiring is thinner —
-`lookup_material` is a retrieval call against Materials Project, not a
-substrate, and there is no simulation backend for materials — so an arm would
-be doing its own computation from scratch. Viable, but bio is the better-armed
-choice today.
+### The goal
 
----
+> Pick a protein target with a known ligand-binding site and a published,
+> measured affinity series — a set of related compounds whose binding to it has
+> been quantified. Withhold nothing from yourself at the start: read what is
+> known. Then extend it. Design or select compounds OUTSIDE the published
+> series, predict their binding affinity by simulation, and rank them. Commit to
+> a ranked list with a stated affinity and a confidence for each, before you look
+> for any measurement of them. Then go looking: for every compound you predicted
+> where a measured value exists anywhere in the public literature or in
+> ChEMBL/BindingDB, report your prediction against the measurement, including the
+> ones you got wrong. Report the rank correlation and the mean absolute error
+> over every compound you can find data for, not a selected subset. Say which
+> predictions rest on the fold being right, which rest on the scoring function,
+> and what result would have told you the method does not work.
+
+### Why this is a real discovery attempt and still checkable
+
+- **The prediction is committed before the lookup.** The order is enforced by
+  the goal text, and the arc records it — a director that predicts, then
+  searches, leaves both in order on disk.
+- **The check is public data the arm did not fit to.** No held-out dataset for
+  a human to police; the literature is the held-out set.
+- **Reporting every hit, not a subset**, is the anti-cherry-pick clause, and the
+  one a reader will look for first.
+- **It can fail honestly.** If rank correlation is near zero, that is a real
+  finding about simulation-based affinity prediction on this target, and the
+  goal explicitly asks what result would have shown the method does not work.
+
+### Why it suits the architecture without rigging
+
+Separable parts (target selection / structure / compound set / prediction /
+lookup) so fan-out has genuine work; produces numbers, not prose; and the
+propose/measure boundary does real work here — affinities are *predictions*
+until measured, and the wall cannot verify a prediction about the physical
+world, only that the computation reproduces. **That distinction should appear
+in the write-up.** An arm that reports predicted affinities as verified findings
+has misunderstood its own instrument.
+
+### Cost note
+
+Boltz-2 and the folding lane are remote GPU (Modal, authenticated on this
+machine at `~/.modal.toml`). ESMFold measured **$0.042 / 109 s** per fold, so a
+compound series is inexpensive — but it is real money on a real bill, and
+`RESEARCH_GPU_BUDGET_USD` bounds it. Set it before the run.
 
 ## Before freezing any of these
 
