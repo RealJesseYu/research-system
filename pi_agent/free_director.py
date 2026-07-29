@@ -603,14 +603,75 @@ def _tokens_spent(arc: list, spend_start: dict) -> int:
         return None
 
 
-def _budget_view(budget: Budget, tokens_spent: int, token_budget: Optional[int]) -> dict:
+def _trajectory_view(arc: Optional[list], decisions: Optional[int],
+                     decision_cap: Optional[int]) -> Optional[dict]:
+    """A2 (2026-07-29): the director's own trajectory, surfaced. It planned with
+    almost no self-knowledge — moves and tokens, never dollars, never agentic
+    turns, never its own decision cap (which could end the study invisibly).
+    Item C already records usd/turns on every arc entry's cost; this only
+    SURFACES what is recorded — display, no new collection, no new constraint.
+
+    Never raises, and never lies: sums cover only the arc entries that carry
+    the field, and the coverage is said out loud so partial recording reads as
+    partial, not as cheap. None when there is nothing to show (no arc and no
+    cap) — the view is then byte-identical to before this existed."""
+    try:
+        if arc is None and decisions is None:
+            return None
+        traj: dict = {}
+        entries = [e for e in (arc or []) if isinstance(e, dict)]
+        usd = 0.0
+        turns = usd_covered = turns_covered = 0
+        for e in entries:
+            cost = e.get("cost")
+            if not isinstance(cost, dict):
+                continue
+            u, n = cost.get("usd"), cost.get("turns")
+            if isinstance(u, (int, float)) and not isinstance(u, bool):
+                usd += float(u)
+                usd_covered += 1
+            if isinstance(n, int) and not isinstance(n, bool):
+                turns += n
+                turns_covered += 1
+        if usd_covered:
+            traj["usd_spent"] = round(usd, 2)
+            if usd_covered < len(entries):
+                traj["usd_note"] = (f"summed over the {usd_covered} of "
+                                    f"{len(entries)} arc entries that recorded "
+                                    "a dollar cost — the true total is higher")
+        elif entries:
+            traj["usd_spent"] = "unknown — no arc entry recorded a dollar cost"
+        if turns_covered:
+            traj["agentic_turns_spent"] = turns
+            if turns_covered < len(entries):
+                traj["turns_note"] = (f"summed over {turns_covered} of "
+                                      f"{len(entries)} arc entries")
+        if decisions is not None and decision_cap is not None:
+            traj["this_is_decision"] = decisions
+            traj["decision_cap"] = decision_cap
+            traj["decisions_remaining_after_this"] = max(0, decision_cap - decisions)
+        return traj or None
+    except Exception as e:  # noqa: BLE001 — display must never sink a decision
+        return {"note": f"trajectory accounting failed this turn "
+                        f"({type(e).__name__}) — spend is unknown, not zero"}
+
+
+def _budget_view(budget: Budget, tokens_spent: int, token_budget: Optional[int],
+                 *, arc: Optional[list] = None, decisions: Optional[int] = None,
+                 decision_cap: Optional[int] = None) -> dict:
     """What the director is shown about its own ceiling. The move pool is the
     structural bound — it guarantees termination and divides for spawns — but
     MOVES ARE A POOR PROXY FOR COST: measured live, a 2-move study cost 55M tokens
     while a 4-move one cost 15.9M, because a single experimenter call runs an
     agentic loop of up to 200 turns. So when a token budget is set it is shown as
-    the real constraint, and the director scales depth to it."""
+    the real constraint, and the director scales depth to it. `arc` / `decisions`
+    / `decision_cap` feed the trajectory block (A2) — dollars, agentic turns and
+    the decision runway, all display-only; omitted (the old signature), the view
+    is unchanged."""
     view = dict(budget.report())
+    trajectory = _trajectory_view(arc, decisions, decision_cap)
+    if trajectory:
+        view["trajectory"] = trajectory
     view["tokens_spent"] = tokens_spent
     if token_budget:
         view["token_budget"] = token_budget
@@ -778,7 +839,8 @@ def free_investigate(
         try:
             action = _decide_with_retry(
                 decide_action, study, arc,
-                _budget_view(budget, spent, token_budget))
+                _budget_view(budget, spent, token_budget, arc=arc,
+                             decisions=decisions, decision_cap=cap))
             decider_failures = 0
         except Exception as e:  # noqa: BLE001
             # A TRANSPORT HICCUP MUST NOT END A STUDY. This used to break out of
