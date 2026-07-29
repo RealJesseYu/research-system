@@ -29,6 +29,38 @@ from pi_agent.budget import EST_COST_PER_MOVE_USD, Budget  # noqa: E402
 from pi_agent.loop import DEFAULT_MAX_MOVES, investigate  # noqa: E402
 
 
+def _open_pdf(path) -> None:
+    """Open a finished paper in whatever the OS uses for PDFs. Best-effort and
+    silent about it: a run that produced a paper has already succeeded, and a
+    viewer that will not launch must never be the last thing printed.
+
+    Skipped when NO_OPEN is set, and on Linux without a display — a headless box
+    has no viewer to hand the file to.
+    """
+    import os
+    import platform
+    import shutil
+    import subprocess
+
+    if os.environ.get("NO_OPEN"):
+        return
+    system = platform.system()
+    if system == "Darwin":
+        cmd = ["open", str(path)]
+    elif system == "Windows":
+        cmd = ["cmd", "/c", "start", "", str(path)]
+    else:
+        if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
+            return
+        if not shutil.which("xdg-open"):
+            return
+        cmd = ["xdg-open", str(path)]
+    try:
+        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:  # noqa: BLE001 — opening a viewer may not sink a finished run
+        pass
+
+
 def _resolve_ceiling(max_moves: int | None, cost_cap: float | None) -> tuple[int, dict]:
     """Turn the human's ceiling input into the enforced move bound + a provenance
     record (R-FD-2). The human sets EITHER --max-moves OR --cost-cap; moves stay
@@ -296,6 +328,13 @@ def main(argv: list | None = None) -> None:
                     if missing:
                         print(f"  NOTE: {len(missing)} figure(s) referenced but "
                               f"not found: {', '.join(missing)}")
+                    # OPEN IT. A long run finishes hours later, often overnight,
+                    # and a path printed into a scrollback nobody is watching is
+                    # not a deliverable that reaches anyone. NO_OPEN=1 suppresses
+                    # this; it is also skipped without a display, because a
+                    # headless box has nothing to open the file with and the
+                    # attempt would just print an error at the end of a good run.
+                    _open_pdf(Path(typeset["pdf_path"]))
                 elif typeset.get("tex_path"):
                     print(f"tex: {typeset['tex_path']} — no PDF "
                           f"({typeset.get('error') or 'no TeX engine found'}; "

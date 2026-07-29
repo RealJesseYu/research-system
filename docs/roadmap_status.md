@@ -21,7 +21,32 @@ Ordered by one constraint: **a long run consumes the rest of the week's limit**,
 so it is the last act of the week. Everything free happens first, and the long
 run must carry every job it can.
 
-### Next — offline, costs no compute
+### NEXT SESSION — the five additive improvements (owner ruled 2026-07-29)
+
+Full plan with file:line detail, traps and ordering: **`docs/plan_additive_director.md`**.
+The test they all pass: ADDITIVE (adds a capability) survives, SUBSTITUTIVE
+(replaces the agent's access to what happened) does not — measured, see the
+result section below.
+
+- [ ] **A1. Wire parallel fan-out into the free director.** `run_study_fan`
+      (`pi_agent/study.py:378`) is finished and concurrency-safe; its only caller
+      is the dead enum loop. **Wall-clock serialism is the real ceiling** — every
+      move is 69–84 turns and ~1 hour, strictly sequential. Needs: new action +
+      envelope field + validator, N moves spent for an N-wide fan, and the token
+      allowance divided (it currently hands one move the WHOLE remainder).
+- [ ] **A2. Show the director its own trajectory.** Dollars, turns, decisions
+      remaining. Item C already records `usd`/`turns` per arc entry — the data
+      exists and is simply not surfaced in `_budget_view`.
+- [ ] **A3. Prediction column.** The director records what it expects a move to
+      show; sees prediction vs outcome next turn. h13's idea moved to the
+      additive side — it must gate nothing.
+- [ ] **A4. ev2** — persist failed/superseded producers tagged with the regime
+      that broke them, at the artifact level beside the carry bus. A hypothesis
+      to measure against a matched floor, not a fix to ship.
+- [ ] **A5. Intermediate signal from a running move.** 69–84 turns with zero
+      visibility. Hardest; shares a seam with interjection; do last.
+
+### Also open — offline, costs no compute
 
 - [x] **1. System map — DONE 2026-07-28** (`1e6c16d`), `docs/system_map.md`.
       Control flow, where the money goes, a CODE-vs-PROMPT lever table, the
