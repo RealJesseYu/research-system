@@ -34,10 +34,45 @@ All arms get **the same goal text, verbatim**, and the same wall-clock budget.
 Arm B is the load-bearing one. If C does not beat B, the result is that the
 orchestration does not earn its complexity — regardless of what A does.
 
-**Not run this week:** an independent autonomous system (AI Scientist / Sakana
-and similar). Closest published analogue, but standing one up is its own
-project — dependencies, its own task format, its own model spend — and it would
-consume the week that B1 needs. Cite qualitatively; benchmark against B.
+### Arm D — AI Scientist (CORRECTED 2026-07-29: it is already stood up)
+
+An earlier draft of this file said standing it up was its own project. **That
+was wrong.** It is already running on this machine:
+`~/ai-scientist-reviewer/external/ai-scientist-reproduced/`, driven by
+`~/ai-scientist-reviewer/launch_regeneration.sh`, in the frozen 2024 Docker
+image `t4646/ai-scientist:20240817`. Eight-plus completed idea runs from
+2026-07-25/26 under `results/sgd/`, each with a generated PDF.
+
+**The real obstacle is different, and it is structural rather than logistical:**
+
+1. **It is template-bound.** AI Scientist v1 works from a *template* (sgd,
+   nanoGPT, 2d_diffusion, grokking), not an arbitrary goal string. Arms A/B/C
+   all take the same frozen goal text; D cannot, unless a template is written
+   for it.
+2. **The existing run used `--skip-idea-generation` with a fixed idea list** —
+   it was a fidelity reproduction of a critique paper's batch, not an
+   open-goal run.
+3. **It is pinned to `gpt-4o-2024-05-13`**, deliberately, for that fidelity.
+   Left as-is it compares a 2024 model to current ones; repointed, it is no
+   longer the reproduction.
+
+**So there is a real choice to make, and it constrains §3:**
+
+- **(a) Include D as a same-task arm** → the goal must be ML-experiment shaped,
+  because that is what templates cover, and a template must be written for it.
+  Buys a genuine independent-system comparison; costs goal generality, and the
+  claim afterwards is about ML experimentation specifically.
+- **(b) Run D on its own terms** as a qualitative reference — same *class* of
+  work, different task — and keep the goal free. Weaker as evidence, honest if
+  labelled as such.
+- **(c) Omit D.** Arm B remains the load-bearing baseline either way.
+
+**Recommendation: (b), unless the goal you want is already ML-shaped, in which
+case (a) is clearly better.** Do not let the availability of arm D drag the goal
+into a shape that suits it — the goal should be chosen on §3's constraints
+first, and D included only if it happens to fit.
+
+Whatever is chosen, record which, and note that D's model pin differs.
 
 ## 3. Choosing the goal — constraints, fixed now
 
