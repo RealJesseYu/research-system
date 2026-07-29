@@ -46,6 +46,31 @@ result section below.
 - [ ] **A5. Intermediate signal from a running move.** 69–84 turns with zero
       visibility. Hardest; shares a seam with interjection; do last.
 
+### AFTER THE FIVE — the fork everything has been clearing the way for
+
+- [ ] **B1. The long engineering run, which IS the chat comparison.** One goal,
+      run once through the system and once as a single Claude chat prompt.
+      Fan-out (A1) changes what this run can be — 15 moves stops being a
+      15-hour serial chain. Write the goal saying what the deliverable IS, with
+      NO standing "verify each part" clause, and pass `--token-budget` and
+      `--director free`. Design the judging criteria BEFORE either side runs
+      (see B0) or the result is an impression.
+- [ ] **B0. Design the comparison protocol first.** Offline, free, and it must
+      precede B1: what must a good answer contain, written down in advance.
+
+**Then the roadmap forks, and this is the honest shape of it:**
+
+- **If the system clearly beats one chat prompt** → the product claim is real.
+  Go to Phase 4: security and multi-tenancy (running strangers' code in Docker
+  is a security problem, not cleanup), then interjection + front end, then ship.
+- **If it does not** → that is the most valuable finding available, and it
+  reshapes everything above it. Better to learn it from one $150 run than after
+  building a product on top of it.
+
+**Do not schedule past this fork.** Everything beyond B1 is contingent on what
+B1 says, and planning it now is planning against imagination — the same mistake
+that produced the arc-compaction work the system later refuted.
+
 ### Also open — offline, costs no compute
 
 - [x] **1. System map — DONE 2026-07-28** (`1e6c16d`), `docs/system_map.md`.
