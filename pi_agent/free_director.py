@@ -234,8 +234,16 @@ def _integration_context(study: Any) -> dict:
     Arc artifacts are collected BEFORE inherited ones and dedup is first-wins, so a
     file this study regenerated supersedes the version it inherited — which is what
     iterative work needs: the newest version of a design is the one that carries.
+
+    `failed` (ev2, A4 2026-07-29) is the bounded negative store: producers that
+    did NOT reproduce, each tagged with how it broke ({name, producer, broke,
+    from}). A failed name that a VERIFIED same-name file supersedes is dropped —
+    the success carries instead. This is the artifact-level form of ideation's
+    ev2 hypothesis (error-tagged negative selection); its memory-policy ancestor
+    was refuted, so this is a HYPOTHESIS being carried to a measurement, not a
+    proven fix — it adds a block to the brief and removes nothing.
     """
-    parts, files, seen = [], [], set()
+    parts, files, failed, seen, seen_failed = [], [], [], set(), set()
     for entry in study_findings(study):
         for f in entry.get("results", []) or []:
             if isinstance(f, dict) and f.get("verified"):
@@ -245,11 +253,20 @@ def _integration_context(study: Any) -> dict:
             if isinstance(ra, dict) and ra.get("name") and ra["name"] not in seen:
                 seen.add(ra["name"])
                 files.append({"name": ra["name"], "producer": ra.get("producer")})
+        for fa in entry.get("failed_artifacts", []) or []:
+            if (isinstance(fa, dict) and fa.get("name")
+                    and fa["name"] not in seen_failed):
+                seen_failed.add(fa["name"])
+                failed.append({"name": fa["name"], "producer": fa.get("producer"),
+                               "broke": fa.get("broke"),
+                               "from": entry.get("run_id")})
     for ra in getattr(study, "inherited_artifacts", None) or []:
         if isinstance(ra, dict) and ra.get("name") and ra["name"] not in seen:
             seen.add(ra["name"])
             files.append({"name": ra["name"], "producer": ra.get("producer")})
-    return {"parts": parts, "files": files}
+    # A failure a later verified version superseded is not carried — the fix is.
+    failed = [f for f in failed if f["name"] not in seen][:MAX_CARRIED_FAILED]
+    return {"parts": parts, "files": files, "failed": failed}
 
 
 # The carry bus (artifact hand-off). A phase that built something must be able to
@@ -261,33 +278,59 @@ def _integration_context(study: Any) -> dict:
 # Bounded so a long arc cannot grow the question without limit; the newest
 # artifacts (arc before inherited, see _integration_context) survive the cap.
 MAX_CARRIED_FILES = 8
+# ev2: how many failed producers travel. Smaller than the success cap — the
+# negative store is context, not the work itself.
+MAX_CARRIED_FAILED = 4
 
 
-def _carry_block(files: list) -> str:
+def _carry_block(files: list, failed: Optional[list] = None) -> str:
     """The prose that hands re-runnable file producers to a dispatched move. Same
     contract as _integration_domain's file clause: the file travels as a PRODUCER
     the receiver re-runs, never as a stored copy, so a carried artifact is
     reproducible at every hop. Empty string when there is nothing to carry (the
-    caller then leaves the question byte-identical)."""
+    caller then leaves the question byte-identical).
+
+    `failed` (ev2, A4) appends the bounded negative store — producers that broke,
+    each with the recorded regime/reason. Framed as information the receiver MAY
+    use or ignore, never a constraint: success-only hand-off ratchets capability
+    on the familiar regime while losing the ability to notice the regime has
+    shifted, and these are the error tags that make the shift detectable."""
     carried = (files or [])[:MAX_CARRIED_FILES]
-    if not carried:
-        return ""
-    producers = json.dumps(
-        [{"name": f.get("name"), "producer": f.get("producer")} for f in carried]
-    )
-    return (
-        "\n\nWORK ALREADY BUILT AND VERIFIED, handed to you to BUILD ON. Each is a "
-        "re-runnable producer: INLINE it as a step to regenerate the file in your "
-        "workspace (never assume a stored copy is present), then build on the "
-        f"result instead of starting from scratch: {producers}"
-    )
+    out = []
+    if carried:
+        producers = json.dumps(
+            [{"name": f.get("name"), "producer": f.get("producer")} for f in carried]
+        )
+        out.append(
+            "\n\nWORK ALREADY BUILT AND VERIFIED, handed to you to BUILD ON. Each is a "
+            "re-runnable producer: INLINE it as a step to regenerate the file in your "
+            "workspace (never assume a stored copy is present), then build on the "
+            f"result instead of starting from scratch: {producers}"
+        )
+    broken = (failed or [])[:MAX_CARRIED_FAILED]
+    if broken:
+        negatives = json.dumps(
+            [{"name": f.get("name"), "producer": f.get("producer"),
+              "broke": f.get("broke")} for f in broken]
+        )
+        out.append(
+            "\n\nPRODUCERS THAT FAILED EARLIER IN THIS INVESTIGATION, each tagged "
+            "with how it broke — negative examples, handed to you as information, "
+            "not instruction: you may use or ignore them. Do NOT build on one "
+            "without addressing its recorded failure, and if your own approach "
+            "starts failing the same way, that is a sign the regime these were "
+            f"built for has shifted: {negatives}"
+        )
+    return "".join(out)
 
 
 def _carry_domain(domain: str, study: Any) -> str:
     """The question a dispatched move actually receives: the director's question
-    plus the study's carried file producers. Byte-identical to `domain` when the
-    study has carried nothing — a first move in a fresh study is unchanged."""
-    return domain + _carry_block(_integration_context(study)["files"])
+    plus the study's carried file producers (and, ev2, its failed ones).
+    Byte-identical to `domain` when the study has carried nothing — a first move
+    in a fresh study is unchanged."""
+    context = _integration_context(study)
+    return domain + _carry_block(context["files"], context["failed"])
 
 
 # How many established results travel into a brief. Bounded so a long study does
@@ -339,7 +382,7 @@ def _brief(domain: str, study: Any, action: dict,
         "different measurement, a cheaper probe first, or reporting that the "
         "question is malformed, do that and say so.")
     parts.append(_allowance_sentence(allowance))
-    parts.append(_carry_block(context["files"]))
+    parts.append(_carry_block(context["files"], context["failed"]))
     return "".join(parts)
 
 

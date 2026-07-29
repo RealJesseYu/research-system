@@ -105,6 +105,13 @@ class RunResult:
     # {name, producer} (cross-run file hand-off, increment 3). A file crosses as
     # its re-runnable producer, never as bytes; only reproduced ones appear here.
     reusable_artifacts: list = field(default_factory=list)
+    # ev2 (A4, 2026-07-29): producers the run declared that did NOT reproduce —
+    # each {name, producer, broke} where `broke` is the recorded failure. Kept
+    # SEPARATE from reusable_artifacts (which stays verified-only, so nothing
+    # downstream can mistake a broken producer for a good one): these are
+    # negative examples, carried so a later phase can detect that the regime a
+    # design was built in has shifted. Additive — a run with none is unchanged.
+    failed_artifacts: list = field(default_factory=list)
 
     @property
     def completed(self) -> bool:
@@ -129,6 +136,7 @@ class RunResult:
             "findings": self.findings,
             "cost": self.cost,
             "reusable_artifacts": self.reusable_artifacts,
+            "failed_artifacts": self.failed_artifacts,
             "completed": self.completed,
         }
 
@@ -185,6 +193,7 @@ def read_run_result(
     paper_path = str(paper) if paper.is_file() else None
 
     reusables = _read_reusable_artifacts(run_dir)
+    failed = _read_failed_artifacts(run_dir)
 
     return RunResult(
         run_id=run_id,
@@ -202,6 +211,7 @@ def read_run_result(
         findings=findings,
         cost=extras.get("cost") if isinstance(extras, dict) else None,
         reusable_artifacts=reusables,
+        failed_artifacts=failed,
     )
 
 
@@ -270,6 +280,42 @@ def _read_reusable_artifacts(run_dir: Path) -> list:
     for ra in (data.get("reusable_artifacts") or [])[:_MAX_FINDINGS]:
         if isinstance(ra, dict) and ra.get("verified") and ra.get("name") and ra.get("producer"):
             out.append({"name": ra["name"], "producer": ra["producer"]})
+    return out
+
+
+# ev2: how much of a failure's recorded reason travels. Bounded so a huge
+# traceback cannot bloat every later brief that carries the negative example.
+_MAX_BROKE_CHARS = 300
+_MAX_FAILED_ARTIFACTS = 8
+
+
+def _read_failed_artifacts(run_dir: Path) -> list:
+    """ev2 (A4): the run's declared producers that did NOT re-emit their file,
+    read from the same free_investigation.json — the reproduction gate keeps
+    them with verified:false and the failure reason rather than dropping them.
+    Each returned entry is {name, producer, broke}: the negative example plus
+    the recorded regime/reason it broke in. Never raises; missing/malformed is
+    simply no failed artifacts."""
+    import json
+
+    fpath = Path(run_dir) / "free_investigation.json"
+    if not fpath.is_file():
+        return []
+    try:
+        data = json.loads(fpath.read_text())
+    except Exception:  # noqa: BLE001
+        return []
+    out = []
+    for ra in (data.get("reusable_artifacts") or []):
+        if len(out) >= _MAX_FAILED_ARTIFACTS:
+            break
+        if (isinstance(ra, dict) and not ra.get("verified")
+                and ra.get("name") and ra.get("producer")):
+            broke = ra.get("error")
+            broke = (broke if isinstance(broke, str) and broke.strip()
+                     else "did not reproduce (no reason recorded)")
+            out.append({"name": ra["name"], "producer": ra["producer"],
+                        "broke": broke[:_MAX_BROKE_CHARS]})
     return out
 
 

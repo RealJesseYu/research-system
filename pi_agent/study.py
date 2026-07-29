@@ -202,7 +202,8 @@ def next_move_run_id(study: Study) -> str:
 # Keys record_move already maps onto named arc fields. Anything else a move
 # returns is the TOOL's own payload and rides in "tool_output" (see below).
 _ARC_MAPPED_KEYS = frozenset(
-    {"findings", "cost", "reusable_artifacts", "publishable", "succeeded", "outcome"}
+    {"findings", "cost", "reusable_artifacts", "failed_artifacts", "publishable",
+     "succeeded", "outcome"}
 )
 
 
@@ -263,6 +264,11 @@ def record_move(
         "tool_output": {k: v for k, v in raw.items() if k not in _ARC_MAPPED_KEYS},
         "finding": finding,
     }
+    # ev2 (A4): producers that did NOT reproduce, each tagged with how it broke
+    # — negative examples for regime-shift detection. Written only when the run
+    # reported any, so arcs without them are byte-identical.
+    if raw.get("failed_artifacts"):
+        entry["failed_artifacts"] = raw["failed_artifacts"]
     if prediction is not None:
         entry["prediction"] = prediction
     study.dir.mkdir(parents=True, exist_ok=True)
@@ -309,6 +315,9 @@ def study_findings(study: Study) -> list:
                 # decides blind — see record_move's tool_output note.
                 "tool_output": e.get("tool_output") or {},
                 "finding": e.get("finding"),
+                # ev2 (A4): failed producers with how each broke, when any.
+                **({"failed_artifacts": e["failed_artifacts"]}
+                   if e.get("failed_artifacts") else {}),
                 # The director's recorded expectation for this move (A3), shown
                 # beside the outcome so it can calibrate its own judgement.
                 # Present only when one was recorded — old arcs are unchanged.
