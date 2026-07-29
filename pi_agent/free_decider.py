@@ -70,7 +70,7 @@ ACTION_VALUES = (
 _ENVELOPE_FIELDS = (
     "ack", "reading", "reasoning", "action",
     "domain", "fan_domains", "instrument", "campaign", "budget_moves", "detail",
-    "depth", "pool_size", "novelty_priority", "stop_reason",
+    "depth", "pool_size", "novelty_priority", "prediction", "stop_reason",
 )
 
 # Widest fan a single decision may dispatch. Bounds the prompt-side list (the
@@ -131,7 +131,7 @@ So read the difficulty honestly. When the arc has answered the question and the 
 
 DISCIPLINE. Work small-before-big: run a cheap experiment, read the VERIFIED result, then scale up, change tack, decompose, or stop — read that judgment off what you actually observed. Respect your budget: it is a hard ceiling on how much you may spend, and a sub-investigation's slice comes out of it. Decompose only when the goal genuinely has separable parts; a simple goal may need just one experiment and a stop.
 
-Reply ONLY with JSON of the form {"ack": "<the study_id you were given>", "reading": "<one or two sentences: what the most recent action's result showed, and what it means for the goal; null only on the first turn when nothing has run>", "reasoning": "<1-3 sentences: why this action next>", "action": "run_experiment" | "run_fan" | "spawn_sub_investigation" | "call_ideation" | "call_validation" | "call_data_analysis" | "read_memory" | "write_memory" | "stop", "domain": "<the exact question for run_experiment or spawn_sub_investigation, else null>", "fan_domains": <["<question>", ...] for run_fan — up to 8 independent questions, one concurrent experiment each; else null>, "instrument": "<a substrate_id from the menu to force, or null; for run_experiment or call_integration>", "campaign": <true|false, only meaningful for run_experiment; default false>, "budget_moves": <int moves to allocate to the child, required for spawn_sub_investigation, else null>, "detail": "<the request for call_* / write_memory, else null>", "depth": "<'quick' or 'full' for call_ideation, else null>", "pool_size": "<int candidate count for call_ideation, else null>", "novelty_priority": "<'required', 'balanced' or 'irrelevant' for call_ideation, else null>", "stop_reason": "<why the investigation is complete, required for stop, else null>"} — no other fields anywhere."""
+Reply ONLY with JSON of the form {"ack": "<the study_id you were given>", "reading": "<one or two sentences: what the most recent action's result showed, and what it means for the goal; null only on the first turn when nothing has run>", "reasoning": "<1-3 sentences: why this action next>", "action": "run_experiment" | "run_fan" | "spawn_sub_investigation" | "call_ideation" | "call_validation" | "call_data_analysis" | "read_memory" | "write_memory" | "stop", "domain": "<the exact question for run_experiment or spawn_sub_investigation, else null>", "fan_domains": <["<question>", ...] for run_fan — up to 8 independent questions, one concurrent experiment each; else null>, "instrument": "<a substrate_id from the menu to force, or null; for run_experiment or call_integration>", "campaign": <true|false, only meaningful for run_experiment; default false>, "budget_moves": <int moves to allocate to the child, required for spawn_sub_investigation, else null>, "detail": "<the request for call_* / write_memory, else null>", "depth": "<'quick' or 'full' for call_ideation, else null>", "pool_size": "<int candidate count for call_ideation, else null>", "novelty_priority": "<'required', 'balanced' or 'irrelevant' for call_ideation, else null>", "prediction": "<OPTIONAL, any action: one sentence on what you EXPECT this move to show. It is recorded beside the actual outcome so on later turns you see expectation vs result and can calibrate your own judgement over the arc. It decides nothing and is never scored — null to skip>", "stop_reason": "<why the investigation is complete, required for stop, else null>"} — no other fields anywhere."""
 
 SCHEMA = {"required": ["ack", "reasoning", "action"]}
 
@@ -259,6 +259,17 @@ def make_action_validator(
                     f"detail must be a non-empty string when the action is {action} "
                     "(what to ask the tool, or the lesson to record)."
                 )
+
+        # prediction (A3, 2026-07-29): optional on ANY action — what the
+        # director expects this move to show. It is recorded beside the outcome
+        # and DECIDES NOTHING: no gate, no score, no constraint on later
+        # actions. Purely a calibration column the director reads back.
+        prediction = parsed.get("prediction")
+        if prediction is not None and (
+                not isinstance(prediction, str) or not prediction.strip()):
+            errors.append(
+                "prediction must be a non-empty string (what you expect this "
+                "move to show) or null to skip it.")
 
         if action == "stop":
             sr = parsed.get("stop_reason")

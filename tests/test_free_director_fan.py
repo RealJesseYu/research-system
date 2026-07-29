@@ -152,7 +152,9 @@ class TestFanInTheLoop(unittest.TestCase):
         run_ids = [e["run_id"] for e in report["arc"]]
         self.assertEqual(run_ids, ["s-m1", "s-m2", "s-m3"])  # distinct, ordered
         # each member's brief carries ITS question (plus the study context).
-        for move, q in zip(seen, ["qa?", "qb?", "qc?"]):
+        # `seen` is appended from worker THREADS, so order it by run_id first.
+        for move, q in zip(sorted(seen, key=lambda m: m.run_id),
+                           ["qa?", "qb?", "qc?"]):
             self.assertTrue(move.domain.startswith(q))
             self.assertIn("THE OVERALL GOAL: goal", move.domain)
 
@@ -182,8 +184,9 @@ class TestFanInTheLoop(unittest.TestCase):
         self.assertEqual(report["moves_run"], 2)
         self.assertEqual(report["budget_final"]["remaining"], 0)
         self.assertEqual(report["termination"]["reason"], "budget_spent")
-        self.assertEqual([m.domain.split("\n")[0] for m in seen],
-                         ["qa?", "qb?"])  # the first two, in order
+        self.assertEqual(
+            sorted(m.domain.split("\n")[0] for m in seen),
+            ["qa?", "qb?"])  # the first two questions (seen order is threaded)
 
     def test_a_raising_member_is_a_recorded_result_not_a_crash(self):
         script = [

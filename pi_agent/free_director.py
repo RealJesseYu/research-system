@@ -184,7 +184,24 @@ def _move_from_action(action: dict, study: Any, allowance: Optional[int] = None)
     )
 
 
-def _record_capability(study: Any, action_name: str, seq: int, result: dict, finding: str) -> None:
+def _seam_accepts(fn, name: str) -> bool:
+    """True when the injected callable can take `name` as a keyword. The
+    prediction column (A3) is a new argument to callables TESTS INJECT
+    (run_move / run_fan fakes with the older signature), so it is passed only
+    when the seam can take it — same introspection idiom as
+    capabilities._run_accepts, recomputed per call because the seam varies."""
+    import inspect
+    try:
+        params = inspect.signature(fn).parameters
+    except (TypeError, ValueError):
+        return False
+    if any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()):
+        return True
+    return name in params
+
+
+def _record_capability(study: Any, action_name: str, seq: int, result: dict,
+                       finding: str, prediction: Optional[str] = None) -> None:
     """Record a non-experiment action to the arc via the same record_move path the
     runs use, so the next decision reads it uniformly. Wrapped as a MoveResult
     whose move_type is the action and whose raw carries the capability result.
@@ -202,6 +219,7 @@ def _record_capability(study: Any, action_name: str, seq: int, result: dict, fin
             raw=result,
         ),
         finding=finding,
+        prediction=prediction,
     )
 
 
@@ -888,6 +906,11 @@ def free_investigate(
 
         name = action.get("action")
         finding = action.get("reasoning")
+        # A3: the director's optional expectation for this move, recorded
+        # beside the outcome. Passed to a seam only when it accepts the
+        # keyword, so injected fakes with older signatures keep working.
+        prediction = action.get("prediction")
+        prediction = prediction if isinstance(prediction, str) and prediction.strip() else None
 
         if name == "stop":
             termination = {
@@ -915,11 +938,13 @@ def free_investigate(
             # denial, derived max_turns, pre-attempt refusal) — the ceiling
             # now binds inside a move, not only between moves.
             move_allowance = _move_allowance(token_budget, spent)
+            pred_kw = ({"prediction": prediction}
+                       if prediction and _seam_accepts(run_move, "prediction") else {})
             _survive(study, "run_experiment", decisions, finding,
                      lambda: run_move(
                          study,
                          _move_from_action(action, study, allowance=move_allowance),
-                         finding=finding, runs_root=runs_root))
+                         finding=finding, runs_root=runs_root, **pred_kw))
             continue
 
         if name == "run_fan":
@@ -961,11 +986,13 @@ def free_investigate(
                      extra_env=_allowance_env(member_allowance))
                 for d in domains
             ]
+            pred_kw = ({"predictions": [prediction] * len(fan_moves)}
+                       if prediction and _seam_accepts(run_fan, "predictions") else {})
             _survive(study, "run_fan", decisions, finding,
                      lambda: run_fan(
                          study, fan_moves,
                          findings=[finding] * len(fan_moves),
-                         runs_root=runs_root),
+                         runs_root=runs_root, **pred_kw),
                      failure_extra={"fan_width": width})
             continue
 
@@ -1001,6 +1028,8 @@ def free_investigate(
             domain = (_integration_domain(study.goal, action.get("detail"), context)
                       + _allowance_sentence(move_allowance))
             instrument = action.get("instrument")
+            pred_kw = ({"prediction": prediction}
+                       if prediction and _seam_accepts(run_move, "prediction") else {})
             _survive(
                 study, "call_integration", decisions, finding,
                 lambda: run_move(
@@ -1010,6 +1039,7 @@ def free_investigate(
                          else study.allowed_substrates,
                          extra_env=_allowance_env(move_allowance)),
                     finding=finding or "integration check", runs_root=runs_root,
+                    **pred_kw,
                 ))
             continue
 
@@ -1032,7 +1062,7 @@ def free_investigate(
                      lambda: _record_capability(
                          study, name, decisions,
                          execute_capability(name, action, study, budget, decisions),
-                         finding))
+                         finding, prediction=prediction))
 
     spend_end = _cost_snapshot()
     report = _build_report(study, budget, termination, decisions, ceiling,

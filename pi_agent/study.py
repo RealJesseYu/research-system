@@ -211,6 +211,7 @@ def record_move(
     move_result: Any,
     *,
     finding: Optional[str] = None,
+    prediction: Optional[str] = None,
 ) -> dict:
     """Append one move to the arc and return the entry written.
 
@@ -219,6 +220,11 @@ def record_move(
     thing the PI learned from this move — the accumulating substance the next
     decision and the eventual paper read. The entry is sequenced (seq is one
     past the current length) so the arc's order is intrinsic, not mtime-derived.
+
+    `prediction` (A3, 2026-07-29) is what the director EXPECTED this move to
+    show, recorded beside the outcome so later turns see expectation vs result
+    — a calibration column. It decides nothing: nothing gates on it, nothing
+    scores it. Written only when given, so arcs without one are byte-identical.
     """
     seq = move_count(study) + 1
     m = move_result.as_dict() if hasattr(move_result, "as_dict") else dict(move_result)
@@ -257,6 +263,8 @@ def record_move(
         "tool_output": {k: v for k, v in raw.items() if k not in _ARC_MAPPED_KEYS},
         "finding": finding,
     }
+    if prediction is not None:
+        entry["prediction"] = prediction
     study.dir.mkdir(parents=True, exist_ok=True)
     with open(study.arc_path, "a") as f:
         f.write(json.dumps(entry) + "\n")
@@ -301,6 +309,11 @@ def study_findings(study: Study) -> list:
                 # decides blind — see record_move's tool_output note.
                 "tool_output": e.get("tool_output") or {},
                 "finding": e.get("finding"),
+                # The director's recorded expectation for this move (A3), shown
+                # beside the outcome so it can calibrate its own judgement.
+                # Present only when one was recorded — old arcs are unchanged.
+                **({"prediction": e["prediction"]}
+                   if e.get("prediction") is not None else {}),
             }
         )
     return out
@@ -311,6 +324,7 @@ def run_study_move(
     move: Any,
     *,
     finding: Optional[str] = None,
+    prediction: Optional[str] = None,
     invoke: Callable = None,
     runs_root: Path = Path("runs"),
 ) -> Any:
@@ -345,7 +359,7 @@ def run_study_move(
         move.run_id = next_move_run_id(study)
 
     result = invoke(move, runs_root=runs_root)
-    record_move(study, result, finding=finding)
+    record_move(study, result, finding=finding, prediction=prediction)
     return result
 
 
@@ -380,6 +394,7 @@ def run_study_fan(
     moves: list,
     *,
     findings: Optional[list] = None,
+    predictions: Optional[list] = None,
     invoke: Callable = None,
     runs_root: Path = Path("runs"),
     max_parallel: int = 4,
@@ -428,5 +443,6 @@ def run_study_fan(
 
     for i, result in enumerate(results):
         f = findings[i] if findings and i < len(findings) else None
-        record_move(study, result, finding=f)
+        p = predictions[i] if predictions and i < len(predictions) else None
+        record_move(study, result, finding=f, prediction=p)
     return results
