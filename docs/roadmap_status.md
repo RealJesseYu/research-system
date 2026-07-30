@@ -294,7 +294,18 @@ sandbox profiles, remote GPU lane, connector→kept-number bridge · liveview.
 
 - **A study costs ~$53, not ~$270.** Reported "tokens" sum input, output, cache
   writes and cache reads at face value; 96.3% of the glider's 54M were cache
-  reads at $0.50/M. **Conversion: ~$1 per million reported tokens.**
+  reads at $0.50/M.
+- **REFINED 2026-07-30, recomputed from `report.json` across every study: the rate
+  is $1.30 per million reported tokens, not $1.00.** Only one study has
+  `moves_with_usd == moves_with_cost` — every move reporting dollars —
+  `study-20260729T210651Z`: 46,357,309 tokens / **$60.41** = **$1.303 /M**. The
+  other ($27.50 over 35.1M = $0.78/M) reports dollars for 3 of 4 moves and so
+  under-counts. n=1 for the clean rate; re-derive when experiment 2 lands.
+- **Two factors, not one — and confusing them will overrun a budget.** Experiment
+  1 was given 60M and spent **46.4M (77% utilisation)**, so at $1.30/M it cost
+  $60.41 and *looked* like a 1:1 budget-to-dollars rule. It is not.
+  **Worst case = budget_M × $1.30. Likely case = budget_M × $1.00 at ~77%
+  utilisation. Plan with the worst case** — a 150M budget can cost ~$195.
 - **Orchestration is 1.3% of spend.** 98.7% is inside experimenter runs.
 - **Cost levers, if ever needed:** output tokens (1.5% of tokens, 38% of cost)
   and cache reads. **Not** context size — real input is 0.1%.
