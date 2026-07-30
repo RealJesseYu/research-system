@@ -112,6 +112,12 @@ class RunResult:
     # negative examples, carried so a later phase can detect that the regime a
     # design was built in has shifted. Additive — a run with none is unchanged.
     failed_artifacts: list = field(default_factory=list)
+    # What a HUMAN would have to supply for this run to go further, each
+    # {need, why, human_action, workaround_used}. It reached only runs/<id>/log.txt
+    # before 2026-07-30, which no one reads mid-study, so the director's next turn,
+    # the study record, the CLI summary and liveview all had nothing to show. Empty
+    # for a run that declared no blocker — the overwhelmingly common case.
+    blocked_on: list = field(default_factory=list)
 
     @property
     def completed(self) -> bool:
@@ -137,6 +143,10 @@ class RunResult:
             "cost": self.cost,
             "reusable_artifacts": self.reusable_artifacts,
             "failed_artifacts": self.failed_artifacts,
+            # NOT in record_move's _ARC_MAPPED_KEYS, so it rides into the arc
+            # entry's tool_output, which is the shape liveview and the CLI
+            # blocker summary already read.
+            "blocked_on": self.blocked_on,
             "completed": self.completed,
         }
 
@@ -212,6 +222,7 @@ def read_run_result(
         cost=extras.get("cost") if isinstance(extras, dict) else None,
         reusable_artifacts=reusables,
         failed_artifacts=failed,
+        blocked_on=(extras.get("blocked_on") or []) if isinstance(extras, dict) else [],
     )
 
 

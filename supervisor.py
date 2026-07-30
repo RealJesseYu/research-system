@@ -104,6 +104,17 @@ def record_run_outcome(baton: Baton, how_far: str, retry_on_total_defer: int = 0
     # locked). Whether the run's numbers survived reproduction belongs in the
     # permanent record, not only in the log: a reader of the journal must be able
     # to tell a standing paper from one whose numbers did not reproduce.
+    # BLOCKERS TRAVEL (2026-07-30). Same non-payload-attribute idiom as
+    # verification below, and the same reason: a blocker is the one outcome a
+    # human can act on directly, so it belongs in the permanent record rather
+    # than only in the run's log. read_run_result surfaces it back to the
+    # director, record_move puts it in the arc, and liveview and the CLI summary
+    # both already know how to render it from there. Absent when nothing was
+    # blocked, so an unblocked run's record is byte-identical.
+    blocked_on = getattr(baton, "_blocked_on", None)
+    if isinstance(blocked_on, list) and blocked_on:
+        extras["blocked_on"] = blocked_on
+        text += f", blocked_on={len(blocked_on)}"
     verification = getattr(baton, "_verification", None)
     if isinstance(verification, dict):
         extras["verification"] = {
@@ -270,6 +281,18 @@ def run_exact_route(logger: Logger, baton: Baton, run_dir: Path, mode: str,
             f"BLOCKED ON: {b.get('need')} — {b.get('why')} | HUMAN ACTION: "
             f"{b.get('human_action')} | workaround: {b.get('workaround_used')}"
         )
+    # ...AND IT MUST LEAVE THIS FILE (2026-07-30). The log line above was the ONLY
+    # place a blocker existed. runs/<id>/log.txt is not a channel a human reads
+    # during a study, so the director's next turn, studies/, the end-of-run CLI
+    # summary and liveview — which all already have a blocked_on path — had
+    # nothing to show. Measured cost on study-20260730T034915Z: an ask for LTPP
+    # FWD data, and m15's "run `python3 make_producers.py`, ~10 s, no network",
+    # ten seconds of a person's time that would have verified 34 findings.
+    # Stashed as a NON-payload attribute, exactly like _verification, because the
+    # baton payload schema is locked.
+    blocked_on = result.get("blocked_on") or []
+    if blocked_on:
+        baton._blocked_on = blocked_on
     baton._verification = {"publishable": publishable, "verified": verified,
                            "total": len(findings)}
     how_far = ("completed free investigation (publishable)" if publishable
