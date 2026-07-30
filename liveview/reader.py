@@ -399,6 +399,63 @@ def _is_barren(entry: dict) -> bool:
     return "nothing publishable" in outcome or "barren" in outcome
 
 
+def _barren_means(entry: dict) -> str:
+    """What a not-publishable move actually is, told by its own verified count."""
+    total = entry.get("results_total") or 0
+    good = entry.get("results_verified") or 0
+    if total and good == total:
+        return (f"the move ran and ALL {good} of its claims reproduced — it reports "
+                "not-publishable because it did not consider the question answered, "
+                "not because anything failed. Read it.")
+    if good:
+        return (f"the move ran and {good} of {total} claims reproduced; it did not "
+                "clear the publishable bar. A partial result, not a malfunction.")
+    return ("the move ran and measured, but nothing it produced stood — a real "
+            "(negative) result, not a malfunction.")
+
+
+MOVE_STATES = ("stood", "ran", "did_not_run")
+
+# The state IN WORDS, defined once here rather than per surface: the terminal, the
+# event log and the web view must never disagree about whether a move failed.
+STATE_WORD = {
+    "stood": "stood",
+    # Named at length on purpose. "FAILED" was read as a malfunction when what it
+    # meant was "did not claim to have answered the whole question".
+    "ran": "ran, not publishable",
+    "did_not_run": "did not run",
+}
+
+
+def _move_state(view: dict) -> str:
+    """Three states, because `succeeded` is only two and the truth is three.
+
+    pi_agent/dispatch.py:528 sets `succeeded = bool(result.publishable)`, and the
+    experimenter (stages/free_experimenter.py:74) sets `publishable` only when the
+    question is ANSWERED *and* every kept finding reproduced. Both halves. So a
+    scouting move — dispatched to survey one candidate, never asked to answer the
+    whole goal — reports publishable false and was drawn identically to a move that
+    died on dispatch. Experiment 2's move 3 verified 21 of 21 claims, became the
+    target the entire study was then built on, and rendered as a failure.
+
+    Calling that a failure teaches a watcher to distrust honest reporting, which is
+    the opposite of what the arc is for.
+
+      "stood"        publishable: question answered, findings reproduced
+      "ran"          it ran and measured but did not clear that bar — a RESULT
+      "did_not_run"  nothing was measured: dispatch error, crash, or an honest halt
+    """
+    if view.get("succeeded"):
+        return "stood"
+    outcome = str(view.get("outcome") or "").lower()
+    if any(k in outcome for k in ("dispatch_error", "crashed", "halted",
+                                  "setup_error", "skipped")):
+        return "did_not_run"
+    if view.get("results_total") or view.get("run_id") or _is_barren(view):
+        return "ran"
+    return "did_not_run"
+
+
 def failure_events(node: dict) -> list:
     """Everything that went wrong in this study (and its children), each labelled
     with what it MEANS — the distinction the terminal cannot make.
@@ -438,9 +495,12 @@ def failure_events(node: dict) -> list:
                     "title": f"move {entry.get('seq')} ({entry.get('move_type')}): "
                              f"{_plain_outcome(entry)}",
                     "detail": entry.get("error") or entry.get("detail"),
-                    "means": "the move ran and measured, but nothing it produced "
-                             "stood — a real (negative) result, not a malfunction."
-                    if barren
+                    # "nothing it produced stood" was FALSE for the move that mattered
+                    # most in experiment 2: 21 of 21 claims reproduced and it still
+                    # reported not-publishable, because it had not answered the whole
+                    # question. Say what actually happened instead of assuming barren
+                    # means empty-handed.
+                    "means": _barren_means(entry) if barren
                     else "recorded to the arc; the director read it and continued.",
                 }
             )
@@ -580,6 +640,8 @@ def _arc_entry_view(entry: dict, *, runs_root: Path, with_run: bool, log_lines: 
         "error": tool_output.get("error"),
         "detail": tool_output.get("detail"),
     }
+    # Computed from the finished view, so it can read results_total/run_id.
+    view["state"] = _move_state(view)
     if with_run and entry.get("run_id"):
         view["run"] = read_run(entry["run_id"], runs_root=runs_root, log_lines=log_lines)
     return view

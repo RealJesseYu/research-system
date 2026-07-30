@@ -30,11 +30,12 @@ import sys
 import time
 from typing import Optional
 
-from liveview.reader import (RUNS_ROOT, STUDIES_ROOT, TERMINAL_HEALTH_STATES,
-                             full_snapshot)
+from liveview.reader import (RUNS_ROOT, STATE_WORD, STUDIES_ROOT,
+                             TERMINAL_HEALTH_STATES, full_snapshot)
 
-BOLD, DIM, GREEN, YELLOW, BLUE, RESET = (
-    "\033[1m", "\033[2m", "\033[32m", "\033[33m", "\033[34m", "\033[0m")
+BOLD, DIM, GREEN, YELLOW, BLUE, RED, RESET = (
+    "\033[1m", "\033[2m", "\033[32m", "\033[33m", "\033[34m", "\033[31m",
+    "\033[0m")
 
 
 def _c(text: str, code: str, color: bool) -> str:
@@ -131,7 +132,10 @@ class Follower:
             if key in self._arc_seen:
                 continue
             self._arc_seen.add(key)
-            mark = "ok " if a.get("succeeded") else "FAILED"
+            # NOT "FAILED". succeeded is bool(publishable), so a scouting move that
+            # ran, measured and reproduced every claim still printed FAILED — see
+            # reader._move_state. The word was doing real damage to a reader's trust.
+            mark = STATE_WORD.get(a.get("state") or "", "ran, not publishable")
             # A fan member reports move_type "single"; its position in the fan is
             # the only thing that tells one member from another in a log.
             kind = (f"fan {a.get('fan_index')}/{a.get('fan_width')}"
@@ -140,7 +144,8 @@ class Follower:
             if a.get("results_total"):
                 line += (f" · {a.get('results_verified')}/{a.get('results_total')} "
                          "verified")
-            out.append(self._c(line, GREEN if a.get("succeeded") else YELLOW))
+            out.append(self._c(line, GREEN if a.get("state") == "stood"
+                               else (YELLOW if a.get("state") == "ran" else RED)))
             # The question this move was given. In the event log it is printed per
             # move rather than per decision, because one fan decision covers N moves.
             if a.get("domain"):

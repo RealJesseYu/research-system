@@ -165,7 +165,9 @@ function arcHtml(node){
       ? `<span class="${good?'ok':'warn'}">${a.results_verified}/${a.results_total} verified</span>`
       : (a.child_termination ? `<span class="dim">${E(a.child_termination)}</span>` : "");
     h += `<li class="kids"><div class="row" onclick="toggle('${key}')">
-      <span class="${a.succeeded?'ok':'warn'}">${a.succeeded?"✓":"✗"}</span>
+      <span class="${a.state==='stood'?'ok':(a.state==='ran'?'warn':'bad')}">${
+        a.state==='stood'?"✓":(a.state==='ran'?"◐":"✗")}</span>
+      <span class="dim">${E(a.state==='stood'?"stood":(a.state==='ran'?"ran, not publishable":"did not run"))}</span>
       <span class="seq">${a.seq}.</span>
       <span class="type">${E(a.fan_width ? "fan "+a.fan_index+"/"+a.fan_width : a.move_type)}</span>
       <span class="muted">${E(a.outcome_plain||a.outcome||"")}</span> ${counts}</div>`;

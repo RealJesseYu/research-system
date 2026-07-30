@@ -16,6 +16,8 @@ import textwrap
 import time
 from typing import Optional
 
+from liveview.reader import STATE_WORD
+
 RESET = "\033[0m"
 BOLD = "\033[1m"
 DIM = "\033[2m"
@@ -242,14 +244,46 @@ def render(snap: dict, *, width: int = 100, color: bool = True,
     return L
 
 
+# The MARK is presentational and lives here; the WORD is semantic and lives in
+# reader.STATE_WORD, so no two surfaces can disagree about whether a move failed.
+_STATE_MARK = {"stood": ("✓", GREEN), "ran": ("◐", BLUE), "did_not_run": ("✗", RED)}
+_LABEL_W = 9
+
+
+def _field(c: _Painter, W: int, indent: str, label: str, text, *,
+           limit: Optional[int] = None) -> list:
+    """One labelled field, WRAPPED to the width with a hanging indent.
+
+    Wrapped rather than clipped because clipping is what made the old arc
+    unreadable: a domain string, a blocker's human_action and a finding all had
+    their load-bearing half past the cut, and `…` does not tell you what you lost.
+    `limit` bounds a very long field in LINES and marks that it was cut, so one
+    verbose move can still never push the rest of the arc off the screen.
+    """
+    if not text:
+        return []
+    hang = indent + "  " + " " * _LABEL_W
+    lines = _wrap(str(text), W, hang)
+    if not lines:
+        return []
+    if limit and len(lines) > limit:
+        lines = lines[:limit]
+        lines[-1] = lines[-1] + " …"
+    # Overwrite the first line's hanging indent with the label, so the label column
+    # and the text column line up no matter how deeply a sub-study is nested.
+    lines[0] = (indent + "  " + c(f"{label:<{_LABEL_W - 1}}", DIM) + " "
+                + lines[0][len(hang):])
+    return lines
+
+
 def _arc_lines(node: dict, c: _Painter, W: int, indent: str = "  ") -> list:
-    """The arc as one line per move, sub-investigations nested under the move that
-    spawned them, so the shape of the investigation is visible."""
+    """The arc as a labelled block per move, sub-investigations nested under the move
+    that spawned them, so the shape of the investigation is visible."""
     out: list = []
     children = {ch.get("study_id"): ch for ch in node.get("children") or []}
     for a in node.get("arc") or []:
-        ok = a.get("succeeded")
-        mark = c("✓", GREEN) if ok else c("✗", YELLOW)
+        state = a.get("state") or ("stood" if a.get("succeeded") else "ran")
+        mark_ch, mark_col = _STATE_MARK.get(state, ("·", GREY))
         counts = ""
         if a.get("results_total"):
             good = a["results_verified"] == a["results_total"]
@@ -262,30 +296,29 @@ def _arc_lines(node: dict, c: _Painter, W: int, indent: str = "  ") -> list:
         kind = str(a.get("move_type"))
         if a.get("fan_width"):
             kind = f"fan {a.get('fan_index')}/{a.get('fan_width')}"
-        head = (f"{indent}{mark} {a.get('seq')}. "
-                f"{c(kind, BOLD)}  "
-                f"{_clip(a.get('outcome_plain') or a.get('outcome'), max(24, W - 52))}")
-        out.append(head + ("  " + counts if counts else ""))
-        pad = indent + "     "
-        # WHAT THIS MOVE WAS ACTUALLY ASKED. For a fan member this is the only thing
-        # that distinguishes it from its five siblings, so it leads.
-        if a.get("domain"):
-            out.append(c(pad + "ask: ", BLUE)
-                       + _clip(a["domain"], max(20, W - len(pad) - 7)))
+        # The STATE IN WORDS on the head line. A bare ✗ next to "21/21 verified" is
+        # the thing that made a watcher ask why every move had failed.
+        out.append(f"{indent}{c(mark_ch, mark_col)} {a.get('seq')}. "
+                   f"{c(kind, BOLD)}  {c(STATE_WORD[state], mark_col)}"
+                   + ("  ·  " + counts if counts else ""))
+        # One labelled, WRAPPED field per thing worth knowing. Wrapped, not clipped:
+        # every one of these fields had its interesting half past the cut before.
+        out += _field(c, W, indent, "asked", a.get("domain"), limit=4)
+        out += _field(c, W, indent, "outcome",
+                      a.get("outcome_plain") or a.get("outcome"), limit=2)
         # The parent fan's reasoning is copied onto every member; print it once.
         if a.get("finding") and not a.get("finding_repeats_fan"):
-            out.append(c(pad + _clip(a["finding"], max(20, W - len(pad) - 2)), GREY))
+            out += _field(c, W, indent, "why", a.get("finding"), limit=4)
         # WHAT an ideation call actually proposed. Without this a watcher sees
         # "call_ideation ✓ done" and nothing about the ideas — the most
         # interesting thing that happens in an ideation turn.
-        pad = indent + "       "
-        for stmt in (a.get("hypotheses") or [])[:6]:
-            out.append(c(pad + "· ", GREY) + _clip(stmt, max(20, W - len(pad) - 4)))
+        for i, stmt in enumerate((a.get("hypotheses") or [])[:6]):
+            out += _field(c, W, indent, "idea" if i == 0 else "", stmt, limit=3)
         # Anything a human could unblock, surfaced where they will see it.
         for b in (a.get("blocked_on") or []):
-            out.append(c(pad + "BLOCKED: ", YELLOW)
-                       + _clip(f"{b.get('need')} — you can: {b.get('human_action')}",
-                               max(20, W - len(pad) - 12)))
+            out += _field(c, W, indent, "BLOCKED",
+                          f"{b.get('need')} — YOU CAN: {b.get('human_action')}",
+                          limit=6)
         child = children.get(a.get("child_study_id"))
         if child:
             out.extend(_arc_lines(child, c, W, indent + "     "))

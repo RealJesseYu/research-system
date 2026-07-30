@@ -831,3 +831,113 @@ def test_malformed_decisions_never_raise(decisions):
 
     arc = _fan_arc(3)
     _annotate_fan_members(arc, decisions)  # must not raise
+
+
+# --------------------------------------------------------------------------- #
+# A move has THREE states, not two (2026-07-30).
+#
+# dispatch.py sets succeeded = bool(publishable), and publishable requires the
+# question ANSWERED *and* every finding reproduced. So experiment 2's move 3 —
+# 21/21 claims verified, and the target the whole study was then built on —
+# rendered as ✗ FAILED. The view must not teach a watcher to distrust honest
+# reporting.
+# --------------------------------------------------------------------------- #
+
+def test_a_publishable_move_stood():
+    assert reader._move_state({"succeeded": True}) == "stood"
+
+
+def test_a_move_that_verified_everything_is_not_a_failure():
+    """The move-3 case, exactly: perfect reproduction, publishable false."""
+    state = reader._move_state({
+        "succeeded": False,
+        "outcome": "completed free investigation (nothing publishable)",
+        "results_total": 21, "results_verified": 21,
+    })
+    assert state == "ran", "a move with 21/21 verified must never read as failed"
+
+
+@pytest.mark.parametrize("outcome", [
+    "dispatch_error: RuntimeError: boom",
+    "crashed during free investigation (ValueError: x)",
+    "halted_synthesis",
+    "setup_error",
+    "skipped_defer",
+])
+def test_a_move_that_never_measured_did_not_run(outcome):
+    assert reader._move_state({"succeeded": False, "outcome": outcome,
+                               "results_total": 0}) == "did_not_run"
+
+
+def test_every_state_has_a_word_and_they_are_distinct():
+    words = [reader.STATE_WORD[s] for s in reader.MOVE_STATES]
+    assert len(set(words)) == len(words)
+    assert "failed" not in " ".join(words).lower(), (
+        "'failed' is the word this whole change exists to stop using for a move "
+        "that ran and measured")
+
+
+def test_the_failures_panel_does_not_claim_nothing_stood_when_things_stood():
+    entry = {"succeeded": False,
+             "outcome": "completed free investigation (nothing publishable)",
+             "results_total": 21, "results_verified": 21}
+    means = reader._barren_means(entry)
+    assert "ALL 21" in means
+    assert "nothing it produced stood" not in means
+
+
+def test_a_genuinely_barren_move_still_says_so():
+    means = reader._barren_means({"results_total": 0, "results_verified": 0})
+    assert "nothing it produced stood" in means
+
+
+def test_a_partial_move_reports_the_split():
+    means = reader._barren_means({"results_total": 28, "results_verified": 4})
+    assert "4 of 28" in means
+
+
+# --------------------------------------------------------------------------- #
+# Long fields wrap; they do not get truncated to one clipped line.
+# --------------------------------------------------------------------------- #
+
+def _plain():
+    return render._Painter(color=False)
+
+
+def test_a_long_field_wraps_instead_of_clipping():
+    text = " ".join(["incumbent"] * 60)
+    lines = render._field(_plain(), 80, "  ", "asked", text)
+    assert len(lines) > 1, "a 60-word field must wrap, not vanish behind an ellipsis"
+    assert "incumbent" in lines[-1], "the tail of the text must survive"
+    assert all(len(l) <= 80 for l in lines)
+
+
+def test_the_label_appears_once_and_the_text_column_aligns():
+    lines = render._field(_plain(), 80, "  ", "asked", " ".join(["w"] * 90))
+    assert lines[0].count("asked") == 1
+    assert "asked" not in "".join(lines[1:])
+    # every continuation starts in the same column as the first line's text
+    col = lines[0].index("w")
+    assert all(l.index("w") == col for l in lines[1:])
+
+
+def test_limit_bounds_a_runaway_field_and_marks_the_cut():
+    lines = render._field(_plain(), 80, "  ", "why", " ".join(["x"] * 400), limit=3)
+    assert len(lines) == 3
+    assert lines[-1].endswith("…")
+
+
+def test_an_empty_field_renders_nothing():
+    for empty in (None, "", 0):
+        assert render._field(_plain(), 80, "  ", "asked", empty) == []
+
+
+def test_the_arc_never_prints_a_failure_mark_beside_verified_claims():
+    node = {"arc": [{"seq": 3, "move_type": "single", "state": "ran",
+                     "succeeded": False, "results_total": 21,
+                     "results_verified": 21,
+                     "outcome": "completed free investigation (nothing publishable)"}]}
+    text = "\n".join(render._arc_lines(node, _plain(), 100))
+    assert "21/21 verified" in text
+    assert "✗" not in text
+    assert "ran, not publishable" in text
