@@ -169,6 +169,19 @@ def record_run_outcome(baton: Baton, how_far: str, retry_on_total_defer: int = 0
             cost["turns"] = turns.get("total")
             cost["calls_with_turns"] = turns.get("calls_with_turns")
         extras["cost"] = cost
+        # CUT OFF, OR FINISHED? (2026-07-30) A wind-up denies the agent its tools
+        # and tells it to wrap up. That left NO trace on disk — only a print() —
+        # so a study where nine of twelve moves were truncated read as nine moves
+        # that chose to stop, and the director, which reads these records, could
+        # not tell the two apart. model_call records a signal on this same meter
+        # when it fires; it is surfaced here beside cost. Absent when no wind-up
+        # happened, so a normal run's record is byte-identical.
+        signals = snap.get("signals") or {}
+        cut = {tag: n for tag, n in signals.items()
+               if isinstance(tag, str) and tag.startswith("wind_up_") and n}
+        if cut:
+            extras["cut_off"] = cut
+            text += f", cut_off={'+'.join(sorted(cut))}"
         # Text stays byte-identical when nothing was spent (the codebase's
         # minimal-text-unless-active convention, guarded by existing record-shape
         # tests); a real run always spends, so its text carries the cost.

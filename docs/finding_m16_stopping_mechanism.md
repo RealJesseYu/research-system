@@ -135,7 +135,22 @@ these two instances is upstream of the channel.
 - **Not wall-clock, not a crash, not an external kill.** The run completed, wrote
   `free_investigation.json`, and journaled a normal run_record.
 
-## The fix, written out and deliberately NOT applied
+## STATUS: FIXED 2026-07-30 (owner ruled: fix it)
+
+All three items below shipped. `note_assistant_message` dedupes on the SDK's
+`message_id` so a turn is a turn; the wind-up now carries a headline naming which
+condition fired (`TURN BUDGET REACHED` / `TOKEN ALLOWANCE EXHAUSTED`) and a turn
+trip says outright that the token allowance is NOT exhausted; and the wind-up
+leaves a durable `WIND_UP` line in the run's `log.txt` plus a `cut_off` block in
+the run_record, which `read_run_result` carries into the arc so the director can
+tell a move that FINISHED from one that was CUT OFF. The token condition is
+unchanged and pinned by test. **The cost consequence is accepted by ruling:**
+moves cut at ~97 turns will now run toward 196, so a move's real cost roughly
+doubles; it pairs with the derived ceiling shipped in `32ba045`.
+
+The original write-up follows unchanged, as the record of what was found.
+
+## The fix, as written before it was applied
 
 In `model_call.py`, `_MoveBudgetTracker.note_assistant_message` must count one
 API message once. The SDK's `AssistantMessage` carries the message id; dedupe on

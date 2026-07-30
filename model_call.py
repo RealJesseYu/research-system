@@ -379,38 +379,139 @@ class _MoveBudgetTracker:
         self.tokens_seen = 0
         self.turns_seen = 0
         self.announced = False
+        # A TURN IS ONE API MESSAGE (2026-07-30). See note_assistant_message.
+        self._seen_message_ids: set = set()
 
-    def note_assistant_message(self, usage) -> None:
-        """One assistant turn observed; accumulate its usage when the SDK
-        reports it (face-value sum, same unit as the allowance)."""
+    def note_assistant_message(self, usage, message_id=None) -> None:
+        """One assistant TURN observed; accumulate its usage when the SDK
+        reports it (face-value sum, same unit as the allowance).
+
+        ONE API MESSAGE COUNTS ONCE (fixed 2026-07-30, owner-ruled). The SDK
+        yields one `AssistantMessage` PER CONTENT BLOCK, and every block of one
+        API message carries that message's identical `usage`. So this counted
+        blocks as turns and re-added the same usage per block. Measured on
+        study-20260730T034915Z move 16: 199 assistant events for **97 unique
+        message ids** (blocks per message {2:47, 1:24, 3:23, 4:3}), so the turn
+        wind-up tripped at "turn 197 of 200" after 97 real turns — less than half
+        the granted budget — and `tokens_seen` reached 34.7M against a metered
+        17.1M. Nine of that study's twelve completed moves were cut off this way,
+        and m14/m15 tripped at "turn 230/221 of 200", which is the proof the
+        counter was not counting turns. Full evidence:
+        docs/finding_m16_stopping_mechanism.md.
+
+        Dedup is on the SDK's `message_id`. When it is absent (an older SDK, a
+        test fake calling this positionally) the pre-fix counting is unchanged —
+        we cannot dedupe what we cannot identify, and guessing would be worse
+        than the honest fallback.
+        """
+        if message_id is not None:
+            if message_id in self._seen_message_ids:
+                return  # same API message, another content block
+            self._seen_message_ids.add(message_id)
         self.turns_seen += 1
         if isinstance(usage, dict):
             self.tokens_seen += sum(
                 v for v in usage.values()
                 if isinstance(v, int) and not isinstance(v, bool))
 
-    def wind_up_reason(self) -> Optional[str]:
-        """Why tools should now be denied, or None while there is room."""
+    def wind_up(self) -> Optional[tuple]:
+        """(headline, detail) naming WHICH condition fired, or None while there
+        is room.
+
+        THE HEADLINE IS LOAD-BEARING (2026-07-30). _WIND_UP_MESSAGE used to
+        hardcode "TOKEN ALLOWANCE EXHAUSTED" and interpolate a reason that might
+        say "turn 197 of 200". So an agent stopped by the TURN reserve was told
+        its token budget was gone, and reported that: m16 wrote "the token budget
+        ran out" having spent 17.1M of 52.9M. It was quoting the harness
+        faithfully. The two conditions must now be distinguishable by anyone —
+        agent or human — reading the message.
+        """
         if self.tokens_seen >= self.remaining_tokens:
-            return (f"measured in-call spend ({self.tokens_seen:,} face-value "
+            return (WIND_UP_TOKEN_HEADLINE,
+                    f"measured in-call spend ({self.tokens_seen:,} face-value "
                     f"tokens) has reached this move's remaining allowance "
                     f"({self.remaining_tokens:,})")
         soft_stop = max(1, self.granted_turns - self.wind_up_reserve)
         if self.turns_seen >= soft_stop:
-            return (f"turn {self.turns_seen} of {self.granted_turns} granted for "
-                    "this call — the remaining turns are the wind-up reserve")
+            return (WIND_UP_TURN_HEADLINE,
+                    f"turn {self.turns_seen} of {self.granted_turns} granted for "
+                    "this call — the remaining turns are the wind-up reserve. "
+                    "This is a TURN limit, NOT a spend limit: this move's token "
+                    f"allowance is NOT exhausted ({self.tokens_seen:,} of "
+                    f"{self.remaining_tokens:,} seen), so do not report that you "
+                    "ran out of budget")
         return None
 
+    def wind_up_reason(self) -> Optional[str]:
+        """The detail half of wind_up(), or None. Kept as its own name because
+        callers and tests already use it; wind_up() is the fuller answer."""
+        found = self.wind_up()
+        return found[1] if found else None
+
+
+# The two headlines a wind-up can carry. Separate constants because a test — and
+# a human reading a log — must be able to tell the conditions apart, which is
+# exactly what the single hardcoded headline made impossible.
+WIND_UP_TURN_HEADLINE = "TURN BUDGET REACHED"
+WIND_UP_TOKEN_HEADLINE = "TOKEN ALLOWANCE EXHAUSTED"
+
+# Signal tags recorded on the meter when a wind-up fires, so the run_record can
+# say a move was CUT OFF rather than finished (a director that cannot tell those
+# apart cannot plan around either).
+WIND_UP_SIGNAL = {
+    WIND_UP_TURN_HEADLINE: "wind_up_turn_budget",
+    WIND_UP_TOKEN_HEADLINE: "wind_up_token_allowance",
+}
 
 _WIND_UP_MESSAGE = (
-    "TOKEN ALLOWANCE EXHAUSTED for this move ({reason}). No further tool calls "
+    "{headline} for this move ({reason}). No further tool calls "
     "will be permitted in this call. Stop investigating now and write your "
     "final answer in the required JSON format: report honestly what you "
     "established and what you did not get to, mark anything you could not "
-    "verify as verified: false, and do not invent results. An honest partial "
-    "answer is the expected outcome here — the director reads it and decides "
-    "what happens next."
+    "verify as verified: false, and do not invent results. State the reason you "
+    "stopped ACCURATELY — it is the one printed above, not a reason you infer. "
+    "An honest partial answer is the expected outcome here — the director reads "
+    "it and decides what happens next."
 )
+
+
+# The run whose model calls are being made right now, for the ONE observer that
+# fires deep inside the SDK stream and so has no stage_input in scope: the
+# wind-up. Set and cleared by call_stage_model around its attempt loop. Same
+# process-global caveat as the transcript sequence counter — it belongs on the
+# parallelization revisit list, and like that counter it is single-writer today
+# because a dispatched run is its own process.
+_CURRENT_RUN_ID: Optional[str] = None
+
+
+def _announce_wind_up(tracker: "_MoveBudgetTracker", stage_name: str,
+                      headline: str, reason: str) -> None:
+    """Record a wind-up ONCE per call: terminal, run log, and the meter.
+
+    IT ONLY print()ed BEFORE (fixed 2026-07-30). A move being CUT OFF left no
+    trace on disk at all — not in the run's log.txt, not in its run_record — so
+    a study where nine of twelve moves were truncated read as nine moves that
+    chose to stop, and finding that out took a whole session of transcript
+    archaeology. Never raises: an observer may not sink a run.
+    """
+    if tracker.announced:
+        return
+    tracker.announced = True
+    line = (f"WIND_UP stage={stage_name} {headline} — {reason}; further tool "
+            "calls denied, agent told to finish honestly")
+    print(line)
+    try:
+        # Durable, beside RE-ASK and the fence NOTE, via the same run_id-derived
+        # path (and the same limitation: a bare call with no run_id prints only).
+        _append_run_log({"run_id": _CURRENT_RUN_ID}, line)
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        # And onto the meter, which is how it reaches the run_record: the
+        # supervisor reads the same snapshot it already reads for cost.
+        cost_meter.record_signal(WIND_UP_SIGNAL.get(headline, "wind_up"))
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def _wrap_can_use_tool_with_allowance(inner, tracker: "_MoveBudgetTracker",
@@ -421,14 +522,13 @@ def _wrap_can_use_tool_with_allowance(inner, tracker: "_MoveBudgetTracker",
     from claude_agent_sdk import PermissionResultDeny
 
     async def can_use_tool(tool_name: str, tool_input: dict, context):
-        reason = tracker.wind_up_reason()
-        if reason is None:
+        found = tracker.wind_up()
+        if found is None:
             return await inner(tool_name, tool_input, context)
-        if not tracker.announced:
-            tracker.announced = True
-            print(f"TOKEN_ALLOWANCE stage={stage_name} winding_up — {reason}; "
-                  "further tool calls denied, agent told to finish honestly")
-        return PermissionResultDeny(message=_WIND_UP_MESSAGE.format(reason=reason))
+        headline, reason = found
+        _announce_wind_up(tracker, stage_name, headline, reason)
+        return PermissionResultDeny(
+            message=_WIND_UP_MESSAGE.format(headline=headline, reason=reason))
 
     return can_use_tool
 
@@ -450,21 +550,19 @@ def _wrap_hook_with_allowance(inner, tracker: "_MoveBudgetTracker",
 
     async def pre_tool_use(hook_input, tool_use_id, context):
         try:
-            reason = tracker.wind_up_reason()
+            found = tracker.wind_up()
         except Exception:  # noqa: BLE001
-            reason = None
-        if reason is None:
+            found = None
+        if found is None:
             return await inner(hook_input, tool_use_id, context)
-        if not tracker.announced:
-            tracker.announced = True
-            print(f"TOKEN_ALLOWANCE stage={stage_name} winding_up — {reason}; "
-                  "further tool calls denied, agent told to finish honestly")
+        headline, reason = found
+        _announce_wind_up(tracker, stage_name, headline, reason)
         return {
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
                 "permissionDecision": "deny",
                 "permissionDecisionReason":
-                    _WIND_UP_MESSAGE.format(reason=reason),
+                    _WIND_UP_MESSAGE.format(headline=headline, reason=reason),
             }
         }
 
@@ -644,7 +742,12 @@ async def _ask_once(
             if tracker is not None:
                 # Item A layer 1: one turn observed, with real usage when the
                 # SDK reports it. The can_use_tool wrapper reads this state.
-                tracker.note_assistant_message(getattr(message, "usage", None))
+                # message_id is what makes a TURN a turn: the SDK yields one
+                # AssistantMessage per content block, all sharing one id and one
+                # usage (see note_assistant_message).
+                tracker.note_assistant_message(
+                    getattr(message, "usage", None),
+                    getattr(message, "message_id", None))
             for block in message.content:
                 if isinstance(block, TextBlock):
                     parts.append(block.text)
@@ -1193,7 +1296,30 @@ def call_stage_model(
     # after the call so the evidence covers what the stage DID, not only what
     # it was asked. Stays empty (and unwritten) for a sealed call.
     action_trail: list = []
+    # The wind-up observer fires inside the SDK stream, far below any function
+    # that can see stage_input, and it must leave a durable line. Published here
+    # (where the run_id IS in scope) and cleared in the finally below, so a bare
+    # call or a crash cannot leave a stale id pointing at the wrong run's log.
+    global _CURRENT_RUN_ID
+    _previous_run_id = _CURRENT_RUN_ID
+    _CURRENT_RUN_ID = (stage_input.get("run_id")
+                       if isinstance(stage_input, dict) else None)
+    try:
+        return _call_stage_model_attempts(
+            stage_name, system_prompt, stage_input, schema, model,
+            extra_validator, capabilities, start, user_turn, transcript_seq,
+            last_error, action_trail)
+    finally:
+        _CURRENT_RUN_ID = _previous_run_id
 
+
+def _call_stage_model_attempts(
+    stage_name, system_prompt, stage_input, schema, model, extra_validator,
+    capabilities, start, user_turn, transcript_seq, last_error, action_trail,
+) -> tuple[dict, dict]:
+    """call_stage_model's bounded attempt loop, unchanged — split out ONLY so the
+    run-id publication above can wrap it in try/finally without re-indenting the
+    whole body (which would bury a one-line change in a hundred-line diff)."""
     for attempt in range(1, MAX_ATTEMPTS + 1):
         # Item A layer 3: never START an attempt (including a validation
         # re-ask) on an allowance that is already spent — a re-ask under a

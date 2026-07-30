@@ -118,6 +118,12 @@ class RunResult:
     # the study record, the CLI summary and liveview all had nothing to show. Empty
     # for a run that declared no blocker — the overwhelmingly common case.
     blocked_on: list = field(default_factory=list)
+    # WAS THIS MOVE CUT OFF? {signal_tag: count} when a wind-up denied the agent
+    # its tools mid-work, else {}. A move that wound up and a move that finished
+    # look identical in every other field, and the director plans differently for
+    # each — "it stopped because it was done" and "it stopped because it ran out
+    # of turns" are opposite facts about the same arc row.
+    cut_off: dict = field(default_factory=dict)
 
     @property
     def completed(self) -> bool:
@@ -147,6 +153,7 @@ class RunResult:
             # entry's tool_output, which is the shape liveview and the CLI
             # blocker summary already read.
             "blocked_on": self.blocked_on,
+            "cut_off": self.cut_off,
             "completed": self.completed,
         }
 
@@ -223,6 +230,7 @@ def read_run_result(
         reusable_artifacts=reusables,
         failed_artifacts=failed,
         blocked_on=(extras.get("blocked_on") or []) if isinstance(extras, dict) else [],
+        cut_off=(extras.get("cut_off") or {}) if isinstance(extras, dict) else {},
     )
 
 
