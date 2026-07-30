@@ -1,0 +1,29 @@
+[tool.pytest.ini_options]
+# Bare `pytest` at the repo root used to die during COLLECTION, before running a
+# single test: experimenter workspaces are real working directories under runs/,
+# and an agent that writes its own test_*.py leaves a file pytest happily tries to
+# import — against dependencies that only ever existed inside a sandbox image
+# (runs/study-20260729T210651Z-m2/workspace/test_lgamma.py imports mpmath, which
+# this venv does not have, and never should). Three such files, three collection
+# errors, zero tests run. This project's tests live in exactly one place, so say
+# so.
+#
+# This is scoping, NOT suppression: `pytest tests/` was always the working
+# invocation and its behaviour is unchanged. What changes is that the invocation a
+# newcomer types first now works too.
+testpaths = ["tests"]
+
+# TWO TEST CLASSES ASSERT ON GLOBAL DOCKER STATE AND WILL FLAKE UNDER LOAD:
+#   tests/test_run_scipy.py::TestEscape6ResourceBomb
+#   tests/test_run_code.py::TestJails
+# They are correct as written. They check properties of the machine's Docker
+# daemon — that a resource bomb is actually contained, that a jail actually holds
+# — which means anything else touching Docker at the same moment (another test
+# run, a substrate image build, a live experimenter move) can perturb them. Both
+# pass reliably in isolation.
+#
+# The right response to a red run here is to re-run them alone, NOT to loosen the
+# assertion. They are the only evidence the sandbox jails hold against
+# model-authored code; a weakened version would still be green and would be worth
+# nothing. Recorded here rather than in the test files because this is where
+# someone debugging a flaky suite looks first.

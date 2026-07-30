@@ -9,3 +9,13 @@ numpy==1.26.4
 scipy==1.13.1
 pandas==2.2.2
 scikit-learn==1.5.1
+# matplotlib is here because the briefs ASK FOR FIGURES from this environment and
+# it could not draw them: stages/free_experimenter.py tells the agent to "draw the
+# thing with matplotlib", and study-20260730T034915Z's m5 shipped CSVs and asked a
+# human to plot them instead. 3.9.2 is the era-consistent choice — the same 2024
+# wheel generation as the four pins above, and the last line that takes
+# numpy>=1.23 without pulling numpy 2.x, so adding it CANNOT move an existing pin
+# (if it ever could, pip fails the build loudly rather than resolving around it).
+# Headless notes live in the Dockerfile: the runtime rootfs is READ-ONLY, so the
+# backend and the font cache are both settled at build time.
+matplotlib==3.9.2
