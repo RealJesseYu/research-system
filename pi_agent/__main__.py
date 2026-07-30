@@ -342,6 +342,32 @@ def main(argv: list | None = None) -> None:
             except Exception as e:  # noqa: BLE001 — typesetting may not sink a run
                 print(f"no PDF written ({type(e).__name__}: {e}); "
                       f"paper.md is unaffected")
+
+            # PACKAGE THE DELIVERABLE (best-effort, LAST of all). C1: a study
+            # that is right but scattered across a run workspace loses to a
+            # single clean chat session on "usable tomorrow" — see
+            # docs/debrief_experiment1.md §5. Runs after the referee/critic
+            # (both APPEND to paper.md, and the README should describe the
+            # paper that actually shipped) and after typeset (the README links
+            # paper.pdf when one exists). A fresh model call reads the
+            # FINISHED paper and chooses, from a Python-built candidate list
+            # per workspace, exactly which files make the deliverable and its
+            # recompute evidence; Python does the copying, the caps, and
+            # writes the README itself. PACKAGE_DELIVERABLE=0 disables.
+            try:
+                from stages.study_deliverable import package_study_deliverable_by_id
+
+                pkg = package_study_deliverable_by_id(report["study_id"])
+                if pkg.get("deliverable_dir"):
+                    print(f"deliverable: {pkg['deliverable_dir']}")
+                    print(f"  {len(pkg['deliverable_files'])} file(s), "
+                          f"{len(pkg['evidence_files'])} evidence file(s), "
+                          f"{pkg['skipped']} skipped — see README.md")
+                else:
+                    print(f"no deliverable packaged: {pkg.get('error')}")
+            except Exception as e:  # noqa: BLE001 — packaging may not sink a run
+                print(f"no deliverable packaged ({type(e).__name__}: {e}); "
+                      f"paper.md is unaffected")
         else:
             print(f"no paper written: {outcome.get('error')}")
 
