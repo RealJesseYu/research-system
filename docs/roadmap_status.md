@@ -88,7 +88,7 @@ that produced the arc-compaction work the system later refuted.
 
 ### C1 — PACKAGE THE DELIVERABLE (new, owner 2026-07-29) ← on the todo
 
-- [ ] **C1. A study's deliverable must be usable without assembling it.**
+- [x] **C1. DONE 2026-07-29** (`c330ab7`) — `stages/study_deliverable.py`. Verified on the experiment-1 winner: opening `studies/<id>/deliverable/` and running `verify_betainc.py` reproduces `n_points_over_1e-12 = 0` with the stdlib alone. It also caught the paper wrongly claiming its own source was unavailable. ~~A study's deliverable must be usable without assembling it.~~
       **This is the one criterion a single Claude Code session BEAT the
       orchestration on** in experiment 1. Arm B shipped `~/ibeta-lib`: a clean
       directory, a `REPORT.md`, and reproduce-from-scratch commands. Arm C's
