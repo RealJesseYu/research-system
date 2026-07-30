@@ -71,29 +71,32 @@ class TestCliWiring(unittest.TestCase):
         self.assertEqual(cap["ceiling"], {"kind": "default", "max_moves": DEFAULT_MAX_MOVES})
 
     def test_explicit_max_moves_provenance(self):
+        """An explicit move count is still obeyed exactly — moves are demoted,
+        not deleted. A human who names a number means it."""
         cap = self._run(["--goal", "g", "--max-moves", "4"])
         self.assertEqual(cap["max_moves"], 4)
-        self.assertEqual(cap["ceiling"], {"kind": "max_moves", "max_moves": 4})
+        self.assertEqual(cap["ceiling"]["kind"], "max_moves")
+        self.assertEqual(cap["ceiling"]["max_moves"], 4)
 
-    def test_cost_cap_derives_move_ceiling(self):
-        from pi_agent.budget import EST_COST_PER_MOVE_USD
-
+    def test_cost_cap_derives_tokens_first_then_a_generous_move_ceiling(self):
+        """CHANGED 2026-07-30: a cost cap used to convert straight to a move
+        count at a $/move estimate, which is the same defect --max-moves had —
+        the ceiling that actually binds during a run is the token meter."""
         cap = self._run(["--goal", "g", "--cost-cap", "47"])
-        expected_moves = int(47 // EST_COST_PER_MOVE_USD)
-        self.assertEqual(cap["max_moves"], expected_moves)
-        self.assertEqual(cap["ceiling"]["kind"], "cost_cap")
-        self.assertEqual(cap["ceiling"]["cost_cap_usd"], 47.0)
-        self.assertEqual(cap["ceiling"]["derived_max_moves"], expected_moves)
+        expected_tokens = int(47 / cli.USD_PER_MTOK * 1_000_000)
+        c = cap["ceiling"]
+        self.assertEqual(c["kind"], "cost_cap")
+        self.assertEqual(c["cost_cap_usd"], 47.0)
+        self.assertEqual(c["derived_token_budget"], expected_tokens)
+        self.assertEqual(c["expected_binding_ceiling"], "tokens")
+        self.assertEqual(cap["max_moves"],
+                         cli._derive_moves_from_tokens(expected_tokens))
+        # the old conversion is kept in the provenance so two studies compare
+        self.assertIn("legacy_derived_max_moves", c)
 
     def test_both_ceilings_is_an_error(self):
         with self.assertRaises(SystemExit):
             self._run(["--goal", "g", "--max-moves", "3", "--cost-cap", "50"])
-
-    def test_cost_cap_too_small_is_an_error(self):
-        from pi_agent.budget import EST_COST_PER_MOVE_USD
-
-        with self.assertRaises(SystemExit):
-            self._run(["--goal", "g", "--cost-cap", str(EST_COST_PER_MOVE_USD / 2)])
 
     # ---- director routing (R-FD-1: free path alongside, enum default) ----
 

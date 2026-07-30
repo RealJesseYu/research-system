@@ -61,39 +61,124 @@ def _open_pdf(path) -> None:
         pass
 
 
-def _resolve_ceiling(max_moves: int | None, cost_cap: float | None) -> tuple[int, dict]:
-    """Turn the human's ceiling input into the enforced move bound + a provenance
-    record (R-FD-2). The human sets EITHER --max-moves OR --cost-cap; moves stay
-    the always-enforced unit, and a cost cap is CONVERTED to a move ceiling here
-    at the boundary via the same estimate the budget object uses, so the loop
-    below stays honestly moves-denominated. The provenance goes into report.json
-    so a reader can see exactly which ceiling was set and how it was derived."""
+# TOKENS ARE THE REAL CEILING; MOVES ARE THE ACCOUNTING UNIT (2026-07-30).
+#
+# MEASURED. Arm C (study-20260730T034915Z) was launched with 150M tokens and
+# --max-moves 15. It stopped at move 16 with ~37M tokens (~$48) unspent, its last
+# turns visibly rushing, because the MOVE ceiling bound first and the token
+# ceiling — the thing the human actually chose — never got to. Worse is the
+# silent case: --token-budget alone yields DEFAULT_MAX_MOVES = 6, so a 150M
+# budget quietly buys six moves.
+#
+# So a token budget now DERIVES a move ceiling, deliberately generously. This is
+# NOT a per-move cost estimate and must not be read as one: arm C's measured mean
+# was ~7.08M tokens/move (113.2M over 16), and this figure is set well BELOW that
+# on purpose, so the derived move count always overshoots what the tokens can
+# actually buy and the token meter is what stops the run. Cheap moves (a memory
+# read, a quick check) really do cost this little, so the derived ceiling is not
+# absurd — it is just not binding.
+GENEROUS_TOKENS_PER_MOVE = 2_000_000
+
+# A runaway backstop, not a budget: 200 moves is ~200 hours of serial dispatch,
+# far past any planned study. It is recorded in the provenance so that if it ever
+# DOES bind, the report says so rather than the run just stopping.
+MAX_DERIVED_MOVES = 200
+
+# $ per MILLION reported tokens, re-derived 2026-07-30 from tree_spend across
+# every studies/*/report.json: study-20260729T210651Z is the only one reporting
+# dollars for every costed move — 46,357,309 tokens for $60.41 = $1.303/M. Used
+# to convert a --cost-cap into the token ceiling that actually binds. n=1; the
+# worst-case direction is deliberate (a higher rate buys FEWER tokens, so the cap
+# is never overshot).
+USD_PER_MTOK = 1.30
+
+
+def _derive_moves_from_tokens(tokens: int) -> int:
+    """A generous move ceiling for a token budget — see GENEROUS_TOKENS_PER_MOVE.
+    Never fewer than the standing default, never more than the runaway backstop."""
+    derived = -(-int(tokens) // GENEROUS_TOKENS_PER_MOVE)  # ceil
+    return max(DEFAULT_MAX_MOVES, min(derived, MAX_DERIVED_MOVES))
+
+
+def _resolve_ceiling(max_moves: int | None, cost_cap: float | None,
+                     token_budget: int | None = None) -> tuple[int, int | None, dict]:
+    """Turn the human's ceiling input into (move bound, token bound, provenance).
+
+    MOVES ARE NOT DELETED and must not be — `max_moves` is the divisible unit
+    `spawn_sub_investigation` allocates a child from (`budget_moves` is a required
+    decider field) and the MOVE_COST accounting unit every capability spends
+    against. It is DEMOTED: still always enforced, but no longer the thing that
+    decides how much work a token budget buys. An explicit --max-moves is still
+    obeyed exactly — a human who names a move count means it.
+
+    The provenance dict goes into report.json so a reader can see which ceiling
+    was set, which one is expected to bind, and how each was derived (R-FD-2).
+    """
     if max_moves is not None and cost_cap is not None:
         raise SystemExit(
             "error: set EITHER --max-moves OR --cost-cap, not both (a cost cap "
             "derives its own move ceiling)."
         )
     if cost_cap is not None:
-        derived = Budget.from_cost_cap(cost_cap).remaining()
-        if derived < 1:
+        # A COST CAP HAD THE SAME DEFECT: it converted straight to a move count at
+        # a $/move estimate and left the real ceiling untracked. It now converts to
+        # TOKENS first (the meter that is actually enforced during a run), and the
+        # move ceiling is derived from those tokens like any other.
+        derived_tokens = int(cost_cap / USD_PER_MTOK * 1_000_000)
+        if token_budget is not None:
+            derived_tokens = min(derived_tokens, token_budget)
+        derived = _derive_moves_from_tokens(derived_tokens)
+        legacy = Budget.from_cost_cap(cost_cap).remaining()
+        if derived_tokens < 1:
             raise SystemExit(
-                f"error: --cost-cap {cost_cap} is too small for even one move at "
-                f"the current estimate (${EST_COST_PER_MOVE_USD:.2f}/move)."
+                f"error: --cost-cap {cost_cap} is too small to buy any tokens at "
+                f"${USD_PER_MTOK:.2f} per million."
             )
-        return derived, {
+        return derived, derived_tokens, {
             "kind": "cost_cap",
             "cost_cap_usd": cost_cap,
-            "est_cost_per_move_usd": EST_COST_PER_MOVE_USD,
+            "usd_per_mtok": USD_PER_MTOK,
+            "derived_token_budget": derived_tokens,
             "derived_max_moves": derived,
+            "generous_tokens_per_move": GENEROUS_TOKENS_PER_MOVE,
+            "expected_binding_ceiling": "tokens",
+            # Kept for continuity with every pre-2026-07-30 report: what the old
+            # $/move conversion WOULD have allowed, so a reader comparing two
+            # studies can see the change rather than infer it.
+            "est_cost_per_move_usd": EST_COST_PER_MOVE_USD,
+            "legacy_derived_max_moves": legacy,
             "note": (
-                "derived ceiling: --cost-cap floored by the per-move estimate. "
-                "Moves are enforced; real spend enforcement waits on per-run cost "
-                "reporting."
+                "--cost-cap converts to a TOKEN ceiling at the measured $/Mtok "
+                "rate; the move ceiling is derived generously from those tokens "
+                "so the token meter binds first."
             ),
         }
     if max_moves is not None:
-        return max_moves, {"kind": "max_moves", "max_moves": max_moves}
-    return DEFAULT_MAX_MOVES, {"kind": "default", "max_moves": DEFAULT_MAX_MOVES}
+        return max_moves, token_budget, {
+            "kind": "max_moves",
+            "max_moves": max_moves,
+            "token_budget": token_budget,
+            "expected_binding_ceiling": (
+                "moves (explicitly set — it may cut the run short of the token "
+                "budget)" if token_budget else "moves"),
+        }
+    if token_budget is not None:
+        derived = _derive_moves_from_tokens(token_budget)
+        return derived, token_budget, {
+            "kind": "token_budget",
+            "token_budget": token_budget,
+            "derived_max_moves": derived,
+            "generous_tokens_per_move": GENEROUS_TOKENS_PER_MOVE,
+            "max_derived_moves": MAX_DERIVED_MOVES,
+            "expected_binding_ceiling": "tokens",
+            "note": (
+                "no --max-moves given: the move ceiling is DERIVED from the token "
+                "budget at a deliberately low tokens-per-move figure so it "
+                "overshoots and the token meter is what stops the run. It is not "
+                "a cost estimate."
+            ),
+        }
+    return DEFAULT_MAX_MOVES, None, {"kind": "default", "max_moves": DEFAULT_MAX_MOVES}
 
 
 def main(argv: list | None = None) -> None:
@@ -130,17 +215,21 @@ def main(argv: list | None = None) -> None:
         "--max-moves",
         type=int,
         default=None,
-        help=f"hard ceiling on experiments the director may run (default "
-        f"{DEFAULT_MAX_MOVES}); it holds no matter what the decider wants. "
-        f"Mutually exclusive with --cost-cap.",
+        help=f"hard ceiling on experiments the director may run; it holds no "
+        f"matter what the decider wants, INCLUDING over an unspent "
+        f"--token-budget, so set it only when you mean a move count. Omit it "
+        f"with --token-budget and a generous ceiling is derived from the tokens "
+        f"instead; omit both and the default is {DEFAULT_MAX_MOVES}. Mutually "
+        f"exclusive with --cost-cap.",
     )
     parser.add_argument(
         "--cost-cap",
         type=float,
         default=None,
-        help="a spend ceiling in USD instead of a move count; the director "
-        "derives the move ceiling from it (R-FD-2). Mutually exclusive with "
-        "--max-moves.",
+        help="a spend ceiling in USD instead of a move count; it converts to a "
+        "TOKEN budget at the measured $/Mtok rate, and the move ceiling is then "
+        "derived from those tokens so the token meter binds first (R-FD-2). "
+        "Mutually exclusive with --max-moves.",
     )
     parser.add_argument(
         "--allowed-substrates",
@@ -165,8 +254,10 @@ def main(argv: list | None = None) -> None:
         "tokens and a 4-move one cost 15.9M, because one experimenter call runs "
         "an agentic loop of up to 200 turns. The director sees tokens_remaining "
         "every turn and scales depth, decomposition and ideation depth to it. "
-        "--max-moves still applies as a structural backstop. Rough guide: a "
-        "substantive multi-phase study has cost 20-55M tokens.",
+        "This is the BINDING ceiling: with no --max-moves, a generous move "
+        "ceiling is derived from it so moves do not cut the run short (arm C "
+        "stopped with ~37M tokens unspent because --max-moves 15 bound first). "
+        "Rough guide: a substantive multi-phase study has cost 20-55M tokens.",
     )
     parser.add_argument(
         "--paper",
@@ -195,7 +286,14 @@ def main(argv: list | None = None) -> None:
         else None
     )
 
-    max_moves, ceiling = _resolve_ceiling(args.max_moves, args.cost_cap)
+    max_moves, token_budget, ceiling = _resolve_ceiling(
+        args.max_moves, args.cost_cap, args.token_budget)
+    if ceiling.get("kind") == "token_budget":
+        print(f"ceiling: {token_budget:,} tokens (binding); move ceiling derived "
+              f"generously at {max_moves} so it does not bind first")
+    elif ceiling.get("kind") == "max_moves" and token_budget:
+        print(f"ceiling: --max-moves {max_moves} was set explicitly, so it holds "
+              f"even if the {token_budget:,}-token budget is not spent")
 
     if args.director == "free":
         from pi_agent.free_director import free_investigate
@@ -207,11 +305,11 @@ def main(argv: list | None = None) -> None:
             # what gives a child director a token ceiling at all. Passed twice
             # deliberately — token_budget= is this root level's own ceiling,
             # Budget(tokens=) is the pool the tree partitions.
-            budget=Budget(max_moves, tokens=args.token_budget),
+            budget=Budget(max_moves, tokens=token_budget),
             allowed_substrates=allowed,
             mode=args.mode,
             ceiling=ceiling,
-            token_budget=args.token_budget,
+            token_budget=token_budget,
             study_id=args.resume_study,
             resume=bool(args.resume_study),
         )
