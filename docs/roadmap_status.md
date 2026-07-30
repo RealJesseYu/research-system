@@ -5,22 +5,19 @@
 `docs/findings_2026-07-28.md`; if this file starts growing narrative again,
 move it there.
 
-Last verified against the repo: **2026-07-30 01:30Z**, HEAD `2fd77a1`, branch
-`iterate-experiment-loop`. Suite: **2278 passed, 1 skipped, 63 subtests**, via
-`venv/bin/python3 -m pytest tests/`.
+Last verified against the repo: **2026-07-30 23:10Z**, HEAD `ed5575a`, branch
+`iterate-experiment-loop` — **now pushed to `origin` (first push in the project's
+history; the audit found no secret ever committed).** Suite: **2444 tests collect,
+2423 passed / 1 skipped**.
 
-> ⚠️ **Run `pytest tests/`, not bare `pytest`.** There is no pytest config, and
-> experimenter workspaces now contain their own `test_*.py`
-> (`runs/study-20260729T210651Z-m2/workspace/test_lgamma.py` and two others), so
-> a bare `pytest` dies at collection with 3 errors and reads as a broken suite.
-> Fix when convenient: `[tool.pytest.ini_options] testpaths = ["tests"]`.
-> Also: two suites in parallel collide on a fixed Docker container name and
-> `test_run_scipy.py::TestEscape6ResourceBomb` fails spuriously. Run one at a time.
+> `pytest` at the repo root now works (`pyproject.toml` sets `testpaths`). Still run
+> ONE suite at a time: `tests/test_run_scipy.py::TestEscape6ResourceBomb` and
+> `tests/test_run_code.py::TestJails` assert on GLOBAL Docker state and flake when
+> anything else — another suite, or a live study — is using Docker.
 
 > **Do not trust a status without checking.** Several sessions commit to this
 > tree in parallel. Re-derive from `git log`, the suite, and `studies/` before
-> planning. The project's named trap is assert-without-looking — it caught the
-> brain session twice today (see the findings file).
+> planning. The project's named trap is assert-without-looking.
 
 ---
 
