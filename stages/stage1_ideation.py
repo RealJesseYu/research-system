@@ -408,6 +408,134 @@ def filter_survivors(reflections: list[dict],
     return kept
 
 
+def build_candidate_pool(hypotheses: list[dict],
+                         reflection_evidence: dict,
+                         survivors_full: list[dict],
+                         ranked_survivors: list[dict]) -> list[dict]:
+    """THE POOL CHANNEL (2026-07-30). Every candidate this round produced, each
+    carrying the review reasoning that decided its fate. Pure, never raises.
+
+    WHY THIS EXISTS. Measured on study-20260730T034915Z: ideation generated 33
+    candidates, the initial review passed 30 of them, the promise triage sent the
+    top 6 to the deep-review chain, and the other 24 — EVERY ONE `verdict: "pass"`,
+    six of them at `promise: 4` — were never looked at again. One survivor came out
+    of the filter and the director was handed two statements. The hypothesis that
+    was actually the study (h12, promise 4, pass) never left this file, and the
+    single most valuable sentence the apparatus produced was a triage reason —
+    "Modified B31G/RSTRENG already codified the effective-area correction the
+    candidate proposes to rediscover". The director then spent ~$150 re-deriving by
+    hand what the triage had already screened and named.
+
+    That is a FILTER deciding what the director may consider, which is the cage
+    pattern the PRIME DIRECTIVE forbids. So the screening keeps screening — nothing
+    here changes what gets deep-reviewed, ranked, or delivered as `hypotheses` —
+    and the whole pool travels ALONGSIDE it, ordered so the ranked survivors still
+    lead. Additive: a reader that only wants the survivors reads exactly what it
+    read before.
+
+    `status` says how far each candidate got:
+      survivor            — passed the filter; `rank` is its tournament position
+      reviewed            — took the full six-review chain but the filter dropped it
+      not_reviewed        — passed the initial review, held back by the promise
+                            triage, NEVER deep-reviewed (the 24 above)
+      discarded_deep      — deep verification found a fundamental flaw
+      discarded_initial   — the no-tools initial review discarded it
+      survivor_variant    — an Evolution variant that entered the tournament; it
+                            has no generation-pool row, so it is appended by id
+                            from the ranking (ev2 ranked FIRST in the run above)
+    `screen_reason` / `promise` are the initial review's own words and score, which
+    is where the state-of-the-art observations live.
+    """
+    ev = reflection_evidence if isinstance(reflection_evidence, dict) else {}
+    initial_by_id = {r.get("id"): r for r in (ev.get("initial_review") or [])
+                     if isinstance(r, dict)}
+    triaged_ids = {r.get("id") for r in (ev.get("triaged_lower_promise") or [])
+                   if isinstance(r, dict)}
+    deep_discard_by_id = {r.get("id"): r
+                          for r in (ev.get("discarded_by_deep_verification") or [])
+                          if isinstance(r, dict)}
+    reflected_by_id = {r.get("hypothesis_id"): r
+                       for r in (ev.get("final_reflections") or [])
+                       if isinstance(r, dict)}
+    survivor_by_id = {s.get("id"): s for s in (survivors_full or [])
+                      if isinstance(s, dict)}
+    rank_by_id = {s.get("id"): n
+                  for n, s in enumerate(ranked_survivors or [], start=1)
+                  if isinstance(s, dict)}
+
+    def _status(hid: str) -> str:
+        if hid in survivor_by_id:
+            return "survivor"
+        if hid in deep_discard_by_id:
+            return "discarded_deep"
+        if hid in reflected_by_id:
+            return "reviewed"
+        if hid in triaged_ids:
+            return "not_reviewed"
+        if (initial_by_id.get(hid) or {}).get("verdict") == "discard":
+            return "discarded_initial"
+        return "not_reviewed"
+
+    # Survivors first in tournament order, then the rest in generation order —
+    # the ranking still leads, the pool follows.
+    order = {"survivor": 0, "reviewed": 1, "not_reviewed": 2,
+             "discarded_deep": 3, "discarded_initial": 4}
+    pool = []
+    for gen_index, h in enumerate(hypotheses or []):
+        if not isinstance(h, dict) or not h.get("id"):
+            continue
+        hid = h["id"]
+        status = _status(hid)
+        screen = initial_by_id.get(hid) or {}
+        entry = {
+            "id": hid,
+            "statement": h.get("statement"),
+            "rationale": h.get("rationale"),
+            "status": status,
+            "promise": screen.get("promise"),
+            "screen_verdict": screen.get("verdict"),
+            "screen_reason": screen.get("reason"),
+        }
+        refl = reflected_by_id.get(hid)
+        if refl:
+            entry.update({
+                "novelty": refl.get("novelty"),
+                "answer_established": refl.get("answer_established"),
+                "quality": refl.get("quality"),
+                "critique": refl.get("critique"),
+                "addressable_notes": refl.get("addressable_notes") or [],
+            })
+        if hid in deep_discard_by_id:
+            entry["discard_reason"] = deep_discard_by_id[hid].get("reason")
+        if hid in rank_by_id:
+            entry["rank"] = rank_by_id[hid]
+        pool.append((order.get(status, 9), rank_by_id.get(hid, 99), gen_index, entry))
+
+    # Evolution variants ranked in the tournament but were never generation-pool
+    # rows, so the loop above cannot see them. They are frequently the best thing
+    # in the round (ev2 took rank 1 in the run this was built from), and dropping
+    # them would make the pool LESS complete than the digest it sits beside.
+    seen = {e["id"] for *_x, e in pool}
+    for hid in rank_by_id:
+        if hid in seen:
+            continue
+        src = next((s for s in (ranked_survivors or [])
+                    if isinstance(s, dict) and s.get("id") == hid), {})
+        pool.append((order["survivor"], rank_by_id[hid], len(hypotheses or []), {
+            "id": hid,
+            "statement": src.get("statement"),
+            "rationale": src.get("rationale"),
+            "status": "survivor_variant",
+            "novelty": src.get("novelty"),
+            "quality": src.get("quality"),
+            "critique": src.get("critique"),
+            "addressable_notes": src.get("addressable_notes") or [],
+            "rank": rank_by_id[hid],
+        }))
+    pool.sort(key=lambda t: t[:3])
+    return [e for *_ignored, e in pool]
+
+
 def _judge_view(s: dict) -> dict:
     """J6: what a tournament judge/advocate sees of one hypothesis — id,
     statement, rationale, addressable_notes (carried concerns to weigh), and the
@@ -839,7 +967,32 @@ def _run_round(
 
     (round_dir / "ranking.json").write_text(json.dumps(verdicts, indent=2))
 
+    # THE POOL CHANNEL (see build_candidate_pool). Read back from the evidence
+    # reflect_on_pool just wrote — the same idiom the meta-review block uses, and
+    # the reason reflect_on_pool's return contract did not have to change. Under
+    # the never-sink rule: a pool that cannot be built is logged and the round
+    # proceeds exactly as it did before this channel existed.
+    candidate_pool: list[dict] = []
+    try:
+        reviews_path = round_dir / "reflection_reviews.json"
+        candidate_pool = build_candidate_pool(
+            hypotheses,
+            json.loads(reviews_path.read_text()) if reviews_path.exists() else {},
+            survivors_full,
+            ranked_survivors,
+        )
+        (round_dir / "candidate_pool.json").write_text(
+            json.dumps(candidate_pool, indent=2))
+        held = sum(1 for e in candidate_pool if e["status"] == "not_reviewed")
+        _log(run_id,
+             f"STAGE1_POOL candidate_pool: {len(candidate_pool)} candidate(s) with "
+             f"review reasoning travel to the caller ({len(ranked_survivors)} ranked, "
+             f"{held} passed the initial review but were never deep-reviewed)")
+    except Exception as exc:  # noqa: BLE001 — a reporting channel never sinks a round
+        _log(run_id, f"STAGE1_POOL candidate_pool FAILED (recorded, round proceeds): {exc}")
+
     return {
+        "candidate_pool": candidate_pool,
         "hypotheses": hypotheses,
         "review_summary": review_summary,
         "survivors_full": survivors_full,
@@ -891,6 +1044,14 @@ def _run_quick(baton: Baton) -> Baton:
 
     baton.payload["hypotheses"] = hypotheses
     baton.payload["hypotheses_ranked"] = True
+    # The pool channel exists on the quick path too, so a caller never has to
+    # branch on depth. Quick runs no reviews, so every row is status "generated"
+    # with no reasoning to carry — the channel is uniform, the content is honest.
+    quick_pool = [{"id": h["id"], "statement": h["statement"],
+                   "rationale": h["rationale"], "status": "generated"}
+                  for h in hypotheses]
+    baton.payload["candidate_pool"] = quick_pool
+    (run_dir / "candidate_pool.json").write_text(json.dumps(quick_pool, indent=2))
     baton.add_history(
         "stage1_ideation",
         f"quick ideation (depth=quick): {len(hypotheses)} literature-grounded "
@@ -1079,6 +1240,10 @@ def run(baton: Baton, rounds: int | None = None, depth: str = "full",
         for s in lr["ranked_survivors"]
     ]
     baton.payload["hypotheses_ranked"] = True
+    # ADDITIVE (2026-07-30): the whole reviewed pool beside the ranked survivors.
+    # `hypotheses` is byte-identical to what it always was; a caller that wants
+    # only the survivors is unaffected. See build_candidate_pool for why.
+    baton.payload["candidate_pool"] = lr.get("candidate_pool") or []
 
     baton.add_history(
         "stage1_ideation",

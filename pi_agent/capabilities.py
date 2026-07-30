@@ -41,7 +41,9 @@ machinery, so every path is exercisable offline with fakes (the repo pattern).
 from __future__ import annotations
 
 import inspect
+import json
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Callable, Optional
 
 from model_call import FULL, agent_workspace, call_stage_model
@@ -55,6 +57,17 @@ MOVE_COST = 1
 # Cap on how many items a capability result carries into the arc — the director
 # reads a digest, never a raw dump (small typed batons, not transcripts).
 _MAX_ITEMS = 8
+
+# THE POOL IS NOT A DIGEST (2026-07-30). "Small typed batons, not transcripts" is
+# the OLD relay's doctrine, and on the free path it is simply wrong: the measured
+# result in this repo is that full-arc re-read beats every summarised-memory
+# policy, because a summary hides a wrong belief that nothing then challenges.
+# Ideation's reviews ARE the substance the director is buying — a run that spent
+# 6.86M tokens reviewing 33 candidates delivered two bare statements, and the
+# director re-derived by hand what the reviews had already screened and named.
+# So the ranked pool travels with its reasoning, bounded generously rather than
+# tightly: this caps a pathological pool_size, it does not shape the answer.
+_MAX_POOL_ITEMS = 60
 
 
 def _insufficient(name: str) -> dict:
@@ -112,7 +125,11 @@ def run_ideation(action: dict, study: Any, budget: Any, seq: int, *, run: Callab
         for h in hyps[:_MAX_ITEMS]
         if isinstance(h, dict)
     ]
-    return {
+    # The reviewed pool beside the ranked digest — read from the run's own
+    # evidence, so an injected test runner (which writes none) simply gets none
+    # and every offline path behaves exactly as before.
+    pool = read_candidate_pool(_capability_run_id(study, seq))[:_MAX_POOL_ITEMS]
+    result = {
         "succeeded": bool(digest),
         "outcome": "ideation_done" if digest else "ideation_empty",
         "hypotheses": digest,
@@ -127,6 +144,48 @@ def run_ideation(action: dict, study: Any, budget: Any, seq: int, *, run: Callab
         "novelty_priority": novelty_priority,
         "detail": f"{len(digest)} candidate direction(s) at depth={depth} for: {domain}",
     }
+    if pool:
+        result["candidate_pool"] = pool
+        held = sum(1 for e in pool if e.get("status") == "not_reviewed")
+        result["candidate_pool_note"] = (
+            f"EVERY candidate this pass produced, with the review reasoning that "
+            f"decided it — {len(pool)} rows. `hypotheses` above is the ranked "
+            f"survivors of the filter; these are the rest, and they are yours to "
+            f"use or ignore. {held} of them passed the initial review but were "
+            f"held back by the promise triage and never deep-reviewed, so a low "
+            f"`status` is a screening decision, NOT a verdict that the idea is "
+            f"bad. `screen_reason` is the reviewer's own sentence — it often "
+            f"names the state of the art that already replaced the target."
+        )
+        result["detail"] += (
+            f"; {len(pool)} reviewed candidate(s) in candidate_pool")
+    return result
+
+
+def _capability_run_id(study: Any, seq: int) -> str:
+    """The run dir a capability's inner machinery writes to. Constructed in ONE
+    place so the executor and the evidence reader can never disagree about which
+    run produced what (the mcp_config lesson: two readers of the same thing are
+    two chances to read different things)."""
+    return f"{study.study_id}-cap{seq}"
+
+
+def read_candidate_pool(run_id: str, *, runs_root: Path = None) -> list:
+    """Ideation's reviewed pool for `run_id`, or [] — best effort, never raises.
+
+    Reads the evidence stage 1 writes (`runs/<id>/stage1/candidate_pool.json`)
+    rather than threading a second return value through the injected `run` seam,
+    which every offline test supplies its own version of. A missing/unreadable
+    file means "no pool", which is exactly the pre-existing behaviour."""
+    try:
+        root = Path(runs_root) if runs_root else Path("runs")
+        path = root / run_id / "stage1" / "candidate_pool.json"
+        if not path.exists():
+            return []
+        data = json.loads(path.read_text())
+        return data if isinstance(data, list) else []
+    except Exception:  # noqa: BLE001 — a reporting channel never sinks the call
+        return []
 
 
 # How much of the arc travels into an ideation request. Bounded so a long study
@@ -226,7 +285,7 @@ def _default_ideation(domain: str, study: Any, seq: int,
     from stages import stage1_ideation
 
     baton = Baton(
-        run_id=f"{study.study_id}-cap{seq}",
+        run_id=_capability_run_id(study, seq),
         created_at=datetime.now(timezone.utc).isoformat(),
         mode=study.mode,
         payload={"domain": domain},
