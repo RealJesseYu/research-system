@@ -256,6 +256,9 @@ def read_decisions(study_dir: Path, *, full: bool = False) -> list:
             "instrument": d.get("instrument"),
             "campaign": d.get("campaign"),
             "domain": d.get("domain"),
+            # A run_fan carries its questions HERE and leaves `domain` null; the
+            # per-member questions are what _annotate_fan_members hands to the arc.
+            "fan_domains": d.get("fan_domains"),
             "reading": d.get("reading"),
             "reasoning": d.get("reasoning"),
             "detail": d.get("detail"),
@@ -484,6 +487,50 @@ def failure_events(node: dict) -> list:
 # The snapshot: one study node, recursively.
 # --------------------------------------------------------------------------- #
 
+def _annotate_fan_members(arc: list, decisions: list) -> None:
+    """Give each fan member back its OWN question, in place.
+
+    Why this join has to exist. One `run_fan` decision spends N moves and appends N
+    arc rows, but writes a SINGLE decisions/decideN.json. The arc row carries no
+    `domain` at all — its move_type is the bare string "single" and its `finding` is
+    the parent fan decision's reasoning, copied identically onto every member. So a
+    watcher saw six consecutive rows reading "single" with the same sentence under
+    each, and could not tell which candidate any of them investigated. The questions
+    were on disk the whole time, in the decision's `fan_domains`.
+
+    The join is POSITIONAL, and that is safe because the producer makes it so:
+    run_study_fan (pi_agent/study.py) pre-assigns run-ids sequentially, collects
+    into a fixed-size list indexed by launch order, and appends to arc.jsonl
+    sequentially afterward — "Returns the results in move order". So a run_fan at
+    seq S owns rows S .. S+len(fan_domains)-1, in fan_domains order. Confirmed
+    against study-20260730T034915Z, whose rows 3-8 are one six-member fan.
+
+    It still FAILS SOFT, because being readable while things are broken is this
+    module's entire job: a missing row (fan still in flight), a short or non-list
+    fan_domains, a non-integer seq, or a row that already carries a real domain all
+    leave the row exactly as it was rather than raising or inventing a label.
+    """
+    by_seq = {a.get("seq"): a for a in arc if isinstance(a.get("seq"), int)}
+    for d in decisions or []:
+        if not isinstance(d, dict) or d.get("action") != "run_fan":
+            continue
+        domains = d.get("fan_domains")
+        start = d.get("seq")
+        if not isinstance(domains, list) or not domains or not isinstance(start, int):
+            continue
+        for i, question in enumerate(domains):
+            row = by_seq.get(start + i)
+            if row is None or row.get("domain"):
+                continue  # not written yet, or already labelled — never overwrite
+            if isinstance(question, str) and question.strip():
+                row["domain"] = question
+            row["fan_index"] = i + 1
+            row["fan_width"] = len(domains)
+            # The finding is the PARENT's reasoning repeated on every member, so it
+            # is worth reading once at the head of the fan and noise on the rest.
+            row["finding_repeats_fan"] = i > 0
+
+
 def _arc_entry_view(entry: dict, *, runs_root: Path, with_run: bool, log_lines: int) -> dict:
     """One move as a watcher reads it: what kind, whether it stood, what it found,
     what it cost, and the one-line finding the director attached."""
@@ -584,6 +631,7 @@ def snapshot(
         _arc_entry_view(e, runs_root=runs_root, with_run=True, log_lines=log_lines)
         for e in arc_raw
     ]
+    _annotate_fan_members(arc, decisions)
 
     node: dict = {
         "study_id": identity.get("study_id", sid),

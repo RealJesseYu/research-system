@@ -745,3 +745,89 @@ def test_the_default_view_is_the_event_log_not_the_dashboard():
 def _build_parser_ns():
     from liveview.__main__ import _build_parser
     return _build_parser().parse_args([])
+
+
+# --------------------------------------------------------------------------- #
+# Fan members get their own question back (2026-07-30).
+#
+# One run_fan decision spends N moves and appends N arc rows, but writes a SINGLE
+# decisions/decideN.json. The arc row has no `domain`, its move_type is the bare
+# string "single", and its `finding` is the parent's reasoning copied onto every
+# member — so six consecutive rows read identically and a watcher could not tell
+# which candidate any of them investigated. Found live in experiment 2.
+# --------------------------------------------------------------------------- #
+
+def _fan_arc(n=3, start=2):
+    return [{"seq": start + i} for i in range(n)]
+
+
+def test_each_fan_member_is_labelled_with_its_own_question():
+    from liveview.reader import _annotate_fan_members
+
+    arc = _fan_arc(3)
+    _annotate_fan_members(arc, [{"seq": 2, "action": "run_fan",
+                                 "fan_domains": ["question A", "question B",
+                                                 "question C"]}])
+    assert [a["domain"] for a in arc] == ["question A", "question B", "question C"]
+    assert [a["fan_index"] for a in arc] == [1, 2, 3]
+    assert all(a["fan_width"] == 3 for a in arc)
+
+
+def test_the_parents_repeated_reasoning_is_flagged_after_the_first_member():
+    """The finding is identical on every member, so it is worth reading once."""
+    from liveview.reader import _annotate_fan_members
+
+    arc = _fan_arc(3)
+    _annotate_fan_members(arc, [{"seq": 2, "action": "run_fan",
+                                 "fan_domains": ["a", "b", "c"]}])
+    assert [a["finding_repeats_fan"] for a in arc] == [False, True, True]
+
+
+def test_a_fan_still_in_flight_annotates_only_the_rows_that_exist():
+    """Members land as they finish; a missing row must not raise or shift labels."""
+    from liveview.reader import _annotate_fan_members
+
+    arc = _fan_arc(2)  # 2 of 4 landed so far
+    _annotate_fan_members(arc, [{"seq": 2, "action": "run_fan",
+                                 "fan_domains": ["a", "b", "c", "d"]}])
+    assert [a["domain"] for a in arc] == ["a", "b"]
+    assert [a["fan_width"] for a in arc] == [4, 4]
+
+
+def test_a_real_domain_on_the_row_is_never_overwritten():
+    from liveview.reader import _annotate_fan_members
+
+    arc = [{"seq": 2, "domain": "what the row itself recorded"}]
+    _annotate_fan_members(arc, [{"seq": 2, "action": "run_fan",
+                                 "fan_domains": ["from the decision"]}])
+    assert arc[0]["domain"] == "what the row itself recorded"
+
+
+def test_a_non_fan_decision_annotates_nothing():
+    from liveview.reader import _annotate_fan_members
+
+    arc = _fan_arc(2)
+    _annotate_fan_members(arc, [{"seq": 2, "action": "run_experiment",
+                                 "domain": "one question", "fan_domains": None}])
+    assert all("domain" not in a and "fan_width" not in a for a in arc)
+
+
+@pytest.mark.parametrize("decisions", [
+    None,
+    [],
+    [None],
+    ["not a dict"],
+    [{"seq": 2, "action": "run_fan", "fan_domains": None}],
+    [{"seq": 2, "action": "run_fan", "fan_domains": []}],
+    [{"seq": 2, "action": "run_fan", "fan_domains": "not a list"}],
+    [{"seq": None, "action": "run_fan", "fan_domains": ["a"]}],
+    [{"seq": "2", "action": "run_fan", "fan_domains": ["a"]}],
+    [{"action": "run_fan", "fan_domains": ["a"]}],
+    [{"seq": 2, "action": "run_fan", "fan_domains": [None, 7, ""]}],
+])
+def test_malformed_decisions_never_raise(decisions):
+    """Being readable while things are broken is this module's whole job."""
+    from liveview.reader import _annotate_fan_members
+
+    arc = _fan_arc(3)
+    _annotate_fan_members(arc, decisions)  # must not raise

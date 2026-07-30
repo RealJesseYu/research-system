@@ -167,9 +167,10 @@ function arcHtml(node){
     h += `<li class="kids"><div class="row" onclick="toggle('${key}')">
       <span class="${a.succeeded?'ok':'warn'}">${a.succeeded?"✓":"✗"}</span>
       <span class="seq">${a.seq}.</span>
-      <span class="type">${E(a.move_type)}</span>
+      <span class="type">${E(a.fan_width ? "fan "+a.fan_index+"/"+a.fan_width : a.move_type)}</span>
       <span class="muted">${E(a.outcome_plain||a.outcome||"")}</span> ${counts}</div>`;
-    if (a.finding) h += `<div class="finding">${E(a.finding)}</div>`;
+    if (a.domain) h += `<div class="finding"><b>ask:</b> ${E(a.domain)}</div>`;
+    if (a.finding && !a.finding_repeats_fan) h += `<div class="finding">${E(a.finding)}</div>`;
     if (isOpen && (a.results||[]).length) {
       h += `<div class="claims">` + a.results.map(r =>
         `<div class="claim"><span class="v ${r.verified?'ok':'bad'}">${r.verified?"✓":"✗"}</span>

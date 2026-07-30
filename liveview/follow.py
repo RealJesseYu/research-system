@@ -132,11 +132,19 @@ class Follower:
                 continue
             self._arc_seen.add(key)
             mark = "ok " if a.get("succeeded") else "FAILED"
-            line = f"[move {seq}] {a.get('move_type')} — {mark}"
+            # A fan member reports move_type "single"; its position in the fan is
+            # the only thing that tells one member from another in a log.
+            kind = (f"fan {a.get('fan_index')}/{a.get('fan_width')}"
+                    if a.get("fan_width") else str(a.get("move_type")))
+            line = f"[move {seq}] {kind} — {mark}"
             if a.get("results_total"):
                 line += (f" · {a.get('results_verified')}/{a.get('results_total')} "
                          "verified")
             out.append(self._c(line, GREEN if a.get("succeeded") else YELLOW))
+            # The question this move was given. In the event log it is printed per
+            # move rather than per decision, because one fan decision covers N moves.
+            if a.get("domain"):
+                out.extend(_wrap("ask:  " + a["domain"], self.width, "    ")[:4])
             for stmt in (a.get("hypotheses") or [])[:8]:
                 out.extend(_wrap("· " + stmt, self.width, "    "))
             if a.get("error"):

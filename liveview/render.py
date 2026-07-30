@@ -257,12 +257,23 @@ def _arc_lines(node: dict, c: _Painter, W: int, indent: str = "  ") -> list:
                        GREEN if good else YELLOW)
         elif a.get("child_termination"):
             counts = c(str(a["child_termination"]), GREY)
+        # A fan member's move_type is the bare string "single", so name it by its
+        # place in the fan instead — the label is otherwise identical N times over.
+        kind = str(a.get("move_type"))
+        if a.get("fan_width"):
+            kind = f"fan {a.get('fan_index')}/{a.get('fan_width')}"
         head = (f"{indent}{mark} {a.get('seq')}. "
-                f"{c(str(a.get('move_type')), BOLD)}  "
+                f"{c(kind, BOLD)}  "
                 f"{_clip(a.get('outcome_plain') or a.get('outcome'), max(24, W - 52))}")
         out.append(head + ("  " + counts if counts else ""))
-        if a.get("finding"):
-            pad = indent + "     "
+        pad = indent + "     "
+        # WHAT THIS MOVE WAS ACTUALLY ASKED. For a fan member this is the only thing
+        # that distinguishes it from its five siblings, so it leads.
+        if a.get("domain"):
+            out.append(c(pad + "ask: ", BLUE)
+                       + _clip(a["domain"], max(20, W - len(pad) - 7)))
+        # The parent fan's reasoning is copied onto every member; print it once.
+        if a.get("finding") and not a.get("finding_repeats_fan"):
             out.append(c(pad + _clip(a["finding"], max(20, W - len(pad) - 2)), GREY))
         # WHAT an ideation call actually proposed. Without this a watcher sees
         # "call_ideation ✓ done" and nothing about the ideas — the most
