@@ -1,6 +1,6 @@
-# Goal 1 results — verified, arms A and B
+# Goal 1 results — all three arms, verified
 
-**2026-07-29.** Arm C still running. Verification done per
+**2026-07-29. COMPLETE.** Verification done per
 `docs/comparison_protocol.md` §6: criteria 2 and 3 checked **mechanically**,
 from each arm's raw data, not from its summary.
 
@@ -104,3 +104,100 @@ Do not revise the goal, the criteria, or the 1e-12 bound now that two arms have
 run. The bound being slightly unmeetable in one corner is **information about the
 problem**, and both arms surfaced it independently. That is a good outcome, not a
 spec defect.
+
+
+---
+
+# Arm C — this system. VERIFIED, and it MEETS the bound.
+
+`study-20260729T210651Z` · 5 moves · **$60.41** · 282 agentic turns · 46.7M tokens ·
+`director_judged_complete`
+
+**I recomputed the headline from the raw binaries** (`grid.bin`, `errs.bin`),
+using arm C's own per-point definition of a usable point — the tail is
+representable AND double precision can in principle hold 1e-12 there
+(`bestposs <= 1e-12`). That is a *stricter, per-point* exclusion than arm B's
+blanket sub-1e-300 cut.
+
+| claim | C stated | independently recomputed | verdict |
+|---|---|---|---|
+| grid points | — | 86,190 | — |
+| usable points | 73,688 | **73,688** | ✅ |
+| points over 1e-12 | 0 | **0** | ✅ |
+| worst relative error | 4.51e-13 | **4.5081e-13** | ✅ |
+| textbook baseline worst | 3.2575e-10 | **3.2575e-10** | ✅ |
+| textbook baseline failures | 1190 | **1190** | ✅ |
+
+## The decisive comparison: the corner that defeated arm B
+
+Arm B's 6 violations were all at `a=0.01,b=1000` and its mirror. Arm C on the
+same corner:
+
+| corner | arm B worst | arm C worst | |
+|---|---|---|---|
+| `a=0.01, b=1000` | **1.405e-12** (over) | **5.43e-14** | **~26x better** |
+| `a=1000, b=0.01` | 1.405e-12 (over) | 2.71e-13 | inside |
+
+At arm B's single worst point (`x=1.32e-05`), arm C's nearest grid points measure
+1.2e-14, 3.4e-16 and 5.5e-15.
+
+## Where arm C is genuinely stronger
+
+- **It meets the spec.** 0 of 73,688 vs arm B's 6 of 57,282. Categorical, not
+  marginal.
+- **Its reference is cross-validated three ways** — `refcheck.json` agrees
+  mpmath continued-fraction and hypergeometric routes to **8.6e-53 / 2.8e-55**
+  over 29 points. Arm B used a single `mp.betainc` route (sound, but unchecked).
+- **It measured a baseline.** Five modes including the textbook implementation
+  (1190 failures, 3.26e-10) — so the improvement is quantified against something,
+  not asserted. Neither chat arm did this.
+- **It produced a real negative result.** The Temme/uniform-asymptotic fan member
+  verified 0 of 16 and was ruled out *with the reason recorded* — `g_k` cancels to
+  order `eta^-(2K-1)`, so no fixed precision covers a neighbourhood of `z=0`.
+  **Arm B scoped that same approach out as future work; arm C tried it and killed
+  it.**
+- **Quantified limits** in `notrust.json` (band point, unrepresentable x,
+  amplification 4544 outside vs 456 at the edge), plus a paper with 5 figures and
+  a build critique.
+
+## Where arm B is genuinely better — and it is not nothing
+
+**Criterion 5, usable tomorrow.** Arm B shipped a clean directory
+(`~/ibeta-lib`) with a `REPORT.md` and reproduce-from-scratch commands. Arm C's
+artifacts are spread across a run workspace with the paper in a different
+directory and **no README in the workspace at all**. A competent person can act
+on arm B's output immediately; arm C's needs assembling first.
+
+That is a real deliverable-packaging weakness, and it is the one criterion where
+the orchestration lost to a single agent.
+
+## Falsifier check — none fired
+
+| falsifier | fired? |
+|---|---|
+| B matches or beats C on criteria 1, 4 **and** 5 | **No** — B wins 5 only; C wins 1 and 4 |
+| C wins only on criterion 3 (reproducibility) | **No** — C wins 1, 2 and 4 as well |
+| C costs >5x B for an incremental margin | **No** — and the margin is categorical (meets vs misses), not incremental |
+| C over-claims where B does not | **No** — C's unverified 9.89e-13 adversarial figure is marked unverified; the 4.51e-13 headline is the one I confirmed |
+
+## Honest gaps in this record
+
+- **Arm B's cost was never measured.** One session, ~20 minutes by file
+  timestamps, but no dollar figure. So "C cost 4x B" is an estimate, not a
+  measurement. Record B's spend on the next goal.
+- **The grids are not identical** — 86,190/73,688 for C vs 71,456/57,282 for B.
+  Each arm chose its own sweep, which is part of what was being tested, but it
+  means the two worst-case numbers are not measured on exactly the same points.
+  The corner comparison above is the like-for-like part.
+- **Arm A had tools** and did not finish, so there is no floor arm.
+
+## Verdict for goal 1
+
+**The orchestration earned its complexity on this goal.** It met a specification
+a single strong agent missed, at the specific corner that defeated that agent,
+with a better-validated reference and a measured baseline — and it produced a
+documented negative result on an approach the single agent could only scope out.
+
+**One goal, one data point.** This says nothing yet about the open-ended or
+discovery classes, and the packaging weakness is real and should be fixed before
+this is shown to anyone.
