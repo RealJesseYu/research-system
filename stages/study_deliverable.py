@@ -546,13 +546,48 @@ def package_study_deliverable(study: Any, *, call=None) -> dict:
     except OSError as e:
         return {"error": f"could not write the package: {type(e).__name__}: {e}"}
 
+    # SURFACE THE REPRODUCE SECTION WHERE A READER LOOKS FIRST. The README has
+    # carried a "Reproduce" section for a while and the paper never pointed at
+    # it — item (3) of what a reader needs existed, in a different file, unlinked.
+    # This is a deterministic, Python-written pointer appended to the paper's own
+    # **What you can do with it now** item: a statement about what packaging just
+    # wrote must not be model-authored, and it can only be made AFTER the README
+    # exists. Never fatal, and a no-op when there is no opening block.
+    pointed = _point_paper_at_deliverable(study, dest)
+
     return {
         "deliverable_dir": str(dest),
+        "paper_pointer_added": pointed,
         "readme_path": str(dest / "README.md"),
         "deliverable_files": [e["final_name"] for e in deliv_copied],
         "evidence_files": [e["final_name"] for e in ev_copied],
         "skipped": len(deliv_skipped) + len(ev_skipped),
     }
+
+
+def _point_paper_at_deliverable(study: Any, dest: Path) -> bool:
+    """Append a pointer to the packaged deliverable's Reproduce section to the
+    paper's **What you can do with it now** item. True when the paper changed.
+
+    Pure-ish and never raises: a courtesy pointer must never be able to take down
+    a packaging step that already succeeded."""
+    try:
+        from harness.study_lint import insert_entry_point_pointer
+        paper = study.dir / "paper.md"
+        if not paper.is_file():
+            return False
+        rel = f"{dest.name}/README.md"
+        text = paper.read_text()
+        updated = insert_entry_point_pointer(
+            text,
+            f"Everything named here is packaged in one directory with a "
+            f"step-by-step Reproduce section: `{rel}`.")
+        if updated == text:
+            return False
+        paper.write_text(updated)
+        return True
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def package_study_deliverable_by_id(study_id: str, *, studies_root: Optional[Path] = None,

@@ -20,6 +20,15 @@ the study's whole arc and drafts paper.md with figures. It is given ONLY:
 It keeps free_paper's one load-bearing habit — a mandatory "What a human must
 still validate" section — sourced from exactly what the wall could not reproduce.
 
+TWO DOCUMENTS, AND A SHAPE THAT IS ENFORCED. It writes paper.md (short: the
+opening "Bottom line" block, then a readable skeleton) and report.md (the
+supplement: the arc, the full specification, per-phase detail, the artifact
+inventory). The either/or that produced a design document with no abstract
+anywhere is gone — both goal types now get both files. And the shape is checked
+by harness/study_lint.py INSIDE the writer's own bounded re-ask loop, because the
+prompt has always asked for structure and a real study came back in 15 sections
+with no table of contents and no abstract. Asking is not enforcement.
+
 THE MEASUREMENT BOUNDARY HOLDS. Only verified numbers are presented as results;
 narration never becomes a claim, and the agent is told not to invent numbers. It
 writes into the study's own scratch dir (never the repo root).
@@ -36,6 +45,9 @@ import shutil
 from pathlib import Path
 from typing import Any, Optional
 
+from harness.study_lint import (DOCUMENT_KINDS, infer_document_kind,
+                                lint_errors_as_text, lint_study_paper,
+                                lint_study_supplement)
 from model_call import FULL, agent_workspace, call_stage_model
 from models import model_for
 
@@ -47,42 +59,124 @@ PAPER_STAGE_NAME = "study_paper"
 MAX_FINDINGS = 60
 MAX_PHASES = 40
 
-SYSTEM_PROMPT = """You are writing a short scientific paper from a COMPLETED multi-phase investigation you did not run. A director held one GOAL and drove an arc of phases — some of them experiments, some delegated sub-investigations, some integration checks that tested whether the parts compose. You are given what that arc produced.
+SYSTEM_PROMPT = """You are writing up a COMPLETED multi-phase investigation you did not run. A director held one GOAL and drove an arc of phases — some of them experiments, some delegated sub-investigations, some integration checks that tested whether the parts compose. You are given what that arc produced.
 
 You are given VERIFIED FINDINGS — numbers an independent, no-model re-run has already reproduced. These, and ONLY these, are trustworthy results. You are also given UNVERIFIED findings (things that did not reproduce or could not be checked), the ARC (which phase produced what), and any REUSABLE ARTIFACTS the study built, each as a re-runnable producer.
 
-WRITE WHAT THE GOAL ACTUALLY CALLED FOR. Your current working directory is a private scratch directory, and you write your deliverable to a file named paper.md there, in Markdown — but "paper" is the filename, not a mandate to produce a scientific paper whatever was asked. Read the GOAL and produce the document that answers it:
-- a goal that asked a research question → a scientific paper (Abstract, Background, Method, Results, Limitations);
-- a goal that asked you to DESIGN or BUILD something → a design document: the thing itself is the subject. Lead with a full specification of what was designed — geometry, parameters, components, materials, the working code — complete enough to build or run. Then give the evidence that it works, and what remains unresolved;
-- a goal that asked a direct question → answer it directly and show the working. Do not inflate it into a paper.
-Whatever the form, describe the arc as an investigation somewhere in it — what was asked first, what each phase found, how later phases built on earlier ones, and what an integration check (if any) established that per-phase results could not. And report ONLY the verified numbers you were given, each noted as independently reproduced.
+YOU WRITE TWO FILES, NOT ONE. Your current working directory is a private scratch directory. Write both files there, in Markdown:
+
+  paper.md   — THE SHORT READABLE ONE. A reader gets through it in minutes. It carries the opening block below, then every finding stated clearly and positioned clearly against what was already known. Nothing else.
+  report.md  — THE SUPPLEMENT. As long as it needs to be: the arc narrative phase by phase, the FULL specification, the per-phase detail, the artifact inventory, the working, the dead ends. Everything that would bloat paper.md lives here instead of being cut. Nothing is lost — it moves.
+
+paper.md must link to report.md near the top, by that bare filename, so a reader who wants the detail knows where it went.
+
+=== THE OPENING BLOCK — MANDATORY, WHATEVER THE GOAL TYPE ===
+
+paper.md OPENS with this section, before anything else, exactly this heading and exactly these four bold labels, in this order:
+
+## Bottom line
+
+**What was accomplished** — the result, in plain language, first. One short paragraph. Not what you set out to do, not what the document contains: what is now true that was not true before.
+
+**What it is worth** — the impact, quantified, in units a reader of this field actually cares about (dollars, tonnes, hours, percent, watts, lives, inches of material). If the honest answer is a range or an order of magnitude, say that. If nothing was quantified, say that plainly rather than reaching for a number.
+
+**What you can do with it now** — the CONCRETE entry point. Name the file to open or the command to type, in backticks. Not "the work is reproducible" — `python3 evidence/verify_findings.py`, or `deliverable/README.md`, or the artifact's own filename. A reader must be able to act within a minute of reading this line.
+
+**What is not established** — one line. The boundary, up front, so nobody has to hunt for it.
+
+Keep the whole block to one screen. This is not decoration: a reader must learn what was accomplished, what it is worth, what to do next and where the boundary is WITHOUT SEARCHING, and that is what this block is for.
+
+LEADING WITH THE ACCOMPLISHMENT MUST NEVER BECOME LEADING WITH A CLAIM THE WALL DID NOT VERIFY. If the honest headline is "the incumbent is convicted; the successor is drafted, not certified", then THAT is the headline, stated plainly and up front. An unmarked over-claim is disqualifying. An honest negative or partial result, stated first and clearly, is a good opening block.
+
+=== THE REST OF paper.md ===
+
+After the opening block, use the skeleton that fits the goal — you declare which you used in your reply:
+- document_kind "research" (the goal asked a research question, or asked what something achieves): Abstract, Introduction, Methods, Results, Conclusions, Limitations.
+- document_kind "design" (the goal asked you to DESIGN or BUILD something): Abstract, What was built, How it performs, How to build it, Limitations. Lead with the THING — what it is, its parameters, what it does — not with the investigation that produced it.
+
+Both kinds get an Abstract. A goal that said "build the replacement end to end" is still a piece of work whose result a reader must be able to grasp in a paragraph.
+
+NAVIGATION. Put a "## Contents" table of contents in ANY document that grows past the standard skeleton — more than eight sections — and that will usually mean report.md. A long document with no way to navigate it is a document nobody reads to the end. Put it IMMEDIATELY AFTER the opening block, never before: nothing precedes the result, not even a table of contents.
+
+STATE EVERY NEW FINDING CLEARLY AND POSITION IT AGAINST WHAT WAS ALREADY KNOWN. A number with no baseline is not a finding. Say what the prior state of knowledge or practice was, and what this changes.
+
+=== CONSTRAINTS THAT MAKE THIS TRUSTWORTHY — THEY APPLY TO BOTH FILES ===
+
+Report ONLY the verified numbers you were given as results, each noted as independently reproduced. Results carries independently reproduced numbers and nothing else; every unverified finding goes to Limitations and is NEVER presented as established.
 
 MARK THE PROVENANCE OF EVERY SPECIFIED VALUE. A specification is dangerous precisely because it reads as authoritative: an airfoil choice, a dihedral angle, a spar dimension all look as solid as a number that was independently reproduced, and they are not. So when you present a design, tag each element as one of:
 - VERIFIED — a number in the verified list, independently reproduced by the no-model re-run;
 - COMPUTED — derived during the investigation but not independently re-run;
 - JUDGEMENT — chosen by the investigation with nothing checking it.
-A table with a provenance column is usually the clearest way. This is the same honesty the findings already get, extended to the specification, and it is what lets a reader trust the parts that earned it and check the parts that did not. Never present a JUDGEMENT element as though it were established.
+A table with a provenance column is usually the clearest way. Never present a JUDGEMENT element as though it were established.
 
-THE ARTIFACTS ARE PART OF THE DELIVERABLE. You are given the reusable artifacts this study produced, each as a re-runnable producer. If the study built a thing, that thing belongs in the document: regenerate it (run the producer), describe it fully, and DRAW it where it has a shape — a planform, a schematic, a layout, a structure. A reader should be able to see what was made, not only the numbers measured about it.
+THE ARTIFACTS ARE PART OF THE DELIVERABLE. You are given the reusable artifacts this study produced, each as a re-runnable producer. If the study built a thing, that thing belongs in the write-up: regenerate it (run the producer), describe it fully in report.md, and DRAW it where it has a shape — a planform, a schematic, a layout, a structure. A reader should be able to see what was made, not only the numbers measured about it.
 
 FIGURES: where a figure genuinely clarifies a result, generate it — run python with matplotlib, save a .png beside paper.md, and embed it with ![caption](figure.png). Build figures only from the numbers you were given. Do not fabricate data to make a figure look fuller.
 
-Do NOT invent numbers. Do NOT present any unverified finding as established — those belong in Limitations.
+Do NOT invent numbers.
 
-END with a section "## What a human must still validate": one bullet per claim or assumption a human should check before trusting this paper. Every unverified finding belongs here, plus any modelling assumption the investigation relied on, plus anything the arc asserted but never measured.
+END paper.md with a section "## What a human must still validate": one bullet per claim or assumption a human should check before trusting this. Every unverified finding belongs here, plus any modelling assumption the investigation relied on, plus anything the arc asserted but never measured.
 
-Return ONLY JSON: {"paper_file": "paper.md", "figures": ["<png files you generated>"], "human_must_validate": ["<bullet>", ...]} — no other fields."""
+Return ONLY JSON: {"paper_file": "paper.md", "supplement_file": "report.md", "document_kind": "research"|"design", "figures": ["<png files you generated>"], "human_must_validate": ["<bullet>", ...]} — no other fields."""
 
-SCHEMA = {"required": ["paper_file", "human_must_validate"]}
+SCHEMA = {"required": ["paper_file", "supplement_file", "document_kind",
+                       "human_must_validate"]}
 
 
 def _validate(data: dict) -> list:
     errs = []
     if not str(data.get("paper_file") or "").strip():
-        errs.append("'paper_file' must name the markdown file you wrote.")
+        errs.append("'paper_file' must name the short primary markdown file you wrote.")
+    if not str(data.get("supplement_file") or "").strip():
+        errs.append("'supplement_file' must name the supplement markdown file you "
+                    "wrote (the long one carrying the arc, the full specification, "
+                    "the per-phase detail and the artifact inventory).")
+    if data.get("document_kind") not in DOCUMENT_KINDS:
+        errs.append("'document_kind' must be exactly one of "
+                    f"{' | '.join(DOCUMENT_KINDS)} — which skeleton paper.md uses.")
     if not isinstance(data.get("human_must_validate"), list):
         errs.append("'human_must_validate' must be a list (may be empty).")
     return errs
+
+
+def _structural_validator(scratch: Path):
+    """The shape lint, wired into the writer's OWN bounded re-ask loop.
+
+    This is the load-bearing difference between asking for structure and getting
+    it. The prompt above has always asked; a real study came back 9,296 words in
+    15 sections with no table of contents, no abstract, and an opening section
+    that told a reader nothing about what to DO next. So the lint runs on the
+    files as actually written, inside call_stage_model's correction loop, and a
+    paper missing its opening block is sent back before it is ever saved.
+
+    Returns a callable(parsed_reply) -> plain-language errors, closing over the
+    scratch dir because the lint reads FILES, not the JSON reply."""
+    def check(data: dict) -> list:
+        errs = _validate(data)
+        if errs:
+            return errs  # shape of the reply first; the files are checked next
+        root = Path(scratch).resolve()
+        out: list = []
+        for key, linter, what in (
+                ("paper_file", lambda t: lint_study_paper(t, data["document_kind"]),
+                 "paper"),
+                ("supplement_file", lint_study_supplement, "supplement")):
+            name = str(data.get(key))
+            path = (root / name).resolve()
+            if not path.is_relative_to(root) or not path.is_file():
+                out.append(f"'{key}' names {name!r}, but no such file exists in "
+                           "your working directory — write it before replying.")
+                continue
+            try:
+                text = path.read_text()
+            except (OSError, UnicodeDecodeError) as e:
+                out.append(f"{name} could not be read back: {e}")
+                continue
+            out.extend(f"{what} ({name}): {msg}"
+                       for msg in lint_errors_as_text(linter(text)))
+        return out
+    return check
 
 
 def collect_study_evidence(study: Any) -> dict:
@@ -164,8 +258,19 @@ def write_study_paper(study: Any, *, call=None) -> dict:
         try:
             data, _timing = call(
                 PAPER_STAGE_NAME, SYSTEM_PROMPT, evidence, SCHEMA,
-                model=PAPER_MODEL, extra_validator=_validate, capabilities=FULL)
+                model=PAPER_MODEL, extra_validator=_structural_validator(scratch),
+                capabilities=FULL)
         except Exception as e:  # noqa: BLE001
+            # SALVAGE. The structural lint runs inside the re-ask loop, so a
+            # writer that will not produce an opening block exhausts the loop and
+            # raises — and the paper it DID write is sitting in the scratch dir.
+            # Throwing that away would mean a study loses its whole write-up over
+            # a missing table of contents, which is a worse outcome than an
+            # imperfectly shaped paper carrying a visible, Python-written notice
+            # of exactly what it is missing. Enforcement, not destruction.
+            salvaged = _salvage(scratch, study, f"{type(e).__name__}: {e}")
+            if salvaged:
+                return salvaged
             return {"error": f"paper write-up failed: {type(e).__name__}: {e}"}
 
     paper_file = data.get("paper_file") or "paper.md"
@@ -198,13 +303,83 @@ def write_study_paper(study: Any, *, call=None) -> dict:
             text = text + _correction_block(flagged)
         dest.write_text(text)
         figures = _copy_figures(data.get("figures") or [], scratch, study.dir)
+        supplement = _copy_supplement(data.get("supplement_file"), _root, study.dir)
     except Exception as e:  # noqa: BLE001
         return {"error": f"could not save the paper: {type(e).__name__}: {e}"}
 
+    # Which skeleton the writer declared, recorded beside the paper so a later
+    # lint holds it to the same standard it was written against instead of
+    # guessing from the headings.
+    try:
+        (study.dir / "paper_meta.json").write_text(json.dumps(
+            {"document_kind": data.get("document_kind"),
+             "supplement": "report.md" if supplement else None,
+             "figures": figures}, indent=2))
+    except OSError:
+        pass
+
     return {"paper_path": str(dest),
+            "supplement_path": supplement,
+            "document_kind": data.get("document_kind"),
             "human_must_validate": data.get("human_must_validate") or [],
             "figures": figures,
             "unsupported_claims": flagged}
+
+
+def _copy_supplement(name: Any, scratch_root: Path, dest_dir: Path):
+    """Copy the supplement up beside the paper as report.md. Contained exactly
+    like the paper is — the filename is model-authored. Returns the destination
+    path, or None when the file is absent (the lint has already objected; a
+    missing supplement must not also cost the reader the paper)."""
+    if not isinstance(name, str) or not name.strip():
+        return None
+    src = (Path(scratch_root) / name).resolve()
+    if not src.is_relative_to(Path(scratch_root).resolve()) or not src.is_file():
+        return None
+    dest = Path(dest_dir) / "report.md"
+    shutil.copyfile(src, dest)
+    return str(dest)
+
+
+def _salvage(scratch: Path, study: Any, reason: str) -> Optional[dict]:
+    """Rescue a paper the writer wrote but could not get past the shape lint.
+
+    The notice is written by PYTHON, not by a model: a statement that a document
+    failed its own structural check must not be authored by the writer that
+    failed it. Returns None when there is nothing to rescue."""
+    src = Path(scratch) / "paper.md"
+    if not src.is_file():
+        return None
+    try:
+        text = src.read_text()
+        # The declared kind is unavailable (the reply never validated), so the
+        # notice is written against whichever skeleton the draft is closest to —
+        # holding it to the other one would list misses that are not real.
+        failures = (lint_study_paper(text, infer_document_kind(text))
+                    if text.strip() else [])
+        notice = ["\n\n---\n\n## Structural check — this document does not meet the "
+                  "deliverable standard\n\n",
+                  "The write-up agent could not produce a conforming document "
+                  f"within its correction budget ({reason}). This paper is saved "
+                  "anyway rather than discarded, but a reader should know it is "
+                  "missing the following, and that the opening block a reader "
+                  "normally relies on may not be present:\n\n"]
+        for f in failures:
+            notice.append(f"- [{f['code']}] {f['message']}\n")
+        (study.dir / "paper.md").write_text(text + "".join(notice))
+        figures = _copy_figures(
+            [p.name for p in Path(scratch).glob("*.png")], scratch, study.dir)
+        supplement = _copy_supplement("report.md", Path(scratch), study.dir)
+    except Exception:  # noqa: BLE001
+        return None
+    return {"paper_path": str(study.dir / "paper.md"),
+            "supplement_path": supplement,
+            "document_kind": None,
+            "human_must_validate": [],
+            "figures": figures,
+            "unsupported_claims": [],
+            "structural_failures": [f["code"] for f in failures],
+            "salvaged": True}
 
 
 # --------------------------------------------------------------------------

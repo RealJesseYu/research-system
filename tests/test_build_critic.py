@@ -117,6 +117,46 @@ class TestTheCritiqueItself(CriticTestCase):
         self.assertIn("error", BC.critique_study(self.study, call=boom))
 
 
+class TestTheEntryPointLens(CriticTestCase):
+    """Criterion (3) — what a reader can DO with this now — is the one the whole
+    apparatus kept losing: the deliverable README carried a Reproduce section and
+    the paper never pointed at it. The critic now tests that line specifically."""
+
+    def test_the_prompt_makes_the_entry_point_the_first_check(self):
+        p = BC.SYSTEM_PROMPT
+        self.assertIn("CHECK THE ENTRY POINT FIRST", p)
+        self.assertIn("What you can do with it now", p)
+        self.assertIn("HIGH severity", p)
+
+    def test_the_stated_entry_point_is_extracted_in_python_for_the_critic(self):
+        (self.study.dir / "paper.md").write_text(
+            "## Bottom line\n\n"
+            "**What was accomplished** — a glider.\n\n"
+            "**What it is worth** — 12:1 glide.\n\n"
+            "**What you can do with it now** — run `python3 build.py`.\n\n"
+            "**What is not established** — the spar margin.\n\n"
+            "## Abstract\nx.\n")
+        call, seen = self._call()
+        BC.critique_study(self.study, call=call)
+        self.assertIn("`python3 build.py`",
+                      seen[BC.CRITIC_STAGE]["stated_entry_point"])
+
+    def test_a_deliverable_with_no_entry_point_hands_the_critic_an_empty_string(self):
+        """Which is itself the finding — not a crash, and not silence."""
+        call, seen = self._call()
+        BC.critique_study(self.study, call=call)
+        self.assertEqual(seen[BC.CRITIC_STAGE]["stated_entry_point"], "")
+
+    def test_the_critic_is_told_whether_a_supplement_exists(self):
+        call, seen = self._call()
+        BC.critique_study(self.study, call=call)
+        self.assertFalse(seen[BC.CRITIC_STAGE]["supplement_present"])
+        (self.study.dir / "report.md").write_text("## Arc\nx.\n")
+        call, seen = self._call()
+        BC.critique_study(self.study, call=call)
+        self.assertTrue(seen[BC.CRITIC_STAGE]["supplement_present"])
+
+
 class TestTheDirectorAnswers(CriticTestCase):
     def test_findings_go_back_and_the_response_is_recorded(self):
         call, seen = self._call()

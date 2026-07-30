@@ -9,7 +9,16 @@ with them. What remains is the two modes that never touched those stages:
 
 - --mode killrate   — the Stage-1 ideation kill-rate battery
                       (harness/killrate_battery.py + survival_counter.py).
-- --mode paperlint  — lint one run's stage-6 paper output (harness/paper_lint.py).
+- --mode paperlint  — lint a deliverable's SHAPE. Two targets:
+                      --study-id <id>  the LIVE route: studies/<id>/paper.md +
+                        report.md against the deliverable standard — the opening
+                        "Bottom line" block (what was accomplished / what it is
+                        worth / what you can do with it now / what is not
+                        established), a table of contents over six sections, the
+                        section skeleton for its declared kind, and the mandatory
+                        "What a human must still validate" (harness/study_lint.py).
+                      --run-id <id>    the RETIRED six-stage layout
+                        (harness/paper_lint.py), kept for old runs on disk.
 
 format_reject_line / format_signals_line stay here because killrate_battery
 imports them (the shared cost-report formatters).
@@ -55,6 +64,29 @@ def format_signals_line(signals: dict) -> str:
     return "SIGNALS (warn-only, never re-asked): " + (body if body else "(none)")
 
 
+def _declared_document_kind(study_dir: Path) -> str:
+    """The skeleton this study's paper is held to. The writer DECLARES its kind
+    and the study report records it; when that record is absent (an older study,
+    or one written before the declaration existed) the kind is inferred from the
+    paper's own headings rather than assumed. Never raises."""
+    import json
+
+    from harness.study_lint import DOCUMENT_KINDS, infer_document_kind
+
+    for name in ("paper_meta.json", "report.json", "study.json"):
+        try:
+            data = json.loads((study_dir / name).read_text())
+        except (OSError, ValueError):
+            continue
+        kind = data.get("document_kind") if isinstance(data, dict) else None
+        if kind in DOCUMENT_KINDS:
+            return kind
+    try:
+        return infer_document_kind((study_dir / "paper.md").read_text())
+    except (OSError, UnicodeDecodeError):
+        return "research"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="killrate + paperlint harness (Step 16.6; fidelity/triage/"
@@ -96,6 +128,12 @@ def main() -> int:
         default=None,
         help="paperlint mode only: the run whose stage6 output to lint",
     )
+    parser.add_argument(
+        "--study-id",
+        default=None,
+        help="paperlint mode only: the STUDY whose paper.md + report.md to lint "
+        "(the live free route; harness/study_lint.py)",
+    )
     args = parser.parse_args()
 
     if args.mode == "paperlint":
@@ -110,8 +148,37 @@ def main() -> int:
                 "--dry-run/--rounds/--report-path/--repeats apply only to "
                 "--mode killrate"
             )
+        # STUDY MODE — the live route. The run-id branch below lints the RETIRED
+        # six-stage layout; this one lints what a director-run study actually
+        # writes today, studies/<id>/paper.md + report.md, against the
+        # deliverable-shape standard (opening block, navigation, skeleton,
+        # must-validate). Deterministic, ZERO model calls, same failure shape.
+        if args.study_id is not None:
+            if args.run_id is not None:
+                parser.error("--mode paperlint takes --run-id OR --study-id, "
+                             "not both")
+            from harness.study_lint import lint_study_dir
+
+            study_dir = Path("studies") / str(args.study_id)
+            if not study_dir.is_dir():
+                print(f"PAPERLINT: NOT APPLICABLE — no study directory at "
+                      f"{study_dir}.")
+                return 0
+            kind = _declared_document_kind(study_dir)
+            failures = lint_study_dir(study_dir, kind)
+            for failure in failures:
+                print(f"PAPERLINT FAIL [{failure['code']}] "
+                      f"target={failure['target']}: {failure['message']}")
+            if failures:
+                print(f"PAPERLINT: FAIL — {len(failures)} failure(s) for study "
+                      f"{args.study_id} (linted as document_kind={kind!r})")
+                return 1
+            print(f"PAPERLINT: PASS — study {args.study_id}, 0 failures "
+                  f"(document_kind={kind!r})")
+            return 0
+
         if args.run_id is None:
-            parser.error("--mode paperlint requires --run-id")
+            parser.error("--mode paperlint requires --run-id or --study-id")
 
         # THIS MODE LINTS THE RETIRED STAGE-6 LAYOUT. lint_paper reads
         # runs/<id>/stage6/paper.md plus stage6/paper_validation.json and

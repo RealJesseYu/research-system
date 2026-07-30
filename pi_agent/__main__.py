@@ -358,8 +358,18 @@ def main(argv: list | None = None) -> None:
         outcome = write_study_paper_by_id(report["study_id"])
         if outcome.get("paper_path"):
             print(f"paper: {outcome['paper_path']}")
+            if outcome.get("supplement_path"):
+                print(f"  supplement: {outcome['supplement_path']}")
             for fig in outcome.get("figures") or []:
                 print(f"  figure: {fig}")
+            # A salvaged paper is one that could not be made to meet the
+            # deliverable shape standard within the writer's correction budget.
+            # It is saved with a Python-written notice rather than discarded, and
+            # the reason is printed here so the run does not read as clean.
+            if outcome.get("salvaged"):
+                print("  NOTE: structural check FAILED — paper saved with a "
+                      "notice appended: "
+                      f"{', '.join(outcome.get('structural_failures') or [])}")
             # REFEREE (best-effort, advisory). A fresh artifact-review pass
             # checks the paper's WORDS against the code and records behind it —
             # the layer the wall (numbers) and desk screen (text-only) cannot

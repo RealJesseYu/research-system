@@ -346,6 +346,52 @@ class TestPackaging(DeliverableTestCase):
         self.assertIn("no such study", out["error"])
 
 
+class TestPaperPointsAtTheDeliverable(DeliverableTestCase):
+    """The README has carried a step-by-step Reproduce section for a while and
+    the paper never pointed at it — criterion (3) existed, in a different file,
+    unlinked. Packaging now surfaces it inside the paper's own opening block,
+    written by Python because it is a statement about what packaging just wrote."""
+
+    OPENING = ("## Bottom line\n\n"
+               "**What was accomplished** — a library.\n\n"
+               "**What it is worth** — 3 hours saved.\n\n"
+               "**What you can do with it now** — run `python3 check.py`.\n\n"
+               "**What is not established** — the grid convergence.\n\n"
+               "## Abstract\nx.\n")
+
+    def _package(self):
+        self._record_move("m1")
+        ws = self._workspace("m1")
+        _write(ws / "lib.h", "int lib;")
+        call = TestPackaging._fake_call(
+            self, deliverable_files=[{"run_id": "m1", "path": "lib.h", "note": "hdr"}])
+        return package_study_deliverable(self.study, call=call)
+
+    def test_the_pointer_lands_inside_item_three(self):
+        (self.study.dir / "paper.md").write_text(self.OPENING)
+        out = self._package()
+        self.assertTrue(out["paper_pointer_added"])
+        text = (self.study.dir / "paper.md").read_text()
+        self.assertIn("deliverable/README.md", text)
+        # inside the opening block, before item 4 — not appended at the end,
+        # which is exactly where a reader never looks.
+        self.assertLess(text.index("deliverable/README.md"),
+                        text.index("What is not established"))
+
+    def test_no_opening_block_means_no_pointer_and_no_crash(self):
+        (self.study.dir / "paper.md").write_text("# Paper\nheadline (reproduced).")
+        out = self._package()
+        self.assertFalse(out["paper_pointer_added"])
+        self.assertNotIn("error", out)
+
+    def test_packaging_twice_does_not_duplicate_the_pointer(self):
+        (self.study.dir / "paper.md").write_text(self.OPENING)
+        self._package()
+        self._package()
+        text = (self.study.dir / "paper.md").read_text()
+        self.assertEqual(text.count("deliverable/README.md"), 1)
+
+
 class TestCandidateSet(unittest.TestCase):
     def test_flattens_kept_and_other_across_workspaces(self):
         candidates = {

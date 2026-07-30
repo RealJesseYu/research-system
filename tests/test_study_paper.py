@@ -19,6 +19,7 @@ Run directly: venv/bin/python3 tests/test_study_paper.py
 
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 import unittest
@@ -28,8 +29,44 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pi_agent.study as S  # noqa: E402
 from pi_agent.dispatch import MoveResult  # noqa: E402
-from stages.study_paper import (_validate, collect_study_evidence,  # noqa: E402
+from stages.study_paper import (_structural_validator,  # noqa: E402
+                                _validate, collect_study_evidence,
                                 write_study_paper, write_study_paper_by_id)
+
+# The shortest document that satisfies the deliverable standard: the opening
+# block first, the research skeleton, the mandatory validate section.
+GOOD_PAPER = """## Bottom line
+
+**What was accomplished** — the incumbent rule is convicted.
+
+**What it is worth** — $99,799 per lane-mile of material.
+
+**What you can do with it now** — run `python3 evidence/verify_findings.py`.
+
+**What is not established** — the replacement's out-of-sample performance.
+
+## Abstract
+one paragraph.
+
+## Introduction
+prior practice assumed X.
+
+## Methods
+we did Y.
+
+## Results
+0.42, independently reproduced.
+
+## Conclusions
+therefore Z.
+
+## Limitations
+the replacement coefficients did not reproduce.
+
+## What a human must still validate
+
+- the replacement coefficients
+"""
 
 
 def _record(study, *, results=(), move_type="single", finding="why", artifacts=()):
@@ -52,19 +89,24 @@ class StudyPaperTestCase(unittest.TestCase):
     def tearDown(self):
         self._tmp.cleanup()
 
-    def _agent(self, *, figures=(), write_figures=True, paper=True):
+    def _agent(self, *, figures=(), write_figures=True, paper=True,
+               supplement=True):
         """A fake paper agent that writes into whatever cwd it was given."""
         seen = {}
 
         def fake_call(stage, sp, inp, schema, **kw):
             seen["input"] = inp
+            seen["extra_validator"] = kw.get("extra_validator")
             scratch = S.study_scratch_dir(self.study)
             if paper:
                 (scratch / "paper.md").write_text("# Paper\nreach = 0.42 (reproduced).")
+            if supplement:
+                (scratch / "report.md").write_text("## Arc\nphase 1 did x.\n")
             if write_figures:
                 for f in figures:
                     (scratch / f).write_bytes(b"\x89PNG")
-            return ({"paper_file": "paper.md", "figures": list(figures),
+            return ({"paper_file": "paper.md", "supplement_file": "report.md",
+                     "document_kind": "research", "figures": list(figures),
                      "human_must_validate": ["check the unverified guess"]},
                     {"model": "fake"})
 
@@ -146,6 +188,101 @@ class TestWriteStudyPaper(StudyPaperTestCase):
         self.assertEqual(out["figures"], [])
 
 
+class TestTwoDocuments(StudyPaperTestCase):
+    """The either/or is dead. A goal that said "build the replacement end to end"
+    took the design-document branch and there was no abstract anywhere; now BOTH
+    kinds write a short paper.md AND a report.md supplement, and the detail that
+    used to bloat the primary document moves rather than being cut."""
+
+    def test_the_supplement_lands_beside_the_paper_as_report_md(self):
+        _record(self.study, results=[{"label": "a", "value": 1, "verified": True}])
+        call, _ = self._agent()
+        out = write_study_paper(self.study, call=call)
+        self.assertTrue((self.study.dir / "report.md").is_file())
+        self.assertTrue(out["supplement_path"].endswith("report.md"))
+        self.assertIn("phase 1 did x", (self.study.dir / "report.md").read_text())
+
+    def test_the_declared_kind_is_recorded_for_a_later_lint(self):
+        _record(self.study, results=[{"label": "a", "value": 1, "verified": True}])
+        call, _ = self._agent()
+        write_study_paper(self.study, call=call)
+        meta = json.loads((self.study.dir / "paper_meta.json").read_text())
+        self.assertEqual(meta["document_kind"], "research")
+
+    def test_a_missing_supplement_does_not_cost_the_reader_the_paper(self):
+        """The lint has already objected inside the re-ask loop. If one still
+        gets through, the paper is still saved — a deliverable is not a gate."""
+        _record(self.study, results=[{"label": "a", "value": 1, "verified": True}])
+        call, _ = self._agent(supplement=False)
+        out = write_study_paper(self.study, call=call)
+        self.assertIsNone(out["supplement_path"])
+        self.assertTrue((self.study.dir / "paper.md").is_file())
+
+
+class TestStructureIsEnforcedNotRequested(StudyPaperTestCase):
+    """The prompt has always asked for structure and a real study came back in 15
+    sections with no table of contents and no abstract. So the shape lint runs
+    inside the writer's OWN bounded re-ask loop, against the files as written."""
+
+    def _check(self, paper_text, supplement_text="## A\nx.\n\n## B\ny.\n",
+               kind="research"):
+        scratch = S.study_scratch_dir(self.study)
+        scratch.mkdir(parents=True, exist_ok=True)
+        (scratch / "paper.md").write_text(paper_text)
+        (scratch / "report.md").write_text(supplement_text)
+        return _structural_validator(scratch)(
+            {"paper_file": "paper.md", "supplement_file": "report.md",
+             "document_kind": kind, "human_must_validate": []})
+
+    def test_a_paper_with_no_opening_block_is_sent_back(self):
+        errs = self._check("# T\n\n## Results\n0.42.\n")
+        self.assertTrue(any("Bottom line" in e for e in errs))
+        self.assertTrue(all(e.startswith("paper (paper.md):") for e in errs))
+
+    def test_a_conforming_pair_passes(self):
+        self.assertEqual(self._check(GOOD_PAPER), [])
+
+    def test_the_supplement_is_linted_too_and_named_as_such(self):
+        errs = self._check(GOOD_PAPER, supplement_text="## Only one\nx.\n")
+        self.assertTrue(errs)
+        self.assertTrue(all(e.startswith("supplement (report.md):") for e in errs))
+
+    def test_a_file_the_agent_never_wrote_is_reported_before_linting(self):
+        scratch = S.study_scratch_dir(self.study)
+        scratch.mkdir(parents=True, exist_ok=True)
+        errs = _structural_validator(scratch)(
+            {"paper_file": "ghost.md", "supplement_file": "report.md",
+             "document_kind": "research", "human_must_validate": []})
+        self.assertTrue(any("no such file exists" in e for e in errs))
+
+    def test_reply_shape_errors_come_first_and_alone(self):
+        """No point linting files when the reply itself is malformed — the writer
+        gets one clear correction, not a pile."""
+        scratch = S.study_scratch_dir(self.study)
+        scratch.mkdir(parents=True, exist_ok=True)
+        errs = _structural_validator(scratch)({"paper_file": "paper.md"})
+        self.assertTrue(all("document_kind" in e or "supplement_file" in e
+                            or "human_must_validate" in e for e in errs))
+
+    def test_a_writer_that_never_conforms_is_salvaged_not_discarded(self):
+        """A study must not lose its whole write-up over a missing table of
+        contents — but the saved paper says so, in a notice Python wrote."""
+        _record(self.study, results=[{"label": "a", "value": 1, "verified": True}])
+
+        def exhausts(stage, sp, inp, schema, **kw):
+            scratch = S.study_scratch_dir(self.study)
+            scratch.mkdir(parents=True, exist_ok=True)
+            (scratch / "paper.md").write_text("# T\n\n## Results\n0.42.\n")
+            raise RuntimeError("stage study_paper failed after 3 attempts")
+
+        out = write_study_paper(self.study, call=exhausts)
+        self.assertTrue(out["salvaged"])
+        self.assertIn("opening_missing", out["structural_failures"])
+        text = (self.study.dir / "paper.md").read_text()
+        self.assertIn("0.42", text)  # the work itself survives
+        self.assertIn("does not meet the deliverable standard", text)
+
+
 class TestHonestRefusals(StudyPaperTestCase):
     def test_a_study_where_nothing_reproduced_is_refused(self):
         """Writing this up would dress narration as findings — the exact failure
@@ -181,11 +318,16 @@ class TestHonestRefusals(StudyPaperTestCase):
 
 
 class TestValidator(unittest.TestCase):
-    def test_requires_a_paper_file_and_a_validate_list(self):
-        self.assertEqual(_validate({"paper_file": "paper.md",
-                                    "human_must_validate": []}), [])
-        self.assertTrue(_validate({"paper_file": "", "human_must_validate": []}))
-        self.assertTrue(_validate({"paper_file": "p.md", "human_must_validate": "x"}))
+    def test_requires_both_files_a_kind_and_a_validate_list(self):
+        ok = {"paper_file": "paper.md", "supplement_file": "report.md",
+              "document_kind": "research", "human_must_validate": []}
+        self.assertEqual(_validate(ok), [])
+        self.assertTrue(_validate({**ok, "paper_file": ""}))
+        self.assertTrue(_validate({**ok, "human_must_validate": "x"}))
+        # BOTH documents, always. The either/or that produced a design document
+        # with no abstract anywhere is what this field exists to end.
+        self.assertTrue(_validate({**ok, "supplement_file": ""}))
+        self.assertTrue(_validate({**ok, "document_kind": "essay"}))
 
 
 # --------------------------------------------------------------------------
@@ -307,10 +449,14 @@ class TestDesignDeliverableDoctrine(unittest.TestCase):
     rather than asserted, and that every specified value carries its provenance."""
 
     def test_the_writeup_form_follows_the_goal(self):
+        """The form still follows the goal — but it is no longer EITHER/OR. Both
+        kinds now produce both files and both get an Abstract; what the goal
+        selects is the skeleton, declared in the reply and enforced by the lint."""
         from stages.study_paper import SYSTEM_PROMPT as p
-        self.assertIn("WRITE WHAT THE GOAL ACTUALLY CALLED FOR", p)
-        self.assertIn("design document", p)
-        self.assertIn("answer it directly", p)
+        self.assertIn('document_kind "research"', p)
+        self.assertIn('document_kind "design"', p)
+        self.assertIn("Both kinds get an Abstract", p)
+        self.assertIn("YOU WRITE TWO FILES, NOT ONE", p)
 
     def test_every_specified_value_carries_provenance(self):
         from stages.study_paper import SYSTEM_PROMPT as p

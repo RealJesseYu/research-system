@@ -57,6 +57,8 @@ You are NOT checking whether the numbers are right; an independent re-run alread
 - a hazard or failure mode a practitioner would want warned about;
 - a scope boundary that is defensible in the abstract but leaves the deliverable unusable in practice (a controller that closes one loop when flying needs three).
 
+CHECK THE ENTRY POINT FIRST, BEFORE ANYTHING ELSE. The deliverable opens with a **What you can do with it now** line that is supposed to name the file to open or the command to type. Test it as a reader would: is there actually a named entry point, does the file or command it names exist in what you were given, and would running it do what the line implies? A deliverable whose opening block promises reproducibility but names nothing runnable — or names something that is not there — is unusable tomorrow no matter how good the science is, and that is a HIGH severity finding. Say plainly whether a competent reader could act within a minute of opening this.
+
 Be concrete and be fair. Name the specific thing, say why it matters in practice, and say what it would take to close it. If something is genuinely fine, do not manufacture a complaint — a short honest list beats a long padded one. Where the work already discloses a limitation honestly, say so and do not re-file it as a finding.
 
 Reply ONLY with JSON: {"verdict": "<one or two sentences: could a competent person use this tomorrow, and what is the single biggest thing standing in the way>", "usable_today": <true|false>, "findings": [{"issue": "<the specific gap>", "why_it_matters": "<what actually goes wrong in practice>", "what_would_close_it": "<the concrete step>", "severity": "high"|"medium"|"low"}]} — no other fields."""
@@ -120,6 +122,20 @@ def _validate_response(data: dict) -> list:
     return errs
 
 
+def _stated_entry_point(paper: str) -> str:
+    """The deliverable's own **What you can do with it now** text, or "" when it
+    has none. Pure; never raises — a missing opening block is a critique finding,
+    not a crash here."""
+    try:
+        from harness.study_lint import _label_segment, opening_block
+        block = opening_block(paper)
+        if block is None:
+            return ""
+        return _label_segment(block, "What you can do with it now").strip()[:2000]
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def _paper_text(study_dir: Path) -> str:
     try:
         return (study_dir / "paper.md").read_text()
@@ -149,9 +165,15 @@ def critique_study(study: Any, *, call=None) -> dict:
     stage_input = {
         "goal": study.goal,
         "deliverable": paper[:60000],
+        # Item 3 of the opening block, pulled out in PYTHON so the critic is
+        # asked about the literal text a reader acts on rather than having to
+        # find it in 9,000 words. Empty string means the deliverable names no
+        # entry point at all — which is itself the finding.
+        "stated_entry_point": _stated_entry_point(paper),
         "verified_findings": evidence.get("verified_findings"),
         "unverified_findings": evidence.get("unverified_findings"),
         "artifacts_produced": evidence.get("reusable_artifacts"),
+        "supplement_present": (study.dir / "report.md").is_file(),
         "workspace_note": "the study's workspaces hold the code and files behind "
                           "this; read them if a gap turns on what was actually built",
     }
