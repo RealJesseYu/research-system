@@ -161,6 +161,15 @@ that produced the arc-compaction work the system later refuted.
 
 *(These three were listed open until 2026-07-30 and had in fact shipped with the
 five additive improvements. Re-derived from the files, not from the handoff.)*
+- [ ] **1e. `MAX_CODE_BYTES = 100_000` refuses legitimate reproducers.**
+      `tools/run_python_experiment.py:199`, enforced at `:316`. Found live in
+      experiment 2, move 5 (`study-20260730T034915Z`): a real NHANES analysis over
+      6 CDC public-use files lost **19 of 19 claims** to `unrunnable_artifact:
+      'code' exceeds 100000 bytes`. The analysis was not wrong — it was
+      unverifiable for a size cap, so the wall discarded sound work. Not a purity
+      question (no model enters the path either way); the cap is arbitrary and a
+      real analysis outgrew it. Decide: raise it, or split a large reproducer.
+      **Do not touch this while a run is live.**
 - [ ] **2. Auto-commit run code to git.** Small.
 - [ ] **3. Design the comparison protocol.** Not a run — the written-in-advance
       criteria for what a good answer must contain, fixed *before* either side
