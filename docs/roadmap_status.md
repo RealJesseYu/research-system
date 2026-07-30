@@ -86,6 +86,20 @@ it knowingly is a perfectly reasonable call; declining it by default is not.
 B1 says, and planning it now is planning against imagination — the same mistake
 that produced the arc-compaction work the system later refuted.
 
+### C1 — PACKAGE THE DELIVERABLE (new, owner 2026-07-29) ← on the todo
+
+- [ ] **C1. A study's deliverable must be usable without assembling it.**
+      **This is the one criterion a single Claude Code session BEAT the
+      orchestration on** in experiment 1. Arm B shipped `~/ibeta-lib`: a clean
+      directory, a `REPORT.md`, and reproduce-from-scratch commands. Arm C's
+      artifacts sit in `runs/<id>/workspace/`, the paper is in
+      `studies/<id>/paper.md`, and there is **no README anywhere**. A competent
+      person can act on B's output immediately; C's has to be excavated first.
+      It is also the first thing any reader hits, so it is worth more than its
+      size suggests. Likely shape: at study close, collect the deliverable
+      files beside the paper with a generated README naming what each is and how
+      to reproduce it. Offline, small. See `docs/debrief_experiment1.md` §5.
+
 ### Also open — offline, costs no compute
 
 - [x] **1. System map — DONE 2026-07-28** (`1e6c16d`), `docs/system_map.md`.
@@ -201,6 +215,17 @@ the self-correction mechanism** — compaction would remove it.
   turns, no decision cap), and `stop` is unconditional.
 
 ## Done
+
+### 2026-07-29 — EXPERIMENT 1 COMPLETE (goal 1, defined task)
+- ✅ **The orchestration met a spec a single strong agent missed.** 0 of 73,688
+  points over 1e-12 (worst 4.508e-13) vs Claude Code's 6 of 57,282 (worst
+  1.405e-12), and **~26x better at the exact corner that defeated it**. Every
+  headline recomputed from raw data. No falsifier fired.
+  `docs/comparison_results_goal1.md` · `docs/debrief_experiment1.md`
+- ✅ **Three of the four new improvements earned their keep on first outing** —
+  fan-out ran 3 concurrent supervisors, the trajectory view was reasoned from,
+  and the prediction column **called the final error to within ~20% before the
+  integration ran**. A4 (ev2) never fired.
 
 ### Today (2026-07-28)
 - ✅ **Per-phase cost reporting** — `pi_agent/cost_report.py` (`9f19e20`,
