@@ -5,8 +5,17 @@
 `docs/findings_2026-07-28.md`; if this file starts growing narrative again,
 move it there.
 
-Last verified against the repo: **2026-07-28** (evening), HEAD `aaa2279`,
-branch `iterate-experiment-loop`. Suite: **2147 passed, 1 skipped**, exit 0.
+Last verified against the repo: **2026-07-30 01:30Z**, HEAD `2fd77a1`, branch
+`iterate-experiment-loop`. Suite: **2278 passed, 1 skipped, 63 subtests**, via
+`venv/bin/python3 -m pytest tests/`.
+
+> ⚠️ **Run `pytest tests/`, not bare `pytest`.** There is no pytest config, and
+> experimenter workspaces now contain their own `test_*.py`
+> (`runs/study-20260729T210651Z-m2/workspace/test_lgamma.py` and two others), so
+> a bare `pytest` dies at collection with 3 errors and reads as a broken suite.
+> Fix when convenient: `[tool.pytest.ini_options] testpaths = ["tests"]`.
+> Also: two suites in parallel collide on a fixed Docker container name and
+> `test_run_scipy.py::TestEscape6ResourceBomb` fails spuriously. Run one at a time.
 
 > **Do not trust a status without checking.** Several sessions commit to this
 > tree in parallel. Re-derive from `git log`, the suite, and `studies/` before
@@ -47,6 +56,36 @@ result section below.
       visibility. Hardest; shares a seam with interjection; do last.
 
 ### AFTER THE FIVE — the fork everything has been clearing the way for
+
+### EXPERIMENT 2 — goal 2, the open-ended class (IN FLIGHT 2026-07-30)
+
+Experiment 1 (goal 1, defined task) is COMPLETE and arm C won — see Done below.
+Experiment 2 is the class where the director's judgement *is* the product.
+
+- [~] **Arm C.** `./run_comparison.sh goal2` from a plain Terminal.
+      150M tokens ≈ **$150** at the verified ~$1/M conversion, 15 moves.
+      **An aborted launch exists on disk:** `studies/study-20260730T011933Z`,
+      created 01:19:33Z, goal string byte-identical to the frozen one (1144 chars,
+      matches `run_comparison.sh` and `docs/comparison_goals.md`), but ZERO moves —
+      no `arc.jsonl`, no `decisions/`, empty `director_workspace` — and no process
+      alive. It died before move 1. The launch path is unchanged since experiment
+      1's arm C succeeded on it 4 h earlier, so a startup crash is unlikely; treat
+      it as an abort unless a traceback says otherwise. Nothing to resume (zero
+      arc): relaunch fresh, leave the empty dir as evidence of the attempt.
+- [ ] **Arm B — AND MEASURE ITS COST THIS TIME** (the named gap from experiment 1).
+      Method verified live 2026-07-30:
+      `claude -p "<GOAL2>" --dangerously-skip-permissions --output-format json > armB.json`
+      in a clean directory. That JSON carries `total_cost_usd`, `num_turns`,
+      `duration_ms` and a per-model breakdown, and it runs on **`claude-opus-5`** —
+      the same model arm C uses on every tier (`models.py:44`, `:75`), so the
+      comparison is not confounded by model. Same measurement basis as arm C.
+      Take the goal string out of `run_comparison.sh`; never retype it.
+- [ ] **Arm A — a BARE chat this time** (claude.ai, no tools, one prompt). In
+      experiment 1 arm A had tools, so there was no floor arm. Protocol §2: claim
+      nothing from beating it.
+- [ ] **Judge per protocol §4/§6** — score each arm blind to the others, recompute
+      criteria 2 and 3 mechanically, and have someone who did NOT watch the runs
+      do the scoring.
 
 - [ ] **B1. The long engineering run, which IS the chat comparison.** One goal,
       run once through the system and once as a single Claude chat prompt.
@@ -107,18 +146,21 @@ that produced the arc-compaction work the system later refuted.
       knobs, what is built but never runs, and the interjection seams.
       **It surfaced 11 verified defects — see below; three are worth doing
       before the long run.**
-- [ ] **1b. Fix the tool guard (`PreToolUse`).** Small, and the highest-value
-      thing the map found: `capability_guard` AND layer 1 of the token ceiling
-      are both delivered via `can_use_tool`, which the SDK never invokes for
-      tools already on `allowed_tools`. Both are inert today. Fixing it restores
-      two protections that are currently believed to exist — and it makes the
-      token ceiling actually bind, which matters for a $150 run.
-- [ ] **1c. Give in-process capabilities a token allowance.** `call_ideation` at
-      `depth:"full"` costs one move and is uncapped; one was measured at 17.5M
-      tokens. A long run can lose its budget to a single capability call.
-- [ ] **1d. Either wire `novelty_priority` into the director's envelope or
-      delete it.** It is read by `capabilities.py` but the validator rejects it,
-      so the 2026-07-27 ruling is unimplemented either way.
+- [x] **1b. DONE — verified in code 2026-07-30.** The guard is delivered as a real
+      `PreToolUse` hook (`model_call.py:598`, `HookMatcher(matcher=None, ...)`),
+      not the `can_use_tool` callback the SDK skips for allowed tools. Covered by
+      `tests/test_pre_tool_use_hook.py`.
+- [x] **1c. DONE — verified in code 2026-07-30.** `_capability_allowance`
+      (`pi_agent/free_director.py:108`) binds the study's remaining token room onto
+      this process's env around the in-process call (`:1103`); `model_call` enforces
+      it as it does inside a move. `pi_agent/capabilities.py:28` records the why.
+- [x] **1d. DONE — verified in code 2026-07-30.** `novelty_priority` is in the
+      envelope key list (`pi_agent/free_decider.py:73`), documented in the decider
+      prompt (`:113`), validated as call_ideation-only with an enum
+      (`:236`–`:244`), and consumed at `pi_agent/capabilities.py:100`.
+
+*(These three were listed open until 2026-07-30 and had in fact shipped with the
+five additive improvements. Re-derived from the files, not from the handoff.)*
 - [ ] **2. Auto-commit run code to git.** Small.
 - [ ] **3. Design the comparison protocol.** Not a run — the written-in-advance
       criteria for what a good answer must contain, fixed *before* either side
