@@ -642,10 +642,25 @@ def _with_cost(name: str, result: Any, before: dict) -> Any:
         if name in _UNMETERED or not isinstance(result, dict) or "cost" in result:
             return result
         after = _cost_snapshot()
-        result["cost"] = {
+        cost = {
             "calls": max(0, after.get("calls", 0) - before.get("calls", 0)),
             "tokens": max(0, after.get("tokens", 0) - before.get("tokens", 0)),
         }
+        # DOLLARS (2026-07-30). Written ONLY when the coverage counter actually
+        # moved — "no call reported a price" must stay an ABSENT key, never a
+        # recorded $0.00, which is the same rule record_run_outcome follows for
+        # the subprocess path. Without this an ideation call spending 6.86M
+        # tokens reached the arc as cost-unknown and the study's total read as a
+        # floor without saying so.
+        priced = max(0, after.get("calls_with_usd", 0) - before.get("calls_with_usd", 0))
+        if priced:
+            cost["usd"] = max(0.0, after.get("usd", 0.0) - before.get("usd", 0.0))
+            cost["calls_with_usd"] = priced
+        timed = max(0, after.get("calls_with_turns", 0) - before.get("calls_with_turns", 0))
+        if timed:
+            cost["turns"] = max(0, after.get("turns", 0) - before.get("turns", 0))
+            cost["calls_with_turns"] = timed
+        result["cost"] = cost
     except Exception:  # noqa: BLE001 — metering is observational, never fatal
         pass
     return result

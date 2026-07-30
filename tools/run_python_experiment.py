@@ -196,7 +196,26 @@ PROFILES = {
         "cpus": 4,
     },
 }
-MAX_CODE_BYTES = 100_000
+# RAISED 100_000 -> 2_000_000 (2026-07-30), on measurement.
+#
+# A verification artifact must be self-contained and offline — the re-run sandbox
+# has no network — so the brief tells the agent to EMBED the data slice its number
+# depends on. That makes the byte count mostly DATA, and this cap was sized as if
+# it were code. Measured on study-20260730T034915Z:
+#   - m5 lost ALL 19 of its findings to "the sandbox refused the artifact: 'code'
+#     exceeds 100000 bytes". Its verify.py is 336,090 bytes of which 326,454 are a
+#     single gzip+base64 literal holding a real 13,591-row NHANES cohort — ~10 kB
+#     of actual code. Sound work discarded for a size limit, not a reproduction
+#     failure.
+#   - m11, the move that reproduced 12/12, wrote one producer per scalar and its
+#     files are 57-62 kB EACH — already 60% of the old cap. Splitting a reproducer
+#     (the other option considered) does not help here: each split still embeds
+#     its own slice, so the per-file floor stays roughly where m11's is.
+# The cap's job is to refuse a pathological payload, not to size legitimate
+# embedded data. What actually contains model-authored code is the jail below —
+# --network none, --rm, and hard memory/cpu/time caps — none of which is weakened
+# by a larger source file. 2 MB stays well under MAX_ARTIFACT_BYTES (8 MB).
+MAX_CODE_BYTES = 2_000_000
 # Cap on a single captured/injected file artifact (Phase 4, R-ART-5). File
 # hand-off between composition steps moves bytes host-side through the existing
 # run-dir bind; a cap keeps one step from exhausting host memory. Small on
@@ -313,9 +332,14 @@ def _validate_input(spec: dict) -> dict:
     code = spec["code"]
     if not isinstance(code, str) or not code.strip():
         raise PythonExperimentInputError("'code' must be a non-empty string")
-    if len(code.encode("utf-8")) > MAX_CODE_BYTES:
+    size = len(code.encode("utf-8"))
+    if size > MAX_CODE_BYTES:
+        # ACTIONABLE: the old message named only the limit, so a run that lost
+        # every finding to it could not tell what to do differently.
         raise PythonExperimentInputError(
-            f"'code' exceeds {MAX_CODE_BYTES} bytes")
+            f"'code' is {size:,} bytes, over the {MAX_CODE_BYTES:,} limit. If most "
+            "of it is embedded data, split the reproducer: one self-contained file "
+            "per number of record, each embedding only the slice that number needs.")
 
     quantity = spec["quantity"]
     if not isinstance(quantity, str) or not quantity.strip():

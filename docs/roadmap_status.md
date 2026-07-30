@@ -106,30 +106,56 @@ owner's bar (*a new way of doing this, comparatively better than the others*):
 **Therefore: removing the move ceiling would NOT have saved this study.** The ceiling
 was real and wrong (see 3b) but it was not the cause. The study failed at move 3.
 
-### Blocking — do these before arm C runs again
+### Blocking — ALL SIX DONE 2026-07-30 (commits 6745196..a1c3d52 + this one)
 
-- [ ] **1. Deliver the pass-verdict POOL to the director, not just survivors**, and
-      **carry the novelty reasoning with it**. Handing it 1 of 33 is the funnel
-      deciding what the director may consider — a cage built by a filter. Also check
-      whether `rescued_from_triage` (0 this run) is reachable at all.
-- [ ] **2. Require a state-of-the-art comparator.** One clause on the fan brief:
-      *and identify what has already been proposed or deployed to replace it, and how
-      well it performs — that becomes the benchmark your replacement must beat.*
-      Surfaces Pavement ME at move 3 instead of move 14. **Not** a close-time novelty
-      gate — owner ruled that out, correctly: mandatory gates are the cage pattern.
-- [ ] **3. Derive `--max-moves` from `--token-budget`.** `DEFAULT_MAX_MOVES = 6`
-      (`pi_agent/loop.py:60`) means a 150M budget silently gets six moves. Keep the
-      mechanism (it is the divisible unit for `spawn_sub_investigation` and the
-      `MOVE_COST` accounting unit); make it stop binding.
-- [ ] **4. Blockers must reach the human.** `blocked_on` is absent from the arc row —
-      it lives only in `runs/<id>/log.txt`, so it never reaches `studies/`, the
-      director's next turn, or liveview (which HAS a `BLOCKED:` render path and had
-      nothing to show). Cost this run: the LTPP FWD-data ask, and m15's *"run
-      `python3 make_producers.py`, ~10 s, no network"* — ten seconds that would have
-      verified 34 findings.
-- [ ] **5. Why did m16 stop at 17M of 53M?** Not tokens, not turns, no context marker.
-      An agent that quits two-thirds under budget and misreports why cannot be
-      planned around. Highest-uncertainty item here.
+- [x] **1. DONE `6745196`. Deliver the pass-verdict POOL to the director.**
+      `build_candidate_pool` in stage 1 emits every candidate with the review
+      reasoning that decided it (status / promise / screen_reason / novelty /
+      quality / critique), written to `stage1/candidate_pool.json` and carried on
+      `payload.candidate_pool`; `capabilities.read_candidate_pool` rides it into the
+      arc beside the unchanged `hypotheses` digest, bounded at 60 rows. Verified
+      against the real arm-C evidence: 34 rows, h12 present at promise 4 with its
+      screen reason, the B31G sentence present. `survivors.json` and every threshold
+      untouched, so the battery is unaffected.
+      **`rescued_from_triage` IS reachable, but only when the first batch leaves
+      NOTHING** (`reflection_reviews.py:1398`) — crash-avoidance, not breadth.
+      **Triage calibration reported, not retuned: `docs/finding_triage_calibration.md`**
+      (addendum item 9). The cut fell inside a tie band — 12 candidates at promise
+      >= 4 for 6 slots, tiebreak = generation index, which is exactly what lost h12
+      — and the promise score did not predict deep review (5 of 6 selected came back
+      fatally flawed or already answered; usable yield zero). Three retunes named,
+      none applied.
+- [x] **2. DONE `646b0fd`. State-of-the-art comparator**, in
+      `stages/free_experimenter.py`'s SYSTEM_PROMPT rather than the fan brief —
+      argued from the decisions on disk: 8 of 14 experiment moves were NOT fan
+      members, including moves 9-12 where the incumbent was measured and the
+      replacement fitted. Asks EARLY, "while you can still change what you build".
+      Self-scoping, gates nothing, no schema change; a test pins that no enforcement
+      came with it.
+- [x] **3. DONE `32ba045`. The token budget binds.** `_resolve_ceiling` returns
+      (moves, tokens, provenance) and derives a generous move ceiling from the token
+      budget (150M -> 75 moves at 2M/move, ~3.5x the measured 7.08M so it overshoots
+      by design). `--cost-cap` converts to TOKENS first at $1.30/Mtok. `max_moves`
+      demoted, never deleted — an explicit one still wins and the provenance says so.
+- [x] **4. DONE `8df1379`. Blockers reach the human.** `blocked_on` now travels
+      `baton._blocked_on` -> run_record extras -> `read_run_result` -> `MoveResult.raw`
+      -> arc `tool_output`, which is the shape liveview and the CLI summary already
+      read. Not a gate: a blocked move still completes and the arc continues.
+- [x] **5. DONE `787201a` — DIAGNOSED, fix deliberately NOT shipped.**
+      `docs/finding_m16_stopping_mechanism.md`. It was the TURN wind-up, and
+      `turns_seen` counts SDK **content blocks**, not turns: m16's transcript holds
+      199 assistant events for 97 unique message ids, so it tripped at "turn 197 of
+      200" after 97 real turns, and `tokens_seen` double-counts the same usage
+      (34.7M seen vs 17.1M metered). **9 of 12 completed moves were cut off this
+      way**, m11 and m15 included; m14 and m15 tripped at "turn 230/221 of 200",
+      which is the proof the counter is not counting turns. The message says
+      `TOKEN ALLOWANCE EXHAUSTED` whatever fired, which is why m16 reported a budget
+      it never spent. **The 4-line fix is written out and awaits a ruling** — it
+      roughly doubles every move's real turn ceiling.
+- [x] **6. DONE `a1c3d52`. Producer discipline in the brief** — one scalar, one
+      file, written AS YOU GO. m11: 12 distinct producer files, 12/12 reproduced;
+      m12/m14/m15/m16: 98 findings, **zero artifacts named at all** (an honest
+      correction to "shipped monolithic records"). Guidance, not a schema.
 
 ### Non-blocking — recorded, fix when convenient
 
@@ -143,6 +169,19 @@ was real and wrong (see 3b) but it was not the cause. The study failed at move 3
       `Exception: Claude Code returned an error result: success` — 2 of 16 moves, ~$18.
       `model_call`'s retry is deliberately disabled for tooled calls (replay can
       re-commit side effects). The trade is sound; its price is now measured.
+- [x] **8b. DONE 2026-07-30. Cost was under-reported and now is not.**
+      `tree_spend` showed `moves_with_usd: 12` against `moves: 16`, so the $143.97 is
+      a FLOOR (addendum item 8). Cause: `pi_agent/loop.py:_cost_snapshot` returned
+      `{calls, tokens}` only, so every IN-PROCESS capability row reached the arc
+      priced at nothing — including `call_ideation`, 38 calls and 6,860,767 tokens
+      (~$8.90 at the measured rate). It now carries `usd`/`turns` with their coverage
+      counters, and `_with_cost` writes them ONLY when coverage moved, so "no call
+      reported a price" stays an absent key rather than a recorded $0.00. The other
+      three gaps are explained, not bugs: seq 1 is a genuinely free memory read, and
+      seq 10 / 13 are the two transport crashes, whose run_records carry
+      `{calls: 0, tokens: 0}` because the SDK errored before any usage registered —
+      their real spend is unrecoverable, and that stays disclosed rather than
+      estimated.
 - [ ] **9. `succeeded = bool(publishable)`** (`pi_agent/dispatch.py:528`) conflates
       "the move worked" with "the move finished the goal". The DISPLAY half is fixed
       (`735d6e5`); the semantic half is untouched and needs a ruling.
@@ -283,7 +322,14 @@ that produced the arc-compaction work the system later refuted.
 
 *(These three were listed open until 2026-07-30 and had in fact shipped with the
 five additive improvements. Re-derived from the files, not from the handoff.)*
-- [ ] **1e. `MAX_CODE_BYTES = 100_000` refuses legitimate reproducers.**
+- [x] **1e. DONE 2026-07-30 — raised to 2_000_000.** m5's rejected `verify.py` is
+      336,090 bytes of which **326,454 are one gzip+base64 literal** (a 13,591-row
+      NHANES cohort) — ~10 kB of actual code; and m11's *working* per-scalar
+      producers are 57-62 kB EACH, already 60% of the old cap. Splitting does not
+      help: each split still embeds its own slice. The jail (`--network none`,
+      `--rm`, memory/cpu/time caps) is what contains model-authored code, not the
+      byte count. Error message now says what to do. **Superseded description:**
+- [ ] ~~**1e. `MAX_CODE_BYTES = 100_000` refuses legitimate reproducers.**~~
       `tools/run_python_experiment.py:199`, enforced at `:316`. Found live in
       experiment 2, move 5 (`study-20260730T034915Z`): a real NHANES analysis over
       6 CDC public-use files lost **19 of 19 claims** to `unrunnable_artifact:

@@ -72,11 +72,30 @@ class TestInputValidation(unittest.TestCase):
                 )
 
     def test_oversized_code_rejected(self):
+        """The cap still refuses — sized off MAX_CODE_BYTES rather than a literal,
+        because it was RAISED 100_000 -> 2_000_000 on 2026-07-30 (a 200 kB
+        reproducer that is mostly embedded data is legitimate; see the constant's
+        comment and tests/test_cost_and_code_cap.py)."""
+        from tools.run_python_experiment import MAX_CODE_BYTES
+
         with self.assertRaises(PythonExperimentInputError) as cm:
             run_python_experiment(
-                {"code": "#" * 200_000, "quantity": "x"}
+                {"code": "#" * (MAX_CODE_BYTES + 1), "quantity": "x"}
             )
         self.assertIn("bytes", str(cm.exception))
+
+    def test_a_data_heavy_reproducer_under_the_cap_is_accepted(self):
+        """The regression this cap change exists to prevent: a 200 kB artifact
+        that is mostly an embedded data literal must reach the sandbox, not be
+        refused at validation. It must fail LATER (no docker here) or run — the
+        one thing it must not raise is the size error."""
+        code = "metrics = {}\nDATA = '" + ("A" * 200_000) + "'\nmetrics['x'] = 1\n"
+        try:
+            run_python_experiment({"code": code, "quantity": "x"})
+        except PythonExperimentInputError as exc:  # pragma: no cover - guard
+            self.fail(f"a 200 kB data-heavy reproducer was refused at input: {exc}")
+        except Exception:  # noqa: BLE001 — anything downstream (no image) is fine
+            pass
 
 
 @requires_image

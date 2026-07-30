@@ -66,18 +66,44 @@ _DECISION_TO_MOVE_TYPE = {
 
 
 def _cost_snapshot() -> dict:
-    """This process's model spend right now: {calls, tokens}. Best-effort — the
-    meter is a shared module global, so this is diffed against a start snapshot
-    to attribute the loop's own (decider) spend. Never raises."""
+    """This process's model spend right now: {calls, tokens, usd, calls_with_usd,
+    turns, calls_with_turns}. Best-effort — the meter is a shared module global,
+    so this is diffed against a start snapshot to attribute the loop's own
+    (decider) spend. Never raises.
+
+    DOLLARS ADDED 2026-07-30. This returned {calls, tokens} only, so every
+    IN-PROCESS capability row — the whole ideation apparatus among them — reached
+    the arc with tokens and no cost, while the subprocess path (supervisor's
+    record_run_outcome) recorded dollars for the same meter. Measured on
+    study-20260730T034915Z: `moves_with_usd: 12` against `moves: 16`, so its
+    $143.97 is a FLOOR. Of the four gaps, one is a genuinely free memory read and
+    two are crashes that journaled no usage at all; the fourth is the call_ideation
+    move — 38 calls and 6,860,767 tokens reported as no dollars. Budget decisions
+    are made on this number, so it must not silently under-count.
+
+    Coverage counters ride along because a diff of 0 dollars is ambiguous: it can
+    mean "spent nothing" or "no call reported a price". Callers write a usd only
+    when calls_with_usd actually moved.
+    """
     try:
         import cost_meter
 
         snap = cost_meter.read()
         calls = snap.get("model_calls", {}).get("total", 0)
         tokens = sum(v for v in snap.get("tokens", {}).get("total", {}).values() if isinstance(v, int))
-        return {"calls": calls, "tokens": tokens}
+        usd = snap.get("usd") or {}
+        turns = snap.get("turns") or {}
+        return {
+            "calls": calls,
+            "tokens": tokens,
+            "usd": usd.get("total") or 0.0,
+            "calls_with_usd": usd.get("calls_with_usd") or 0,
+            "turns": turns.get("total") or 0,
+            "calls_with_turns": turns.get("calls_with_turns") or 0,
+        }
     except Exception:  # noqa: BLE001
-        return {"calls": 0, "tokens": 0}
+        return {"calls": 0, "tokens": 0, "usd": 0.0, "calls_with_usd": 0,
+                "turns": 0, "calls_with_turns": 0}
 
 
 def _move_from_decision(decision: dict, study: Any) -> Move:
