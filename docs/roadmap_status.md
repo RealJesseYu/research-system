@@ -57,6 +57,128 @@ result section below.
 
 ### AFTER THE FIVE — the fork everything has been clearing the way for
 
+## BEFORE THE NEXT RUN — the experiment-2 arm C post-mortem (2026-07-30)
+
+Arm C ran on goal 2 (`study-20260730T034915Z`): 16 moves, 113.2M tokens, **$143.97+**,
+726 turns, 50/136 claims verified. It produced a real deliverable and **failed the
+central ask** — "build a model that beats it, and quantify the win". Verdict on the
+owner's bar (*a new way of doing this, comparatively better than the others*):
+**failed**. Every item below was re-derived from disk, not read from the paper.
+
+**The causal chain, in order — each link verified:**
+
+1. **Ideation found the answer and the funnel threw it away.** `pool_size: 32,
+   depth: full, novelty_priority: balanced`, 6.86M tokens (~$8.90). 33 generated →
+   **24 triaged out, EVERY ONE `verdict: "pass"`** (six at `promise: 4`) → 1 survivor.
+   The director was handed **2 hypotheses, both the same idea**, both proposing a
+   simulated population the goal forbids. Usable yield: **zero**.
+   **`h12` (promise 4, pass) was the study**: *"Refitting the AASHO Road Test
+   axle-load equivalency relationship jointly with modern long-term pavement
+   performance records will show that no single global damage exponent holds…"* —
+   and it aimed at overweight-permit pricing, a sharper target than what got built.
+   The director re-derived it by hand at move 3 and spent ~$150 getting there.
+2. **Ideation ALSO did the state-of-the-art check, and that died in the same file.**
+   Its triage reasons name the successors: h1 *"ACI 318-19 already adopted a
+   size-effect factor"*, h2 *"Modified B31G/RSTRENG already codified … proposes to
+   **rediscover**"*, h3 *"a very crowded dynamic-line-rating literature"*. The
+   director then hand-picked six targets — **h1, h2 and h3 are three of them** — and
+   settled on AASHTO-93, whose successor (Pavement ME) is the same trap ideation had
+   flagged three times.
+3. **Nothing ever required a comparison to the state of the art.** The fan brief
+   asked each member to obtain data and re-implement the incumbent. Selection ran on
+   **data obtainability** — the director's words: *"empirically settles data
+   obtainability instead of letting me guess"*. `pmed_survey_2024_counts.csv`
+   (Pavement ME **D**esign) arrives at **move 14 — two moves AFTER the replacement
+   was already being fitted at move 12** — and is used as an adoption argument, never
+   as a benchmark.
+4. **The core never reproduced, and the director is NOT at fault.** It diagnosed the
+   mechanism exactly (*"m11's small independent scalar producers reproduced 12/12,
+   whereas m12/m14 sank whole records in monolithic recomputes"*) and spent its last
+   two moves on precisely that. Both died in the last mile — after the expensive
+   rebuild, before writing the trivial producer files.
+5. **And the move's stated reason is FALSE.** m16 claims *"the token budget ran
+   out"*. It spent **17.1M of ~53M** available (`_move_allowance` = whole remaining
+   budget) and used **105 of 200 turns**; no context-limit marker in the log; no move
+   in the study exceeded 124 turns. m15's blocker likewise claims
+   `make_producers.py` *"is already written"* — **it is not in the workspace**.
+   The blocker channel is unverified prose, and it is the one channel aimed at a human.
+
+**Therefore: removing the move ceiling would NOT have saved this study.** The ceiling
+was real and wrong (see 3b) but it was not the cause. The study failed at move 3.
+
+### Blocking — do these before arm C runs again
+
+- [ ] **1. Deliver the pass-verdict POOL to the director, not just survivors**, and
+      **carry the novelty reasoning with it**. Handing it 1 of 33 is the funnel
+      deciding what the director may consider — a cage built by a filter. Also check
+      whether `rescued_from_triage` (0 this run) is reachable at all.
+- [ ] **2. Require a state-of-the-art comparator.** One clause on the fan brief:
+      *and identify what has already been proposed or deployed to replace it, and how
+      well it performs — that becomes the benchmark your replacement must beat.*
+      Surfaces Pavement ME at move 3 instead of move 14. **Not** a close-time novelty
+      gate — owner ruled that out, correctly: mandatory gates are the cage pattern.
+- [ ] **3. Derive `--max-moves` from `--token-budget`.** `DEFAULT_MAX_MOVES = 6`
+      (`pi_agent/loop.py:60`) means a 150M budget silently gets six moves. Keep the
+      mechanism (it is the divisible unit for `spawn_sub_investigation` and the
+      `MOVE_COST` accounting unit); make it stop binding.
+- [ ] **4. Blockers must reach the human.** `blocked_on` is absent from the arc row —
+      it lives only in `runs/<id>/log.txt`, so it never reaches `studies/`, the
+      director's next turn, or liveview (which HAS a `BLOCKED:` render path and had
+      nothing to show). Cost this run: the LTPP FWD-data ask, and m15's *"run
+      `python3 make_producers.py`, ~10 s, no network"* — ten seconds that would have
+      verified 34 findings.
+- [ ] **5. Why did m16 stop at 17M of 53M?** Not tokens, not turns, no context marker.
+      An agent that quits two-thirds under budget and misreports why cannot be
+      planned around. Highest-uncertainty item here.
+
+### Non-blocking — recorded, fix when convenient
+
+- [ ] **6. Paper stages never ask for prior work.** `free_paper.py` / `study_paper.py` /
+      `build_critic.py`: **0** mentions of prior work, related work, literature, state
+      of the art or novelty. Cosmetic relative to item 2 — it makes a paper *disclose*
+      the problem, not avoid it — but it is nearly free.
+- [ ] **7. `matplotlib` is not installed** in the experiment environment; it killed a
+      producer and blocked the figure set.
+- [ ] **8. A transport hiccup costs a whole move.** Moves 10 and 13 died on
+      `Exception: Claude Code returned an error result: success` — 2 of 16 moves, ~$18.
+      `model_call`'s retry is deliberately disabled for tooled calls (replay can
+      re-commit side effects). The trade is sound; its price is now measured.
+- [ ] **9. `succeeded = bool(publishable)`** (`pi_agent/dispatch.py:528`) conflates
+      "the move worked" with "the move finished the goal". The DISPLAY half is fixed
+      (`735d6e5`); the semantic half is untouched and needs a ruling.
+- [ ] **10. `pytest` at the repo root** dies at collection on experimenter workspace
+      test files. Add `[tool.pytest.ini_options] testpaths = ["tests"]`.
+
+### The reusable lesson this run paid for — worth more than any single fix
+
+**Emit numbers as small, independent scalar producers.** m11 reproduced **12/12**;
+m12/m14/m15/m16 shipped monolithic recompute records and reproduced **0/34, 0/12,
+0/26**. The wall sinks a whole record when any part of it fails. This belongs in the
+experimenter's brief.
+
+### Free actions available now (no model spend)
+
+- [ ] **A. Recover the core.** `runs/study-20260730T034915Z-m16/workspace/` is intact
+      with the exact cached inputs its blocker names (`ltpp_sdr39_segments_compact.csv`
+      58 KB, `ltpp_sdr39_sn_check.csv`, `ltpp_sdr39_mr_units_check.csv`,
+      `aashto93_core.py`, `aft_interval.py`); m15 holds `fit_final.json`,
+      `design_results.json`, `score_results.json` and every analysis script. Writing
+      the scalar producers over cached CSVs answers the question that matters —
+      **is the replacement real, or noise?** — without re-running anything.
+- [ ] **B. Literature check** on the verified half: is *delivered reliability ≈0.80 vs
+      nominal 0.95 on LTPP* already published? Tells you whether ANY of it is new.
+
+### Owner decisions outstanding
+
+- **Arm B has not run.** ~$20, needs you at the keyboard, and it answers the
+  falsifier directly: if one Claude Code session thinks to check Pavement ME, it
+  beats arm C on criteria 1 and 4 and *"arm B matches or beats arm C"* fires.
+- **Re-running arm C:** the goal string must NOT change (protocol §6 — arm C has run
+  on it). Fixing the system is fine. But arm C would then have had two attempts and
+  arm B none; that must be stated in the write-up.
+
+---
+
 ### EXPERIMENT 2 — goal 2, the open-ended class (IN FLIGHT 2026-07-30)
 
 Experiment 1 (goal 1, defined task) is COMPLETE and arm C won — see Done below.
