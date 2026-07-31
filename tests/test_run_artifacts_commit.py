@@ -410,6 +410,101 @@ class TestTheSecretScan(_Repo):
         self.assertEqual(result["files"], 2)
 
 
+class TestTheSizeIsPrintedBeforeAnythingIsWritten(_Repo):
+    """The memo predicted 7.0 MB and the real backfill selected 24.5 MB — 3.5x —
+    and nothing said so. What the gap was hiding was 9.7 MB of scraped journal
+    text. A size that surprises you is the cheapest early warning available."""
+
+    def _capture(self, fn):
+        import io
+        import contextlib
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            fn()
+        return buffer.getvalue()
+
+    def test_every_commit_prints_what_it_selected(self):
+        self.make_study("study-1", runs=["study-1-m1"])
+        self.write("runs/study-1-m1/workspace/a.py", "x = 1\n")
+        out = self._capture(lambda: rac.commit_run_artifacts(
+            "study-1", project_root=self.root, git_dir=self.git_dir))
+        self.assertIn("selects 1 file(s)", out)
+        self.assertIn("MB", out)
+
+    def test_a_large_selection_names_the_directories_responsible(self):
+        # The bztxt shape: many small files in ONE directory. A top-files list
+        # would show ten unremarkable files and hide the bulk behind them.
+        self.make_study("study-1", runs=["study-1-m1"])
+        for i in range(40):
+            self.write(f"runs/study-1-m1/workspace/corpus/{i}.py", "#" * 60_000)
+        self.write("runs/study-1-m1/workspace/small.py", "x = 1\n")
+        out = self._capture(lambda: rac.commit_run_artifacts(
+            "study-1", project_root=self.root, git_dir=self.git_dir))
+        self.assertIn("NOTICE", out)
+        self.assertIn("runs/study-1-m1/workspace/corpus", out)
+        self.assertIn("40 file(s)", out)
+
+    def test_a_small_selection_stays_quiet(self):
+        self.make_study("study-1", runs=["study-1-m1"])
+        self.write("runs/study-1-m1/workspace/a.py", "x = 1\n")
+        out = self._capture(lambda: rac.commit_run_artifacts(
+            "study-1", project_root=self.root, git_dir=self.git_dir))
+        self.assertNotIn("NOTICE", out)
+
+    def test_the_size_is_printed_even_on_a_dry_run(self):
+        # A dry run is exactly when a human is looking for the number.
+        self.make_study("study-1", runs=["study-1-m1"])
+        self.write("runs/study-1-m1/workspace/a.py", "x = 1\n")
+        out = self._capture(lambda: rac.commit_run_artifacts(
+            "study-1", project_root=self.root, git_dir=self.git_dir,
+            dry_run=True))
+        self.assertIn("selects 1 file(s)", out)
+        self.assertIn("DRY RUN", out)
+
+    def test_largest_directories_ranks_by_bytes_not_by_count(self):
+        self.write("runs/r/workspace/many/a.py", "#" * 10)
+        self.write("runs/r/workspace/many/b.py", "#" * 10)
+        self.write("runs/r/workspace/many/c.py", "#" * 10)
+        self.write("runs/r/workspace/heavy/big.py", "#" * 10_000)
+        files = rac.snapshot_files([self.root / "runs/r/workspace"], self.root)
+        ranked = rac.largest_directories(files)
+        self.assertEqual(ranked[0][2], "runs/r/workspace/heavy")
+        self.assertEqual(ranked[0][1], 1)
+
+
+class TestFetchedContentIsNotCommitted(_Repo):
+    """Rule 7 reaching the writer. The writer implements none of it — it must
+    simply not commit what the selection module now refuses."""
+
+    def test_a_scraped_corpus_never_reaches_the_branch(self):
+        self.make_study("study-1", runs=["study-1-m1"])
+        for i in range(20):
+            self.write(f"runs/study-1-m1/workspace/bztxt/{i:03d}.txt",
+                       "Copyright 1973 by The American Ceramic Society\n")
+        self.write("runs/study-1-m1/workspace/scrape.py",
+                   "import urllib.request\n")
+        self.commit("study-1")
+        self.assertEqual(self.tip_paths(),
+                         {"runs/study-1-m1/workspace/scrape.py"})
+
+    def test_the_corpus_is_not_reachable_as_an_object_either(self):
+        # A push publishes every reachable object, so "not in the tree" is not
+        # enough — it must never have been hashed.
+        self.make_study("study-1", runs=["study-1-m1"])
+        marker = "Recommended Citation: Somebody et al."
+        for i in range(20):
+            self.write(f"runs/study-1-m1/workspace/raw/{i}.csv", marker)
+        self.write("runs/study-1-m1/workspace/load.py", "x = 1\n")
+        self.commit("study-1")
+        blobs = _git(self.root, "cat-file", "--batch-all-objects",
+                     "--batch-check=%(objecttype) %(objectname)")
+        for line in blobs.splitlines():
+            kind, _, sha = line.partition(" ")
+            if kind == "blob":
+                self.assertNotIn(marker, _git(self.root, "cat-file", "blob",
+                                              sha.strip()))
+
+
 class TestItIsNeverFatal(_Repo):
     def test_a_broken_git_dir_is_reported_not_raised(self):
         self.make_study("study-1", runs=["study-1-m1"])

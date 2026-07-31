@@ -85,6 +85,21 @@ MAX_REF_RETRIES = 5
 # git's empty tree, the parent-less starting point.
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
+# Above this, a selection gets an itemised by-directory breakdown printed BEFORE
+# anything is written.
+#
+# WHY THIS EXISTS: the memo predicted 7.0 MB for the backfill and the real
+# selection was 24.5 MB — 3.5x — and nothing said so. The number only came out
+# because a human went looking, and what it turned out to be hiding was 9.7 MB
+# of scraped journal text that had no business being republished. A size that
+# surprises you is the cheapest early warning there is, so the writer now always
+# prints what it selected, and names the directories responsible whenever the
+# figure is large enough to be worth a second look.
+LARGE_SELECTION_BYTES = 2_000_000
+
+# How many directories to name in that breakdown.
+LARGEST_DIRS_SHOWN = 6
+
 
 # --------------------------------------------------------------------------
 # the secret scan
@@ -287,6 +302,42 @@ def study_roots(study_id: str, project_root: Path = Path(".")) -> list:
             seen.add(key)
             unique.append(root)
     return unique
+
+
+def largest_directories(files: Iterable, limit: int = LARGEST_DIRS_SHOWN) -> list:
+    """[(bytes, file count, directory)] for the heaviest directories in a
+    selection, largest first. Pure over (rel, absolute) pairs it can stat.
+
+    Directory-level, not file-level, because the surprise this exists to catch
+    was 221 small files in ONE directory — a top-ten-files list would have shown
+    ten unremarkable 64 KB text files and hidden the 9.7 MB behind them."""
+    totals: dict = {}
+    counts: dict = {}
+    for rel, absolute in files:
+        parent = str(Path(rel).parent)
+        try:
+            totals[parent] = totals.get(parent, 0) + Path(absolute).stat().st_size
+        except OSError:
+            continue
+        counts[parent] = counts.get(parent, 0) + 1
+    ranked = sorted(((b, counts[d], d) for d, b in totals.items()), reverse=True)
+    return ranked[:limit]
+
+
+def report_selection(label: str, files: list, total: int, say) -> None:
+    """Print WHAT WAS SELECTED, every time, before anything is written.
+
+    Always the one-line size; the by-directory breakdown only when the selection
+    is large enough that a human should glance at it. See
+    LARGE_SELECTION_BYTES for why this is not optional output."""
+    say(f"run-artifacts: {label} selects {len(files):,} file(s), "
+        f"{total:,} bytes ({total / 1e6:.1f} MB)")
+    if total < LARGE_SELECTION_BYTES:
+        return
+    say(f"run-artifacts: NOTICE — over {LARGE_SELECTION_BYTES / 1e6:.1f} MB; "
+        f"the largest directories in it are:")
+    for size, count, directory in largest_directories(files):
+        say(f"    {size / 1e6:>7.2f} MB  {count:>4} file(s)  {directory}")
 
 
 def snapshot_files(roots: Iterable, project_root: Path = Path(".")) -> list:
@@ -570,10 +621,11 @@ def commit_run_artifacts(
             say(f"run-artifacts: nothing to commit for {study_id} "
                 f"({len(roots)} root(s) held no selectable file)")
             return result
+        # BEFORE anything is written, and unconditionally.
+        report_selection(study_id, files, total, say)
         if dry_run:
             result["skipped"] = "dry run"
-            say(f"run-artifacts: DRY RUN {study_id} — {len(files)} file(s), "
-                f"{total:,} bytes across {len(roots)} root(s); nothing written")
+            say(f"run-artifacts: DRY RUN {study_id} — nothing written")
             return result
 
         git = Plumbing(git_dir, project_root)
@@ -676,11 +728,10 @@ def _commit_roots(label: str, roots: list, project_root: Path, git_dir: Path,
         if not files:
             result["skipped"] = "nothing selected"
             return result
+        report_selection(label, files, total,
+                         (lambda line: None) if quiet else print)
         if dry_run:
             result["skipped"] = "dry run"
-            if not quiet:
-                print(f"run-artifacts: DRY RUN {label} — {len(files)} file(s), "
-                      f"{total:,} bytes")
             return result
         git = Plumbing(git_dir, project_root)
         nested = _nest(files)
@@ -788,8 +839,9 @@ def main(argv=None) -> int:
     files = sum(r["files"] for r in results)
     total = sum(r["bytes"] for r in results)
     withheld = sum(len(r["withheld"]) for r in results)
-    print(f"\n{committed} commit(s), {files:,} file(s), {total:,} bytes, "
-          f"{withheld} file(s) withheld by the secret scan.")
+    print(f"\n{committed} commit(s), {files:,} file(s), {total:,} bytes "
+          f"({total / 1e6:.1f} MB), {withheld} file(s) withheld by the "
+          f"secret scan.")
     errors = [r for r in results if r["error"]]
     for r in errors:
         print(f"  ERROR {r['study_id']}: {r['error']}")

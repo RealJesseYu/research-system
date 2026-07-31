@@ -151,7 +151,70 @@ deliverable boundary and nowhere else, because a figure a paper cites is part of
 the thing being backed up and a scratch plot regenerated eleven times during a
 run is not.
 
-### 6.2 The selection change the figure ruling forced
+### 6.2 THE SIZE ESTIMATE WAS WRONG BY 3.5x, AND NOTHING FLAGGED IT
+
+**§1 predicted 7.0 MB. The first backfill selected 24.5 MB.** Nothing in the
+tooling said so; the gap surfaced only because a human went looking, and what it
+was hiding was 9.7 MB of scraped third-party journal text (§6.2b).
+
+Two things follow, and both are now built:
+
+- **The current measured figure is 1,088 files / 10.3 MB** (89 roots,
+  2026-07-30, after the figure ruling and rule 7). That is the number to check a
+  future backfill against — not §1's 7.0 MB, which is stale by 26 workspaces and
+  two rules.
+- **The writer now always prints the selection size before it writes anything**,
+  and names the heaviest directories whenever it exceeds
+  `LARGE_SELECTION_BYTES` (2 MB). Directory-level, not file-level, deliberately:
+  the surprise was 221 files of 64 KB each in one directory, and a top-ten-files
+  list would have shown ten unremarkable files and hidden the 9.7 MB behind
+  them.
+
+An estimate nobody can check against a printed actual is how a 3.5x miss goes
+unnoticed for a full backfill.
+
+### 6.2b FETCHED THIRD-PARTY CONTENT — rule 7
+
+**The first backfill put 241 files / 9.9 MB of fetched third-party content on
+the ref**, chiefly `runs/study-20260730T034915Z-m4/workspace/bztxt/` (221 files,
+9.7 MB of scraped journal text; `058.txt` opens *"Copyright 1973 by The American
+Ceramic Society"*) plus LTPP database exports, one shipping its own
+*"Recommended Citation.txt"*. **Pushing that would have republished third-party
+copyrighted material.** The ref was rebuilt from scratch rather than patched on
+top, because a push publishes every reachable object.
+
+Fixed in the **selection**, not the writer: a run's artifacts are what it
+**wrote**, not what it **fetched**. Downloaded data is re-fetchable by
+definition — the fetch code is itself committed. Same class as the existing
+`.venv`/`site-packages` prune, simply never anticipated.
+
+**PROVENANCE IS NOT DECIDABLE FROM THE FILESYSTEM.** Nothing on disk records
+that the agent downloaded a file rather than wrote it — no stat bit, no xattr,
+no manifest. So rule 7 does not ask that question. It asks one it can answer,
+and the answer is sufficient:
+
+> **A directory whose entire subtree is data-shaped files with no source file
+> anywhere beneath it is a data drop, and is pruned whole.**
+
+It is honest because it does not need to decide provenance: such a directory is
+derivable *either way*. Fetched → the fetch script is in the commit. Generated →
+the generator is in the commit. What is never bulk-homogeneous is authored
+source — an agent's own writing is a handful of differently-named files mixed
+in with the code that produced them, which is why mixed directories survive
+untouched.
+
+**Measured:** 21 such subtrees exist in this tree and every single one is a data
+drop (`bztxt`, `bakcal`, `raw`, `csv`, `sdr`, `db`, `pages`, `pages2`, `pages3`,
+`arcs`, `out`, `results`, `clean`, `data`). Not one is authored work. The
+threshold (2 files) is not load-bearing: 1 gives 10.28 MB and 4 gives 10.62 MB.
+
+**What rule 7 does not catch, stated so nobody assumes it does:** a fetched file
+sitting *mixed in with source* is kept, because at that point it is
+indistinguishable from an analysis output. A copyright / citation / DOI audit
+over the 1,088 survivors found exactly one marker — `oa1.json`, an OpenAlex
+search response (bibliographic metadata, CC0), not copyrighted text.
+
+### 6.2c The selection change the figure ruling forced
 
 `tools/run_code_snapshot.py`, and only there — the writer has no opinions about
 files. Two changes:
@@ -170,7 +233,9 @@ two days and 26 workspaces earlier, and the composition changed a great deal:
 | …of which figure-class in a *workspace* | 380 | **189.8 MB** |
 | …of which `.pdf` in a workspace | 306 | 178.3 MB |
 | figure-class in a *deliverable* | 11 | 1.2 MB |
-| **after the ruling** | **1,603** | **25.7 MB** |
+| after the figure ruling | 1,603 | 25.7 MB |
+| …of which bulk data drops (rule 7, §6.2b) | 515 | **15.4 MB** |
+| **after both rules — the current figure** | **1,088** | **10.3 MB** |
 
 The 306 workspace PDFs are papers the agent **fetched off the web** while
 working. They were the single largest thing the pre-ruling selection would have
@@ -233,8 +298,10 @@ only** — never by content, so the report itself cannot leak the value. Eleven
 credential shapes, plus a check for the literal values in this tree's own `.env`
 (the precise half: a copied `MP_API_KEY` carries no recognisable prefix).
 
-**First-push audit, 2026-07-30: CLEAN.** 1,603 selected files across 89 roots,
-zero withheld. A deliberately noisier supplementary sweep (any
+**First-push audit, 2026-07-30: CLEAN, and re-run on the rebuilt ref.** 1,603
+selected files across 89 roots on the first build (zero withheld) and 1,088 on
+the rebuild after rule 7 (zero withheld). A deliberately noisier supplementary
+sweep (any
 `key|token|secret|password` assignment, `Authorization:` headers, credentials in
 URLs, `os.environ[...KEY]`, long opaque base64) returned 113 hits, every one
 read by hand and every one a false positive: shell/Python variable assignments

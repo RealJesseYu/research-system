@@ -176,6 +176,106 @@ class TestWhatIsRefused(_Workspace):
             self.assertTrue(reason.strip())
 
 
+class TestBulkDataDropsArePruned(_Workspace):
+    """Rule 7, added 2026-07-30 after the first backfill put 221 files / 9.7 MB
+    of scraped journal text on the artifact branch (one opening "Copyright 1973
+    by The American Ceramic Society") plus LTPP exports shipping a "Recommended
+    Citation.txt". Pushing that would have republished third-party copyrighted
+    material.
+
+    The rule cannot ask "did the agent fetch this" — nothing on disk records
+    that. It asks a question it can answer: a directory of nothing but data,
+    with no code anywhere beneath it, is derivable either way (fetched → the
+    fetch script is committed; generated → the generator is committed)."""
+
+    def test_a_fetched_corpus_directory_is_pruned_whole(self):
+        for i in range(12):
+            self.write(f"bztxt/{i:03d}.txt", "Copyright 1973 by Somebody\n...")
+        self.write("fetch.py", "import urllib.request\n")
+        self.assertEqual(self.kept(), {"fetch.py"})
+
+    def test_the_fetch_code_that_regenerates_it_is_still_committed(self):
+        # The whole justification: dropping the data loses nothing recoverable,
+        # because the thing that produced it IS in the commit.
+        for i in range(6):
+            self.write(f"raw/table{i}.csv", "a,b\n1,2\n")
+        self.write("download.sh", "#!/bin/sh\ncurl -O ...\n")
+        self.write("analyse.py", "import pandas\n")
+        self.assertEqual(self.kept(), {"download.sh", "analyse.py"})
+
+    def test_a_data_file_beside_source_survives(self):
+        # A mixed working directory is where the agent actually works. This is
+        # also the rule's honest limit: a fetched file here is indistinguishable
+        # from an analysis output, and is kept.
+        self.write("fit.py", "x = 1\n")
+        self.write("fit_results.json", "{}")
+        self.write("summary.csv", "a,b\n")
+        self.write("notes.md", "# notes\n")
+        self.assertEqual(self.kept(), {"fit.py", "fit_results.json",
+                                       "summary.csv", "notes.md"})
+
+    def test_a_data_directory_nested_under_source_is_still_pruned(self):
+        # The rule is about a directory's whole SUBTREE, not its parent's.
+        self.write("run.py", "x = 1\n")
+        for i in range(5):
+            self.write(f"out/dump{i}.json", "{}")
+        self.assertEqual(self.kept(), {"run.py"})
+
+    def test_the_highest_all_data_directory_is_the_one_named(self):
+        for state in ("al", "ak", "az"):
+            for i in range(3):
+                self.write(f"raw/{state}/t{i}.csv", "a,b\n")
+        self.write("load.py", "x = 1\n")
+        # `raw` is named, not each of raw/al, raw/ak, raw/az beneath it.
+        drops = snap.data_drop_roots(
+            [Path(f"raw/{s}/t{i}.csv") for s in ("al", "ak", "az")
+             for i in range(3)] + [Path("load.py")])
+        self.assertEqual(list(drops), [Path("raw")])
+        self.assertEqual(self.kept(), {"load.py"})
+
+    def test_markdown_notes_are_never_treated_as_data(self):
+        # The one shape that could be caught wrongly is a notes directory. .md
+        # and .rst are source-side, so the usual case is safe by construction.
+        for name in ("plan.md", "findings.md", "log.md", "todo.rst"):
+            self.write(f"notes/{name}", "# a note\n")
+        self.assertEqual(self.kept(), {f"notes/{n}" for n in
+                                       ("plan.md", "findings.md", "log.md",
+                                        "todo.rst")})
+
+    def test_a_single_data_file_in_a_directory_is_not_a_drop(self):
+        self.write("data/one.csv", "a,b\n")
+        self.assertEqual(self.kept(), {"data/one.csv"})
+
+    def test_every_pruned_file_still_carries_its_reason(self):
+        for i in range(5):
+            self.write(f"bztxt/{i}.txt", "scraped")
+        self.write("scrape.py", "import urllib.request\n")
+        reason = self.skip_reason("bztxt/0.txt")
+        self.assertIn("data drop", reason)
+        self.assertIn("re-fetchable or regenerable", reason)
+        self.assertIn("bztxt", reason)
+
+    def test_a_deliverable_is_exempt_because_it_was_curated(self):
+        deliverable = self.ws / snap.DELIVERABLE_DIRNAME
+        (deliverable / "evidence").mkdir(parents=True)
+        for i in range(8):
+            (deliverable / "evidence" / f"row{i}.csv").write_text("a,b\n")
+        kept, _ = snap.select(deliverable)
+        self.assertEqual(len(kept), 8)
+
+    def test_the_rule_can_be_forced_either_way(self):
+        for i in range(5):
+            self.write(f"raw/t{i}.csv", "a,b\n")
+        self.assertEqual(snap.select(self.ws, prune_data_drops=True)[0], [])
+        self.assertEqual(len(snap.select(self.ws, prune_data_drops=False)[0]), 5)
+
+    def test_a_whole_workspace_of_only_data_is_pruned(self):
+        for i in range(5):
+            self.write(f"t{i}.csv", "a,b\n")
+        self.assertEqual(self.kept(), set())
+        self.assertIn("the workspace root", self.skip_reason("t0.csv"))
+
+
 class TestItIsSelectionOnly(unittest.TestCase):
     def test_a_missing_workspace_is_an_empty_snapshot_not_a_failure(self):
         kept, skipped = snap.select(Path("/nonexistent/workspace"))

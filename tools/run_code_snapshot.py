@@ -54,6 +54,52 @@ THE RULES, and the evidence behind each.
    docs/memo_auto_commit_run_code.md: PNGs do not delta-compress, so figures
    grow this history in undeltifiable blobs, and the deliverable boundary is
    where that cost buys something.
+
+7. NO BULK DATA DROPS. A directory whose ENTIRE SUBTREE is data-shaped files
+   with NO source file anywhere beneath it, holding at least
+   BULK_DATA_DROP_FILES of them, is pruned whole.
+
+   WHY THIS RULE EXISTS: the first backfill put 221 files / 9.7 MB of scraped
+   journal text on the artifact branch (`bztxt/`, one of whose files opens
+   "Copyright 1973 by The American Ceramic Society"), plus LTPP database
+   exports shipping their own "Recommended Citation.txt". Pushing that would
+   have republished third-party copyrighted material. Same class as the
+   .venv/site-packages prune above, simply never anticipated.
+
+   PROVENANCE IS NOT DECIDABLE FROM THE FILESYSTEM, and this rule does not
+   pretend otherwise. Nothing on disk records that the agent DOWNLOADED a file
+   rather than WROTE it — there is no stat bit, no xattr, no manifest. So the
+   rule does not ask that question. It asks a question it can answer, and the
+   answer happens to be sufficient: a directory of nothing but data, with no
+   code beside it, is DERIVABLE EITHER WAY. Fetched → the fetch script is in
+   the commit. Generated → the generator is in the commit. What is never
+   bulk-homogeneous is authored source: an agent's own writing is a handful of
+   differently-named files sitting in a working directory MIXED WITH the code
+   that produced them, which is why the mixed directories survive this rule
+   untouched.
+
+   MEASURED on this tree, 2026-07-30: 21 such subtrees exist and every single
+   one is a data drop — `bztxt`, `bakcal`, `raw`, `csv`, `sdr`, `db`, `pages`,
+   `pages2`, `pages3`, `arcs`, `out`, `results`, `clean`, `data`. Not one is
+   authored work. The rule takes the selection from 1,603 files / 25.7 MB to
+   1,088 / 10.3 MB.
+
+   THE THRESHOLD IS 2, AND IT IS NOT LOAD-BEARING: 1 gives 10.28 MB and 4 gives
+   10.62 MB, so the whole span is 3% of the result. It is not 1 because a lone
+   data file in a subdirectory is a file, not a drop; it is not higher because
+   at 3 the `data/`+`clean/` pair holding a fetched UCI concrete dataset and a
+   StatLib bodyfat table survives, and those are exactly what the rule is for.
+   The shape that could be caught wrongly is a `notes/` directory of
+   hand-written .txt — .md and .rst are source-side and never trip this, so the
+   exposure is narrow and is accepted deliberately.
+
+   WHAT THIS RULE DOES NOT CATCH, stated so nobody assumes it does: a fetched
+   file sitting MIXED IN with source is kept, because at that point it is
+   indistinguishable from an analysis output. A copyright/citation/DOI audit
+   over the 1,088 survivors found exactly one — `oa1.json`, an OpenAlex search
+   response (bibliographic metadata, CC0), not copyrighted text.
+
+   A DELIVERABLE IS EXEMPT, like the figure rule: it was curated on the way in.
 """
 
 from __future__ import annotations
@@ -62,6 +108,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
+from typing import Iterable
 
 # Source-like extensions an agent actually authors, plus the small text
 # artifacts that make a workspace readable later (notes, manifests, figures).
@@ -122,6 +169,11 @@ MAX_FILE_BYTES = 1_000_000
 # live. Re-derive with `--all` before changing either number.
 DATA_EXTENSIONS = frozenset({".json", ".csv", ".tsv", ".txt", ".dat"})
 MAX_DATA_BYTES = 65_536
+
+# Rule 7. How many data files an all-data subtree needs before it reads as a
+# drop rather than as a few notes. See the module docstring for the measurement
+# and for why the exact number is not load-bearing.
+BULK_DATA_DROP_FILES = 2
 
 # A dotfile is configuration or state, not authored source. Skipped by default
 # so the denylist above never has to be exhaustive.
@@ -185,17 +237,50 @@ def classify(path: Path, root: Path, figures: bool = None) -> tuple[bool, str]:
     return True, ""
 
 
-def select(root: Path, figures: bool = None) -> tuple[list, list]:
+def data_drop_roots(kept: Iterable) -> dict:
+    """{drop-root directory: how many data files it holds} for rule 7.
+
+    A drop root is a directory whose whole subtree is data-shaped files with no
+    source file anywhere beneath it, holding at least BULK_DATA_DROP_FILES of
+    them. Only the HIGHEST such directory is reported: pruning `raw/` says
+    everything, and also naming `raw/state/` beneath it says it twice.
+
+    Pure — it reads the already-classified keep list, never the disk."""
+    data: dict = {}
+    source: dict = {}
+    for rel in kept:
+        is_data = Path(rel).suffix.lower() in DATA_EXTENSIONS
+        for parent in Path(rel).parents:
+            counter = data if is_data else source
+            counter[parent] = counter.get(parent, 0) + 1
+    candidates = sorted(
+        (d for d, n in data.items()
+         if n >= BULK_DATA_DROP_FILES and not source.get(d)),
+        key=lambda d: len(d.parts))
+    roots: dict = {}
+    for candidate in candidates:
+        if any(parent in roots for parent in candidate.parents):
+            continue
+        roots[candidate] = data[candidate]
+    return roots
+
+
+def select(root: Path, figures: bool = None,
+           prune_data_drops: bool = None) -> tuple[list, list]:
     """(kept, skipped) for one workspace. kept is a sorted list of paths
     relative to `root`; skipped is a list of (relative path, reason).
 
-    `figures` overrides the deliverable-derived figure rule; None means derive.
+    `figures` overrides the deliverable-derived figure rule and
+    `prune_data_drops` the bulk-data rule; None means derive each from whether
+    the root is a curated deliverable.
 
     Never raises on a missing or unreadable root — a snapshot of nothing is an
     empty snapshot, not a failure."""
     root = Path(root)
     if figures is None:
         figures = is_deliverable_root(root)
+    if prune_data_drops is None:
+        prune_data_drops = not is_deliverable_root(root)
     kept: list = []
     skipped: list = []
     if not root.is_dir():
@@ -207,6 +292,25 @@ def select(root: Path, figures: bool = None) -> tuple[list, list]:
             rel = full.relative_to(root)
             keep, reason = classify(full, root, figures=figures)
             (kept if keep else skipped).append(rel if keep else (rel, reason))
+    if prune_data_drops:
+        # RULE 7, applied AFTER classification because it is a property of a
+        # directory's whole subtree, not of any one file — the walk cannot know
+        # a directory holds no source until it has finished looking.
+        drops = data_drop_roots(kept)
+        if drops:
+            survivors = []
+            for rel in kept:
+                drop = next((d for d in Path(rel).parents if d in drops), None)
+                if drop is None:
+                    survivors.append(rel)
+                else:
+                    where = str(drop) if str(drop) != "." else "the workspace root"
+                    skipped.append((rel, (
+                        f"under {where}: {drops[drop]} data files and no source "
+                        "anywhere beneath it, so it is a data drop — "
+                        "re-fetchable or regenerable from the committed code "
+                        "(rule 7)")))
+            kept = survivors
     kept.sort()
     return kept, skipped
 
