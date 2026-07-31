@@ -471,8 +471,28 @@ _WIND_UP_MESSAGE = (
     "verify as verified: false, and do not invent results. State the reason you "
     "stopped ACCURATELY — it is the one printed above, not a reason you infer. "
     "An honest partial answer is the expected outcome here — the director reads "
-    "it and decides what happens next."
+    "it and decides what happens next. Anything you already emitted with "
+    "tools.emit_finding.emit() is SAVED and is picked up automatically — you do "
+    "not need to list it again and it is not lost. No tool call will be "
+    "permitted now, so do not promise a file you have not already written; but "
+    "for any number whose producer file you DID write, name that file as that "
+    "finding's 'artifact' — that costs no tool call and it is the difference "
+    "between a reproduced number and a caveat."
 )
+# WHY THIS SAYS "name a file you already wrote" AND NOT "write your producers
+# now" (T0.2). The wind-up is the one moment the agent is guaranteed to be
+# listening — and it is the one moment it can do nothing about it, because the
+# same tracker that sends this message denies EVERY tool call (see the two
+# wrappers below). m16's session transcript is the proof: a Write denied at
+# 09:56:08Z carrying this exact text, immediately before its final JSON
+# (docs/finding_m16_stopping_mechanism.md). Asking here for producers would ask
+# for what the harness has just forbidden. The reserve is not widened to let one
+# through, either: it exists to guarantee the final answer gets written, and an
+# agent granted writes at wind-up can spend all of it emitting files and return
+# nothing — losing everything instead of the tail. So the sequencing fix lives
+# where it can actually work, EARLIER (stages/free_experimenter.py's emit
+# affordance), and this message is limited to the two things that need no tool:
+# tell it what is already safe, and tell it to name a file that already exists.
 
 
 # The run whose model calls are being made right now, for the ONE observer that

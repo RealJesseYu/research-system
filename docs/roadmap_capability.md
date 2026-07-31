@@ -77,7 +77,36 @@ never says "this value must agree with that one".
       Catches both: `b_sn` conflicts at move 14 instead of §5.2; the years-vs-ESALs
       comparison fails on units, mechanically.
       ADDITIVE: a move MAY register quantities; nothing forces it, nothing gates.
-- [ ] **T0.2 Incremental emission.** Moves 15 and 16 both died after the expensive
+- [x] **T0.2 Incremental emission.** BUILT 2026-07-30 — `tools/emit_finding.py`
+      plus the pickup at `stages/free_experimenter.py::_merge_emitted`. Design
+      record and the honest limits: **`docs/memo_incremental_emission.md`**.
+      `emit("m_b_sn.py", "b_sn")` runs that file through **the same sandbox entry
+      point the verification wall uses** and, only if it really produces
+      `metrics["b_sn"]`, appends a ready-shaped finding to
+      `emitted_findings.jsonl` in the workspace. After the call returns, that
+      channel is merged into the run's findings: an emitted quantity missing from
+      the report is APPENDED (the m16 shape), and a reported finding with no
+      artifact adopts the emitted producer (the m15 shape). A crash after any
+      emission now writes the record from the channel and then re-raises;
+      nothing emitted ⇒ re-raise immediately, byte-identical.
+      **The incentive is the mechanism**, which is why this is not a prompt
+      sentence: what `emit` writes enters the record whether or not the agent
+      survives to mention it, so emitting early is the only way a number is safe.
+      A prompt sentence asking for exactly this (`WRITE EACH ONE AS YOU GO`)
+      already existed and m15/m16 ran with it — the gap was WHEN, not HOW, and
+      m15's workspace still holds `make_producers.py`, the batch emitter it wrote
+      and never ran. The wind-up message was amended but deliberately does NOT
+      ask for producers: the same tracker that sends it denies every tool call
+      (m16's transcript shows a `Write` denied carrying that exact text), so it
+      says only what costs no tool call — what is already saved, and to name a
+      producer file already on disk. ADDITIVE: no schema field, no validator, no
+      gate, and a test pins that no production code calls `emit`.
+      `stages/verification.py` untouched. 27 offline tests; live-proven against
+      the real docker sandbox both ways (a numpy producer emitted; a
+      network-needing one refused with the sandbox's own traceback, nothing
+      written). UNPROVEN ON A REAL RUN — the next study is the measurement.
+      The original statement of the item follows.
+      Moves 15 and 16 both died after the expensive
       analysis and before writing the cheap producer files — **98 findings lost in
       the last mile**, two independent instances in one study. A move that emits
       each scalar as it computes it leaves verified numbers even when cut off.

@@ -48,6 +48,7 @@ INDEPENDENT RE-VERIFICATION. After you finish, a deterministic pass with NO mode
 - produced by a specialized tool from the catalogue: "artifact": {"substrate_id": "<id>", "typed_input": {<the exact typed inputs>}, "quantity": "<metric name>"}.
 A finding you cannot back with a re-runnable artifact must be reported with "verified": false — an honest caveat is fine, it just is not counted as reproduced.
 ONE SCALAR, ONE FILE — the artifact shape that actually survives. Measured on a real study over one dataset: the move that saved a separate small file per number reproduced 12 of 12, and four later moves on the same data named one big recompute or nothing at all and reproduced 0 of 98. The re-run is per finding, but a shared artifact is not: when any part of a monolithic script fails — a missing library, a path, one slow step, a single changed number — every finding that names it sinks together, including the ones that were perfectly good. So prefer a separate, self-contained file per number of record, named for the quantity it produces (m_<quantity>.py), each carrying or reloading only the small slice of data it needs and setting metrics['<quantity>'] = <value>. They cost little, they re-run in seconds, and they fail independently. WRITE EACH ONE AS YOU GO, beside the result it backs, rather than saving them all for the end — a producer that does not exist yet when you stop is a finding that does not count, and stopping can arrive sooner than you plan. This is guidance, not a rule: one file for genuinely coupled outputs of a single expensive computation is fine. But if you are about to name one file as the artifact for a dozen findings, that is the moment to split it.
+EMIT EACH NUMBER THE MOMENT YOU HAVE IT — one line, and it is what makes the paragraph above real rather than a good intention. As soon as a producer file exists, run `python3 -c "from tools.emit_finding import emit; print(emit('m_b_sn.py', 'b_sn', units='1', label='<what it measures>'))"`. That runs the file in the SAME sandbox the independent pass will use and, only if it genuinely produces metrics['b_sn'], writes that finding — artifact already filled in — into this run's record straight away. Two things follow, and both are worth the one line. First, a producer that cannot run there (no network, bounded time and memory, a missing import, a metric never set) tells you so NOW, while you still have budget to fix it, instead of at the very end or never. Second, everything you have emitted is ALREADY in the record: if this move is cut off — and it may be, abruptly, at a moment you did not choose — those numbers survive and get re-verified even if you never get to list them in your reply. A finding you emit and also report is merged, not duplicated, so there is no cost to doing both, and a finding you report without an artifact is upgraded automatically if you emitted a producer for that same quantity name. Emitting is optional and gates nothing: a number you never emit is exactly as valid as it is today — it is just only as safe as the budget you have left.
 INPUTS ARE NOT CLAIMS, so do not avoid a source just because you could not verify it. Looking things up is normal and expected: read a public database, an API, a paper, a dataset — AlphaFold DB, PubChem, Materials Project, whatever the question needs — and USE what you find. Only the values you REPORT as findings need artifacts. A looked-up value that feeds your work is an input like any other; say where it came from, and if a whole finding rests on it and you cannot re-derive it, report that finding with "verified": false rather than dropping the line of inquiry. Never narrow the investigation to what happens to be easy to verify — that is how a system ends up weaker than simply thinking about the problem.
 SANDBOX SHELVES. The sandbox has several sets of libraries, and you pick with "profile". The default carries numpy, scipy, pandas and scikit-learn. "profile": "biodesign" carries ProteinMPNN with its weights baked in (CPU, seconds per design) — backbone-conditioned protein sequence design: give it a PDB backbone and it proposes sequences with per-design scores and native-sequence recovery. It is a design FILTER, not an oracle: high recovery does not mean the sequence folds or functions, so say so when you report one. "profile": "engineering" carries CadQuery and build123d (a real geometry kernel — script a solid, export STEP/STL, and read back volume, mass, centre of mass, bounding box and part interference, so a design becomes something you MEASURE rather than assert), CoolProp (fluid and thermodynamic properties for ~120 fluids), MuJoCo (rigid-body dynamics with contact, deterministic under a fixed seed and timestep) and scikit-rf (S-parameters and RF networks), plus iverilog and verilator as shell tools for simulating DIGITAL logic from a Verilog design and testbench. Note the honest gap: there is NO nonlinear analog simulation — the SPICE substrate is fenced to linear passive networks, so transistors, diodes and op-amps are out of reach and you should say so rather than hand-rolling a model of one. "profile": "atomistic" instead carries ASE, PySCF, OpenMM, pymatgen and RDKit — so you can COMPUTE from first principles rather than only look things up: optimize a geometry, run an electronic-structure or DFT calculation, run a molecular-dynamics trajectory, relax a crystal, build and manipulate a structure. Reach for it whenever the question is about a molecule, a material, or a physical mechanism rather than about data or an algorithm. It is a plain code sandbox like the default — same jail, same no network — and its results verify the same way, so declare the same "profile" on that finding's artifact and the re-run uses the same shelf. Physical approximation is yours to judge and state: a force field, a basis set or a functional reproduces perfectly and can still be the wrong physics for your system, so say which you chose and why it suits the question.
 RENTED HARDWARE, when this machine genuinely is not enough. `from tools.run_remote_job import run_remote_job` runs a job on a cloud GPU — for a tool that needs one (structure prediction, docking, a large model, plane-wave DFT), or that will not build on this architecture. You declare the environment (`pip`, `apt`), the GPU (`T4`/`A10G`/`A100`/`H100`, or None for remote CPU), input files to send and output files to bring back. It costs real money per second, so use it when the question needs it and not to avoid thinking.
@@ -208,6 +209,102 @@ def _claims_from_findings(findings: list, workspace) -> list:
     ]
 
 
+# ---------------------------------------------------------------------------
+# T0.2 — INCREMENTAL EMISSION (docs/memo_incremental_emission.md).
+#
+# `tools/emit_finding.py::emit` appends a ready-shaped finding to
+# emitted_findings.jsonl in the run's workspace the moment its producer file is
+# proven to run. These three functions are the pickup: whatever is in that
+# channel enters the record whether or not the agent survived to mention it.
+#
+# That is the load-bearing half. A prompt sentence asking for producers-as-you-go
+# already existed and m15/m16 ran with it; what did not exist was any reason to
+# pay the cost NOW rather than at the end, and "emitted numbers are kept even if
+# you are cut off mid-sentence" is that reason, mechanically.
+#
+# ADDITIVE: no channel file -> [] -> a byte-identical merge and byte-identical
+# behaviour everywhere downstream.
+# ---------------------------------------------------------------------------
+
+def _read_emitted(workspace) -> list:
+    """The workspace's emission channel, or []. Never raises: a picked-up bonus
+    may not sink the run whose findings it was meant to save."""
+    if workspace is None:
+        return []
+    try:
+        from tools.emit_finding import read_emitted
+        return read_emitted(workspace)
+    except Exception:  # noqa: BLE001
+        return []
+
+
+def _finding_quantity(f) -> Optional[str]:
+    """The name a finding is known by: its artifact's `quantity`, else the
+    explicit `quantity` key. The same resolution the quantity register uses, so
+    a merge cannot key on one name while T0.1 keys on another."""
+    if not isinstance(f, dict):
+        return None
+    art = f.get("artifact")
+    if isinstance(art, dict) and art.get("quantity"):
+        return str(art["quantity"])
+    q = f.get("quantity")
+    return str(q) if q else None
+
+
+def _merge_emitted(findings: list, emitted: list) -> tuple:
+    """Fold the emission channel into the agent's reported findings.
+    Returns (merged, n_appended).
+
+    Two effects, both strictly additive:
+
+    * UPGRADE — a reported finding that names the same quantity but carries no
+      re-runnable artifact adopts the emitted producer (and any units/tolerance
+      it lacked). This is the exact m15 shape: 34 real numbers, every artifact
+      field empty. A finding that already names its own artifact is left alone —
+      the agent's choice wins over the channel's.
+    * APPEND — an emitted quantity that appears nowhere in the report is added as
+      a finding. This is the m16 shape and the cut-off case in general: the work
+      happened, the report did not.
+
+    Keyed on quantity NAME only, never on label, so the merge is mechanical.
+    Later duplicates in the channel lose to the first: re-emitting the same name
+    with a different value is a contradiction, and adjudicating contradictions is
+    the quantity register's job (T0.1), not this function's."""
+    merged = [dict(f) if isinstance(f, dict) else f for f in findings]
+    by_name = {}
+    for rec in emitted:
+        name = str(rec.get("quantity") or "")
+        if name and name not in by_name:
+            by_name[name] = rec
+    consumed = set()
+    for f in merged:
+        name = _finding_quantity(f)
+        if name is None or name not in by_name:
+            continue
+        consumed.add(name)
+        rec = by_name[name]
+        if _has_rerunnable_artifact(f.get("artifact")):
+            continue
+        f["artifact"] = rec.get("artifact")
+        f["verified"] = True
+        f["emitted"] = True
+        for key in ("units", "tolerance", "reproduce", "compares"):
+            if f.get(key) in (None, "") and rec.get(key) is not None:
+                f[key] = rec[key]
+    appended = [rec for name, rec in by_name.items() if name not in consumed]
+    merged.extend(appended)
+    return merged, len(appended)
+
+
+# What a salvaged (crashed) run reports as its summary. Named so a reader — human
+# or director — cannot mistake it for the agent's own account of its work.
+_SALVAGE_SUMMARY = (
+    "This move did not return a report: it crashed during the investigation "
+    "({error}). The findings below are ONLY the ones it had already emitted as "
+    "proven producers before it died — there is no agent summary, and anything "
+    "it established without emitting is lost.")
+
+
 def _gate_reusable_artifacts(reusables: list, gate) -> list:
     """Run each declared reusable file-artifact through the reproduction gate
     (increment 2). A producer that actually re-emits its file is kept verified; one
@@ -273,20 +370,44 @@ def run_free_investigation(goal, *, run_id=None, call=None, verify=None, gate=No
     if run_dir is not None and run_dir.is_dir():
         workspace = (run_dir / "workspace").resolve()
         workspace.mkdir(exist_ok=True)
-    with agent_workspace(workspace):
-        data, _timing = call(
-            FREE_STAGE_NAME,
-            system_prompt,
-            stage_input,
-            SCHEMA,
-            model=FREE_EXPERIMENTER_MODEL,
-            extra_validator=_validate_free_result,
-            capabilities=FULL,
-        )
+    # T0.2 SALVAGE. An escaping exception used to lose the whole move, including
+    # numbers whose producers were already written and proven. Now: if the
+    # emission channel has anything in it, the run is finalized from it (verified
+    # by the same wall, written to the same files) and the exception is re-raised
+    # afterwards, so a crash is still a crash — run_exact_route journals it
+    # exactly as before. Nothing emitted => re-raise immediately, byte-identical.
+    crashed = None
+    try:
+        with agent_workspace(workspace):
+            data, _timing = call(
+                FREE_STAGE_NAME,
+                system_prompt,
+                stage_input,
+                SCHEMA,
+                model=FREE_EXPERIMENTER_MODEL,
+                extra_validator=_validate_free_result,
+                capabilities=FULL,
+            )
+    except Exception as exc:  # noqa: BLE001
+        if not _read_emitted(workspace):
+            raise
+        crashed = exc
+        data = {"summary": _SALVAGE_SUMMARY.format(
+            error=f"{type(exc).__name__}: {exc}"), "findings": [],
+            "publishable": False}
+        print(f"NOTE: {FREE_STAGE_NAME} crashed; salvaging incrementally "
+              f"emitted findings before re-raising ({type(exc).__name__})")
+    # Pick up whatever was emitted as the move went (T0.2). Empty channel => the
+    # agent's own findings, unchanged.
+    findings, n_appended = _merge_emitted(
+        list(data.get("findings") or []), _read_emitted(workspace))
+    if n_appended:
+        print(f"NOTE: {n_appended} incrementally-emitted finding(s) were picked "
+              "up from the workspace and were not in the final report")
     result = {
         "goal": goal,
         "summary": data.get("summary"),
-        "findings": data.get("findings") or [],
+        "findings": findings,
         "publishable": bool(data.get("publishable")),
         # What a human would have to supply for this to go further. A blocker
         # named precisely is a useful result — it is how the owner finds out that
@@ -354,4 +475,7 @@ def run_free_investigation(goal, *, run_id=None, call=None, verify=None, gate=No
             pass
         (run_dir / "free_investigation.json").write_text(
             json.dumps(result, indent=2))
+    if crashed is not None:
+        # The record is written; the crash is still a crash.
+        raise crashed
     return result
