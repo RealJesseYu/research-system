@@ -16,8 +16,7 @@ it was built to catch. So two things, neither a new mechanism:
       conflicts, never automatically, always in their own channel.
 
 The numbers below are read off studies/study-20260731T033623Z/quantities.jsonl
-(mass_cyclo 1.8316 kg / mass_cyclo_recovered 1.85775 kg, mass_worm 2.5352 /
-mass_worm_strength_only 1.3899, f_outpin_max 375.9 N / F_outpin_max 364.7 N) and
+(f_outpin_max 375.9 N / F_outpin_max 364.7 N — one name spelled two ways) and
 off the arm-C b_sn fits. The FIRST test is the case the whole item exists for.
 """
 
@@ -30,7 +29,7 @@ from pi_agent.study import (  # noqa: E402
     create_study, open_quantity_candidates, open_quantity_conflicts, record_move,
 )
 from stages.quantity_register import (  # noqa: E402
-    CANDIDATE_KIND, CANDIDATE_STEM_TOKENS, CONFLICT_KINDS, canonical_name,
+    CANDIDATE_KIND, CONFLICT_KINDS, canonical_name,
     candidate_collisions, candidate_summary, name_tokens, registration_from_finding,
     replay_candidates,
 )
@@ -53,32 +52,53 @@ def _move(seq, findings):
 
 
 # --------------------------------------------------------------------------
-# THE CASE THIS EXISTS FOR — b_sn, named apart the way the gearbox agent named
+# THE CASE THIS EXISTS FOR — one name spelled two ways, from the real study
 # --------------------------------------------------------------------------
-
-# The arm-C fits, in the order they landed, under the names the measured naming
-# behaviour predicts this agent would have given them.
-B_SN_NAMED_APART = [
-    ("b_sn_screening", 0.3215, 12),
-    ("b_sn_designrange", 3.6537, 14),
-    ("b_sn_refit", 7.4314, 15),
+#
+# The original fixture here assumed the agent files repeat estimates under
+# DIFFERENT names (b_sn_screening / b_sn_designrange / b_sn_refit) and the
+# near-neighbour rule existed to catch that. Both were retired 2026-07-31:
+# in study-20260730T034915Z the agent wrote `b_sn`, one name, twenty
+# occurrences, for all three disagreeing fits — so repeats reach the STRONGER
+# conflict channel and need no advisory one.
+#
+# What the advisory channel does catch, measured on study-20260731T033623Z, is
+# this: one name spelled two ways, which the conflict check holds apart as two
+# quantities and never compares. These are the real registered values.
+SPELLING_SPLIT = [
+    ("f_outpin_max", 375.9, 4),
+    ("F_outpin_max", 364.7, 6),
 ]
 
 
-def test_the_b_sn_fits_named_apart_surface_as_ONE_candidate_set():
-    """Three fits of one coefficient, 23x apart, filed under three names. The
-    conflict check cannot see them; the candidate channel asks the question."""
-    regs = [_reg(n, v, units="1", move=m) for n, v, m in B_SN_NAMED_APART]
+def test_one_name_spelled_two_ways_is_surfaced_as_a_candidate():
+    """The measured catch: same quantity, same units, two spellings, so the
+    conflict check never compares them and the reader never learns they split."""
+    regs = [_reg(n, v, units="N", move=m) for n, v, m in SPELLING_SPLIT]
     cands = candidate_collisions(regs)
 
-    assert len(cands) == 1, "one family, not three pairs"
+    assert len(cands) == 1, "one family, not one entry per pair"
     c = cands[0]
-    assert sorted(c["names"]) == ["b_sn_designrange", "b_sn_refit", "b_sn_screening"]
-    assert c["stem"] == "b_sn"
-    assert c["units"] == "1"
-    # 0.3215 against 7.4314 is the widest pair.
-    assert c["max_rel_difference"] > 0.9
-    assert "might be" in c["detail"].lower() or "may be" in c["detail"].lower()
+    assert sorted(c["names"]) == ["F_outpin_max", "f_outpin_max"]
+    assert c["reason"] == "same_name_different_spelling"
+    assert c["units"] == "N"
+    # Framed as a question, never as an assertion of contradiction.
+    assert "candidate only" in c["detail"].lower()
+    assert "not a contradiction" in c["detail"].lower()
+
+
+def test_near_neighbour_names_are_NOT_surfaced_any_more():
+    """Retired 2026-07-31 on measurement: 0 genuine of 15 on the real study,
+    against 1 of 1 for the spelling check. Suffixes are how this domain names
+    real distinctions — three surface finishes, two orientations, the components
+    of a loss budget — so the rule was wrong in kind, not in threshold."""
+    regs = [
+        _reg("eta_breakeven_anod", 0.71, units="1", move=2),
+        _reg("eta_breakeven_bare", 0.86, units="1", move=2),
+        _reg("P_loss_mesh", 12.0, units="W", move=3),
+        _reg("P_loss_internal_total", 34.0, units="W", move=3),
+    ]
+    assert candidate_collisions(regs) == []
 
 
 def test_the_same_fits_under_ONE_name_are_a_conflict_and_NOT_a_candidate():
@@ -89,12 +109,13 @@ def test_the_same_fits_under_ONE_name_are_a_conflict_and_NOT_a_candidate():
     from stages.quantity_register import check_against
 
     regs, conflicts = [], []
-    for _n, v, m in B_SN_NAMED_APART:
+    # The real arm-C fits, under the ONE name the agent actually used.
+    for v, m in ((3.6537, 12), (7.4314, 14)):
         r = _reg("b_sn", v, units="1", move=m)
         conflicts.extend(check_against(r, regs))
         regs.append(r)
 
-    assert len(conflicts) == 2, "each new value contradicts the one before it"
+    assert len(conflicts) == 1, "the second value contradicts the first"
     assert all(c["kind"] in CONFLICT_KINDS for c in conflicts)
     assert candidate_collisions(regs) == [], "one name is not a candidate set"
 
@@ -110,7 +131,7 @@ def test_the_prompt_asks_for_the_same_name_on_a_recompute():
     # The reason, because the reason is what made the units instruction work.
     assert "compared with nothing" in SYSTEM_PROMPT
     # The measured case, concrete and theirs.
-    for token in ("0.32", "3.65", "7.43", "b_sn_screening"):
+    for token in ("0.32", "3.65", "7.43", "b_sn"):
         assert token in SYSTEM_PROMPT, f"the measured b_sn case must name {token}"
 
 
@@ -150,9 +171,9 @@ def test_a_candidate_never_appears_in_the_conflict_channel(tmp_path):
     s = _study(tmp_path)
     record_move(s, _move(1, [
         {"label": "screening fit", "value": 0.3215, "units": "1",
-         "quantity": "b_sn_screening"},
+         "quantity": "f_outpin_max"},
         {"label": "design-range fit", "value": 3.6537, "units": "1",
-         "quantity": "b_sn_designrange"},
+         "quantity": "F_outpin_max"},
     ]))
     assert open_quantity_conflicts(s) == []
     cands = open_quantity_candidates(s)
@@ -190,26 +211,6 @@ def test_the_candidate_channel_contains_no_model_call():
 # (b) THE RULE: SAME UNITS, NEAR-NEIGHBOUR NAME, VALUES THAT DISAGREE
 # --------------------------------------------------------------------------
 
-def test_the_six_masses_of_the_measured_study_do_not_all_flag_each_other():
-    """mass_spur / mass_worm / mass_cyclo / mass_sw are genuinely different
-    quantities sharing one leading token, and a rule that flagged all fifteen
-    pairs would be useless. CANDIDATE_STEM_TOKENS = 2 is why they do not."""
-    assert CANDIDATE_STEM_TOKENS == 2
-    regs = [_reg(n, v, units="kg", move=2) for n, v in
-            [("mass_spur", 50.6914), ("mass_worm", 2.5352),
-             ("mass_cyclo", 1.8316), ("mass_sw", 1.7504)]]
-    assert candidate_collisions(regs) == []
-
-
-def test_a_name_and_the_same_name_plus_a_qualifier_are_a_candidate():
-    """mass_worm 2.5352 kg against mass_worm_strength_only 1.3899 kg — real, and
-    plausibly one mass under two constraint sets."""
-    regs = [_reg("mass_worm", 2.5352, units="kg", move=2),
-            _reg("mass_worm_strength_only", 1.3899, units="kg", move=2)]
-    cands = candidate_collisions(regs)
-    assert len(cands) == 1
-    assert cands[0]["reason"] == "near_neighbour_names"
-    assert round(cands[0]["max_rel_difference"], 4) == 0.4518
 
 
 def test_different_units_are_never_a_candidate_however_close_the_names():
@@ -223,18 +224,6 @@ def test_different_units_are_never_a_candidate_however_close_the_names():
                   _reg("x_b", 9.0, units=None, move=2)]
     assert candidate_collisions(undeclared) == []
 
-
-def test_near_neighbours_whose_values_AGREE_are_not_surfaced():
-    """mass_cyclo 1.8316 kg and mass_cyclo_recovered 1.85775 kg — a legitimate
-    pair, 1.4% apart, and checked: the second is 1.8316 base + 0.0375 fins
-    - 0.0113 roller delta, arithmetic right. If the two ARE one quantity, the two
-    goes at it agreed, which is the outcome this exists to check for. Filtering
-    on the SAME band the register already uses for 'the same number' is what
-    keeps the advisory channel small enough to be read."""
-    regs = [_reg("mass_cyclo", 1.8316, units="kg", move=2),
-            _reg("mass_cyclo_recovered", 1.85775, units="kg", move=3,
-                 label="1.8316 base + 0.0375 fins - 0.0113 roller delta")]
-    assert candidate_collisions(regs) == []
 
 
 def test_one_name_spelled_two_ways_surfaces_WHATEVER_the_values_do():
@@ -251,28 +240,16 @@ def test_one_name_spelled_two_ways_surfaces_WHATEVER_the_values_do():
     assert "spelling" in cands[0]["detail"]
 
 
-def test_a_family_is_one_entry_not_one_per_pair():
-    """Five P_loss_* names in the measured study are ten pairs and one thing to
-    read. The director's turn stays legible only if this is a family."""
-    regs = [_reg(n, v, units="W", move=7) for n, v in
-            [("P_loss_asspec", 85.624), ("P_loss_mesh", 14.46),
-             ("P_loss_outpin", 20.98), ("P_loss_ecc_brg", 14.29),
-             ("P_loss_internal_total", 49.7)]]
-    cands = candidate_collisions(regs)
-    assert len(cands) == 1
-    assert len(cands[0]["names"]) == 5
-    assert cands[0]["names"] == sorted(cands[0]["names"]), "deterministic order"
-
 
 def test_the_candidate_channel_is_derived_never_stored(tmp_path):
     """Same discipline as replay_conflicts: recomputed from the registrations on
     disk, so what a reader sees cannot drift from what produced it."""
     s = _study(tmp_path)
     record_move(s, _move(1, [
-        {"label": "a", "value": 0.3215, "units": "1", "quantity": "b_sn_screening"}]))
+        {"label": "a", "value": 375.9, "units": "N", "quantity": "f_outpin_max"}]))
     assert open_quantity_candidates(s) == []
     record_move(s, _move(2, [
-        {"label": "b", "value": 7.4314, "units": "1", "quantity": "b_sn_refit"}]))
+        {"label": "b", "value": 364.7, "units": "N", "quantity": "F_outpin_max"}]))
     assert len(open_quantity_candidates(s)) == 1
     # And no candidate was written into the arc — it is a property of the whole
     # register, not of the move that happened to add the last name.
@@ -303,8 +280,8 @@ def test_candidate_collisions_never_raises_on_a_malformed_register():
     assert candidate_collisions(["junk", None, {}, {"name": ""}]) == []
     # A registration with a non-numeric value participates by string equality,
     # exactly as the conflict check treats one.
-    regs = [_reg("state_a_flag", "converged", units="1"),
-            _reg("state_a_other", "diverged", units="1")]
+    regs = [_reg("state_flag", "converged", units="1"),
+            _reg("STATE_FLAG", "diverged", units="1")]
     cands = candidate_collisions(regs)
     assert len(cands) == 1 and cands[0]["max_rel_difference"] is None
 
@@ -349,8 +326,8 @@ def test_a_broken_register_does_not_sink_the_directors_turn(tmp_path, monkeypatc
 
     s = _study(tmp_path)
     record_move(s, _move(1, [
-        {"label": "a", "value": 0.3215, "units": "1", "quantity": "b_sn_screening"},
-        {"label": "b", "value": 7.4314, "units": "1", "quantity": "b_sn_refit"}]))
+        {"label": "a", "value": 375.9, "units": "N", "quantity": "f_outpin_max"},
+        {"label": "b", "value": 364.7, "units": "N", "quantity": "F_outpin_max"}]))
 
     def boom(*_a, **_k):
         raise RuntimeError("register on fire")
@@ -367,8 +344,8 @@ def test_the_director_block_says_plainly_that_these_are_not_conflicts(tmp_path):
 
     s = _study(tmp_path)
     record_move(s, _move(1, [
-        {"label": "a", "value": 0.3215, "units": "1", "quantity": "b_sn_screening"},
-        {"label": "b", "value": 7.4314, "units": "1", "quantity": "b_sn_refit"}]))
+        {"label": "a", "value": 375.9, "units": "N", "quantity": "f_outpin_max"},
+        {"label": "b", "value": 364.7, "units": "N", "quantity": "F_outpin_max"}]))
     view = build_free_director_input(s, study_findings(s), {"remaining": 3})
 
     block = view["quantity_candidates"]
@@ -391,18 +368,18 @@ def test_the_two_blocks_are_separate_keys_when_both_are_present(tmp_path):
         {"label": "a", "value": 3.6537, "units": "1", "quantity": "b_sn"}]))
     record_move(s, _move(2, [
         {"label": "b", "value": 7.4314, "units": "1", "quantity": "b_sn"}]))
-    # And a candidate set: two near-neighbour names.
+    # And a candidate set: one name, two spellings.
     record_move(s, _move(3, [
-        {"label": "c", "value": 2.5352, "units": "kg", "quantity": "mass_worm"},
-        {"label": "d", "value": 1.3899, "units": "kg",
-         "quantity": "mass_worm_strength_only"}]))
+        {"label": "c", "value": 375.9, "units": "N", "quantity": "f_outpin_max"},
+        {"label": "d", "value": 364.7, "units": "N",
+         "quantity": "F_outpin_max"}]))
 
     view = build_free_director_input(s, study_findings(s), {"remaining": 3})
     assert set(view["quantity_conflicts"]) == {"note", "open"}
     assert set(view["quantity_candidates"]) == {"note", "candidates"}
     assert view["quantity_conflicts"]["open"][0]["quantity"] == "b_sn"
-    assert view["quantity_candidates"]["candidates"][0]["names"] == [
-        "mass_worm", "mass_worm_strength_only"]
+    assert sorted(view["quantity_candidates"]["candidates"][0]["names"]) == [
+        "F_outpin_max", "f_outpin_max"]
     # The action space is untouched: advisory means advisory.
     assert len(view["action_space"]) == 10
 
@@ -417,8 +394,8 @@ def test_the_cli_prints_candidates_under_their_own_heading(tmp_path, capsys):
     s = create_study("a goal", study_id="study-t03",
                      studies_root=tmp_path / "studies")
     record_move(s, _move(1, [
-        {"label": "a", "value": 0.3215, "units": "1", "quantity": "b_sn_screening"},
-        {"label": "b", "value": 7.4314, "units": "1", "quantity": "b_sn_refit"}]))
+        {"label": "a", "value": 375.9, "units": "N", "quantity": "f_outpin_max"},
+        {"label": "b", "value": 364.7, "units": "N", "quantity": "F_outpin_max"}]))
     assert s is not None
     # _print_quantity_candidates reads studies/<id>/quantities.jsonl relative to
     # the cwd, exactly as the end-of-run summary does.
@@ -433,7 +410,7 @@ def test_the_cli_prints_candidates_under_their_own_heading(tmp_path, capsys):
     assert "CANDIDATE COLLISIONS" in out
     assert "QUESTIONS, not conflicts" in out
     assert "QUANTITY CONFLICTS" not in out, "never under the conflicts heading"
-    assert "b_sn_screening" in out
+    assert "f_outpin_max" in out
 
 
 def test_the_cli_prints_nothing_for_a_study_with_no_candidates(capsys):
@@ -452,9 +429,10 @@ def test_liveview_renders_candidates_apart_from_conflicts():
             "study_id": "s", "goal": "g", "state": "finished", "arc": [],
             "children": [], "decisions": [], "verified": 0, "claims": 0,
             "quantity_candidates": [
-                {"kind": CANDIDATE_KIND, "reason": "near_neighbour_names",
-                 "names": ["b_sn_screening", "b_sn_refit"], "units": "1",
-                 "max_rel_difference": 0.9567, "detail": "might be one thing"}],
+                {"kind": CANDIDATE_KIND, "reason": "same_name_different_spelling",
+                 "names": ["f_outpin_max", "F_outpin_max"], "units": "N",
+                 "max_rel_difference": 0.0298,
+                 "detail": "one name spelled two ways"}],
         },
         "totals": {"moves": 0, "studies": 1, "verified": 0, "claims": 0},
         "health": {"state": "finished", "counts": {}},
@@ -463,8 +441,8 @@ def test_liveview_renders_candidates_apart_from_conflicts():
     text = "\n".join(render(snap, color=False))
     assert "MIGHT BE THE SAME QUANTITY" in text
     assert "QUESTIONS, not conflicts" in text
-    assert "b_sn_screening" in text
-    assert "95.7% apart" in text
+    assert "f_outpin_max" in text
+    assert "3.0% apart" in text
     assert "CONFLICT" not in text, "a candidate must never print as a conflict"
 
 
@@ -495,9 +473,9 @@ def test_the_reader_carries_candidates_at_study_level(tmp_path):
 
     s = _study(tmp_path)
     record_move(s, _move(1, [
-        {"label": "a", "value": 2.5352, "units": "kg", "quantity": "mass_worm"},
-        {"label": "b", "value": 1.3899, "units": "kg",
-         "quantity": "mass_worm_strength_only"}]))
+        {"label": "a", "value": 375.9, "units": "N", "quantity": "f_outpin_max"},
+        {"label": "b", "value": 364.7, "units": "N",
+         "quantity": "F_outpin_max"}]))
     node = snapshot("study-t03", studies_root=tmp_path)
     assert len(node["quantity_candidates"]) == 1
     assert node["quantity_candidates"][0]["kind"] == CANDIDATE_KIND
@@ -521,7 +499,10 @@ def test_against_the_real_gearbox_register_if_it_is_present():
     cands = replay_candidates(path)
     families = {tuple(sorted(c["names"])) for c in cands}
     assert ("F_outpin_max", "f_outpin_max") in families
-    assert ("mass_worm", "mass_worm_strength_only") in families
+    # mass_worm / mass_worm_strength_only WAS surfaced by the retired
+    # near-neighbour rule; it is a legitimate pair (full vs strength-only) and is
+    # exactly the noise that rule generated, so it must NOT appear now.
+    assert not any("mass_worm_strength_only" in f for f in families)
     assert not any("mass_cyclo_recovered" in f for f in families)
     # Small enough for a director to actually read.
     assert len(cands) < 25, f"{len(cands)} candidate sets is not a channel"

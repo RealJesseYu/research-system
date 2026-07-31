@@ -175,11 +175,10 @@ director is supposed to trust — so it cannot, and a test pins that.
 The rule, and why each part of it: no model, no judgement, string work only.
   - SAME CANONICAL UNITS, both declared. An undeclared unit asserts nothing,
     and different units mean the names are not competing for one concept.
-  - NEAR-NEIGHBOUR NAMES: names are grouped by their first CANDIDATE_STEM_TOKENS
-    tokens (`b_sn_screening`, `b_sn_designrange`, `b_sn_refit` -> stem `b_sn`;
-    `mass_worm`, `mass_worm_strength_only` -> stem `mass_worm`). A family, not a
-    pair, because a stem with five members is one thing to read and ten pairs is
-    not. `mass_spur` and `mass_worm` share only one token and are NOT a family.
+  - NEAR-NEIGHBOUR NAMES: REMOVED 2026-07-31 after measurement. It grouped
+    names by their leading tokens and scored 0 genuine out of 15 on
+    study-20260731T033623Z, against 1 of 1 for the spelling check. An advisory
+    channel is worth exactly its precision.
   - VALUES THAT DISAGREE, by the same CONFLICT_REL_TOL the register already uses
     for "the same number". A family whose members already agree has nothing to
     reconcile: if they ARE one quantity, the two goes at it agreed, which is the
@@ -223,11 +222,10 @@ from typing import Any, Optional
 # a reproduction. Not declarable per registration, deliberately.
 CONFLICT_REL_TOL = 0.05
 
-# How many leading name tokens make a "family" for the ADVISORY candidate channel
-# (see the CANDIDATE COLLISIONS block above). Two, because one token groups every
-# `mass_*` in a study together and three splits `b_sn_screening` from
-# `b_sn_designrange` — the exact pair the channel exists for.
-CANDIDATE_STEM_TOKENS = 2
+# CANDIDATE_STEM_TOKENS is gone with the near-neighbour rule it configured
+# (2026-07-31): it scored 0 genuine out of 15 on the only real study, and the
+# tuning knob was never the problem — suffixes are how this domain names real
+# distinctions. See candidate_collisions().
 
 # The `kind` values a CONFLICT may carry. A candidate's kind is deliberately not
 # among them, and a test pins the two sets disjoint: a reader (or a later
@@ -585,45 +583,32 @@ def candidate_collisions(register: Any) -> list:
             ),
         })
 
-    # (2) Near-neighbour names in the same units whose values disagree.
-    families: dict = {}
-    for (units, canon), (name, reg) in collapsed.items():
-        toks = name_tokens(canon)
-        if not toks:
-            continue
-        families.setdefault((units, tuple(toks[:CANDIDATE_STEM_TOKENS])),
-                            []).append((name, reg))
-    for (units, stem), members in sorted(families.items()):
-        if len(members) < 2:
-            continue
-        disagrees, worst = _family_spread(members)
-        if not disagrees:
-            continue  # two goes at one number that agree resolve themselves
-        members = sorted(members, key=lambda m: m[0])
-        names = [n for n, _ in members]
-        stem_text = "_".join(stem)
-        spread = (f"by up to {worst * 100:.1f}%" if worst is not None
-                  else "and are not the same value")
-        out.append({
-            "kind": CANDIDATE_KIND,
-            "reason": "near_neighbour_names",
-            "names": names,
-            "units": _display_units(members[0][1]),
-            "stem": stem_text,
-            "max_rel_difference": worst,
-            "members": [_member_view(n, r) for n, r in members],
-            "detail": (
-                f"{', '.join(repr(n) for n in names)} are different names in the "
-                f"same units ({_display_units(members[0][1])!r}) sharing the stem "
-                f"{stem_text!r}, and their values differ {spread}. They may be "
-                "estimates of ONE quantity registered under separate names — in "
-                "which case that spread is a contradiction the register cannot "
-                "see, because it only ever compares values filed under the same "
-                "name. They may equally be genuinely different quantities, in "
-                "which case nothing is wrong. CANDIDATE ONLY — this is a "
-                "question for you, not a contradiction the register is asserting."
-            ),
-        })
+    # (2) NEAR-NEIGHBOUR NAMES: BUILT, MEASURED, AND REMOVED 2026-07-31.
+    #
+    # It grouped names sharing their first two tokens in the same units and
+    # surfaced the family when the values disagreed. Replayed over the 132
+    # registrations of study-20260731T033623Z — the only real data that exists for
+    # it — the two reasons scored:
+    #
+    #     same_name_different_spelling   1 candidate,  1 genuine
+    #     near_neighbour_names          15 candidates, 0 genuine
+    #
+    # All fifteen were legitimate engineering variants, and the pattern is
+    # structural rather than a threshold to tune: suffixes are how this domain
+    # distinguishes real things. `eta_breakeven_anod/_bare/_finned` are three
+    # surface finishes. `q_anod_horiz_50K/_vert_50K` are two orientations.
+    # `dT_oil_wall_grease/_splash` are two lubrication methods. And
+    # `P_loss_mesh/_ecc_brg/_outpin/_internal_total` are the COMPONENTS OF A LOSS
+    # BUDGET — they must differ; the total is their sum.
+    #
+    # Fifteen false positives per study teaches the director to ignore this
+    # channel, which is strictly worse than not having it: an advisory channel is
+    # worth exactly its precision. The spelling check above stays because it scored
+    # 1 for 1 and catches something the exact-name check structurally cannot —
+    # `f_outpin_max` vs `F_outpin_max`, one name spelled two ways, silently split
+    # into two quantities that are never compared.
+    #
+    # Do not reinstate this without data beating 1-for-1 on a real study.
     return out
 
 
