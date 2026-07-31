@@ -27,6 +27,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from pi_agent.budget import EST_COST_PER_MOVE_USD, Budget  # noqa: E402
 from pi_agent.loop import DEFAULT_MAX_MOVES, investigate  # noqa: E402
+from pi_agent.watch import ENV_FLAG as LIVE_VIEW_ENV  # noqa: E402
+from pi_agent.watch import start_live_view  # noqa: E402
 
 
 def _open_pdf(path) -> None:
@@ -331,6 +333,15 @@ def main(argv: list | None = None) -> None:
         "Works with either director. Off by default.",
     )
     parser.add_argument(
+        "--no-watch",
+        action="store_true",
+        help="do NOT bring the live view up with the study. The view "
+        "(`python -m liveview --web` in a child process, browser page, "
+        "read-only) starts by default only when stdout is a TTY, so scripted, "
+        "cron and piped launches never spawn it; this flag and "
+        f"{LIVE_VIEW_ENV}=0 turn it off for an interactive one.",
+    )
+    parser.add_argument(
         "--commit-code",
         action="store_true",
         help="after the investigation, commit the code this study produced onto "
@@ -367,6 +378,17 @@ def main(argv: list | None = None) -> None:
     elif ceiling.get("kind") == "max_moves" and token_budget:
         print(f"ceiling: --max-moves {max_moves} was set explicitly, so it holds "
               f"even if the {token_budget:,}-token budget is not spent")
+
+    # THE LIVE VIEW COMES UP WITH THE STUDY. A child process (`python -m
+    # liveview --web`), never an import — see pi_agent/watch.py for why that
+    # isolation is load-bearing. Started here, at the last moment before the
+    # director takes over, so a bad command line never leaves a server behind;
+    # on by default only when stdout is a TTY, and never fatal.
+    #
+    # --resume-study is the one case where the id is known in advance, so the
+    # view is pointed straight at it; a fresh study lets liveview's own default
+    # (the newest running study) find it as soon as it exists.
+    view = start_live_view(no_watch=args.no_watch, study_id=args.resume_study)
 
     if args.director == "free":
         from pi_agent.free_director import free_investigate
@@ -576,6 +598,12 @@ def main(argv: list | None = None) -> None:
     except Exception as e:  # noqa: BLE001 — a record-keeping step may not end a run
         print(f"run-artifacts: not committed ({type(e).__name__}: {e}); "
               f"the study is unaffected")
+
+    # AND GOES AWAY WITH IT. This is the ordinary ending; the exception and
+    # Ctrl-C endings are covered by the atexit registration start_live_view()
+    # makes, because an orphaned server holding the port is a papercut the next
+    # launch inherits. stop() is idempotent, so both firing is fine.
+    view.stop()
 
 
 if __name__ == "__main__":

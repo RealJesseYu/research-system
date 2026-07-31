@@ -188,6 +188,11 @@ the director and every child subprocess at once. `liveview` is a separate
 READ-ONLY reader of the files a run already writes — start it, stop it, or
 restart it at any time; it cannot affect the run.
 
+`python -m pi_agent` **starts the browser view for you** (as a child process, only
+when stdout is a TTY) and closes it when the study ends — `--no-watch` or
+`RESEARCH_LIVE_VIEW=0` if you would rather it did not. Launch it by hand for a
+finished study, one you did not start, or a scripted read:
+
 ```
 venv/bin/python -m liveview            # terminal view of the newest live study
 venv/bin/python -m liveview --web      # the same picture in a browser (localhost)

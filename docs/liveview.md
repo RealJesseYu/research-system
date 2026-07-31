@@ -74,6 +74,19 @@ have stopped — and says which of those three facts it is standing on.
 
 ## Using it
 
+Usually you don't have to. **`python -m pi_agent` brings the web view up by itself**
+and takes it down when the study ends — `pi_agent/watch.py` spawns
+`python -m liveview --web` as a CHILD PROCESS (never an import: the run path must
+stay unable to reach this package, which is why the view can be rewritten while a
+study is running). It starts only when stdout is a TTY, so cron, CI, piped launches
+and the test suite behave exactly as they did before; `--no-watch` or
+`RESEARCH_LIVE_VIEW=0` turns it off, `RESEARCH_LIVE_VIEW=1` forces it on without a
+TTY. If 8765 is taken it moves up to 8776 and prints the port it took. Failing to
+start is never fatal — one line, and the study runs on.
+
+Everything below is still there for a study you did not launch yourself, a finished
+one, or a scripted read:
+
 ```
 venv/bin/python -m liveview                     # newest study still running
 venv/bin/python -m liveview --study study-XXXX  # a specific one, finished or not

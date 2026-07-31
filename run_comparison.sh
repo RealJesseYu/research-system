@@ -3,7 +3,9 @@
 # the goal strings here. Protocol: docs/comparison_protocol.md
 #
 # RUN FROM A PLAIN TERMINAL:  cd ~/research-system && ./run_comparison.sh goal1
-# Watch it:                   venv/bin/python3 -m liveview
+# Watch it:                   nothing to do — the live view opens in a browser by
+#                             itself and closes when the study ends. Suppress it
+#                             with RESEARCH_LIVE_VIEW=0 or --no-watch.
 set -euo pipefail
 cd "$(dirname "$0")"
 
