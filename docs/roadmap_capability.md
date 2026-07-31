@@ -161,7 +161,39 @@ T0.1 is the probe that tells you whether the direction is worth it.
 - [ ] **T3.2 Intermediate signal from a running move** (A5, deferred by design in
       `docs/design_intermediate_signal.md`). 69–84 turns of zero visibility.
       Blockers now reach the arc, so this is the remaining blind spot.
-- [ ] **T3.3 Cross-study composition.** Dropped earlier as "not wanted", and that
+- [ ] **T3.3 The design must outlive the study boundary.** *(Reframed 2026-07-30 —
+      the earlier wording, "a house cannot be one study", was stated as fact and was
+      wrong in two ways. Both corrections below.)*
+
+      **Duration is NOT the constraint.** Moves are ~1 hour and fan-out
+      parallelises them; a 500-move design at 8-wide is under three days of
+      wall-clock. Agents running for days solves this and it was never the problem.
+
+      **The measured ceiling is the director's own context. MEASURED:** arc growth
+      is **11–20 KB per move** across three studies (`study-20260729T210651Z` 12,254
+      B/move, `-20260730T034915Z` 11,052, `-20260728T225951Z` 19,529). The director
+      re-reads its WHOLE arc every turn — deliberately, because every summarised
+      policy lost to full re-read — so at a 1M-token context (~4 MB) the ceiling is
+      roughly **200–300 moves**, once the goal, instrument menu and budget view are
+      allowed for. A 100-move design fits in one study. A 2,000-move one does not.
+
+      `spawn_sub_investigation` already removes that ceiling, but the parent then
+      reads a child's SUMMARY. That is structurally the shape that measurably failed
+      for memory — **REASONED, not measured**: the memory experiment tested a
+      director summarising its own history, not a parent reading a child, and
+      stretching that result to this case is the error this project keeps catching.
+
+      **And the framing itself was wrong.** Study COUNT is a red herring. Fifty
+      sub-studies each producing an independent report gets you fifty reports and no
+      house — which is exactly what goal 2 did at small scale: 16 moves, three
+      mutually inconsistent values of one coefficient, and no object holding "the
+      replacement rule". The item is not "run longer" or "split the work". It is
+      **one design object persisting across study boundaries** — Tier 1 and Tier 2
+      machinery operating across studies rather than within one. Splitting neither
+      creates nor solves the problem; the missing object does.
+
+- [ ] ~~**T3.3 Cross-study composition.**~~ *(superseded by the entry above)*
+      Dropped earlier as "not wanted", and that
       ruling should be revisited on this axis alone: **a house cannot be one
       study.** Anything at that scale is many studies composing into one design,
       which is Tier 1 + Tier 2 operating across study boundaries.
