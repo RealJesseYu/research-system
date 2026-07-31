@@ -128,6 +128,49 @@ def _validate_free_result(data: dict) -> list[str]:
     return errors
 
 
+def _units_errors(data: dict) -> list[str]:
+    """Findings whose value is a NUMBER but that declare no units. "Numeric" is
+    the register's own test (a bool is not a number), so this asks for exactly
+    what stages/quantity_register.py will consume — and asks nothing of a string
+    value, where the prompt already says to omit units. "1" is a legal unit."""
+    from stages.quantity_register import _as_number
+
+    errors: list[str] = []
+    for i, f in enumerate(data.get("findings") or []):
+        if not isinstance(f, dict) or _as_number(f.get("value")) is None:
+            continue
+        if not str(f.get("units") or "").strip():
+            errors.append(
+                f"findings[{i}] has a numeric value but no 'units' — say what "
+                "it is in ('m/s', 'log10(years)', 'kg', or '1' for a genuinely "
+                "dimensionless ratio). Omit 'units' only for a non-numeric "
+                "value.")
+    return errors
+
+
+def _make_result_validator():
+    """Fresh per call: the structural errors every attempt, plus the units ask
+    exactly ONCE. A number without its units is worth one plain-language re-ask
+    and nothing more — after that single ask it stops being an error, so the
+    report stands as written and the move proceeds. Enforced at all because the
+    prompt has asked for units since T0.1 and the register they feed replayed
+    zero declarations across 273 findings: a requested-but-unchecked structure
+    does not happen, and "0 conflicts" is unreadable without it."""
+    asked = False
+
+    def validate(data: dict) -> list[str]:
+        nonlocal asked
+        errors = _validate_free_result(data)
+        if not asked:
+            units = _units_errors(data)
+            if units:
+                asked = True
+                errors.extend(units)
+        return errors
+
+    return validate
+
+
 def _has_rerunnable_artifact(art) -> bool:
     """True when `art` names something the wall can independently re-run: a saved
     workspace code file (file + quantity) or a substrate call (substrate_id +
@@ -385,7 +428,7 @@ def run_free_investigation(goal, *, run_id=None, call=None, verify=None, gate=No
                 stage_input,
                 SCHEMA,
                 model=FREE_EXPERIMENTER_MODEL,
-                extra_validator=_validate_free_result,
+                extra_validator=_make_result_validator(),
                 capabilities=FULL,
             )
     except Exception as exc:  # noqa: BLE001

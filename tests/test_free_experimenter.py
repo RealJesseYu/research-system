@@ -31,6 +31,8 @@ from pi_agent.dispatch import read_run_result  # noqa: E402
 from stages.free_experimenter import (  # noqa: E402
     FREE_STAGE_NAME,
     _finding_artifact,
+    _make_result_validator,
+    _units_errors,
     _validate_free_result,
     run_free_investigation,
 )
@@ -361,6 +363,55 @@ class TestHonestyValidator(unittest.TestCase):
         # the experimenter may honestly find nothing keepable
         self.assertEqual(
             _validate_free_result({"findings": [], "publishable": False}), [])
+
+
+class TestUnitsAreEnforced(unittest.TestCase):
+    """The prompt has asked for units since T0.1 and nothing checked it — the
+    register it feeds saw 0 of 273 findings declare any. One bounded re-ask."""
+
+    def _f(self, value, **kw):
+        return {"findings": [dict(label="x", value=value, **kw)],
+                "publishable": True}
+
+    def test_numeric_finding_without_units_is_asked_for_them(self):
+        errs = _units_errors(self._f(0.36))
+        self.assertTrue(any("findings[0]" in e and "units" in e for e in errs))
+
+    def test_empty_units_counts_as_missing(self):
+        self.assertTrue(_units_errors(self._f(0.36, units="  ")))
+
+    def test_dimensionless_one_is_a_legal_unit(self):
+        self.assertEqual(_units_errors(self._f(1.46, units="1")), [])
+
+    def test_non_numeric_findings_are_exempt(self):
+        # the prompt says to omit units for a non-numeric value
+        self.assertEqual(_units_errors(self._f("inconclusive")), [])
+        self.assertEqual(_units_errors(self._f(True)), [])  # bool is not a number
+
+    def test_the_ask_fires_once_then_the_report_stands(self):
+        # bounded: a missing unit must never fail a move or end an arc
+        validate = _make_result_validator()
+        unitless = self._f(0.36)
+        self.assertTrue(validate(unitless))          # attempt 1: asked
+        self.assertEqual(validate(unitless), [])     # attempt 2: proceeds
+        self.assertEqual(validate(unitless), [])
+
+    def test_structural_errors_survive_every_attempt(self):
+        validate = _make_result_validator()
+        broken = {"findings": [{"label": "", "value": 1, "units": "m"}],
+                  "publishable": True}
+        for _ in range(3):
+            self.assertTrue(any("label" in e for e in validate(broken)))
+
+    def test_the_live_call_uses_the_units_enforcing_validator(self):
+        captured = {}
+
+        def capture_call(stage, sysprompt, inp, schema, **kw):
+            captured["v"] = kw.get("extra_validator")
+            return _FAKE_RESULT, {"model": "fake"}
+
+        run_free_investigation("q", call=capture_call)
+        self.assertTrue(captured["v"](self._f(0.36)))
 
 
 class TestCapabilityProfile(unittest.TestCase):
