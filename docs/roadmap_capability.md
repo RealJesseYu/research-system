@@ -103,28 +103,34 @@ quantities were computed exactly once, so the register had **3 opportunities to
 fire in an entire study** — a 2.3% collision rate. That is too thin to conclude
 anything about whether it would catch a real contradiction.
 
-**And it exposed the thing that actually limits the mechanism: agents name each
-computation distinctly.** Six mass quantities in this study, six names:
-`mass_spur`, `mass_worm`, `mass_worm_strength_only`, `mass_cyclo`, `mass_sw`,
-`mass_cyclo_recovered`. (Checked: the last is NOT a masked conflict — its label
-records `1.8316 base + 0.0375 fins - 0.0113 roller delta`, and the arithmetic is
-right.) Applied to the failure the register was built for — arm C fitting `b_sn`
-three times at 0.32 / 3.65 / 7.43 — this agent would very likely have written
-`b_sn_screening` / `b_sn_designrange` / `b_sn_refit`, and **the register would not
-have fired on the case it exists to catch.**
+**CORRECTED 2026-07-31, same day, by looking instead of reasoning.** The first
+write-up of this probe claimed the limit was that *agents name each computation
+distinctly*, inferred from six differently-named mass quantities, and proposed T0.3
+to teach name reuse. **That was wrong, and checking cost nothing.** In
+`study-20260730T034915Z` — the study the register exists for — the agent wrote
+**`b_sn`, one name, 20 occurrences** across the deliverable code and the paper for
+all three disagreeing fits. It did not invent `b_sn_screening` / `b_sn_designrange`.
+And the gearbox's six mass names are six genuinely different objects
+(`mass_spur`, `mass_worm`, `mass_cyclo`, `mass_sw`), correctly named differently —
+a correct behaviour read as a defect.
 
-So the gate on Tier 1 is NOT re-answered by building more mechanism. It is:
-make the existing mechanism able to fire (see T0.3), then re-probe with a goal
-that forces the same number to be computed twice.
+**So the naming discipline is already right, and T0.3 is struck.** No name-reuse
+instruction is needed, and near-neighbour candidate detection would manufacture
+false positives against a problem that does not exist.
 
-- [ ] **T0.3 Make the register able to fire.** Two cheap changes, neither a new
-      mechanism: (a) instruct the agent to REUSE a quantity name when it recomputes
-      the same concept, with the reason — a second value under a new name is
-      invisible; (b) have the register surface near-neighbour names of the same
-      dimension (`b_sn_*`) to the director as CANDIDATE collisions, never as
-      automatic conflicts. Then re-probe with a goal that forces a genuine
-      recomputation ("compute total mass independently from the component list and
-      from the envelope, and reconcile them").
+**The dull, correct explanation for 3 collisions in 132: a clean design computes
+most things once.** The register fires on RECOMPUTATION, and the gearbox had almost
+none. Arm C recomputed one coefficient three times, got 0.32 / 3.65 / 7.43, and
+used one consistent name for it — which is exactly the case the register catches,
+with the naming working.
+
+**What this means for the Tier-1 gate:** the register is MORE likely to fire than
+this probe suggested, and it does not need a bought test. The next study run for
+any other reason is the measurement, at zero marginal cost. **Do not buy a probe
+for this.**
+
+~~T0.3 Make the register able to fire.~~ **STRUCK 2026-07-31** — premise refuted
+above before any of it was built.
 
 **COST RATE CHANGED. MEASURED: $1.98 per million reported tokens** ($49.96 /
 25.17M), up from $1.30. This is the turn-counter fix landing exactly as predicted —
