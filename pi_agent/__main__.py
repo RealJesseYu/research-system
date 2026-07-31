@@ -181,6 +181,33 @@ def _resolve_ceiling(max_moves: int | None, cost_cap: float | None,
     return DEFAULT_MAX_MOVES, None, {"kind": "default", "max_moves": DEFAULT_MAX_MOVES}
 
 
+def _print_quantity_conflicts(report: dict) -> None:
+    """T0.1: NUMBERS THIS STUDY ESTABLISHED THAT CONTRADICT EACH OTHER.
+
+    Printed beside the blockers because it is the same class of thing — something
+    the human must know before believing the study. Measured instance: three fits
+    of one coefficient at 3.65 / 7.43 / 0.32, each reproducing perfectly on its
+    own, which reached the reader only in §5.2 of the write-up.
+
+    Not a failure of the study and not a verdict on any number — a contradiction
+    the reader is owed. Silent when the register found none, so a clean study's
+    output is unchanged. Never raises: a summary must not sink a finished run."""
+    try:
+        conflicts = [c for entry in (report.get("arc") or [])
+                     for c in (entry.get("quantity_conflicts") or [])
+                     if isinstance(c, dict)]
+    except Exception:  # noqa: BLE001
+        return
+    if not conflicts:
+        return
+    print("\n=== QUANTITY CONFLICTS — ESTABLISHED NUMBERS THAT DISAGREE ===")
+    print("  (each may reproduce perfectly on its own; this is NOT a "
+          "verification failure)")
+    for c in conflicts:
+        print(f"  {str(c.get('kind')).upper()}: {c.get('name')}")
+        print(f"    {c.get('detail')}")
+
+
 def main(argv: list | None = None) -> None:
     parser = argparse.ArgumentParser(
         prog="python -m pi_agent",
@@ -346,6 +373,8 @@ def main(argv: list | None = None) -> None:
             print(f"    you can: {b.get('human_action')}")
             if b.get("workaround_used"):
                 print(f"    proceeded with instead: {b['workaround_used']}")
+
+    _print_quantity_conflicts(report)
 
     # PAPER ROUTE (opt-in). Written here, at the entry point, rather than inside
     # either director: it then covers BOTH directors with one wire, and it writes

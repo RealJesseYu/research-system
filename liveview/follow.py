@@ -71,6 +71,7 @@ class Follower:
         self._decisions_seen: set = set()
         self._arc_seen: set = set()
         self._blockers_seen: set = set()
+        self._conflicts_seen: set = set()
         self._health = None
         # Which study the printed events currently belong to. The header used to
         # print once for the whole session, so after a switch every line was
@@ -167,6 +168,21 @@ class Follower:
                 out.extend(_wrap(f"needs: {b.get('need')}", self.width, "    "))
                 out.extend(_wrap(f"you can: {b.get('human_action')}", self.width,
                                  "    "))
+                out.append("")
+
+        # --- numbers that contradict each other, said once and loudly --------
+        # T0.1. Same once-only idiom as blockers above: a follower is a stream,
+        # so a conflict already announced must not re-announce every tick.
+        for a in active.get("arc") or []:
+            for q in a.get("quantity_conflicts") or []:
+                key = f"{q.get('kind')}:{q.get('quantity')}"
+                if key in self._conflicts_seen:
+                    continue
+                self._conflicts_seen.add(key)
+                out.append(self._c(
+                    f"CONFLICT — {q.get('quantity')} disagrees with what this "
+                    "study already established:", YELLOW))
+                out.extend(_wrap(str(q.get("detail")), self.width, "    "))
                 out.append("")
 
         # --- the run ending ---------------------------------------------------

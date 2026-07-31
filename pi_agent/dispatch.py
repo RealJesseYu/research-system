@@ -124,6 +124,12 @@ class RunResult:
     # each — "it stopped because it was done" and "it stopped because it ran out
     # of turns" are opposite facts about the same arc row.
     cut_off: dict = field(default_factory=dict)
+    # T0.1: the run's findings as the QUANTITY REGISTER needs them — carrying the
+    # `units` and the artifact `quantity` that `findings` above cannot, because
+    # `findings` is the wall's verdict list and the wall keeps neither (see
+    # _read_quantity_findings). Consumed by pi_agent.study.record_move and by
+    # nothing else; empty for a run that reported no findings.
+    quantities: list = field(default_factory=list)
 
     @property
     def completed(self) -> bool:
@@ -154,6 +160,12 @@ class RunResult:
             # blocker summary already read.
             "blocked_on": self.blocked_on,
             "cut_off": self.cut_off,
+            # T0.1: read by record_move to register this move's quantities, and
+            # listed in _ARC_MAPPED_KEYS so it does NOT also ride into the arc
+            # entry's tool_output — the register file is the record, and copying
+            # every finding a second time into the arc would bloat every later
+            # brief for nothing.
+            "quantities": self.quantities,
             "completed": self.completed,
         }
 
@@ -231,6 +243,7 @@ def read_run_result(
         failed_artifacts=failed,
         blocked_on=(extras.get("blocked_on") or []) if isinstance(extras, dict) else [],
         cut_off=(extras.get("cut_off") or {}) if isinstance(extras, dict) else {},
+        quantities=_read_quantity_findings(run_dir),
     )
 
 
@@ -299,6 +312,45 @@ def _read_reusable_artifacts(run_dir: Path) -> list:
     for ra in (data.get("reusable_artifacts") or [])[:_MAX_FINDINGS]:
         if isinstance(ra, dict) and ra.get("verified") and ra.get("name") and ra.get("producer"):
             out.append({"name": ra["name"], "producer": ra["producer"]})
+    return out
+
+
+# T0.1: the keys a finding needs to be REGISTERED as an established quantity.
+# A subset, carried verbatim, so stages/quantity_register.py keeps reading the
+# finding shape it was designed against rather than a second projection of it.
+_QUANTITY_KEYS = ("label", "value", "units", "verified", "quantity", "artifact",
+                  "compares")
+
+
+def _read_quantity_findings(run_dir: Path) -> list:
+    """The run's findings as the quantity register needs to see them, read from
+    runs/<id>/free_investigation.json.
+
+    WHY NOT verification.json, which is where RunResult.findings comes from:
+    that file is the WALL's output and it is the wrong source twice over. It
+    projects each verdict to {label, value, verified, reason}, dropping the
+    artifact whose `quantity` key is the name a value would be registered under;
+    and it only ever contains findings the agent CLAIMED verified, because an
+    unverified finding never becomes a claim. A contradiction between two honest
+    caveats is still a contradiction, and the register is not verification
+    (docs/roadmap_capability.md T0.1) — so it reads the agent's own report,
+    exactly as _read_reusable_artifacts already does.
+
+    Never raises: a missing or malformed file is simply no quantities, and the
+    move records exactly as it would have before this existed."""
+    import json
+
+    fpath = Path(run_dir) / "free_investigation.json"
+    if not fpath.is_file():
+        return []
+    try:
+        data = json.loads(fpath.read_text())
+    except Exception:  # noqa: BLE001
+        return []
+    out = []
+    for f in (data.get("findings") or [])[:_MAX_FINDINGS]:
+        if isinstance(f, dict):
+            out.append({k: f[k] for k in _QUANTITY_KEYS if k in f})
     return out
 
 

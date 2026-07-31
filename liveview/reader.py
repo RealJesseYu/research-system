@@ -637,6 +637,16 @@ def _arc_entry_view(entry: dict, *, runs_root: Path, with_run: bool, log_lines: 
         ],
         "ideation_depth": tool_output.get("depth"),
         "blocked_on": tool_output.get("blocked_on") or [],
+        # T0.1: numbers this move established that contradict ones the study
+        # already held. Read off the arc entry itself (not tool_output — the
+        # study layer writes it, not the run), and compacted here so the reader
+        # stays the one place that knows the on-disk shape.
+        "quantity_conflicts": [
+            {"kind": c.get("kind"), "quantity": c.get("name"),
+             "detail": c.get("detail")}
+            for c in (entry.get("quantity_conflicts") or [])
+            if isinstance(c, dict)
+        ],
         "error": tool_output.get("error"),
         "detail": tool_output.get("detail"),
     }

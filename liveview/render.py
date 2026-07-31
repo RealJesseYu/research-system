@@ -319,6 +319,13 @@ def _arc_lines(node: dict, c: _Painter, W: int, indent: str = "  ") -> list:
             out += _field(c, W, indent, "BLOCKED",
                           f"{b.get('need')} — YOU CAN: {b.get('human_action')}",
                           limit=6)
+        # T0.1: a number this move established that contradicts one the study
+        # already held. Same surface as BLOCKED, because it is the same kind of
+        # thing — something a watcher wants to know NOW rather than in §5.2 of
+        # the write-up, which is where the measured instance of this surfaced.
+        for q in (a.get("quantity_conflicts") or []):
+            out += _field(c, W, indent, "CONFLICT",
+                          f"{q.get('quantity')} — {q.get('detail')}", limit=6)
         child = children.get(a.get("child_study_id"))
         if child:
             out.extend(_arc_lines(child, c, W, indent + "     "))

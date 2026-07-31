@@ -325,7 +325,7 @@ def _action_space_menu() -> list:
 def build_free_director_input(study: Any, arc: list, budget: dict) -> dict:
     """The exact input the free director reasons over. Pure over the study's disk
     state. Carries no run_id (PI-layer evidence, not a run's transcript)."""
-    return {
+    view = {
         "study_id": study.study_id,
         "goal": study.goal,
         "instrument_constraint": study.allowed_substrates,  # null = unconstrained
@@ -334,6 +334,34 @@ def build_free_director_input(study: Any, arc: list, budget: dict) -> dict:
         "budget": budget,  # the Budget.report(): remaining / depth / max_depth
         "arc_so_far": arc,
     }
+    # T0.1 (2026-07-30): quantities the arc has established that CONTRADICT each
+    # other. A conflict rides its own move's arc entry too, but a contradiction
+    # raised at move 14 is still open at move 20, and an arc entry scrolls past —
+    # so the standing set is shown as its own block, beside the arc, the same
+    # surface blockers reach. It is INFORMATION, not a gate: nothing here
+    # constrains the action space, and the director decides what to do about it
+    # (T1.4 is where a conflict becomes a decision with the option to halt).
+    # Omitted entirely when there are none, so the common turn is byte-identical.
+    try:
+        from pi_agent.study import open_quantity_conflicts
+        conflicts = open_quantity_conflicts(study)
+    except Exception:  # noqa: BLE001 — a display block may not sink a decision
+        conflicts = []
+    if conflicts:
+        view["quantity_conflicts"] = {
+            "note": (
+                "These are numbers this study has ESTABLISHED that disagree with "
+                "each other. Each may well reproduce perfectly on its own — this "
+                "is not a verification failure, it is a contradiction, and "
+                "verification cannot see it. At most one of a conflicting pair "
+                "can be what the name means. Resolving one, renaming the "
+                "quantities apart, or saying plainly in the write-up which is "
+                "authoritative are all legitimate; carrying both silently to the "
+                "paper is what this exists to prevent."
+            ),
+            "open": conflicts,
+        }
+    return view
 
 
 def decide_action(

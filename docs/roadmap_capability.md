@@ -53,7 +53,18 @@ never says "this value must agree with that one".
 
 ## TIER 0 — before the next run. Both small, both MEASURED.
 
-- [ ] **T0.1 Quantity register with conflict detection.** The minimum viable
+- [x] **T0.1 Quantity register with conflict detection.** BUILT 2026-07-30 —
+      `stages/quantity_register.py`, wired at `pi_agent/study.py::record_move`,
+      surfaced in the director's turn, liveview and the CLI summary. Design
+      record and the honest limits: **`docs/memo_quantity_register.md`**.
+      Proven on the real values in the real order (`b_sn` 3.6537 -> 7.4314 fires
+      at move 14; sigma years-vs-ESALs fails on units), 60 offline tests, no
+      model in it, nothing gates. UNPROVEN ON A REAL RUN: replayed against
+      `study-20260730T034915Z` it fires zero times, because every one of that
+      study's six elasticity estimates was unverified and so carried no name to
+      collide on, and `units` did not exist. The next study is the measurement.
+      The original statement of the item follows.
+      The minimum viable
       constraint artifact, and the one new capability on this page that is cheap.
       A deterministic store — **no model in it, same discipline as the wall** —
       where a move registers a quantity it has established: `name, value, units,

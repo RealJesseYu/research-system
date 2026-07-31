@@ -203,7 +203,12 @@ def next_move_run_id(study: Study) -> str:
 # returns is the TOOL's own payload and rides in "tool_output" (see below).
 _ARC_MAPPED_KEYS = frozenset(
     {"findings", "cost", "reusable_artifacts", "failed_artifacts", "publishable",
-     "succeeded", "outcome"}
+     "succeeded", "outcome",
+     # T0.1: consumed by the quantity register below and recorded in
+     # quantities.jsonl. Mapped so it does not ALSO ride into tool_output — the
+     # register file is the record, and a second copy of every finding in every
+     # arc entry would bloat every later brief for nothing.
+     "quantities"}
 )
 
 
@@ -269,12 +274,88 @@ def record_move(
     # reported any, so arcs without them are byte-identical.
     if raw.get("failed_artifacts"):
         entry["failed_artifacts"] = raw["failed_artifacts"]
+    # T0.1 (2026-07-30): register the quantities this move established and check
+    # them against what the study already holds. NOT VERIFICATION — the wall asks
+    # "does this recompute", this asks "does this contradict something already
+    # established", which is why the wall caught neither headline failure of
+    # study-20260730T034915Z (b_sn at 0.32 / 3.65 / 7.43, each reproducing on its
+    # own; sigma compared across log10(years) and log10(ESALs)).
+    #
+    # HERE, at the study's single arc funnel, because a contradiction is
+    # CROSS-MOVE: the run subprocess can only see its own numbers. Nothing below
+    # this line changes — not verification.py, not the supervisor, not the
+    # dispatch boundary — because the findings already travel to here.
+    #
+    # NOT A GATE. The conflict rides the arc entry exactly as blocked_on does
+    # (8df1379), so the director reads it on its next turn and decides. A move
+    # that establishes no quantity, or one that conflicts with nothing, writes a
+    # byte-identical entry.
+    #
+    # THE SOURCE IS `quantities`, NOT `findings`. `findings` is the wall's
+    # verdict list: it projects away the artifact whose `quantity` key is the
+    # name a value registers under, and it holds only findings the agent CLAIMED
+    # verified. Registering off it would have silently registered NOTHING —
+    # checked against study-20260730T034915Z, where all 136 arc findings carry
+    # artifact:null. `quantities` is the agent's own report, read straight from
+    # free_investigation.json (pi_agent/dispatch.py::_read_quantity_findings).
+    # `findings` remains the fallback so an injected or hand-built result that
+    # carries whole findings still registers.
+    entry_conflicts = _register_quantities(
+        study, raw.get("quantities") or raw.get("findings"), seq, m.get("run_id"))
+    if entry_conflicts:
+        entry["quantity_conflicts"] = entry_conflicts
     if prediction is not None:
         entry["prediction"] = prediction
     study.dir.mkdir(parents=True, exist_ok=True)
     with open(study.arc_path, "a") as f:
         f.write(json.dumps(entry) + "\n")
     return entry
+
+
+def quantity_register_path(study: Study) -> Path:
+    """Where the study's quantity register lives: quantities.jsonl beside
+    arc.jsonl, append-only, same evidence class as the arc itself."""
+    return study.dir / "quantities.jsonl"
+
+
+def _register_quantities(study: Study, findings, seq: int, run_id) -> list:
+    """Register this move's quantities and return the conflicts it created.
+
+    NEVER RAISES. A register that could take down record_move would be able to
+    lose a move that already cost real money and real wall-clock — which is a far
+    worse failure than a missed conflict. A failure is printed and the move is
+    recorded exactly as it would have been before this existed."""
+    try:
+        from stages.quantity_register import register_findings
+        _regs, conflicts = register_findings(
+            quantity_register_path(study), findings or [],
+            move=seq, run_id=run_id)
+        for c in conflicts:
+            print(f"QUANTITY CONFLICT ({c.get('kind')}): {c.get('detail')}")
+        return conflicts
+    except Exception as e:  # noqa: BLE001 — a checker must not sink the move
+        print(f"NOTE: the quantity register failed on move {seq} "
+              f"({type(e).__name__}: {e}) — the move is recorded unchanged; no "
+              "conflict check ran for it")
+        return []
+
+
+def open_quantity_conflicts(study: Study) -> list:
+    """Every conflict the study's register implies, recomputed from disk.
+
+    DERIVED, never stored, so what the director is shown can never drift from
+    the registrations behind it. Comparison conflicts are not replayable from the
+    register alone (the declaration lives on the finding) and reach the director
+    through their own move's arc entry instead; see replay_conflicts. Never
+    raises — an unreadable register shows as no conflicts rather than taking down
+    the turn that reads it."""
+    try:
+        from stages.quantity_register import conflict_summary, replay_conflicts
+        return conflict_summary(replay_conflicts(quantity_register_path(study)))
+    except Exception as e:  # noqa: BLE001
+        print(f"NOTE: could not read the quantity register "
+              f"({type(e).__name__}: {e})")
+        return []
 
 
 def study_scratch_dir(study: Study) -> Path:
@@ -318,6 +399,11 @@ def study_findings(study: Study) -> list:
                 # ev2 (A4): failed producers with how each broke, when any.
                 **({"failed_artifacts": e["failed_artifacts"]}
                    if e.get("failed_artifacts") else {}),
+                # T0.1: quantities this move established that contradict ones
+                # the study already held. Present only when this move created
+                # one, so an arc without conflicts reads exactly as before.
+                **({"quantity_conflicts": e["quantity_conflicts"]}
+                   if e.get("quantity_conflicts") else {}),
                 # The director's recorded expectation for this move (A3), shown
                 # beside the outcome so it can calibrate its own judgement.
                 # Present only when one was recorded — old arcs are unchanged.
