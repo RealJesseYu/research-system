@@ -293,6 +293,15 @@ def main(argv: list | None = None) -> None:
         "(+figures) from its wall-verified findings into studies/<id>/paper.md. "
         "Works with either director. Off by default.",
     )
+    parser.add_argument(
+        "--commit-code",
+        action="store_true",
+        help="after the investigation, commit the code this study produced onto "
+        "the run-artifacts branch (git plumbing only: never the index, never "
+        "HEAD, never a checkout, never a push). RESEARCH_COMMIT_RUN_CODE=1 does "
+        "the same. Off by default — runs/ and studies/ stay gitignored and "
+        "`git status` is unchanged either way.",
+    )
     args = parser.parse_args(argv)
 
     if bool(args.goal) == bool(args.resume_study):
@@ -507,6 +516,28 @@ def main(argv: list | None = None) -> None:
                       f"paper.md is unaffected")
         else:
             print(f"no paper written: {outcome.get('error')}")
+
+    # AUTO-COMMIT WHAT THE RUN PRODUCED (opt-in, LAST of everything). Placed
+    # here, at the entry point, for the same reason the paper route is: it
+    # covers BOTH directors with one wire. It is last because the deliverable is
+    # packaged above and the deliverable is where the figures come from — a
+    # commit fired before it would snapshot the study without its own product.
+    #
+    # WHY IT EXISTS: runs/ and studies/ are gitignored with zero tracked files,
+    # so a study's output lives on exactly one laptop. This is backup first.
+    #
+    # NEVER FATAL, and never during a run — an accounting step may not end an
+    # arc, and a workspace a live agent is still writing is not a snapshot.
+    # commit_run_artifacts already swallows everything; the guard here is for
+    # the import itself, so a missing module cannot sink a finished study.
+    try:
+        from tools.run_artifacts_commit import commit_enabled, commit_run_artifacts
+
+        if commit_enabled(args.commit_code):
+            commit_run_artifacts(report["study_id"])
+    except Exception as e:  # noqa: BLE001 — a record-keeping step may not end a run
+        print(f"run-artifacts: not committed ({type(e).__name__}: {e}); "
+              f"the study is unaffected")
 
 
 if __name__ == "__main__":

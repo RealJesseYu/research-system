@@ -65,10 +65,47 @@ class TestWhatIsKept(_Workspace):
         self.write("bench/harness/drive.py")
         self.assertIn("bench/harness/drive.py", self.kept())
 
-    def test_a_small_result_file_and_a_figure_are_kept(self):
+    def test_a_small_result_file_is_kept(self):
         self.write("fit.json", "{}")
+        self.assertEqual(self.kept(), {"fit.json"})
+
+
+class TestFiguresComeOnlyFromADeliverable(_Workspace):
+    """Owner ruling, 2026-07-30. Figures are kept from studies/<id>/deliverable/
+    — the curated boundary stages/study_deliverable.py assembles — and from
+    nowhere else. MEASURED the day of the ruling: across 87 workspaces the
+    figure-class extensions were 380 files / 189.8 MB, of which 306 files /
+    178.3 MB were .pdf — papers the agent FETCHED off the web, not anything it
+    produced. The deliverable's 11 figures were 1.2 MB."""
+
+    def test_a_scratch_plot_in_a_workspace_is_left_out(self):
         self.write("fig1.png", "notreallyapng")
-        self.assertEqual(self.kept(), {"fit.json", "fig1.png"})
+        self.write("fetched_paper.pdf", "notreallyapdf")
+        self.write("plot.py", "import matplotlib\n")
+        self.assertEqual(self.kept(), {"plot.py"})
+        self.assertIn("outside a deliverable", self.skip_reason("fig1.png"))
+
+    def test_the_same_figure_in_a_deliverable_is_kept(self):
+        deliverable = self.ws / snap.DELIVERABLE_DIRNAME
+        deliverable.mkdir()
+        (deliverable / "fig1.png").write_text("notreallyapng")
+        (deliverable / "paper.pdf").write_text("notreallyapdf")
+        kept, _ = snap.select(deliverable)
+        self.assertEqual({str(r) for r in kept}, {"fig1.png", "paper.pdf"})
+
+    def test_the_rule_can_be_forced_either_way_for_a_caller_that_knows(self):
+        self.write("fig1.png", "notreallyapng")
+        self.assertEqual({str(r) for r in snap.select(self.ws, figures=True)[0]},
+                         {"fig1.png"})
+        self.assertEqual(snap.select(self.ws, figures=False)[0], [])
+
+    def test_a_deliverable_is_discovered_as_a_snapshot_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "studies" / "s1" / "deliverable").mkdir(parents=True)
+            (root / "studies" / "s1" / "director_workspace").mkdir(parents=True)
+            found = {p.name for p in snap.workspaces(root)}
+            self.assertEqual(found, {"deliverable", "director_workspace"})
 
 
 class TestWhatIsRefused(_Workspace):
