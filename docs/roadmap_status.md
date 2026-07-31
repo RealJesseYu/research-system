@@ -54,6 +54,10 @@ result section below.
 
 ### AFTER THE FIVE — the fork everything has been clearing the way for
 
+> ⭐ **START AT `docs/NEXT.md`.** It is the ordered list — four free items, then
+> arm B, then the design-class study and the Tier-1 gate. This file and
+> `roadmap_capability.md` are reference; NEXT.md is what to do.
+
 > **Two roadmaps now.** This file tracks *fixing what broke*. The separate
 > question — what would let this system do things no single strong agent can do at
 > all ("design this robot", "build this house", "solve this disease") — lives in
