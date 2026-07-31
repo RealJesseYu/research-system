@@ -54,6 +54,12 @@ result section below.
 
 ### AFTER THE FIVE — the fork everything has been clearing the way for
 
+> **Two roadmaps now.** This file tracks *fixing what broke*. The separate
+> question — what would let this system do things no single strong agent can do at
+> all ("design this robot", "build this house", "solve this disease") — lives in
+> **`docs/roadmap_capability.md`**. Its Tier 0 is two small items that belong
+> before the next run; everything above Tier 0 there is REASONED, not measured.
+
 ## BEFORE THE NEXT RUN — the experiment-2 arm C post-mortem (2026-07-30)
 
 Arm C ran on goal 2 (`study-20260730T034915Z`): 16 moves, 113.2M tokens, **$143.97+**,
