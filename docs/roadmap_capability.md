@@ -77,6 +77,60 @@ never says "this value must agree with that one".
       Catches both: `b_sn` conflicts at move 14 instead of §5.2; the years-vs-ESALs
       comparison fails on units, mechanically.
       ADDITIVE: a move MAY register quantities; nothing forces it, nothing gates.
+### MEASURED 2026-07-31 — the gearbox probe, and what it settled
+
+`study-20260731T033623Z` (a single-stage gearbox, chosen because it contains a
+loop: face width -> mass -> inertia -> torque -> shaft diameter -> mass).
+7 moves, 25.17M tokens, **$49.96**, 224 turns, terminated on `token_budget_spent`
+— **tokens bound, not moves**, so the derived ceiling works.
+
+**What the Tier-0 build achieved, measured:**
+
+| | |
+|---|---|
+| quantities registered | **132** |
+| declaring units | **132 — 100%** (was 0 of 273 on the prior study) |
+| findings verified | **117 / 117** (was 50 / 136) |
+| names registered more than once | **3** |
+| **conflicts fired** | **0** |
+
+All three collisions agreed exactly (`mass_cyclo` 1.8316 kg twice,
+`f_ecc_max_per_disc` 1424.1 N, `q_housing_design` 34.3039 W). No false positives.
+Units enforcement went 0% -> 100% in one run.
+
+**THE RESULT IS NOT THE CLEAN NEGATIVE THAT WAS PRE-REGISTERED.** 129 of 132
+quantities were computed exactly once, so the register had **3 opportunities to
+fire in an entire study** — a 2.3% collision rate. That is too thin to conclude
+anything about whether it would catch a real contradiction.
+
+**And it exposed the thing that actually limits the mechanism: agents name each
+computation distinctly.** Six mass quantities in this study, six names:
+`mass_spur`, `mass_worm`, `mass_worm_strength_only`, `mass_cyclo`, `mass_sw`,
+`mass_cyclo_recovered`. (Checked: the last is NOT a masked conflict — its label
+records `1.8316 base + 0.0375 fins - 0.0113 roller delta`, and the arithmetic is
+right.) Applied to the failure the register was built for — arm C fitting `b_sn`
+three times at 0.32 / 3.65 / 7.43 — this agent would very likely have written
+`b_sn_screening` / `b_sn_designrange` / `b_sn_refit`, and **the register would not
+have fired on the case it exists to catch.**
+
+So the gate on Tier 1 is NOT re-answered by building more mechanism. It is:
+make the existing mechanism able to fire (see T0.3), then re-probe with a goal
+that forces the same number to be computed twice.
+
+- [ ] **T0.3 Make the register able to fire.** Two cheap changes, neither a new
+      mechanism: (a) instruct the agent to REUSE a quantity name when it recomputes
+      the same concept, with the reason — a second value under a new name is
+      invisible; (b) have the register surface near-neighbour names of the same
+      dimension (`b_sn_*`) to the director as CANDIDATE collisions, never as
+      automatic conflicts. Then re-probe with a goal that forces a genuine
+      recomputation ("compute total mass independently from the component list and
+      from the envelope, and reconcile them").
+
+**COST RATE CHANGED. MEASURED: $1.98 per million reported tokens** ($49.96 /
+25.17M), up from $1.30. This is the turn-counter fix landing exactly as predicted —
+moves now run their full turns instead of being cut at half. **Plan on a run
+costing roughly 2x its token budget in dollars.**
+
 - [x] **T0.2 Incremental emission.** BUILT 2026-07-30 — `tools/emit_finding.py`
       plus the pickup at `stages/free_experimenter.py::_merge_emitted`. Design
       record and the honest limits: **`docs/memo_incremental_emission.md`**.
