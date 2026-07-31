@@ -2,15 +2,15 @@
   "substrate_id": "bio_db_lookup",
   "card": "docs/envelope_card_bio_db_lookup.md",
   "cases_doc": "D.4-network calibration slate — bio_db_lookup (PDB/PubChem/UniProt/ChEMBL). Line: a resolved record read as a retrieval/cross-reference vs trusted alone as sole basis / assumed curation-current (C1-hole D3).",
-  "label_provenance": "pre-registered by the build chat 2026-07-19 from the ruled card (D1-D3); in->trust, out->defer. LOOKUP-class: never-trust-alone is PERMANENT — the OUT cases are its C1-hole (sole-basis / curation-currency over-read).",
-  "substrate_text": "A record lookup by id from an authoritative biological database (PDB/PubChem/UniProt/ChEMBL; the database field selects which; round_trip_id=1 when the id resolves). LOOKUP-class: structurally NEVER TRUSTED ALONE — corroboration is REQUIRED (permanent). The tool confirms a record RESOLVES (exists) at a reachable endpoint; a well-formed-but-absent id is an honest not-found (incl. the HTTP-200 shapes some DBs return for a missing id), DISTINCT from an unreachable endpoint (one endpoint down = a partial defer). THE KNOWN GAP (D3): the tool cannot verify the record's CURATION CURRENCY or correctness from inside — a stale or erroneous record looks identical to a good one — so a lookup is a retrieval/cross-reference, NEVER established fact and NEVER the sole basis for a claim.",
-  "envelope_text": "IN-REGIME: a well-formed id resolved and read AS a retrieval / cross-reference — confirming a record exists in the authoritative DB, used as ONE corroborating source (not as the basis for a scientific claim). OUT-OF-REGIME: using the single looked-up record as the SOLE basis for a scientific/experimental claim (never-trust-alone); assuming the DB's curation is CURRENT and CORRECT and relying on the record as established fact; concluding a biological/experimental fact purely from a record's presence; treating a possibly-stale record as guaranteed to match the source DB's current state.",
+  "label_provenance": "pre-registered by the build chat 2026-07-19 from the ruled card (D1-D3); RECALIBRATED 2026-07-19: in->REFINE, out->defer. A never-trust-alone LOOKUP has NO honest in-envelope TRUST verdict — a resolved record is usable only as a corroborating screen, so the honest in-regime verdict is REFINE (usable, survivors require downstream confirmation), never trust. The prior in->trust slate was the miscalibration; the gate already returned modal-refine on all in-cases. never-trust-alone is PERMANENT — the OUT cases are its C1-hole (sole-basis / curation-currency over-read → defer).",
+  "substrate_text": "A record lookup by id from an authoritative biological database (PDB/PubChem/UniProt/ChEMBL; the database field selects which; round_trip_id=1 when the id resolves). LOOKUP-class: structurally NEVER TRUSTED ALONE — corroboration is REQUIRED (permanent), so even a clean in-envelope resolution is at best a corroborating screen (REFINE), never a standalone TRUST result. The tool confirms a record RESOLVES (exists) at a reachable endpoint; a well-formed-but-absent id is an honest not-found (incl. the HTTP-200 shapes some DBs return for a missing id), DISTINCT from an unreachable endpoint (one endpoint down = a partial defer). THE KNOWN GAP (D3): the tool cannot verify the record's CURATION CURRENCY or correctness from inside — a stale or erroneous record looks identical to a good one — so a lookup is a retrieval/cross-reference, NEVER established fact and NEVER the sole basis for a claim.",
+  "envelope_text": "IN-REGIME (honest verdict REFINE): a well-formed id resolved and read AS a retrieval / cross-reference — confirming a record exists in the authoritative DB, usable as ONE corroborating screen (never the sole basis for a scientific claim); a resolved record is corroborating, so it survives only pending downstream confirmation. OUT-OF-REGIME (defer): using the single looked-up record as the SOLE basis for a scientific/experimental claim (never-trust-alone); assuming the DB's curation is CURRENT and CORRECT and relying on the record as established fact; concluding a biological/experimental fact purely from a record's presence; treating a possibly-stale record as guaranteed to match the source DB's current state.",
   "gate_cases": [
     {
       "id": "B01",
       "expected_class": "in",
       "acceptable_labels": [
-        "trust"
+        "refine"
       ],
       "experiment": "Round-trip a PDB entry id and report that the structure record RESOLVES (exists) in the PDB — a record-lookup / cross-reference step.",
       "note": "Dead-centre: a well-formed id resolved and read as a retrieval/cross-reference — exactly the lookup the card gates on.",
@@ -20,7 +20,7 @@
       "id": "B02",
       "expected_class": "in",
       "acceptable_labels": [
-        "trust"
+        "refine"
       ],
       "experiment": "Look up a UniProt accession and report the resolved record as ONE corroborating source alongside independent evidence (explicitly not the sole basis for any claim).",
       "note": "In-regime: the lookup used AS CORROBORATION, honoring never-trust-alone — the intended use of a lookup-class instrument.",
@@ -30,7 +30,7 @@
       "id": "B03",
       "expected_class": "in",
       "acceptable_labels": [
-        "trust"
+        "refine"
       ],
       "experiment": "Round-trip a PubChem CID to confirm the compound record is present in PubChem, as a cross-reference/retrieval step for further work.",
       "note": "In-regime: a resolved-record retrieval used as a cross-reference — within the lookup's honest meaning.",
@@ -40,7 +40,7 @@
       "id": "B04",
       "expected_class": "in",
       "acceptable_labels": [
-        "trust"
+        "refine"
       ],
       "experiment": "Retrieve a ChEMBL molecule record by id and report it as a database cross-reference to be corroborated by independent data.",
       "note": "In-regime: a resolved record read as a to-be-corroborated cross-reference — the trust path.",
@@ -50,7 +50,7 @@
       "id": "B05",
       "expected_class": "in",
       "acceptable_labels": [
-        "trust"
+        "refine"
       ],
       "experiment": "Report that a record id RESOLVED in its authoritative database, used purely as a retrieval / existence-check step (not as proof of any scientific claim).",
       "note": "In-regime: a resolution/existence check read as exactly that — a retrieval step, no over-claim.",

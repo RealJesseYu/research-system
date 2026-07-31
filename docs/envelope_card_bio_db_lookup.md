@@ -55,11 +55,11 @@
 |---|---|---|---|
 | **D1 — per-endpoint gate** | `CHECKABLE` (per database) | the requested `database`'s endpoint is reachable | reachable → the id resolves or is an honest not-found; unreachable/5xx/throttle → **setup_error/defer** (that database only = PARTIAL) |
 | **D2** | `CHECKABLE:membership` (pre-run) | database ∈ allowlist; record_id well-formed FOR THAT namespace; quantity ∈ {round_trip_id} | valid → eligible; else → **setup_error** (proven, incl. per-namespace id form) |
-| **D3 (C1-hole) — PERMANENT never-trust-alone + curation gap** | **JUDGMENT / STANDING** | none the gate can read | a record is NEVER TRUSTED ALONE (corroboration required, permanent); AND the DB's own curation currency/correctness is unverifiable from inside — a stale/erroneous record looks identical to a good one → **defer**. |
+| **D3 (C1-hole) — PERMANENT never-trust-alone + curation gap** | **JUDGMENT / STANDING** | none the gate can read | a record is NEVER TRUSTED ALONE (corroboration required, permanent); AND the DB's own curation currency/correctness is unverifiable from inside — a stale/erroneous record looks identical to a good one. **Trust-split (recalibrated 2026-07-19):** in-envelope → **REFINE** (a resolved record is usable as a corroborating cross-reference/screen, never the sole basis for a claim — a never-trust-alone lookup has no honest standalone TRUST verdict); over-reads (sole basis / assumed curation-current / fact-from-presence) → **defer**. |
 
 ## 4. Known failure modes
 - **4A. Endpoint(s) unreachable / 5xx / throttle → setup_error (PARTIAL defer, per database).** Proven by triggering; all four reachable = fully live, one down = partial.
-- **4B. Record trusted alone / assumed curated-correct → defer (D3, PERMANENT).**
+- **4B. Record trusted alone / assumed curated-correct → defer (D3, PERMANENT).** In-envelope honest use (a resolved record as a corroborating cross-reference/screen) → **REFINE**, never trust.
 - **4C. Missing/absent id → honest not-found (incl. the HTTP-200 PubChem/UniProt traps), NOT a network failure.** Proven by triggering; never a fabricated record.
 - **4D. Bad input (database / id form / quantity) → setup_error (D2).** Proven, per namespace.
 

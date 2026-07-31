@@ -57,11 +57,11 @@ against the live endpoint:
 |---|---|---|---|
 | **A1 — endpoint gate** | `CHECKABLE` | AFDB endpoint reachable (round-trip) | reachable → the accession resolves or is an honest not-found; unreachable/5xx → **setup_error/defer** |
 | **A2** | `CHECKABLE:membership` (pre-run) | uniprot_accession well-formed; quantity ∈ {mean_pLDDT} | valid → eligible; else → **setup_error** (proven) |
-| **A3 (C1-hole) — PERMANENT never-trust-alone** | **JUDGMENT / STANDING** | none the gate can read | pLDDT is model SELF-confidence, NOT experimental accuracy; AND — permanently, even with the network working — a lookup is **NEVER TRUSTED ALONE; corroboration is REQUIRED**. A standing trust claim, not a provisioning gate. |
+| **A3 (C1-hole) — PERMANENT never-trust-alone** | **JUDGMENT / STANDING** | none the gate can read | pLDDT is model SELF-confidence, NOT experimental accuracy; AND — permanently, even with the network working — a lookup is **NEVER TRUSTED ALONE; corroboration is REQUIRED**. A standing trust claim, not a provisioning gate. **Trust-split (recalibrated 2026-07-19):** in-envelope → **REFINE** (the retrieved pLDDT is usable as a corroborating model-confidence screen, never the sole basis for a claim — a never-trust-alone lookup has no honest standalone TRUST verdict); over-reads (experimental accuracy / sole basis / local-from-global / function) → **defer**. |
 
 ## 4. Known failure modes
 - **4A. Endpoint unreachable / 5xx → setup_error (defer).** Proven by triggering.
-- **4B. pLDDT trusted alone / read as experimental accuracy → defer (A3, PERMANENT).** Corroboration always required.
+- **4B. pLDDT trusted alone / read as experimental accuracy → defer (A3, PERMANENT).** Corroboration always required. In-envelope honest use (pLDDT as a corroborating model-confidence screen) → **REFINE**, never trust.
 - **4C. Missing/malformed accession → honest not-found (404/400), NOT a network failure.** Proven by triggering; never a fabricated pLDDT.
 - **4D. Bad input (field shape / quantity) → setup_error (A2).** Proven.
 

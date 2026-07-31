@@ -2,35 +2,35 @@
   "substrate_id": "alphafold_db",
   "card": "docs/envelope_card_alphafold_db.md",
   "cases_doc": "D.4-network calibration slate — alphafold_db (predicted_structure_lookup). Line: model self-confidence read as a retrieved lookup vs read as experimental accuracy / trusted alone (C1-hole A3).",
-  "label_provenance": "pre-registered by the build chat 2026-07-19 from the ruled card (A1-A3); in->trust, out->defer. LOOKUP-class: never-trust-alone is PERMANENT — the OUT cases are its C1-hole (sole-basis / accuracy over-read).",
-  "substrate_text": "AlphaFold DB (AFDB) network LOOKUP of a precomputed structure's mean pLDDT for a UniProt accession (keyed by accession; mean_pLDDT read from globalMetricValue). LOOKUP-class: structurally NEVER TRUSTED ALONE — corroboration is REQUIRED (permanent). Returns the retrieved mean pLDDT ONLY when the endpoint is reachable and the accession resolves; a well-formed-but-absent accession is an honest not-found, DISTINCT from an unreachable endpoint. THE KNOWN GAP (A3): pLDDT is AlphaFold's own MODEL SELF-CONFIDENCE, NOT experimental accuracy; a global mean says nothing about a specific disordered/low-confidence region; and it speaks to structure confidence, never to biological function.",
-  "envelope_text": "IN-REGIME: a resolvable accession's mean pLDDT retrieved and read AS a lookup value — AlphaFold's own model self-confidence for that predicted structure (used as a retrieved indicator, incl. as corroboration or a relative model-confidence comparison). OUT-OF-REGIME: reading pLDDT as EXPERIMENTAL/measured accuracy of the real protein; using the single looked-up value as the SOLE basis for a structural claim (never-trust-alone); reading a high global mean as proof a specific low-confidence region is well-ordered; inferring biological function from pLDDT.",
+  "label_provenance": "pre-registered by the build chat 2026-07-19 from the ruled card (A1-A3); RECALIBRATED 2026-07-19: in->REFINE, out->defer. A never-trust-alone LOOKUP has NO honest in-envelope TRUST verdict — even a faithfully-read pLDDT is usable only as a corroborating model-confidence screen, so the honest in-regime verdict is REFINE (usable, survivors require downstream confirmation), never trust. The prior in->trust slate framed the pLDDT read as a standalone faithful report and the gate returned modal-trust on 4/5 in-cases; that framing was the miscalibration. The in-cases are reframed to corroborating-screen use (matching A03, which already returned refine) so the honest REFINE verdict is what is tested. never-trust-alone is PERMANENT — the OUT cases are its C1-hole (sole-basis / accuracy over-read → defer).",
+  "substrate_text": "AlphaFold DB (AFDB) network LOOKUP of a precomputed structure's mean pLDDT for a UniProt accession (keyed by accession; mean_pLDDT read from globalMetricValue). LOOKUP-class: structurally NEVER TRUSTED ALONE — corroboration is REQUIRED (permanent), so even a cleanly-retrieved, faithfully-read pLDDT is at best a corroborating model-confidence screen (REFINE), never a standalone TRUST result. Returns the retrieved mean pLDDT ONLY when the endpoint is reachable and the accession resolves; a well-formed-but-absent accession is an honest not-found, DISTINCT from an unreachable endpoint. THE KNOWN GAP (A3): pLDDT is AlphaFold's own MODEL SELF-CONFIDENCE, NOT experimental accuracy; a global mean says nothing about a specific disordered/low-confidence region; and it speaks to structure confidence, never to biological function.",
+  "envelope_text": "IN-REGIME (honest verdict REFINE): a resolvable accession's mean pLDDT retrieved and read faithfully AS AlphaFold's own model self-confidence, usable as ONE corroborating model-confidence screen (incl. a relative model-confidence comparison), never the sole basis for a claim; because a lookup is never trusted alone, an in-regime read survives only pending downstream confirmation. OUT-OF-REGIME (defer): reading pLDDT as EXPERIMENTAL/measured accuracy of the real protein; using the single looked-up value as the SOLE basis for a structural claim (never-trust-alone); reading a high global mean as proof a specific low-confidence region is well-ordered; inferring biological function from pLDDT.",
   "gate_cases": [
     {
       "id": "A01",
       "expected_class": "in",
       "acceptable_labels": [
-        "trust"
+        "refine"
       ],
-      "experiment": "Look up the AlphaFold DB mean pLDDT for UniProt accession P0DP23 and report it as AlphaFold's per-model confidence for that predicted structure.",
-      "note": "Dead-centre: a resolvable accession's pLDDT retrieved and read as the model's own confidence — exactly the lookup the card gates on.",
-      "right_instrument": "the AFDB mean pLDDT read as AlphaFold model self-confidence."
+      "experiment": "Look up the AlphaFold DB mean pLDDT for UniProt accession P0DP23 and use it as ONE corroborating model-confidence screen — AlphaFold's own per-model self-confidence for that predicted structure — alongside independent evidence, never as the sole basis for a claim.",
+      "note": "Dead-centre: a resolvable accession's pLDDT retrieved and used as a corroborating screen, honoring never-trust-alone — the intended in-regime use of a lookup-class instrument (honest verdict REFINE).",
+      "right_instrument": "the AFDB mean pLDDT as a corroborating model-confidence screen among other evidence."
     },
     {
       "id": "A02",
       "expected_class": "in",
       "acceptable_labels": [
-        "trust"
+        "refine"
       ],
-      "experiment": "Retrieve the AFDB mean pLDDT for a well-characterised accession and report it as the model's global self-assessed confidence score, noting it is a retrieved AlphaFold value.",
-      "note": "In-regime: the retrieved value read as model confidence, explicitly as a lookup — the trust path.",
-      "right_instrument": "the retrieved AFDB global mean pLDDT, as model confidence."
+      "experiment": "Retrieve the AFDB mean pLDDT for a well-characterised accession and use it as a retrieved model-confidence indicator to be corroborated by independent evidence, noting it is a retrieved AlphaFold value, not experimental accuracy.",
+      "note": "In-regime: the retrieved value used as a to-be-corroborated model-confidence indicator, explicitly as a lookup — the refine path.",
+      "right_instrument": "the retrieved AFDB global mean pLDDT, as a corroborating model-confidence indicator."
     },
     {
       "id": "A03",
       "expected_class": "in",
       "acceptable_labels": [
-        "trust"
+        "refine"
       ],
       "experiment": "Report an accession's AFDB mean pLDDT as ONE corroborating confidence indicator alongside independent evidence (not as the sole basis for any claim).",
       "note": "In-regime: the lookup used AS CORROBORATION, honoring the never-trust-alone rule — the intended use of a lookup-class instrument.",
@@ -40,21 +40,21 @@
       "id": "A04",
       "expected_class": "in",
       "acceptable_labels": [
-        "trust"
+        "refine"
       ],
-      "experiment": "Compare the AFDB mean pLDDT of two accessions as a RELATIVE model-confidence ranking — which predicted structure AlphaFold is more confident in.",
-      "note": "In-regime: a relative model-confidence comparison of retrieved values — within the lookup's honest meaning.",
-      "right_instrument": "two retrieved AFDB pLDDTs compared as relative model confidence."
+      "experiment": "Compare the AFDB mean pLDDT of two accessions as a RELATIVE model-confidence screen — a corroborating indicator of which predicted structure AlphaFold is more confident in, to be confirmed downstream, not a standalone claim.",
+      "note": "In-regime: a relative model-confidence comparison of retrieved values used as a corroborating screen — within the lookup's honest meaning (honest verdict REFINE).",
+      "right_instrument": "two retrieved AFDB pLDDTs compared as a relative model-confidence screen."
     },
     {
       "id": "A05",
       "expected_class": "in",
       "acceptable_labels": [
-        "trust"
+        "refine"
       ],
-      "experiment": "Report that an accession with a high AFDB mean pLDDT (e.g. >90) is one AlphaFold predicts with high self-assessed confidence, stated as the model's own confidence.",
-      "note": "In-regime: a high looked-up pLDDT read as high MODEL confidence (not experimental accuracy) — the honest reading.",
-      "right_instrument": "the retrieved high pLDDT, as high model self-confidence."
+      "experiment": "Report that an accession with a high AFDB mean pLDDT (e.g. >90) is one AlphaFold predicts with high self-assessed confidence, using it as a corroborating screen (model confidence, not experimental accuracy), never as the sole basis for a structural claim.",
+      "note": "In-regime: a high looked-up pLDDT used as a corroborating high-MODEL-confidence screen (not experimental accuracy) — the honest reading (verdict REFINE).",
+      "right_instrument": "the retrieved high pLDDT, as a corroborating high-model-confidence screen."
     },
     {
       "id": "A06",
