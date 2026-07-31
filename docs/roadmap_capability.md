@@ -132,6 +132,71 @@ for this.**
 ~~T0.3 Make the register able to fire.~~ **STRUCK 2026-07-31** — premise refuted
 above before any of it was built.
 
+> **BUILT ANYWAY, IN PARALLEL, BEFORE THE STRIKE LANDED (2026-07-31).** A build
+> session was already running against the pre-strike text and finished both
+> halves; the code is on the branch, 30 offline tests, suite 2640 green, nothing
+> gates and `stages/verification.py` untouched. It is recorded here as a fact and
+> **the item is NOT reinstated** — whether to keep, revert or leave it dormant is
+> the owner's call. What was built, what it catches, and the one piece of
+> evidence that cuts against the strike:
+>
+> **(a) Name reuse taught in `stages/free_experimenter.py::SYSTEM_PROMPT`** —
+> reuse the SAME name on a recompute, with the mechanical reason ("a second value
+> under a NEW name is compared with nothing at all") and the measured `b_sn`
+> case; naming a DIFFERENT quantity differently restated and unchanged.
+>
+> **THE ONE THING THE STRIKE'S EVIDENCE DOES NOT COVER, re-derived from disk.**
+> The refutation counts `b_sn` in the deliverable code and the paper — prose and
+> variables. The register does not read those; it reads a finding's `quantity`
+> key. In `study-20260730T034915Z/report.json` the ONLY machine-readable quantity
+> name for that coefficient is **`b_sn_design_range`** — qualified — and bare
+> `b_sn` **never appears as a quantity key anywhere in that study**. So in the
+> one field that would have keyed the register, that agent did split the name.
+> One instance is not a rate, and the strike's wider point stands unchallenged:
+> the gearbox's six masses are six genuinely different objects, correctly named
+> apart. Both facts are re-derivable; neither settles the rate.
+>
+> **ALSO FOUND, and independent of who is right:** the naming paragraph that was
+> replaced instructed the *opposite* of name reuse, verbatim — *"if you fit the
+> same coefficient two ways, call them `b_sn_pooled` and `b_sn_within` rather
+> than `b_sn` twice."* If names ever do split, that sentence is why. It is gone
+> either way, and the same claim in `quantity_register.py`'s docstring (renaming
+> as a first-class resolution of any collision) is amended to "only when they
+> really are different quantities".
+>
+> **(b) Candidate collisions** — `candidate_collisions` / `replay_candidates` /
+> `candidate_summary`, derived from the register on disk, never stored, surfaced
+> as its own director block ("NOT CONFLICTS"), its own liveview section ("MIGHT
+> BE THE SAME QUANTITY"), its own follower line and its own CLI heading. No model
+> in it. Rule: same canonical units, names sharing their first two tokens
+> (a FAMILY, so `b_sn_screening`/`b_sn_designrange`/`b_sn_refit` are ONE entry
+> and `mass_spur` vs `mass_worm` are not a family at all), values disagreeing by
+> the same 0.05 band the conflict check uses; plus names identical after
+> canonicalisation (`f_outpin_max` / `F_outpin_max`, both live in the probe),
+> which surface regardless of value. A candidate can NEVER become a conflict —
+> disjoint kinds, separate keys, separate sections, three tests pin it.
+>
+> **Measured against the probe's own register** (132 registrations): **16
+> candidate sets, 0 conflicts.** `mass_worm` / `mass_worm_strength_only` (45.2%
+> apart) and the `f_outpin_max` spelling pair are found. `mass_cyclo` /
+> `mass_cyclo_recovered` is NOT — 1.4% apart, inside the band the register calls
+> "the same number" — a deliberate deviation from the brief, and what takes 18
+> families down to 16. **The strike's objection is confirmed, not refuted, by
+> this number:** several of the 16 are certainly false positives
+> (`p_hertz_lobe` vs `p_hertz_outpin` are different contact stresses). It is
+> affordable only because it is advisory, and its worth is unmeasured.
+>
+> **What it would and would not have caught on `b_sn`.** *Would:* the three fits
+> under `b_sn_screening` / `b_sn_designrange` / `b_sn_refit` surface as one
+> candidate set, `max_rel_difference` 0.957, at move 14 instead of §5.2 — and
+> with (a) taken they register as `b_sn` and become a real CONFLICT, the stronger
+> outcome. *Would not:* (i) fits named without a shared two-token stem
+> (`elasticity_screening` vs `b_sn_refit`) — no string rule connects them;
+> (ii) any fit whose units are undeclared; (iii) anything at all, in the sense
+> that mattered — it makes the contradiction visible, not resolved, so an agent
+> that reads it and does nothing still writes the paper with three fits in it;
+> (iv) a quantity computed exactly once, which was 129 of the probe's 132.
+
 **COST RATE CHANGED. MEASURED: $1.98 per million reported tokens** ($49.96 /
 25.17M), up from $1.30. This is the turn-counter fix landing exactly as predicted —
 moves now run their full turns instead of being cut at half. **Plan on a run

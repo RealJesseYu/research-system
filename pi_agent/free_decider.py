@@ -361,6 +361,39 @@ def build_free_director_input(study: Any, arc: list, budget: dict) -> dict:
             ),
             "open": conflicts,
         }
+    # T0.3 (2026-07-31): a SECOND, STRICTLY ADVISORY block — names registered
+    # apart that might be one quantity. Kept as its own key, with its own note,
+    # because "these disagree" and "these might be the same thing" are different
+    # claims at different confidence and the director must never have to work out
+    # which it is reading. Nothing promotes a candidate to a conflict, ever.
+    #
+    # It exists because of what the gearbox probe measured: 129 of 132 quantities
+    # were computed once, so the conflict check had three chances to fire in an
+    # entire study — agents name each computation distinctly, and on that evidence
+    # the b_sn case (0.32 / 3.65 / 7.43) would have been written b_sn_screening /
+    # b_sn_designrange / b_sn_refit and never fired at all.
+    try:
+        from pi_agent.study import open_quantity_candidates
+        candidates = open_quantity_candidates(study)
+    except Exception:  # noqa: BLE001 — a display block may not sink a decision
+        candidates = []
+    if candidates:
+        view["quantity_candidates"] = {
+            "note": (
+                "NOT CONFLICTS — these are QUESTIONS, and false positives are "
+                "expected. Each is a set of DIFFERENT names this study "
+                "registered in the same units whose values disagree. The "
+                "register can only compare values filed under the SAME name, so "
+                "if any of these sets is really one quantity computed more than "
+                "once, the disagreement between them is a contradiction nothing "
+                "in the system can see. Judge each: if they are genuinely "
+                "different quantities, nothing is wrong and there is nothing to "
+                "do. If they are one quantity, that spread is a real result "
+                "about your own numbers and worth resolving or stating plainly. "
+                "Nothing here constrains what you may do next."
+            ),
+            "candidates": candidates,
+        }
     return view
 
 

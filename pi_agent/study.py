@@ -358,6 +358,30 @@ def open_quantity_conflicts(study: Study) -> list:
         return []
 
 
+def open_quantity_candidates(study: Study) -> list:
+    """T0.3: names this study registered apart that MIGHT be one quantity.
+
+    A SEPARATE CHANNEL FROM open_quantity_conflicts, and it must stay separate
+    everywhere it surfaces. A conflict says two values under one name disagree; a
+    candidate asks whether two names are one quantity, which the register cannot
+    know — near-neighbour names in the same units whose values disagree. It is
+    ADVISORY: the director decides, nothing here ever becomes a conflict.
+
+    Why it exists: measured on study-20260731T033623Z, 129 of 132 quantities were
+    computed exactly once and the register had three chances to fire in a whole
+    study, because agents name each computation distinctly. False positives are
+    certain and affordable only because nothing acts on this automatically.
+
+    Derived from disk, never stored. Never raises."""
+    try:
+        from stages.quantity_register import candidate_summary, replay_candidates
+        return candidate_summary(replay_candidates(quantity_register_path(study)))
+    except Exception as e:  # noqa: BLE001
+        print(f"NOTE: could not derive quantity candidates "
+              f"({type(e).__name__}: {e})")
+        return []
+
+
 def study_scratch_dir(study: Study) -> Path:
     """A study-scoped workspace for the DIRECTOR-LAYER agents — the director's own
     decisions and the analysis/validation tools. These are FULL agents (they may

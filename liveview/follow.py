@@ -72,6 +72,9 @@ class Follower:
         self._arc_seen: set = set()
         self._blockers_seen: set = set()
         self._conflicts_seen: set = set()
+        # T0.3 candidates are their own stream, kept in their own set so a
+        # candidate can never be suppressed by — or mistaken for — a conflict.
+        self._candidates_seen: set = set()
         self._health = None
         # Which study the printed events currently belong to. The header used to
         # print once for the whole session, so after a switch every line was
@@ -184,6 +187,24 @@ class Follower:
                     "study already established:", YELLOW))
                 out.extend(_wrap(str(q.get("detail")), self.width, "    "))
                 out.append("")
+
+        # --- names that MIGHT be one quantity, said once and clearly apart ----
+        # T0.3. A separate loop, a separate seen-set and a separate word from
+        # CONFLICT above, because they are different claims: a CONFLICT is two
+        # values under one name disagreeing, a CANDIDATE is a question about
+        # whether two names are one quantity. The line says "might be" and says
+        # false positives are expected, so a stream reader cannot misread it as
+        # the stronger claim.
+        for cand in active.get("quantity_candidates") or []:
+            names = ", ".join(str(n) for n in (cand.get("names") or []))
+            if not names or names in self._candidates_seen:
+                continue
+            self._candidates_seen.add(names)
+            out.append(self._c(
+                f"MIGHT BE THE SAME QUANTITY (a question, not a conflict) — "
+                f"{names}:", BLUE))
+            out.extend(_wrap(str(cand.get("detail")), self.width, "    "))
+            out.append("")
 
         # --- the run ending ---------------------------------------------------
         health = (snap.get("health") or {}).get("state")

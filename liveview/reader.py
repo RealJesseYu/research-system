@@ -657,6 +657,18 @@ def _arc_entry_view(entry: dict, *, runs_root: Path, with_run: bool, log_lines: 
     return view
 
 
+def _quantity_candidates(study_dir: Path) -> list:
+    """T0.3 candidates for one study, compacted for display. ADVISORY — never a
+    conflict, and rendered under its own heading everywhere so the two claims
+    cannot be confused. Never raises: a missing or unreadable register is simply
+    no candidates, exactly as it was before this existed."""
+    try:
+        from stages.quantity_register import candidate_summary, replay_candidates
+        return candidate_summary(replay_candidates(study_dir / "quantities.jsonl"))
+    except Exception:  # noqa: BLE001
+        return []
+
+
 def _sum_cost(arc_views: list) -> dict:
     calls = tokens = 0
     for v in arc_views:
@@ -720,6 +732,13 @@ def snapshot(
         "report": report,
         "children": [],
     }
+
+    # T0.3: names this study registered apart that MIGHT be one quantity —
+    # ADVISORY, and a different claim from the per-move quantity_conflicts above.
+    # Study-level rather than per-move because it is a property of the whole set
+    # of names, and read here (the one place that knows the on-disk shape) so the
+    # renderers stay presentation-only. Never raises: this is a viewer.
+    node["quantity_candidates"] = _quantity_candidates(study_dir)
 
     # Verified-vs-total across this study's own moves.
     node["verified"] = sum(a["results_verified"] for a in arc)

@@ -127,14 +127,79 @@ conflict". One rule, one number, stated here.
 WHAT IT CATCHES: b_sn 3.6537 vs 7.4314 (rel 0.508) fires at move 14, and 0.3215
 against either fires at move 15 — instead of in §5.2 of the write-up. It also
 fires on b_sn 0.3215 (pooled) vs 0.4711 (identified within SPS project), rel
-0.318, and THAT IS INTENDED: those are two different estimators sharing one
-name, and the register's correct response is to force them apart into
-b_sn_pooled / b_sn_sps or to have the collision acknowledged.
+0.318, and THAT IS INTENDED: two estimators of one coefficient disagreeing by
+32% is exactly the thing a reader must be told, whether it is resolved to one
+number or carried into the write-up as an acknowledged spread.
+
+A NOTE ON "FORCING THEM APART" (amended 2026-07-31). An earlier version of the
+line above offered renaming as a first-class resolution of any collision. It is
+one ONLY when the two really are different quantities; renaming until the check
+goes quiet is how a contradiction becomes invisible, since this module compares
+values only within one literal name. The honest resolutions of a real collision
+are resolving to one number, or saying in the write-up which is authoritative.
+
+Whether agents actually split names is CONTESTED and worth stating carefully,
+because it decides how much the paragraph below is worth. In prose and code
+study-20260730T034915Z used one name, `b_sn`, for all three disagreeing fits.
+But in the one place it wrote a MACHINE-READABLE quantity key — the field this
+module reads — it wrote the qualified `b_sn_design_range`, and bare `b_sn` never
+appears as a quantity key anywhere in that study (re-derived from
+studies/study-20260730T034915Z/report.json). One instance is not a rate.
+
+--------------------------------------------------------------------------
+CANDIDATE COLLISIONS — A SECOND, STRICTLY ADVISORY CHANNEL (T0.3)
+--------------------------------------------------------------------------
+`candidate_collisions()` surfaces DISTINCT names that are plausibly one concept:
+same canonical units, near-neighbour names, values that disagree. It exists
+because the blind spot below is the mechanism's real ceiling, and the only
+honest fix for it is to route the question to something that can judge.
+
+IT IS NOT LOAD-BEARING AND ITS VALUE IS UNMEASURED. Read the contested note
+above first: if agents reliably reuse names, everything worth catching arrives
+through the conflict channel and this one only ever produces noise. Replayed
+over the 132 registrations of study-20260731T033623Z it yields 16 candidate
+sets and several are certainly false — `p_hertz_lobe` against `p_hertz_outpin`
+are different contact stresses. Judge it on whether a director uses it.
+
+IT IS NEVER A CONFLICT, and nothing may ever promote it to one. A conflict says
+"these disagree"; a candidate asks "might these be the same thing?" — different
+claims, different confidence, and they are kept in separate fields, separate
+turn blocks and separate printed sections everywhere they surface, so a reader
+never has to work out which one they are looking at. FALSE POSITIVES ARE
+CERTAIN BY CONSTRUCTION: `p_hertz_lobe` and `p_hertz_outpin` are genuinely
+different contact stresses and this will list them. That is affordable only
+because it is advisory. If a candidate could ever become a conflict
+automatically, this would be a machine that cries wolf into the one channel the
+director is supposed to trust — so it cannot, and a test pins that.
+
+The rule, and why each part of it: no model, no judgement, string work only.
+  - SAME CANONICAL UNITS, both declared. An undeclared unit asserts nothing,
+    and different units mean the names are not competing for one concept.
+  - NEAR-NEIGHBOUR NAMES: names are grouped by their first CANDIDATE_STEM_TOKENS
+    tokens (`b_sn_screening`, `b_sn_designrange`, `b_sn_refit` -> stem `b_sn`;
+    `mass_worm`, `mass_worm_strength_only` -> stem `mass_worm`). A family, not a
+    pair, because a stem with five members is one thing to read and ten pairs is
+    not. `mass_spur` and `mass_worm` share only one token and are NOT a family.
+  - VALUES THAT DISAGREE, by the same CONFLICT_REL_TOL the register already uses
+    for "the same number". A family whose members already agree has nothing to
+    reconcile: if they ARE one quantity, the two goes at it agreed, which is the
+    outcome this exists to check for. This is what keeps the channel small — on
+    the measured study it drops 18 families to 16, and it is why
+    `mass_cyclo` 1.8316 / `mass_cyclo_recovered` 1.85775 (1.4% apart, and a
+    genuine pair) does not appear.
+  - EXCEPT names identical after canonicalisation — `F_outpin_max` and
+    `f_outpin_max`, both live in that study — which surface REGARDLESS of their
+    values. That is not a near neighbour, it is one name spelled two ways, and
+    the value check is precisely the check it silently escaped.
 
 WHAT IT DOES NOT CATCH:
+  - The same quantity registered under two names that are not near neighbours
+    (`life_years` and `service_life`). Candidates narrow this blind spot; no
+    string rule closes it.
   - The same quantity registered under two DIFFERENT names. No threshold fixes
     this; it is the register's fundamental blind spot, and it is exactly why
-    check 3 (a declared comparison) exists and why units are half the value.
+    check 3 (a declared comparison) exists, why units are half the value, and
+    why the candidate channel above exists.
   - A wrong number registered once. Nothing contradicts it. Not this tool's job.
   - Two values that agree numerically but mean different things and were never
     compared. Units help only where they were declared.
@@ -146,8 +211,10 @@ WHAT IT DOES NOT CATCH:
 from __future__ import annotations
 
 import json
+import re
 import unicodedata
 from datetime import datetime, timezone
+from itertools import combinations
 from pathlib import Path
 from typing import Any, Optional
 
@@ -155,6 +222,19 @@ from typing import Any, Optional
 # 0.02, so the register can never fire on a gap the wall would have accepted as
 # a reproduction. Not declarable per registration, deliberately.
 CONFLICT_REL_TOL = 0.05
+
+# How many leading name tokens make a "family" for the ADVISORY candidate channel
+# (see the CANDIDATE COLLISIONS block above). Two, because one token groups every
+# `mass_*` in a study together and three splits `b_sn_screening` from
+# `b_sn_designrange` — the exact pair the channel exists for.
+CANDIDATE_STEM_TOKENS = 2
+
+# The `kind` values a CONFLICT may carry. A candidate's kind is deliberately not
+# among them, and a test pins the two sets disjoint: a reader (or a later
+# refactor) must never be able to mistake "these might be the same thing" for
+# "these disagree".
+CONFLICT_KINDS = frozenset({"value", "units", "incommensurable_comparison"})
+CANDIDATE_KIND = "candidate_same_concept"
 
 # The spellings of "no units at all". Kept to the four that cannot mean anything
 # else; "none", "ratio" and "fraction" are deliberately NOT here, because each
@@ -405,6 +485,148 @@ def check_comparison(finding: Any, register: list, *, move: Any = None) -> list:
     return conflicts
 
 
+_NAME_SPLIT = re.compile(r"[^0-9a-z]+")
+
+
+def name_tokens(name: Any) -> list:
+    """A quantity name split into its lowercase word tokens. String work only —
+    `mass_worm_strength_only` -> ['mass', 'worm', 'strength', 'only'], and
+    `F_outpin_max` and `f-outpin-max` both -> ['f', 'outpin', 'max'].
+    Never raises; a non-string name is stringified rather than rejected."""
+    if not isinstance(name, str):
+        name = "" if name is None else str(name)
+    text = unicodedata.normalize("NFKC", name).lower()
+    return [t for t in _NAME_SPLIT.split(text) if t]
+
+
+def canonical_name(name: Any) -> str:
+    """The name with case, separators and spacing removed as differences. Two
+    names with the same canonical form are one name spelled two ways — which the
+    register itself does NOT know, since it keys on the literal string."""
+    return "_".join(name_tokens(name))
+
+
+def _display_units(reg: dict) -> str:
+    return str(reg.get("units") or reg.get("units_canonical") or "?")
+
+
+def _family_spread(members: list) -> tuple:
+    """(any_pair_disagrees, largest finite relative difference or None) across a
+    family's values, judged by exactly the rule the conflict check uses."""
+    worst = None
+    disagrees = False
+    for (_, a), (_, b) in combinations(members, 2):
+        rel = _values_disagree(a.get("value"), b.get("value"))
+        if rel is None:
+            continue
+        disagrees = True
+        if rel != float("inf") and (worst is None or rel > worst):
+            worst = rel
+    return disagrees, worst
+
+
+def _member_view(name: str, reg: dict) -> dict:
+    return {"name": name, "value": reg.get("value"), "units": reg.get("units"),
+            "move": reg.get("move"), "label": reg.get("label")}
+
+
+def candidate_collisions(register: Any) -> list:
+    """Distinct names that are PLAUSIBLY one quantity — the advisory channel.
+
+    ADVISORY, NEVER A CONFLICT (see the CANDIDATE COLLISIONS block in the module
+    docstring). Every entry carries kind == CANDIDATE_KIND, which is disjoint
+    from CONFLICT_KINDS, and nothing in this module or above it promotes one.
+    False positives are guaranteed by construction and are the price of asking
+    the question at all; the director answers it, the register never asserts it.
+
+    Pure, no model, never raises. One entry per FAMILY rather than per pair, so
+    a stem with five members reads as one line instead of ten."""
+    latest: dict = {}
+    for r in register or []:
+        if not isinstance(r, dict):
+            continue
+        name = r.get("name")
+        if isinstance(name, str) and name.strip():
+            latest[name.strip()] = r  # last registration wins: the current value
+
+    out: list = []
+
+    # (1) One name spelled two ways. Surfaced whatever the values do — the value
+    # check is exactly what these escaped by not being the same literal string.
+    spellings: dict = {}
+    for name, reg in latest.items():
+        units = reg.get("units_canonical")
+        if not units:
+            continue
+        spellings.setdefault((units, canonical_name(name)), []).append((name, reg))
+    collapsed: dict = {}
+    for key, members in spellings.items():
+        collapsed[key] = members[-1]  # one representative per canonical name
+        if len(members) < 2:
+            continue
+        names = [n for n, _ in members]
+        _dis, worst = _family_spread(members)
+        values = ", ".join(f"{n} = {r.get('value')!r}" for n, r in members)
+        out.append({
+            "kind": CANDIDATE_KIND,
+            "reason": "same_name_different_spelling",
+            "names": names,
+            "units": _display_units(members[0][1]),
+            "stem": key[1],
+            "max_rel_difference": worst,
+            "members": [_member_view(n, r) for n, r in members],
+            "detail": (
+                f"{' and '.join(repr(n) for n in names)} differ only in spelling "
+                f"or case, so the register holds them apart as different names "
+                f"and has never compared them ({values}; units "
+                f"{_display_units(members[0][1])!r}). If they are one quantity, "
+                "one spelling for both makes the check work. CANDIDATE ONLY — "
+                "this is a question, not a contradiction."
+            ),
+        })
+
+    # (2) Near-neighbour names in the same units whose values disagree.
+    families: dict = {}
+    for (units, canon), (name, reg) in collapsed.items():
+        toks = name_tokens(canon)
+        if not toks:
+            continue
+        families.setdefault((units, tuple(toks[:CANDIDATE_STEM_TOKENS])),
+                            []).append((name, reg))
+    for (units, stem), members in sorted(families.items()):
+        if len(members) < 2:
+            continue
+        disagrees, worst = _family_spread(members)
+        if not disagrees:
+            continue  # two goes at one number that agree resolve themselves
+        members = sorted(members, key=lambda m: m[0])
+        names = [n for n, _ in members]
+        stem_text = "_".join(stem)
+        spread = (f"by up to {worst * 100:.1f}%" if worst is not None
+                  else "and are not the same value")
+        out.append({
+            "kind": CANDIDATE_KIND,
+            "reason": "near_neighbour_names",
+            "names": names,
+            "units": _display_units(members[0][1]),
+            "stem": stem_text,
+            "max_rel_difference": worst,
+            "members": [_member_view(n, r) for n, r in members],
+            "detail": (
+                f"{', '.join(repr(n) for n in names)} are different names in the "
+                f"same units ({_display_units(members[0][1])!r}) sharing the stem "
+                f"{stem_text!r}, and their values differ {spread}. They may be "
+                "estimates of ONE quantity registered under separate names — in "
+                "which case that spread is a contradiction the register cannot "
+                "see, because it only ever compares values filed under the same "
+                "name. They may equally be genuinely different quantities, in "
+                "which case nothing is wrong. CANDIDATE ONLY — this is a "
+                "question for you, not a contradiction the register is asserting."
+            ),
+        })
+    return out
+
+
 def read_register(path: Any) -> list:
     """Every registration on disk, oldest first. Never raises: a missing file is
     an empty register, and an unreadable LINE is skipped and counted out loud
@@ -490,6 +712,36 @@ def replay_conflicts(path: Any) -> list:
         conflicts.extend(check_against(reg, seen))
         seen.append(reg)
     return conflicts
+
+
+def replay_candidates(path: Any) -> list:
+    """Every candidate collision the register on disk implies, recomputed from
+    scratch — same derived-never-stored discipline as replay_conflicts, and for
+    the same reason: what a reader is shown cannot drift from the registrations
+    behind it. ADVISORY; see candidate_collisions."""
+    return candidate_collisions(read_register(path))
+
+
+def candidate_summary(candidates: list) -> list:
+    """The compact form of the ADVISORY channel, for a turn view or a terminal.
+
+    Deliberately shaped UNLIKE conflict_summary — it carries `names` (plural,
+    the family) and `reason` where a conflict carries one `quantity` and a
+    `kind` — so the two can never be rendered by the same code path or read as
+    the same claim. Pure; never raises on a malformed candidate."""
+    out = []
+    for c in candidates or []:
+        if not isinstance(c, dict):
+            continue
+        out.append({
+            "kind": c.get("kind"),
+            "reason": c.get("reason"),
+            "names": c.get("names"),
+            "units": c.get("units"),
+            "max_rel_difference": c.get("max_rel_difference"),
+            "detail": c.get("detail"),
+        })
+    return out
 
 
 def conflict_summary(conflicts: list) -> list:

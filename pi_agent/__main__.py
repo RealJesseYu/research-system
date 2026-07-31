@@ -208,6 +208,43 @@ def _print_quantity_conflicts(report: dict) -> None:
         print(f"    {c.get('detail')}")
 
 
+def _print_quantity_candidates(report: dict) -> None:
+    """T0.3: NAMES THAT MIGHT BE ONE QUANTITY. A DIFFERENT CLAIM, PRINTED APART.
+
+    Its own section, its own heading, and never merged into the conflicts block
+    above, because a reader must never have to guess whether they are being told
+    "these disagree" (a fact about two values under one name) or "these might be
+    the same thing" (a question the register cannot answer). FALSE POSITIVES ARE
+    EXPECTED here and the heading says so.
+
+    Read from the register on disk rather than the arc, because a candidate is a
+    property of the whole study's names, not of the move that added the last one.
+    Silent when there are none; never raises."""
+    try:
+        from pathlib import Path
+
+        from stages.quantity_register import candidate_summary, replay_candidates
+        sid = report.get("study_id")
+        if not sid:
+            return
+        candidates = candidate_summary(
+            replay_candidates(Path("studies") / str(sid) / "quantities.jsonl"))
+    except Exception:  # noqa: BLE001
+        return
+    if not candidates:
+        return
+    print("\n=== CANDIDATE COLLISIONS — DIFFERENT NAMES THAT MIGHT BE ONE "
+          "QUANTITY ===")
+    print("  (QUESTIONS, not conflicts — false positives are expected, and "
+          "nothing acted on these)")
+    for c in candidates:
+        names = ", ".join(str(n) for n in (c.get("names") or []))
+        rel = c.get("max_rel_difference")
+        spread = f" (up to {rel * 100:.1f}% apart)" if isinstance(rel, float) else ""
+        print(f"  MIGHT BE THE SAME: {names} [{c.get('units')}]{spread}")
+        print(f"    {c.get('detail')}")
+
+
 def main(argv: list | None = None) -> None:
     parser = argparse.ArgumentParser(
         prog="python -m pi_agent",
@@ -384,6 +421,7 @@ def main(argv: list | None = None) -> None:
                 print(f"    proceeded with instead: {b['workaround_used']}")
 
     _print_quantity_conflicts(report)
+    _print_quantity_candidates(report)
 
     # PAPER ROUTE (opt-in). Written here, at the entry point, rather than inside
     # either director: it then covers BOTH directors with one wire, and it writes

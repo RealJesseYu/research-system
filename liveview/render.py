@@ -189,6 +189,35 @@ def render(snap: dict, *, width: int = 100, color: bool = True,
                f"{tot.get('studies', 1)} study/studies)", BOLD))
     L.extend(_arc_lines(root, c, W))
 
+    # --- names that might be one quantity ---------------------------------- #
+    # T0.3. ITS OWN SECTION, deliberately far from the inline CONFLICT lines in
+    # the arc above: a CONFLICT is a fact (two values filed under one name
+    # disagree), a CANDIDATE is a question the register cannot answer (two names
+    # might be one quantity), and a watcher must never have to work out which
+    # they are looking at. The heading says false positives are expected because
+    # they are — this fires on genuinely different quantities by construction.
+    candidates = _all_candidates(root)
+    if candidates:
+        L.append("")
+        L.append(c(f" MIGHT BE THE SAME QUANTITY  ({len(candidates)} set(s) of "
+                   "different names, same units, values that disagree)", BOLD))
+        L.extend(c(x, DIM) for x in _wrap(
+            "QUESTIONS, not conflicts — nothing acted on these, and false "
+            "positives are expected. The register can only compare values filed "
+            "under the SAME name, so if any set below is really one quantity "
+            "computed twice, that spread is a disagreement nothing else can see.",
+            W, "   "))
+        for cand in candidates[:12]:
+            rel = cand.get("max_rel_difference")
+            spread = (f"  up to {rel * 100:.1f}% apart"
+                      if isinstance(rel, float) else "")
+            L.append("   " + c("?", YELLOW) + " "
+                     + _clip(", ".join(str(n) for n in (cand.get("names") or [])),
+                             W - 30)
+                     + c(f"  [{cand.get('units')}]{spread}", GREY))
+        if len(candidates) > 12:
+            L.append(c(f"   … and {len(candidates) - 12} more", GREY))
+
     # --- what stood, and what it cost -------------------------------------- #
     verified, claims = tot.get("verified", 0), tot.get("claims", 0)
     rate = f"{verified}/{claims}"
@@ -248,6 +277,16 @@ def render(snap: dict, *, width: int = 100, color: bool = True,
 # reader.STATE_WORD, so no two surfaces can disagree about whether a move failed.
 _STATE_MARK = {"stood": ("✓", GREEN), "ran": ("◐", BLUE), "did_not_run": ("✗", RED)}
 _LABEL_W = 9
+
+
+def _all_candidates(node: dict) -> list:
+    """T0.3 candidate sets across a study and its sub-studies, in tree order.
+    Presentation-only: the reader derived these, this just walks the tree."""
+    out = list(node.get("quantity_candidates") or [])
+    for child in node.get("children") or []:
+        if isinstance(child, dict):
+            out.extend(_all_candidates(child))
+    return out
 
 
 def _field(c: _Painter, W: int, indent: str, label: str, text, *,
